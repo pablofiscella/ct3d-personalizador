@@ -157,6 +157,10 @@ class Handler(BaseHTTPRequestHandler):
             if not data["nombre"]:
                 data["nombre"] = "Tomás"
             tema = q.get("tema", ["safari"])[0]
+            ov = q.get("over", [""])[0]              # personalización del cliente (JSON)
+            if ov:
+                try: data["_over"] = json.loads(ov)
+                except Exception: pass
             img = piezas.preview_invitacion(data, max_px=900, tema=tema)
             img = piezas.marca_agua(img)   # marca de agua SOLO en el preview (el kit comprado sale limpio)
             buf = io.BytesIO(); img.save(buf, "PNG"); body = buf.getvalue()
@@ -165,6 +169,37 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Cache-Control", "no-store")
             self.send_header("Content-Length", str(len(body)))
             self.end_headers(); self.wfile.write(body)
+            return
+        # ---- editor del CLIENTE (público; se incrusta en la página del producto) ----
+        if path == "/cliente":
+            html = open(os.path.join(generador.BASEDIR, "cliente.html"), encoding="utf-8").read()
+            body = html.encode("utf-8")          # sin token: es público (no edita tu config)
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers(); self.wfile.write(body)
+            return
+        if path == "/cliente/layout":
+            q = urllib.parse.parse_qs(u.query)
+            pieza = q.get("pieza", ["invitacion"])[0]
+            tema = q.get("tema", ["safari"])[0]
+            return self._json(200, generador.layout_para_editor(pieza, tema))
+        if path == "/cliente-bg.png":
+            q = urllib.parse.parse_qs(u.query)
+            pieza = q.get("pieza", ["invitacion"])[0]
+            edad = q.get("edad", ["1"])[0]
+            tema = q.get("tema", ["safari"])[0]
+            bp = generador.bg_path_for(pieza, edad, tema)
+            if not bp or not os.path.isfile(bp):
+                return self._json(404, {"ok": False, "error": "fondo no encontrado"})
+            im = piezas.marca_agua(Image.open(bp).convert("RGB"))   # con marca de agua (protege el asset)
+            buf = io.BytesIO(); im.save(buf, "PNG"); data = buf.getvalue()
+            self.send_response(200)
+            self.send_header("Content-Type", "image/png")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers(); self.wfile.write(data)
             return
         m = re.match(r"^/descarga/([A-Za-z0-9_-]+)$", path)
         if m:
@@ -322,6 +357,8 @@ class Handler(BaseHTTPRequestHandler):
         data = {c: str(payload.get(c, "")).strip() for c in CAMPOS}
         if not data["nombre"]:
             return self._json(400, {"ok": False, "error": "falta 'nombre'"})
+        if isinstance(payload.get("over"), dict):    # personalización del cliente (mini-editor)
+            data["_over"] = payload["over"]
         tema = str(payload.get("tema", "safari")).strip() or "safari"
         order_id = slug(payload.get("order_id", "s"))
         token = f"{order_id}-{secrets.token_hex(4)}"

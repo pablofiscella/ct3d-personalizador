@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Personalizá tu kit — Casa Tridimensional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700&family=Source+Code+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* fuentes del LIENZO (las que el cliente puede elegir) — cargadas por JS desde /fonts */
+  :root{
+    --bg-base:#F6F2EC; --bg-elevated:#FFFFFF; --bg-sunken:#F0EBE2; --bg-warm:#FBF8F2; --bg-inverse:#1B1530;
+    --ink-1:#1B1530; --ink-2:#4A4361; --ink-3:#736C87; --ink-4:#B8B0C4;
+    --border:#E8E2D5; --border-strong:#D5CCB9;
+    --accent:#6B5BD2; --accent-deep:#4D3FB0; --accent-soft:#ECE7FA; --accent-tint:#F4F1FC;
+    --success:#2D8C5A; --success-soft:#E0F0E6;
+    --font-display:'Titillium Web',-apple-system,'Segoe UI',sans-serif;
+    --font-body:'Titillium Web',-apple-system,'Segoe UI',sans-serif;
+    --font-mono:'Source Code Pro',ui-monospace,'SF Mono',Menlo,monospace;
+    --radius-sm:6px; --radius:10px; --radius-lg:16px; --radius-pill:999px;
+    --shadow-sm:0 1px 2px rgba(27,21,48,.05),0 1px 2px rgba(27,21,48,.03);
+    --shadow:0 4px 16px rgba(27,21,48,.07),0 1px 2px rgba(27,21,48,.04);
+    --shadow-pop:0 12px 32px rgba(27,21,48,.10);
+    --ease-out:cubic-bezier(.2,.8,.2,1); --dur-fast:120ms;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font-body);background:var(--bg-base);color:var(--ink-1);font-size:14px;line-height:1.45}
+  button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
+
+  .wrap{display:flex;gap:16px;padding:16px;max-width:1100px;margin:0 auto;align-items:flex-start}
+  /* lienzo */
+  #left{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;background:var(--bg-sunken);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px}
+  canvas{background:#fff;border:1px solid var(--border-strong);border-radius:8px;box-shadow:var(--shadow-pop);max-width:100%;max-height:74vh;cursor:grab;touch-action:none}
+  canvas.drag{cursor:grabbing}
+  /* panel */
+  #panel{flex:0 0 320px;max-width:320px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow-sm);max-height:88vh;overflow:auto}
+  h1{font-family:var(--font-display);font-weight:700;font-size:17px;margin-bottom:3px}
+  .sub{font-size:12px;color:var(--ink-3);margin-bottom:14px}
+  .lbl{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:16px 0 8px}
+  .field{margin-bottom:9px}
+  .field label{display:block;font-size:11.5px;font-weight:600;color:var(--ink-2);margin-bottom:3px}
+  .field input{width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;font-size:13.5px;color:var(--ink-1);font-family:var(--font-body);transition:all var(--dur-fast)}
+  .field input:focus{outline:0;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .field input.sel{border-color:var(--accent);background:var(--accent-tint)}
+
+  .style-box{border-top:1px solid var(--border);margin-top:14px;padding-top:12px}
+  .style-box.off{opacity:.45;pointer-events:none}
+  .style-which{font-family:var(--font-mono);font-size:11px;color:var(--accent-deep);font-weight:600;margin-bottom:10px}
+  .ctrl{margin:11px 0}
+  .ctrl label{display:flex;justify-content:space-between;font-size:11.5px;font-weight:600;color:var(--ink-2);margin-bottom:6px}
+  .ctrl label span{font-family:var(--font-mono);color:var(--accent-deep)}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:999px;background:var(--bg-sunken);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:var(--shadow-sm);cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);border:2px solid #fff;cursor:pointer}
+  .fonts{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .fbtn{border:1px solid var(--border);background:var(--bg-warm);border-radius:var(--radius-sm);padding:8px 6px;font-size:15px;color:var(--ink-1);transition:all var(--dur-fast);line-height:1.1;text-align:center}
+  .fbtn small{display:block;font-family:var(--font-body);font-size:9px;color:var(--ink-3);font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-top:3px}
+  .fbtn:hover{border-color:var(--border-strong)}
+  .fbtn.sel{border-color:var(--accent);background:var(--accent-soft)}
+  .nudge{display:grid;grid-template-columns:repeat(3,40px);gap:5px;width:max-content;margin:12px 0 0}
+  .nudge button{padding:8px 0;border:1px solid var(--border);background:var(--bg-warm);border-radius:var(--radius-sm);color:var(--ink-2);transition:all var(--dur-fast)}
+  .nudge button:hover{background:var(--accent-soft);color:var(--accent-deep);border-color:var(--accent)}
+  .nudge .sp{visibility:hidden}
+
+  .actions{border-top:1px solid var(--border);margin-top:16px;padding-top:14px}
+  .btn-primary{width:100%;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:#fff;border-radius:var(--radius-sm);padding:12px;font-weight:600;font-size:14px;transition:all var(--dur-fast) var(--ease-out)}
+  .btn-primary:hover{background:var(--accent-deep);transform:translateY(-1px);box-shadow:var(--shadow)}
+  .btn-link{display:block;width:100%;text-align:center;margin-top:8px;font-size:12px;color:var(--ink-3);font-weight:600}
+  .btn-link:hover{color:var(--accent-deep)}
+  .hint{font-size:11px;color:var(--ink-3);margin-top:10px;line-height:1.5}
+
+  @media (max-width:780px){
+    .wrap{flex-direction:column}
+    #panel{flex:none;max-width:none;width:100%;max-height:none}
+    canvas{max-height:60vh}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div id="left"><canvas id="cv"></canvas></div>
+    <aside id="panel">
+      <h1>Personalizá tu kit 🦁</h1>
+      <div class="sub">Completá tus datos y, si querés, movelos o cambiá la tipografía. Tocá un texto en la tarjeta para ajustarlo.</div>
+
+      <div class="lbl">Tus datos</div>
+      <div id="datos"></div>
+
+      <div class="style-box off" id="stylebox">
+        <div class="style-which" id="which">Tocá un texto para personalizarlo</div>
+        <div class="ctrl">
+          <label>Tamaño <span id="szv"></span></label>
+          <input type="range" id="size" min="16" max="320" step="1">
+        </div>
+        <div class="ctrl">
+          <label>Grosor <span id="wgv"></span></label>
+          <input type="range" id="wght" min="400" max="700" step="100">
+        </div>
+        <div class="ctrl">
+          <label>Tipografía</label>
+          <div class="fonts" id="fonts"></div>
+        </div>
+        <div class="nudge">
+          <span class="sp"></span><button data-d="u">▲</button><span class="sp"></span>
+          <button data-d="l">◀</button><button data-d="d">▼</button><button data-d="r">▶</button>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn-primary" id="confirmar">Confirmar diseño</button>
+        <a class="btn-link" id="verfinal" href="#">Ver cómo queda el kit final ↗</a>
+        <p class="hint">Los íconos (calendario, reloj) se agregan automáticamente en el kit final. La tarjeta sale sin la marca de agua al comprarla.</p>
+      </div>
+    </aside>
+  </div>
+<script>
+const qs=new URLSearchParams(location.search);
+const TEMA=qs.get('tema')||'safari';
+const EDAD=qs.get('edad')||'1';
+const PIEZA='invitacion';
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let SIZE=[1500,2100], fields=[], bg=new Image(), sel=null, drag=null, CAT=[];
+// campos que completa el cliente (edad viene de la variante de Woo)
+const CAMPOS=[['nombre','Nombre del cumpleañero'],['fecha','Fecha'],['hora','Hora'],
+              ['lugar','Salón / lugar'],['direccion','Dirección'],['telefono','Teléfono (RSVP)']];
+const FILE2FAM={};   // archivo .ttf -> familia CSS
+
+function setFont(f,size){ctx.font=`${f.wght||500} ${size}px "${f.family}"`;}
+function fitSize(f){let s=f.size;const mw=f.maxw*SIZE[0];for(;s>10;s-=2){setFont(f,s);if(ctx.measureText(f.text||' ').width<=mw)return s;}return s;}
+function box(f){const s=fitSize(f);setFont(f,s);const w=ctx.measureText(f.text||' ').width;const px=f.x*SIZE[0],py=f.y*SIZE[1];
+  const left=f.anchor[0]==='l'?px:px-w/2;return{l:left,t:py-s*0.62,r:left+w,b:py+s*0.62,s,w};}
+
+function draw(){
+  cv.width=SIZE[0];cv.height=SIZE[1];
+  ctx.clearRect(0,0,SIZE[0],SIZE[1]);
+  if(bg.complete&&bg.naturalWidth)ctx.drawImage(bg,0,0,SIZE[0],SIZE[1]);
+  for(const f of fields){
+    if(!f.text)continue;
+    const s=fitSize(f);setFont(f,s);ctx.fillStyle=f.color;
+    ctx.textAlign=f.anchor[0]==='l'?'left':'center';
+    const x0=f.x*SIZE[0], y0=f.y*SIZE[1];
+    if(f.anchor[1]==='m'){
+      const m=ctx.measureText(f.text);ctx.textBaseline='alphabetic';
+      ctx.fillText(f.text,x0,y0+(m.actualBoundingBoxAscent-m.actualBoundingBoxDescent)/2);
+    }else{ctx.textBaseline=f.anchor[1]==='t'?'top':'alphabetic';ctx.fillText(f.text,x0,y0);}
+    if(sel&&sel.id===f.id){const b=box(f);ctx.strokeStyle='rgba(107,91,210,.9)';ctx.lineWidth=3;ctx.setLineDash([10,7]);
+      ctx.strokeRect(b.l-8,b.t-4,(b.r-b.l)+16,(b.b-b.t)+8);ctx.setLineDash([]);}
+  }
+}
+
+function buildDatos(){
+  const c=document.getElementById('datos');c.innerHTML='';
+  CAMPOS.forEach(([id,lab])=>{
+    const f=fields.find(x=>x.id===id);if(!f)return;
+    const d=document.createElement('div');d.className='field';
+    d.innerHTML=`<label>${lab}</label><input type="text" data-f="${id}" value="${(f.text||'').replace(/"/g,'&quot;')}">`;
+    const inp=d.querySelector('input');
+    inp.oninput=()=>{f.text=inp.value;draw();};
+    inp.onfocus=()=>select(id);
+    c.appendChild(d);
+  });
+}
+function buildFonts(){
+  const c=document.getElementById('fonts');c.innerHTML='';
+  CAT.forEach(ft=>{
+    const b=document.createElement('button');b.className='fbtn';b.dataset.file=ft.file;
+    b.innerHTML=`<span style="font-family:'${ft.family}'">Aa</span><small>${ft.label}</small>`;
+    b.onclick=()=>{if(!sel)return;sel.family=ft.family;sel._font=ft.file;markFont();draw();};
+    c.appendChild(b);
+  });
+}
+function markFont(){document.querySelectorAll('.fbtn').forEach(b=>b.classList.toggle('sel',sel&&b.dataset.file===sel._font));}
+
+function select(id){
+  sel=fields.find(f=>f.id===id);
+  const sb=document.getElementById('stylebox');sb.classList.toggle('off',!sel);
+  document.querySelectorAll('#datos input').forEach(i=>i.classList.toggle('sel',sel&&i.dataset.f===sel.id));
+  if(sel){
+    document.getElementById('which').textContent='Ajustando: '+(CAMPOS.find(c=>c[0]===sel.id)?.[1]||sel.id);
+    document.getElementById('size').value=Math.round(sel.size);
+    document.getElementById('szv').textContent=Math.round(sel.size)+'px';
+    document.getElementById('wght').value=sel.wght||500;
+    document.getElementById('wgv').textContent=sel.wght||500;
+    markFont();
+  }
+  draw();
+}
+
+// click / drag en el lienzo
+function toCanvas(e){const r=cv.getBoundingClientRect();const cx=(e.touches?e.touches[0].clientX:e.clientX),cy=(e.touches?e.touches[0].clientY:e.clientY);
+  return{x:(cx-r.left)*(SIZE[0]/r.width),y:(cy-r.top)*(SIZE[1]/r.height)};}
+function down(e){const p=toCanvas(e);
+  for(let i=fields.length-1;i>=0;i--){const f=fields[i];if(!f.text)continue;const b=box(f);
+    if(p.x>=b.l-12&&p.x<=b.r+12&&p.y>=b.t-8&&p.y<=b.b+8){select(f.id);drag={ox:p.x-sel.x*SIZE[0],oy:p.y-sel.y*SIZE[1]};cv.classList.add('drag');e.preventDefault();return;}}}
+function move(e){if(!drag||!sel)return;const p=toCanvas(e);
+  sel.x=Math.min(1,Math.max(0,(p.x-drag.ox)/SIZE[0]));sel.y=Math.min(1,Math.max(0,(p.y-drag.oy)/SIZE[1]));draw();e.preventDefault();}
+function up(){drag=null;cv.classList.remove('drag');}
+cv.addEventListener('mousedown',down);window.addEventListener('mousemove',move);window.addEventListener('mouseup',up);
+cv.addEventListener('touchstart',down,{passive:false});window.addEventListener('touchmove',move,{passive:false});window.addEventListener('touchend',up);
+
+document.getElementById('size').oninput=e=>{if(!sel)return;sel.size=+e.target.value;document.getElementById('szv').textContent=sel.size+'px';draw();};
+document.getElementById('wght').oninput=e=>{if(!sel)return;sel.wght=+e.target.value;document.getElementById('wgv').textContent=e.target.value;draw();};
+document.querySelectorAll('.nudge button').forEach(b=>b.onclick=()=>{if(!sel)return;const d=b.dataset.d,sx=1/1500,sy=1/2100;
+  sel.x=Math.min(1,Math.max(0,sel.x+(d==='l'?-sx:d==='r'?sx:0)));sel.y=Math.min(1,Math.max(0,sel.y+(d==='u'?-sy:d==='d'?sy:0)));draw();});
+
+// personalización -> objeto `over` para mandar al carrito
+function buildOver(){
+  const over={};
+  for(const f of fields){over[f.id]={x:+f.x.toFixed(4),y:+f.y.toFixed(4),size:Math.round(f.size),wght:f.wght||500,maxw:f.maxw,font:f._font};}
+  const data={};for(const f of fields)data[f.id]=f.text||'';
+  return{tema:TEMA,edad:EDAD,data,over};
+}
+document.getElementById('confirmar').onclick=()=>{
+  const payload=buildOver();
+  // dentro de Woo: avisa al carrito; en prueba: log
+  if(window.parent!==window)window.parent.postMessage({type:'ct3d-kit',payload},'*');
+  document.getElementById('confirmar').textContent='✓ Diseño confirmado';
+};
+document.getElementById('verfinal').onclick=(e)=>{
+  e.preventDefault();const p=buildOver();
+  const q=new URLSearchParams({tema:TEMA,edad:EDAD,over:JSON.stringify(p.over)});
+  for(const[k,v]of Object.entries(p.data))q.set(k,v);
+  window.open('/preview?'+q.toString(),'_blank');
+};
+
+// init
+(async function(){
+  const lay=await (await fetch(`/cliente/layout?pieza=${PIEZA}&tema=${TEMA}&cb=${Date.now()}`)).json();
+  SIZE=lay.size; CAT=lay.fonts||[];
+  CAT.forEach(f=>FILE2FAM[f.file]=f.family);
+  // cargar las fuentes del catálogo desde /fonts
+  await Promise.all(CAT.map(f=>new FontFace(f.family,`url(/fonts/${f.file})`).load().then(ff=>document.fonts.add(ff)).catch(()=>{})));
+  // armar fields con texto inicial = sample, y el archivo de fuente actual
+  fields=lay.fields.map(f=>({...f, text:f.sample||'', _font:f.font}));
+  await new Promise(res=>{bg.onload=res;bg.onerror=res;bg.src=`/cliente-bg.png?pieza=${PIEZA}&edad=${EDAD}&tema=${TEMA}&cb=${Date.now()}`;});
+  buildDatos(); buildFonts(); draw();
+})();
+</script>
+</body>
+</html>

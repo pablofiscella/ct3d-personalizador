@@ -77,6 +77,20 @@ _font_cache = {}
 # Poppins es estática: el grosor se logra cambiando de archivo
 _POPPINS = {400: "Poppins-Regular.ttf", 500: "Poppins-Medium.ttf",
             600: "Poppins-SemiBold.ttf", 700: "Poppins-Bold.ttf"}
+
+# Catálogo de tipografías que el cliente puede elegir (mini-editor). Cada entrada
+# existe como .ttf en FONTS y se carga igual en el canvas (CSS family) y en
+# Pillow (file). `kind`: display = títulos/nombre, body = datos.
+FONTS_CATALOG = [
+    {"file": "DancingScript-VF.ttf", "family": "DancingScript", "label": "Manuscrita", "kind": "display"},
+    {"file": "Pacifico-Regular.ttf", "family": "Pacifico",      "label": "Cursiva",    "kind": "display"},
+    {"file": "Fredoka-VF.ttf",       "family": "Fredoka",       "label": "Redondeada", "kind": "display"},
+    {"file": "Baloo2-VF.ttf",        "family": "Baloo2",        "label": "Globo",      "kind": "display"},
+    {"file": "Poppins-Medium.ttf",   "family": "Poppins",       "label": "Limpia",     "kind": "body"},
+]
+_FONT_FILES = {f["file"] for f in FONTS_CATALOG}
+_FILE_TO_FAMILY = {f["file"]: f["family"] for f in FONTS_CATALOG}
+
 def _resolve_font_file(fname, wght):
     if fname.startswith("Poppins") and wght:
         nearest = min(_POPPINS, key=lambda k: abs(k - wght))
@@ -228,16 +242,19 @@ def layout_para_editor(pieza="invitacion", tema=TEMA_DEFAULT):
     spec = specs_de(tema).get(pieza, SPEC)
     samples = {"nombre": "Tomás", "fecha": "Sábado 12 de julio", "hora": "16:00 hs",
                "lugar": "Salón Los Robles", "direccion": "Av. Siempreviva 742", "rsvp": "11-5555-5555"}
-    fams = {"DancingScript-VF.ttf": "DancingScript", "Poppins-Medium.ttf": "Poppins",
-            "Fredoka-VF.ttf": "Fredoka"}
+    # familia CSS de cada archivo de fuente (cae al catálogo si no está mapeada)
+    fams = dict(_FILE_TO_FAMILY)
+    fams.setdefault("Poppins-Medium.ttf", "Poppins")
     out = []
     for f in _effective_texts(spec):
+        ffile = f["font"]
         out.append({"id": f["id"], "x": f["x"], "y": f["y"], "size": f["size"],
                     "maxw": f.get("maxw", 0.9), "anchor": f["anchor"],
-                    "family": fams.get(f["font"], "sans-serif"), "wght": f.get("wght", 500),
+                    "font": ffile,                      # archivo .ttf actual (para overrides)
+                    "family": fams.get(ffile, "sans-serif"), "wght": f.get("wght", 500),
                     "color": "#%02x%02x%02x" % tuple(f["color"]), "sample": samples.get(f["id"], "")})
     return {"size": spec["size"], "fields": out, "pieza": pieza, "tema": tema,
-            "piezas": list(specs_de(tema).keys())}
+            "piezas": list(specs_de(tema).keys()), "fonts": FONTS_CATALOG}
 
 # ---- render principal ----
 def render(data, spec=None):
@@ -272,6 +289,19 @@ def render(data, spec=None):
             for k in ("x", "y", "size", "maxw", "wght", "anchor"):
                 if k in byid[src]:
                     f[k] = byid[src][k]
+    # overrides del cliente (mini-editor): data["_over"][campo] = {x,y,size,maxw,wght,font}
+    # se mezclan sobre tu layout. La tipografía se valida contra el catálogo.
+    over = data.get("_over") or {}
+    if over:
+        for f in texts:
+            o = over.get(f["id"]) or {}
+            for k in ("x", "y", "size", "maxw", "wght"):
+                if k in o:
+                    try: f[k] = float(o[k])
+                    except (TypeError, ValueError): pass
+            fn = o.get("font")
+            if fn in _FONT_FILES:          # solo fuentes del catálogo (existen como .ttf)
+                f["font"] = fn
     if scale != 1.0:                        # escala los tamaños de fuente junto con el canvas
         for f in texts:
             f["size"] = f["size"] * scale
