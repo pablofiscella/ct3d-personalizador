@@ -121,9 +121,13 @@ const EDAD=qs.get('edad')||'1';
 const PIEZA='invitacion';
 const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
 let SIZE=[1500,2100], fields=[], bg=new Image(), sel=null, drag=null, CAT=[];
-// campos que completa el cliente (edad viene de la variante de Woo)
+// campos que completa el cliente (edad viene de la variante de Woo).
+// [clave-de-dato, etiqueta] — el id interno del campo puede diferir (ver DKEY).
 const CAMPOS=[['nombre','Nombre del cumpleañero'],['fecha','Fecha'],['hora','Hora'],
               ['lugar','Salón / lugar'],['direccion','Dirección'],['telefono','Teléfono (RSVP)']];
+const DKEY={rsvp:'telefono'};            // id de campo -> clave de dato
+const dkey=id=>DKEY[id]||id;             // por defecto coinciden
+const fieldByData=k=>fields.find(f=>dkey(f.id)===k);
 const FILE2FAM={};   // archivo .ttf -> familia CSS
 
 function setFont(f,size){ctx.font=`${f.wght||500} ${size}px "${f.family}"`;}
@@ -151,13 +155,13 @@ function draw(){
 
 function buildDatos(){
   const c=document.getElementById('datos');c.innerHTML='';
-  CAMPOS.forEach(([id,lab])=>{
-    const f=fields.find(x=>x.id===id);if(!f)return;
+  CAMPOS.forEach(([k,lab])=>{
+    const f=fieldByData(k);if(!f)return;
     const d=document.createElement('div');d.className='field';
-    d.innerHTML=`<label>${lab}</label><input type="text" data-f="${id}" value="${(f.text||'').replace(/"/g,'&quot;')}">`;
+    d.innerHTML=`<label>${lab}</label><input type="text" data-f="${f.id}" value="${(f.text||'').replace(/"/g,'&quot;')}">`;
     const inp=d.querySelector('input');
-    inp.oninput=()=>{f.text=inp.value;draw();};
-    inp.onfocus=()=>select(id);
+    inp.oninput=()=>{f.text=inp.value;draw();emit();};
+    inp.onfocus=()=>select(f.id);
     c.appendChild(d);
   });
 }
@@ -166,7 +170,7 @@ function buildFonts(){
   CAT.forEach(ft=>{
     const b=document.createElement('button');b.className='fbtn';b.dataset.file=ft.file;
     b.innerHTML=`<span style="font-family:'${ft.family}'">Aa</span><small>${ft.label}</small>`;
-    b.onclick=()=>{if(!sel)return;sel.family=ft.family;sel._font=ft.file;markFont();draw();};
+    b.onclick=()=>{if(!sel)return;sel.family=ft.family;sel._font=ft.file;markFont();draw();emit();};
     c.appendChild(b);
   });
 }
@@ -195,27 +199,36 @@ function down(e){const p=toCanvas(e);
     if(p.x>=b.l-12&&p.x<=b.r+12&&p.y>=b.t-8&&p.y<=b.b+8){select(f.id);drag={ox:p.x-sel.x*SIZE[0],oy:p.y-sel.y*SIZE[1]};cv.classList.add('drag');e.preventDefault();return;}}}
 function move(e){if(!drag||!sel)return;const p=toCanvas(e);
   sel.x=Math.min(1,Math.max(0,(p.x-drag.ox)/SIZE[0]));sel.y=Math.min(1,Math.max(0,(p.y-drag.oy)/SIZE[1]));draw();e.preventDefault();}
-function up(){drag=null;cv.classList.remove('drag');}
+function up(){if(drag)emit();drag=null;cv.classList.remove('drag');}
 cv.addEventListener('mousedown',down);window.addEventListener('mousemove',move);window.addEventListener('mouseup',up);
 cv.addEventListener('touchstart',down,{passive:false});window.addEventListener('touchmove',move,{passive:false});window.addEventListener('touchend',up);
 
-document.getElementById('size').oninput=e=>{if(!sel)return;sel.size=+e.target.value;document.getElementById('szv').textContent=sel.size+'px';draw();};
-document.getElementById('wght').oninput=e=>{if(!sel)return;sel.wght=+e.target.value;document.getElementById('wgv').textContent=e.target.value;draw();};
+document.getElementById('size').oninput=e=>{if(!sel)return;sel.size=+e.target.value;document.getElementById('szv').textContent=sel.size+'px';draw();emit();};
+document.getElementById('wght').oninput=e=>{if(!sel)return;sel.wght=+e.target.value;document.getElementById('wgv').textContent=e.target.value;draw();emit();};
 document.querySelectorAll('.nudge button').forEach(b=>b.onclick=()=>{if(!sel)return;const d=b.dataset.d,sx=1/1500,sy=1/2100;
-  sel.x=Math.min(1,Math.max(0,sel.x+(d==='l'?-sx:d==='r'?sx:0)));sel.y=Math.min(1,Math.max(0,sel.y+(d==='u'?-sy:d==='d'?sy:0)));draw();});
+  sel.x=Math.min(1,Math.max(0,sel.x+(d==='l'?-sx:d==='r'?sx:0)));sel.y=Math.min(1,Math.max(0,sel.y+(d==='u'?-sy:d==='d'?sy:0)));draw();emit();});
 
-// personalización -> objeto `over` para mandar al carrito
+// personalización -> objeto para mandar al carrito.
+// `over` va por id de campo (lo que el motor mezcla); `data` por clave de dato.
 function buildOver(){
-  const over={};
-  for(const f of fields){over[f.id]={x:+f.x.toFixed(4),y:+f.y.toFixed(4),size:Math.round(f.size),wght:f.wght||500,maxw:f.maxw,font:f._font};}
-  const data={};for(const f of fields)data[f.id]=f.text||'';
+  const over={}, data={};
+  for(const f of fields){
+    over[f.id]={x:+f.x.toFixed(4),y:+f.y.toFixed(4),size:Math.round(f.size),wght:f.wght||500,maxw:f.maxw,font:f._font};
+    data[dkey(f.id)]=f.text||'';
+  }
   return{tema:TEMA,edad:EDAD,data,over};
 }
+// avisa al contenedor (WordPress) la personalización actual, con debounce
+let _emitT=null;
+function emit(){
+  if(window.parent===window)return;
+  clearTimeout(_emitT);
+  _emitT=setTimeout(()=>window.parent.postMessage({type:'ct3d-kit',payload:buildOver()},'*'),250);
+}
 document.getElementById('confirmar').onclick=()=>{
-  const payload=buildOver();
-  // dentro de Woo: avisa al carrito; en prueba: log
-  if(window.parent!==window)window.parent.postMessage({type:'ct3d-kit',payload},'*');
-  document.getElementById('confirmar').textContent='✓ Diseño confirmado';
+  if(window.parent!==window)window.parent.postMessage({type:'ct3d-kit',payload:buildOver(),confirm:true},'*');
+  const b=document.getElementById('confirmar');b.textContent='✓ Diseño confirmado';
+  setTimeout(()=>{b.textContent='Confirmar diseño';},1800);
 };
 document.getElementById('verfinal').onclick=(e)=>{
   e.preventDefault();const p=buildOver();
@@ -234,7 +247,7 @@ document.getElementById('verfinal').onclick=(e)=>{
   // armar fields con texto inicial = sample, y el archivo de fuente actual
   fields=lay.fields.map(f=>({...f, text:f.sample||'', _font:f.font}));
   await new Promise(res=>{bg.onload=res;bg.onerror=res;bg.src=`/cliente-bg.png?pieza=${PIEZA}&edad=${EDAD}&tema=${TEMA}&cb=${Date.now()}`;});
-  buildDatos(); buildFonts(); draw();
+  buildDatos(); buildFonts(); draw(); emit();
 })();
 </script>
 </body>

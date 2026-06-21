@@ -87,54 +87,67 @@ class CT3D_Kit {
         global $product;
         if (!$product || !self::is_kit($product->get_id())) return;
         $o = self::opts();
-        $preview = trailingslashit($o['service_url']) . 'preview';
-        echo '<div class="ct3d-kit-form" style="margin:18px 0;display:grid;gap:20px;grid-template-columns:1fr 1fr;align-items:start">';
-        echo '<div>';
+        $svc  = rtrim($o['service_url'], '/');
+        $tema = self::tema_de($product->get_id());
+        echo '<div class="ct3d-kit-editor" style="margin:18px 0">';
         echo '<h4 style="margin:.2em 0 .6em">Personalizá tu kit 🦁</h4>';
-        foreach (self::campos() as $key => $label) {
-            if ($key === 'edad') {
-                echo '<p style="margin:0 0 10px"><label for="ct3d_edad" style="display:block;font-size:.85em;font-weight:600">' . esc_html($label) . ' *</label>
-                      <select id="ct3d_edad" name="ct3d[edad]" style="width:100%;padding:9px 11px;border:1px solid #ccc;border-radius:8px">
-                        <option value="1">1 año</option><option value="2">2 años</option><option value="3">3 años</option>
-                      </select></p>';
-                continue;
-            }
-            $ph = $key === 'nombre' ? 'Tomás' : '';
-            printf(
-                '<p style="margin:0 0 10px"><label for="ct3d_%1$s" style="display:block;font-size:.85em;font-weight:600">%2$s%3$s</label>
-                 <input type="text" id="ct3d_%1$s" name="ct3d[%1$s]" maxlength="40" placeholder="%4$s" style="width:100%%;padding:9px 11px;border:1px solid #ccc;border-radius:8px"></p>',
-                esc_attr($key), esc_html($label),
-                $key === 'nombre' ? ' *' : '', esc_attr($ph)
-            );
-        }
+        echo '<p style="margin:0 0 12px"><label for="ct3d_edad" style="display:block;font-size:.85em;font-weight:600;margin-bottom:4px">Edad del cumpleañero *</label>
+              <select id="ct3d_edad" style="padding:9px 11px;border:1px solid #ccc;border-radius:8px">
+                <option value="1">1 año</option><option value="2">2 años</option><option value="3">3 años</option>
+              </select></p>';
+        printf('<iframe id="ct3d_editor" src="%s" title="Editor del kit"
+                 style="width:100%%;height:700px;border:1px solid #e0d5c2;border-radius:14px;background:#F6F2EC"></iframe>',
+               esc_url($svc . '/cliente?tema=' . rawurlencode($tema) . '&edad=1'));
+        echo '<input type="hidden" name="ct3d_payload" id="ct3d_payload">';
         echo '</div>';
-        echo '<div style="text-align:center">
-                <img id="ct3d-preview-img" alt="Vista previa" style="max-width:100%;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.12)">
-                <p style="font-size:.75em;opacity:.7;margin-top:8px">Vista previa de la invitación. El kit completo (7 piezas) se genera con estos datos.</p>
-              </div>';
-        echo '</div>';
-        // JS de preview en vivo (debounce -> /preview del servicio)
-        $fields = wp_json_encode(array_keys(self::campos()));
-        $svc = esc_js(rtrim($o['service_url'], '/'));
-        $tema = esc_js(self::tema_de($product->get_id()));
+        $jsvc = wp_json_encode($svc); $jtema = wp_json_encode($tema);
         echo "<script>(function(){
-            var svc='{$svc}', tema='{$tema}', fields={$fields}, img=document.getElementById('ct3d-preview-img'), t;
-            function upd(){clearTimeout(t);t=setTimeout(function(){
-                var p=new URLSearchParams();
-                fields.forEach(function(f){var e=document.getElementById('ct3d_'+f); if(e)p.set(f,e.value);});
-                if(!p.get('nombre'))p.set('nombre','Tomás');
-                p.set('tema', tema);
-                img.src=svc+'/preview?'+p.toString()+'&_t='+Date.now();
-            },500);}
-            fields.forEach(function(f){var e=document.getElementById('ct3d_'+f); if(e){e.addEventListener('input',upd);e.addEventListener('change',upd);}});
-            upd();
+            var svc={$jsvc}, tema={$jtema};
+            var fr=document.getElementById('ct3d_editor'),
+                edad=document.getElementById('ct3d_edad'),
+                hid=document.getElementById('ct3d_payload');
+            edad.addEventListener('change',function(){
+                fr.src=svc+'/cliente?tema='+encodeURIComponent(tema)+'&edad='+encodeURIComponent(edad.value);
+            });
+            window.addEventListener('message',function(e){
+                if(!e.origin || svc.indexOf(e.origin)!==0) return;   // solo mensajes del servicio del kit
+                if(e.data && e.data.type==='ct3d-kit' && e.data.payload){
+                    hid.value=JSON.stringify(e.data.payload);
+                }
+            });
         })();</script>";
+    }
+
+    static function payload_post() {
+        // Lee y decodifica el JSON que el editor del cliente dejó en el campo oculto.
+        if (empty($_POST['ct3d_payload'])) return null;
+        $p = json_decode(wp_unslash($_POST['ct3d_payload']), true);
+        return is_array($p) ? $p : null;
+    }
+
+    static function sanitize_over($over) {
+        // Solo números (posición/tamaño/grosor) y un nombre de archivo de fuente.
+        $out = array();
+        if (!is_array($over)) return $out;
+        foreach ($over as $fid => $o) {
+            if (!is_array($o)) continue;
+            $fid = preg_replace('/[^a-z0-9_]/i', '', (string) $fid);
+            $c = array();
+            foreach (array('x', 'y', 'size', 'maxw', 'wght') as $k) {
+                if (isset($o[$k])) $c[$k] = floatval($o[$k]);
+            }
+            if (isset($o['font'])) $c['font'] = preg_replace('/[^A-Za-z0-9_.\-]/', '', (string) $o['font']);
+            if ($c) $out[$fid] = $c;
+        }
+        return $out;
     }
 
     static function validate($passed, $product_id) {
         if (self::is_kit($product_id)) {
-            if (empty($_POST['ct3d']['nombre']) || !trim($_POST['ct3d']['nombre'])) {
-                wc_add_notice('Escribí el nombre del cumpleañero/a para personalizar el kit.', 'error');
+            $p = self::payload_post();
+            $nombre = $p && !empty($p['data']['nombre']) ? trim($p['data']['nombre']) : '';
+            if ($nombre === '') {
+                wc_add_notice('Escribí el nombre del cumpleañero/a en el editor para personalizar el kit.', 'error');
                 return false;
             }
         }
@@ -142,13 +155,15 @@ class CT3D_Kit {
     }
 
     static function add_cart_item_data($cart_item_data, $product_id) {
-        if (self::is_kit($product_id) && !empty($_POST['ct3d'])) {
+        if (self::is_kit($product_id) && ($p = self::payload_post()) && !empty($p['data'])) {
             $data = array();
             foreach (array_keys(self::campos()) as $k) {
-                $data[$k] = isset($_POST['ct3d'][$k]) ? sanitize_text_field(wp_unslash($_POST['ct3d'][$k])) : '';
+                $data[$k] = isset($p['data'][$k]) ? sanitize_text_field($p['data'][$k]) : '';
             }
+            if (!empty($p['edad'])) $data['edad'] = sanitize_text_field($p['edad']);
             $cart_item_data['ct3d_kit'] = $data;
-            $cart_item_data['ct3d_uid'] = md5(wp_json_encode($data) . microtime()); // líneas separadas por datos
+            $cart_item_data['ct3d_over'] = self::sanitize_over(isset($p['over']) ? $p['over'] : array());
+            $cart_item_data['ct3d_uid'] = md5(wp_json_encode($p) . microtime()); // líneas separadas por diseño
         }
         return $cart_item_data;
     }
@@ -170,6 +185,9 @@ class CT3D_Kit {
                 if ($v !== '') $item->add_meta_data($c[$k], $v, true);
             }
             $item->add_meta_data('_ct3d_kit_data', $values['ct3d_kit'], true); // crudo, oculto
+            if (!empty($values['ct3d_over'])) {
+                $item->add_meta_data('_ct3d_over', $values['ct3d_over'], true); // personalización (posición/fuente)
+            }
         }
     }
 
@@ -184,11 +202,13 @@ class CT3D_Kit {
         foreach ($order->get_items() as $item_id => $item) {
             $data = $item->get_meta('_ct3d_kit_data', true);
             if (empty($data) || empty($data['nombre'])) continue;
+            $over = $item->get_meta('_ct3d_over', true);
 
             $body = array_merge($data, array(
                 'order_id' => (string) $order_id,
                 'email'    => $order->get_billing_email(),
                 'tema'     => self::tema_de($item->get_product_id()),
+                'over'     => is_array($over) ? $over : array(),
             ));
             $resp = wp_remote_post(trailingslashit($o['service_url']) . 'api/generar', array(
                 'timeout' => 120,
