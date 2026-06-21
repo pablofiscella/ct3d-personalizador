@@ -151,6 +151,21 @@ class Handler(BaseHTTPRequestHandler):
         path = u.path
         if path == "/health":
             return self._json(200, {"ok": True, "servicio": "kit-anito-salvaje"})
+        if path == "/plugin.zip":
+            # descarga del plugin de WordPress (protegida con el token; sin secretos adentro)
+            if not self._admin_ok(u):
+                return self._deny()
+            zp = os.path.join(generador.BASEDIR, "wordpress", "ct3d-kit-personalizado.zip")
+            if not os.path.isfile(zp):
+                return self._json(404, {"ok": False, "error": "zip no encontrado"})
+            data = open(zp, "rb").read()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/zip")
+            self.send_header("Content-Disposition", 'attachment; filename="ct3d-kit-personalizado.zip"')
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers(); self.wfile.write(data)
+            return
         if path == "/preview":
             q = urllib.parse.parse_qs(u.query)
             data = {c: (q.get(c, [""])[0] or "") for c in CAMPOS}
