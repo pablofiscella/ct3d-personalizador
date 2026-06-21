@@ -89,30 +89,52 @@ class CT3D_Kit {
         $o = self::opts();
         $svc  = rtrim($o['service_url'], '/');
         $tema = self::tema_de($product->get_id());
-        echo '<div class="ct3d-kit-editor" style="margin:18px 0">';
+        // En la columna del producto va solo edad + botón. El editor se abre en
+        // un modal a pantalla completa, así en escritorio entra la versión ancha
+        // (tarjeta al costado) y en celular la compacta — sin pelear con el ancho
+        // de la columna angosta del producto.
+        echo '<div class="ct3d-kit-cta" style="margin:16px 0">';
         echo '<h4 style="margin:.2em 0 .6em">Personalizá tu kit 🦁</h4>';
         echo '<p style="margin:0 0 12px"><label for="ct3d_edad" style="display:block;font-size:.85em;font-weight:600;margin-bottom:4px">Edad del cumpleañero *</label>
               <select id="ct3d_edad" style="padding:9px 11px;border:1px solid #ccc;border-radius:8px">
                 <option value="1">1 año</option><option value="2">2 años</option><option value="3">3 años</option>
               </select></p>';
-        printf('<iframe id="ct3d_editor" src="%s" title="Editor del kit"
-                 style="width:100%%;height:700px;border:1px solid #e0d5c2;border-radius:14px;background:#F6F2EC"></iframe>',
-               esc_url($svc . '/cliente?tema=' . rawurlencode($tema) . '&edad=1'));
+        echo '<button type="button" id="ct3d_open" class="button alt" style="padding:12px 20px;border-radius:10px;font-weight:700">🎨 Personalizá tu kit</button>';
+        echo ' <span id="ct3d_status" style="margin-left:8px;font-weight:600;color:#2D8C5A;display:none">✓ Diseño listo</span>';
         echo '<input type="hidden" name="ct3d_payload" id="ct3d_payload">';
         echo '</div>';
-        $jsvc = wp_json_encode($svc); $jtema = wp_json_encode($tema);
+        // modal (oculto hasta tocar el botón)
+        echo '<div id="ct3d_modal" style="position:fixed;inset:0;z-index:99999;background:rgba(20,16,40,.6);display:none;align-items:center;justify-content:center;padding:2vmin">
+                <div style="position:relative;width:min(1120px,96vw);height:min(92vh,860px);background:#F6F2EC;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.45)">
+                  <button type="button" id="ct3d_close" aria-label="Cerrar" style="position:absolute;top:10px;right:12px;z-index:2;width:34px;height:34px;border-radius:50%;border:0;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.2);font-size:18px;line-height:1;cursor:pointer">&times;</button>
+                  <iframe id="ct3d_editor" title="Editor del kit" style="width:100%;height:100%;border:0;display:block"></iframe>
+                </div>
+              </div>';
+        $jbase = wp_json_encode($svc . '/cliente?tema=' . rawurlencode($tema));
+        $jsvc  = wp_json_encode($svc);
         echo "<script>(function(){
-            var svc={$jsvc}, tema={$jtema};
-            var fr=document.getElementById('ct3d_editor'),
-                edad=document.getElementById('ct3d_edad'),
-                hid=document.getElementById('ct3d_payload');
-            edad.addEventListener('change',function(){
-                fr.src=svc+'/cliente?tema='+encodeURIComponent(tema)+'&edad='+encodeURIComponent(edad.value);
-            });
+            var base={$jbase}, svc={$jsvc};
+            var edad=document.getElementById('ct3d_edad'),
+                openb=document.getElementById('ct3d_open'),
+                closeb=document.getElementById('ct3d_close'),
+                modal=document.getElementById('ct3d_modal'),
+                fr=document.getElementById('ct3d_editor'),
+                hid=document.getElementById('ct3d_payload'),
+                status=document.getElementById('ct3d_status');
+            function abrir(){ fr.src=base+'&edad='+encodeURIComponent(edad.value); modal.style.display='flex'; document.body.style.overflow='hidden'; }
+            function cerrar(){ modal.style.display='none'; document.body.style.overflow=''; }
+            openb.addEventListener('click',abrir);
+            closeb.addEventListener('click',cerrar);
+            modal.addEventListener('click',function(e){ if(e.target===modal) cerrar(); });
+            document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&modal.style.display==='flex') cerrar(); });
+            edad.addEventListener('change',function(){ if(modal.style.display==='flex') fr.src=base+'&edad='+encodeURIComponent(edad.value); });
             window.addEventListener('message',function(e){
                 if(!e.origin || svc.indexOf(e.origin)!==0) return;   // solo mensajes del servicio del kit
                 if(e.data && e.data.type==='ct3d-kit' && e.data.payload){
                     hid.value=JSON.stringify(e.data.payload);
+                    status.style.display='inline';
+                    openb.textContent='✏️ Editar diseño';
+                    if(e.data.confirm) cerrar();
                 }
             });
         })();</script>";
