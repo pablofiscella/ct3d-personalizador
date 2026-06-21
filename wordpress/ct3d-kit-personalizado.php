@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: CT3D · Kit Personalizado (Un Añito Salvaje)
- * Description: Campos de personalización + vista previa en vivo en el producto, y generación automática del kit (ZIP de PDFs) al pagar, vía el servicio Python de CT3D.
- * Version: 1.0
+ * Description: Editor del cliente (modal a pantalla completa: mover textos, tamaño, grosor, tipografía) en el producto, y generación automática del kit (ZIP de PDFs) al pagar, vía el servicio Python de CT3D.
+ * Version: 2.0
  * Author: Casa Tridimensional
  * Requires Plugins: woocommerce
  */
