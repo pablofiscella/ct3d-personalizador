@@ -1,0 +1,10 @@
+import { chromium } from 'playwright-core';
+import fs from 'fs';
+const b=await chromium.launch({executablePath:process.argv[2]});
+const p=await b.newPage();
+await p.goto('http://localhost:8787/editor?key='+process.argv[3],{waitUntil:'networkidle'});
+await p.waitForTimeout(2000);
+const durl=await p.$eval('#cv', c=>c.toDataURL('image/png'));
+fs.writeFileSync('salida/editor_native.png', Buffer.from(durl.split(',')[1],'base64'));
+console.log('canvas guardado');
+await b.close();

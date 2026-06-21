@@ -1,0 +1,209 @@
+{
+  "size": [
+    1500,
+    2100
+  ],
+  "bg": [
+    244,
+    239,
+    230
+  ],
+  "art": [
+    {
+      "file": "arco.png",
+      "anchor": "mt",
+      "x": 0.5,
+      "y": 0.025,
+      "w": 0.95
+    },
+    {
+      "file": "leon.png",
+      "anchor": "mb",
+      "x": 0.25,
+      "y": 0.945,
+      "w": 0.25
+    },
+    {
+      "file": "jirafa.png",
+      "anchor": "mb",
+      "x": 0.5,
+      "y": 0.945,
+      "w": 0.18
+    },
+    {
+      "file": "monito.png",
+      "anchor": "mb",
+      "x": 0.75,
+      "y": 0.945,
+      "w": 0.25
+    }
+  ],
+  "text": [
+    {
+      "id": "titulo",
+      "tpl": "El primer añito de",
+      "editable": false,
+      "font": "Poppins-Medium.ttf",
+      "size": 48,
+      "color": [
+        111,
+        78,
+        55
+      ],
+      "x": 0.5,
+      "y": 0.23,
+      "anchor": "mm",
+      "maxw": 0.58
+    },
+    {
+      "id": "nombre",
+      "tpl": "{nombre}",
+      "editable": true,
+      "font": "DancingScript-VF.ttf",
+      "wght": 700,
+      "size": 175,
+      "color": [
+        200,
+        103,
+        78
+      ],
+      "x": 0.5,
+      "y": 0.33,
+      "anchor": "mm",
+      "maxw": 0.6
+    },
+    {
+      "id": "lema",
+      "tpl": "¡Un añito salvaje!",
+      "editable": false,
+      "font": "Fredoka-VF.ttf",
+      "wght": 600,
+      "size": 62,
+      "color": [
+        107,
+        122,
+        79
+      ],
+      "x": 0.5,
+      "y": 0.425,
+      "anchor": "mm",
+      "maxw": 0.6
+    },
+    {
+      "id": "fecha",
+      "tpl": "{fecha}",
+      "editable": true,
+      "font": "Poppins-Medium.ttf",
+      "size": 40,
+      "color": [
+        111,
+        78,
+        55
+      ],
+      "x": 0.5,
+      "y": 0.51,
+      "anchor": "mm",
+      "maxw": 0.58
+    },
+    {
+      "id": "hora",
+      "tpl": "{hora}",
+      "editable": true,
+      "font": "Poppins-Medium.ttf",
+      "size": 40,
+      "color": [
+        111,
+        78,
+        55
+      ],
+      "x": 0.5,
+      "y": 0.555,
+      "anchor": "mm",
+      "maxw": 0.58
+    },
+    {
+      "id": "lugar",
+      "tpl": "{lugar}",
+      "editable": true,
+      "font": "Poppins-Medium.ttf",
+      "size": 40,
+      "color": [
+        111,
+        78,
+        55
+      ],
+      "x": 0.5,
+      "y": 0.6,
+      "anchor": "mm",
+      "maxw": 0.58
+    },
+    {
+      "id": "rsvp",
+      "tpl": "Confirmá asistencia: {telefono}",
+      "editable": true,
+      "font": "Poppins-Medium.ttf",
+      "size": 31,
+      "color": [
+        111,
+        78,
+        55
+      ],
+      "x": 0.5,
+      "y": 0.98,
+      "anchor": "mm",
+      "maxw": 0.9
+    }
+  ],
+  "form": [
+    {
+      "var": "nombre",
+      "label": "Nombre del cumpleañero/a",
+      "default": "Tomás"
+    },
+    {
+      "var": "fecha",
+      "label": "Fecha",
+      "default": "Sábado 12 de julio"
+    },
+    {
+      "var": "hora",
+      "label": "Hora",
+      "default": "16:00 hs"
+    },
+    {
+      "var": "lugar",
+      "label": "Lugar",
+      "default": "Salón Los Robles"
+    },
+    {
+      "var": "telefono",
+      "label": "Teléfono para confirmar",
+      "default": "11-5555-5555"
+    }
+  ],
+  "fonts": {
+    "Poppins-Medium.ttf": {
+      "family": "Poppins",
+      "weight": 500
+    },
+    "Fredoka-VF.ttf": {
+      "family": "Fredoka",
+      "weight": 400,
+      "variable": true
+    },
+    "DancingScript-VF.ttf": {
+      "family": "DancingScript",
+      "weight": 400,
+      "variable": true
+    },
+    "Pacifico-Regular.ttf": {
+      "family": "Pacifico",
+      "weight": 400
+    },
+    "Baloo2-VF.ttf": {
+      "family": "Baloo2",
+      "weight": 400,
+      "variable": true
+    }
+  }
+}

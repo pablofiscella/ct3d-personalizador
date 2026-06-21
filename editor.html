@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Editor de kit — Casatridimensional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700&family=Source+Code+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* fuentes del LIENZO (no de la UI) — replican el render de Pillow */
+  @font-face{font-family:'DancingScript';src:url('/fonts/DancingScript-VF.ttf');}
+  @font-face{font-family:'Poppins';src:url('/fonts/Poppins-Regular.ttf');font-weight:400;}
+  @font-face{font-family:'Poppins';src:url('/fonts/Poppins-Medium.ttf');font-weight:500;}
+  @font-face{font-family:'Poppins';src:url('/fonts/Poppins-SemiBold.ttf');font-weight:600;}
+  @font-face{font-family:'Poppins';src:url('/fonts/Poppins-Bold.ttf');font-weight:700;}
+
+  /* Tokens — copiados 1:1 del design system del dashboard CT3D */
+  :root{
+    --bg-base:#F6F2EC; --bg-elevated:#FFFFFF; --bg-sunken:#F0EBE2; --bg-warm:#FBF8F2; --bg-inverse:#1B1530;
+    --ink-1:#1B1530; --ink-2:#4A4361; --ink-3:#736C87; --ink-4:#B8B0C4; --ink-5:#E5E0D6;
+    --border:#E8E2D5; --border-strong:#D5CCB9;
+    --accent:#6B5BD2; --accent-deep:#4D3FB0; --accent-soft:#ECE7FA; --accent-tint:#F4F1FC;
+    --success:#2D8C5A; --success-soft:#E0F0E6; --danger:#C73E3A; --danger-soft:#FAE3E1;
+    --font-display:'Titillium Web',-apple-system,'Segoe UI',sans-serif;
+    --font-body:'Titillium Web',-apple-system,'Segoe UI',sans-serif;
+    --font-mono:'Source Code Pro',ui-monospace,'SF Mono',Menlo,monospace;
+    --radius-sm:6px; --radius:10px; --radius-lg:16px; --radius-pill:999px;
+    --shadow-sm:0 1px 2px rgba(27,21,48,.05),0 1px 2px rgba(27,21,48,.03);
+    --shadow:0 4px 16px rgba(27,21,48,.07),0 1px 2px rgba(27,21,48,.04);
+    --shadow-pop:0 12px 32px rgba(27,21,48,.10);
+    --ease-out:cubic-bezier(.2,.8,.2,1); --dur-fast:120ms;
+  }
+  [data-theme="dark"]{
+    --bg-base:#110E20; --bg-elevated:#1A1530; --bg-warm:#211B3A; --bg-sunken:#14102A;
+    --ink-1:#F6F2EC; --ink-2:#BBB3CB; --ink-3:#988FAC; --ink-4:#5C5675; --ink-5:#2C2548;
+    --border:#2C2548; --border-strong:#3A3360; --accent-soft:#2A235A; --accent-tint:#221C44;
+    --success-soft:#1A3A28; --danger-soft:#4A2220;
+    --shadow:0 6px 18px rgba(0,0,0,.4),0 2px 5px rgba(0,0,0,.3); --shadow-pop:0 16px 40px rgba(0,0,0,.55);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font-body);background:var(--bg-base);color:var(--ink-1);height:100vh;display:flex;flex-direction:column;overflow:hidden;font-size:14px;line-height:1.45}
+  button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
+  a{color:inherit;text-decoration:none}
+
+  /* ── TOPBAR ── */
+  .topbar{display:flex;align-items:center;gap:14px;padding:11px 20px;background:var(--bg-warm);border-bottom:1px solid var(--border);flex:none}
+  .topbar__logo{width:32px;height:32px;border-radius:50%;flex:none;background:var(--bg-inverse);display:grid;place-items:center;overflow:hidden;color:#F6F2EC;font-family:var(--font-display);font-weight:700;font-size:12px}
+  .topbar__logo img{width:100%;height:100%;object-fit:cover}
+  .topbar__title{font-family:var(--font-display);font-weight:700;font-size:16px;letter-spacing:-.01em;line-height:1}
+  .topbar__sub{font-family:var(--font-mono);font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+  .tema-chip{font-family:var(--font-mono);font-size:11.5px;font-weight:600;color:var(--accent-deep);background:var(--accent-soft);border-radius:var(--radius-pill);padding:4px 12px}
+  [data-theme="dark"] .tema-chip{color:#C9BFFA}
+  .topbar__spacer{flex:1}
+  .topbar__btn{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--ink-2);font-size:13px;font-weight:600;transition:all var(--dur-fast)}
+  .topbar__btn:hover{background:var(--bg-sunken);color:var(--ink-1);border-color:var(--border-strong)}
+  .topbar__theme{padding:7px 9px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px}
+
+  /* ── STAGE ── */
+  .stage{flex:1;display:flex;gap:18px;padding:18px 20px;min-height:0;overflow:hidden}
+  #left{flex:1;display:grid;place-items:center;min-width:0;min-height:0;padding:14px}
+  /* marco ajustado a la tarjeta (abraza el lienzo, no un panel ancho) */
+  .mat{background:var(--bg-sunken);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;display:flex;align-items:center;justify-content:center;max-width:100%;max-height:100%}
+  canvas{background:#fff;border:1px solid var(--border-strong);border-radius:8px;box-shadow:var(--shadow-pop);max-height:min(72vh,640px);max-width:100%;cursor:grab}
+  /* modo embebido dentro del panel: el shell ya aporta la barra y el menú */
+  body.embed .topbar{display:none}
+  body.embed .stage{padding:14px}
+  /* embebido: el marco llena el alto (misma altura que el panel de la derecha)
+     y la tarjeta lo llena por dentro, con padding parejo */
+  body.embed #left{padding:2px 0;display:flex;align-items:center;justify-content:center}
+  body.embed .mat{height:750px}
+  body.embed canvas{max-height:100%}
+  canvas.drag{cursor:grabbing}
+
+  /* ── PANEL ── */
+  #panel{flex:0 0 340px;max-width:340px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;overflow:auto;box-shadow:var(--shadow-sm)}
+  h1{font-family:var(--font-display);font-weight:700;font-size:17px;letter-spacing:-.01em;margin-bottom:10px}
+  .hint{font-size:12px;color:var(--ink-3);margin-bottom:14px;line-height:1.5}
+  .hint b{color:var(--ink-2);font-weight:600}
+
+  /* selector de pieza — segmentado */
+  #piezas{display:flex;gap:6px;margin-bottom:14px;background:var(--bg-sunken);padding:4px;border-radius:var(--radius);border:1px solid var(--border)}
+  .pz{flex:1;border:1px solid transparent;background:transparent;border-radius:var(--radius-sm);padding:8px 0;font-size:13px;font-weight:600;color:var(--ink-2);transition:all var(--dur-fast)}
+  .pz:hover{color:var(--ink-1)}
+  .pz.sel{background:var(--bg-elevated);color:var(--accent-deep);border-color:var(--border);box-shadow:var(--shadow-sm)}
+  [data-theme="dark"] .pz.sel{color:#C9BFFA}
+
+  /* chips de campo */
+  .label-row{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:7px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+  .chip{border:1px solid var(--border);background:var(--bg-warm);border-radius:var(--radius-pill);padding:6px 13px;font-size:12.5px;font-weight:500;color:var(--ink-2);transition:all var(--dur-fast)}
+  .chip:hover{border-color:var(--border-strong);color:var(--ink-1)}
+  .chip.sel{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+  /* controles */
+  #sel{border-top:1px solid var(--border);padding-top:14px}
+  .ctrl{margin:14px 0}
+  .ctrl label{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:7px}
+  .ctrl label span{font-family:var(--font-mono);font-size:12px;color:var(--accent-deep);font-weight:600}
+  [data-theme="dark"] .ctrl label span{color:#C9BFFA}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:999px;background:var(--bg-sunken);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);border:2px solid var(--bg-elevated);box-shadow:var(--shadow-sm);cursor:pointer;transition:background var(--dur-fast)}
+  input[type=range]::-webkit-slider-thumb:hover{background:var(--accent-deep)}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);border:2px solid var(--bg-elevated);cursor:pointer}
+  input[type=range]::-moz-range-track{height:5px;border-radius:999px;background:var(--bg-sunken)}
+
+  /* nudge direccional */
+  .nudge{display:grid;grid-template-columns:repeat(3,42px);gap:6px;width:max-content;margin:16px 0}
+  .nudge button{padding:9px 0;border:1px solid var(--border);background:var(--bg-warm);border-radius:var(--radius-sm);color:var(--ink-2);font-size:13px;transition:all var(--dur-fast)}
+  .nudge button:hover{background:var(--accent-soft);color:var(--accent-deep);border-color:var(--accent)}
+  .nudge .sp{visibility:hidden}
+
+  .vals{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-3);margin-top:8px;letter-spacing:.02em}
+
+  #save{width:100%;margin-top:18px;padding:12px;border-radius:var(--radius-sm);background:var(--accent);color:#fff;font-weight:600;font-size:14px;transition:all var(--dur-fast) var(--ease-out)}
+  #save:hover{background:var(--accent-deep);transform:translateY(-1px);box-shadow:var(--shadow)}
+  #save:active{transform:translateY(0);box-shadow:none}
+  #msg{font-size:12.5px;font-weight:600;margin-top:12px;min-height:1.2em;text-align:center;color:var(--ink-2)}
+  #msg.ok{color:var(--success)} #msg.err{color:var(--danger)}
+
+  @media (max-width:760px){
+    body{overflow:auto;height:auto}
+    .stage{flex-direction:column;overflow:visible}
+    #left{min-height:50vh}
+    #panel{flex:none;max-width:none;width:100%}
+  }
+</style>
+</head>
+<body data-theme="light">
+  <header class="topbar">
+    <div class="topbar__logo"><img src="https://dash.casatridimensional.com.ar/assets/logo-ct3d.webp" alt="" onerror="this.replaceWith(document.createTextNode('C3D'))"></div>
+    <div>
+      <div class="topbar__title">Editor de kit</div>
+      <div class="topbar__sub">Casatridimensional</div>
+    </div>
+    <span class="tema-chip" id="temachip">tema</span>
+    <div class="topbar__spacer"></div>
+    <button class="topbar__theme" id="themebtn" title="Cambiar tema">🌙</button>
+    <a class="topbar__btn" href="/dash">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Volver al panel
+    </a>
+  </header>
+
+  <div class="stage">
+    <div id="left">
+      <div class="mat"><canvas id="cv"></canvas></div>
+    </div>
+    <aside id="panel">
+      <h1>Posicionar textos</h1>
+      <div id="piezas">
+        <button class="pz sel" data-pz="invitacion">Invitación</button>
+        <button class="pz" data-pz="afiche">Afiche</button>
+      </div>
+      <p class="hint">Tocá un texto sobre la imagen (o un chip) para seleccionarlo. <b>Arrastralo</b> para moverlo, o usá las flechas (⇧ = saltos de 10). Ajustá tamaño y grosor con los sliders. Cuando te guste, <b>Guardar</b>.</p>
+      <div class="label-row">Campos</div>
+      <div class="chips" id="chips"></div>
+      <div id="sel" style="display:none">
+        <div class="ctrl">
+          <label>Tamaño <span id="szv"></span></label>
+          <input type="range" id="size" min="16" max="320" step="1">
+        </div>
+        <div class="ctrl">
+          <label>Grosor de letra <span id="wgv"></span></label>
+          <input type="range" id="wght" min="400" max="700" step="100">
+        </div>
+        <div class="ctrl">
+          <label>Ancho máx (auto-ajuste) <span id="mwv"></span></label>
+          <input type="range" id="maxw" min="20" max="95" step="1">
+        </div>
+        <div class="nudge">
+          <span class="sp"></span><button data-d="u">▲</button><span class="sp"></span>
+          <button data-d="l">◀</button><button data-d="d">▼</button><button data-d="r">▶</button>
+        </div>
+        <div class="vals" id="vals"></div>
+      </div>
+      <button id="save">Guardar cambios</button>
+      <div id="msg"></div>
+    </aside>
+  </div>
+<script>
+const KEY="__API_KEY__";
+const _qs=new URLSearchParams(location.search);
+const TEMA=_qs.get('tema')||'safari';
+if(_qs.get('embed'))document.body.classList.add('embed');
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let SIZE=[1500,2100], fields=[], bg=new Image(), sel=null, drag=null;
+
+function famWeight(f){return (f.wght||500)+' '+'';}
+function setFont(f,size){ctx.font=`${f.wght||500} ${size}px "${f.family}"`;}
+function fitSize(f){let s=f.size;const mw=f.maxw*SIZE[0];for(;s>10;s-=2){setFont(f,s);if(ctx.measureText(f.sample).width<=mw)return s;}return s;}
+function box(f){const s=fitSize(f);setFont(f,s);const w=ctx.measureText(f.sample).width;const px=f.x*SIZE[0],py=f.y*SIZE[1];
+  const left=f.anchor[0]==='l'?px:px-w/2;return {l:left,t:py-s*0.62,r:left+w,b:py+s*0.62,s,w};}
+
+function draw(){
+  cv.width=SIZE[0];cv.height=SIZE[1];
+  ctx.clearRect(0,0,SIZE[0],SIZE[1]);
+  if(bg.complete&&bg.naturalWidth)ctx.drawImage(bg,0,0,SIZE[0],SIZE[1]);
+  for(const f of fields){
+    const s=fitSize(f);setFont(f,s);ctx.fillStyle=f.color;
+    ctx.textAlign=f.anchor[0]==='l'?'left':'center';
+    // anclar vertical IGUAL que Pillow: centrar el alto REAL de los glifos
+    const x0=f.x*SIZE[0], y0=f.y*SIZE[1];
+    if(f.anchor[1]==='m'){
+      const m=ctx.measureText(f.sample);
+      ctx.textBaseline='alphabetic';
+      ctx.fillText(f.sample, x0, y0+(m.actualBoundingBoxAscent-m.actualBoundingBoxDescent)/2);
+    } else {
+      ctx.textBaseline=f.anchor[1]==='t'?'top':'alphabetic';
+      ctx.fillText(f.sample, x0, y0);
+    }
+    if(sel&&sel.id===f.id){const b=box(f);ctx.strokeStyle='rgba(107,91,210,.9)';ctx.lineWidth=3;ctx.setLineDash([10,7]);
+      ctx.strokeRect(b.l-8,b.t-4,(b.r-b.l)+16,(b.b-b.t)+8);ctx.setLineDash([]);}
+  }
+}
+function renderChips(){const c=document.getElementById('chips');c.innerHTML='';
+  const names={nombre:'Nombre',fecha:'Fecha',hora:'Hora',lugar:'Lugar',direccion:'Dirección',telefono:'Teléfono',rsvp:'Teléfono'};
+  for(const f of fields){const b=document.createElement('div');b.className='chip'+(sel&&sel.id===f.id?' sel':'');
+    b.textContent=names[f.id]||f.id;b.onclick=()=>select(f.id);c.appendChild(b);}}
+function select(id){sel=fields.find(f=>f.id===id);document.getElementById('sel').style.display=sel?'block':'none';
+  if(sel){document.getElementById('size').value=sel.size;document.getElementById('maxw').value=Math.round(sel.maxw*100);
+    document.getElementById('wght').value=sel.wght||500;document.getElementById('wgv').textContent=(sel.wght||500);
+    document.getElementById('szv').textContent=Math.round(sel.size)+'px';document.getElementById('mwv').textContent=Math.round(sel.maxw*100)+'%';showVals();}
+  renderChips();draw();}
+function showVals(){if(sel)document.getElementById('vals').textContent=`x:${sel.x.toFixed(3)}  y:${sel.y.toFixed(3)}  size:${Math.round(sel.size)}`;}
+
+// ---- mouse ----
+function toCanvas(e){const r=cv.getBoundingClientRect();return {x:(e.clientX-r.left)*(SIZE[0]/r.width),y:(e.clientY-r.top)*(SIZE[1]/r.height)};}
+cv.addEventListener('mousedown',e=>{const p=toCanvas(e);
+  for(let i=fields.length-1;i>=0;i--){const b=box(fields[i]);if(p.x>=b.l-10&&p.x<=b.r+10&&p.y>=b.t-6&&p.y<=b.b+6){
+    select(fields[i].id);drag={ox:p.x-sel.x*SIZE[0],oy:p.y-sel.y*SIZE[1]};cv.classList.add('drag');return;}}});
+window.addEventListener('mousemove',e=>{if(!drag||!sel)return;const p=toCanvas(e);
+  sel.x=Math.min(1,Math.max(0,(p.x-drag.ox)/SIZE[0]));sel.y=Math.min(1,Math.max(0,(p.y-drag.oy)/SIZE[1]));showVals();draw();});
+window.addEventListener('mouseup',()=>{drag=null;cv.classList.remove('drag');});
+
+// ---- sliders ----
+document.getElementById('size').oninput=e=>{if(!sel)return;sel.size=+e.target.value;document.getElementById('szv').textContent=sel.size+'px';showVals();draw();};
+document.getElementById('maxw').oninput=e=>{if(!sel)return;sel.maxw=+e.target.value/100;document.getElementById('mwv').textContent=e.target.value+'%';draw();};
+document.getElementById('wght').oninput=e=>{if(!sel)return;sel.wght=+e.target.value;document.getElementById('wgv').textContent=e.target.value;draw();};
+// ---- nudge buttons + flechas ----
+function nudge(dx,dy){if(!sel)return;sel.x=Math.min(1,Math.max(0,sel.x+dx));sel.y=Math.min(1,Math.max(0,sel.y+dy));showVals();draw();}
+document.querySelectorAll('.nudge button').forEach(b=>b.onclick=()=>{const st=1/1500;const d=b.dataset.d;
+  nudge(d==='l'?-st:d==='r'?st:0,d==='u'?-1/2100:d==='d'?1/2100:0);});
+window.addEventListener('keydown',e=>{if(!sel)return;const m=e.shiftKey?10:1;const sx=m/1500,sy=m/2100;
+  if(e.key==='ArrowLeft')nudge(-sx,0);else if(e.key==='ArrowRight')nudge(sx,0);
+  else if(e.key==='ArrowUp')nudge(0,-sy);else if(e.key==='ArrowDown')nudge(0,sy);else return;e.preventDefault();});
+
+// ---- guardar ----
+document.getElementById('save').onclick=async()=>{const msg=document.getElementById('msg');msg.textContent='Guardando…';msg.className='';
+  const out={};for(const f of fields)out[f.id]={x:f.x,y:f.y,size:f.size,maxw:f.maxw,wght:f.wght||500};
+  try{const r=await fetch('/editor/save',{method:'POST',headers:{'Content-Type':'application/json','X-API-Key':KEY},body:JSON.stringify({pieza:PIEZA,tema:TEMA,fields:out})});
+    const j=await r.json();msg.textContent=j.ok?'✓ Guardado. Refrescá la página del producto para verlo.':'✕ '+(j.error||'error');msg.className=j.ok?'ok':'err';}
+  catch(err){msg.textContent='✕ '+err;msg.className='err';}};
+
+// ---- piezas ----
+let PIEZA='invitacion';
+async function loadPieza(p){
+  PIEZA=p; sel=null; document.getElementById('sel').style.display='none';
+  const lay=await (await fetch('/editor/layout?pieza='+p+'&tema='+TEMA+'&cb='+Date.now())).json();
+  SIZE=lay.size; fields=lay.fields;
+  await new Promise(res=>{bg.onload=res; bg.onerror=res; bg.src='/editor-bg.png?pieza='+p+'&tema='+TEMA+'&cb='+Date.now();});
+  renderChips(); draw();
+}
+document.querySelectorAll('#piezas .pz').forEach(b=>b.onclick=async()=>{
+  document.querySelectorAll('#piezas .pz').forEach(x=>x.classList.remove('sel'));
+  b.classList.add('sel'); document.getElementById('msg').textContent='';document.getElementById('msg').className='';
+  await loadPieza(b.dataset.pz);
+});
+
+// ---- tema chip + toggle de tema ----
+document.getElementById('temachip').textContent=TEMA;
+const tb=document.getElementById('themebtn');
+function applyTheme(t){document.body.dataset.theme=t;tb.textContent=t==='dark'?'☀️':'🌙';}
+applyTheme(localStorage.getItem('ct3d_kit_theme')||'light');
+tb.onclick=()=>{const t=document.body.dataset.theme==='dark'?'light':'dark';localStorage.setItem('ct3d_kit_theme',t);applyTheme(t);};
+
+// ---- init ----
+(async function(){
+  await Promise.all([
+    document.fonts.load('400 100px "DancingScript"'),document.fonts.load('700 100px "DancingScript"'),
+    document.fonts.load('400 40px "Poppins"'),document.fonts.load('500 40px "Poppins"'),
+    document.fonts.load('600 40px "Poppins"'),document.fonts.load('700 40px "Poppins"')
+  ]);
+  await loadPieza('invitacion');
+})();
+</script>
+</body>
+</html>

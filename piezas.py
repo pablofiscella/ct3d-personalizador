@@ -1,0 +1,276 @@
+#!/usr/bin/env python3
+"""Las 7 piezas del kit "Un Añito Salvaje".
+- invitacion y cartel: motor por-spec (generador.render).
+- topper, cupcakes, banderines, etiquetas, tags: builders procedurales (hojas
+  de impresion A4 con grilla para recortar).
+Genera PNG + PDF (300 DPI) de cada pieza y una grilla de revision.
+"""
+import os
+from PIL import Image, ImageDraw
+from generador import (ASSETS, OUT, DPI, CREAM, BROWN, TERRA, OLIVE,
+                       fit_font, get_font, crop_alpha, render, SPECS, specs_de)
+
+SAGE = (138, 154, 91)
+MUST = (224, 164, 88)
+WHITE = (255, 255, 255)
+A4 = (2480, 3508)  # 210x297mm @300dpi
+
+ANIMALS = ["leon.png", "jirafa.png", "monito.png", "elefante.png", "cebra.png"]
+
+# ---- textos según la edad elegida (1/2/3) ----
+def _edad(data):
+    e = str(data.get("edad", "1")).strip()
+    return e if e in ("1", "2", "3") else "1"
+def lema_edad(data):
+    return {"1": "¡Un añito salvaje!", "2": "¡Dos añitos salvajes!",
+            "3": "¡Tres añitos salvajes!"}[_edad(data)]
+def titulo_edad(data):
+    return {"1": "El primer añito de", "2": "Los dos añitos de",
+            "3": "Los tres añitos de"}[_edad(data)]
+
+_PROY = os.path.dirname(os.path.abspath(__file__))
+def _tema_recortes(tema):
+    return os.path.join(_PROY, "temas", tema or "safari", "recortes")
+
+_cache = {}
+def load(name, tema=None):
+    """Carga un asset recortado. Busca primero en la temática, si no en el global (safari)."""
+    key = (tema, name)
+    if key not in _cache:
+        p = os.path.join(_tema_recortes(tema), name) if tema else None
+        if not p or not os.path.isfile(p):
+            p = os.path.join(ASSETS, name)
+        _cache[key] = crop_alpha(Image.open(p).convert("RGBA"))
+    return _cache[key].copy()
+
+def animales(tema=None):
+    """Lista de animalitos de una temática (PNGs en su carpeta recortes, menos los 'numero')."""
+    if tema:
+        rdir = _tema_recortes(tema)
+        if os.path.isdir(rdir):
+            fs = sorted(f for f in os.listdir(rdir) if f.endswith(".png") and not f.startswith("numero"))
+            if fs:
+                return fs
+    return ANIMALS
+
+def fit_into(im, mw, mh):
+    r = min(mw / im.width, mh / im.height)
+    return im.resize((max(1, int(im.width * r)), max(1, int(im.height * r))), Image.LANCZOS)
+
+def paste_center(base, im, cx, cy):
+    base.alpha_composite(im, (int(cx - im.width / 2), int(cy - im.height / 2)))
+
+def txt(d, text, cx, cy, font_file, size, color, maxw, wght=None, anchor="mm"):
+    if not str(text).strip():
+        return
+    f = fit_font(d, str(text), font_file, int(size), int(maxw), wght)
+    d.text((cx, cy), str(text), font=f, fill=color, anchor=anchor)
+
+def make_sheet(cell_fn, cols, rows, page=A4, margin=120, gap=40, bg=WHITE):
+    W, H = page
+    sheet = Image.new("RGBA", (W, H), bg + (255,))
+    cw = (W - 2 * margin - (cols - 1) * gap) // cols
+    ch = (H - 2 * margin - (rows - 1) * gap) // rows
+    for r in range(rows):
+        for c in range(cols):
+            i = r * cols + c
+            cell = cell_fn(i, cw, ch)
+            if cell is not None:
+                sheet.alpha_composite(cell, (margin + c * (cw + gap), margin + r * (ch + gap)))
+    return sheet
+
+# ---------------- Pieza 3: Topper de torta (5x5") ----------------
+def topper_torta(data, tema=None):
+    W = H = 1500
+    base = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(base)
+    m = 36
+    d.ellipse([m, m, W - m, H - m], fill=CREAM + (255,), outline=OLIVE + (255,), width=10)
+    for i, a in enumerate(animales(tema)[:3]):
+        paste_center(base, fit_into(load(a, tema), 330, 330), W * (0.30 + 0.20 * i), H * 0.72)
+    txt(d, titulo_edad(data), W / 2, H * 0.33, "Poppins-Medium.ttf", 56, BROWN, W * 0.62)
+    txt(d, data["nombre"], W / 2, H * 0.45, "DancingScript-VF.ttf", 180, TERRA, W * 0.66, wght=700)
+    txt(d, lema_edad(data), W / 2, H * 0.555, "Fredoka-VF.ttf", 58, OLIVE, W * 0.64, wght=600)
+    return base
+
+# ---------------- Pieza 4: Toppers de cupcakes (hoja A4, circulos 2") ----------------
+def cupcakes(data, tema=None):
+    e = _edad(data)
+    lema_words = lema_edad(data).split()
+    l1, l2 = " ".join(lema_words[:-1]), lema_words[-1]   # "¡Dos añitos" / "salvajes!"
+    items = [("img", a) for a in animales(tema)] + [("num", None), ("name", None), ("lema", None)]
+    def cell(i, cw, ch):
+        c = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
+        d = ImageDraw.Draw(c)
+        D = min(cw, ch)
+        cx, cy = cw / 2, ch / 2
+        d.ellipse([cx - D / 2, cy - D / 2, cx + D / 2, cy + D / 2],
+                  fill=CREAM + (255,), outline=SAGE + (255,), width=8)
+        kind, val = items[i % len(items)]
+        if kind == "img":
+            paste_center(c, fit_into(load(val, tema), D * 0.70, D * 0.70), cx, cy)
+        elif kind == "num":
+            paste_center(c, fit_into(load("numero_%s.png" % e, tema), D * 0.78, D * 0.78), cx, cy)
+        elif kind == "name":
+            txt(d, data["nombre"], cx, cy - D * 0.04, "DancingScript-VF.ttf", D * 0.34, TERRA, D * 0.72, wght=700)
+            txt(d, "cumple " + e, cx, cy + D * 0.24, "Poppins-Medium.ttf", D * 0.11, BROWN, D * 0.7)
+        else:
+            txt(d, l1, cx, cy - D * 0.11, "Fredoka-VF.ttf", D * 0.15, OLIVE, D * 0.78, wght=600)
+            txt(d, l2, cx, cy + D * 0.11, "Fredoka-VF.ttf", D * 0.15, OLIVE, D * 0.78, wght=600)
+        return c
+    return make_sheet(cell, 3, 4, gap=50)
+
+# ---------------- Pieza 5: Etiquetas botellitas (hoja A4) ----------------
+def etiquetas(data, tema=None):
+    an = animales(tema)
+    a0, a1 = an[0], an[1 % len(an)]
+    def cell(i, cw, ch):
+        c = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
+        d = ImageDraw.Draw(c)
+        d.rounded_rectangle([4, 4, cw - 4, ch - 4], radius=30, fill=CREAM + (255,),
+                            outline=SAGE + (255,), width=6)
+        # animalitos más chicos, metidos hacia adentro (no pegados al borde)
+        paste_center(c, fit_into(load(a0, tema), ch * 0.42, ch * 0.42), cw * 0.14, ch * 0.50)
+        paste_center(c, fit_into(load(a1, tema), ch * 0.42, ch * 0.42), cw * 0.86, ch * 0.50)
+        # nombre y lema con ancho acotado y MENOS espacio entre ellos
+        txt(d, data["nombre"], cw / 2, ch * 0.42, "DancingScript-VF.ttf", ch * 0.38, TERRA, cw * 0.44, wght=700)
+        txt(d, lema_edad(data), cw / 2, ch * 0.64, "Fredoka-VF.ttf", ch * 0.13, OLIVE, cw * 0.50, wght=600)
+        return c
+    return make_sheet(cell, 2, 5, gap=40)
+
+# ---------------- Pieza 6: Tags de souvenir (hoja A4) ----------------
+def tags(data, tema=None):
+    an = animales(tema)
+    def cell(i, cw, ch):
+        c = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
+        d = ImageDraw.Draw(c)
+        d.rounded_rectangle([4, 4, cw - 4, ch - 4], radius=34, fill=CREAM + (255,),
+                            outline=SAGE + (255,), width=5)
+        d.ellipse([cw / 2 - 22, 30, cw / 2 + 22, 74], outline=BROWN + (255,), width=6)
+        txt(d, "¡Gracias por venir!", cw / 2, ch * 0.27, "Fredoka-VF.ttf", ch * 0.085, OLIVE, cw * 0.82, wght=600)
+        paste_center(c, fit_into(load(an[i % len(an)], tema), cw * 0.5, ch * 0.34), cw / 2, ch * 0.55)
+        txt(d, data["nombre"], cw / 2, ch * 0.84, "DancingScript-VF.ttf", ch * 0.17, TERRA, cw * 0.8, wght=700)
+        return c
+    return make_sheet(cell, 3, 4, gap=45)
+
+# ---------------- Pieza 7: Banderines / guirnalda (hoja A4) ----------------
+def _pennant(cw, ch, color, letter):
+    c = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
+    d = ImageDraw.Draw(c)
+    pad = 12
+    d.polygon([(pad, pad), (cw - pad, pad), (cw / 2, ch - pad)],
+              fill=color + (255,), outline=BROWN + (255,))
+    # dos agujeritos arriba para el hilo
+    d.ellipse([cw * 0.18 - 16, 34, cw * 0.18 + 16, 66], outline=BROWN + (255,), width=5)
+    d.ellipse([cw * 0.82 - 16, 34, cw * 0.82 + 16, 66], outline=BROWN + (255,), width=5)
+    txt(d, letter, cw / 2, ch * 0.40, "Fredoka-VF.ttf", ch * 0.34, CREAM, cw * 0.6, wght=600)
+    return c
+
+def banderin(data, tema=None):
+    letters = [ch for ch in data["nombre"].upper()]
+    pal = [TERRA, MUST, SAGE, OLIVE]
+    def cell(i, cw, ch):
+        if i >= len(letters):
+            return None
+        return _pennant(cw, ch, pal[i % len(pal)], letters[i])
+    rows = max(2, (len(letters) + 1) // 2)
+    return make_sheet(cell, 2, rows, margin=150, gap=70)
+
+# ============================================================
+def piezas_de(tema="safari"):
+    """Las 7 piezas atadas a una temática (imágenes + assets de esa temática)."""
+    s = specs_de(tema)
+    return [
+        ("1_invitacion", lambda d: render(d, s["invitacion"]), False),
+        ("2_cartel",     lambda d: render(d, s["cartel"]),     False),
+        ("3_topper_torta", lambda d: topper_torta(d, tema), True),
+        ("4_cupcake_toppers", lambda d: cupcakes(d, tema),  True),
+        ("5_etiquetas_botellita", lambda d: etiquetas(d, tema), True),
+        ("6_tags_souvenir", lambda d: tags(d, tema),        True),
+        ("7_banderines", lambda d: banderin(d, tema),       True),
+    ]
+PIEZAS = piezas_de("safari")   # compat
+
+def marca_agua(img, texto="CASA TRIDIMENSIONAL · VISTA PREVIA", op=70):
+    """Estampa una marca de agua diagonal repetida (solo para el preview)."""
+    img = img.convert("RGBA")
+    W, H = img.size
+    diag = int((W ** 2 + H ** 2) ** 0.5)
+    layer = Image.new("RGBA", (diag, diag), (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
+    f = get_font("Poppins-SemiBold.ttf", max(18, int(W * 0.035)))
+    tw = d.textlength(texto, font=f)
+    sx = int(tw + W * 0.10)
+    sy = int(W * 0.12)
+    color = (110, 80, 62, op)
+    r = 0
+    for y in range(0, diag, sy):
+        off = (r % 2) * (sx // 2)
+        for x in range(-sx, diag, sx):
+            d.text((x + off, y), texto, font=f, fill=color)
+        r += 1
+    layer = layer.rotate(30)
+    cx, cy = diag // 2, diag // 2
+    layer = layer.crop((cx - W // 2, cy - H // 2, cx - W // 2 + W, cy - H // 2 + H))
+    img.alpha_composite(layer)
+    return img.convert("RGB")
+
+def to_rgb(img):
+    if img.mode == "RGB":
+        return img
+    bg = Image.new("RGBA", img.size, WHITE + (255,))
+    bg.alpha_composite(img)
+    return bg.convert("RGB")
+
+def generar_kit(data, dest_dir, tema="safari"):
+    """Genera las 7 piezas de la temática en PDF (300 DPI) y las empaqueta en un ZIP."""
+    import zipfile
+    os.makedirs(dest_dir, exist_ok=True)
+    pdfs = []
+    for name, fn, _ in piezas_de(tema):
+        p = os.path.join(dest_dir, name + ".pdf")
+        to_rgb(fn(data)).save(p, "PDF", resolution=DPI)
+        pdfs.append(p)
+    zip_path = os.path.join(dest_dir, "kit.zip")
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+        for p in pdfs:
+            z.write(p, os.path.basename(p))
+    return zip_path
+
+def preview_invitacion(data, max_px=1000, tema="safari"):
+    """PNG chico de la invitación (para vista previa / miniatura de pedido)."""
+    img = render(data, specs_de(tema)["invitacion"])
+    img.thumbnail((max_px, max_px), Image.LANCZOS)
+    return img
+
+if __name__ == "__main__":
+    demo = {"nombre": "Tomás", "fecha": "Sábado 12 de julio", "hora": "16:00 hs",
+            "lugar": "Salón Los Robles", "telefono": "11-5555-5555"}
+    KIT = os.path.join(OUT, "kit")
+    os.makedirs(KIT, exist_ok=True)
+    thumbs = []
+    for name, fn, is_rgba in PIEZAS:
+        img = fn(demo)
+        rgb = to_rgb(img)
+        if is_rgba:
+            img.save(os.path.join(KIT, name + ".png"))   # con transparencia
+        rgb.save(os.path.join(KIT, name + ".pdf"), "PDF", resolution=DPI)
+        rgb.save(os.path.join(KIT, name + ".png").replace(".png", "_rgb.png")) if not is_rgba else None
+        # thumb para grilla
+        t = rgb.copy(); t.thumbnail((520, 520), Image.LANCZOS)
+        thumbs.append((name, t))
+        print(f"OK  {name:24} {rgb.size}")
+
+    # grilla de revision (2 filas x 4)
+    cols, rows = 4, 2
+    cellw = max(t.width for _, t in thumbs) + 30
+    cellh = max(t.height for _, t in thumbs) + 50
+    grid = Image.new("RGB", (cols * cellw, rows * cellh), (245, 240, 232))
+    gd = ImageDraw.Draw(grid)
+    for i, (name, t) in enumerate(thumbs):
+        cx = (i % cols) * cellw + cellw // 2
+        cy = (i // cols) * cellh + 20 + t.height // 2
+        grid.paste(t, (cx - t.width // 2, (i // cols) * cellh + 20))
+        gd.text((cx, (i // cols) * cellh + cellh - 22), name, fill=(90, 70, 55), anchor="mm")
+    grid.save(os.path.join(OUT, "kit_grilla.jpg"), quality=90)
+    print("Grilla ->", os.path.join(OUT, "kit_grilla.jpg"))

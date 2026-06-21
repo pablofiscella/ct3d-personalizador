@@ -1,0 +1,19 @@
+[Unit]
+Description=CT3D - Servicio generador de kits "Un Anito Salvaje"
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/ct3d-personalizador
+# CAMBIA esta clave por una larga y secreta (la misma que pongas en el plugin)
+Environment=CT3D_API_KEY=PONE-UNA-CLAVE-LARGA-Y-SECRETA
+Environment=CT3D_PORT=8787
+# URL PUBLICA del servicio (la que ven el navegador del cliente y WooCommerce)
+Environment=CT3D_BASE_URL=https://kit.casatridimensional.com
+Environment=CT3D_DATA_DIR=/root/ct3d-personalizador/pedidos
+ExecStart=/usr/bin/python3 /root/ct3d-personalizador/servicio.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

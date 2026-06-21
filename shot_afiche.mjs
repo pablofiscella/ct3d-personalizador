@@ -1,0 +1,11 @@
+import { chromium } from 'playwright-core';
+const b=await chromium.launch({executablePath:process.argv[2]});
+const p=await b.newPage({viewport:{width:1200,height:1100},deviceScaleFactor:1.5});
+const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.goto('http://localhost:8787/editor?key='+process.argv[3],{waitUntil:'networkidle'});
+await p.waitForTimeout(1500);
+await p.click('text=Afiche');
+await p.waitForTimeout(2000);
+await p.screenshot({path:'salida/editor_afiche.png', fullPage:true});
+console.log('errores:', errs.length?errs:'ninguno');
+await b.close();

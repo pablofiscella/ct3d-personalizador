@@ -1,0 +1,14 @@
+# ── Secretos / credenciales — NUNCA subir ──
+.api_key
+woo_config.json
+woo_pub.json
+
+# ── Runtime / generados ──
+# pedidos/ = kits generados (datos de clientes); salida/ = previews/output
+pedidos/
+salida/
+__pycache__/
+*.pyc
+
+# ── Dependencias regenerables (npm install) ──
+node_modules/
