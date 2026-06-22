@@ -45,6 +45,8 @@
   .field input{width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;font-size:13.5px;color:var(--ink-1);font-family:var(--font-body);transition:all var(--dur-fast)}
   .field input:focus{outline:0;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
   .field input.sel{border-color:var(--accent);background:var(--accent-tint)}
+  .edad-sel{width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;font-size:13.5px;color:var(--ink-1);font-family:var(--font-body);cursor:pointer}
+  .edad-sel:focus{outline:0;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 
   .style-box{border-top:1px solid var(--border);margin-top:14px;padding-top:12px}
   .style-box.off{opacity:.45;pointer-events:none}
@@ -89,6 +91,11 @@
       <h1>Personalizá tu kit 🦁</h1>
       <div class="sub">Completá tus datos y, si querés, movelos o cambiá la tipografía. Tocá un texto en la tarjeta para ajustarlo.</div>
 
+      <div class="lbl">Edad que cumple</div>
+      <select id="edad" class="edad-sel">
+        <option value="1">1 año</option><option value="2">2 años</option><option value="3">3 años</option>
+      </select>
+
       <div class="lbl">Tus datos</div>
       <div id="datos"></div>
 
@@ -124,7 +131,7 @@
 <script>
 const qs=new URLSearchParams(location.search);
 const TEMA=qs.get('tema')||'safari';
-const EDAD=qs.get('edad')||'1';
+let EDAD=qs.get('edad')||'1';
 const PIEZA='invitacion';
 const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
 let SIZE=[1500,2100], fields=[], bg=new Image(), sel=null, drag=null, CAT=[];
@@ -254,6 +261,8 @@ document.getElementById('verfinal').onclick=(e)=>{
   // armar fields con texto inicial = sample, y el archivo de fuente actual
   fields=lay.fields.map(f=>({...f, text:f.sample||'', _font:f.font}));
   await new Promise(res=>{bg.onload=res;bg.onerror=res;bg.src=`/cliente-bg.png?pieza=${PIEZA}&edad=${EDAD}&tema=${TEMA}&cb=${Date.now()}`;});
+  const edadSel=document.getElementById('edad'); edadSel.value=EDAD;
+  edadSel.onchange=()=>{EDAD=edadSel.value;const nb=new Image();nb.onload=draw;nb.onerror=draw;nb.src=`/cliente-bg.png?pieza=${PIEZA}&edad=${EDAD}&tema=${TEMA}&cb=${Date.now()}`;bg=nb;emit();};
   buildDatos(); buildFonts(); draw(); emit();
 })();
 </script>
