@@ -50,7 +50,7 @@
     <p class="hint">Arrastrá los iconos sobre el aro. Tocá uno para cambiar su tamaño o sacarlo.</p>
     <div class="obswrap">
       <label for="obs">Observaciones <span style="font-weight:400;opacity:.6">(aclaraciones para el grabado)</span></label>
-      <textarea id="obs" rows="3" maxlength="600" placeholder="Ej: el nombre en mayúsculas, color de madera, una referencia, etc."></textarea>
+      <textarea id="obs" rows="3" maxlength="600" placeholder="Ej.: en el lugar del corazón quiero la imagen1.png; en la pelota, la imagen2.png; el escudo es la que adjunto. Aclará acá lo que necesites para el grabado."></textarea>
       <label class="attach"><input type="file" id="files" accept="image/*" multiple hidden> 📎 Adjuntar imágenes</label>
       <div id="filelist" class="filelist"></div>
     </div>
@@ -103,8 +103,6 @@
       <input type="range" id="irot" min="0" max="360" step="5" value="0">
     </div>
 
-    <label for="diam">Diámetro externo del mate (mm)</label>
-    <input type="text" id="diam" inputmode="decimal" value="109" style="max-width:120px">
     <button class="btn" id="descargar">⬇ Descargar SVG para LightBurn</button>
     <p class="hint">El SVG es el archivo vectorial para grabar (texto en contornos + iconos). El círculo rojo es solo guía.</p>
   </div>
@@ -242,8 +240,7 @@
   flip.addEventListener('change',preview);
   [size,radio].forEach(el=>el.addEventListener('input',refresh));
   document.getElementById('descargar').addEventListener('click',function(){
-    var dm=parseFloat(document.getElementById('diam').value)||109;
-    window.open("/mate/svg?"+qs()+"&diam_mm="+dm,"_blank");
+    window.open("/mate/svg?"+qs(),"_blank");   // el diámetro lo toma de la config del mate (admin)
   });
 
   refresh();

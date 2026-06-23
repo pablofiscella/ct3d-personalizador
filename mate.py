@@ -63,13 +63,13 @@ def cargar(mate_id="demo"):
         # cuadrar
         s = min(img.size)
         img = ImageOps.fit(img, (s, s), Image.LANCZOS)
-        cfg = {"r_texto": 0.39, "r_foto": 0.0}
+        cfg = {"r_texto": 0.39, "r_foto": 0.0, "diam_mm": 109.0}
         try:
             cfg.update(json.load(open(os.path.join(d, "config.json"))))
         except Exception:
             pass
         return img, cfg
-    return _sintetico(), {"r_texto": 0.378, "r_foto": 0.0}
+    return _sintetico(), {"r_texto": 0.378, "r_foto": 0.0, "diam_mm": 109.0}
 
 
 # ---------------------------------------------------------------------------

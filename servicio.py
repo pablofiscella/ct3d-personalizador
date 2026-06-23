@@ -212,8 +212,10 @@ class Handler(BaseHTTPRequestHandler):
             import mate_svg
             try: iconos = json.loads(q.get("iconos", [""])[0] or "[]") or None
             except Exception: iconos = None
-            try: dmm = max(20.0, min(200.0, float(q.get("diam_mm", ["109"])[0])))
-            except Exception: dmm = 109.0
+            dmm = None   # el diámetro sale de la config del mate (admin); query opcional
+            if q.get("diam_mm", [""])[0]:
+                try: dmm = max(20.0, min(200.0, float(q.get("diam_mm")[0])))
+                except Exception: dmm = None
             try: size = max(0.02, min(0.09, float(q.get("size", ["0.052"])[0])))
             except Exception: size = 0.052
             svg = mate_svg.export_svg(
