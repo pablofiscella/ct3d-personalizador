@@ -196,8 +196,10 @@ if(PIEZA==='kit') PIEZA='invitacion';
     invitacion:'Invitación individual. Completá tus datos, movelos o cambiá la tipografía. Tocá un texto para ajustarlo.',
     cartel:'Cartel de bienvenida. Escribí el nombre, movelo o cambiá la tipografía. Tocá un texto para ajustarlo.'
   };
+  var VL={kit:'Ver cómo queda el kit ↗', invitacion:'Ver la invitación en grande ↗', cartel:'Ver el cartel en grande ↗'};
   var h=document.getElementById('ed-titulo'); if(h) h.textContent='Personalizá '+(L[t]||'tu diseño 🎨');
   var s=document.getElementById('ed-sub'); if(s && SUB[t]) s.textContent=SUB[t];
+  var vf=document.getElementById('verfinal'); if(vf) vf.textContent=VL[t]||'Ver el diseño en grande ↗';
 })();
 const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
 let SIZE=[1500,2100], fields=[], bg=new Image(), sel=null, drag=null, CAT=[];
@@ -408,7 +410,7 @@ if (qs.get('admin') === '1' || ADMINKEY) {
 }
 document.getElementById('verfinal').onclick=(e)=>{
   e.preventDefault();const p=buildOver();
-  const q=new URLSearchParams({tema:TEMA,edad:EDAD,over:JSON.stringify(p.over)});
+  const q=new URLSearchParams({tema:TEMA,edad:EDAD,tipo:(qs.get('tipo')||qs.get('pieza')||'kit'),over:JSON.stringify(p.over)});
   for(const[k,v]of Object.entries(p.data))q.set(k,v);
   window.open('/preview?'+q.toString(),'_blank');
 };
