@@ -112,7 +112,7 @@
   function pos(ang){ var a=ang*Math.PI/180; return [C+R()*Math.sin(a), C-R()*Math.cos(a)]; }
 
   function drawOverlay(){
-    var s='<circle cx="'+C+'" cy="'+C+'" r="'+R().toFixed(1)+'" fill="none" stroke="rgba(107,91,210,.35)" stroke-dasharray="4 5"/>';
+    var s='';
     iconos.forEach(function(ic,i){
       var p=pos(ic.ang), r=Math.max(13, ic.size*VB*1.15);
       // solo un aro para arrastrar (sin emoji de color): así se ve el icono grabado real debajo
