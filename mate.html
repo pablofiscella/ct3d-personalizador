@@ -245,6 +245,16 @@
   // modo embebido en la tienda: el cliente no ve el botón de SVG (eso es para el local)
   if((new URLSearchParams(location.search)).get('embed')){ document.getElementById('descargar').style.display='none'; }
 
+  // Autoajuste de altura: avisar al contenedor (ficha) el alto real del contenido para que
+  // el iframe crezca y NO aparezca barra de scroll (el alto varía al sumar iconos, etc.).
+  function postSize(){
+    try{ if(window.parent!==window) window.parent.postMessage({type:'ct3d-mate-size', h: Math.ceil(document.body.scrollHeight)}, '*'); }catch(e){}
+  }
+  window.addEventListener('load', postSize);
+  window.addEventListener('resize', postSize);
+  if(window.ResizeObserver){ try{ new ResizeObserver(postSize).observe(document.body); }catch(e){} }
+  setTimeout(postSize, 300); setTimeout(postSize, 1200);
+
   refresh();
 })();
 </script>
