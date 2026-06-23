@@ -172,6 +172,10 @@
         <button class="btn-primary" id="confirmar">Confirmar diseño</button>
         <a class="btn-link" id="verfinal" href="#">Ver cómo queda el kit final ↗</a>
         <p class="hint">Los íconos (calendario, reloj) se agregan automáticamente en el kit final. La tarjeta sale sin la marca de agua al comprarla.</p>
+        <div id="adminbox" style="display:none;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)">
+          <button class="btn-primary" id="guardar-default" style="background:#2D8C5A">💾 Guardar como predeterminado</button>
+          <p class="hint" id="admin-msg">Modo admin: lo que acomodes acá queda como punto de partida para TODOS los clientes de esta pieza.</p>
+        </div>
       </div>
     </aside>
   </div>
@@ -381,6 +385,27 @@ document.getElementById('confirmar').onclick=()=>{
   const b=document.getElementById('confirmar');b.textContent='✓ Diseño confirmado';
   setTimeout(()=>{b.textContent='Confirmar diseño';},1800);
 };
+
+// ── Modo admin: "Guardar como predeterminado" (no lo ven los clientes) ──
+// Se activa con ?admin=1 (o ?key=). Guarda posiciones/tamaños como default de la pieza.
+const ADMINKEY = qs.get('key') || '';
+if (qs.get('admin') === '1' || ADMINKEY) {
+  document.getElementById('adminbox').style.display = 'block';
+  document.getElementById('guardar-default').onclick = async () => {
+    const msg = document.getElementById('admin-msg');
+    msg.textContent = 'Guardando…';
+    const out = {};
+    for (const f of fields) out[f.id] = { x:+f.x.toFixed(4), y:+f.y.toFixed(4), size:Math.round(f.size), maxw:f.maxw, wght:f.wght||500 };
+    try {
+      const headers = { 'Content-Type':'application/json' };
+      if (ADMINKEY) headers['X-API-Key'] = ADMINKEY;
+      const r = await fetch('/editor/save', { method:'POST', credentials:'include', headers, body: JSON.stringify({ pieza:PIEZA, tema:TEMA, fields:out }) });
+      if (r.status === 403) { msg.textContent = '✕ Sin permiso admin. Abrí el editor con tu token (…&key=TU_TOKEN).'; return; }
+      const j = await r.json();
+      msg.textContent = j.ok ? '✓ Guardado como predeterminado para esta pieza. Refrescá la ficha para verlo.' : ('✕ ' + (j.error||'error'));
+    } catch(e) { msg.textContent = '✕ ' + e; }
+  };
+}
 document.getElementById('verfinal').onclick=(e)=>{
   e.preventDefault();const p=buildOver();
   const q=new URLSearchParams({tema:TEMA,edad:EDAD,over:JSON.stringify(p.over)});
