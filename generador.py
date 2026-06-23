@@ -94,6 +94,7 @@ FONTS_CATALOG = [
     {"file": "Quicksand-VF.ttf",     "family": "Quicksand",    "label": "Redonda",    "kind": "body"},
     {"file": "Bungee-Regular.ttf",   "family": "Bungee",       "label": "Obra",       "kind": "display"},
     {"file": "Montserrat-VF.ttf",    "family": "Montserrat",   "label": "Moderna",    "kind": "body"},
+    {"file": "Bangers-Regular.ttf",  "family": "Bangers",      "label": "Comic",      "kind": "display"},
 ]
 _FONT_FILES = {f["file"] for f in FONTS_CATALOG}
 _FILE_TO_FAMILY = {f["file"]: f["family"] for f in FONTS_CATALOG}
@@ -329,6 +330,27 @@ def _draw_multicolor(draw, x, y, text, font, colors, anchor, sw, sf):
                       stroke_width=sw, stroke_fill=sf)
         cur += cw
 
+def _bolt_shape(cx, cy, s):
+    pts = [(0.18,-1.0),(-0.38,0.08),(0.02,0.08),(-0.28,1.0),(0.4,-0.12),(0.0,-0.12),(0.28,-1.0)]
+    return [(cx+px*s, cy+py*s) for px,py in pts]
+
+def draw_heroshield(draw, cx, cy, tw, th, fill="#3B82F6", border="#F6C445",
+                    bolt="#F6C445", shadow="#1E3A6E"):
+    """Insignia hexagonal tipo escudo de héroe: azul, borde dorado, sombra y
+    rayos a los costados. Detrás del nombre (tema superhéroes)."""
+    padx = th * 0.8; pady = th * 0.5
+    Wd = tw + 2*padx; Hd = th + 2*pady; notch = Hd * 0.5
+    def hexpts(ox, oy):
+        return [(cx-Wd/2+ox, cy+oy), (cx-Wd/2+notch+ox, cy-Hd/2+oy),
+                (cx+Wd/2-notch+ox, cy-Hd/2+oy), (cx+Wd/2+ox, cy+oy),
+                (cx+Wd/2-notch+ox, cy+Hd/2+oy), (cx-Wd/2+notch+ox, cy+Hd/2+oy)]
+    off = int(th * 0.08); bw = max(5, int(th * 0.1))
+    draw.polygon(hexpts(off, off), fill=shadow)                 # sombra
+    draw.polygon(hexpts(0, 0), fill=fill, outline=border, width=bw)
+    bs = th * 0.55                                              # rayos a los costados
+    draw.polygon(_bolt_shape(cx - Wd/2 - bs*0.7, cy, bs), fill=bolt)
+    draw.polygon(_bolt_shape(cx + Wd/2 + bs*0.7, cy, bs), fill=bolt)
+
 def draw_text(draw, field, data, W, H):
     text = _field_text(field, data)
     if not text.strip():
@@ -358,6 +380,8 @@ def draw_text(draw, field, data, W, H):
             draw_circoplaca(draw, x, y, tw, th)
         if field.get("obrasign"):              # cartel de obra (amarillo, borde negro, tornillos)
             draw_obrasign(draw, x, y, tw, th)
+        if field.get("heroshield"):            # insignia hexagonal de héroe (azul, borde dorado, rayos)
+            draw_heroshield(draw, x, y, tw, th)
         if field.get("band"):                  # franja redondeada detrás (estilo cartel/emergencia)
             px0 = th * 0.55; py0 = th * 0.34
             draw.rounded_rectangle([x - tw/2 - px0, y - th/2 - py0, x + tw/2 + px0, y + th/2 + py0],
