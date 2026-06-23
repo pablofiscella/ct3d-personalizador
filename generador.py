@@ -198,6 +198,31 @@ def _field_text(field, data):
     t = field.get("_text")
     return t if t is not None else field["tpl"].format(**data)
 
+_CREAM = (248, 245, 239)
+def _hex2rgb(c):
+    c = str(c).lstrip("#")
+    return tuple(int(c[i:i+2], 16) for i in (0, 2, 4))
+
+def draw_slime(draw, cx, cy, tw, th, hexcolor, alpha=0.5):
+    """Mancha de slime semitransparente detrás del nombre (verde mezclado sobre el crema,
+    con bumps orgánicos y goteras). Pensada para los temas de monstruos."""
+    import math
+    g = _hex2rgb(hexcolor)
+    col = tuple(int(g[i] * alpha + _CREAM[i] * (1 - alpha)) for i in range(3))
+    rw = tw * 0.58 + th * 0.55          # semi-ancho
+    rh = th * 0.85                       # semi-alto
+    draw.ellipse([cx - rw, cy - rh, cx + rw, cy + rh], fill=col)
+    nb = 11                              # bumps alrededor (aspecto orgánico)
+    for i in range(nb):
+        a = 2 * math.pi * i / nb + 0.4
+        bx = cx + rw * 0.93 * math.cos(a)
+        by = cy + rh * 0.93 * math.sin(a)
+        br = th * (0.30 + 0.14 * ((i * 41) % 7) / 7.0)
+        draw.ellipse([bx - br, by - br, bx + br, by + br], fill=col)
+    for dx, dy, dr in [(-rw*0.45, rh*1.05, th*0.26), (rw*0.05, rh*1.35, th*0.20),
+                        (rw*0.5, rh*1.0, th*0.22), (-rw*0.05, rh*0.95, th*0.3)]:
+        draw.ellipse([cx+dx-dr, cy+dy-dr, cx+dx+dr, cy+dy+dr], fill=col)   # goteras
+
 def draw_text(draw, field, data, W, H):
     text = _field_text(field, data)
     if not text.strip():
@@ -206,6 +231,7 @@ def draw_text(draw, field, data, W, H):
     f = fit_font(draw, text, field["font"], field["size"], maxw_px, field.get("wght"))
     x, y = int(W * field["x"]), int(H * field["y"])
     anchor = field["anchor"]; h, v = anchor[0], anchor[1]
+    sw = int(field.get("stroke", 0)); sf = field.get("stroke_color")
     icon = field.get("icon")
     if icon:                                   # icono + texto, según alineación (l/m/r)
         tw = draw.textlength(text, font=f)
@@ -213,10 +239,17 @@ def draw_text(draw, field, data, W, H):
         gap = isz * 0.42
         block = isz + gap + tw
         start = x - block / 2 if h == "m" else (x if h == "l" else x - block)
-        draw_icon(draw, icon, start + isz / 2, y, isz, field["color"])
-        draw.text((start + isz + gap, y), text, font=f, fill=field["color"], anchor="l" + v)
+        draw_icon(draw, icon, start + isz / 2, y, isz, field.get("icon_color") or field["color"])
+        draw.text((start + isz + gap, y), text, font=f, fill=field["color"], anchor="l" + v,
+                  stroke_width=sw, stroke_fill=sf)
     else:
-        draw.text((x, y), text, font=f, fill=field["color"], anchor=anchor)
+        if field.get("slime"):
+            tw = draw.textlength(text, font=f)
+            try: th = f.size
+            except Exception: th = field["size"]
+            draw_slime(draw, x, y, tw, th, field["slime"])
+        draw.text((x, y), text, font=f, fill=field["color"], anchor=anchor,
+                  stroke_width=sw, stroke_fill=sf)
 
 def draw_icon_group(draw, fields, data, W, H):
     """Renderiza fecha/hora/lugar con los iconos alineados en columna y el
@@ -239,7 +272,7 @@ def draw_icon_group(draw, fields, data, W, H):
     text_x = left + isz + gap
     for f, text, font in rows:
         y = int(H * f["y"])
-        draw_icon(draw, f["icon"], icon_cx, y, isz, f["color"])
+        draw_icon(draw, f["icon"], icon_cx, y, isz, f.get("icon_color") or f["color"])
         draw.text((text_x, y), text, font=font, fill=f["color"], anchor="lm")
 
 # ---- layout editable (editor visual) ----
