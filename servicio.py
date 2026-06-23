@@ -177,16 +177,26 @@ class Handler(BaseHTTPRequestHandler):
                 data["nombre"] = "Tomás"
             tema = q.get("tema", ["safari"])[0]
             tipo = q.get("tipo", ["kit"])[0]
+            # tamaño + formato configurables → miniaturas del catálogo livianas
+            try: max_px = max(200, min(1200, int(q.get("max", ["900"])[0])))
+            except Exception: max_px = 900
+            fmt = (q.get("fmt", ["png"])[0] or "png").lower()
             ov = q.get("over", [""])[0]              # personalización del cliente (JSON)
             if ov:
                 try: data["_over"] = json.loads(ov)
                 except Exception: pass
-            img = productos.preview(data, tema=tema, tipo=tipo, max_px=900)
+            img = productos.preview(data, tema=tema, tipo=tipo, max_px=max_px)
             img = piezas.marca_agua(img)   # marca de agua SOLO en el preview (el kit comprado sale limpio)
-            buf = io.BytesIO(); img.save(buf, "PNG"); body = buf.getvalue()
+            buf = io.BytesIO()
+            if fmt in ("jpg", "jpeg"):
+                img.convert("RGB").save(buf, "JPEG", quality=80, optimize=True)
+                ctype = "image/jpeg"
+            else:
+                img.save(buf, "PNG"); ctype = "image/png"
+            body = buf.getvalue()
             self.send_response(200)
-            self.send_header("Content-Type", "image/png")
-            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Type", ctype)
+            self.send_header("Cache-Control", "public, max-age=86400")
             self.send_header("Content-Length", str(len(body)))
             self.end_headers(); self.wfile.write(body)
             return
