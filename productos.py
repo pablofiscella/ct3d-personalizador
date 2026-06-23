@@ -68,6 +68,15 @@ def _estrella(d, cx, cy, r, color, w=6):
     d.line(pts + [pts[0]], fill=color, width=w, joint="curve")
 
 
+def _num(d, text, cx, cy, font_file, size, color, maxw, wght=None):
+    """Dibuja un número/texto corto centrado por su bounding box REAL (no por las
+    métricas de la fuente), así queda centrado de verdad con cualquier tipografía."""
+    from generador import fit_font
+    f = fit_font(d, str(text), font_file, int(size), int(maxw), wght)
+    l, t, r, b = d.textbbox((0, 0), str(text), font=f)
+    d.text((cx - (l + r) / 2, cy - (t + b) / 2), str(text), font=f, fill=color)
+
+
 def colorear(data, tema=None):
     """Hoja A4 'para colorear': contornos negros (sin relleno) que el chico pinta,
     con marco y títulos en el color de la temática."""
@@ -178,7 +187,7 @@ def milestone(data, tema=None):
         bs = int(r * 0.5)
         by = fy + r
         d.ellipse([fx - bs, by - bs, fx + bs, by + bs], fill=acc + (255,))
-        txt(d, badge, fx, by, fnt, bs * 1.25, _tint(acc, 0.92), bs * 1.7, wght=700)
+        _num(d, badge, fx, by, fnt, bs * 1.25, _tint(acc, 0.92), bs * 1.7, wght=700)
 
     # 12 marcos en anillo (mes 1 arriba, en sentido horario)
     for i in range(12):
@@ -186,8 +195,8 @@ def milestone(data, tema=None):
         marco(cx + R_ring * math.cos(ang), cy + R_ring * math.sin(ang), r_f, str(i + 1))
 
     # centro: número grande del añito (decorativo, no es marco de foto)
-    txt(d, "1", cx, cy - H * 0.018, fnt, int(W * 0.27), acc, W * 0.34, wght=700)
-    txt(d, "AÑITO", cx, cy + H * 0.075, "Fredoka-VF.ttf", int(W * 0.05), ink, W * 0.34, wght=700)
+    _num(d, "1", cx, cy - H * 0.012, fnt, int(W * 0.27), acc, W * 0.34, wght=700)
+    txt(d, "AÑITO", cx, cy + H * 0.085, "Fredoka-VF.ttf", int(W * 0.05), ink, W * 0.34, wght=700)
 
     _pie_marca(d, W, H, ink)
     return base
@@ -273,10 +282,33 @@ def piezas_tipo(tema, tipo):
     """Lista [(nombre_archivo, fn(data)->Image, is_rgba)] del tipo sobre la temática."""
     return _spec(tipo)["piezas"](tema or "safari")
 
+_PIEZA_LABELS = {
+    "1_invitacion": "Invitación", "2_cartel": "Cartel", "1_cartel": "Cartel",
+    "3_topper_torta": "Topper de torta", "4_cupcake_toppers": "Cupcakes",
+    "5_etiquetas_botellita": "Etiquetas", "6_tags_souvenir": "Tags souvenir",
+    "7_banderines": "Banderines", "1_para_colorear": "Para colorear",
+    "2_juegos": "Juegos", "1_tarjetas_mes_a_mes": "Póster primer año",
+}
+
+def pieza_label(name):
+    if name in _PIEZA_LABELS:
+        return _PIEZA_LABELS[name]
+    import re
+    return re.sub(r"^\d+_", "", name).replace("_", " ").capitalize()
+
+def piezas_nombres(tipo, tema="safari"):
+    return [n for (n, _, _) in piezas_tipo(tema, tipo)]
+
+def piezas_meta(tipo):
+    """Lista [{idx, nombre, label}] de las piezas de un tipo (para la galería de la ficha)."""
+    return [{"idx": i, "nombre": n, "label": pieza_label(n)}
+            for i, n in enumerate(piezas_nombres(tipo))]
+
 def tipos_publicos():
     """Para el endpoint /tipos: metadata sin las funciones."""
     return {k: {"nombre": v["nombre"], "descripcion": v["descripcion"],
-                "campos": v["campos"], "preview": v["preview"]}
+                "campos": v["campos"], "preview": v["preview"],
+                "piezas": piezas_meta(k)}
             for k, v in TIPOS.items()}
 
 
@@ -303,6 +335,18 @@ def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):
         img = milestone(data, tema)
     else:
         img = render(data, specs_de(tema)["invitacion"])
+    img = img.convert("RGB") if img.mode == "RGBA" else img
+    img.thumbnail((max_px, max_px), Image.LANCZOS)
+    return img
+
+
+def preview_pieza(data, tema, tipo, idx, max_px=900):
+    """Vista previa de UNA pieza específica del tipo (para la galería 'qué trae el ZIP')."""
+    items = piezas_tipo(tema, tipo)
+    if not items:
+        return None
+    idx = max(0, min(len(items) - 1, int(idx)))
+    img = items[idx][1](data)
     img = img.convert("RGB") if img.mode == "RGBA" else img
     img.thumbnail((max_px, max_px), Image.LANCZOS)
     return img

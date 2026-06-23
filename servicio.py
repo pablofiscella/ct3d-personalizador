@@ -185,7 +185,13 @@ class Handler(BaseHTTPRequestHandler):
             if ov:
                 try: data["_over"] = json.loads(ov)
                 except Exception: pass
-            img = productos.preview(data, tema=tema, tipo=tipo, max_px=max_px)
+            pieza = q.get("pieza", [""])[0]          # índice de pieza (galería: todas las del ZIP)
+            img = None
+            if pieza != "":
+                try: img = productos.preview_pieza(data, tema, tipo, int(pieza), max_px=max_px)
+                except Exception: img = None
+            if img is None:
+                img = productos.preview(data, tema=tema, tipo=tipo, max_px=max_px)
             img = piezas.marca_agua(img)   # marca de agua SOLO en el preview (el kit comprado sale limpio)
             buf = io.BytesIO()
             if fmt in ("jpg", "jpeg"):
