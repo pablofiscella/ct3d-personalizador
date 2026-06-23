@@ -91,16 +91,20 @@ def _curved_text(base, text, cx, cy, radius, font, color, spacing=8, pos="arriba
         ang = math.pi / 2 + arc / 2; step = -1; rotf = lambda a: -math.degrees(a) + 90
     else:                                # abajo, mirando para arriba (continúa el aro)
         ang = math.pi / 2 - arc / 2; step = 1; rotf = lambda a: -math.degrees(a) - 90
+    asc, desc = font.getmetrics()
+    cap = asc * 0.70                       # alto aprox. de mayúscula (centro visual)
+    pad = 16
+    H = int(asc + desc) + pad * 2
+    ty = H / 2 - asc + cap / 2             # ubica el CENTRO VISUAL de la letra en H/2
     for i, ch in enumerate(text):
         w = widths[i]; ca = w / radius
         a = ang + step * ca / 2
         x = cx + radius * math.cos(a); y = cy + radius * math.sin(a)
-        pad = 12
-        ci = Image.new("RGBA", (int(w) + pad * 2, font.size + pad * 2), (0, 0, 0, 0))
+        ci = Image.new("RGBA", (int(w) + pad * 2, H), (0, 0, 0, 0))
         dci = ImageDraw.Draw(ci)
-        dci.text((pad + 2, pad + 3), ch, font=font, fill=(255, 255, 255, 130))  # lip claro = grabado incrustado
-        dci.text((pad, pad), ch, font=font, fill=color)
-        rot = ci.rotate(rotf(a), expand=True, resample=Image.BICUBIC)
+        dci.text((pad + 2, ty + 3), ch, font=font, fill=(255, 255, 255, 130))  # lip claro = grabado incrustado
+        dci.text((pad, ty), ch, font=font, fill=color)
+        rot = ci.rotate(rotf(a), expand=True, resample=Image.BICUBIC)   # centro visual = centro de la img
         base.paste(rot, (int(x - rot.width / 2), int(y - rot.height / 2)), rot)
         ang += step * (ca + spacing / radius)
 
