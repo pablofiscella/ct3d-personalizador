@@ -75,25 +75,34 @@ def cargar(mate_id="demo"):
 # ---------------------------------------------------------------------------
 # Render del grabado
 # ---------------------------------------------------------------------------
-def _curved_text(base, text, cx, cy, radius, font, color, spacing=8):
-    """Dibuja `text` curvado sobre un arco (centrado arriba), tangente a la circunferencia."""
+def _curved_text(base, text, cx, cy, radius, font, color, spacing=8, pos="arriba", flip=False):
+    """Dibuja `text` curvado sobre la virola.
+       pos='arriba' → arco superior, legible.
+       pos='abajo'  → arco inferior; flip=False letras mirando para abajo (legible desde afuera),
+                      flip=True letras mirando para arriba (continúa el aro, se lee girando el mate)."""
     if not text:
         return
     widths = [font.getlength(ch) for ch in text]
     total = sum(widths) + spacing * (len(text) - 1)
-    ang = -math.pi / 2 - (total / radius) / 2
+    arc = total / radius
+    if pos == "arriba":
+        ang = -math.pi / 2 - arc / 2; step = 1; rotf = lambda a: -math.degrees(a) - 90
+    elif not flip:                       # abajo, mirando para abajo (legible)
+        ang = math.pi / 2 + arc / 2; step = -1; rotf = lambda a: -math.degrees(a) + 90
+    else:                                # abajo, mirando para arriba (continúa el aro)
+        ang = math.pi / 2 - arc / 2; step = 1; rotf = lambda a: -math.degrees(a) - 90
     for i, ch in enumerate(text):
         w = widths[i]; ca = w / radius
-        a = ang + ca / 2
+        a = ang + step * ca / 2
         x = cx + radius * math.cos(a); y = cy + radius * math.sin(a)
         pad = 12
         ci = Image.new("RGBA", (int(w) + pad * 2, font.size + pad * 2), (0, 0, 0, 0))
         dci = ImageDraw.Draw(ci)
         dci.text((pad + 2, pad + 3), ch, font=font, fill=(255, 255, 255, 130))  # lip claro = grabado incrustado
         dci.text((pad, pad), ch, font=font, fill=color)
-        rot = ci.rotate(-math.degrees(a) - 90, expand=True, resample=Image.BICUBIC)
+        rot = ci.rotate(rotf(a), expand=True, resample=Image.BICUBIC)
         base.paste(rot, (int(x - rot.width / 2), int(y - rot.height / 2)), rot)
-        ang += ca + spacing / radius
+        ang += step * (ca + spacing / radius)
 
 
 def _grabar_foto(base, foto, cx, cy, diam):
@@ -111,9 +120,10 @@ def _grabar_foto(base, foto, cx, cy, diam):
 
 
 def render(texto="", mate_id="demo", font="Poppins-Medium.ttf", size_frac=0.052,
-           spacing=8, foto=None, r=None, max_px=1000):
+           spacing=8, foto=None, r=None, max_px=1000, texto_abajo="", abajo_flip=False):
     """Render del mate con el grabado. Devuelve PIL RGB.
-       - texto: lo que se graba en la virola (curvado).
+       - texto: texto de ARRIBA (curvado, legible).
+       - texto_abajo: texto de ABAJO; abajo_flip controla si mira para arriba o para abajo.
        - r: radio del texto (fracción del ancho) para centrarlo en la virola; si no, el del config.
        - foto: PIL.Image opcional → se achica chiquita y se graba sobre la virola.
     """
@@ -130,9 +140,12 @@ def render(texto="", mate_id="demo", font="Poppins-Medium.ttf", size_frac=0.052,
         fx = cx + W * rf * math.cos(-math.pi / 2 - 0.6)
         fy = cy + W * rf * math.sin(-math.pi / 2 - 0.6)
         _grabar_foto(base, foto, fx, fy, int(W * 0.11))
+    fnt = _font(font, int(W * size_frac))
     if texto:
-        fnt = _font(font, int(W * size_frac))
-        _curved_text(base, texto, cx, cy, int(W * r_texto), fnt, GRABADO, spacing)
+        _curved_text(base, texto, cx, cy, int(W * r_texto), fnt, GRABADO, spacing, pos="arriba")
+    if texto_abajo:
+        _curved_text(base, texto_abajo, cx, cy, int(W * r_texto), fnt, GRABADO, spacing,
+                     pos="abajo", flip=abajo_flip)
     if max_px and W > max_px:
         base.thumbnail((max_px, max_px), Image.LANCZOS)
     return base

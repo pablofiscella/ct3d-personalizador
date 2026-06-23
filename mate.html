@@ -34,8 +34,13 @@
     </div>
     <div class="panel">
       <h1>🧉 Personalizá tu mate</h1>
-      <label for="texto">¿Qué querés grabar?</label>
+      <label for="texto">Texto de arriba</label>
       <input type="text" id="texto" maxlength="32" placeholder="Ej: Catalina" autocomplete="off">
+      <label for="abajo">Texto de abajo <span style="font-weight:400;opacity:.6">(opcional)</span></label>
+      <input type="text" id="abajo" maxlength="32" placeholder="Ej: 2024" autocomplete="off">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:500;margin-top:8px">
+        <input type="checkbox" id="flip" style="width:auto"> Texto de abajo mirando para arriba
+      </label>
       <label>Tipografía <span style="font-weight:400;opacity:.6">(finas, estilo grabado)</span></label>
       <div class="chips" id="fonts">
         <button class="chip active" data-f="Poppins-Medium.ttf">Fina</button>
@@ -55,17 +60,19 @@
 (function(){
   var BASE="";  // mismo origen
   var pv=document.getElementById('pv'), txt=document.getElementById('texto'),
+      abajo=document.getElementById('abajo'), flip=document.getElementById('flip'),
       size=document.getElementById('size'), radio=document.getElementById('radio'),
       mate=(new URLSearchParams(location.search)).get('mate')||'demo';
   var font="Poppins-Medium.ttf", t=null;
   function upd(){
     clearTimeout(t);
     t=setTimeout(function(){
-      var q="texto="+encodeURIComponent(txt.value)+"&mate="+encodeURIComponent(mate)
+      var q="texto="+encodeURIComponent(txt.value)+"&abajo="+encodeURIComponent(abajo.value)
+           +"&flip="+(flip.checked?"1":"0")+"&mate="+encodeURIComponent(mate)
            +"&font="+encodeURIComponent(font)+"&size="+encodeURIComponent(size.value)
            +"&r="+encodeURIComponent(radio.value)+"&max=760";
       pv.src=BASE+"/mate/preview?"+q;
-      try{ parent.postMessage({type:'ct3d-mate', payload:{mate:mate, texto:txt.value, font:font, size:size.value, r:radio.value}}, '*'); }catch(e){}
+      try{ parent.postMessage({type:'ct3d-mate', payload:{mate:mate, texto:txt.value, abajo:abajo.value, flip:flip.checked, font:font, size:size.value, r:radio.value}}, '*'); }catch(e){}
     }, 300);
   }
   document.getElementById('fonts').addEventListener('click', function(e){
@@ -73,8 +80,9 @@
     document.querySelectorAll('#fonts .chip').forEach(c=>c.classList.remove('active'));
     b.classList.add('active'); font=b.getAttribute('data-f'); upd();
   });
-  txt.addEventListener('input', upd); size.addEventListener('input', upd);
-  radio.addEventListener('input', upd);
+  txt.addEventListener('input', upd); abajo.addEventListener('input', upd);
+  size.addEventListener('input', upd); radio.addEventListener('input', upd);
+  flip.addEventListener('change', upd);
   upd();
 })();
 </script>
