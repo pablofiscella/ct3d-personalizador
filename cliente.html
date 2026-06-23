@@ -28,17 +28,17 @@
   body{font-family:var(--font-body);background:var(--bg-base);color:var(--ink-1);font-size:14px;line-height:1.45}
   button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
 
-  .wrap{display:flex;gap:12px;padding:12px;max-width:1100px;margin:0 auto;align-items:stretch}
+  .wrap{display:flex;gap:16px;padding:14px;max-width:1280px;margin:0 auto;align-items:stretch}
   /* lienzo */
   #left{flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;background:var(--bg-sunken);border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px}
   canvas{background:#fff;border:1px solid var(--border-strong);border-radius:8px;box-shadow:var(--shadow-pop);max-width:100%;max-height:84vh;cursor:grab;touch-action:none}
   canvas.drag{cursor:grabbing}
   /* panel */
-  #panel{flex:0 0 300px;max-width:300px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;box-shadow:var(--shadow-sm);max-height:88vh;overflow:auto}
+  #panel{flex:0 0 372px;max-width:372px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow-sm);max-height:88vh;overflow:auto}
   h1{font-family:var(--font-display);font-weight:700;font-size:17px;margin-bottom:3px}
   .sub{font-size:12px;color:var(--ink-3);margin-bottom:14px}
   .lbl{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:14px 0 8px}
-  #datos{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}
+  #datos{display:grid;grid-template-columns:1fr 1fr;gap:11px 13px}
   .field{margin-bottom:0;min-width:0}
   .field--full{grid-column:1/-1}
   .field label{display:block;font-size:11px;font-weight:600;color:var(--ink-2);margin-bottom:3px}
@@ -88,6 +88,10 @@
   .icsel:focus{outline:0;border-color:var(--accent)}
   .color-row{display:flex;align-items:center;gap:8px}
   .color-row input[type=color]{width:40px;height:30px;padding:0;border:1px solid var(--border);border-radius:var(--radius-sm);background:none;cursor:pointer}
+  .align{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .align button{padding:9px 0;border:1px solid var(--border);background:var(--bg-warm);border-radius:var(--radius-sm);color:var(--ink-2);font-size:15px;transition:all var(--dur-fast)}
+  .align button:hover{background:var(--accent-soft);color:var(--accent-deep);border-color:var(--accent)}
+  .align button.sel{background:var(--accent-soft);color:var(--accent-deep);border-color:var(--accent)}
   @media (max-width:440px){
     .wrap{flex-direction:column;padding:10px;gap:10px}
     #left{padding:8px}
@@ -128,6 +132,14 @@
         <div class="ctrl">
           <label>Color</label>
           <div class="color-row"><input type="color" id="color"><span id="colorv" style="font-family:var(--font-mono);font-size:11px;color:var(--ink-3)"></span></div>
+        </div>
+        <div class="ctrl">
+          <label>Alineación</label>
+          <div class="align" id="align">
+            <button data-a="l" title="Izquierda">⬅</button>
+            <button data-a="m" title="Centro">⬌</button>
+            <button data-a="r" title="Derecha">➡</button>
+          </div>
         </div>
         <div class="nudge">
           <span class="sp"></span><button data-d="u">▲</button><span class="sp"></span>
@@ -183,7 +195,7 @@ function drawIconJS(g,kind,cx,cy,s,color){
 function setFont(f,size){ctx.font=`${f.wght||500} ${size}px "${f.family}"`;}
 function fitSize(f){let s=f.size;const mw=f.maxw*SIZE[0];for(;s>10;s-=2){setFont(f,s);if(ctx.measureText(f.text||' ').width<=mw)return s;}return s;}
 function box(f){const s=fitSize(f);setFont(f,s);const w=ctx.measureText(f.text||' ').width;const px=f.x*SIZE[0],py=f.y*SIZE[1];
-  const left=f.anchor[0]==='l'?px:px-w/2;return{l:left,t:py-s*0.62,r:left+w,b:py+s*0.62,s,w};}
+  const h=f.anchor[0];const left=h==='l'?px:h==='r'?px-w:px-w/2;return{l:left,t:py-s*0.62,r:left+w,b:py+s*0.62,s,w};}
 
 function draw(){
   cv.width=SIZE[0];cv.height=SIZE[1];
@@ -194,12 +206,16 @@ function draw(){
     const s=fitSize(f);setFont(f,s);ctx.fillStyle=f.color;
     const x0=f.x*SIZE[0], y0=f.y*SIZE[1];
     const vmid=()=>{const m=ctx.measureText(f.text);return y0+(m.actualBoundingBoxAscent-m.actualBoundingBoxDescent)/2;};
-    if(f.icon&&f.anchor[1]==='m'){            // icono + texto, bloque centrado en x0
-      const tw=ctx.measureText(f.text).width, isz=s*0.95, gap=isz*0.42, start=x0-(isz+gap+tw)/2;
+    const h=f.anchor[0];
+    if(f.icon){                                // icono + texto, según alineación (l/m/r)
+      const tw=ctx.measureText(f.text).width, isz=s*0.95, gap=isz*0.42, block=isz+gap+tw;
+      const start=h==='m'?x0-block/2:(h==='l'?x0:x0-block);
       drawIconJS(ctx,f.icon,start+isz/2,y0,isz,f.color);
-      ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.fillText(f.text,start+isz+gap,vmid());
+      ctx.textAlign='left';
+      if(f.anchor[1]==='m'){ctx.textBaseline='alphabetic';ctx.fillText(f.text,start+isz+gap,vmid());}
+      else{ctx.textBaseline=f.anchor[1]==='t'?'top':'alphabetic';ctx.fillText(f.text,start+isz+gap,y0);}
     }else{
-      ctx.textAlign=f.anchor[0]==='l'?'left':'center';
+      ctx.textAlign=h==='l'?'left':h==='r'?'right':'center';
       if(f.anchor[1]==='m'){ctx.textBaseline='alphabetic';ctx.fillText(f.text,x0,vmid());}
       else{ctx.textBaseline=f.anchor[1]==='t'?'top':'alphabetic';ctx.fillText(f.text,x0,y0);}
     }
@@ -259,7 +275,7 @@ function select(id){
     document.getElementById('wgv').textContent=sel.wght||500;
     document.getElementById('color').value=sel.color;
     document.getElementById('colorv').textContent=sel.color;
-    markFont();
+    markFont();markAlign();
   }
   draw();
 }
@@ -281,13 +297,17 @@ document.getElementById('wght').oninput=e=>{if(!sel)return;sel.wght=+e.target.va
 document.getElementById('color').oninput=e=>{if(!sel)return;sel.color=e.target.value;document.getElementById('colorv').textContent=e.target.value;draw();emit();};
 document.querySelectorAll('.nudge button').forEach(b=>b.onclick=()=>{if(!sel)return;const d=b.dataset.d,sx=1/1500,sy=1/2100;
   sel.x=Math.min(1,Math.max(0,sel.x+(d==='l'?-sx:d==='r'?sx:0)));sel.y=Math.min(1,Math.max(0,sel.y+(d==='u'?-sy:d==='d'?sy:0)));draw();emit();});
+// alineación: cambia el anchor horizontal y reubica x al margen correspondiente
+function markAlign(){document.querySelectorAll('#align button').forEach(b=>b.classList.toggle('sel',sel&&b.dataset.a===sel.anchor[0]));}
+function setAlign(h){if(!sel)return;sel.anchor=h+(sel.anchor[1]||'m');sel.x=h==='l'?0.13:(h==='r'?0.87:0.50);markAlign();draw();emit();}
+document.querySelectorAll('#align button').forEach(b=>b.onclick=()=>setAlign(b.dataset.a));
 
 // personalización -> objeto para mandar al carrito.
 // `over` va por id de campo (lo que el motor mezcla); `data` por clave de dato.
 function buildOver(){
   const over={}, data={};
   for(const f of fields){
-    const o={x:+f.x.toFixed(4),y:+f.y.toFixed(4),size:Math.round(f.size),wght:f.wght||500,maxw:f.maxw,font:f._font,color:f.color};
+    const o={x:+f.x.toFixed(4),y:+f.y.toFixed(4),size:Math.round(f.size),wght:f.wght||500,maxw:f.maxw,font:f._font,color:f.color,anchor:f.anchor};
     if(f.iconable) o.icon=f.icon||'';
     if(f.toggleable&&f.hidden) o.hidden=true;
     const k=fkind(f);

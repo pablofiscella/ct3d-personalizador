@@ -204,16 +204,18 @@ def draw_text(draw, field, data, W, H):
     maxw_px = int(W * field.get("maxw", 0.9))
     f = fit_font(draw, text, field["font"], field["size"], maxw_px, field.get("wght"))
     x, y = int(W * field["x"]), int(H * field["y"])
+    anchor = field["anchor"]; h, v = anchor[0], anchor[1]
     icon = field.get("icon")
-    if icon and field["anchor"] == "mm":
+    if icon:                                   # icono + texto, según alineación (l/m/r)
         tw = draw.textlength(text, font=f)
         isz = field["size"] * 0.95
         gap = isz * 0.42
-        start = x - (isz + gap + tw) / 2
+        block = isz + gap + tw
+        start = x - block / 2 if h == "m" else (x if h == "l" else x - block)
         draw_icon(draw, icon, start + isz / 2, y, isz, field["color"])
-        draw.text((start + isz + gap, y), text, font=f, fill=field["color"], anchor="lm")
+        draw.text((start + isz + gap, y), text, font=f, fill=field["color"], anchor="l" + v)
     else:
-        draw.text((x, y), text, font=f, fill=field["color"], anchor=field["anchor"])
+        draw.text((x, y), text, font=f, fill=field["color"], anchor=anchor)
 
 def draw_icon_group(draw, fields, data, W, H):
     """Renderiza fecha/hora/lugar con los iconos alineados en columna y el
@@ -360,6 +362,9 @@ def render(data, spec=None):
                 f["icon"] = o["icon"] if o["icon"] in _ICON_KINDS else None
             if "text" in o and isinstance(o["text"], str):
                 f["_text"] = o["text"]
+            a = o.get("anchor")
+            if isinstance(a, str) and len(a) == 2 and a[0] in "lmr" and a[1] in "tmb":
+                f["anchor"] = a
             if o.get("hidden"):            # el cliente decidió no incluir este dato
                 f["_hidden"] = True
     if scale != 1.0:                        # escala los tamaños de fuente junto con el canvas
