@@ -90,6 +90,8 @@ FONTS_CATALOG = [
     {"file": "Nunito-VF.ttf",        "family": "Nunito",        "label": "Suave",      "kind": "body"},
     {"file": "LuckiestGuy.ttf",      "family": "LuckiestGuy",   "label": "Cartel",     "kind": "display"},
     {"file": "BreeSerif-Regular.ttf","family": "BreeSerif",     "label": "Cuento",     "kind": "display"},
+    {"file": "Rye-Regular.ttf",      "family": "Rye",          "label": "Circo",      "kind": "display"},
+    {"file": "Quicksand-VF.ttf",     "family": "Quicksand",    "label": "Redonda",    "kind": "body"},
 ]
 _FONT_FILES = {f["file"] for f in FONTS_CATALOG}
 _FILE_TO_FAMILY = {f["file"]: f["family"] for f in FONTS_CATALOG}
@@ -198,7 +200,12 @@ def _hex_rgb(h):
 def _field_text(field, data):
     """Texto a dibujar: el custom del cliente (_text) tiene prioridad sobre el tpl."""
     t = field.get("_text")
-    return t if t is not None else field["tpl"].format(**data)
+    if t is None:
+        t = field["tpl"].format(**data)
+    # plural inteligente de la edad: "1 año" / "5 años"
+    if "{edad}" in field.get("tpl", "") and str(data.get("edad", "")).strip() == "1":
+        t = t.replace(" años", " año")
+    return t
 
 _CREAM = (248, 245, 239)
 def _hex2rgb(c):
@@ -250,6 +257,32 @@ def draw_woodsign(draw, cx, cy, tw, th, fill="#D9B98E", border="#8B5E3C",
     _leaf(draw, l + rad*0.2, t + rad*0.1, ls*0.8, -1.9, leaf)
     _leaf(draw, r - rad*0.2, t + rad*0.1, ls, -0.6, leaf)
     _leaf(draw, r - rad*0.2, t + rad*0.1, ls*0.8, -1.2, leaf)
+
+def _star(draw, cx, cy, r, color):
+    import math
+    pts = []
+    for i in range(10):
+        rr = r if i % 2 == 0 else r * 0.45
+        a = -math.pi/2 + i * math.pi/5
+        pts.append((cx + rr*math.cos(a), cy + rr*math.sin(a)))
+    draw.polygon(pts, fill=color)
+
+def draw_circoplaca(draw, cx, cy, tw, th, fill="#D9624C", border="#F4C95D",
+                    star="#F4C95D", shadow="#7A3B2E"):
+    """Placa central tipo cartel de circo: rojo vintage, doble borde dorado,
+    estrellas a los lados y sombra suave. Detrás del nombre (reutilizable)."""
+    px = th * 0.75; py = th * 0.5
+    l, t, r, b = cx - tw/2 - px, cy - th/2 - py, cx + tw/2 + px, cy + th/2 + py
+    rad = th * 0.3; bw = max(4, int(th * 0.09))
+    off = int(th * 0.07)
+    draw.rounded_rectangle([l+off, t+off, r+off, b+off], radius=rad, fill=shadow)   # sombra
+    draw.rounded_rectangle([l, t, r, b], radius=rad, fill=fill, outline=border, width=bw)
+    iw = max(2, int(th*0.03)); ins = bw + th*0.10                                   # borde interno fino
+    draw.rounded_rectangle([l+ins, t+ins, r-ins, b-ins], radius=rad*0.7, outline=border, width=iw)
+    sr = th * 0.34                                                                  # estrellas a los lados
+    for sy in (t + (b-t)*0.5,):
+        _star(draw, l - sr*0.2, sy, sr, star)
+        _star(draw, r + sr*0.2, sy, sr, star)
 
 def draw_text(draw, field, data, W, H):
     text = _field_text(field, data)
