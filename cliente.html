@@ -179,7 +179,10 @@
 const qs=new URLSearchParams(location.search);
 const TEMA=qs.get('tema')||'safari';
 let EDAD=qs.get('edad')||'1';
-const PIEZA='invitacion';
+// La pieza se elige por query (?pieza=cartel, etc.). El "kit" completo se edita por
+// su invitación (la pieza personalizable principal). Default: invitacion.
+let PIEZA=(qs.get('pieza')||qs.get('tipo')||'invitacion').toLowerCase();
+if(PIEZA==='kit') PIEZA='invitacion';
 const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
 let SIZE=[1500,2100], fields=[], bg=new Image(), sel=null, drag=null, CAT=[];
 let ICONS=[];                            // catálogo de iconos (de /cliente/layout)

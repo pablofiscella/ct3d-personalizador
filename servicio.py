@@ -280,6 +280,17 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(body)))
             self.end_headers(); self.wfile.write(body)
             return
+        if path == "/editor-simple":
+            # editor liviano (campos + preview en vivo) para piezas código-generadas
+            # (milestone, actividades). Público, no edita config.
+            html = open(os.path.join(generador.BASEDIR, "editor_simple.html"), encoding="utf-8").read()
+            body = html.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers(); self.wfile.write(body)
+            return
         if path == "/cliente/layout":
             q = urllib.parse.parse_qs(u.query)
             pieza = q.get("pieza", ["invitacion"])[0]
@@ -293,10 +304,15 @@ class Handler(BaseHTTPRequestHandler):
             bp = generador.bg_path_for(pieza, edad, tema)
             if not bp or not os.path.isfile(bp):
                 return self._json(404, {"ok": False, "error": "fondo no encontrado"})
-            im = piezas.marca_agua(Image.open(bp).convert("RGB"))   # con marca de agua (protege el asset)
-            buf = io.BytesIO(); im.save(buf, "PNG"); data = buf.getvalue()
+            im = Image.open(bp).convert("RGB")
+            # El editor escala el canvas; no necesita el fondo a resolución real. Algunos
+            # afiches pesan 45MB (5000px) y servirlos en PNG tardaba ~18s → el browser
+            # cortaba (HTTP 000). Achicamos primero y servimos JPEG: <1s y unos cientos de KB.
+            im.thumbnail((1400, 1400), Image.LANCZOS)
+            im = piezas.marca_agua(im)                              # marca de agua (protege el asset)
+            buf = io.BytesIO(); im.save(buf, "JPEG", quality=82, optimize=True); data = buf.getvalue()
             self.send_response(200)
-            self.send_header("Content-Type", "image/png")
+            self.send_header("Content-Type", "image/jpeg")
             self.send_header("Cache-Control", "no-store")
             self.send_header("Content-Length", str(len(data)))
             self.end_headers(); self.wfile.write(data)

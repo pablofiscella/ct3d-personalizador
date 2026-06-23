@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Personalizá tu diseño — CASATRIDIMENSIONAL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--cream:#F6F2EC;--ink:#1B1530;--violet:#6B5BD2;--violet2:#4D3FB0;--line:#e3def5;--navy:#1D194F}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Titillium Web',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--cream);color:var(--ink)}
+  .wrap{max-width:1100px;margin:0 auto;padding:16px;display:grid;gap:18px;grid-template-columns:1fr}
+  @media(min-width:780px){.wrap{grid-template-columns:1fr 340px;align-items:start}.preview{position:sticky;top:14px}}
+  .preview{background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.12);padding:14px;text-align:center}
+  .preview img{max-width:100%;height:auto;border-radius:8px;display:block;margin:0 auto;background:#faf8f4}
+  .panel{background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.10);padding:16px}
+  h1{font-size:1.05rem;margin:0 0 4px}
+  .sub{font-size:.85rem;color:#6b6580;margin:0 0 14px}
+  label{display:block;font-weight:600;font-size:.86rem;margin:12px 0 5px}
+  input[type=text]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fcfbff}
+  input[type=text]:focus{outline:none;border-color:var(--violet)}
+  .tabs{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .tab{padding:7px 12px;border:1px solid var(--line);border-radius:9px;background:#fff;cursor:pointer;font:inherit;font-size:.82rem;font-weight:600;color:#6b6580}
+  .tab.active{background:var(--violet);border-color:var(--violet);color:#fff}
+  .btn{width:100%;margin-top:16px;padding:11px 16px;border:0;border-radius:11px;background:var(--violet);color:#fff;font:inherit;font-weight:700;cursor:pointer}
+  .btn:hover{background:var(--violet2)}
+  .hint{font-size:.8rem;color:#6b6580;margin:10px 0 0;min-height:1.2em}
+  .note{font-size:.78rem;color:#8a84a0;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="preview">
+    <div class="tabs" id="tabs" style="display:none"></div>
+    <img id="pv" alt="Vista previa">
+    <p class="note">La marca de agua es solo de la muestra; lo que se compra sale limpio.</p>
+  </div>
+  <div class="panel">
+    <h1 id="titulo">Personalizá tu diseño</h1>
+    <p class="sub">Escribí el nombre y mirá la vista previa actualizarse.</p>
+    <label for="nombre">Nombre</label>
+    <input type="text" id="nombre" placeholder="Ej.: Catalina" autocomplete="off">
+    <button class="btn" id="confirmar" type="button">Confirmar diseño</button>
+    <p class="hint" id="hint"></p>
+  </div>
+</div>
+<script>
+(function(){
+  var qs = new URLSearchParams(location.search);
+  var TIPO = (qs.get('tipo')||'milestone').toLowerCase();
+  var TEMA = (qs.get('tema')||'safari').toLowerCase();
+  var EDAD = qs.get('edad')||'1';
+  var pv = document.getElementById('pv');
+  var inp = document.getElementById('nombre');
+  var hint = document.getElementById('hint');
+  var titulo = document.getElementById('titulo');
+  var tabsBox = document.getElementById('tabs');
+
+  var LABELS = { milestone:'Personalizá tus tarjetas mes a mes', actividades:'Personalizá las actividades', cartel:'Personalizá el cartel' };
+  titulo.textContent = LABELS[TIPO] || 'Personalizá tu diseño';
+
+  // Páginas (piezas) por tipo: actividades = 2 hojas; el resto = 1.
+  var PAGINAS = (TIPO==='actividades') ? [{i:0,t:'Para colorear'},{i:1,t:'Juegos'}] : [{i:0,t:''}];
+  var pagina = 0;
+  if(PAGINAS.length > 1){
+    tabsBox.style.display = 'flex';
+    PAGINAS.forEach(function(p,idx){
+      var b=document.createElement('button');
+      b.className='tab'+(idx===0?' active':''); b.textContent=p.t; b.type='button';
+      b.onclick=function(){ pagina=idx; [].forEach.call(tabsBox.children,function(c){c.classList.remove('active');}); b.classList.add('active'); refrescar(); };
+      tabsBox.appendChild(b);
+    });
+  }
+
+  function previewUrl(){
+    var nombre = (inp.value||'').trim() || 'Tomás';
+    var q = 'tipo='+encodeURIComponent(TIPO)+'&tema='+encodeURIComponent(TEMA)
+          + '&nombre='+encodeURIComponent(nombre)+'&edad='+encodeURIComponent(EDAD)
+          + '&pieza='+PAGINAS[pagina].i+'&max=820&cb='+Date.now();
+    return '/preview?'+q;
+  }
+  function emit(confirm){
+    try{
+      if(window.parent!==window){
+        window.parent.postMessage({type:'ct3d-kit', confirm:!!confirm,
+          payload:{tema:TEMA, edad:EDAD, data:{nombre:(inp.value||'').trim()}, over:{}}}, '*');
+      }
+    }catch(e){}
+  }
+  var t=null;
+  function refrescar(){ clearTimeout(t); t=setTimeout(function(){ pv.src = previewUrl(); }, 350); emit(false); }
+
+  inp.addEventListener('input', function(){
+    refrescar();
+    var ok=(inp.value||'').trim();
+    hint.textContent = ok ? '' : 'Escribí el nombre para personalizarlo.';
+  });
+  document.getElementById('confirmar').addEventListener('click', function(){
+    var nombre=(inp.value||'').trim();
+    if(!nombre){ hint.textContent='⚠ Escribí el nombre antes de confirmar.'; inp.focus(); return; }
+    emit(true);
+    hint.textContent='✓ Diseño confirmado.';
+  });
+
+  pv.src = previewUrl();
+})();
+</script>
+</body>
+</html>
