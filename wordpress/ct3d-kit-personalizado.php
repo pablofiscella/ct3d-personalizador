@@ -2,7 +2,7 @@
 /**
  * Plugin Name: CT3D · Kit Personalizado (Un Añito Salvaje)
  * Description: Editor del cliente (modal a pantalla completa: mover textos, tamaño, grosor, tipografía) en el producto, y generación automática del kit (ZIP de PDFs) al pagar, vía el servicio Python de CT3D.
- * Version: 2.0
+ * Version: 2.1
  * Author: Casa Tridimensional
  * Requires Plugins: woocommerce
  */
@@ -105,7 +105,7 @@ class CT3D_Kit {
         echo '</div>';
         // modal (oculto hasta tocar el botón)
         echo '<div id="ct3d_modal" style="position:fixed;inset:0;z-index:99999;background:rgba(20,16,40,.6);display:none;align-items:center;justify-content:center;padding:2vmin">
-                <div style="position:relative;width:min(1120px,96vw);height:min(92vh,860px);background:#F6F2EC;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.45)">
+                <div style="position:relative;width:min(1340px,96vw);height:min(94vh,900px);background:#F6F2EC;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.45)">
                   <button type="button" id="ct3d_close" aria-label="Cerrar" style="position:absolute;top:10px;right:12px;z-index:2;width:34px;height:34px;border-radius:50%;border:0;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.2);font-size:18px;line-height:1;cursor:pointer">&times;</button>
                   <iframe id="ct3d_editor" title="Editor del kit" style="width:100%;height:100%;border:0;display:block"></iframe>
                 </div>
