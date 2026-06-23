@@ -114,10 +114,10 @@
   function drawOverlay(){
     var s='<circle cx="'+C+'" cy="'+C+'" r="'+R().toFixed(1)+'" fill="none" stroke="rgba(107,91,210,.35)" stroke-dasharray="4 5"/>';
     iconos.forEach(function(ic,i){
-      var p=pos(ic.ang), r=(i===sel)?15:12;
+      var p=pos(ic.ang), r=Math.max(13, ic.size*VB*1.15);
+      // solo un aro para arrastrar (sin emoji de color): así se ve el icono grabado real debajo
       s+='<g data-i="'+i+'" style="cursor:grab">';
-      s+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+r+'" fill="'+(i===sel?'rgba(107,91,210,.95)':'rgba(255,255,255,.9)')+'" stroke="#6B5BD2" stroke-width="2"/>';
-      s+='<text x="'+p[0].toFixed(1)+'" y="'+(p[1]+5).toFixed(1)+'" text-anchor="middle" font-size="15">'+(EMOJI[ic.n]||'?')+'</text></g>';
+      s+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+(i===sel?'rgba(107,91,210,.12)':'rgba(0,0,0,0.001)')+'" stroke="#6B5BD2" stroke-width="'+(i===sel?2.5:1.5)+'" stroke-dasharray="'+(i===sel?'0':'3 3')+'"/></g>';
     });
     ov.innerHTML=s;
   }
