@@ -47,6 +47,19 @@
         <button class="chip" data-f="DancingScript-VF.ttf">Manuscrita</button>
         <button class="chip" data-f="Fredoka-VF.ttf">Redonda</button>
       </div>
+      <label>Icono <span style="font-weight:400;opacity:.6">(opcional, al centro)</span></label>
+      <div class="chips" id="iconos">
+        <button class="chip active" data-i="">Ninguno</button>
+        <button class="chip" data-i="corazon">❤️</button>
+        <button class="chip" data-i="estrella">⭐</button>
+        <button class="chip" data-i="pelota">⚽</button>
+        <button class="chip" data-i="escudo">🛡️</button>
+        <button class="chip" data-i="camiseta">👕</button>
+        <button class="chip" data-i="corona">👑</button>
+        <button class="chip" data-i="flor">🌸</button>
+        <button class="chip" data-i="nota">🎵</button>
+        <button class="chip" data-i="infinito">∞</button>
+      </div>
       <label for="size">Tamaño</label>
       <input type="range" id="size" min="0.035" max="0.075" step="0.004" value="0.052">
       <label for="radio">Posición del texto (radio)</label>
@@ -63,18 +76,23 @@
       abajo=document.getElementById('abajo'), flip=document.getElementById('flip'),
       size=document.getElementById('size'), radio=document.getElementById('radio'),
       mate=(new URLSearchParams(location.search)).get('mate')||'demo';
-  var font="Poppins-Medium.ttf", t=null;
+  var font="Poppins-Medium.ttf", icono="", t=null;
   function upd(){
     clearTimeout(t);
     t=setTimeout(function(){
       var q="texto="+encodeURIComponent(txt.value)+"&abajo="+encodeURIComponent(abajo.value)
            +"&flip="+(flip.checked?"1":"0")+"&mate="+encodeURIComponent(mate)
            +"&font="+encodeURIComponent(font)+"&size="+encodeURIComponent(size.value)
-           +"&r="+encodeURIComponent(radio.value)+"&max=760";
+           +"&r="+encodeURIComponent(radio.value)+"&icono="+encodeURIComponent(icono)+"&max=760";
       pv.src=BASE+"/mate/preview?"+q;
-      try{ parent.postMessage({type:'ct3d-mate', payload:{mate:mate, texto:txt.value, abajo:abajo.value, flip:flip.checked, font:font, size:size.value, r:radio.value}}, '*'); }catch(e){}
+      try{ parent.postMessage({type:'ct3d-mate', payload:{mate:mate, texto:txt.value, abajo:abajo.value, flip:flip.checked, font:font, size:size.value, r:radio.value, icono:icono}}, '*'); }catch(e){}
     }, 300);
   }
+  document.getElementById('iconos').addEventListener('click', function(e){
+    var b=e.target.closest('.chip'); if(!b) return;
+    document.querySelectorAll('#iconos .chip').forEach(c=>c.classList.remove('active'));
+    b.classList.add('active'); icono=b.getAttribute('data-i')||""; upd();
+  });
   document.getElementById('fonts').addEventListener('click', function(e){
     var b=e.target.closest('.chip'); if(!b) return;
     document.querySelectorAll('#fonts .chip').forEach(c=>c.classList.remove('active'));

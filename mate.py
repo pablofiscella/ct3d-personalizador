@@ -123,8 +123,81 @@ def _grabar_foto(base, foto, cx, cy, diam):
                                  outline=GRABADO, width=3)
 
 
+# ---------------------------------------------------------------------------
+# Iconos (línea monocromo, ideales para grabado). Fútbol GENÉRICO (no escudos de clubes).
+# ---------------------------------------------------------------------------
+def _i_corazon(d, cx, cy, s, c, w):
+    p = []
+    for i in range(0, 361, 5):
+        t = math.radians(i); x = 16 * math.sin(t) ** 3
+        y = 13 * math.cos(t) - 5 * math.cos(2 * t) - 2 * math.cos(3 * t) - math.cos(4 * t)
+        p.append((cx + x * s / 16, cy - y * s / 16))
+    d.line(p + [p[0]], fill=c, width=w, joint="curve")
+
+def _i_estrella(d, cx, cy, s, c, w):
+    p = [(cx + (s if k % 2 == 0 else s * 0.45) * math.cos(-math.pi / 2 + k * math.pi / 5),
+          cy + (s if k % 2 == 0 else s * 0.45) * math.sin(-math.pi / 2 + k * math.pi / 5)) for k in range(10)]
+    d.line(p + [p[0]], fill=c, width=w, joint="curve")
+
+def _i_pelota(d, cx, cy, s, c, w):
+    d.ellipse([cx - s, cy - s, cx + s, cy + s], outline=c, width=w)
+    pent = [(cx + s * 0.34 * math.cos(-math.pi / 2 + k * 2 * math.pi / 5),
+             cy + s * 0.34 * math.sin(-math.pi / 2 + k * 2 * math.pi / 5)) for k in range(5)]
+    d.line(pent + [pent[0]], fill=c, width=w, joint="curve")
+    for px, py in pent:
+        a = math.atan2(py - cy, px - cx)
+        d.line([(px, py), (cx + s * 0.92 * math.cos(a), cy + s * 0.92 * math.sin(a))], fill=c, width=w)
+
+def _i_escudo(d, cx, cy, s, c, w):
+    p = [(cx - s * 0.8, cy - s), (cx + s * 0.8, cy - s), (cx + s * 0.8, cy + s * 0.15),
+         (cx, cy + s), (cx - s * 0.8, cy + s * 0.15)]
+    d.line(p + [p[0]], fill=c, width=w, joint="curve")
+
+def _i_camiseta(d, cx, cy, s, c, w):
+    p = [(cx - s * 0.32, cy - s * 0.62), (cx - s * 0.72, cy - s * 0.4), (cx - s * 0.95, cy - s * 0.12),
+         (cx - s * 0.62, cy + s * 0.08), (cx - s * 0.5, cy + s), (cx + s * 0.5, cy + s),
+         (cx + s * 0.62, cy + s * 0.08), (cx + s * 0.95, cy - s * 0.12), (cx + s * 0.72, cy - s * 0.4),
+         (cx + s * 0.32, cy - s * 0.62)]
+    d.line(p, fill=c, width=w, joint="curve")
+    d.arc([cx - s * 0.32, cy - s * 0.78, cx + s * 0.32, cy - s * 0.46], 0, 180, fill=c, width=w)
+
+def _i_infinito(d, cx, cy, s, c, w):
+    d.ellipse([cx - s, cy - s * 0.5, cx, cy + s * 0.5], outline=c, width=w)
+    d.ellipse([cx, cy - s * 0.5, cx + s, cy + s * 0.5], outline=c, width=w)
+
+def _i_flor(d, cx, cy, s, c, w):
+    for k in range(6):
+        a = k * math.pi / 3; px = cx + s * 0.52 * math.cos(a); py = cy + s * 0.52 * math.sin(a)
+        d.ellipse([px - s * 0.4, py - s * 0.4, px + s * 0.4, py + s * 0.4], outline=c, width=w)
+    d.ellipse([cx - s * 0.22, cy - s * 0.22, cx + s * 0.22, cy + s * 0.22], outline=c, width=w)
+
+def _i_corona(d, cx, cy, s, c, w):
+    p = [(cx - s, cy + s * 0.55), (cx - s, cy - s * 0.3), (cx - s * 0.5, cy + s * 0.12), (cx, cy - s * 0.6),
+         (cx + s * 0.5, cy + s * 0.12), (cx + s, cy - s * 0.3), (cx + s, cy + s * 0.55)]
+    d.line(p + [p[0]], fill=c, width=w, joint="curve")
+
+def _i_nota(d, cx, cy, s, c, w):
+    d.ellipse([cx - s * 0.75, cy + s * 0.15, cx - s * 0.1, cy + s * 0.7], outline=c, width=w)
+    d.line([(cx - s * 0.1, cy + s * 0.45), (cx - s * 0.1, cy - s * 0.8)], fill=c, width=w)
+    d.line([(cx - s * 0.1, cy - s * 0.8), (cx + s * 0.6, cy - s * 0.5)], fill=c, width=w)
+
+ICONOS = {"corazon": _i_corazon, "estrella": _i_estrella, "pelota": _i_pelota, "escudo": _i_escudo,
+          "camiseta": _i_camiseta, "infinito": _i_infinito, "flor": _i_flor, "corona": _i_corona,
+          "nota": _i_nota}
+
+
+def _dibujar_icono(base, nombre, cx, cy, s):
+    fn = ICONOS.get(nombre)
+    if not fn:
+        return
+    d = ImageDraw.Draw(base)
+    w = max(4, int(s * 0.10))
+    fn(d, cx + 2, cy + 3, s, (255, 255, 255), w)   # lip claro (grabado)
+    fn(d, cx, cy, s, GRABADO, w)
+
+
 def render(texto="", mate_id="demo", font="Poppins-Medium.ttf", size_frac=0.052,
-           spacing=8, foto=None, r=None, max_px=1000, texto_abajo="", abajo_flip=False):
+           spacing=8, foto=None, r=None, max_px=1000, texto_abajo="", abajo_flip=False, icono=""):
     """Render del mate con el grabado. Devuelve PIL RGB.
        - texto: texto de ARRIBA (curvado, legible).
        - texto_abajo: texto de ABAJO; abajo_flip controla si mira para arriba o para abajo.
@@ -150,6 +223,8 @@ def render(texto="", mate_id="demo", font="Poppins-Medium.ttf", size_frac=0.052,
     if texto_abajo:
         _curved_text(base, texto_abajo, cx, cy, int(W * r_texto), fnt, GRABADO, spacing,
                      pos="abajo", flip=abajo_flip)
+    if icono:
+        _dibujar_icono(base, icono, cx, cy, int(W * 0.13))   # centrado sobre la madera
     if max_px and W > max_px:
         base.thumbnail((max_px, max_px), Image.LANCZOS)
     return base

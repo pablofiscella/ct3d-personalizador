@@ -227,10 +227,11 @@ class Handler(BaseHTTPRequestHandler):
             r = q.get("r", [""])[0] or None
             texto_abajo = (q.get("abajo", [""])[0] or "")[:40]
             abajo_flip = q.get("flip", ["0"])[0] in ("1", "true", "on")
+            icono = os.path.basename(q.get("icono", [""])[0] or "")
             try: mx = max(300, min(1100, int(q.get("max", ["900"])[0])))
             except Exception: mx = 900
             img = mate_mod.render(texto, mate_id, font=font, size_frac=size, r=r, max_px=mx,
-                                  texto_abajo=texto_abajo, abajo_flip=abajo_flip)
+                                  texto_abajo=texto_abajo, abajo_flip=abajo_flip, icono=icono)
             buf = io.BytesIO(); img.save(buf, "JPEG", quality=82, optimize=True); body = buf.getvalue()
             self.send_response(200)
             self.send_header("Content-Type", "image/jpeg")
