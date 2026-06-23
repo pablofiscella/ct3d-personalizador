@@ -125,7 +125,7 @@
       var p=pos(ic.ang), r=Math.max(13, ic.size*VB*1.15);
       // solo un aro para arrastrar (sin emoji de color): así se ve el icono grabado real debajo
       s+='<g data-i="'+i+'" style="cursor:grab">';
-      s+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+(i===sel?'rgba(107,91,210,.12)':'rgba(0,0,0,0.001)')+'" stroke="#6B5BD2" stroke-width="'+(i===sel?2.5:1.5)+'" stroke-dasharray="'+(i===sel?'0':'3 3')+'"/></g>';
+      s+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+r.toFixed(1)+'" fill="rgba(0,0,0,0.001)" stroke="'+(i===sel?'rgba(107,91,210,.55)':'rgba(107,91,210,.22)')+'" stroke-width="'+(i===sel?1.5:1)+'" stroke-dasharray="'+(i===sel?'0':'2 4')+'"/></g>';
     });
     ov.innerHTML=s;
   }
