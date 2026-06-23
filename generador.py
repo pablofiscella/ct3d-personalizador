@@ -87,6 +87,7 @@ FONTS_CATALOG = [
     {"file": "Fredoka-VF.ttf",       "family": "Fredoka",       "label": "Redondeada", "kind": "display"},
     {"file": "Baloo2-VF.ttf",        "family": "Baloo2",        "label": "Globo",      "kind": "display"},
     {"file": "Poppins-Medium.ttf",   "family": "Poppins",       "label": "Limpia",     "kind": "body"},
+    {"file": "Nunito-VF.ttf",        "family": "Nunito",        "label": "Suave",      "kind": "body"},
 ]
 _FONT_FILES = {f["file"] for f in FONTS_CATALOG}
 _FILE_TO_FAMILY = {f["file"]: f["family"] for f in FONTS_CATALOG}
@@ -313,6 +314,7 @@ def layout_para_editor(pieza="invitacion", tema=TEMA_DEFAULT):
                     "color": "#%02x%02x%02x" % tuple(f["color"]), "sample": _sample(f),
                     "editable": f.get("editable", True), "toggleable": f.get("toggleable", False),
                     "iconable": f.get("iconable", False), "icon": f.get("icon"),
+                    "tpl": f.get("tpl", ""),
                     "default_hidden": f.get("default_hidden", False)})
     return {"size": spec["size"], "fields": out, "pieza": pieza, "tema": tema,
             "piezas": list(specs_de(tema).keys()), "fonts": FONTS_CATALOG, "icons": ICONS_CATALOG}

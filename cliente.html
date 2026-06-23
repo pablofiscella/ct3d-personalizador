@@ -208,12 +208,12 @@ let ICONS=[];                            // catálogo de iconos (de /cliente/lay
 const DATAID={nombre:'nombre',fecha:'fecha',hora:'hora',lugar:'lugar',direccion:'direccion',rsvp:'telefono'};
 const LBL={titulo:'Título',nombre:'Nombre del cumpleañero',edad:'Texto de la edad',
            fecha:'Fecha',hora:'Hora',lugar:'Salón / lugar',direccion:'Dirección',
-           confirma:'Texto "Confirmá:"',rsvp:'Teléfono (RSVP)'};
+           confirma:'Texto "Confirmá:"',rsvp:'Teléfono (RSVP)',pie:'Texto del pie',titulo:'Título'};
 const dkey=id=>DATAID[id]||id;
 // tipo de campo: 'edad' (numérico arriba) · 'data' (input de dato) · 'static' (texto libre, ej. título)
 function fkind(f){ if(f.id==='edad')return'edad'; if(DATAID[f.id])return'data'; return'static'; }
 const edadField=()=>fields.find(f=>f.id==='edad');
-function syncEdad(){const f=edadField();if(f){f.text='¡Cumplo '+(EDAD||'1')+'!';const i=document.querySelector('#datos .field[data-fid="edad"] .tx');if(i)i.value=f.text;}}
+function syncEdad(){const f=edadField();if(f){f.text=(f.tpl||'¡Cumplo {edad}!').replace('{edad}',EDAD||'1');const i=document.querySelector('#datos .field[data-fid="edad"] .tx');if(i)i.value=f.text;}}
 const GROUP=['fecha','hora','lugar','direccion','confirma','rsvp'];   // datos del evento: se alinean/mueven juntos
 let GROUPMOVE=false;
 const FILE2FAM={};   // archivo .ttf -> familia CSS
