@@ -6,6 +6,12 @@ sistema genera las 7 piezas del kit en PDF (300 DPI) y le entrega un ZIP para de
 
 Producto inicial: **"Safari — Un Añito Salvaje"** (edades 1 / 2 / 3).
 
+> **Actualización jun-2026:** ahora es **multi-temática** (safari + 8 temas: construcción,
+> monstruos, aviadores, bomberos, artistas, campamento, superhéroes, circo) y se vende desde el
+> **e-commerce propio** (casatridimensional.com.ar), no WordPress. El editor del cliente sumó edad
+> libre, incluir/ocultar por dato, iconos con variantes, color y alineación por campo y por grupo.
+> **Ver `docs/SISTEMA-KITS.md`** para el detalle completo.
+
 ---
 
 ## Arquitectura
