@@ -29,6 +29,11 @@
   .selbox{background:#f4f2fb;border:1px solid #e3def5;border-radius:10px;padding:10px;margin-top:10px;display:none}
   .selbox.on{display:block}
   .flex{display:flex;gap:10px;align-items:center}
+  #lista{margin-top:10px}
+  .lhead{font-weight:600;font-size:.85rem;margin:12px 0 6px}
+  .litem{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border:1px solid #e3def5;border-radius:9px;margin-bottom:6px;cursor:pointer}
+  .litem.sel{background:#f4f2fb;border-color:var(--violet)}
+  .litem button{border:0;background:#fff;border:1px solid #d8d4ea;border-radius:7px;cursor:pointer;padding:4px 9px}
 </style>
 </head>
 <body>
@@ -76,6 +81,7 @@
       <label class="flex" style="font-weight:500"><input type="radio" name="fmode" value="0" style="width:auto"> Contorno</label>
     </div>
     <button class="btn sec" id="agregar" disabled>➕ Agregar icono</button>
+    <div id="lista"></div>
     <div class="selbox" id="selbox">
       <div class="flex" style="justify-content:space-between"><strong id="selname">Icono</strong>
         <button class="chip" id="del">Sacar ✕</button></div>
@@ -127,7 +133,24 @@
     isize.value=iconos[sel].size;
     document.getElementById('ifill').checked = iconos[sel].relleno !== false;
   }
-  function refresh(){ drawOverlay(); selUpdate(); preview(); }
+  var NOMBRE={corazon:'Corazón',estrella:'Estrella',pelota:'Pelota',escudo:'Escudo',camiseta:'Camiseta',corona:'Corona',flor:'Flor',nota:'Nota',infinito:'Infinito'};
+  function renderLista(){
+    var L=document.getElementById('lista');
+    if(!iconos.length){ L.innerHTML=''; return; }
+    L.innerHTML='<div class="lhead">Iconos agregados ('+iconos.length+')</div>'+
+      iconos.map(function(ic,i){
+        return '<div class="litem'+(i===sel?' sel':'')+'" data-li="'+i+'">'+
+          '<span>'+(EMOJI[ic.n]||'')+' '+(NOMBRE[ic.n]||ic.n)+' · '+(ic.relleno!==false?'relleno':'contorno')+'</span>'+
+          '<button data-del="'+i+'" title="Sacar">✕</button></div>';
+      }).join('');
+  }
+  document.getElementById('lista').addEventListener('click',function(e){
+    var del=e.target.closest('[data-del]');
+    if(del){ var j=+del.getAttribute('data-del'); iconos.splice(j,1); sel=(sel===j?-1:(sel>j?sel-1:sel)); refresh(); return; }
+    var it=e.target.closest('[data-li]');
+    if(it){ sel=+it.getAttribute('data-li'); refresh(); }
+  });
+  function refresh(){ drawOverlay(); selUpdate(); renderLista(); preview(); }
 
   // flujo: elegir icono -> relleno/contorno -> Agregar (sin apilar)
   var addSel=null, agregar=document.getElementById('agregar'), ifill=document.getElementById('ifill');
