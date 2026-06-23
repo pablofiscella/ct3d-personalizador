@@ -1,0 +1,145 @@
+{
+  "id": "aviadores",
+  "nombre": "Aviadores — Pequeños Pilotos",
+  "edades": [
+    1,
+    2,
+    3
+  ],
+  "piezas": {
+    "invitacion": {
+      "size": [
+        1500,
+        2100
+      ],
+      "bgimage": "invitacion_{edad}.png",
+      "layout_file": "layouts/invitacion.json",
+      "text": [
+        {
+          "id": "titulo",
+          "tpl": "¡Te invito a mi cumple!",
+          "editable": false,
+          "font": "Fredoka-VF.ttf",
+          "size": 56,
+          "color": "#4E92C8",
+          "x": 0.5,
+          "y": 0.205,
+          "anchor": "mm",
+          "maxw": 0.8,
+          "wght": 600
+        },
+        {
+          "id": "nombre",
+          "tpl": "{nombre}",
+          "editable": true,
+          "font": "Fredoka-VF.ttf",
+          "size": 165,
+          "color": "#4E92C8",
+          "x": 0.5,
+          "y": 0.31,
+          "anchor": "mm",
+          "maxw": 0.74,
+          "wght": 600
+        },
+        {
+          "id": "fecha",
+          "tpl": "{fecha}",
+          "editable": true,
+          "font": "Poppins-Medium.ttf",
+          "size": 46,
+          "color": "#6F5B43",
+          "x": 0.5,
+          "y": 0.415,
+          "anchor": "mm",
+          "maxw": 0.7
+        },
+        {
+          "id": "hora",
+          "tpl": "{hora}",
+          "editable": true,
+          "font": "Poppins-Medium.ttf",
+          "size": 46,
+          "color": "#6F5B43",
+          "x": 0.5,
+          "y": 0.462,
+          "anchor": "mm",
+          "maxw": 0.7
+        },
+        {
+          "id": "lugar",
+          "tpl": "{lugar}",
+          "editable": true,
+          "font": "Poppins-Medium.ttf",
+          "size": 46,
+          "color": "#6F5B43",
+          "x": 0.5,
+          "y": 0.509,
+          "anchor": "mm",
+          "maxw": 0.72
+        },
+        {
+          "id": "direccion",
+          "tpl": "{direccion}",
+          "editable": true,
+          "font": "Poppins-Medium.ttf",
+          "size": 34,
+          "color": "#6F5B43",
+          "x": 0.5,
+          "y": 0.548,
+          "anchor": "mm",
+          "maxw": 0.72,
+          "adopts_if_empty": "lugar"
+        },
+        {
+          "id": "rsvp",
+          "tpl": "{telefono}",
+          "editable": true,
+          "font": "Poppins-Medium.ttf",
+          "size": 40,
+          "color": "#6F5B43",
+          "x": 0.5,
+          "y": 0.6,
+          "anchor": "mm",
+          "maxw": 0.62
+        }
+      ]
+    },
+    "afiche": {
+      "size": [
+        1728,
+        2456
+      ],
+      "render_scale": 1.0,
+      "bgimage": "afiche_{edad}.png",
+      "layout_file": "layouts/afiche.json",
+      "text": [
+        {
+          "id": "titulo",
+          "tpl": "¡Bienvenidos!",
+          "editable": false,
+          "font": "Fredoka-VF.ttf",
+          "size": 120,
+          "color": "#4E92C8",
+          "x": 0.5,
+          "y": 0.17,
+          "anchor": "mm",
+          "maxw": 0.82,
+          "wght": 600
+        },
+        {
+          "id": "nombre",
+          "tpl": "{nombre}",
+          "editable": true,
+          "font": "Fredoka-VF.ttf",
+          "size": 165,
+          "color": "#4E92C8",
+          "x": 0.5,
+          "y": 0.265,
+          "anchor": "mm",
+          "maxw": 0.74,
+          "wght": 600
+        }
+      ]
+    }
+  }
+}
