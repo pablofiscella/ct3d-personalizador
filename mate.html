@@ -242,6 +242,8 @@
   document.getElementById('descargar').addEventListener('click',function(){
     window.open("/mate/svg?"+qs(),"_blank");   // el diámetro lo toma de la config del mate (admin)
   });
+  // modo embebido en la tienda: el cliente no ve el botón de SVG (eso es para el local)
+  if((new URLSearchParams(location.search)).get('embed')){ document.getElementById('descargar').style.display='none'; }
 
   refresh();
 })();
