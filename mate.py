@@ -88,7 +88,9 @@ def _curved_text(base, text, cx, cy, radius, font, color, spacing=8):
         x = cx + radius * math.cos(a); y = cy + radius * math.sin(a)
         pad = 12
         ci = Image.new("RGBA", (int(w) + pad * 2, font.size + pad * 2), (0, 0, 0, 0))
-        ImageDraw.Draw(ci).text((pad, pad), ch, font=font, fill=color)
+        dci = ImageDraw.Draw(ci)
+        dci.text((pad + 2, pad + 3), ch, font=font, fill=(255, 255, 255, 130))  # lip claro = grabado incrustado
+        dci.text((pad, pad), ch, font=font, fill=color)
         rot = ci.rotate(-math.degrees(a) - 90, expand=True, resample=Image.BICUBIC)
         base.paste(rot, (int(x - rot.width / 2), int(y - rot.height / 2)), rot)
         ang += ca + spacing / radius
@@ -108,15 +110,20 @@ def _grabar_foto(base, foto, cx, cy, diam):
                                  outline=GRABADO, width=3)
 
 
-def render(texto="", mate_id="demo", font="Poppins-SemiBold.ttf", size_frac=0.058,
-           spacing=8, foto=None, max_px=1000):
+def render(texto="", mate_id="demo", font="Poppins-Medium.ttf", size_frac=0.052,
+           spacing=8, foto=None, r=None, max_px=1000):
     """Render del mate con el grabado. Devuelve PIL RGB.
        - texto: lo que se graba en la virola (curvado).
+       - r: radio del texto (fracción del ancho) para centrarlo en la virola; si no, el del config.
        - foto: PIL.Image opcional → se achica chiquita y se graba sobre la virola.
     """
     base, cfg = cargar(mate_id)
     W = base.width
     cx = cy = W // 2
+    r_texto = cfg["r_texto"]
+    if r is not None:
+        try: r_texto = max(0.28, min(0.45, float(r)))
+        except Exception: pass
     # foto chiquita arriba-izquierda de la virola si viene
     if foto is not None:
         rf = cfg.get("r_foto") or cfg["r_texto"]
@@ -125,7 +132,7 @@ def render(texto="", mate_id="demo", font="Poppins-SemiBold.ttf", size_frac=0.05
         _grabar_foto(base, foto, fx, fy, int(W * 0.11))
     if texto:
         fnt = _font(font, int(W * size_frac))
-        _curved_text(base, texto, cx, cy, int(W * cfg["r_texto"]), fnt, GRABADO + (255,) if False else GRABADO, spacing)
+        _curved_text(base, texto, cx, cy, int(W * r_texto), fnt, GRABADO, spacing)
     if max_px and W > max_px:
         base.thumbnail((max_px, max_px), Image.LANCZOS)
     return base

@@ -222,11 +222,12 @@ class Handler(BaseHTTPRequestHandler):
             texto = (q.get("texto", [""])[0] or "")[:40]
             mate_id = os.path.basename(q.get("mate", ["demo"])[0] or "demo")
             font = q.get("font", ["Poppins-SemiBold.ttf"])[0]
-            try: size = max(0.02, min(0.09, float(q.get("size", ["0.058"])[0])))
-            except Exception: size = 0.058
+            try: size = max(0.02, min(0.09, float(q.get("size", ["0.052"])[0])))
+            except Exception: size = 0.052
+            r = q.get("r", [""])[0] or None
             try: mx = max(300, min(1100, int(q.get("max", ["900"])[0])))
             except Exception: mx = 900
-            img = mate_mod.render(texto, mate_id, font=font, size_frac=size, max_px=mx)
+            img = mate_mod.render(texto, mate_id, font=font, size_frac=size, r=r, max_px=mx)
             buf = io.BytesIO(); img.save(buf, "JPEG", quality=82, optimize=True); body = buf.getvalue()
             self.send_response(200)
             self.send_header("Content-Type", "image/jpeg")
