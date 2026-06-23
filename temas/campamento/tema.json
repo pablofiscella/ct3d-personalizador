@@ -6,6 +6,13 @@
     2,
     3
   ],
+  "kit": {
+    "accent": "#5E8A4E",
+    "ink": "#5A4A36",
+    "font": "Fredoka-VF.ttf",
+    "lema": "¡Cumplo {edad}!",
+    "titulo": "El cumple de"
+  },
   "piezas": {
     "invitacion": {
       "size": [

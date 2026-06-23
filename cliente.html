@@ -64,7 +64,7 @@
   .fbtn small{display:block;font-family:var(--font-body);font-size:9px;color:var(--ink-3);font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-top:3px}
   .fbtn:hover{border-color:var(--border-strong)}
   .fbtn.sel{border-color:var(--accent);background:var(--accent-soft)}
-  .nudge{display:grid;grid-template-columns:repeat(3,40px);gap:5px;width:max-content;margin:12px 0 0}
+  .nudge{display:grid;grid-template-columns:repeat(3,40px);gap:5px;width:max-content;margin:14px auto 2px}
   .nudge button{padding:8px 0;border:1px solid var(--border);background:var(--bg-warm);border-radius:var(--radius-sm);color:var(--ink-2);transition:all var(--dur-fast)}
   .nudge button:hover{background:var(--accent-soft);color:var(--accent-deep);border-color:var(--accent)}
   .nudge .sp{visibility:hidden}
@@ -129,16 +129,18 @@
           <label>Tipografía</label>
           <div class="fonts" id="fonts"></div>
         </div>
-        <div class="ctrl">
-          <label>Color</label>
-          <div class="color-row"><input type="color" id="color"><span id="colorv" style="font-family:var(--font-mono);font-size:11px;color:var(--ink-3)"></span></div>
-        </div>
-        <div class="ctrl">
-          <label>Alineación</label>
-          <div class="align" id="align">
-            <button data-a="l" title="Izquierda">⬅</button>
-            <button data-a="m" title="Centro">⬌</button>
-            <button data-a="r" title="Derecha">➡</button>
+        <div class="ctrls2">
+          <div class="ctrl">
+            <label>Color</label>
+            <div class="color-row"><input type="color" id="color"><span id="colorv" style="font-family:var(--font-mono);font-size:11px;color:var(--ink-3)"></span></div>
+          </div>
+          <div class="ctrl">
+            <label>Alineación</label>
+            <div class="align" id="align">
+              <button data-a="l" title="Izquierda">⬅</button>
+              <button data-a="m" title="Centro">⬌</button>
+              <button data-a="r" title="Derecha">➡</button>
+            </div>
           </div>
         </div>
         <div class="nudge">
@@ -164,13 +166,13 @@ let SIZE=[1500,2100], fields=[], bg=new Image(), sel=null, drag=null, CAT=[];
 let ICONS=[];                            // catálogo de iconos (de /cliente/layout)
 // id de campo -> clave de dato. Los campos de dato se completan; titulo/edad son aparte.
 const DATAID={nombre:'nombre',fecha:'fecha',hora:'hora',lugar:'lugar',direccion:'direccion',rsvp:'telefono'};
-const LBL={titulo:'Título',nombre:'Nombre del cumpleañero',edad:'Edad (“¡Cumplo X!”)',
+const LBL={titulo:'Título',nombre:'Nombre del cumpleañero',edad:'Texto de la edad',
            fecha:'Fecha',hora:'Hora',lugar:'Salón / lugar',direccion:'Dirección',rsvp:'Teléfono (RSVP)'};
 const dkey=id=>DATAID[id]||id;
 // tipo de campo: 'edad' (numérico arriba) · 'data' (input de dato) · 'static' (texto libre, ej. título)
 function fkind(f){ if(f.id==='edad')return'edad'; if(DATAID[f.id])return'data'; return'static'; }
 const edadField=()=>fields.find(f=>f.id==='edad');
-function syncEdad(){const f=edadField();if(f)f.text='¡Cumplo '+(EDAD||'1')+'!';}
+function syncEdad(){const f=edadField();if(f){f.text='¡Cumplo '+(EDAD||'1')+'!';const i=document.querySelector('#datos .field[data-fid="edad"] .tx');if(i)i.value=f.text;}}
 const FILE2FAM={};   // archivo .ttf -> familia CSS
 
 // iconitos de línea en el canvas (mismo trazo que draw_icon del motor)
@@ -239,8 +241,8 @@ function buildDatos(){
     let html=`<div class="row1"><label>${LBL[f.id]||f.id}</label>`;
     if(f.toggleable) html+=`<label class="chk"><input type="checkbox" class="tg" ${f.hidden?'':'checked'}>incluir</label>`;
     html+=`</div>`;
-    if(k!=='edad') html+=`<input type="text" class="tx" value="${(f.text||'').replace(/"/g,'&quot;')}" placeholder="${k==='static'?'Texto':'(opcional)'}">`;
-    else html+=`<div class="hint" style="margin:2px 0 0">Toma la edad de arriba. Destildá para no mostrarla.</div>`;
+    html+=`<input type="text" class="tx" value="${(f.text||'').replace(/"/g,'&quot;')}" placeholder="${(k==='static'||k==='edad')?'Texto':'(opcional)'}">`;
+    if(k==='edad') html+=`<div class="hint" style="margin:4px 0 0">Se completa con la edad de arriba; podés editarlo o destildarlo.</div>`;
     if(f.iconable) html+=`<select class="icsel">${iconOptionsFor(f.id)}</select>`;
     d.innerHTML=html;
     const tx=d.querySelector('.tx');
@@ -311,7 +313,7 @@ function buildOver(){
     if(f.iconable) o.icon=f.icon||'';
     if(f.toggleable&&f.hidden) o.hidden=true;
     const k=fkind(f);
-    if(k==='static') o.text=f.text||'';
+    if(k==='static'||k==='edad') o.text=f.text||'';
     over[f.id]=o;
     if(k==='data') data[dkey(f.id)]=f.text||'';
   }
