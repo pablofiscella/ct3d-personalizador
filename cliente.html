@@ -397,7 +397,7 @@ if (qs.get('admin') === '1' || ADMINKEY) {
     const msg = document.getElementById('admin-msg');
     msg.textContent = 'Guardando…';
     const out = {};
-    for (const f of fields) out[f.id] = { x:+f.x.toFixed(4), y:+f.y.toFixed(4), size:Math.round(f.size), maxw:f.maxw, wght:f.wght||500 };
+    for (const f of fields) out[f.id] = { x:+f.x.toFixed(4), y:+f.y.toFixed(4), size:Math.round(f.size), maxw:f.maxw, wght:f.wght||500, font:f._font, color:f.color, anchor:f.anchor };
     try {
       const headers = { 'Content-Type':'application/json' };
       if (ADMINKEY) headers['X-API-Key'] = ADMINKEY;

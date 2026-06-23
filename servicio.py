@@ -507,6 +507,13 @@ class Handler(BaseHTTPRequestHandler):
                 if kk in v:
                     try: o[kk] = round(float(v[kk]), 4)
                     except Exception: pass
+            # también tipografía / color / alineación (lo que se ve en el editor)
+            if isinstance(v.get("font"), str) and v["font"]:
+                o["font"] = v["font"]
+            if isinstance(v.get("color"), str) and v["color"].startswith("#"):
+                o["color"] = v["color"]
+            if isinstance(v.get("anchor"), str) and len(v["anchor"]) == 2:
+                o["anchor"] = v["anchor"]
             if o:
                 clean[k] = o
         pieza = payload.get("pieza", "invitacion")

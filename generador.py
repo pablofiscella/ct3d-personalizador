@@ -261,6 +261,15 @@ def _effective_texts(spec):
                 for k in ("x", "y", "size", "maxw", "wght"):
                     if k in o:
                         f[k] = o[k]
+                fn = o.get("font")
+                if fn in _FONT_FILES:                 # tipografía guardada (del catálogo)
+                    f["font"] = fn
+                if "color" in o:                      # color guardado (hex → rgb)
+                    c = _hex_rgb(o["color"])
+                    if c: f["color"] = c
+                a = o.get("anchor")                   # alineación guardada
+                if isinstance(a, str) and len(a) == 2 and a[0] in "lmr" and a[1] in "tmb":
+                    f["anchor"] = a
         except Exception:
             pass
     return texts
