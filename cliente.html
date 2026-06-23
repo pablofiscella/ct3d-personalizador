@@ -76,6 +76,18 @@
   .btn-link:hover{color:var(--accent-deep)}
   .hint{font-size:11px;color:var(--ink-3);margin-top:10px;line-height:1.5}
 
+  /* toggles de incluir + selector de icono por campo */
+  .field{position:relative}
+  .field .row1{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+  .field .row1 label{margin:0;flex:1 1 auto}
+  .chk{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--ink-3);cursor:pointer;white-space:nowrap}
+  .chk input{width:13px;height:13px;accent-color:var(--accent);cursor:pointer}
+  .field.off{opacity:.5}
+  .field.off input[type=text],.field.off .icsel{pointer-events:none}
+  .icsel{width:100%;margin-top:5px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 8px;font-size:11.5px;color:var(--ink-2);font-family:var(--font-body);cursor:pointer}
+  .icsel:focus{outline:0;border-color:var(--accent)}
+  .color-row{display:flex;align-items:center;gap:8px}
+  .color-row input[type=color]{width:40px;height:30px;padding:0;border:1px solid var(--border);border-radius:var(--radius-sm);background:none;cursor:pointer}
   @media (max-width:440px){
     .wrap{flex-direction:column;padding:10px;gap:10px}
     #left{padding:8px}
@@ -92,9 +104,7 @@
       <div class="sub">Completá tus datos y, si querés, movelos o cambiá la tipografía. Tocá un texto en la tarjeta para ajustarlo.</div>
 
       <div class="lbl">Edad que cumple</div>
-      <select id="edad" class="edad-sel">
-        <option value="1">1 año</option><option value="2">2 años</option><option value="3">3 años</option>
-      </select>
+      <input id="edad" class="edad-sel" type="number" min="1" max="99" step="1" value="1">
 
       <div class="lbl">Tus datos</div>
       <div id="datos"></div>
@@ -114,6 +124,10 @@
         <div class="ctrl">
           <label>Tipografía</label>
           <div class="fonts" id="fonts"></div>
+        </div>
+        <div class="ctrl">
+          <label>Color</label>
+          <div class="color-row"><input type="color" id="color"><span id="colorv" style="font-family:var(--font-mono);font-size:11px;color:var(--ink-3)"></span></div>
         </div>
         <div class="nudge">
           <span class="sp"></span><button data-d="u">▲</button><span class="sp"></span>
@@ -135,14 +149,36 @@ let EDAD=qs.get('edad')||'1';
 const PIEZA='invitacion';
 const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
 let SIZE=[1500,2100], fields=[], bg=new Image(), sel=null, drag=null, CAT=[];
-// campos que completa el cliente (edad viene de la variante de Woo).
-// [clave-de-dato, etiqueta] — el id interno del campo puede diferir (ver DKEY).
-const CAMPOS=[['nombre','Nombre del cumpleañero'],['fecha','Fecha'],['hora','Hora'],
-              ['lugar','Salón / lugar'],['direccion','Dirección'],['telefono','Teléfono (RSVP)']];
-const DKEY={rsvp:'telefono'};            // id de campo -> clave de dato
-const dkey=id=>DKEY[id]||id;             // por defecto coinciden
-const fieldByData=k=>fields.find(f=>dkey(f.id)===k);
+let ICONS=[];                            // catálogo de iconos (de /cliente/layout)
+// id de campo -> clave de dato. Los campos de dato se completan; titulo/edad son aparte.
+const DATAID={nombre:'nombre',fecha:'fecha',hora:'hora',lugar:'lugar',direccion:'direccion',rsvp:'telefono'};
+const LBL={titulo:'Título',nombre:'Nombre del cumpleañero',edad:'Edad (“¡Cumplo X!”)',
+           fecha:'Fecha',hora:'Hora',lugar:'Salón / lugar',direccion:'Dirección',rsvp:'Teléfono (RSVP)'};
+const dkey=id=>DATAID[id]||id;
+// tipo de campo: 'edad' (numérico arriba) · 'data' (input de dato) · 'static' (texto libre, ej. título)
+function fkind(f){ if(f.id==='edad')return'edad'; if(DATAID[f.id])return'data'; return'static'; }
+const edadField=()=>fields.find(f=>f.id==='edad');
+function syncEdad(){const f=edadField();if(f)f.text='¡Cumplo '+(EDAD||'1')+'!';}
 const FILE2FAM={};   // archivo .ttf -> familia CSS
+
+// iconitos de línea en el canvas (mismo trazo que draw_icon del motor)
+function drawIconJS(g,kind,cx,cy,s,color){
+  const w=Math.max(2,s*0.075),half=s/2,l=cx-half,t=cy-half,r=cx+half,b=cy+half;
+  g.save();g.strokeStyle=color;g.fillStyle=color;g.lineWidth=w;g.lineCap='round';g.lineJoin='round';
+  const line=(x1,y1,x2,y2)=>{g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();};
+  const rr=(x1,y1,x2,y2,rad,fill)=>{g.beginPath();g.moveTo(x1+rad,y1);g.arcTo(x2,y1,x2,y2,rad);g.arcTo(x2,y2,x1,y2,rad);g.arcTo(x1,y2,x1,y1,rad);g.arcTo(x1,y1,x2,y1,rad);g.closePath();fill?g.fill():g.stroke();};
+  const ell=(x1,y1,x2,y2,fill)=>{g.beginPath();g.ellipse((x1+x2)/2,(y1+y2)/2,Math.abs(x2-x1)/2,Math.abs(y2-y1)/2,0,0,2*Math.PI);fill?g.fill():g.stroke();};
+  const rect=(x1,y1,x2,y2)=>{g.beginPath();g.rect(x1,y1,x2-x1,y2-y1);g.stroke();};
+  if(kind==='calendar'){rr(l,t+s*0.12,r,b,s*0.12);line(l,t+s*0.34,r,t+s*0.34);line(l+s*0.27,t,l+s*0.27,t+s*0.22);line(r-s*0.27,t,r-s*0.27,t+s*0.22);}
+  else if(kind==='calendar2'){rr(l,t+s*0.12,r,b,s*0.12);rr(l,t+s*0.12,r,t+s*0.40,s*0.12,true);line(l+s*0.27,t,l+s*0.27,t+s*0.20);line(r-s*0.27,t,r-s*0.27,t+s*0.20);}
+  else if(kind==='clock'){ell(l,t,r,b);line(cx,cy,cx,cy-s*0.30);line(cx,cy,cx+s*0.22,cy+s*0.04);}
+  else if(kind==='clock2'){const cr=s*0.36;ell(cx-cr,cy-cr*0.78,cx+cr,cy+cr*1.0);line(cx,cy+cr*0.1,cx,cy-cr*0.45);line(cx,cy+cr*0.1,cx+cr*0.4,cy+cr*0.1);
+    g.beginPath();g.arc(cx-cr*0.6,t+s*0.10,s*0.14,Math.PI,2*Math.PI);g.stroke();g.beginPath();g.arc(cx+cr*0.6,t+s*0.10,s*0.14,Math.PI,2*Math.PI);g.stroke();
+    line(cx-cr*0.7,cy+cr*0.95,cx-cr,b);line(cx+cr*0.7,cy+cr*0.95,cx+cr,b);}
+  else if(kind==='pin'){const cr=s*0.32,ct=t+cr;ell(cx-cr,t,cx+cr,t+2*cr);line(cx-cr*0.78,ct+cr*0.5,cx,b);line(cx+cr*0.78,ct+cr*0.5,cx,b);ell(cx-cr*0.28,ct-cr*0.28,cx+cr*0.28,ct+cr*0.28,true);}
+  else if(kind==='pin2'){line(l+s*0.06,cy-s*0.02,cx,t+s*0.04);line(cx,t+s*0.04,r-s*0.06,cy-s*0.02);rect(l+s*0.16,cy-s*0.02,r-s*0.16,b-s*0.06);rect(cx-s*0.07,cy+s*0.12,cx+s*0.07,b-s*0.06);}
+  g.restore();
+}
 
 function setFont(f,size){ctx.font=`${f.wght||500} ${size}px "${f.family}"`;}
 function fitSize(f){let s=f.size;const mw=f.maxw*SIZE[0];for(;s>10;s-=2){setFont(f,s);if(ctx.measureText(f.text||' ').width<=mw)return s;}return s;}
@@ -154,28 +190,49 @@ function draw(){
   ctx.clearRect(0,0,SIZE[0],SIZE[1]);
   if(bg.complete&&bg.naturalWidth)ctx.drawImage(bg,0,0,SIZE[0],SIZE[1]);
   for(const f of fields){
-    if(!f.text)continue;
+    if(!f.text||f.hidden)continue;
     const s=fitSize(f);setFont(f,s);ctx.fillStyle=f.color;
-    ctx.textAlign=f.anchor[0]==='l'?'left':'center';
     const x0=f.x*SIZE[0], y0=f.y*SIZE[1];
-    if(f.anchor[1]==='m'){
-      const m=ctx.measureText(f.text);ctx.textBaseline='alphabetic';
-      ctx.fillText(f.text,x0,y0+(m.actualBoundingBoxAscent-m.actualBoundingBoxDescent)/2);
-    }else{ctx.textBaseline=f.anchor[1]==='t'?'top':'alphabetic';ctx.fillText(f.text,x0,y0);}
+    const vmid=()=>{const m=ctx.measureText(f.text);return y0+(m.actualBoundingBoxAscent-m.actualBoundingBoxDescent)/2;};
+    if(f.icon&&f.anchor[1]==='m'){            // icono + texto, bloque centrado en x0
+      const tw=ctx.measureText(f.text).width, isz=s*0.95, gap=isz*0.42, start=x0-(isz+gap+tw)/2;
+      drawIconJS(ctx,f.icon,start+isz/2,y0,isz,f.color);
+      ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.fillText(f.text,start+isz+gap,vmid());
+    }else{
+      ctx.textAlign=f.anchor[0]==='l'?'left':'center';
+      if(f.anchor[1]==='m'){ctx.textBaseline='alphabetic';ctx.fillText(f.text,x0,vmid());}
+      else{ctx.textBaseline=f.anchor[1]==='t'?'top':'alphabetic';ctx.fillText(f.text,x0,y0);}
+    }
     if(sel&&sel.id===f.id){const b=box(f);ctx.strokeStyle='rgba(107,91,210,.9)';ctx.lineWidth=3;ctx.setLineDash([10,7]);
       ctx.strokeRect(b.l-8,b.t-4,(b.r-b.l)+16,(b.b-b.t)+8);ctx.setLineDash([]);}
   }
 }
 
+function iconOptionsFor(id){
+  const opts=ICONS.filter(i=>i.para===id);
+  return ['<option value="">Sin icono</option>'].concat(opts.map(i=>`<option value="${i.kind}">${i.label}</option>`)).join('');
+}
 function buildDatos(){
   const c=document.getElementById('datos');c.innerHTML='';
-  CAMPOS.forEach(([k,lab])=>{
-    const f=fieldByData(k);if(!f)return;
-    const d=document.createElement('div');d.className='field'+(k==='nombre'?' field--full':'');
-    d.innerHTML=`<label>${lab}</label><input type="text" data-f="${f.id}" value="${(f.text||'').replace(/"/g,'&quot;')}">`;
-    const inp=d.querySelector('input');
-    inp.oninput=()=>{f.text=inp.value;draw();emit();};
-    inp.onfocus=()=>select(f.id);
+  fields.forEach(f=>{
+    const k=fkind(f);
+    const full=(f.id==='nombre'||f.id==='titulo'||f.id==='edad');
+    const d=document.createElement('div');
+    d.className='field'+(full?' field--full':'')+((f.toggleable&&f.hidden)?' off':'');
+    d.dataset.fid=f.id;
+    let html=`<div class="row1"><label>${LBL[f.id]||f.id}</label>`;
+    if(f.toggleable) html+=`<label class="chk"><input type="checkbox" class="tg" ${f.hidden?'':'checked'}>incluir</label>`;
+    html+=`</div>`;
+    if(k!=='edad') html+=`<input type="text" class="tx" value="${(f.text||'').replace(/"/g,'&quot;')}" placeholder="${k==='static'?'Texto':'(opcional)'}">`;
+    else html+=`<div class="hint" style="margin:2px 0 0">Toma la edad de arriba. Destildá para no mostrarla.</div>`;
+    if(f.iconable) html+=`<select class="icsel">${iconOptionsFor(f.id)}</select>`;
+    d.innerHTML=html;
+    const tx=d.querySelector('.tx');
+    if(tx){tx.oninput=()=>{f.text=tx.value;draw();emit();};tx.onfocus=()=>select(f.id);}
+    const tg=d.querySelector('.tg');
+    if(tg) tg.onchange=()=>{f.hidden=!tg.checked;d.classList.toggle('off',f.hidden);draw();emit();};
+    const ic=d.querySelector('.icsel');
+    if(ic){ic.value=f.icon||'';ic.onchange=()=>{f.icon=ic.value||null;draw();emit();};}
     c.appendChild(d);
   });
 }
@@ -193,13 +250,15 @@ function markFont(){document.querySelectorAll('.fbtn').forEach(b=>b.classList.to
 function select(id){
   sel=fields.find(f=>f.id===id);
   const sb=document.getElementById('stylebox');sb.classList.toggle('off',!sel);
-  document.querySelectorAll('#datos input').forEach(i=>i.classList.toggle('sel',sel&&i.dataset.f===sel.id));
+  document.querySelectorAll('#datos .field').forEach(d=>{const t=d.querySelector('.tx');if(t)t.classList.toggle('sel',sel&&d.dataset.fid===sel.id);});
   if(sel){
-    document.getElementById('which').textContent='Ajustando: '+(CAMPOS.find(c=>c[0]===sel.id)?.[1]||sel.id);
+    document.getElementById('which').textContent='Ajustando: '+(LBL[sel.id]||sel.id);
     document.getElementById('size').value=Math.round(sel.size);
     document.getElementById('szv').textContent=Math.round(sel.size)+'px';
     document.getElementById('wght').value=sel.wght||500;
     document.getElementById('wgv').textContent=sel.wght||500;
+    document.getElementById('color').value=sel.color;
+    document.getElementById('colorv').textContent=sel.color;
     markFont();
   }
   draw();
@@ -209,7 +268,7 @@ function select(id){
 function toCanvas(e){const r=cv.getBoundingClientRect();const cx=(e.touches?e.touches[0].clientX:e.clientX),cy=(e.touches?e.touches[0].clientY:e.clientY);
   return{x:(cx-r.left)*(SIZE[0]/r.width),y:(cy-r.top)*(SIZE[1]/r.height)};}
 function down(e){const p=toCanvas(e);
-  for(let i=fields.length-1;i>=0;i--){const f=fields[i];if(!f.text)continue;const b=box(f);
+  for(let i=fields.length-1;i>=0;i--){const f=fields[i];if(!f.text||f.hidden)continue;const b=box(f);
     if(p.x>=b.l-12&&p.x<=b.r+12&&p.y>=b.t-8&&p.y<=b.b+8){select(f.id);drag={ox:p.x-sel.x*SIZE[0],oy:p.y-sel.y*SIZE[1]};cv.classList.add('drag');e.preventDefault();return;}}}
 function move(e){if(!drag||!sel)return;const p=toCanvas(e);
   sel.x=Math.min(1,Math.max(0,(p.x-drag.ox)/SIZE[0]));sel.y=Math.min(1,Math.max(0,(p.y-drag.oy)/SIZE[1]));draw();e.preventDefault();}
@@ -219,6 +278,7 @@ cv.addEventListener('touchstart',down,{passive:false});window.addEventListener('
 
 document.getElementById('size').oninput=e=>{if(!sel)return;sel.size=+e.target.value;document.getElementById('szv').textContent=sel.size+'px';draw();emit();};
 document.getElementById('wght').oninput=e=>{if(!sel)return;sel.wght=+e.target.value;document.getElementById('wgv').textContent=e.target.value;draw();emit();};
+document.getElementById('color').oninput=e=>{if(!sel)return;sel.color=e.target.value;document.getElementById('colorv').textContent=e.target.value;draw();emit();};
 document.querySelectorAll('.nudge button').forEach(b=>b.onclick=()=>{if(!sel)return;const d=b.dataset.d,sx=1/1500,sy=1/2100;
   sel.x=Math.min(1,Math.max(0,sel.x+(d==='l'?-sx:d==='r'?sx:0)));sel.y=Math.min(1,Math.max(0,sel.y+(d==='u'?-sy:d==='d'?sy:0)));draw();emit();});
 
@@ -227,9 +287,15 @@ document.querySelectorAll('.nudge button').forEach(b=>b.onclick=()=>{if(!sel)ret
 function buildOver(){
   const over={}, data={};
   for(const f of fields){
-    over[f.id]={x:+f.x.toFixed(4),y:+f.y.toFixed(4),size:Math.round(f.size),wght:f.wght||500,maxw:f.maxw,font:f._font};
-    data[dkey(f.id)]=f.text||'';
+    const o={x:+f.x.toFixed(4),y:+f.y.toFixed(4),size:Math.round(f.size),wght:f.wght||500,maxw:f.maxw,font:f._font,color:f.color};
+    if(f.iconable) o.icon=f.icon||'';
+    if(f.toggleable&&f.hidden) o.hidden=true;
+    const k=fkind(f);
+    if(k==='static') o.text=f.text||'';
+    over[f.id]=o;
+    if(k==='data') data[dkey(f.id)]=f.text||'';
   }
+  data.edad=EDAD;
   return{tema:TEMA,edad:EDAD,data,over};
 }
 // avisa al contenedor (WordPress) la personalización actual, con debounce
@@ -254,15 +320,16 @@ document.getElementById('verfinal').onclick=(e)=>{
 // init
 (async function(){
   const lay=await (await fetch(`/cliente/layout?pieza=${PIEZA}&tema=${TEMA}&cb=${Date.now()}`)).json();
-  SIZE=lay.size; CAT=lay.fonts||[];
+  SIZE=lay.size; CAT=lay.fonts||[]; ICONS=lay.icons||[];
   CAT.forEach(f=>FILE2FAM[f.file]=f.family);
   // cargar las fuentes del catálogo desde /fonts
   await Promise.all(CAT.map(f=>new FontFace(f.family,`url(/fonts/${f.file})`).load().then(ff=>document.fonts.add(ff)).catch(()=>{})));
-  // armar fields con texto inicial = sample, y el archivo de fuente actual
-  fields=lay.fields.map(f=>({...f, text:f.sample||'', _font:f.font}));
+  // armar fields con texto inicial = sample, fuente y estado de ocultar/icono
+  fields=lay.fields.map(f=>({...f, text:f.sample||'', _font:f.font, hidden:!!f.default_hidden, icon:f.icon||null}));
+  syncEdad();
   await new Promise(res=>{bg.onload=res;bg.onerror=res;bg.src=`/cliente-bg.png?pieza=${PIEZA}&edad=${EDAD}&tema=${TEMA}&cb=${Date.now()}`;});
   const edadSel=document.getElementById('edad'); edadSel.value=EDAD;
-  edadSel.onchange=()=>{EDAD=edadSel.value;const nb=new Image();nb.onload=draw;nb.onerror=draw;nb.src=`/cliente-bg.png?pieza=${PIEZA}&edad=${EDAD}&tema=${TEMA}&cb=${Date.now()}`;bg=nb;emit();};
+  edadSel.oninput=()=>{EDAD=edadSel.value||'1';syncEdad();const nb=new Image();nb.onload=draw;nb.onerror=draw;nb.src=`/cliente-bg.png?pieza=${PIEZA}&edad=${EDAD}&tema=${TEMA}&cb=${Date.now()}`;bg=nb;draw();emit();};
   buildDatos(); buildFonts(); draw(); emit();
 })();
 </script>

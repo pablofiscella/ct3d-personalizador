@@ -18,28 +18,43 @@
         {
           "id": "titulo",
           "tpl": "¡Te invito a mi cumple!",
-          "editable": false,
+          "editable": true,
           "font": "Fredoka-VF.ttf",
           "size": 56,
           "color": "#C8322D",
           "x": 0.5,
-          "y": 0.205,
+          "y": 0.2,
           "anchor": "mm",
           "maxw": 0.8,
-          "wght": 700
+          "wght": 700,
+          "toggleable": true
         },
         {
           "id": "nombre",
           "tpl": "{nombre}",
           "editable": true,
           "font": "Fredoka-VF.ttf",
-          "size": 165,
+          "size": 160,
           "color": "#C8322D",
           "x": 0.5,
-          "y": 0.31,
+          "y": 0.3,
           "anchor": "mm",
           "maxw": 0.74,
           "wght": 700
+        },
+        {
+          "id": "edad",
+          "tpl": "¡Cumplo {edad}!",
+          "editable": true,
+          "font": "Fredoka-VF.ttf",
+          "size": 72,
+          "color": "#C8322D",
+          "x": 0.5,
+          "y": 0.378,
+          "anchor": "mm",
+          "maxw": 0.6,
+          "wght": 700,
+          "toggleable": true
         },
         {
           "id": "fecha",
@@ -49,9 +64,12 @@
           "size": 46,
           "color": "#4A4A4A",
           "x": 0.5,
-          "y": 0.415,
+          "y": 0.452,
           "anchor": "mm",
-          "maxw": 0.7
+          "maxw": 0.7,
+          "toggleable": true,
+          "iconable": true,
+          "icon": "calendar"
         },
         {
           "id": "hora",
@@ -61,9 +79,12 @@
           "size": 46,
           "color": "#4A4A4A",
           "x": 0.5,
-          "y": 0.462,
+          "y": 0.499,
           "anchor": "mm",
-          "maxw": 0.7
+          "maxw": 0.7,
+          "toggleable": true,
+          "iconable": true,
+          "icon": "clock"
         },
         {
           "id": "lugar",
@@ -73,9 +94,12 @@
           "size": 46,
           "color": "#4A4A4A",
           "x": 0.5,
-          "y": 0.509,
+          "y": 0.546,
           "anchor": "mm",
-          "maxw": 0.72
+          "maxw": 0.72,
+          "toggleable": true,
+          "iconable": true,
+          "icon": "pin"
         },
         {
           "id": "direccion",
@@ -85,10 +109,11 @@
           "size": 34,
           "color": "#4A4A4A",
           "x": 0.5,
-          "y": 0.548,
+          "y": 0.585,
           "anchor": "mm",
           "maxw": 0.72,
-          "adopts_if_empty": "lugar"
+          "adopts_if_empty": "lugar",
+          "toggleable": true
         },
         {
           "id": "rsvp",
@@ -98,9 +123,10 @@
           "size": 40,
           "color": "#4A4A4A",
           "x": 0.5,
-          "y": 0.6,
+          "y": 0.632,
           "anchor": "mm",
-          "maxw": 0.62
+          "maxw": 0.62,
+          "toggleable": true
         }
       ]
     },
@@ -116,7 +142,7 @@
         {
           "id": "titulo",
           "tpl": "¡Bienvenidos!",
-          "editable": false,
+          "editable": true,
           "font": "Fredoka-VF.ttf",
           "size": 120,
           "color": "#C8322D",
@@ -124,7 +150,8 @@
           "y": 0.17,
           "anchor": "mm",
           "maxw": 0.82,
-          "wght": 700
+          "wght": 700,
+          "toggleable": true
         },
         {
           "id": "nombre",

@@ -134,7 +134,8 @@ def fit_font(draw, text, fname, size, maxw_px, wght=None):
     return get_font(fname, s, wght)
 
 def draw_icon(d, kind, cx, cy, s, color):
-    """Iconitos de línea (calendario / reloj / pin) para fecha/hora/lugar."""
+    """Iconitos de línea para fecha/hora/lugar, con variantes de forma.
+    fecha: calendar / calendar2 · hora: clock / clock2 · lugar: pin / pin2."""
     w = max(2, int(s * 0.075))
     half = s / 2
     l, t, r, b = cx - half, cy - half, cx + half, cy + half
@@ -143,10 +144,24 @@ def draw_icon(d, kind, cx, cy, s, color):
         d.line([l, t + s * 0.34, r, t + s * 0.34], fill=color, width=w)
         d.line([l + s * 0.27, t, l + s * 0.27, t + s * 0.22], fill=color, width=w)
         d.line([r - s * 0.27, t, r - s * 0.27, t + s * 0.22], fill=color, width=w)
+    elif kind == "calendar2":   # calendario con cabecera llena (estilo "día")
+        d.rounded_rectangle([l, t + s * 0.12, r, b], radius=s * 0.12, outline=color, width=w)
+        d.rounded_rectangle([l, t + s * 0.12, r, t + s * 0.40], radius=s * 0.12, fill=color)
+        d.line([l + s * 0.27, t, l + s * 0.27, t + s * 0.20], fill=color, width=w)
+        d.line([r - s * 0.27, t, r - s * 0.27, t + s * 0.20], fill=color, width=w)
     elif kind == "clock":
         d.ellipse([l, t, r, b], outline=color, width=w)
         d.line([cx, cy, cx, cy - s * 0.30], fill=color, width=w)
         d.line([cx, cy, cx + s * 0.22, cy + s * 0.04], fill=color, width=w)
+    elif kind == "clock2":      # despertador (campanitas + patitas)
+        cr = s * 0.36
+        d.ellipse([cx - cr, cy - cr * 0.78, cx + cr, cy + cr * 1.0], outline=color, width=w)
+        d.line([cx, cy + cr * 0.1, cx, cy - cr * 0.45], fill=color, width=w)
+        d.line([cx, cy + cr * 0.1, cx + cr * 0.4, cy + cr * 0.1], fill=color, width=w)
+        d.arc([cx - cr - s * 0.16, t - s * 0.04, cx - cr * 0.2, t + s * 0.30], 200, 320, fill=color, width=w)
+        d.arc([cx + cr * 0.2, t - s * 0.04, cx + cr + s * 0.16, t + s * 0.30], 220, 340, fill=color, width=w)
+        d.line([cx - cr * 0.7, cy + cr * 0.95, cx - cr, b], fill=color, width=w)
+        d.line([cx + cr * 0.7, cy + cr * 0.95, cx + cr, b], fill=color, width=w)
     elif kind == "pin":
         cr = s * 0.32
         ct = t + cr
@@ -154,9 +169,36 @@ def draw_icon(d, kind, cx, cy, s, color):
         d.line([cx - cr * 0.78, ct + cr * 0.5, cx, b], fill=color, width=w)
         d.line([cx + cr * 0.78, ct + cr * 0.5, cx, b], fill=color, width=w)
         d.ellipse([cx - cr * 0.28, ct - cr * 0.28, cx + cr * 0.28, ct + cr * 0.28], fill=color)
+    elif kind == "pin2":        # casita (techo + cuerpo)
+        d.line([l + s * 0.06, cy - s * 0.02, cx, t + s * 0.04], fill=color, width=w)
+        d.line([cx, t + s * 0.04, r - s * 0.06, cy - s * 0.02], fill=color, width=w)
+        d.rectangle([l + s * 0.16, cy - s * 0.02, r - s * 0.16, b - s * 0.06], outline=color, width=w)
+        d.rectangle([cx - s * 0.07, cy + s * 0.12, cx + s * 0.07, b - s * 0.06], outline=color, width=w)
+
+_ICON_KINDS = {"calendar", "calendar2", "clock", "clock2", "pin", "pin2"}
+# catálogo para el editor del cliente (qué iconos ofrecer por dato)
+ICONS_CATALOG = [
+    {"kind": "calendar",  "para": "fecha", "label": "Calendario"},
+    {"kind": "calendar2", "para": "fecha", "label": "Día"},
+    {"kind": "clock",     "para": "hora",  "label": "Reloj"},
+    {"kind": "clock2",    "para": "hora",  "label": "Despertador"},
+    {"kind": "pin",       "para": "lugar", "label": "Ubicación"},
+    {"kind": "pin2",      "para": "lugar", "label": "Casita"},
+]
+def _hex_rgb(h):
+    try:
+        h = str(h).lstrip("#")
+        return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+    except Exception:
+        return None
+
+def _field_text(field, data):
+    """Texto a dibujar: el custom del cliente (_text) tiene prioridad sobre el tpl."""
+    t = field.get("_text")
+    return t if t is not None else field["tpl"].format(**data)
 
 def draw_text(draw, field, data, W, H):
-    text = field["tpl"].format(**data)
+    text = _field_text(field, data)
     if not text.strip():
         return
     maxw_px = int(W * field.get("maxw", 0.9))
@@ -178,7 +220,7 @@ def draw_icon_group(draw, fields, data, W, H):
     texto arrancando todo a la misma x (bloque centrado según la línea más larga)."""
     rows, maxtw = [], 0
     for f in fields:
-        text = f["tpl"].format(**data)
+        text = _field_text(f, data)
         if not text.strip():
             continue
         font = fit_font(draw, text, f["font"], f["size"], int(W * f.get("maxw", 0.9)), f.get("wght"))
@@ -240,8 +282,13 @@ def layout_file_path(pieza, tema=TEMA_DEFAULT):
 def layout_para_editor(pieza="invitacion", tema=TEMA_DEFAULT):
     """Datos que necesita el editor visual para dibujar y mover cada texto."""
     spec = specs_de(tema).get(pieza, SPEC)
-    samples = {"nombre": "Tomás", "fecha": "Sábado 12 de julio", "hora": "16:00 hs",
-               "lugar": "Salón Los Robles", "direccion": "Av. Siempreviva 742", "rsvp": "11-5555-5555"}
+    # ejemplo para mostrar el texto propuesto de cada campo (formateando su tpl)
+    ej = {"nombre": "Tomás", "fecha": "Sábado 12 de julio", "hora": "16:00 hs",
+          "lugar": "Salón Los Robles", "direccion": "Av. Siempreviva 742",
+          "telefono": "11-5555-5555", "edad": "5"}
+    def _sample(f):
+        try: return f["tpl"].format(**ej)
+        except Exception: return ""
     # familia CSS de cada archivo de fuente (cae al catálogo si no está mapeada)
     fams = dict(_FILE_TO_FAMILY)
     fams.setdefault("Poppins-Medium.ttf", "Poppins")
@@ -252,9 +299,12 @@ def layout_para_editor(pieza="invitacion", tema=TEMA_DEFAULT):
                     "maxw": f.get("maxw", 0.9), "anchor": f["anchor"],
                     "font": ffile,                      # archivo .ttf actual (para overrides)
                     "family": fams.get(ffile, "sans-serif"), "wght": f.get("wght", 500),
-                    "color": "#%02x%02x%02x" % tuple(f["color"]), "sample": samples.get(f["id"], "")})
+                    "color": "#%02x%02x%02x" % tuple(f["color"]), "sample": _sample(f),
+                    "editable": f.get("editable", True), "toggleable": f.get("toggleable", False),
+                    "iconable": f.get("iconable", False), "icon": f.get("icon"),
+                    "default_hidden": f.get("default_hidden", False)})
     return {"size": spec["size"], "fields": out, "pieza": pieza, "tema": tema,
-            "piezas": list(specs_de(tema).keys()), "fonts": FONTS_CATALOG}
+            "piezas": list(specs_de(tema).keys()), "fonts": FONTS_CATALOG, "icons": ICONS_CATALOG}
 
 # ---- render principal ----
 def render(data, spec=None):
@@ -289,8 +339,9 @@ def render(data, spec=None):
             for k in ("x", "y", "size", "maxw", "wght", "anchor"):
                 if k in byid[src]:
                     f[k] = byid[src][k]
-    # overrides del cliente (mini-editor): data["_over"][campo] = {x,y,size,maxw,wght,font}
-    # se mezclan sobre tu layout. La tipografía se valida contra el catálogo.
+    # overrides del cliente (mini-editor):
+    #   data["_over"][campo] = {x,y,size,maxw,wght,font,color,icon,hidden,text}
+    # se mezclan sobre tu layout. La tipografía/iconos se validan contra el catálogo.
     over = data.get("_over") or {}
     if over:
         for f in texts:
@@ -302,9 +353,19 @@ def render(data, spec=None):
             fn = o.get("font")
             if fn in _FONT_FILES:          # solo fuentes del catálogo (existen como .ttf)
                 f["font"] = fn
+            if "color" in o:
+                c = _hex_rgb(o["color"])
+                if c: f["color"] = c
+            if "icon" in o:                # icono junto al dato, o ninguno
+                f["icon"] = o["icon"] if o["icon"] in _ICON_KINDS else None
+            if "text" in o and isinstance(o["text"], str):
+                f["_text"] = o["text"]
+            if o.get("hidden"):            # el cliente decidió no incluir este dato
+                f["_hidden"] = True
     if scale != 1.0:                        # escala los tamaños de fuente junto con el canvas
         for f in texts:
             f["size"] = f["size"] * scale
+    texts = [f for f in texts if not f.get("_hidden")]   # ocultos: no se dibujan
     group = [f for f in texts if f.get("icongroup")]
     for field in texts:
         if not field.get("icongroup"):
