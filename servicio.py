@@ -19,6 +19,7 @@ import os, io, json, re, secrets, urllib.parse, urllib.request, urllib.error, ba
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import piezas  # motor (generar_kit, preview_invitacion)
+import productos  # registro de TIPOS de producto digital (kit, invitacion, cartel, actividades, milestone)
 import generador  # layout del editor
 import temas          # alta de temáticas (dashboard)
 import quitar_fondo   # recorte de fondo de animalitos/números subidos
@@ -166,17 +167,21 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(data)))
             self.end_headers(); self.wfile.write(data)
             return
+        if path == "/tipos":
+            # catálogo de tipos de producto digital (descubrimiento dinámico para la tienda/ABM)
+            return self._json(200, {"ok": True, "tipos": productos.tipos_publicos()})
         if path == "/preview":
             q = urllib.parse.parse_qs(u.query)
             data = {c: (q.get(c, [""])[0] or "") for c in CAMPOS}
             if not data["nombre"]:
                 data["nombre"] = "Tomás"
             tema = q.get("tema", ["safari"])[0]
+            tipo = q.get("tipo", ["kit"])[0]
             ov = q.get("over", [""])[0]              # personalización del cliente (JSON)
             if ov:
                 try: data["_over"] = json.loads(ov)
                 except Exception: pass
-            img = piezas.preview_invitacion(data, max_px=900, tema=tema)
+            img = productos.preview(data, tema=tema, tipo=tipo, max_px=900)
             img = piezas.marca_agua(img)   # marca de agua SOLO en el preview (el kit comprado sale limpio)
             buf = io.BytesIO(); img.save(buf, "PNG"); body = buf.getvalue()
             self.send_response(200)
@@ -375,14 +380,17 @@ class Handler(BaseHTTPRequestHandler):
         if isinstance(payload.get("over"), dict):    # personalización del cliente (mini-editor)
             data["_over"] = payload["over"]
         tema = str(payload.get("tema", "safari")).strip() or "safari"
+        tipo = str(payload.get("tipo", "kit")).strip() or "kit"
+        if not productos.existe_tipo(tipo):
+            return self._json(400, {"ok": False, "error": f"tipo desconocido: {tipo}"})
         order_id = slug(payload.get("order_id", "s"))
         token = f"{order_id}-{secrets.token_hex(4)}"
         dest = os.path.join(DATA_DIR, token)
         try:
-            piezas.generar_kit(data, dest, tema)
+            productos.generar(data, dest, tema, tipo)
             with open(os.path.join(dest, "meta.json"), "w", encoding="utf-8") as f:
                 json.dump({"order_id": payload.get("order_id"), "email": payload.get("email"),
-                           "data": data}, f, ensure_ascii=False, indent=2)
+                           "tema": tema, "tipo": tipo, "data": data}, f, ensure_ascii=False, indent=2)
         except Exception as e:
             return self._json(500, {"ok": False, "error": f"fallo al generar: {e}"})
         return self._json(200, {"ok": True, "token": token,

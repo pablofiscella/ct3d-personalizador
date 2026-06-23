@@ -346,12 +346,16 @@ def to_rgb(img):
     bg.alpha_composite(img)
     return bg.convert("RGB")
 
-def generar_kit(data, dest_dir, tema="safari"):
-    """Genera las 7 piezas de la temática en PDF (300 DPI) y las empaqueta en un ZIP."""
+def generar_kit(data, dest_dir, tema="safari", piezas_list=None):
+    """Genera las piezas de la temática en PDF (300 DPI) y las empaqueta en un ZIP.
+
+    `piezas_list` permite generar un set de piezas distinto al kit completo
+    (usado por productos.generar para los demás tipos de producto). Si no se
+    pasa, usa las 7 piezas del kit (comportamiento histórico)."""
     import zipfile
     os.makedirs(dest_dir, exist_ok=True)
     pdfs = []
-    for name, fn, _ in piezas_de(tema):
+    for name, fn, _ in (piezas_list if piezas_list is not None else piezas_de(tema)):
         p = os.path.join(dest_dir, name + ".pdf")
         to_rgb(fn(data)).save(p, "PDF", resolution=DPI)
         pdfs.append(p)
