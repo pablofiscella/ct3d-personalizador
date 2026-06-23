@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Personalizá tu kit — Casa Tridimensional</title>
+<title>Personalizá tu diseño — CASATRIDIMENSIONAL</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700&family=Source+Code+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -113,7 +113,7 @@
   <div class="wrap">
     <div id="left"><canvas id="cv"></canvas></div>
     <aside id="panel">
-      <h1>Personalizá tu kit 🦁</h1>
+      <h1 id="ed-titulo">Personalizá tu diseño 🎨</h1>
       <div class="sub">Completá tus datos y, si querés, movelos o cambiá la tipografía. Tocá un texto en la tarjeta para ajustarlo.</div>
 
       <div class="lbl">Edad que cumple</div>
@@ -183,6 +183,12 @@ let EDAD=qs.get('edad')||'1';
 // su invitación (la pieza personalizable principal). Default: invitacion.
 let PIEZA=(qs.get('pieza')||qs.get('tipo')||'invitacion').toLowerCase();
 if(PIEZA==='kit') PIEZA='invitacion';
+// Título del panel según el tipo elegido (no siempre "kit").
+(function(){
+  var t=(qs.get('tipo')||qs.get('pieza')||'kit').toLowerCase();
+  var L={kit:'tu kit 🎉', invitacion:'tu invitación ✉️', cartel:'tu cartel 🎈'};
+  var h=document.getElementById('ed-titulo'); if(h) h.textContent='Personalizá '+(L[t]||'tu diseño 🎨');
+})();
 const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
 let SIZE=[1500,2100], fields=[], bg=new Image(), sel=null, drag=null, CAT=[];
 let ICONS=[];                            // catálogo de iconos (de /cliente/layout)

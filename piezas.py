@@ -315,7 +315,7 @@ def piezas_de(tema="safari"):
     ]
 PIEZAS = piezas_de("safari")   # compat
 
-def marca_agua(img, texto="CASA TRIDIMENSIONAL · VISTA PREVIA", op=70):
+def marca_agua(img, texto="CASATRIDIMENSIONAL · VISTA PREVIA", op=70):
     """Estampa una marca de agua diagonal repetida (solo para el preview)."""
     img = img.convert("RGBA")
     W, H = img.size
