@@ -7,101 +7,164 @@
 <style>
   :root{ --navy:#1D194F; --violet:#6B5BD2; --cream:#F6F2EC; --ink:#1B1530; }
   *{box-sizing:border-box}
-  body{margin:0;font-family:'Titillium Web',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-       background:var(--cream);color:var(--ink)}
-  .wrap{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:18px;grid-template-columns:1fr;}
-  @media(min-width:760px){.wrap{grid-template-columns:1.1fr .9fr;align-items:start}}
+  body{margin:0;font-family:'Titillium Web',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--cream);color:var(--ink)}
+  .wrap{max-width:960px;margin:0 auto;padding:16px;display:grid;gap:18px;grid-template-columns:1fr}
+  @media(min-width:780px){.wrap{grid-template-columns:1fr 360px;align-items:start}}
   .preview{background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.12);padding:14px;text-align:center}
-  .preview img{width:100%;max-width:520px;border-radius:12px;display:block;margin:0 auto}
-  .panel{background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.10);padding:20px}
-  h1{font-size:1.25rem;margin:.2rem 0 1rem}
-  label{display:block;font-weight:600;font-size:.9rem;margin:14px 0 6px}
-  input[type=text]{width:100%;padding:12px 14px;border:1px solid #d8d4ea;border-radius:10px;font:inherit}
-  select,input[type=range]{width:100%}
-  .row{display:flex;gap:12px}.row>*{flex:1}
-  .hint{font-size:.82rem;opacity:.7;margin:6px 0 0}
-  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
-  .chip{border:1px solid #d8d4ea;background:#fff;border-radius:999px;padding:7px 12px;cursor:pointer;font:inherit;font-size:.85rem}
+  .stage{position:relative;width:100%;max-width:460px;margin:0 auto;aspect-ratio:1/1;touch-action:none}
+  .stage img{width:100%;display:block;border-radius:12px}
+  .stage svg{position:absolute;inset:0;width:100%;height:100%}
+  .panel{background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.10);padding:18px}
+  h1{font-size:1.15rem;margin:.1rem 0 1rem}
+  label{display:block;font-weight:600;font-size:.85rem;margin:12px 0 5px}
+  input[type=text]{width:100%;padding:11px 13px;border:1px solid #d8d4ea;border-radius:10px;font:inherit}
+  input[type=range]{width:100%}
+  .chips{display:flex;gap:7px;flex-wrap:wrap}
+  .chip{border:1px solid #d8d4ea;background:#fff;border-radius:999px;padding:7px 11px;cursor:pointer;font:inherit;font-size:.85rem}
   .chip.active{background:var(--violet);color:#fff;border-color:var(--violet)}
-  .nota{font-size:.8rem;opacity:.7;margin-top:16px;line-height:1.4}
+  .ic{border:1px solid #d8d4ea;background:#fff;border-radius:10px;width:42px;height:42px;font-size:1.2rem;cursor:pointer}
+  .hint{font-size:.78rem;opacity:.7;margin:6px 0 0}
+  .btn{display:block;width:100%;padding:12px;border:0;border-radius:10px;background:var(--violet);color:#fff;font:inherit;font-weight:600;cursor:pointer;margin-top:14px}
+  .btn.sec{background:#fff;color:var(--violet);border:1px solid var(--violet)}
+  .selbox{background:#f4f2fb;border:1px solid #e3def5;border-radius:10px;padding:10px;margin-top:10px;display:none}
+  .selbox.on{display:block}
+  .flex{display:flex;gap:10px;align-items:center}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="preview">
-      <img id="pv" alt="Vista previa del mate grabado">
-      <p class="hint">Vista previa — así quedaría el grabado en la virola.</p>
+<div class="wrap">
+  <div class="preview">
+    <div class="stage" id="stage">
+      <img id="pv" alt="Vista previa del mate">
+      <svg id="ov" viewBox="0 0 460 460" aria-hidden="true"></svg>
     </div>
-    <div class="panel">
-      <h1>🧉 Personalizá tu mate</h1>
-      <label for="texto">Texto de arriba</label>
-      <input type="text" id="texto" maxlength="32" placeholder="Ej: Catalina" autocomplete="off">
-      <label for="abajo">Texto de abajo <span style="font-weight:400;opacity:.6">(opcional)</span></label>
-      <input type="text" id="abajo" maxlength="32" placeholder="Ej: 2024" autocomplete="off">
-      <label style="display:flex;align-items:center;gap:8px;font-weight:500;margin-top:8px">
-        <input type="checkbox" id="flip" style="width:auto"> Texto de abajo mirando para arriba
-      </label>
-      <label>Tipografía <span style="font-weight:400;opacity:.6">(finas, estilo grabado)</span></label>
-      <div class="chips" id="fonts">
-        <button class="chip active" data-f="Poppins-Medium.ttf">Fina</button>
-        <button class="chip" data-f="DancingScript-VF.ttf">Manuscrita</button>
-        <button class="chip" data-f="Fredoka-VF.ttf">Redonda</button>
-      </div>
-      <label>Icono <span style="font-weight:400;opacity:.6">(opcional, al centro)</span></label>
-      <div class="chips" id="iconos">
-        <button class="chip active" data-i="">Ninguno</button>
-        <button class="chip" data-i="corazon">❤️</button>
-        <button class="chip" data-i="estrella">⭐</button>
-        <button class="chip" data-i="pelota">⚽</button>
-        <button class="chip" data-i="escudo">🛡️</button>
-        <button class="chip" data-i="camiseta">👕</button>
-        <button class="chip" data-i="corona">👑</button>
-        <button class="chip" data-i="flor">🌸</button>
-        <button class="chip" data-i="nota">🎵</button>
-        <button class="chip" data-i="infinito">∞</button>
-      </div>
-      <label for="size">Tamaño</label>
-      <input type="range" id="size" min="0.035" max="0.075" step="0.004" value="0.052">
-      <label for="radio">Posición del texto (radio)</label>
-      <input type="range" id="radio" min="0.30" max="0.43" step="0.005" value="0.378">
-      <p class="hint">Movelo para centrar el texto justo sobre la virola.</p>
-      <p class="nota">El grabado se hace a pedido con láser. Lo que escribís acá es lo que vamos a grabar
-        en la virola de tu mate. (Más adelante vas a poder sumar una foto chiquita grabada.)</p>
-    </div>
+    <p class="hint">Arrastrá los iconos sobre el aro. Tocá uno para cambiar su tamaño o sacarlo.</p>
   </div>
+  <div class="panel">
+    <h1>🧉 Personalizá tu mate</h1>
+    <label for="texto">Texto de arriba</label>
+    <input type="text" id="texto" maxlength="32" placeholder="Ej: Catalina" autocomplete="off">
+    <label for="abajo">Texto de abajo (opcional)</label>
+    <input type="text" id="abajo" maxlength="32" placeholder="Ej: Feliz cumple" autocomplete="off">
+    <label class="flex" style="font-weight:500"><input type="checkbox" id="flip" style="width:auto"> Texto de abajo mirando para arriba</label>
+
+    <label>Tipografía</label>
+    <div class="chips" id="fonts">
+      <button class="chip active" data-f="Poppins-Medium.ttf">Fina</button>
+      <button class="chip" data-f="DancingScript-VF.ttf">Manuscrita</button>
+      <button class="chip" data-f="Fredoka-VF.ttf">Redonda</button>
+    </div>
+    <label for="size">Tamaño del texto</label>
+    <input type="range" id="size" min="0.035" max="0.075" step="0.004" value="0.052">
+    <label for="radio">Posición del texto (radio)</label>
+    <input type="range" id="radio" min="0.30" max="0.43" step="0.005" value="0.378">
+
+    <label>Agregar icono <span style="font-weight:400;opacity:.6">(fútbol genérico incluido)</span></label>
+    <div class="chips" id="palette">
+      <button class="ic" data-i="corazon" title="Corazón">❤️</button>
+      <button class="ic" data-i="estrella" title="Estrella">⭐</button>
+      <button class="ic" data-i="pelota" title="Pelota">⚽</button>
+      <button class="ic" data-i="escudo" title="Escudo">🛡️</button>
+      <button class="ic" data-i="camiseta" title="Camiseta">👕</button>
+      <button class="ic" data-i="corona" title="Corona">👑</button>
+      <button class="ic" data-i="flor" title="Flor">🌸</button>
+      <button class="ic" data-i="nota" title="Nota">🎵</button>
+      <button class="ic" data-i="infinito" title="Infinito">∞</button>
+    </div>
+    <div class="selbox" id="selbox">
+      <div class="flex" style="justify-content:space-between"><strong id="selname">Icono</strong>
+        <button class="chip" id="del">Sacar ✕</button></div>
+      <label for="isize">Tamaño del icono</label>
+      <input type="range" id="isize" min="0.025" max="0.085" step="0.005" value="0.045">
+    </div>
+
+    <button class="btn" id="descargar">⬇ Descargar SVG para LightBurn</button>
+    <p class="hint">El SVG es el archivo vectorial para grabar (texto en contornos + iconos). El círculo rojo es solo guía.</p>
+  </div>
+</div>
 <script>
 (function(){
-  var BASE="";  // mismo origen
-  var pv=document.getElementById('pv'), txt=document.getElementById('texto'),
-      abajo=document.getElementById('abajo'), flip=document.getElementById('flip'),
-      size=document.getElementById('size'), radio=document.getElementById('radio'),
+  var pv=document.getElementById('pv'), ov=document.getElementById('ov'),
+      txt=document.getElementById('texto'), abajo=document.getElementById('abajo'),
+      flip=document.getElementById('flip'), size=document.getElementById('size'),
+      radio=document.getElementById('radio'), selbox=document.getElementById('selbox'),
+      isize=document.getElementById('isize'), selname=document.getElementById('selname'),
+      stage=document.getElementById('stage'),
       mate=(new URLSearchParams(location.search)).get('mate')||'demo';
-  var font="Poppins-Medium.ttf", icono="", t=null;
-  function upd(){
-    clearTimeout(t);
-    t=setTimeout(function(){
-      var q="texto="+encodeURIComponent(txt.value)+"&abajo="+encodeURIComponent(abajo.value)
-           +"&flip="+(flip.checked?"1":"0")+"&mate="+encodeURIComponent(mate)
-           +"&font="+encodeURIComponent(font)+"&size="+encodeURIComponent(size.value)
-           +"&r="+encodeURIComponent(radio.value)+"&icono="+encodeURIComponent(icono)+"&max=760";
-      pv.src=BASE+"/mate/preview?"+q;
-      try{ parent.postMessage({type:'ct3d-mate', payload:{mate:mate, texto:txt.value, abajo:abajo.value, flip:flip.checked, font:font, size:size.value, r:radio.value, icono:icono}}, '*'); }catch(e){}
-    }, 300);
+  var font="Poppins-Medium.ttf", iconos=[], sel=-1, t=null, drag=-1;
+  var EMOJI={corazon:'❤️',estrella:'⭐',pelota:'⚽',escudo:'🛡️',camiseta:'👕',corona:'👑',flor:'🌸',nota:'🎵',infinito:'∞'};
+  var VB=460, C=VB/2;
+
+  function qs(){
+    return "texto="+encodeURIComponent(txt.value)+"&abajo="+encodeURIComponent(abajo.value)
+      +"&flip="+(flip.checked?"1":"0")+"&mate="+encodeURIComponent(mate)
+      +"&font="+encodeURIComponent(font)+"&size="+encodeURIComponent(size.value)
+      +"&r="+encodeURIComponent(radio.value)+"&iconos="+encodeURIComponent(JSON.stringify(iconos));
   }
-  document.getElementById('iconos').addEventListener('click', function(e){
-    var b=e.target.closest('.chip'); if(!b) return;
-    document.querySelectorAll('#iconos .chip').forEach(c=>c.classList.remove('active'));
-    b.classList.add('active'); icono=b.getAttribute('data-i')||""; upd();
+  function preview(){ clearTimeout(t); t=setTimeout(function(){ pv.src="/mate/preview?"+qs()+"&max=760"; }, 250); }
+  function R(){ return parseFloat(radio.value)*VB; }
+  function pos(ang){ var a=ang*Math.PI/180; return [C+R()*Math.sin(a), C-R()*Math.cos(a)]; }
+
+  function drawOverlay(){
+    var s='<circle cx="'+C+'" cy="'+C+'" r="'+R().toFixed(1)+'" fill="none" stroke="rgba(107,91,210,.35)" stroke-dasharray="4 5"/>';
+    iconos.forEach(function(ic,i){
+      var p=pos(ic.ang), r=(i===sel)?15:12;
+      s+='<g data-i="'+i+'" style="cursor:grab">';
+      s+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+r+'" fill="'+(i===sel?'rgba(107,91,210,.95)':'rgba(255,255,255,.9)')+'" stroke="#6B5BD2" stroke-width="2"/>';
+      s+='<text x="'+p[0].toFixed(1)+'" y="'+(p[1]+5).toFixed(1)+'" text-anchor="middle" font-size="15">'+(EMOJI[ic.n]||'?')+'</text></g>';
+    });
+    ov.innerHTML=s;
+  }
+  function selUpdate(){
+    if(sel<0){ selbox.classList.remove('on'); return; }
+    selbox.classList.add('on'); selname.textContent='Icono: '+(EMOJI[iconos[sel].n]||'');
+    isize.value=iconos[sel].size;
+  }
+  function refresh(){ drawOverlay(); selUpdate(); preview(); }
+
+  // agregar icono desde la paleta
+  document.getElementById('palette').addEventListener('click',function(e){
+    var b=e.target.closest('.ic'); if(!b) return;
+    iconos.push({n:b.getAttribute('data-i'), ang:0, size:parseFloat(isize.value)});
+    sel=iconos.length-1; refresh();
   });
-  document.getElementById('fonts').addEventListener('click', function(e){
-    var b=e.target.closest('.chip'); if(!b) return;
+  document.getElementById('del').addEventListener('click',function(){
+    if(sel<0)return; iconos.splice(sel,1); sel=-1; refresh();
+  });
+  isize.addEventListener('input',function(){ if(sel>=0){ iconos[sel].size=parseFloat(isize.value); refresh(); }});
+
+  // arrastre en círculo
+  function evAng(e){
+    var rect=stage.getBoundingClientRect();
+    var x=(e.touches?e.touches[0].clientX:e.clientX)-rect.left, y=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;
+    x=x/rect.width*VB; y=y/rect.height*VB;
+    var ang=Math.atan2(x-C, -(y-C))*180/Math.PI; if(ang<0)ang+=360; return ang;
+  }
+  ov.addEventListener('pointerdown',function(e){
+    var g=e.target.closest('g[data-i]'); if(!g)return;
+    drag=parseInt(g.getAttribute('data-i')); sel=drag; selUpdate(); drawOverlay();
+    ov.setPointerCapture(e.pointerId); e.preventDefault();
+  });
+  ov.addEventListener('pointermove',function(e){
+    if(drag<0)return; iconos[drag].ang=Math.round(evAng(e)); drawOverlay();
+    clearTimeout(t); t=setTimeout(function(){ pv.src="/mate/preview?"+qs()+"&max=760"; },120);
+  });
+  ov.addEventListener('pointerup',function(e){ if(drag>=0){drag=-1; preview();} });
+
+  // controles de texto
+  document.getElementById('fonts').addEventListener('click',function(e){
+    var b=e.target.closest('.chip'); if(!b)return;
     document.querySelectorAll('#fonts .chip').forEach(c=>c.classList.remove('active'));
-    b.classList.add('active'); font=b.getAttribute('data-f'); upd();
+    b.classList.add('active'); font=b.getAttribute('data-f'); preview();
   });
-  txt.addEventListener('input', upd); abajo.addEventListener('input', upd);
-  size.addEventListener('input', upd); radio.addEventListener('input', upd);
-  flip.addEventListener('change', upd);
-  upd();
+  [txt,abajo].forEach(el=>el.addEventListener('input',preview));
+  flip.addEventListener('change',preview);
+  [size,radio].forEach(el=>el.addEventListener('input',refresh));
+  document.getElementById('descargar').addEventListener('click',function(){
+    window.open("/mate/svg?"+qs(),"_blank");
+  });
+
+  refresh();
 })();
 </script>
 </body>

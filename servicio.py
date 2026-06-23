@@ -207,6 +207,30 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(body)))
             self.end_headers(); self.wfile.write(body)
             return
+        if path == "/mate/svg":
+            q = urllib.parse.parse_qs(u.query)
+            import mate_svg
+            try: iconos = json.loads(q.get("iconos", [""])[0] or "[]") or None
+            except Exception: iconos = None
+            try: dmm = max(20.0, min(200.0, float(q.get("diam_mm", ["75"])[0])))
+            except Exception: dmm = 75.0
+            try: size = max(0.02, min(0.09, float(q.get("size", ["0.052"])[0])))
+            except Exception: size = 0.052
+            svg = mate_svg.export_svg(
+                (q.get("texto", [""])[0] or "")[:40],
+                mate_id=os.path.basename(q.get("mate", ["demo"])[0] or "demo"),
+                font=q.get("font", ["Poppins-Medium.ttf"])[0], size_frac=size,
+                r=q.get("r", [""])[0] or None,
+                texto_abajo=(q.get("abajo", [""])[0] or "")[:40],
+                abajo_flip=q.get("flip", ["0"])[0] in ("1", "true", "on"),
+                iconos=iconos, diam_mm=dmm)
+            body = svg.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "image/svg+xml; charset=utf-8")
+            self.send_header("Content-Disposition", 'attachment; filename="mate-grabado.svg"')
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers(); self.wfile.write(body)
+            return
         # ---- EDITOR DE MATES (grabado láser) ----
         if path == "/mate":
             html = open(os.path.join(generador.BASEDIR, "mate.html"), encoding="utf-8").read()
@@ -228,10 +252,15 @@ class Handler(BaseHTTPRequestHandler):
             texto_abajo = (q.get("abajo", [""])[0] or "")[:40]
             abajo_flip = q.get("flip", ["0"])[0] in ("1", "true", "on")
             icono = os.path.basename(q.get("icono", [""])[0] or "")
+            iconos = None
+            try:
+                iconos = json.loads(q.get("iconos", [""])[0] or "[]") or None
+            except Exception:
+                iconos = None
             try: mx = max(300, min(1100, int(q.get("max", ["900"])[0])))
             except Exception: mx = 900
             img = mate_mod.render(texto, mate_id, font=font, size_frac=size, r=r, max_px=mx,
-                                  texto_abajo=texto_abajo, abajo_flip=abajo_flip, icono=icono)
+                                  texto_abajo=texto_abajo, abajo_flip=abajo_flip, icono=icono, iconos=iconos)
             buf = io.BytesIO(); img.save(buf, "JPEG", quality=82, optimize=True); body = buf.getvalue()
             self.send_response(200)
             self.send_header("Content-Type", "image/jpeg")

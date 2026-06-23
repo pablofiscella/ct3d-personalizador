@@ -196,8 +196,23 @@ def _dibujar_icono(base, nombre, cx, cy, s):
     fn(d, cx, cy, s, GRABADO, w)
 
 
+def _iconos_en_virola(base, iconos, cx, cy, R):
+    """Dibuja varios iconos chiquitos sobre la virola. Cada uno: {n, ang(grados,0=arriba,horario), size(frac)}."""
+    W = base.width
+    for ic in (iconos or []):
+        nm = ic.get("n")
+        if nm not in ICONOS:
+            continue
+        ang = math.radians(float(ic.get("ang", 0)))
+        s = max(0.02, min(0.12, float(ic.get("size", 0.045)))) * W
+        ix = cx + R * math.sin(ang)
+        iy = cy - R * math.cos(ang)
+        _dibujar_icono(base, nm, ix, iy, s)
+
+
 def render(texto="", mate_id="demo", font="Poppins-Medium.ttf", size_frac=0.052,
-           spacing=8, foto=None, r=None, max_px=1000, texto_abajo="", abajo_flip=False, icono=""):
+           spacing=8, foto=None, r=None, max_px=1000, texto_abajo="", abajo_flip=False,
+           icono="", iconos=None):
     """Render del mate con el grabado. Devuelve PIL RGB.
        - texto: texto de ARRIBA (curvado, legible).
        - texto_abajo: texto de ABAJO; abajo_flip controla si mira para arriba o para abajo.
@@ -223,8 +238,11 @@ def render(texto="", mate_id="demo", font="Poppins-Medium.ttf", size_frac=0.052,
     if texto_abajo:
         _curved_text(base, texto_abajo, cx, cy, int(W * r_texto), fnt, GRABADO, spacing,
                      pos="abajo", flip=abajo_flip)
-    if icono:
-        _dibujar_icono(base, icono, cx, cy, int(W * 0.13))   # centrado sobre la madera
+    R = int(W * r_texto)
+    if iconos:
+        _iconos_en_virola(base, iconos, cx, cy, R)
+    elif icono:   # compat: un icono al centro (modo viejo)
+        _dibujar_icono(base, icono, cx, cy, int(W * 0.13))
     if max_px and W > max_px:
         base.thumbnail((max_px, max_px), Image.LANCZOS)
     return base
