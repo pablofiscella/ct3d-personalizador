@@ -90,6 +90,8 @@
       <label class="flex" style="font-weight:500;margin-top:6px"><input type="checkbox" id="ifill" style="width:auto"> Relleno</label>
     </div>
 
+    <label for="diam">Diámetro externo del mate (mm)</label>
+    <input type="text" id="diam" inputmode="decimal" value="109" style="max-width:120px">
     <button class="btn" id="descargar">⬇ Descargar SVG para LightBurn</button>
     <p class="hint">El SVG es el archivo vectorial para grabar (texto en contornos + iconos). El círculo rojo es solo guía.</p>
   </div>
@@ -206,7 +208,8 @@
   flip.addEventListener('change',preview);
   [size,radio].forEach(el=>el.addEventListener('input',refresh));
   document.getElementById('descargar').addEventListener('click',function(){
-    window.open("/mate/svg?"+qs(),"_blank");
+    var dm=parseFloat(document.getElementById('diam').value)||109;
+    window.open("/mate/svg?"+qs()+"&diam_mm="+dm,"_blank");
   });
 
   refresh();

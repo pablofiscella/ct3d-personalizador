@@ -94,7 +94,7 @@ def _icon_polys(nombre, cx, cy, s, relleno=True):
 
 def export_svg(texto="", mate_id="demo", font="Poppins-Medium.ttf", size_frac=0.052,
                r=None, spacing_px=8, texto_abajo="", abajo_flip=False, icono="",
-               iconos=None, diam_mm=75.0):
+               iconos=None, diam_mm=109.0):
     """Devuelve el SVG (str) del grabado, a escala real (mm). diam_mm = diámetro de la virola."""
     import mate
     _, cfg = mate.cargar(mate_id)
