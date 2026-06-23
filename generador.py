@@ -89,6 +89,7 @@ FONTS_CATALOG = [
     {"file": "Poppins-Medium.ttf",   "family": "Poppins",       "label": "Limpia",     "kind": "body"},
     {"file": "Nunito-VF.ttf",        "family": "Nunito",        "label": "Suave",      "kind": "body"},
     {"file": "LuckiestGuy.ttf",      "family": "LuckiestGuy",   "label": "Cartel",     "kind": "display"},
+    {"file": "BreeSerif-Regular.ttf","family": "BreeSerif",     "label": "Cuento",     "kind": "display"},
 ]
 _FONT_FILES = {f["file"] for f in FONTS_CATALOG}
 _FILE_TO_FAMILY = {f["file"]: f["family"] for f in FONTS_CATALOG}
@@ -224,6 +225,32 @@ def draw_slime(draw, cx, cy, tw, th, hexcolor, alpha=0.5):
                         (rw*0.5, rh*1.0, th*0.22), (-rw*0.05, rh*0.95, th*0.3)]:
         draw.ellipse([cx+dx-dr, cy+dy-dr, cx+dx+dr, cy+dy+dr], fill=col)   # goteras
 
+def _leaf(draw, x, y, s, ang, color):
+    """Hojita: rombo/lente apuntado, rotado un ángulo (rad), + nervadura."""
+    import math
+    pts = [(0, 0), (s*0.5, -s*0.32), (s, 0), (s*0.5, s*0.32)]
+    ca, sa = math.cos(ang), math.sin(ang)
+    rot = [(x + px*ca - py*sa, y + px*sa + py*ca) for px, py in pts]
+    draw.polygon(rot, fill=color)
+
+def draw_woodsign(draw, cx, cy, tw, th, fill="#D9B98E", border="#8B5E3C",
+                  grain="#C8A372", leaf="#4E7D43"):
+    """Cartel de madera detrás del nombre: tablón redondeado con borde, vetas y
+    hojitas en las esquinas superiores. Estética bosque/campamento (reutilizable)."""
+    px = th * 0.7; py = th * 0.5
+    l, t, r, b = cx - tw/2 - px, cy - th/2 - py, cx + tw/2 + px, cy + th/2 + py
+    rad = th * 0.32; bw = max(3, int(th * 0.07))
+    draw.rounded_rectangle([l, t, r, b], radius=rad, fill=fill, outline=border, width=bw)
+    gw = max(1, int(th * 0.025))
+    for i in range(1, 4):                         # vetas horizontales sutiles
+        gy = t + (b - t) * i / 4.0
+        draw.line([l + rad*0.6, gy, r - rad*0.6, gy], fill=grain, width=gw)
+    ls = th * 0.55                                # hojitas en las 2 esquinas de arriba
+    _leaf(draw, l + rad*0.2, t + rad*0.1, ls, -2.5, leaf)
+    _leaf(draw, l + rad*0.2, t + rad*0.1, ls*0.8, -1.9, leaf)
+    _leaf(draw, r - rad*0.2, t + rad*0.1, ls, -0.6, leaf)
+    _leaf(draw, r - rad*0.2, t + rad*0.1, ls*0.8, -1.2, leaf)
+
 def draw_text(draw, field, data, W, H):
     text = _field_text(field, data)
     if not text.strip():
@@ -247,6 +274,8 @@ def draw_text(draw, field, data, W, H):
         tw = draw.textlength(text, font=f)
         try: th = f.size
         except Exception: th = field["size"]
+        if field.get("woodsign"):              # cartel de madera detrás (bosque/campamento)
+            draw_woodsign(draw, x, y, tw, th)
         if field.get("band"):                  # franja redondeada detrás (estilo cartel/emergencia)
             px0 = th * 0.55; py0 = th * 0.34
             draw.rounded_rectangle([x - tw/2 - px0, y - th/2 - py0, x + tw/2 + px0, y + th/2 + py0],
