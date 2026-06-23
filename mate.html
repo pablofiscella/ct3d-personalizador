@@ -34,6 +34,10 @@
   .litem{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border:1px solid #e3def5;border-radius:9px;margin-bottom:6px;cursor:pointer}
   .litem.sel{background:#f4f2fb;border-color:var(--violet)}
   .litem button{border:0;background:#fff;border:1px solid #d8d4ea;border-radius:7px;cursor:pointer;padding:4px 9px}
+  .obswrap{text-align:left;margin-top:12px}
+  .obswrap textarea{width:100%;padding:10px 12px;border:1px solid #d8d4ea;border-radius:10px;font:inherit;resize:vertical}
+  .attach{display:inline-block;margin-top:8px;border:1px solid var(--violet);color:var(--violet);background:#fff;border-radius:10px;padding:9px 14px;cursor:pointer;font-weight:600;font-size:.9rem}
+  .filelist{font-size:.82rem;opacity:.8;margin-top:6px;display:flex;flex-direction:column;gap:3px}
 </style>
 </head>
 <body>
@@ -44,6 +48,12 @@
       <svg id="ov" viewBox="0 0 460 460" aria-hidden="true"></svg>
     </div>
     <p class="hint">Arrastrá los iconos sobre el aro. Tocá uno para cambiar su tamaño o sacarlo.</p>
+    <div class="obswrap">
+      <label for="obs">Observaciones <span style="font-weight:400;opacity:.6">(aclaraciones para el grabado)</span></label>
+      <textarea id="obs" rows="3" maxlength="600" placeholder="Ej: el nombre en mayúsculas, color de madera, una referencia, etc."></textarea>
+      <label class="attach"><input type="file" id="files" accept="image/*" multiple hidden> 📎 Adjuntar imágenes</label>
+      <div id="filelist" class="filelist"></div>
+    </div>
   </div>
   <div class="panel">
     <h1>🧉 Personalizá tu mate</h1>
@@ -88,6 +98,9 @@
       <label for="isize">Tamaño del icono</label>
       <input type="range" id="isize" min="0.025" max="0.085" step="0.005" value="0.045">
       <label class="flex" style="font-weight:500;margin-top:6px"><input type="checkbox" id="ifill" style="width:auto"> Relleno</label>
+      <label class="flex" style="font-weight:500;margin-top:6px"><input type="checkbox" id="iseguir" style="width:auto"> Seguir el aro (girar con la curva)</label>
+      <label for="irot">Girar a mano</label>
+      <input type="range" id="irot" min="0" max="360" step="5" value="0">
     </div>
 
     <label for="diam">Diámetro externo del mate (mm)</label>
@@ -115,7 +128,24 @@
       +"&font="+encodeURIComponent(font)+"&size="+encodeURIComponent(size.value)
       +"&r="+encodeURIComponent(radio.value)+"&iconos="+encodeURIComponent(JSON.stringify(iconos));
   }
-  function preview(){ clearTimeout(t); t=setTimeout(function(){ pv.src="/mate/preview?"+qs()+"&max=760"; }, 250); }
+  var adjuntos=[];
+  function emit(){
+    try{ parent.postMessage({type:'ct3d-mate', payload:{
+      mate:mate, texto:txt.value, abajo:abajo.value, flip:flip.checked, font:font,
+      size:size.value, r:radio.value, iconos:iconos,
+      obs:document.getElementById('obs').value, adjuntos:adjuntos.map(f=>f.name)
+    }}, '*'); }catch(e){}
+  }
+  function preview(){ clearTimeout(t); t=setTimeout(function(){ pv.src="/mate/preview?"+qs()+"&max=760"; emit(); }, 250); }
+  // observaciones + adjuntar imágenes
+  document.getElementById('obs').addEventListener('input', emit);
+  document.getElementById('files').addEventListener('change', function(e){
+    adjuntos = Array.prototype.slice.call(e.target.files || []);
+    document.getElementById('filelist').innerHTML = adjuntos.map(function(f){
+      return '📷 '+f.name+' <span style="opacity:.6">('+Math.round(f.size/1024)+' KB)</span>';
+    }).join('');
+    emit();
+  });
   function R(){ return parseFloat(radio.value)*VB; }
   function pos(ang){ var a=ang*Math.PI/180; return [C+R()*Math.sin(a), C-R()*Math.cos(a)]; }
 
@@ -134,6 +164,8 @@
     selbox.classList.add('on'); selname.textContent='Icono: '+(EMOJI[iconos[sel].n]||'');
     isize.value=iconos[sel].size;
     document.getElementById('ifill').checked = iconos[sel].relleno !== false;
+    document.getElementById('iseguir').checked = !!iconos[sel].seguir;
+    document.getElementById('irot').value = iconos[sel].rot || 0;
   }
   var NOMBRE={corazon:'Corazón',estrella:'Estrella',pelota:'Pelota',escudo:'Escudo',camiseta:'Camiseta',corona:'Corona',flor:'Flor',nota:'Nota',infinito:'Infinito'};
   function renderLista(){
@@ -179,6 +211,8 @@
   });
   isize.addEventListener('input',function(){ if(sel>=0){ iconos[sel].size=parseFloat(isize.value); refresh(); }});
   ifill.addEventListener('change',function(){ if(sel>=0){ iconos[sel].relleno=ifill.checked; refresh(); }});
+  document.getElementById('iseguir').addEventListener('change',function(){ if(sel>=0){ iconos[sel].seguir=this.checked; refresh(); }});
+  document.getElementById('irot').addEventListener('input',function(){ if(sel>=0){ iconos[sel].rot=parseInt(this.value); iconos[sel].seguir=false; refresh(); }});
 
   // arrastre en círculo
   function evAng(e){

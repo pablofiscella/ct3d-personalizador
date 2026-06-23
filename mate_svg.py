@@ -65,7 +65,7 @@ def _arc_paths(text, cx, cy, radius, fs, fname, pos="arriba", flip=False, spacin
 
 
 # --- iconos en SVG, reusando la geometría de mate._icon_shapes (relleno o contorno) ---
-def _icon_polys(nombre, cx, cy, s, relleno=True):
+def _icon_polys(nombre, cx, cy, s, relleno=True, rot=0):
     import mate
     out = []
     sw = max(2.5, s * 0.09)
@@ -89,6 +89,8 @@ def _icon_polys(nombre, cx, cy, s, relleno=True):
         else:  # line
             pts = " ".join("%.1f,%.1f" % (px, py) for px, py in data)
             out.append('<polyline points="%s" fill="none" stroke="#000000" stroke-width="%.1f"/>' % (pts, sw))
+    if rot:
+        return ['<g transform="rotate(%.1f %.1f %.1f)">%s</g>' % (rot, cx, cy, "".join(out))]
     return out
 
 
@@ -115,7 +117,8 @@ def export_svg(texto="", mate_id="demo", font="Poppins-Medium.ttf", size_frac=0.
             ang = math.radians(float(ic.get("ang", 0)))
             s = max(0.02, min(0.12, float(ic.get("size", 0.045)))) * W
             ix = cx + radius * math.sin(ang); iy = cy - radius * math.cos(ang)
-            icon_polys += _icon_polys(nm, ix, iy, s, relleno=ic.get("relleno", True))
+            rot = float(ic.get("ang", 0)) if ic.get("seguir") else float(ic.get("rot", 0) or 0)
+            icon_polys += _icon_polys(nm, ix, iy, s, relleno=ic.get("relleno", True), rot=rot)
     elif icono:
         icon_polys = _icon_polys(icono, cx, cy, W * 0.13)
     # escala física: el mate (0.86*W px) = diam_mm

@@ -174,23 +174,30 @@ def _icon_shapes(name, cx, cy, s):
 ICONOS = {"corazon", "estrella", "pelota", "escudo", "camiseta", "corona", "flor", "nota", "infinito"}
 
 
-def _dibujar_icono(base, nombre, cx, cy, s, relleno=True):
+def _dibujar_icono(base, nombre, cx, cy, s, relleno=True, rot=0):
     if nombre not in ICONOS:
         return
     d = ImageDraw.Draw(base)
     w = max(3, int(s * 0.09)); col = GRABADO
+    rr = math.radians(rot)
+    ca, sa = math.cos(rr), math.sin(rr)
+    def T(p):                       # rota el punto alrededor del centro del icono
+        if not rot: return p
+        dx, dy = p[0] - cx, p[1] - cy
+        return (cx + dx * ca - dy * sa, cy + dx * sa + dy * ca)
     for kind, data, skip in _icon_shapes(nombre, cx, cy, s):
         if relleno and skip:
             continue
         if kind == "poly":
-            if relleno: d.polygon(data, fill=col)
-            else: d.line(list(data) + [data[0]], fill=col, width=w, joint="curve")
+            pts = [T(p) for p in data]
+            if relleno: d.polygon(pts, fill=col)
+            else: d.line(pts + [pts[0]], fill=col, width=w, joint="curve")
         elif kind == "circle":
-            x, y, r = data; box = [x - r, y - r, x + r, y + r]
+            x, y, r = data; (x, y) = T((x, y)); box = [x - r, y - r, x + r, y + r]
             if relleno: d.ellipse(box, fill=col)
             else: d.ellipse(box, outline=col, width=w)
         else:  # line
-            d.line(data, fill=col, width=w, joint="curve")
+            d.line([T(p) for p in data], fill=col, width=w, joint="curve")
 
 
 def _iconos_en_virola(base, iconos, cx, cy, R):
@@ -204,7 +211,8 @@ def _iconos_en_virola(base, iconos, cx, cy, R):
         s = max(0.02, min(0.12, float(ic.get("size", 0.045)))) * W
         ix = cx + R * math.sin(ang)
         iy = cy - R * math.cos(ang)
-        _dibujar_icono(base, nm, ix, iy, s, relleno=ic.get("relleno", True))
+        rot = float(ic.get("ang", 0)) if ic.get("seguir") else float(ic.get("rot", 0) or 0)
+        _dibujar_icono(base, nm, ix, iy, s, relleno=ic.get("relleno", True), rot=rot)
 
 
 def render(texto="", mate_id="demo", font="Poppins-Medium.ttf", size_frac=0.052,
