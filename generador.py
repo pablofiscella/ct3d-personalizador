@@ -88,6 +88,7 @@ FONTS_CATALOG = [
     {"file": "Baloo2-VF.ttf",        "family": "Baloo2",        "label": "Globo",      "kind": "display"},
     {"file": "Poppins-Medium.ttf",   "family": "Poppins",       "label": "Limpia",     "kind": "body"},
     {"file": "Nunito-VF.ttf",        "family": "Nunito",        "label": "Suave",      "kind": "body"},
+    {"file": "LuckiestGuy.ttf",      "family": "LuckiestGuy",   "label": "Cartel",     "kind": "display"},
 ]
 _FONT_FILES = {f["file"] for f in FONTS_CATALOG}
 _FILE_TO_FAMILY = {f["file"]: f["family"] for f in FONTS_CATALOG}
@@ -243,11 +244,19 @@ def draw_text(draw, field, data, W, H):
         draw.text((start + isz + gap, y), text, font=f, fill=field["color"], anchor="l" + v,
                   stroke_width=sw, stroke_fill=sf)
     else:
+        tw = draw.textlength(text, font=f)
+        try: th = f.size
+        except Exception: th = field["size"]
+        if field.get("band"):                  # franja redondeada detrás (estilo cartel/emergencia)
+            px0 = th * 0.55; py0 = th * 0.34
+            draw.rounded_rectangle([x - tw/2 - px0, y - th/2 - py0, x + tw/2 + px0, y + th/2 + py0],
+                                   radius=th * 0.45, fill=field["band"])
         if field.get("slime"):
-            tw = draw.textlength(text, font=f)
-            try: th = f.size
-            except Exception: th = field["size"]
             draw_slime(draw, x, y, tw, th, field["slime"])
+        if field.get("shadow"):                # sombra de color, desplazada
+            dx = field["size"] * 0.045; dy = field["size"] * 0.06
+            draw.text((x + dx, y + dy), text, font=f, fill=field["shadow"], anchor=anchor,
+                      stroke_width=sw, stroke_fill=field["shadow"])
         draw.text((x, y), text, font=f, fill=field["color"], anchor=anchor,
                   stroke_width=sw, stroke_fill=sf)
 
