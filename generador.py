@@ -301,6 +301,34 @@ def draw_obrasign(draw, cx, cy, tw, th, fill="#F2B632", border="#2F2F2F", bolt="
     for bx, by in [(l+ins, t+ins), (r-ins, t+ins), (l+ins, b-ins), (r-ins, b-ins)]:
         _bolt(draw, bx, by, br, bolt, border)
 
+def draw_splatter(draw, cx, cy, tw, th, colors):
+    """Salpicaduras de pintura alrededor del nombre (tema artistas)."""
+    spots = [(-0.62,-0.55,0.22),(0.58,-0.5,0.3),(-0.45,0.62,0.26),(0.5,0.64,0.2),
+             (-0.72,0.12,0.16),(0.74,0.08,0.24),(-0.3,-0.72,0.14),(0.28,-0.66,0.18),
+             (0.0,0.8,0.16),(-0.58,-0.2,0.12),(0.66,-0.18,0.13),(0.15,0.72,0.1),
+             (-0.2,0.68,0.12),(0.4,-0.62,0.1),(-0.5,0.36,0.1),(0.56,0.36,0.14)]
+    rw = tw/2 + th*0.55; rh = th*1.1
+    for i,(fx,fy,fr) in enumerate(spots):
+        col = colors[i % len(colors)]
+        dx = cx + fx*rw; dy = cy + fy*rh; r = fr*th
+        draw.ellipse([dx-r,dy-r,dx+r,dy+r], fill=col)
+        r2 = r*0.4; ox = r*1.5*(1 if i%2 else -1)
+        draw.ellipse([dx+ox-r2,dy-r2,dx+ox+r2,dy+r2], fill=col)
+
+def _draw_multicolor(draw, x, y, text, font, colors, anchor, sw, sf):
+    """Cada letra en un color distinto (pinceladas). Avanza char por char."""
+    tw = draw.textlength(text, font=font)
+    h, v = anchor[0], anchor[1]
+    cur = x - tw/2 if h == "m" else (x if h == "l" else x - tw)
+    ci = 0
+    for ch in text:
+        cw = draw.textlength(ch, font=font)
+        if ch.strip():
+            col = colors[ci % len(colors)]; ci += 1
+            draw.text((cur, y), ch, font=font, fill=col, anchor="l"+v,
+                      stroke_width=sw, stroke_fill=sf)
+        cur += cw
+
 def draw_text(draw, field, data, W, H):
     text = _field_text(field, data)
     if not text.strip():
@@ -336,12 +364,18 @@ def draw_text(draw, field, data, W, H):
                                    radius=th * 0.45, fill=field["band"])
         if field.get("slime"):
             draw_slime(draw, x, y, tw, th, field["slime"])
+        if field.get("splatter"):              # salpicaduras de pintura (artistas)
+            draw_splatter(draw, x, y, tw, th, field["splatter"])
         if field.get("shadow"):                # sombra de color, desplazada
             dx = field["size"] * 0.045; dy = field["size"] * 0.06
             draw.text((x + dx, y + dy), text, font=f, fill=field["shadow"], anchor=anchor,
                       stroke_width=sw, stroke_fill=field["shadow"])
-        draw.text((x, y), text, font=f, fill=field["color"], anchor=anchor,
-                  stroke_width=sw, stroke_fill=sf)
+        mc = field.get("multicolor")
+        if mc:                                 # cada letra un color (pinceladas)
+            _draw_multicolor(draw, x, y, text, f, mc, anchor, sw, sf)
+        else:
+            draw.text((x, y), text, font=f, fill=field["color"], anchor=anchor,
+                      stroke_width=sw, stroke_fill=sf)
 
 def draw_icon_group(draw, fields, data, W, H):
     """Renderiza fecha/hora/lugar con los iconos alineados en columna y el
