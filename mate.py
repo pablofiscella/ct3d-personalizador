@@ -191,9 +191,8 @@ def _dibujar_icono(base, nombre, cx, cy, s):
     if not fn:
         return
     d = ImageDraw.Draw(base)
-    w = max(4, int(s * 0.10))
-    fn(d, cx + 2, cy + 3, s, (255, 255, 255), w)   # lip claro (grabado)
-    fn(d, cx, cy, s, GRABADO, w)
+    w = max(3, int(s * 0.09))
+    fn(d, cx, cy, s, GRABADO, w)                    # línea limpia (sin bisel: en iconos de línea se ve raro)
 
 
 def _iconos_en_virola(base, iconos, cx, cy, R):
