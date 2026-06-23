@@ -114,7 +114,7 @@
     <div id="left"><canvas id="cv"></canvas></div>
     <aside id="panel">
       <h1 id="ed-titulo">Personalizá tu diseño 🎨</h1>
-      <div class="sub">Completá tus datos y, si querés, movelos o cambiá la tipografía. Tocá un texto en la tarjeta para ajustarlo.</div>
+      <div class="sub" id="ed-sub">Completá tus datos y, si querés, movelos o cambiá la tipografía. Tocá un texto en la tarjeta para ajustarlo.</div>
 
       <div class="lbl">Edad que cumple</div>
       <input id="edad" class="edad-sel" type="number" min="1" max="99" step="1" value="1">
@@ -187,7 +187,13 @@ if(PIEZA==='kit') PIEZA='invitacion';
 (function(){
   var t=(qs.get('tipo')||qs.get('pieza')||'kit').toLowerCase();
   var L={kit:'tu kit 🎉', invitacion:'tu invitación ✉️', cartel:'tu cartel 🎈'};
+  var SUB={
+    kit:'Kit completo (incluye varias piezas). Acá personalizás la invitación y esos datos se usan en todo el kit. Movés los textos y cambiás la tipografía si querés.',
+    invitacion:'Invitación individual. Completá tus datos, movelos o cambiá la tipografía. Tocá un texto para ajustarlo.',
+    cartel:'Cartel de bienvenida. Escribí el nombre, movelo o cambiá la tipografía. Tocá un texto para ajustarlo.'
+  };
   var h=document.getElementById('ed-titulo'); if(h) h.textContent='Personalizá '+(L[t]||'tu diseño 🎨');
+  var s=document.getElementById('ed-sub'); if(s && SUB[t]) s.textContent=SUB[t];
 })();
 const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
 let SIZE=[1500,2100], fields=[], bg=new Image(), sel=null, drag=null, CAT=[];
