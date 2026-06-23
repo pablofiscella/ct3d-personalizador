@@ -92,6 +92,8 @@ FONTS_CATALOG = [
     {"file": "BreeSerif-Regular.ttf","family": "BreeSerif",     "label": "Cuento",     "kind": "display"},
     {"file": "Rye-Regular.ttf",      "family": "Rye",          "label": "Circo",      "kind": "display"},
     {"file": "Quicksand-VF.ttf",     "family": "Quicksand",    "label": "Redonda",    "kind": "body"},
+    {"file": "Bungee-Regular.ttf",   "family": "Bungee",       "label": "Obra",       "kind": "display"},
+    {"file": "Montserrat-VF.ttf",    "family": "Montserrat",   "label": "Moderna",    "kind": "body"},
 ]
 _FONT_FILES = {f["file"] for f in FONTS_CATALOG}
 _FILE_TO_FAMILY = {f["file"]: f["family"] for f in FONTS_CATALOG}
@@ -284,6 +286,21 @@ def draw_circoplaca(draw, cx, cy, tw, th, fill="#D9624C", border="#F4C95D",
         _star(draw, l - sr*0.2, sy, sr, star)
         _star(draw, r + sr*0.2, sy, sr, star)
 
+def _bolt(draw, x, y, r, color="#888888", dark="#2F2F2F"):
+    draw.ellipse([x-r, y-r, x+r, y+r], fill=color, outline=dark, width=max(2, int(r*0.28)))
+    draw.line([x-r*0.5, y, x+r*0.5, y], fill=dark, width=max(2, int(r*0.28)))   # ranura
+
+def draw_obrasign(draw, cx, cy, tw, th, fill="#F2B632", border="#2F2F2F", bolt="#9A9A9A"):
+    """Cartel de obra amarillo: borde negro grueso y tornillos en las 4 esquinas.
+    Estética construcción/maquinaria (reutilizable)."""
+    px = th * 0.7; py = th * 0.5
+    l, t, r, b = cx - tw/2 - px, cy - th/2 - py, cx + tw/2 + px, cy + th/2 + py
+    rad = th * 0.16; bw = max(5, int(th * 0.11))
+    draw.rounded_rectangle([l, t, r, b], radius=rad, fill=fill, outline=border, width=bw)
+    br = th * 0.16; ins = bw + br
+    for bx, by in [(l+ins, t+ins), (r-ins, t+ins), (l+ins, b-ins), (r-ins, b-ins)]:
+        _bolt(draw, bx, by, br, bolt, border)
+
 def draw_text(draw, field, data, W, H):
     text = _field_text(field, data)
     if not text.strip():
@@ -309,6 +326,10 @@ def draw_text(draw, field, data, W, H):
         except Exception: th = field["size"]
         if field.get("woodsign"):              # cartel de madera detrás (bosque/campamento)
             draw_woodsign(draw, x, y, tw, th)
+        if field.get("circoplaca"):            # placa de circo (roja, borde dorado, estrellas)
+            draw_circoplaca(draw, x, y, tw, th)
+        if field.get("obrasign"):              # cartel de obra (amarillo, borde negro, tornillos)
+            draw_obrasign(draw, x, y, tw, th)
         if field.get("band"):                  # franja redondeada detrás (estilo cartel/emergencia)
             px0 = th * 0.55; py0 = th * 0.34
             draw.rounded_rectangle([x - tw/2 - px0, y - th/2 - py0, x + tw/2 + px0, y + th/2 + py0],
