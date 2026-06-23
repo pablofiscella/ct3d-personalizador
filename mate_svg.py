@@ -64,46 +64,32 @@ def _arc_paths(text, cx, cy, radius, fs, fname, pos="arriba", flip=False, spacin
     return out
 
 
-# --- iconos como polilíneas (mismas formas que mate.py, en vectores) ---
-def _icon_polys(nombre, cx, cy, s):
-    P = []
-    def L(pts, close=True):
-        if close: pts = pts + [pts[0]]
-        P.append('<polyline points="%s" fill="none"/>' %
-                 " ".join("%.1f,%.1f" % (px, py) for px, py in pts))
-    def C(x, y, rr):
-        P.append('<circle cx="%.1f" cy="%.1f" r="%.1f" fill="none"/>' % (x, y, rr))
-    if nombre == "corazon":
-        pts = []
-        for i in range(0, 361, 5):
-            t = math.radians(i); x = 16 * math.sin(t) ** 3
-            yy = 13 * math.cos(t) - 5 * math.cos(2*t) - 2 * math.cos(3*t) - math.cos(4*t)
-            pts.append((cx + x * s / 16, cy - yy * s / 16))
-        L(pts)
-    elif nombre == "estrella":
-        L([(cx + (s if k % 2 == 0 else s*0.45) * math.cos(-math.pi/2 + k*math.pi/5),
-            cy + (s if k % 2 == 0 else s*0.45) * math.sin(-math.pi/2 + k*math.pi/5)) for k in range(10)])
-    elif nombre == "pelota":
-        C(cx, cy, s)
-        pent = [(cx + s*0.34*math.cos(-math.pi/2 + k*2*math.pi/5),
-                 cy + s*0.34*math.sin(-math.pi/2 + k*2*math.pi/5)) for k in range(5)]
-        L(pent)
-        for px, py in pent:
-            a = math.atan2(py - cy, px - cx)
-            L([(px, py), (cx + s*0.92*math.cos(a), cy + s*0.92*math.sin(a))], close=False)
-    elif nombre == "escudo":
-        L([(cx-s*0.8, cy-s), (cx+s*0.8, cy-s), (cx+s*0.8, cy+s*0.15), (cx, cy+s), (cx-s*0.8, cy+s*0.15)])
-    elif nombre == "corona":
-        L([(cx-s, cy+s*0.55), (cx-s, cy-s*0.3), (cx-s*0.5, cy+s*0.12), (cx, cy-s*0.6),
-           (cx+s*0.5, cy+s*0.12), (cx+s, cy-s*0.3), (cx+s, cy+s*0.55)])
-    elif nombre == "infinito":
-        C(cx - s*0.5, cy, s*0.5); C(cx + s*0.5, cy, s*0.5)
-    elif nombre == "flor":
-        for k in range(6):
-            a = k*math.pi/3; C(cx + s*0.52*math.cos(a), cy + s*0.52*math.sin(a), s*0.4)
-        C(cx, cy, s*0.22)
-    # camiseta/nota: se omiten en v1 del SVG (se pueden sumar)
-    return P
+# --- iconos en SVG, reusando la geometría de mate._icon_shapes (relleno o contorno) ---
+def _icon_polys(nombre, cx, cy, s, relleno=True):
+    import mate
+    out = []
+    sw = max(2.5, s * 0.09)
+    for kind, data, skip in mate._icon_shapes(nombre, cx, cy, s):
+        if relleno and skip:
+            continue
+        if kind == "poly":
+            pts = " ".join("%.1f,%.1f" % (px, py) for px, py in data)
+            if relleno:
+                out.append('<polygon points="%s" fill="#000000"/>' % pts)
+            else:
+                out.append('<polyline points="%s %.1f,%.1f" fill="none" stroke="#000000" stroke-width="%.1f"/>'
+                           % (pts, data[0][0], data[0][1], sw))
+        elif kind == "circle":
+            x, y, r = data
+            if relleno:
+                out.append('<circle cx="%.1f" cy="%.1f" r="%.1f" fill="#000000"/>' % (x, y, r))
+            else:
+                out.append('<circle cx="%.1f" cy="%.1f" r="%.1f" fill="none" stroke="#000000" stroke-width="%.1f"/>'
+                           % (x, y, r, sw))
+        else:  # line
+            pts = " ".join("%.1f,%.1f" % (px, py) for px, py in data)
+            out.append('<polyline points="%s" fill="none" stroke="#000000" stroke-width="%.1f"/>' % (pts, sw))
+    return out
 
 
 def export_svg(texto="", mate_id="demo", font="Poppins-Medium.ttf", size_frac=0.052,
@@ -129,7 +115,7 @@ def export_svg(texto="", mate_id="demo", font="Poppins-Medium.ttf", size_frac=0.
             ang = math.radians(float(ic.get("ang", 0)))
             s = max(0.02, min(0.12, float(ic.get("size", 0.045)))) * W
             ix = cx + radius * math.sin(ang); iy = cy - radius * math.cos(ang)
-            icon_polys += _icon_polys(nm, ix, iy, s)
+            icon_polys += _icon_polys(nm, ix, iy, s, relleno=ic.get("relleno", True))
     elif icono:
         icon_polys = _icon_polys(icono, cx, cy, W * 0.13)
     # escala física: el mate (0.86*W px) = diam_mm
@@ -139,7 +125,7 @@ def export_svg(texto="", mate_id="demo", font="Poppins-Medium.ttf", size_frac=0.
             'viewBox="0 0 %d %d">' % (svg_mm, svg_mm, W, W))
     # texto/iconos: relleno negro (grabado por fill en LightBurn)
     body = '<g fill="#000000">' + "".join(paths) + "</g>"
-    icons = '<g fill="none" stroke="#000000" stroke-width="%.1f">%s</g>' % (max(3, fs * 0.10), "".join(icon_polys))
+    icons = "".join(icon_polys)   # cada elemento ya trae su fill/stroke (relleno o contorno)
     # círculo guía de la virola (hairline rojo = ponelo en "no output" en LightBurn, o borralo)
     guide = ('<circle cx="%d" cy="%d" r="%d" fill="none" stroke="#ff0000" stroke-width="0.5"/>'
              % (cx, cy, int(W * 0.43)))

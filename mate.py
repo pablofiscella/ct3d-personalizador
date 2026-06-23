@@ -126,73 +126,71 @@ def _grabar_foto(base, foto, cx, cy, diam):
 # ---------------------------------------------------------------------------
 # Iconos (línea monocromo, ideales para grabado). Fútbol GENÉRICO (no escudos de clubes).
 # ---------------------------------------------------------------------------
-def _i_corazon(d, cx, cy, s, c, w):
-    p = []
-    for i in range(0, 361, 5):
-        t = math.radians(i); x = 16 * math.sin(t) ** 3
-        y = 13 * math.cos(t) - 5 * math.cos(2 * t) - 2 * math.cos(3 * t) - math.cos(4 * t)
-        p.append((cx + x * s / 16, cy - y * s / 16))
-    d.line(p + [p[0]], fill=c, width=w, joint="curve")
+def _icon_shapes(name, cx, cy, s):
+    """Geometría de cada icono como lista de figuras (compartida por preview y SVG).
+    Cada figura: (tipo, datos, skip_si_relleno).
+      tipo: 'poly' (cerrada, rellenable), 'circle' (rellenable), 'line' (siempre traza)."""
+    sh = []
+    if name == "corazon":
+        p = []
+        for i in range(0, 361, 5):
+            t = math.radians(i); x = 16 * math.sin(t) ** 3
+            y = 13 * math.cos(t) - 5 * math.cos(2*t) - 2 * math.cos(3*t) - math.cos(4*t)
+            p.append((cx + x * s / 16, cy - y * s / 16))
+        sh.append(("poly", p, False))
+    elif name == "estrella":
+        sh.append(("poly", [(cx + (s if k % 2 == 0 else s*0.45) * math.cos(-math.pi/2 + k*math.pi/5),
+                             cy + (s if k % 2 == 0 else s*0.45) * math.sin(-math.pi/2 + k*math.pi/5)) for k in range(10)], False))
+    elif name == "pelota":
+        sh.append(("circle", (cx, cy, s), False))
+        pent = [(cx + s*0.34*math.cos(-math.pi/2 + k*2*math.pi/5), cy + s*0.34*math.sin(-math.pi/2 + k*2*math.pi/5)) for k in range(5)]
+        sh.append(("poly", pent, True))
+        for px, py in pent:
+            a = math.atan2(py - cy, px - cx)
+            sh.append(("line", [(px, py), (cx + s*0.92*math.cos(a), cy + s*0.92*math.sin(a))], True))
+    elif name == "escudo":
+        sh.append(("poly", [(cx-s*0.8, cy-s), (cx+s*0.8, cy-s), (cx+s*0.8, cy+s*0.15), (cx, cy+s), (cx-s*0.8, cy+s*0.15)], False))
+    elif name == "camiseta":
+        sh.append(("poly", [(cx-s*0.32, cy-s*0.62), (cx-s*0.72, cy-s*0.4), (cx-s*0.95, cy-s*0.12), (cx-s*0.62, cy+s*0.08),
+                            (cx-s*0.5, cy+s), (cx+s*0.5, cy+s), (cx+s*0.62, cy+s*0.08), (cx+s*0.95, cy-s*0.12),
+                            (cx+s*0.72, cy-s*0.4), (cx+s*0.32, cy-s*0.62)], False))
+    elif name == "corona":
+        sh.append(("poly", [(cx-s, cy+s*0.55), (cx-s, cy-s*0.3), (cx-s*0.5, cy+s*0.12), (cx, cy-s*0.6),
+                            (cx+s*0.5, cy+s*0.12), (cx+s, cy-s*0.3), (cx+s, cy+s*0.55)], False))
+    elif name == "flor":
+        for k in range(6):
+            a = k * math.pi / 3
+            sh.append(("circle", (cx + s*0.52*math.cos(a), cy + s*0.52*math.sin(a), s*0.4), False))
+        sh.append(("circle", (cx, cy, s*0.22), False))
+    elif name == "infinito":
+        sh.append(("circle", (cx - s*0.5, cy, s*0.5), False))
+        sh.append(("circle", (cx + s*0.5, cy, s*0.5), False))
+    elif name == "nota":
+        sh.append(("circle", (cx - s*0.42, cy + s*0.42, s*0.3), False))
+        sh.append(("line", [(cx - s*0.12, cy + s*0.42), (cx - s*0.12, cy - s*0.8)], False))
+        sh.append(("line", [(cx - s*0.12, cy - s*0.8), (cx + s*0.55, cy - s*0.55)], False))
+    return sh
 
-def _i_estrella(d, cx, cy, s, c, w):
-    p = [(cx + (s if k % 2 == 0 else s * 0.45) * math.cos(-math.pi / 2 + k * math.pi / 5),
-          cy + (s if k % 2 == 0 else s * 0.45) * math.sin(-math.pi / 2 + k * math.pi / 5)) for k in range(10)]
-    d.line(p + [p[0]], fill=c, width=w, joint="curve")
-
-def _i_pelota(d, cx, cy, s, c, w):
-    d.ellipse([cx - s, cy - s, cx + s, cy + s], outline=c, width=w)
-    pent = [(cx + s * 0.34 * math.cos(-math.pi / 2 + k * 2 * math.pi / 5),
-             cy + s * 0.34 * math.sin(-math.pi / 2 + k * 2 * math.pi / 5)) for k in range(5)]
-    d.line(pent + [pent[0]], fill=c, width=w, joint="curve")
-    for px, py in pent:
-        a = math.atan2(py - cy, px - cx)
-        d.line([(px, py), (cx + s * 0.92 * math.cos(a), cy + s * 0.92 * math.sin(a))], fill=c, width=w)
-
-def _i_escudo(d, cx, cy, s, c, w):
-    p = [(cx - s * 0.8, cy - s), (cx + s * 0.8, cy - s), (cx + s * 0.8, cy + s * 0.15),
-         (cx, cy + s), (cx - s * 0.8, cy + s * 0.15)]
-    d.line(p + [p[0]], fill=c, width=w, joint="curve")
-
-def _i_camiseta(d, cx, cy, s, c, w):
-    p = [(cx - s * 0.32, cy - s * 0.62), (cx - s * 0.72, cy - s * 0.4), (cx - s * 0.95, cy - s * 0.12),
-         (cx - s * 0.62, cy + s * 0.08), (cx - s * 0.5, cy + s), (cx + s * 0.5, cy + s),
-         (cx + s * 0.62, cy + s * 0.08), (cx + s * 0.95, cy - s * 0.12), (cx + s * 0.72, cy - s * 0.4),
-         (cx + s * 0.32, cy - s * 0.62)]
-    d.line(p, fill=c, width=w, joint="curve")
-    d.arc([cx - s * 0.32, cy - s * 0.78, cx + s * 0.32, cy - s * 0.46], 0, 180, fill=c, width=w)
-
-def _i_infinito(d, cx, cy, s, c, w):
-    d.ellipse([cx - s, cy - s * 0.5, cx, cy + s * 0.5], outline=c, width=w)
-    d.ellipse([cx, cy - s * 0.5, cx + s, cy + s * 0.5], outline=c, width=w)
-
-def _i_flor(d, cx, cy, s, c, w):
-    for k in range(6):
-        a = k * math.pi / 3; px = cx + s * 0.52 * math.cos(a); py = cy + s * 0.52 * math.sin(a)
-        d.ellipse([px - s * 0.4, py - s * 0.4, px + s * 0.4, py + s * 0.4], outline=c, width=w)
-    d.ellipse([cx - s * 0.22, cy - s * 0.22, cx + s * 0.22, cy + s * 0.22], outline=c, width=w)
-
-def _i_corona(d, cx, cy, s, c, w):
-    p = [(cx - s, cy + s * 0.55), (cx - s, cy - s * 0.3), (cx - s * 0.5, cy + s * 0.12), (cx, cy - s * 0.6),
-         (cx + s * 0.5, cy + s * 0.12), (cx + s, cy - s * 0.3), (cx + s, cy + s * 0.55)]
-    d.line(p + [p[0]], fill=c, width=w, joint="curve")
-
-def _i_nota(d, cx, cy, s, c, w):
-    d.ellipse([cx - s * 0.75, cy + s * 0.15, cx - s * 0.1, cy + s * 0.7], outline=c, width=w)
-    d.line([(cx - s * 0.1, cy + s * 0.45), (cx - s * 0.1, cy - s * 0.8)], fill=c, width=w)
-    d.line([(cx - s * 0.1, cy - s * 0.8), (cx + s * 0.6, cy - s * 0.5)], fill=c, width=w)
-
-ICONOS = {"corazon": _i_corazon, "estrella": _i_estrella, "pelota": _i_pelota, "escudo": _i_escudo,
-          "camiseta": _i_camiseta, "infinito": _i_infinito, "flor": _i_flor, "corona": _i_corona,
-          "nota": _i_nota}
+ICONOS = {"corazon", "estrella", "pelota", "escudo", "camiseta", "corona", "flor", "nota", "infinito"}
 
 
-def _dibujar_icono(base, nombre, cx, cy, s):
-    fn = ICONOS.get(nombre)
-    if not fn:
+def _dibujar_icono(base, nombre, cx, cy, s, relleno=True):
+    if nombre not in ICONOS:
         return
     d = ImageDraw.Draw(base)
-    w = max(3, int(s * 0.09))
-    fn(d, cx, cy, s, GRABADO, w)                    # línea limpia (sin bisel: en iconos de línea se ve raro)
+    w = max(3, int(s * 0.09)); col = GRABADO
+    for kind, data, skip in _icon_shapes(nombre, cx, cy, s):
+        if relleno and skip:
+            continue
+        if kind == "poly":
+            if relleno: d.polygon(data, fill=col)
+            else: d.line(list(data) + [data[0]], fill=col, width=w, joint="curve")
+        elif kind == "circle":
+            x, y, r = data; box = [x - r, y - r, x + r, y + r]
+            if relleno: d.ellipse(box, fill=col)
+            else: d.ellipse(box, outline=col, width=w)
+        else:  # line
+            d.line(data, fill=col, width=w, joint="curve")
 
 
 def _iconos_en_virola(base, iconos, cx, cy, R):
@@ -206,7 +204,7 @@ def _iconos_en_virola(base, iconos, cx, cy, R):
         s = max(0.02, min(0.12, float(ic.get("size", 0.045)))) * W
         ix = cx + R * math.sin(ang)
         iy = cy - R * math.cos(ang)
-        _dibujar_icono(base, nm, ix, iy, s)
+        _dibujar_icono(base, nm, ix, iy, s, relleno=ic.get("relleno", True))
 
 
 def render(texto="", mate_id="demo", font="Poppins-Medium.ttf", size_frac=0.052,

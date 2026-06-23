@@ -59,7 +59,7 @@
     <label for="radio">Posición del texto (radio)</label>
     <input type="range" id="radio" min="0.30" max="0.43" step="0.005" value="0.378">
 
-    <label>Agregar icono <span style="font-weight:400;opacity:.6">(fútbol genérico incluido)</span></label>
+    <label>Elegí un icono <span style="font-weight:400;opacity:.6">(fútbol genérico incluido)</span></label>
     <div class="chips" id="palette">
       <button class="ic" data-i="corazon" title="Corazón">❤️</button>
       <button class="ic" data-i="estrella" title="Estrella">⭐</button>
@@ -71,11 +71,17 @@
       <button class="ic" data-i="nota" title="Nota">🎵</button>
       <button class="ic" data-i="infinito" title="Infinito">∞</button>
     </div>
+    <div class="flex" style="margin-top:8px;gap:16px">
+      <label class="flex" style="font-weight:500"><input type="radio" name="fmode" value="1" checked style="width:auto"> Relleno</label>
+      <label class="flex" style="font-weight:500"><input type="radio" name="fmode" value="0" style="width:auto"> Contorno</label>
+    </div>
+    <button class="btn sec" id="agregar" disabled>➕ Agregar icono</button>
     <div class="selbox" id="selbox">
       <div class="flex" style="justify-content:space-between"><strong id="selname">Icono</strong>
         <button class="chip" id="del">Sacar ✕</button></div>
       <label for="isize">Tamaño del icono</label>
       <input type="range" id="isize" min="0.025" max="0.085" step="0.005" value="0.045">
+      <label class="flex" style="font-weight:500;margin-top:6px"><input type="checkbox" id="ifill" style="width:auto"> Relleno</label>
     </div>
 
     <button class="btn" id="descargar">⬇ Descargar SVG para LightBurn</button>
@@ -119,19 +125,35 @@
     if(sel<0){ selbox.classList.remove('on'); return; }
     selbox.classList.add('on'); selname.textContent='Icono: '+(EMOJI[iconos[sel].n]||'');
     isize.value=iconos[sel].size;
+    document.getElementById('ifill').checked = iconos[sel].relleno !== false;
   }
   function refresh(){ drawOverlay(); selUpdate(); preview(); }
 
-  // agregar icono desde la paleta
+  // flujo: elegir icono -> relleno/contorno -> Agregar (sin apilar)
+  var addSel=null, agregar=document.getElementById('agregar'), ifill=document.getElementById('ifill');
+  function fmode(){ return document.querySelector('input[name=fmode]:checked').value==="1"; }
+  function freeAngle(){
+    var pref=[90,270,45,315,135,225,60,300,120,240,0,180];
+    if(!iconos.length) return 90;
+    var best=pref[0], bd=-1;
+    pref.forEach(function(a){ var md=360; iconos.forEach(function(ic){ var d=Math.abs(((a-ic.ang+540)%360)-180); if(d<md)md=d; }); if(md>bd){bd=md;best=a;} });
+    return best;
+  }
   document.getElementById('palette').addEventListener('click',function(e){
     var b=e.target.closest('.ic'); if(!b) return;
-    iconos.push({n:b.getAttribute('data-i'), ang:0, size:parseFloat(isize.value)});
+    document.querySelectorAll('#palette .ic').forEach(c=>c.classList.remove('active'));
+    b.classList.add('active'); addSel=b.getAttribute('data-i'); agregar.disabled=false;
+  });
+  agregar.addEventListener('click',function(){
+    if(!addSel) return;
+    iconos.push({n:addSel, ang:freeAngle(), size:0.045, relleno:fmode()});
     sel=iconos.length-1; refresh();
   });
   document.getElementById('del').addEventListener('click',function(){
     if(sel<0)return; iconos.splice(sel,1); sel=-1; refresh();
   });
   isize.addEventListener('input',function(){ if(sel>=0){ iconos[sel].size=parseFloat(isize.value); refresh(); }});
+  ifill.addEventListener('change',function(){ if(sel>=0){ iconos[sel].relleno=ifill.checked; refresh(); }});
 
   // arrastre en círculo
   function evAng(e){
