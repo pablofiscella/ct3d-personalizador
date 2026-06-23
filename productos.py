@@ -32,6 +32,22 @@ INK = (74, 74, 74)  # gris oscuro para líneas de colorear
 # ---------------------------------------------------------------------------
 # PIEZAS NUEVAS (procedurales, por temática)
 # ---------------------------------------------------------------------------
+def _tint(rgb, p):
+    """Mezcla un color hacia el blanco (p=0 igual, p=1 blanco). Para fondos suaves."""
+    return tuple(int(c + (255 - c) * p) for c in rgb[:3])
+
+
+def _frame(d, W, H, color):
+    """Marco decorativo doble (línea + filete fino) en el color de la temática."""
+    d.rounded_rectangle([60, 60, W - 60, H - 60], radius=70, outline=color + (255,), width=7)
+    d.rounded_rectangle([94, 94, W - 94, H - 94], radius=54, outline=_tint(color, 0.5) + (255,), width=3)
+
+
+def _pie_marca(d, W, H, color):
+    """Pie de marca discreto (la tienda)."""
+    txt(d, "casatridimensional.com.ar", W / 2, H - 92, "Poppins-Medium.ttf", 36, _tint(color, 0.3), W * 0.9)
+
+
 def _outline_text(d, text, cx, cy, font_file, size, maxw, wght=None, stroke=8):
     """Texto 'burbuja' (relleno claro + contorno) para que el chico lo pinte."""
     if not str(text).strip():
@@ -40,36 +56,6 @@ def _outline_text(d, text, cx, cy, font_file, size, maxw, wght=None, stroke=8):
     f = fit_font(d, str(text), font_file, int(size), int(maxw), wght)
     d.text((cx, cy), str(text), font=f, fill=(255, 255, 255),
            stroke_width=stroke, stroke_fill=INK, anchor="mm")
-
-
-def colorear(data, tema=None):
-    """Hoja A4 'para colorear': contornos simples (sin relleno) que el chico pinta."""
-    W, H = A4
-    base = Image.new("RGBA", (W, H), WHITE + (255,))
-    d = ImageDraw.Draw(base)
-    nombre = (data.get("nombre") or "").strip()
-    # título
-    txt(d, "¡Para pintar!", W / 2, 230, font_disp(tema), 150, INK, W * 0.8)
-    if nombre:
-        _outline_text(d, nombre, W / 2, 560, font_disp(tema), 360, W * 0.8, wght=700, stroke=10)
-    # globos (contorno)
-    for i, (gx, gy, rr) in enumerate([(0.22, 0.42, 230), (0.5, 0.46, 270), (0.78, 0.42, 230)]):
-        cx, cy = W * gx, H * gy
-        d.ellipse([cx - rr, cy - rr * 1.2, cx + rr, cy + rr * 1.2], outline=INK, width=8)
-        d.line([(cx, cy + rr * 1.2), (cx, cy + rr * 1.2 + 220)], fill=INK, width=6)
-        d.polygon([(cx - 18, cy + rr * 1.2), (cx + 18, cy + rr * 1.2), (cx, cy + rr * 1.2 + 30)], outline=INK, width=4)
-    # torta (contorno)
-    cx, cy, cw_, ch_ = W * 0.5, H * 0.72, W * 0.34, H * 0.16
-    d.rounded_rectangle([cx - cw_, cy, cx + cw_, cy + ch_], radius=40, outline=INK, width=8)
-    d.rounded_rectangle([cx - cw_ * 0.7, cy - ch_ * 0.6, cx + cw_ * 0.7, cy], radius=30, outline=INK, width=8)
-    for k in range(5):  # velitas
-        vx = cx - cw_ * 0.5 + k * (cw_ / 4)
-        d.line([(vx, cy - ch_ * 0.6), (vx, cy - ch_ * 1.05)], fill=INK, width=6)
-        d.ellipse([vx - 14, cy - ch_ * 1.2, vx + 14, cy - ch_ * 1.05], outline=INK, width=5)
-    # estrellas (contorno) decorando los bordes
-    for sx, sy in [(0.12, 0.2), (0.88, 0.2), (0.1, 0.86), (0.9, 0.86)]:
-        _estrella(d, W * sx, H * sy, 90, INK)
-    return base
 
 
 def _estrella(d, cx, cy, r, color, w=6):
@@ -82,64 +68,125 @@ def _estrella(d, cx, cy, r, color, w=6):
     d.line(pts + [pts[0]], fill=color, width=w, joint="curve")
 
 
-def juegos(data, tema=None):
-    """Hoja A4 de juegos: tatetí + uní los puntos (estrella) + caja para dibujar."""
+def colorear(data, tema=None):
+    """Hoja A4 'para colorear': contornos negros (sin relleno) que el chico pinta,
+    con marco y títulos en el color de la temática."""
     W, H = A4
-    acc = accent(tema)
+    acc = accent(tema); ink = ink_c(tema)
     base = Image.new("RGBA", (W, H), WHITE + (255,))
     d = ImageDraw.Draw(base)
+    _frame(d, W, H, acc)
     nombre = (data.get("nombre") or "").strip()
-    txt(d, "Juegos del cumple", W / 2, 220, font_disp(tema), 130, acc, W * 0.85, wght=700)
+    txt(d, "¡Para pintar!", W / 2, 255, font_disp(tema), 140, acc, W * 0.7, wght=700)
+    txt(d, "Coloreá y decorá tu cumple", W / 2, 400, "Fredoka-VF.ttf", 60, ink, W * 0.7, wght=600)
     if nombre:
-        txt(d, "de " + nombre, W / 2, 380, "Fredoka-VF.ttf", 80, ink_c(tema), W * 0.8, wght=600)
-    # --- Tatetí (3 grillas) ---
-    txt(d, "Tatetí", W * 0.5, 560, "Fredoka-VF.ttf", 70, INK, W * 0.6, wght=600)
-    g = int(W * 0.20)
+        _outline_text(d, nombre, W / 2, 620, font_disp(tema), 290, W * 0.72, wght=700, stroke=10)
+    # globos (para pintar)
+    for gx, gy, rr in [(0.27, 0.43, 200), (0.5, 0.46, 240), (0.73, 0.43, 200)]:
+        cx, cy = W * gx, H * gy
+        d.ellipse([cx - rr, cy - rr * 1.2, cx + rr, cy + rr * 1.2], outline=INK, width=8)
+        d.line([(cx, cy + rr * 1.2), (cx, cy + rr * 1.2 + 190)], fill=INK, width=6)
+        d.polygon([(cx - 15, cy + rr * 1.2), (cx + 15, cy + rr * 1.2), (cx, cy + rr * 1.2 + 26)], outline=INK, width=4)
+    # torta (para pintar)
+    cx, cy, cw_, ch_ = W * 0.5, H * 0.69, W * 0.29, H * 0.13
+    d.rounded_rectangle([cx - cw_, cy, cx + cw_, cy + ch_], radius=40, outline=INK, width=8)
+    d.rounded_rectangle([cx - cw_ * 0.7, cy - ch_ * 0.6, cx + cw_ * 0.7, cy], radius=30, outline=INK, width=8)
+    for k in range(5):
+        vx = cx - cw_ * 0.5 + k * (cw_ / 4)
+        d.line([(vx, cy - ch_ * 0.6), (vx, cy - ch_ * 1.0)], fill=INK, width=6)
+        d.ellipse([vx - 13, cy - ch_ * 1.15, vx + 13, cy - ch_ * 1.0], outline=INK, width=5)
+    # regalo (para pintar)
+    gx0, gy0, gs = W * 0.22, H * 0.85, W * 0.12
+    d.rounded_rectangle([gx0 - gs, gy0 - gs * 0.8, gx0 + gs, gy0 + gs * 0.8], radius=18, outline=INK, width=8)
+    d.line([(gx0, gy0 - gs * 0.8), (gx0, gy0 + gs * 0.8)], fill=INK, width=8)
+    d.line([(gx0 - gs, gy0 - gs * 0.18), (gx0 + gs, gy0 - gs * 0.18)], fill=INK, width=8)
+    # estrellas (para pintar)
+    for sx, sy in [(0.18, 0.25), (0.82, 0.25), (0.80, 0.85)]:
+        _estrella(d, W * sx, H * sy, 78, INK, w=7)
+    _pie_marca(d, W, H, ink)
+    return base
+
+
+def juegos(data, tema=None):
+    """Hoja A4 de juegos en 'tarjetas' suaves: tatetí + uní los puntos + dibujá."""
+    W, H = A4
+    acc = accent(tema); ink = ink_c(tema)
+    base = Image.new("RGBA", (W, H), WHITE + (255,))
+    d = ImageDraw.Draw(base)
+    _frame(d, W, H, acc)
+    nombre = (data.get("nombre") or "").strip()
+    txt(d, "Juegos del cumple", W / 2, 250, font_disp(tema), 124, acc, W * 0.78, wght=700)
+    if nombre:
+        txt(d, "de " + nombre, W / 2, 392, "Fredoka-VF.ttf", 68, ink, W * 0.78, wght=600)
+    tintbg = _tint(acc, 0.88)
+
+    def card(y0, y1, titulo):
+        d.rounded_rectangle([W * 0.10, y0, W * 0.90, y1], radius=46, fill=tintbg + (255,),
+                            outline=acc + (255,), width=4)
+        txt(d, titulo, W * 0.5, y0 + 78, "Fredoka-VF.ttf", 66, acc, W * 0.72, wght=700)
+
+    # Tatetí
+    y0 = H * 0.165; card(y0, H * 0.40, "Tatetí")
+    g = int(W * 0.165); oy = int(y0 + 210)
     for j in range(3):
-        ox = int(W * (0.13 + j * 0.27)); oy = 650
+        ox = int(W * (0.175 + j * 0.245))
         for k in (1, 2):
-            d.line([(ox + k * g / 3, oy), (ox + k * g / 3, oy + g)], fill=INK, width=6)
-            d.line([(ox, oy + k * g / 3), (ox + g, oy + k * g / 3)], fill=INK, width=6)
-    # --- Uní los puntos (estrella numerada) ---
-    txt(d, "Uní los puntos", W * 0.5, int(H * 0.45), "Fredoka-VF.ttf", 70, INK, W * 0.7, wght=600)
+            d.line([(ox + k * g / 3, oy), (ox + k * g / 3, oy + g)], fill=ink, width=6)
+            d.line([(ox, oy + k * g / 3), (ox + g, oy + k * g / 3)], fill=ink, width=6)
+    # Uní los puntos
     import math
-    cx, cy, r = W * 0.5, H * 0.60, W * 0.22
+    card(H * 0.43, H * 0.72, "Uní los puntos")
+    cx, cy, r = W * 0.5, H * 0.595, W * 0.155
     for k in range(10):
         ang = -math.pi / 2 + k * math.pi / 5
         rad = r if k % 2 == 0 else r * 0.45
         px, py = cx + rad * math.cos(ang), cy + rad * math.sin(ang)
-        d.ellipse([px - 12, py - 12, px + 12, py + 12], fill=INK)
-        txt(d, str(k + 1), px + 38, py - 38, "Poppins-Medium.ttf", 56, acc, 120)
-    # --- Caja para dibujar ---
-    txt(d, "Dibujá tu regalo soñado", W * 0.5, int(H * 0.80), "Fredoka-VF.ttf", 64, INK, W * 0.8, wght=600)
-    d.rounded_rectangle([W * 0.14, H * 0.83, W * 0.86, H * 0.95], radius=40, outline=acc, width=8)
+        d.ellipse([px - 11, py - 11, px + 11, py + 11], fill=ink)
+        txt(d, str(k + 1), px + 32, py - 32, "Poppins-Medium.ttf", 48, acc, 110)
+    # Dibujá
+    card(H * 0.75, H * 0.93, "Dibujá tu regalo soñado")
+    d.rounded_rectangle([W * 0.17, H * 0.815, W * 0.83, H * 0.915], radius=28, outline=ink, width=5)
+    _pie_marca(d, W, H, ink)
     return base
 
 
 def milestone(data, tema=None):
-    """Hoja A4 con 12 tarjetas mes a mes del bebé (1 mes … 12 meses)."""
+    """Hoja A4: título + 12 tarjetas mes a mes (1 mes … 12 meses), estilo boutique."""
+    W, H = A4
     acc = accent(tema); fnt = font_disp(tema); ink = ink_c(tema)
     nombre = (data.get("nombre") or "").strip()
-    band = _band(tema)
+    base = Image.new("RGBA", (W, H), WHITE + (255,))
+    d = ImageDraw.Draw(base)
+    _frame(d, W, H, acc)
+    titulo = ("El primer año de " + nombre) if nombre else "El primer año del bebé"
+    txt(d, titulo, W / 2, 250, fnt, 118, acc, W * 0.80, wght=700)
+    d.line([(W * 0.34, 372), (W * 0.66, 372)], fill=acc + (255,), width=6)
 
     def cell(i, cw, ch):
         if i >= 12:
             return None
         c = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
-        d = ImageDraw.Draw(c)
-        d.rounded_rectangle([6, 6, cw - 6, ch - 6], radius=40, fill=CREAM + (255,),
-                            outline=acc + (255,), width=8)
+        dd = ImageDraw.Draw(c)
+        dd.rounded_rectangle([6, 6, cw - 6, ch - 6], radius=46, fill=CREAM + (255,),
+                             outline=acc + (255,), width=7)
         mes = i + 1
-        txt(d, str(mes), cw / 2, ch * 0.30, fnt, ch * 0.36, acc, cw * 0.6, wght=700)
-        txt(d, "mes" + ("es" if mes > 1 else ""), cw / 2, ch * 0.52,
-            "Fredoka-VF.ttf", ch * 0.11, ink, cw * 0.7, wght=600)
-        if nombre:
-            txt(d, nombre, cw / 2, ch * 0.70, fnt, ch * 0.15, acc, cw * 0.84, wght=700)
-        # franja temática (sirve para las 9 temáticas, sin arte nuevo)
-        strip = fit_into(band, int(cw * 0.7), int(ch * 0.16))
-        paste_center(c, strip, cw / 2, ch * 0.88)
+        # círculo de acento con el número
+        R = ch * 0.25; ccx, ccy = cw / 2, ch * 0.36
+        dd.ellipse([ccx - R, ccy - R, ccx + R, ccy + R], fill=acc + (255,))
+        txt(dd, str(mes), ccx, ccy + ch * 0.005, fnt, R * 1.25, _tint(acc, 0.92), R * 1.7, wght=700)
+        txt(dd, "MES" if mes == 1 else "MESES", cw / 2, ch * 0.68,
+            "Poppins-SemiBold.ttf", ch * 0.095, ink, cw * 0.7)
+        # 3 puntitos decorativos
+        for k in range(3):
+            dx = cw * 0.5 + (k - 1) * cw * 0.11
+            dd.ellipse([dx - 8, ch * 0.83 - 8, dx + 8, ch * 0.83 + 8], fill=acc + (255,))
         return c
-    return make_sheet(cell, 3, 4, gap=45)
+
+    top = 430
+    sheet = make_sheet(cell, 3, 4, page=(W, H - top - 60), margin=90, gap=44)
+    base.alpha_composite(sheet, (0, top))
+    _pie_marca(d, W, H, ink)
+    return base
 
 
 # ---------------------------------------------------------------------------
