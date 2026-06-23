@@ -20,6 +20,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import piezas  # motor (generar_kit, preview_invitacion)
 import productos  # registro de TIPOS de producto digital (kit, invitacion, cartel, actividades, milestone)
+import mate as mate_mod  # editor de mates (grabado láser)
 import generador  # layout del editor
 import temas          # alta de temáticas (dashboard)
 import quitar_fondo   # recorte de fondo de animalitos/números subidos
@@ -203,6 +204,33 @@ class Handler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", ctype)
             self.send_header("Cache-Control", "public, max-age=86400")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers(); self.wfile.write(body)
+            return
+        # ---- EDITOR DE MATES (grabado láser) ----
+        if path == "/mate":
+            html = open(os.path.join(generador.BASEDIR, "mate.html"), encoding="utf-8").read()
+            body = html.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers(); self.wfile.write(body)
+            return
+        if path == "/mate/preview":
+            q = urllib.parse.parse_qs(u.query)
+            texto = (q.get("texto", [""])[0] or "")[:40]
+            mate_id = os.path.basename(q.get("mate", ["demo"])[0] or "demo")
+            font = q.get("font", ["Poppins-SemiBold.ttf"])[0]
+            try: size = max(0.02, min(0.09, float(q.get("size", ["0.058"])[0])))
+            except Exception: size = 0.058
+            try: mx = max(300, min(1100, int(q.get("max", ["900"])[0])))
+            except Exception: mx = 900
+            img = mate_mod.render(texto, mate_id, font=font, size_frac=size, max_px=mx)
+            buf = io.BytesIO(); img.save(buf, "JPEG", quality=82, optimize=True); body = buf.getvalue()
+            self.send_response(200)
+            self.send_header("Content-Type", "image/jpeg")
+            self.send_header("Cache-Control", "public, max-age=600")
             self.send_header("Content-Length", str(len(body)))
             self.end_headers(); self.wfile.write(body)
             return
