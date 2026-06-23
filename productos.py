@@ -151,7 +151,9 @@ def juegos(data, tema=None):
 
 
 def milestone(data, tema=None):
-    """Hoja A4: título + 12 tarjetas mes a mes (1 mes … 12 meses), estilo boutique."""
+    """Póster A4 del PRIMER AÑO: número grande al centro + 12 marcos de foto REDONDOS
+    (1..12 meses) en anillo. El cliente pega su foto de cada mes. Decoración por temática."""
+    import math
     W, H = A4
     acc = accent(tema); fnt = font_disp(tema); ink = ink_c(tema)
     nombre = (data.get("nombre") or "").strip()
@@ -159,32 +161,34 @@ def milestone(data, tema=None):
     d = ImageDraw.Draw(base)
     _frame(d, W, H, acc)
     titulo = ("El primer año de " + nombre) if nombre else "El primer año del bebé"
-    txt(d, titulo, W / 2, 250, fnt, 118, acc, W * 0.80, wght=700)
-    d.line([(W * 0.34, 372), (W * 0.66, 372)], fill=acc + (255,), width=6)
+    txt(d, titulo, W / 2, 248, fnt, 116, acc, W * 0.80, wght=700)
+    txt(d, "Pegá la foto de cada mes", W / 2, 384, "Fredoka-VF.ttf", 48, _tint(ink, 0.12), W * 0.7, wght=600)
 
-    def cell(i, cw, ch):
-        if i >= 12:
-            return None
-        c = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
-        dd = ImageDraw.Draw(c)
-        dd.rounded_rectangle([6, 6, cw - 6, ch - 6], radius=46, fill=CREAM + (255,),
-                             outline=acc + (255,), width=7)
-        mes = i + 1
-        # círculo de acento con el número
-        R = ch * 0.25; ccx, ccy = cw / 2, ch * 0.36
-        dd.ellipse([ccx - R, ccy - R, ccx + R, ccy + R], fill=acc + (255,))
-        txt(dd, str(mes), ccx, ccy + ch * 0.005, fnt, R * 1.25, _tint(acc, 0.92), R * 1.7, wght=700)
-        txt(dd, "MES" if mes == 1 else "MESES", cw / 2, ch * 0.68,
-            "Poppins-SemiBold.ttf", ch * 0.095, ink, cw * 0.7)
-        # 3 puntitos decorativos
-        for k in range(3):
-            dx = cw * 0.5 + (k - 1) * cw * 0.11
-            dd.ellipse([dx - 8, ch * 0.83 - 8, dx + 8, ch * 0.83 + 8], fill=acc + (255,))
-        return c
+    cx, cy = W / 2, H * 0.595
+    R_ring = W * 0.345          # radio del anillo
+    r_f = int(W * 0.085)        # radio de cada marco de foto
 
-    top = 430
-    sheet = make_sheet(cell, 3, 4, page=(W, H - top - 60), margin=90, gap=44)
-    base.alpha_composite(sheet, (0, top))
+    def marco(fx, fy, r, badge):
+        # marco redondo: aro de acento + interior blanco (para pegar la foto) + filete fino
+        d.ellipse([fx - r, fy - r, fx + r, fy + r], fill=(255, 255, 255, 255),
+                  outline=acc + (255,), width=max(6, int(r * 0.06)))
+        ri = r - max(9, int(r * 0.085))
+        d.ellipse([fx - ri, fy - ri, fx + ri, fy + ri], outline=_tint(acc, 0.5) + (255,), width=2)
+        # badge del mes (círculo de acento en el borde inferior)
+        bs = int(r * 0.5)
+        by = fy + r
+        d.ellipse([fx - bs, by - bs, fx + bs, by + bs], fill=acc + (255,))
+        txt(d, badge, fx, by, fnt, bs * 1.25, _tint(acc, 0.92), bs * 1.7, wght=700)
+
+    # 12 marcos en anillo (mes 1 arriba, en sentido horario)
+    for i in range(12):
+        ang = -math.pi / 2 + i * (2 * math.pi / 12)
+        marco(cx + R_ring * math.cos(ang), cy + R_ring * math.sin(ang), r_f, str(i + 1))
+
+    # centro: número grande del añito (decorativo, no es marco de foto)
+    txt(d, "1", cx, cy - H * 0.018, fnt, int(W * 0.27), acc, W * 0.34, wght=700)
+    txt(d, "AÑITO", cx, cy + H * 0.075, "Fredoka-VF.ttf", int(W * 0.05), ink, W * 0.34, wght=700)
+
     _pie_marca(d, W, H, ink)
     return base
 
