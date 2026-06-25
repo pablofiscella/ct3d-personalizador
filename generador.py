@@ -351,6 +351,12 @@ def draw_heroshield(draw, cx, cy, tw, th, fill="#3B82F6", border="#F6C445",
     draw.polygon(_bolt_shape(cx - Wd/2 - bs*0.7, cy, bs), fill=bolt)
     draw.polygon(_bolt_shape(cx + Wd/2 + bs*0.7, cy, bs), fill=bolt)
 
+# Decoraciones temáticas detrás del nombre (marco): el cliente las puede apagar
+# desde el editor (override "marco": false) y se quitan todas de ese campo.
+DECOR_KEYS = ("slime", "woodsign", "circoplaca", "obrasign", "heroshield",
+              "splatter", "band")
+
+
 def draw_text(draw, field, data, W, H):
     text = _field_text(field, data)
     if not text.strip():
@@ -498,6 +504,7 @@ def layout_para_editor(pieza="invitacion", tema=TEMA_DEFAULT):
                     "editable": f.get("editable", True), "toggleable": f.get("toggleable", False),
                     "iconable": f.get("iconable", False), "icon": f.get("icon"),
                     "tpl": f.get("tpl", ""),
+                    "marco": any(k in f for k in DECOR_KEYS),  # tiene decoración temática apagable
                     "default_hidden": f.get("default_hidden", False)})
     return {"size": spec["size"], "fields": out, "pieza": pieza, "tema": tema,
             "piezas": list(specs_de(tema).keys()), "fonts": FONTS_CATALOG, "icons": ICONS_CATALOG}
@@ -561,6 +568,9 @@ def render(data, spec=None):
                 f["anchor"] = a
             if o.get("hidden"):            # el cliente decidió no incluir este dato
                 f["_hidden"] = True
+            if o.get("marco") is False:    # el cliente apagó el marco decorativo del nombre
+                for dk in DECOR_KEYS:
+                    f.pop(dk, None)
     if scale != 1.0:                        # escala los tamaños de fuente junto con el canvas
         for f in texts:
             f["size"] = f["size"] * scale

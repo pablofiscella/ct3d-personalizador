@@ -283,6 +283,7 @@ function buildDatos(){
     d.dataset.fid=f.id;
     let html=`<div class="row1"><label>${LBL[f.id]||f.id}</label>`;
     if(f.toggleable) html+=`<label class="chk"><input type="checkbox" class="tg" ${f.hidden?'':'checked'}>incluir</label>`;
+    if(f.marco) html+=`<label class="chk" title="Decoración temática detrás del nombre"><input type="checkbox" class="mc" ${f.marcoOff?'':'checked'}>marco</label>`;
     html+=`</div>`;
     html+=`<input type="text" class="tx" value="${(f.text||'').replace(/"/g,'&quot;')}" placeholder="${(k==='static'||k==='edad')?'Texto':'(opcional)'}">`;
     if(k==='edad') html+=`<div class="hint" style="margin:4px 0 0">Se completa con la edad de arriba; podés editarlo o destildarlo.</div>`;
@@ -292,6 +293,8 @@ function buildDatos(){
     if(tx){tx.oninput=()=>{f.text=tx.value;draw();emit();};tx.onfocus=()=>select(f.id);}
     const tg=d.querySelector('.tg');
     if(tg) tg.onchange=()=>{f.hidden=!tg.checked;d.classList.toggle('off',f.hidden);draw();emit();};
+    const mc=d.querySelector('.mc');
+    if(mc) mc.onchange=()=>{f.marcoOff=!mc.checked;draw();emit();};
     const ic=d.querySelector('.icsel');
     if(ic){ic.value=f.icon||'';ic.onchange=()=>{f.icon=ic.value||null;draw();emit();};}
     c.appendChild(d);
@@ -368,6 +371,7 @@ function buildOver(){
     const o={x:+f.x.toFixed(4),y:+f.y.toFixed(4),size:Math.round(f.size),wght:f.wght||500,maxw:f.maxw,font:f._font,color:f.color,anchor:f.anchor};
     if(f.iconable) o.icon=f.icon||'';
     if(f.toggleable&&f.hidden) o.hidden=true;
+    if(f.marco&&f.marcoOff) o.marco=false;
     const k=fkind(f);
     if(k==='static'||k==='edad') o.text=f.text||'';
     over[f.id]=o;
@@ -424,7 +428,7 @@ document.getElementById('verfinal').onclick=(e)=>{
   // cargar las fuentes del catálogo desde /fonts
   await Promise.all(CAT.map(f=>new FontFace(f.family,`url(/fonts/${f.file})`).load().then(ff=>document.fonts.add(ff)).catch(()=>{})));
   // armar fields con texto inicial = sample, fuente y estado de ocultar/icono
-  fields=lay.fields.map(f=>({...f, text:f.sample||'', _font:f.font, hidden:!!f.default_hidden, icon:f.icon||null}));
+  fields=lay.fields.map(f=>({...f, text:f.sample||'', _font:f.font, hidden:!!f.default_hidden, marcoOff:false, icon:f.icon||null}));
   syncEdad();
   await new Promise(res=>{bg.onload=res;bg.onerror=res;bg.src=`/cliente-bg.png?pieza=${PIEZA}&edad=${EDAD}&tema=${TEMA}&cb=${Date.now()}`;});
   const edadSel=document.getElementById('edad'); edadSel.value=EDAD;
