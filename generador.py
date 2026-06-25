@@ -357,7 +357,11 @@ DECOR_KEYS = ("slime", "woodsign", "circoplaca", "obrasign", "heroshield",
               "splatter", "band")
 
 
-def draw_text(draw, field, data, W, H):
+def draw_text(draw, field, data, W, H, stage="all"):
+    """stage: "back" dibuja solo el marco/decoración (va detrás de TODO el texto),
+    "front" solo el texto (sombra incluida), "all" ambos. El render hace dos pasadas
+    (todos los marcos primero, todos los textos después) para que ningún marco tape
+    el título ni otro texto que se solape con él."""
     text = _field_text(field, data)
     if not text.strip():
         return
@@ -368,6 +372,8 @@ def draw_text(draw, field, data, W, H):
     sw = int(field.get("stroke", 0)); sf = field.get("stroke_color")
     icon = field.get("icon")
     if icon:                                   # icono + texto, según alineación (l/m/r)
+        if stage == "back":                    # los iconos no tienen marco de fondo
+            return
         tw = draw.textlength(text, font=f)
         isz = field["size"] * 0.95
         gap = isz * 0.42
@@ -376,10 +382,11 @@ def draw_text(draw, field, data, W, H):
         draw_icon(draw, icon, start + isz / 2, y, isz, field.get("icon_color") or field["color"])
         draw.text((start + isz + gap, y), text, font=f, fill=field["color"], anchor="l" + v,
                   stroke_width=sw, stroke_fill=sf)
-    else:
-        tw = draw.textlength(text, font=f)
-        try: th = f.size
-        except Exception: th = field["size"]
+        return
+    tw = draw.textlength(text, font=f)
+    try: th = f.size
+    except Exception: th = field["size"]
+    if stage != "front":                       # PASADA DE FONDO: marcos detrás de todo
         if field.get("woodsign"):              # cartel de madera detrás (bosque/campamento)
             draw_woodsign(draw, x, y, tw, th)
         if field.get("circoplaca"):            # placa de circo (roja, borde dorado, estrellas)
@@ -396,16 +403,19 @@ def draw_text(draw, field, data, W, H):
             draw_slime(draw, x, y, tw, th, field["slime"])
         if field.get("splatter"):              # salpicaduras de pintura (artistas)
             draw_splatter(draw, x, y, tw, th, field["splatter"])
-        if field.get("shadow"):                # sombra de color, desplazada
-            dx = field["size"] * 0.045; dy = field["size"] * 0.06
-            draw.text((x + dx, y + dy), text, font=f, fill=field["shadow"], anchor=anchor,
-                      stroke_width=sw, stroke_fill=field["shadow"])
-        mc = field.get("multicolor")
-        if mc:                                 # cada letra un color (pinceladas)
-            _draw_multicolor(draw, x, y, text, f, mc, anchor, sw, sf)
-        else:
-            draw.text((x, y), text, font=f, fill=field["color"], anchor=anchor,
-                      stroke_width=sw, stroke_fill=sf)
+    if stage == "back":
+        return
+    # PASADA DE FRENTE: sombra + texto (siempre por arriba de cualquier marco)
+    if field.get("shadow"):                    # sombra de color, desplazada
+        dx = field["size"] * 0.045; dy = field["size"] * 0.06
+        draw.text((x + dx, y + dy), text, font=f, fill=field["shadow"], anchor=anchor,
+                  stroke_width=sw, stroke_fill=field["shadow"])
+    mc = field.get("multicolor")
+    if mc:                                     # cada letra un color (pinceladas)
+        _draw_multicolor(draw, x, y, text, f, mc, anchor, sw, sf)
+    else:
+        draw.text((x, y), text, font=f, fill=field["color"], anchor=anchor,
+                  stroke_width=sw, stroke_fill=sf)
 
 def draw_icon_group(draw, fields, data, W, H):
     """Renderiza fecha/hora/lugar con los iconos alineados en columna y el
@@ -578,9 +588,11 @@ def render(data, spec=None):
             f["size"] = f["size"] * scale
     texts = [f for f in texts if not f.get("_hidden")]   # ocultos: no se dibujan
     group = [f for f in texts if f.get("icongroup")]
-    for field in texts:
-        if not field.get("icongroup"):
-            draw_text(draw, field, data, W, H)
+    solo = [f for f in texts if not f.get("icongroup")]
+    for field in solo:                          # 1ª pasada: todos los marcos, detrás de todo
+        draw_text(draw, field, data, W, H, stage="back")
+    for field in solo:                          # 2ª pasada: todos los textos, siempre arriba
+        draw_text(draw, field, data, W, H, stage="front")
     if group:
         draw_icon_group(draw, group, data, W, H)
     return base.convert("RGB")

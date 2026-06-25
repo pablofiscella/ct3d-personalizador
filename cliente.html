@@ -271,14 +271,16 @@ function draw(){
   cv.width=SIZE[0];cv.height=SIZE[1];
   ctx.clearRect(0,0,SIZE[0],SIZE[1]);
   if(bg.complete&&bg.naturalWidth)ctx.drawImage(bg,0,0,SIZE[0],SIZE[1]);
-  for(const f of fields){
+  for(const f of fields){                       // 1ª pasada: marcos, detrás de TODO el texto
+    if(!f.text||f.hidden||!f.marco||f.marcoOff)continue;
+    const bb=box(f);drawMarcoJS(ctx,f.marco,f.marco_color,(bb.l+bb.r)/2,(bb.t+bb.b)/2,bb.r-bb.l,bb.s);
+  }
+  for(const f of fields){                       // 2ª pasada: textos, siempre arriba
     if(!f.text||f.hidden)continue;
     const s=fitSize(f);setFont(f,s);ctx.fillStyle=f.color;
     const x0=f.x*SIZE[0], y0=f.y*SIZE[1];
     const vmid=()=>{const m=ctx.measureText(f.text);return y0+(m.actualBoundingBoxAscent-m.actualBoundingBoxDescent)/2;};
     const h=f.anchor[0];
-    if(f.marco&&!f.marcoOff){const bb=box(f);setFont(f,s);   // marco temático detrás del nombre
-      drawMarcoJS(ctx,f.marco,f.marco_color,(bb.l+bb.r)/2,(bb.t+bb.b)/2,bb.r-bb.l,s);}
     if(f.icon){                                // icono + texto, según alineación (l/m/r)
       const tw=ctx.measureText(f.text).width, isz=s*0.95, gap=isz*0.42, block=isz+gap+tw;
       const start=h==='m'?x0-block/2:(h==='l'?x0:x0-block);
