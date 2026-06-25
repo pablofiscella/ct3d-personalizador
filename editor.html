@@ -193,10 +193,39 @@ function fitSize(f){let s=f.size;const mw=f.maxw*SIZE[0];for(;s>10;s-=2){setFont
 function box(f){const s=fitSize(f);setFont(f,s);const w=ctx.measureText(f.sample).width;const px=f.x*SIZE[0],py=f.y*SIZE[1];
   const left=f.anchor[0]==='l'?px:px-w/2;return {l:left,t:py-s*0.62,r:left+w,b:py+s*0.62,s,w};}
 
+// Marco/decoración temática detrás del nombre — versión aproximada para la vista previa
+// del editor de plantilla (el render final del servidor es el fiel).
+const MARCO_STYLE={woodsign:{fill:'#D9B98E',border:'#8B5E3C'},circoplaca:{fill:'#D9624C',border:'#F4C95D'},
+  obrasign:{fill:'#F2B632',border:'#2F2F2F'},heroshield:{fill:'#3B82F6',border:'#F6C445'}};
+function rrPath(g,l,t,r,b,rad){g.beginPath();g.moveTo(l+rad,t);g.arcTo(r,t,r,b,rad);g.arcTo(r,b,l,b,rad);g.arcTo(l,b,l,t,rad);g.arcTo(l,t,r,t,rad);g.closePath();}
+function drawMarcoJS(g,kind,color,cx,cy,tw,th){
+  const px=th*0.72,py=th*0.5,l=cx-tw/2-px,t=cy-th/2-py,r=cx+tw/2+px,b=cy+th/2+py,rad=th*0.3;
+  g.save();
+  if(kind==='slime'||kind==='band'){
+    g.fillStyle=(typeof color==='string'&&color)?color:'#66C63A';
+    if(kind==='slime')g.globalAlpha=0.85;
+    rrPath(g,l,t,r,b,rad);g.fill();
+    if(kind==='slime'){const n=5;for(let i=0;i<n;i++){const dx=l+rad+(r-l-2*rad)*i/(n-1),dr=th*(0.16+0.12*(i%2));g.beginPath();g.arc(dx,b,dr,0,7);g.fill();}}
+  }else if(kind==='splatter'){
+    const cols=Array.isArray(color)&&color.length?color:['#E0556B','#3FA7D6','#F4C95D','#5FB87A'];
+    g.globalAlpha=0.9;const n=7;for(let i=0;i<n;i++){const a=i/n*6.283,rr=(tw/2+px)*0.62,dr=th*(0.22+0.16*(i%3));
+      g.fillStyle=cols[i%cols.length];g.beginPath();g.arc(cx+Math.cos(a)*rr,cy+Math.sin(a)*py*1.6,dr,0,7);g.fill();}
+  }else{
+    const st=MARCO_STYLE[kind]||{fill:(typeof color==='string'&&color)?color:'#888',border:'#444'};
+    g.fillStyle=st.fill;rrPath(g,l,t,r,b,rad);g.fill();
+    g.lineWidth=Math.max(3,th*0.09);g.strokeStyle=st.border;g.stroke();
+  }
+  g.restore();
+}
+
 function draw(){
   cv.width=SIZE[0];cv.height=SIZE[1];
   ctx.clearRect(0,0,SIZE[0],SIZE[1]);
   if(bg.complete&&bg.naturalWidth)ctx.drawImage(bg,0,0,SIZE[0],SIZE[1]);
+  for(const f of fields){                       // marcos primero, detrás de TODO el texto
+    if(!f.marco||!f.sample)continue;
+    const bb=box(f);drawMarcoJS(ctx,f.marco,f.marco_color,(bb.l+bb.r)/2,(bb.t+bb.b)/2,bb.r-bb.l,bb.s);
+  }
   for(const f of fields){
     const s=fitSize(f);setFont(f,s);ctx.fillStyle=f.color;
     ctx.textAlign=f.anchor[0]==='l'?'left':'center';
