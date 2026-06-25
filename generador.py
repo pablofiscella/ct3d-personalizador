@@ -496,6 +496,7 @@ def layout_para_editor(pieza="invitacion", tema=TEMA_DEFAULT):
     out = []
     for f in _effective_texts(spec):
         ffile = f["font"]
+        marco_kind = next((k for k in DECOR_KEYS if k in f), None)  # tipo de marco o None
         out.append({"id": f["id"], "x": f["x"], "y": f["y"], "size": f["size"],
                     "maxw": f.get("maxw", 0.9), "anchor": f["anchor"],
                     "font": ffile,                      # archivo .ttf actual (para overrides)
@@ -504,7 +505,8 @@ def layout_para_editor(pieza="invitacion", tema=TEMA_DEFAULT):
                     "editable": f.get("editable", True), "toggleable": f.get("toggleable", False),
                     "iconable": f.get("iconable", False), "icon": f.get("icon"),
                     "tpl": f.get("tpl", ""),
-                    "marco": any(k in f for k in DECOR_KEYS),  # tiene decoración temática apagable
+                    "marco": marco_kind,                # tipo de decoración apagable (o None)
+                    "marco_color": f.get("slime") or f.get("band") or f.get("splatter") or "",
                     "default_hidden": f.get("default_hidden", False)})
     return {"size": spec["size"], "fields": out, "pieza": pieza, "tema": tema,
             "piezas": list(specs_de(tema).keys()), "fonts": FONTS_CATALOG, "icons": ICONS_CATALOG}
