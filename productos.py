@@ -323,6 +323,13 @@ _PIEZA_LABELS = {
     "5_etiquetas_botellita": "Etiquetas", "6_tags_souvenir": "Tags souvenir",
     "7_banderines": "Banderines", "1_para_colorear": "Para colorear",
     "2_juegos": "Juegos", "1_tarjetas_mes_a_mes": "Póster primer año",
+    # kits dinámicos por arte estática (extras/): nombres lindos para la galería
+    "01_invitacion": "Invitación", "02_afiche": "Afiche del número",
+    "03_topper": "Topper de torta", "04_stickers": "Stickers",
+    "05_separadores": "Separadores", "06_etiqueta_botella": "Etiqueta de botella",
+    "07_cajita_sorpresa": "Cajita sorpresa", "08_decoracion_sorbetes": "Decoración de sorbetes",
+    "09_banderin": "Banderín", "10_etiquetas_multiuso": "Etiquetas multiuso",
+    "11_wrappers_cupcakes": "Wrappers de cupcakes", "12_tarjetas_agradecimiento": "Tarjetas de agradecimiento",
 }
 
 def pieza_label(name):
@@ -334,10 +341,11 @@ def pieza_label(name):
 def piezas_nombres(tipo, tema="safari"):
     return [n for (n, _, _) in piezas_tipo(tema, tipo)]
 
-def piezas_meta(tipo):
-    """Lista [{idx, nombre, label}] de las piezas de un tipo (para la galería de la ficha)."""
+def piezas_meta(tipo, tema="safari"):
+    """Lista [{idx, nombre, label}] de las piezas de un tipo/tema (para la galería de la ficha).
+    El tema importa: los kits con arte estática (extras/) tienen piezas distintas por tema."""
     return [{"idx": i, "nombre": n, "label": pieza_label(n)}
-            for i, n in enumerate(piezas_nombres(tipo))]
+            for i, n in enumerate(piezas_nombres(tipo, tema))]
 
 def tipos_publicos():
     """Para el endpoint /tipos: metadata sin las funciones."""

@@ -171,6 +171,12 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/tipos":
             # catálogo de tipos de producto digital (descubrimiento dinámico para la tienda/ABM)
             return self._json(200, {"ok": True, "tipos": productos.tipos_publicos()})
+        if path == "/piezas":
+            # piezas reales de un tipo PARA UN TEMA (los kits con arte estática varían por tema)
+            q = urllib.parse.parse_qs(u.query)
+            tipo = q.get("tipo", ["kit"])[0]
+            tema = q.get("tema", ["safari"])[0]
+            return self._json(200, {"ok": True, "piezas": productos.piezas_meta(tipo, tema)})
         if path == "/preview":
             q = urllib.parse.parse_qs(u.query)
             data = {c: (q.get(c, [""])[0] or "") for c in CAMPOS}
