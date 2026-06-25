@@ -206,8 +206,43 @@ def milestone(data, tema=None):
 # REGISTRO DE TIPOS
 # ---------------------------------------------------------------------------
 # Cada tipo: lista de (nombre_archivo, fn(data)->Image) construida sobre una temática.
+_EXTRAS_POR_EDAD  = ["afiche", "topper", "stickers", "separadores",
+                     "etiqueta_botella", "cajita_sorpresa", "decoracion_sorbetes"]
+_EXTRAS_UNIVERSAL = ["banderin", "etiquetas_multiuso", "wrappers_cupcakes", "tarjetas_agradecimiento"]
+
+def _extras_dir(tema):
+    d = specs_de(tema).get("invitacion", {}).get("_dir", "")
+    return os.path.join(d, "extras") if d else ""
+
+def _mk_extra_edad(exdir, base):
+    def fn(d):
+        edad = str(d.get("edad", "1")).strip() or "1"
+        p = os.path.join(exdir, f"{base}_{edad}.png")
+        if not os.path.exists(p):
+            p = os.path.join(exdir, f"{base}_1.png")
+        return Image.open(p).convert("RGBA")
+    return fn
+
+def _mk_extra_fijo(p):
+    return lambda d: Image.open(p).convert("RGBA")
+
 def _piezas_kit(tema):
-    return piezas.piezas_de(tema)  # las 7, con sus is_rgba
+    # Si el tema trae arte estático subido (temas/<tema>/extras/), el kit usa esos
+    # diseños + la invitación PERSONALIZADA del motor. Si no, las 7 piezas genéricas.
+    exdir = _extras_dir(tema)
+    if exdir and os.path.isdir(exdir):
+        s = specs_de(tema)
+        out = [("01_invitacion", lambda d: render(d, s["invitacion"]), False)]
+        n = 2
+        for base in _EXTRAS_POR_EDAD:
+            if os.path.exists(os.path.join(exdir, f"{base}_1.png")):
+                out.append((f"{n:02d}_{base}", _mk_extra_edad(exdir, base), True)); n += 1
+        for base in _EXTRAS_UNIVERSAL:
+            p = os.path.join(exdir, f"{base}.png")
+            if os.path.exists(p):
+                out.append((f"{n:02d}_{base}", _mk_extra_fijo(p), True)); n += 1
+        return out
+    return piezas.piezas_de(tema)  # genérico (las 7), con sus is_rgba
 
 def _piezas_invitacion(tema):
     s = specs_de(tema)
