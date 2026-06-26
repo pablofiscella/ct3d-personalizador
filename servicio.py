@@ -268,9 +268,10 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/health":
             return self._json(200, {"ok": True, "servicio": "kit-anito-salvaje"})
         if path == "/":
-            # La raíz no tiene home (es el motor del editor/API); mandamos a la tienda.
+            # Si sos admin (cookie/clave) → al panel de kits /dash; si no, a la tienda.
+            dest = "/dash" if self._admin_ok(u) else "https://casatridimensional.com.ar"
             self.send_response(302)
-            self.send_header("Location", "https://casatridimensional.com.ar")
+            self.send_header("Location", dest)
             self.send_header("Content-Length", "0")
             self.end_headers()
             return
