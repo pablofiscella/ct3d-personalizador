@@ -768,17 +768,30 @@ class Handler(BaseHTTPRequestHandler):
                                 "piezas_univ": self._PIEZAS_UNIV, "archivos": archivos})
 
     def _dash_pieza_img(self, q):
-        """Sirve la imagen de una pieza ya cargada (para la miniatura del modal)."""
+        """Sirve una MINIATURA (≤220px) de la pieza cargada para el modal. Las piezas
+        reales pesan decenas de MB; se cachea el thumb en extras/.thumbs (regenerado si
+        la pieza cambió, por mtime). Así abrir el modal con 40 piezas es liviano."""
         if not self._admin_ok():
             return self._deny()
         tema = slug((q.get("tema", [""]) or [""])[0])
         archivo = re.sub(r"[^a-z0-9_.]", "", ((q.get("archivo", [""]) or [""])[0] or "").lower())
         if not archivo.endswith(".png") or "/" in archivo or ".." in archivo:
             return self._json(400, {"ok": False, "error": "archivo inválido"})
-        path = os.path.join(temas.TEMAS_DIR, tema, "extras", archivo)
+        exdir = os.path.join(temas.TEMAS_DIR, tema, "extras")
+        path = os.path.join(exdir, archivo)
         if not os.path.isfile(path):
             return self._json(404, {"ok": False, "error": "no existe"})
-        data = open(path, "rb").read()
+        tdir = os.path.join(exdir, ".thumbs")
+        thumb = os.path.join(tdir, archivo)
+        try:
+            if not (os.path.isfile(thumb) and os.path.getmtime(thumb) >= os.path.getmtime(path)):
+                os.makedirs(tdir, exist_ok=True)
+                im = Image.open(path).convert("RGBA")
+                im.thumbnail((220, 220), Image.LANCZOS)
+                im.save(thumb)
+            data = open(thumb, "rb").read()
+        except Exception as e:
+            return self._json(500, {"ok": False, "error": "thumb falló: %s" % e})
         self.send_response(200)
         self.send_header("Content-Type", "image/png")
         self.send_header("Cache-Control", "no-store")
@@ -797,10 +810,14 @@ class Handler(BaseHTTPRequestHandler):
         if not tema or not pieza:
             return self._json(400, {"ok": False, "error": "falta tema o pieza"})
         name = f"{pieza}_{edad}.png" if edad else f"{pieza}.png"
-        path = os.path.join(temas.TEMAS_DIR, tema, "extras", name)
+        exdir = os.path.join(temas.TEMAS_DIR, tema, "extras")
+        path = os.path.join(exdir, name)
         try:
             if os.path.isfile(path):
                 os.remove(path); generador._specs_cache.pop(tema, None)
+                thumb = os.path.join(exdir, ".thumbs", name)
+                if os.path.isfile(thumb):
+                    os.remove(thumb)
                 return self._json(200, {"ok": True, "archivo": name})
             return self._json(404, {"ok": False, "error": "no existía"})
         except Exception as e:
