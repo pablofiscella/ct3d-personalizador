@@ -121,7 +121,30 @@ _SEC_HEADERS = [
 ]
 MAX_BODY = 8 * 1024 * 1024        # 8 MB: tope de cuerpo POST (A7, anti memory-bomb)
 _SEM = threading.Semaphore(16)    # máx 16 requests concurrentes (A7, anti thread-exhaustion)
+# Generar thumbs decodifica PNGs de ~140MB en RAM; se limitan a 3 a la vez para no
+# reventar memoria cuando el modal pide 40 miniaturas de golpe.
+_THUMB_SEM = threading.Semaphore(3)
 _KEY_RE = re.compile(r"(key=)[^&\s\"']+", re.I)
+
+def _pieza_thumb(exdir, archivo):
+    """Devuelve el path del thumbnail (≤220px) de extras/<archivo>, generándolo en
+    extras/.thumbs si falta o si la pieza cambió (por mtime). None si no se pudo."""
+    src = os.path.join(exdir, archivo)
+    if not os.path.isfile(src):
+        return None
+    tdir = os.path.join(exdir, ".thumbs")
+    thumb = os.path.join(tdir, archivo)
+    try:
+        if os.path.isfile(thumb) and os.path.getmtime(thumb) >= os.path.getmtime(src):
+            return thumb
+        with _THUMB_SEM:
+            os.makedirs(tdir, exist_ok=True)
+            im = Image.open(src).convert("RGBA")
+            im.thumbnail((220, 220), Image.LANCZOS)
+            im.save(thumb)
+        return thumb
+    except Exception:
+        return None
 
 # C3: sesiones admin con token aleatorio en memoria (la cookie ya NO es la API key;
 # revocable y con TTL). Se pierden al reiniciar → el admin reentra por el link ?key=.
@@ -754,6 +777,7 @@ class Handler(BaseHTTPRequestHandler):
             name = f"{pieza}_{edad}.png" if edad else f"{pieza}.png"
             im.save(os.path.join(exdir, name))
             generador._specs_cache.pop(tema, None)
+            _pieza_thumb(exdir, name)   # deja el thumb listo para el modal
         except Exception as e:
             return self._json(500, {"ok": False, "error": "upload falló: %s" % e})
         return self._json(200, {"ok": True, "pieza": pieza, "edad": edad, "archivo": name,
@@ -778,20 +802,12 @@ class Handler(BaseHTTPRequestHandler):
         if not archivo.endswith(".png") or "/" in archivo or ".." in archivo:
             return self._json(400, {"ok": False, "error": "archivo inválido"})
         exdir = os.path.join(temas.TEMAS_DIR, tema, "extras")
-        path = os.path.join(exdir, archivo)
-        if not os.path.isfile(path):
+        if not os.path.isfile(os.path.join(exdir, archivo)):
             return self._json(404, {"ok": False, "error": "no existe"})
-        tdir = os.path.join(exdir, ".thumbs")
-        thumb = os.path.join(tdir, archivo)
-        try:
-            if not (os.path.isfile(thumb) and os.path.getmtime(thumb) >= os.path.getmtime(path)):
-                os.makedirs(tdir, exist_ok=True)
-                im = Image.open(path).convert("RGBA")
-                im.thumbnail((220, 220), Image.LANCZOS)
-                im.save(thumb)
-            data = open(thumb, "rb").read()
-        except Exception as e:
-            return self._json(500, {"ok": False, "error": "thumb falló: %s" % e})
+        thumb = _pieza_thumb(exdir, archivo)
+        if not thumb:
+            return self._json(500, {"ok": False, "error": "no se pudo generar la miniatura"})
+        data = open(thumb, "rb").read()
         self.send_response(200)
         self.send_header("Content-Type", "image/png")
         self.send_header("Cache-Control", "no-store")
