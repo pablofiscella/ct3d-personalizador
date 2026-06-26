@@ -15,7 +15,7 @@ Config por variables de entorno:
   CT3D_DATA_DIR  dónde guardar los kits generados (default ./pedidos)
   CT3D_BASE_URL  URL pública del servicio (para armar el link de descarga)
 """
-import os, io, json, re, secrets, urllib.parse, urllib.request, urllib.error, base64
+import os, io, json, re, secrets, threading, urllib.parse, urllib.request, urllib.error, base64
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import piezas  # motor (generar_kit, preview_invitacion)
@@ -87,8 +87,52 @@ def slug(s):
     s = re.sub(r"[^a-zA-Z0-9]+", "-", str(s)).strip("-").lower()
     return s or "kit"
 
+# Headers de seguridad en TODA respuesta (A4). frame-ancestors permite que la tienda
+# (apex + subdominios) embeba el editor por iframe; cualquier otro sitio no puede.
+_SEC_HEADERS = [
+    ("X-Content-Type-Options", "nosniff"),
+    ("Referrer-Policy", "no-referrer"),
+    ("Strict-Transport-Security", "max-age=63072000; includeSubDomains"),
+    ("Content-Security-Policy",
+     "frame-ancestors 'self' https://casatridimensional.com.ar https://*.casatridimensional.com.ar"),
+]
+MAX_BODY = 8 * 1024 * 1024        # 8 MB: tope de cuerpo POST (A7, anti memory-bomb)
+_SEM = threading.Semaphore(16)    # máx 16 requests concurrentes (A7, anti thread-exhaustion)
+_KEY_RE = re.compile(r"(key=)[^&\s\"']+", re.I)
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "CT3D-Kit/1.0"
+    timeout = 30                   # corta conexiones colgadas (A7, anti slowloris)
+
+    def handle_one_request(self):
+        with _SEM:                 # serializa bajo presión: no spawnea threads infinitos
+            super().handle_one_request()
+
+    def end_headers(self):
+        for k, v in _SEC_HEADERS:
+            self.send_header(k, v)
+        super().end_headers()
+
+    def _origin_ok(self):
+        """En POST de navegador, el Origin/Referer debe ser nuestro host (anti-CSRF, A5).
+        Llamadas server-to-server (sin Origin) pasan; el webhook usa además X-API-Key."""
+        o = self.headers.get("Origin") or self.headers.get("Referer") or ""
+        if not o:
+            return True
+        try:
+            host = urllib.parse.urlparse(o).netloc.lower().split(":")[0]
+        except Exception:
+            return False
+        return host == "casatridimensional.com.ar" or host.endswith(".casatridimensional.com.ar") \
+            or host in ("localhost", "127.0.0.1")
+
+    def _body(self):
+        """Lee el cuerpo con tope de tamaño (A7). Devuelve None si excede MAX_BODY."""
+        n = int(self.headers.get("Content-Length", "0") or 0)
+        if n > MAX_BODY:
+            return None
+        return self.rfile.read(n) or b"{}"
 
     def _json(self, code, obj):
         body = json.dumps(obj, ensure_ascii=False).encode("utf-8")
@@ -99,7 +143,8 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def log_message(self, fmt, *args):
-        print("[svc]", self.address_string(), fmt % args)
+        msg = _KEY_RE.sub(r"\1***", fmt % args)    # C4/M6: nunca logear la API key
+        print("[svc]", self.address_string(), msg)
 
     def base_url(self):
         """Arma la URL pública según los headers (Cloudflare/reverse proxy).
@@ -452,6 +497,8 @@ class Handler(BaseHTTPRequestHandler):
     # ---------------- POST ----------------
     def do_POST(self):
         path = urllib.parse.urlparse(self.path).path
+        if not self._origin_ok():          # A5: rechaza POST cross-site de navegador
+            return self._deny()
         if path == "/editor/save":
             return self._editor_save()
         if path == "/dash/upload":
@@ -468,11 +515,13 @@ class Handler(BaseHTTPRequestHandler):
             return self._dash_publicar()
         if path != "/api/generar":
             return self._json(404, {"ok": False, "error": "ruta no encontrada"})
-        if self.headers.get("X-API-Key") != API_KEY:
+        if not secrets.compare_digest(self.headers.get("X-API-Key", "") or "", API_KEY):
             return self._json(401, {"ok": False, "error": "API key inválida"})
+        raw = self._body()
+        if raw is None:
+            return self._json(413, {"ok": False, "error": "cuerpo demasiado grande"})
         try:
-            n = int(self.headers.get("Content-Length", "0"))
-            payload = json.loads(self.rfile.read(n) or b"{}")
+            payload = json.loads(raw)
         except Exception:
             return self._json(400, {"ok": False, "error": "JSON inválido"})
 
@@ -486,7 +535,7 @@ class Handler(BaseHTTPRequestHandler):
         if not productos.existe_tipo(tipo):
             return self._json(400, {"ok": False, "error": f"tipo desconocido: {tipo}"})
         order_id = slug(payload.get("order_id", "s"))
-        token = f"{order_id}-{secrets.token_hex(4)}"
+        token = f"{order_id}-{secrets.token_hex(16)}"   # A2: 128 bits, no brute-forceable
         dest = os.path.join(DATA_DIR, token)
         try:
             productos.generar(data, dest, tema, tipo)

@@ -80,11 +80,15 @@
           + '&pieza='+PAGINAS[pagina].i+'&max=820&cb='+Date.now();
     return '/preview?'+q;
   }
+  // A6: origin real del padre (la tienda), nunca "*".
+  var PARENT_ORIGIN=(function(){try{var o=new URL(document.referrer).origin;
+    return o.endsWith('casatridimensional.com.ar')?o:'https://casatridimensional.com.ar';}
+    catch(e){return 'https://casatridimensional.com.ar';}})();
   function emit(confirm){
     try{
       if(window.parent!==window){
         window.parent.postMessage({type:'ct3d-kit', confirm:!!confirm,
-          payload:{tema:TEMA, edad:EDAD, data:{nombre:(inp.value||'').trim()}, over:{}}}, '*');
+          payload:{tema:TEMA, edad:EDAD, data:{nombre:(inp.value||'').trim()}, over:{}}}, PARENT_ORIGIN);
       }
     }catch(e){}
   }

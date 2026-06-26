@@ -12,7 +12,7 @@ y los DATOS del cliente, y produce la pieza personalizada lista para imprimir.
 Uso:
     python3 generador.py            # render de ejemplo (datos demo)
 """
-import os, copy, json
+import os, copy, json, re
 from PIL import Image, ImageDraw, ImageFont
 
 BASEDIR = os.path.dirname(os.path.abspath(__file__))
@@ -474,6 +474,13 @@ def _effective_texts(spec):
             pass
     return texts
 
+def _safe_edad(edad):
+    """edad SOLO [A-Za-z0-9_-], máx 8 — corta el path traversal (C2): un valor como
+    '../../etc/x' al interpolarse en '{edad}.png' se iría de la carpeta del tema."""
+    e = str(edad or "1").strip()
+    return e if re.fullmatch(r"[A-Za-z0-9_-]{1,8}", e) else "1"
+
+
 def bg_path_for(pieza, edad="1", tema=TEMA_DEFAULT):
     """Ruta del fondo de una pieza (resolviendo {edad})."""
     spec = specs_de(tema).get(pieza, SPEC)
@@ -482,7 +489,7 @@ def bg_path_for(pieza, edad="1", tema=TEMA_DEFAULT):
     if not p:
         return None
     if "{edad}" in p:
-        cand = p.format(edad=str(edad) or "1")
+        cand = p.format(edad=_safe_edad(edad))
         full = cand if os.path.isabs(cand) else os.path.join(base, cand)
         p = cand if os.path.exists(full) else p.format(edad="1")
     return p if os.path.isabs(p) else os.path.join(base, p)
@@ -530,7 +537,7 @@ def render(data, spec=None):
         bdir = spec.get("_dir", BASEDIR)
         p = spec["bgimage"]
         if "{edad}" in p:                       # fondo según la edad elegida
-            edad = str(data.get("edad", "1")).strip() or "1"
+            edad = _safe_edad(data.get("edad", "1"))
             cand = p.format(edad=edad)
             full = cand if os.path.isabs(cand) else os.path.join(bdir, cand)
             p = cand if os.path.exists(full) else p.format(edad="1")  # fallback a 1

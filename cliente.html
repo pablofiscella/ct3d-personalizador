@@ -181,6 +181,11 @@
   </div>
 <script>
 const qs=new URLSearchParams(location.search);
+// A6: postMessage SOLO al origin real del padre (la tienda), nunca "*". Si por algún
+// motivo no se puede leer el referrer, cae al apex de la tienda.
+const PARENT_ORIGIN=(()=>{try{const o=new URL(document.referrer).origin;
+  return o.endsWith('casatridimensional.com.ar')?o:'https://casatridimensional.com.ar';}
+  catch(e){return 'https://casatridimensional.com.ar';}})();
 const TEMA=qs.get('tema')||'safari';
 let EDAD=qs.get('edad')||'1';
 // La pieza se elige por query (?pieza=cartel, etc.). El "kit" completo se edita por
@@ -414,10 +419,10 @@ let _emitT=null;
 function emit(){
   if(window.parent===window)return;
   clearTimeout(_emitT);
-  _emitT=setTimeout(()=>window.parent.postMessage({type:'ct3d-kit',payload:buildOver()},'*'),250);
+  _emitT=setTimeout(()=>window.parent.postMessage({type:'ct3d-kit',payload:buildOver()},PARENT_ORIGIN),250);
 }
 document.getElementById('confirmar').onclick=()=>{
-  if(window.parent!==window)window.parent.postMessage({type:'ct3d-kit',payload:buildOver(),confirm:true},'*');
+  if(window.parent!==window)window.parent.postMessage({type:'ct3d-kit',payload:buildOver(),confirm:true},PARENT_ORIGIN);
   const b=document.getElementById('confirmar');b.textContent='✓ Diseño confirmado';
   setTimeout(()=>{b.textContent='Confirmar diseño';},1800);
 };

@@ -24,7 +24,7 @@ import piezas
 from piezas import (A4, WHITE, CREAM, MUST, SAGE, make_sheet, txt, fit_into,
                     paste_center, accent, ink_c, font_disp, _band, animales,
                     load, has_recortes, _edad_any, lema, titulo)
-from generador import render, specs_de, BROWN, OLIVE, TERRA
+from generador import render, specs_de, BROWN, OLIVE, TERRA, _safe_edad
 
 INK = (74, 74, 74)  # gris oscuro para líneas de colorear
 
@@ -216,7 +216,7 @@ def _extras_dir(tema):
 
 def _mk_extra_edad(exdir, base):
     def fn(d):
-        edad = str(d.get("edad", "1")).strip() or "1"
+        edad = _safe_edad(d.get("edad", "1"))   # C2: sin path traversal
         p = os.path.join(exdir, f"{base}_{edad}.png")
         if not os.path.exists(p):
             p = os.path.join(exdir, f"{base}_1.png")

@@ -126,12 +126,16 @@
       +"&r="+encodeURIComponent(radio.value)+"&iconos="+encodeURIComponent(JSON.stringify(iconos));
   }
   var adjuntos=[];
+  // A6: postMessage al origin real del padre (la tienda), nunca "*".
+  var PARENT_ORIGIN=(function(){try{var o=new URL(document.referrer).origin;
+    return o.endsWith('casatridimensional.com.ar')?o:'https://casatridimensional.com.ar';}
+    catch(e){return 'https://casatridimensional.com.ar';}})();
   function emit(){
     try{ parent.postMessage({type:'ct3d-mate', payload:{
       mate:mate, texto:txt.value, abajo:abajo.value, flip:flip.checked, font:font,
       size:size.value, r:radio.value, iconos:iconos,
       obs:document.getElementById('obs').value, adjuntos:adjuntos.map(f=>f.name)
-    }}, '*'); }catch(e){}
+    }}, PARENT_ORIGIN); }catch(e){}
   }
   function preview(){ clearTimeout(t); t=setTimeout(function(){ pv.src="/mate/preview?"+qs()+"&max=760"; emit(); }, 250); }
   // observaciones + adjuntar imágenes
@@ -247,7 +251,7 @@
   // Autoajuste de altura: avisar al contenedor (ficha) el alto real del contenido para que
   // el iframe crezca y NO aparezca barra de scroll (el alto varía al sumar iconos, etc.).
   function postSize(){
-    try{ if(window.parent!==window) window.parent.postMessage({type:'ct3d-mate-size', h: Math.ceil(document.body.scrollHeight)}, '*'); }catch(e){}
+    try{ if(window.parent!==window) window.parent.postMessage({type:'ct3d-mate-size', h: Math.ceil(document.body.scrollHeight)}, PARENT_ORIGIN); }catch(e){}
   }
   window.addEventListener('load', postSize);
   window.addEventListener('resize', postSize);
