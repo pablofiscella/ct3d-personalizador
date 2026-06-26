@@ -83,6 +83,29 @@ def _wc_crear_producto(payload):
 def _edit_url(pid):
     return _woo_cfg().get("url", "").rstrip("/") + "/wp-admin/post.php?post=%s&action=edit" % pid
 
+# ---- gestión de productos en la tienda Flask (reemplaza WooCommerce) ----
+# El catálogo vive en la tienda (facturas_ml.db); el panel del kit publica vía los
+# endpoints /kit-admin/* de facturas_api (localhost:8091), autenticando con la
+# CT3D_API_KEY del propio kit (que facturas_api valida con _kit_admin_key).
+TIENDA_API = os.environ.get("TIENDA_API_URL", "http://127.0.0.1:8091")
+def _tienda_admin(method, path, body=None):
+    """Llama a /kit-admin/* de la tienda. Devuelve (status_code, dict)."""
+    data = json.dumps(body).encode("utf-8") if body is not None else None
+    headers = {"X-API-Key": API_KEY}
+    if data is not None:
+        headers["Content-Type"] = "application/json"
+    req = urllib.request.Request(TIENDA_API + path, data=data, method=method, headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=20) as r:
+            return r.status, json.loads(r.read().decode("utf-8") or "{}")
+    except urllib.error.HTTPError as e:
+        try:
+            return e.code, json.loads(e.read().decode("utf-8") or "{}")
+        except Exception:
+            return e.code, {"ok": False, "error": "la tienda respondió HTTP %s" % e.code}
+    except Exception as e:
+        return 0, {"ok": False, "error": "no se pudo contactar la tienda: %s" % e}
+
 def slug(s):
     s = re.sub(r"[^a-zA-Z0-9]+", "-", str(s)).strip("-").lower()
     return s or "kit"
@@ -507,6 +530,8 @@ class Handler(BaseHTTPRequestHandler):
             if not self._admin_ok(u):
                 return self._deny()
             return self._dash_piezas_estado(urllib.parse.parse_qs(u.query))
+        if path == "/dash/pub-estado":
+            return self._dash_pub_estado(urllib.parse.parse_qs(u.query))
         if path == "/dash/config":
             if not self._admin_ok(u):
                 return self._deny()
@@ -794,41 +819,20 @@ class Handler(BaseHTTPRequestHandler):
         tema = slug(payload.get("tema", ""))
         if not temas.existe(tema):
             return self._json(400, {"ok": False, "error": "la temática no existe"})
-        nombre = (payload.get("nombre") or "").strip() or ("Kit " + tema)
+        tipo = (payload.get("tipo") or "kit").lower().strip()
+        nombre = (payload.get("nombre") or payload.get("titulo") or "").strip()
         precio = str(payload.get("precio", "")).strip()
-        pub = _pub_cfg()
-        ex = pub.get(tema) or {}
-        try:
-            if ex.get("id"):
-                # ── REPUBLICAR: actualizar el producto existente (no duplica) ──
-                upd = {"name": nombre}
-                if precio:
-                    upd["regular_price"] = precio   # vacío = no toca el precio actual
-                try:
-                    r = _wc_call("PUT", "products/%s" % ex["id"], upd)
-                    accion = "republicado"
-                except urllib.error.HTTPError as e:
-                    if e.code != 404:
-                        raise
-                    ex = {}   # el producto ya no existe en Woo → lo recreamos abajo
-            if not ex.get("id"):
-                # ── PUBLICAR por primera vez: crear como borrador ──
-                prod = {
-                    "name": nombre, "type": "simple", "virtual": True, "status": "draft",
-                    "regular_price": precio or "0",
-                    "meta_data": [{"key": "_ct3d_kit", "value": "yes"},
-                                  {"key": "_ct3d_tema", "value": tema}],
-                }
-                r = _wc_crear_producto(prod)
-                accion = "publicado"
-        except urllib.error.HTTPError as e:
-            return self._json(502, {"ok": False, "error": "Woo respondió %s: %s" % (e.code, e.read().decode("utf-8", "replace")[:200])})
-        except Exception as e:
-            return self._json(502, {"ok": False, "error": str(e)})
-        pub[tema] = {"id": r.get("id"), "permalink": r.get("permalink"), "edit": _edit_url(r.get("id"))}
-        _pub_save(pub)
-        return self._json(200, {"ok": True, "accion": accion, "product_id": r.get("id"),
-                                "permalink": r.get("permalink"), "edit": pub[tema]["edit"]})
+        # Publica en la tienda Flask (no más WooCommerce). Cada (tipo, tema) es un
+        # producto: KIT-<TEMA> (kit completo) / KIT-INVITACION-<TEMA> / KIT-CARTEL-<TEMA>…
+        st, r = _tienda_admin("POST", "/kit-admin/publicar", {
+            "tipo": tipo, "tema": tema,
+            "precio": precio or None, "titulo": nombre or None, "mostrar": True})
+        if st != 200 or not r.get("ok"):
+            return self._json(502 if st in (0, 502) else st,
+                              {"ok": False, "error": r.get("error", "no se pudo publicar en la tienda")})
+        return self._json(200, {"ok": True, "accion": "publicado", "tipo": tipo,
+                                "ml_id": r.get("ml_id"), "slug": r.get("slug"),
+                                "permalink": r.get("url")})
 
     def _dash_despublicar(self):
         if not self._admin_ok():
@@ -839,20 +843,26 @@ class Handler(BaseHTTPRequestHandler):
         except Exception:
             return self._json(400, {"ok": False, "error": "JSON inválido"})
         tema = slug(payload.get("tema", ""))
-        pub = _pub_cfg()
-        ex = pub.get(tema) or {}
-        if not ex.get("id"):
-            return self._json(200, {"ok": True, "nota": "no estaba publicado"})
-        try:
-            _wc_call("DELETE", "products/%s?force=true" % ex["id"])
-        except urllib.error.HTTPError as e:
-            if e.code != 404:   # 404 = ya no existía; igual limpiamos el registro
-                return self._json(502, {"ok": False, "error": "Woo respondió %s" % e.code})
-        except Exception as e:
-            return self._json(502, {"ok": False, "error": str(e)})
-        pub.pop(tema, None)
-        _pub_save(pub)
-        return self._json(200, {"ok": True})
+        tipo = (payload.get("tipo") or "kit").lower().strip()
+        ml_id = payload.get("ml_id")
+        # Oculta el producto de la tienda (toggle mostrar_en_tienda). No borra la fila
+        # ni la temática (el arte queda; se puede re-publicar cuando quieras).
+        st, r = _tienda_admin("POST", "/kit-admin/despublicar",
+                              {"ml_id": ml_id, "tipo": tipo, "tema": tema, "mostrar": False})
+        if st != 200 or not r.get("ok"):
+            return self._json(502 if st in (0, 502) else st,
+                              {"ok": False, "error": r.get("error", "no se pudo despublicar")})
+        return self._json(200, {"ok": True, "ml_id": r.get("ml_id")})
+
+    def _dash_pub_estado(self, q):
+        if not self._admin_ok():
+            return self._deny()
+        tema = slug((q.get("tema", [""]) or [""])[0])
+        st, r = _tienda_admin("GET", "/kit-admin/estado?tema=%s" % urllib.parse.quote(tema))
+        if st != 200:
+            return self._json(502 if st in (0, 502) else st,
+                              {"ok": False, "error": r.get("error", "no se pudo consultar la tienda")})
+        return self._json(200, r)
 
     def _dash_eliminar_tema(self):
         """Borra la temática por completo: imágenes + config del panel, y si estaba
