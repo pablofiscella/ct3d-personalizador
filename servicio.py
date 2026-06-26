@@ -119,7 +119,8 @@ _SEC_HEADERS = [
     ("Content-Security-Policy",
      "frame-ancestors 'self' https://casatridimensional.com.ar https://*.casatridimensional.com.ar"),
 ]
-MAX_BODY = 8 * 1024 * 1024        # 8 MB: tope de cuerpo POST (A7, anti memory-bomb)
+MAX_BODY = 30 * 1024 * 1024       # 30 MB: tope de cuerpo POST (las piezas/arte a resolución
+                                  # de impresión pesan ~15-20MB; subir admin-only). (A7)
 _SEM = threading.Semaphore(16)    # máx 16 requests concurrentes (A7, anti thread-exhaustion)
 # Generar thumbs decodifica PNGs de ~140MB en RAM; se limitan a 3 a la vez para no
 # reventar memoria cuando el modal pide 40 miniaturas de golpe.
