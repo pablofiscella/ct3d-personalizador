@@ -190,10 +190,6 @@ a{color:inherit;text-decoration:none}
     </div>
 
     <div class="sidebar__nav-section">Kits</div>
-    <button class="sidebar__item" data-go="sec-woo">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-      Conexión Woo
-    </button>
     <button class="sidebar__item" data-go="sec-temas">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
       Temáticas
@@ -225,39 +221,12 @@ a{color:inherit;text-decoration:none}
       </div>
     </div>
 
-    <!-- Conexión Woo -->
-    <section class="card-block" id="sec-woo">
-      <div class="card-block__head">
-        <div>
-          <h3>Conexión con WooCommerce</h3>
-          <div class="card-block__sub">Para publicar los kits como productos directo a tu tienda.</div>
-        </div>
-        <span id="cfgstatus" class="status-chip status-chip--off">…</span>
-      </div>
-      <div class="form-grid">
-        <div class="form-field form-field--full">
-          <label class="form-field__lbl">URL del sitio</label>
-          <input type="text" id="wc_url" placeholder="https://casatridimensional.com.ar">
-        </div>
-        <div class="form-field">
-          <label class="form-field__lbl">Consumer key <em>(ck_…)</em></label>
-          <input type="text" id="wc_key" placeholder="ck_…">
-        </div>
-        <div class="form-field">
-          <label class="form-field__lbl">Consumer secret <em>(cs_…)</em></label>
-          <input type="text" id="wc_secret" placeholder="cs_…">
-        </div>
-      </div>
-      <div style="margin-top:16px"><button id="guardarcfg" class="btn-primary">Guardar credenciales</button></div>
-      <p class="card-block__hint">Generalas en WooCommerce → Ajustes → Avanzado → API REST → <b>Añadir clave</b> (permisos Lectura/Escritura).</p>
-    </section>
-
     <!-- Temáticas existentes -->
     <section class="card-block" id="sec-temas">
       <div class="card-block__head">
         <div>
           <h3>Temáticas existentes</h3>
-          <div class="card-block__sub">Abrí el editor para posicionar textos, o publicá el kit a Woo.</div>
+          <div class="card-block__sub">Abrí el editor para posicionar textos, subí las piezas, o publicá el kit a la tienda.</div>
         </div>
       </div>
       <div class="carousel">
@@ -280,18 +249,22 @@ a{color:inherit;text-decoration:none}
         <input type="text" id="nombre" placeholder="Ej: Sirenas, Princesas, Dinosaurios…">
       </div>
 
-      <div class="subhead">Invitación (tarjeta)</div>
-      <div class="tiles">
+      <div class="subhead">Invitación (tarjeta) <small>(solo "1 año" es obligatoria; las demás son opcionales y, si no las subís, usa la de 1)</small></div>
+      <div class="tiles tiles--five">
         <label class="tile"><div class="tile__lbl">1 año</div><input type="file" id="f_invitacion_1" accept="image/*"></label>
         <label class="tile"><div class="tile__lbl">2 años</div><input type="file" id="f_invitacion_2" accept="image/*"></label>
         <label class="tile"><div class="tile__lbl">3 años</div><input type="file" id="f_invitacion_3" accept="image/*"></label>
+        <label class="tile"><div class="tile__lbl">4 años</div><input type="file" id="f_invitacion_4" accept="image/*"></label>
+        <label class="tile"><div class="tile__lbl">5 años</div><input type="file" id="f_invitacion_5" accept="image/*"></label>
       </div>
 
       <div class="subhead">Afiche</div>
-      <div class="tiles">
+      <div class="tiles tiles--five">
         <label class="tile"><div class="tile__lbl">1 año</div><input type="file" id="f_afiche_1" accept="image/*"></label>
         <label class="tile"><div class="tile__lbl">2 años</div><input type="file" id="f_afiche_2" accept="image/*"></label>
         <label class="tile"><div class="tile__lbl">3 años</div><input type="file" id="f_afiche_3" accept="image/*"></label>
+        <label class="tile"><div class="tile__lbl">4 años</div><input type="file" id="f_afiche_4" accept="image/*"></label>
+        <label class="tile"><div class="tile__lbl">5 años</div><input type="file" id="f_afiche_5" accept="image/*"></label>
       </div>
 
       <div class="subhead">Animalitos <small>(opcional — si no subís, usa los de safari)</small></div>
@@ -304,10 +277,12 @@ a{color:inherit;text-decoration:none}
       </div>
 
       <div class="subhead">Números decorados por edad <small>(opcional, para los cupcakes)</small></div>
-      <div class="tiles">
+      <div class="tiles tiles--five">
         <label class="tile"><div class="tile__lbl">1 año</div><input type="file" id="f_numero_1" accept="image/*"></label>
         <label class="tile"><div class="tile__lbl">2 años</div><input type="file" id="f_numero_2" accept="image/*"></label>
         <label class="tile"><div class="tile__lbl">3 años</div><input type="file" id="f_numero_3" accept="image/*"></label>
+        <label class="tile"><div class="tile__lbl">4 años</div><input type="file" id="f_numero_4" accept="image/*"></label>
+        <label class="tile"><div class="tile__lbl">5 años</div><input type="file" id="f_numero_5" accept="image/*"></label>
       </div>
 
       <div style="margin-top:20px"><button id="crear" class="btn-primary">Crear temática</button></div>
@@ -330,8 +305,11 @@ a{color:inherit;text-decoration:none}
 
 <script>
 const KEY="__API_KEY__";
-const REQ=['invitacion_1','invitacion_2','invitacion_3','afiche_1','afiche_2','afiche_3'];
-const OPT=['animal_1','animal_2','animal_3','animal_4','animal_5','numero_1','numero_2','numero_3'];
+const REQ=['invitacion_1'];   // solo la invitación de 1 año es obligatoria; el resto opcional
+const OPT=['invitacion_2','invitacion_3','invitacion_4','invitacion_5',
+           'afiche_1','afiche_2','afiche_3','afiche_4','afiche_5',
+           'animal_1','animal_2','animal_3','animal_4','animal_5',
+           'numero_1','numero_2','numero_3','numero_4','numero_5'];
 function slug(s){return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
 function msg(t,cls){const m=document.getElementById('msg');m.textContent=t;m.className=cls||'';}
 
@@ -415,21 +393,6 @@ async function openPiezas(tema, nombre){
       }catch(e){ msg.textContent='✕ '+e; } };
   });
 }
-async function cargarCfg(){
-  let j; try{ j=await (await fetch('/dash/config?cb='+Date.now())).json(); }catch(e){ return; }
-  document.getElementById('wc_url').value=j.url||'';
-  const s=document.getElementById('cfgstatus');
-  if(j.configurado){ s.textContent='✓ Conectado'; s.className='status-chip status-chip--ok'; }
-  else { s.textContent='Sin configurar'; s.className='status-chip status-chip--off'; }
-}
-document.getElementById('guardarcfg').onclick=async()=>{
-  const body={url:document.getElementById('wc_url').value,key:document.getElementById('wc_key').value,secret:document.getElementById('wc_secret').value};
-  try{
-    await fetch('/dash/config',{method:'POST',headers:{'Content-Type':'application/json','X-API-Key':KEY},body:JSON.stringify(body)});
-  }catch(e){}
-  document.getElementById('wc_key').value=''; document.getElementById('wc_secret').value='';
-  cargarCfg();
-};
 async function publicar(tema,nombre,re){
   const precio=prompt((re?'Nuevo precio (vacío = sin cambios) de "':'Precio del kit "')+nombre+'" (ej. 5000):','');
   if(precio===null)return;
@@ -532,7 +495,7 @@ carPrev.onclick=()=>carTrack.scrollBy({left:-244,behavior:'smooth'});
 carNext.onclick=()=>carTrack.scrollBy({left:244,behavior:'smooth'});
 window.addEventListener('resize',updateCarNav);
 
-cargar(); cargarCfg();
+cargar();
 </script>
 </body>
 </html>

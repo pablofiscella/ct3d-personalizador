@@ -671,7 +671,7 @@ class Handler(BaseHTTPRequestHandler):
         q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         tema = slug(q.get("tema", [""])[0])
         sslot = q.get("slot", [""])[0]
-        if not re.match(r"^(invitacion|afiche)_[123]$|^animal_[1-9]$|^numero_[123]$", sslot):
+        if not re.match(r"^(invitacion|afiche)_[1-5]$|^animal_[1-9]$|^numero_[1-5]$", sslot):
             return self._json(400, {"ok": False, "error": "slot inválido"})
         if not tema:
             return self._json(400, {"ok": False, "error": "falta tema"})
