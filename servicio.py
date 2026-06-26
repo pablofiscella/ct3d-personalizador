@@ -15,7 +15,7 @@ Config por variables de entorno:
   CT3D_DATA_DIR  dónde guardar los kits generados (default ./pedidos)
   CT3D_BASE_URL  URL pública del servicio (para armar el link de descarga)
 """
-import os, io, json, re, secrets, threading, urllib.parse, urllib.request, urllib.error, base64
+import os, io, json, re, secrets, threading, time, collections, urllib.parse, urllib.request, urllib.error, base64
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import piezas  # motor (generar_kit, preview_invitacion)
@@ -34,7 +34,7 @@ BASE_URL = os.environ.get("CT3D_BASE_URL", f"http://localhost:{PORT}")
 # Se entra una sola vez con ?key=API_KEY (link desde tu dash); kit deja una
 # cookie segura y a partir de ahí todo va autenticado solo. Nadie sin el token
 # (cookie, header X-API-Key o ?key=) puede tocar las rutas privadas.
-ADMIN_COOKIE = "ct3d_tok"
+ADMIN_COOKIE = "__Host-ct3d_sess"   # C3: cookie = token de sesión aleatorio, NO la API key
 
 CAMPOS = ["nombre", "fecha", "hora", "lugar", "direccion", "telefono", "edad"]
 
@@ -100,6 +100,64 @@ MAX_BODY = 8 * 1024 * 1024        # 8 MB: tope de cuerpo POST (A7, anti memory-b
 _SEM = threading.Semaphore(16)    # máx 16 requests concurrentes (A7, anti thread-exhaustion)
 _KEY_RE = re.compile(r"(key=)[^&\s\"']+", re.I)
 
+# C3: sesiones admin con token aleatorio en memoria (la cookie ya NO es la API key;
+# revocable y con TTL). Se pierden al reiniciar → el admin reentra por el link ?key=.
+_SESSIONS = {}
+_SESS_LOCK = threading.Lock()
+_SESS_TTL = 7 * 24 * 3600
+
+def _new_session():
+    tok = secrets.token_urlsafe(32)
+    now = time.monotonic()
+    with _SESS_LOCK:
+        for k in [k for k, exp in _SESSIONS.items() if exp < now]:
+            _SESSIONS.pop(k, None)
+        _SESSIONS[tok] = now + _SESS_TTL
+    return tok
+
+def _session_valid(tok):
+    if not tok:
+        return False
+    with _SESS_LOCK:
+        exp = _SESSIONS.get(tok)
+    return bool(exp and exp > time.monotonic())
+
+# A1: rate limiting por IP (ventana deslizante) en endpoints públicos pesados.
+_RL = collections.defaultdict(collections.deque)
+_RL_LOCK = threading.Lock()
+
+def _rate_ok(ip, limit=40, window=60):
+    if not ip or ip.startswith("127.") or ip in ("::1", "localhost"):
+        return True                       # llamadas internas (la tienda) no se limitan
+    now = time.monotonic()
+    with _RL_LOCK:
+        dq = _RL[ip]
+        while dq and dq[0] < now - window:
+            dq.popleft()
+        if len(dq) >= limit:
+            return False
+        dq.append(now)
+        if len(_RL) > 4096:               # poda de IPs inactivas
+            for k in [k for k, v in list(_RL.items()) if not v]:
+                _RL.pop(k, None)
+    return True
+
+
+def _limpiar_pedidos_viejos(dias=30):
+    """A3: borra carpetas de pedidos (ZIP + meta) de más de `dias` — no acumular PII."""
+    import shutil
+    try:
+        corte = time.time() - dias * 86400
+        for n in os.listdir(DATA_DIR):
+            p = os.path.join(DATA_DIR, n)
+            try:
+                if os.path.isdir(p) and os.path.getmtime(p) < corte:
+                    shutil.rmtree(p, ignore_errors=True)
+            except OSError:
+                pass
+    except OSError:
+        pass
+
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "CT3D-Kit/1.0"
@@ -159,11 +217,11 @@ class Handler(BaseHTTPRequestHandler):
         """¿Viene el token del panel? Acepta cookie, header X-API-Key o ?key=.
         Así el link de entrada (?key=) y las llamadas AJAX (cookie/header) funcionan
         sin pedir un login. Cualquier otro → denegado."""
-        # 1) cookie ct3d_tok
+        # 1) cookie de sesión (token aleatorio, no la API key)
         for part in self.headers.get("Cookie", "").split(";"):
             if "=" in part:
                 k, v = part.strip().split("=", 1)
-                if k == ADMIN_COOKIE and secrets.compare_digest(v, API_KEY):
+                if k == ADMIN_COOKIE and _session_valid(v):
                     return True
         # 2) header X-API-Key (llamadas AJAX del panel)
         if secrets.compare_digest(self.headers.get("X-API-Key", "") or "", API_KEY):
@@ -187,15 +245,26 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def _cookie_header(self):
-        """Set-Cookie para dejar el token guardado tras entrar con ?key=.
-        httpOnly+Secure+SameSite=Lax, 30 días. Host-only (solo kit lo lee)."""
-        return ("%s=%s; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax"
-                % (ADMIN_COOKIE, API_KEY))
+        """Set-Cookie con un token de SESIÓN nuevo (no la API key). __Host- + Secure +
+        HttpOnly + SameSite=Lax, 7 días. Se emite tras validar el ?key= en _admin_ok."""
+        return ("%s=%s; Path=/; Max-Age=604800; HttpOnly; Secure; SameSite=Lax"
+                % (ADMIN_COOKIE, _new_session()))
+
+    def _client_ip(self):
+        """IP real del cliente detrás de Cloudflare (para rate limiting)."""
+        return (self.headers.get("CF-Connecting-IP")
+                or (self.headers.get("X-Forwarded-For") or "").split(",")[0].strip()
+                or self.client_address[0])
 
     # ---------------- GET ----------------
     def do_GET(self):
         u = urllib.parse.urlparse(self.path)
         path = u.path
+        # A1: rate limit en endpoints públicos pesados (render Pillow / descargas).
+        if path.startswith(("/preview", "/mate/preview", "/cliente-bg.png",
+                            "/editor-bg.png", "/descarga/", "/piezas")) \
+                and not _rate_ok(self._client_ip()):
+            return self._json(429, {"ok": False, "error": "demasiadas solicitudes, esperá un minuto"})
         if path == "/health":
             return self._json(200, {"ok": True, "servicio": "kit-anito-salvaje"})
         if path == "/plugin.zip":
@@ -377,7 +446,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(404, {"ok": False, "error": "kit no encontrado"})
             nombre = "kit"
             if os.path.isfile(meta_path):
-                try: nombre = slug(json.load(open(meta_path))["data"]["nombre"])
+                try: nombre = slug(json.load(open(meta_path)).get("nombre") or "kit")
                 except Exception: pass
             data = open(zip_path, "rb").read()
             self.send_response(200)
@@ -539,9 +608,12 @@ class Handler(BaseHTTPRequestHandler):
         dest = os.path.join(DATA_DIR, token)
         try:
             productos.generar(data, dest, tema, tipo)
+            # A3: meta MÍNIMA (solo lo que usa /descarga para el nombre del archivo).
+            # NO se persiste PII sensible (email, teléfono, dirección, fecha).
             with open(os.path.join(dest, "meta.json"), "w", encoding="utf-8") as f:
-                json.dump({"order_id": payload.get("order_id"), "email": payload.get("email"),
-                           "tema": tema, "tipo": tipo, "data": data}, f, ensure_ascii=False, indent=2)
+                json.dump({"order_id": payload.get("order_id"), "tema": tema, "tipo": tipo,
+                           "nombre": data.get("nombre", "")}, f, ensure_ascii=False, indent=2)
+            _limpiar_pedidos_viejos()      # A3: borra carpetas con PII de +30 días
         except Exception as e:
             return self._json(500, {"ok": False, "error": f"fallo al generar: {e}"})
         return self._json(200, {"ok": True, "token": token,

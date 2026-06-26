@@ -342,6 +342,7 @@ async function cargar(){
   const temas=j.temas||[];
   if(!temas.length){ cont.innerHTML='<div class="tema__empty">Todavía no hay temáticas. Creá una más abajo.</div>'; updateCarNav(); return; }
   const cb=Date.now();
+  const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   temas.forEach(t=>{
     const edad=(t.edades&&t.edades[0])||1;
     const d=document.createElement('div'); d.className='tema';
@@ -351,9 +352,9 @@ async function cargar(){
     d.innerHTML=`
       <div class="tema__img">
         ${t.publicado?'<span class="tema__badge">● PUBLICADO</span>':''}
-        <img loading="lazy" src="/editor-bg.png?pieza=invitacion&edad=${edad}&tema=${encodeURIComponent(t.id)}&cb=${cb}" alt="Fondo de ${t.nombre}">
+        <img loading="lazy" src="/editor-bg.png?pieza=invitacion&edad=${edad}&tema=${encodeURIComponent(t.id)}&cb=${cb}" alt="Fondo de ${esc(t.nombre)}">
         <div class="tema__cap">
-          <div class="tema__name">${t.nombre}</div>
+          <div class="tema__name">${esc(t.nombre)}</div>
           <div class="tema__meta">Edades ${t.edades.join(' / ')}</div>
         </div>
       </div>

@@ -142,8 +142,9 @@
   document.getElementById('obs').addEventListener('input', emit);
   document.getElementById('files').addEventListener('change', function(e){
     adjuntos = Array.prototype.slice.call(e.target.files || []);
+    var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
     document.getElementById('filelist').innerHTML = adjuntos.map(function(f){
-      return '📷 '+f.name+' <span style="opacity:.6">('+Math.round(f.size/1024)+' KB)</span>';
+      return '📷 '+esc(f.name)+' <span style="opacity:.6">('+Math.round(f.size/1024)+' KB)</span>';
     }).join('');
     emit();
   });
