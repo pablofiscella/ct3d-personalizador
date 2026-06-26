@@ -503,6 +503,10 @@ class Handler(BaseHTTPRequestHandler):
                 t["base"] = (t["id"] == base)   # la base no se puede eliminar
                 out.append(t)
             return self._json(200, {"temas": out})
+        if path == "/dash/piezas-estado":
+            if not self._admin_ok(u):
+                return self._deny()
+            return self._dash_piezas_estado(urllib.parse.parse_qs(u.query))
         if path == "/dash/config":
             if not self._admin_ok(u):
                 return self._deny()
@@ -580,6 +584,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._editor_save()
         if path == "/dash/upload":
             return self._dash_upload()
+        if path == "/dash/upload-pieza":
+            return self._dash_upload_pieza()
         if path == "/dash/crear":
             return self._dash_crear()
         if path == "/dash/config":
@@ -692,6 +698,43 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as e:
             return self._json(500, {"ok": False, "error": "upload falló: %s" % e})
         return self._json(200, {"ok": True, "slot": sslot, "tema": tema, "size": list(im.size)})
+
+    # ---- Kit nuevo (extras/<pieza>_<edad>.png): subir cada pieza por edad, self-service ----
+    _PIEZAS_EDAD = ["afiche", "topper", "stickers", "separadores", "etiqueta_botella",
+                    "cajita_sorpresa", "decoracion_sorbetes"]
+    _PIEZAS_UNIV = ["banderin", "etiquetas_multiuso", "wrappers_cupcakes", "tarjetas_agradecimiento"]
+
+    def _dash_upload_pieza(self):
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        pieza = re.sub(r"[^a-z0-9_]", "", (q.get("pieza", [""])[0] or "").lower())[:30]
+        edad = re.sub(r"\D", "", q.get("edad", [""])[0] or "")[:2]   # vacío = pieza universal
+        if not tema or not pieza:
+            return self._json(400, {"ok": False, "error": "falta tema o pieza"})
+        raw = self._body()
+        if raw is None:
+            return self._json(413, {"ok": False, "error": "imagen demasiado grande"})
+        try:
+            im = Image.open(io.BytesIO(raw)).convert("RGBA")
+            exdir = os.path.join(temas.TEMAS_DIR, tema, "extras")
+            os.makedirs(exdir, exist_ok=True)
+            name = f"{pieza}_{edad}.png" if edad else f"{pieza}.png"
+            im.save(os.path.join(exdir, name))
+            generador._specs_cache.pop(tema, None)
+        except Exception as e:
+            return self._json(500, {"ok": False, "error": "upload falló: %s" % e})
+        return self._json(200, {"ok": True, "pieza": pieza, "edad": edad, "archivo": name,
+                                "size": list(im.size)})
+
+    def _dash_piezas_estado(self, q):
+        tema = slug(q.get("tema", [""])[0])
+        exdir = os.path.join(temas.TEMAS_DIR, tema, "extras")
+        archivos = [f for f in (sorted(os.listdir(exdir)) if os.path.isdir(exdir) else [])
+                    if f.lower().endswith(".png")]
+        return self._json(200, {"ok": True, "tema": tema, "piezas_edad": self._PIEZAS_EDAD,
+                                "piezas_univ": self._PIEZAS_UNIV, "archivos": archivos})
 
     def _dash_crear(self):
         if not self._admin_ok():
