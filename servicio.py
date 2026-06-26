@@ -267,6 +267,13 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(429, {"ok": False, "error": "demasiadas solicitudes, esperá un minuto"})
         if path == "/health":
             return self._json(200, {"ok": True, "servicio": "kit-anito-salvaje"})
+        if path == "/":
+            # La raíz no tiene home (es el motor del editor/API); mandamos a la tienda.
+            self.send_response(302)
+            self.send_header("Location", "https://casatridimensional.com.ar")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
         if path == "/plugin.zip":
             # descarga del plugin de WordPress (protegida con el token; sin secretos adentro)
             if not self._admin_ok(u):
