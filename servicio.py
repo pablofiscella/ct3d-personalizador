@@ -534,6 +534,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._dash_piezas_estado(urllib.parse.parse_qs(u.query))
         if path == "/dash/pub-estado":
             return self._dash_pub_estado(urllib.parse.parse_qs(u.query))
+        if path == "/dash/pieza-img":
+            return self._dash_pieza_img(urllib.parse.parse_qs(u.query))
         if path == "/dash/config":
             if not self._admin_ok(u):
                 return self._deny()
@@ -613,6 +615,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._dash_upload()
         if path == "/dash/upload-pieza":
             return self._dash_upload_pieza()
+        if path == "/dash/borrar-pieza":
+            return self._dash_borrar_pieza()
         if path == "/dash/crear":
             return self._dash_crear()
         if path == "/dash/config":
@@ -762,6 +766,45 @@ class Handler(BaseHTTPRequestHandler):
                     if f.lower().endswith(".png")]
         return self._json(200, {"ok": True, "tema": tema, "piezas_edad": self._PIEZAS_EDAD,
                                 "piezas_univ": self._PIEZAS_UNIV, "archivos": archivos})
+
+    def _dash_pieza_img(self, q):
+        """Sirve la imagen de una pieza ya cargada (para la miniatura del modal)."""
+        if not self._admin_ok():
+            return self._deny()
+        tema = slug((q.get("tema", [""]) or [""])[0])
+        archivo = re.sub(r"[^a-z0-9_.]", "", ((q.get("archivo", [""]) or [""])[0] or "").lower())
+        if not archivo.endswith(".png") or "/" in archivo or ".." in archivo:
+            return self._json(400, {"ok": False, "error": "archivo inválido"})
+        path = os.path.join(temas.TEMAS_DIR, tema, "extras", archivo)
+        if not os.path.isfile(path):
+            return self._json(404, {"ok": False, "error": "no existe"})
+        data = open(path, "rb").read()
+        self.send_response(200)
+        self.send_header("Content-Type", "image/png")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers(); self.wfile.write(data)
+
+    def _dash_borrar_pieza(self):
+        """Borra una pieza cargada (extras/<pieza>_<edad>.png). Para reemplazarla,
+        el cliente borra y vuelve a subir; subir directamente también la pisa."""
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        pieza = re.sub(r"[^a-z0-9_]", "", (q.get("pieza", [""])[0] or "").lower())[:30]
+        edad = re.sub(r"\D", "", q.get("edad", [""])[0] or "")[:2]
+        if not tema or not pieza:
+            return self._json(400, {"ok": False, "error": "falta tema o pieza"})
+        name = f"{pieza}_{edad}.png" if edad else f"{pieza}.png"
+        path = os.path.join(temas.TEMAS_DIR, tema, "extras", name)
+        try:
+            if os.path.isfile(path):
+                os.remove(path); generador._specs_cache.pop(tema, None)
+                return self._json(200, {"ok": True, "archivo": name})
+            return self._json(404, {"ok": False, "error": "no existía"})
+        except Exception as e:
+            return self._json(500, {"ok": False, "error": str(e)})
 
     def _dash_crear(self):
         if not self._admin_ok():

@@ -350,43 +350,56 @@ async function cargar(){
   updateCarNav();
 }
 async function openPiezas(tema, nombre){
-  let est; try{ est=await (await fetch('/dash/piezas-estado?tema='+encodeURIComponent(tema)+'&cb='+Date.now())).json(); }
-  catch(e){ alert('No se pudo cargar el estado de las piezas'); return; }
-  const edades=[1,2,3,4,5]; const have=new Set(est.archivos||[]);
-  const slot=(pieza,edad)=>{ const fn=edad?(pieza+'_'+edad+'.png'):(pieza+'.png'); const ok=have.has(fn);
-    return `<label class="pz-slot" data-pieza="${pieza}" data-edad="${edad||''}" style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border:1.5px dashed ${ok?'#2D8C5A':'#7a7a8a'};border-radius:8px;padding:7px 9px;min-width:62px;background:${ok?'rgba(45,140,90,.14)':'transparent'}">
-      <span class="pz-ico" style="font-size:17px">${ok?'✅':'⬆️'}</span>
-      <span style="font-size:11px;opacity:.85">${edad?('Edad '+edad):'Único'}</span>
-      <input type="file" accept="image/*" style="display:none"></label>`; };
-  const filasEdad=(est.piezas_edad||[]).map(p=>`<div style="margin:9px 0">
-      <div style="font-weight:700;margin-bottom:4px;text-transform:capitalize">${p.replace(/_/g,' ')}</div>
-      <div style="display:flex;gap:7px;flex-wrap:wrap">${edades.map(e=>slot(p,e)).join('')}</div></div>`).join('');
-  const filasUniv=(est.piezas_univ||[]).map(p=>`<div style="display:inline-block;margin:6px 14px 6px 0">
-      <div style="font-weight:700;margin-bottom:4px;text-transform:capitalize">${p.replace(/_/g,' ')}</div>${slot(p,'')}</div>`).join('');
   const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:24px';
-  ov.innerHTML=`<div style="background:var(--bg-elevated,#1A1530);color:var(--ink-1,#fff);border-radius:14px;padding:20px;max-width:700px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.5)">
+  ov.innerHTML=`<div style="background:var(--bg-elevated,#1A1530);color:var(--ink-1,#fff);border-radius:14px;padding:20px;max-width:720px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.5)">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><h2 style="margin:0;font-size:18px">🧩 Piezas del kit — ${nombre}</h2>
     <button id="pz-close" style="margin-left:auto;background:transparent;border:0;color:inherit;font-size:22px;cursor:pointer">✕</button></div>
-    <p style="opacity:.7;font-size:13px;margin:0 0 12px">Subí cada pieza (arrastrá o tocá). Las de arriba van por edad 1 a 5; las de abajo son únicas. ✅ = ya subida. El kit se arma solo con lo que subas.</p>
-    <div style="font-size:12px;font-weight:700;opacity:.6;margin-bottom:2px">POR EDAD</div>${filasEdad}
-    <div style="font-size:12px;font-weight:700;opacity:.6;margin:14px 0 4px">ÚNICAS (todas las edades)</div>${filasUniv}
-    <p id="pz-msg" style="margin-top:12px;font-size:13px;min-height:18px;opacity:.9"></p></div>`;
+    <p style="opacity:.7;font-size:13px;margin:0 0 12px">Tocá una pieza para subir o cambiarla. Las que ya cargaste se ven en miniatura; el ✕ rojo la borra. Las de arriba van por edad 1 a 5; las de abajo son únicas. El kit se arma solo con lo que tengas cargado.</p>
+    <div id="pz-body" style="min-height:60px">Cargando…</div>
+    <p id="pz-msg" style="margin-top:12px;font-size:13px;min-height:18px;opacity:.95"></p></div>`;
   document.body.appendChild(ov);
   ov.querySelector('#pz-close').onclick=()=>ov.remove();
   ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
-  ov.querySelectorAll('.pz-slot').forEach(s=>{ const inp=s.querySelector('input');
-    s.onclick=(e)=>{ if(e.target!==inp) inp.click(); };
-    inp.onchange=async()=>{ const f=inp.files[0]; if(!f) return; const msg=ov.querySelector('#pz-msg');
-      const pieza=s.dataset.pieza, edad=s.dataset.edad;
-      msg.textContent='Subiendo '+pieza+(edad?(' edad '+edad):'')+'…';
-      try{ const r=await fetch('/dash/upload-pieza?tema='+encodeURIComponent(tema)+'&pieza='+encodeURIComponent(pieza)+(edad?('&edad='+edad):''),
-            {method:'POST',headers:{'X-API-Key':KEY},body:f});
-        const j=await r.json();
-        if(j.ok){ s.style.borderColor='#2D8C5A'; s.style.background='rgba(45,140,90,.14)'; s.querySelector('.pz-ico').textContent='✅'; msg.textContent='✓ '+j.archivo+' subida'; }
-        else msg.textContent='✕ '+(j.error||'error');
-      }catch(e){ msg.textContent='✕ '+e; } };
-  });
+  const body=ov.querySelector('#pz-body'), pmsg=ov.querySelector('#pz-msg');
+  const edades=[1,2,3,4,5];
+  async function refresh(){
+    let est; try{ est=await (await fetch('/dash/piezas-estado?tema='+encodeURIComponent(tema)+'&cb='+Date.now(),{headers:{'X-API-Key':KEY}})).json(); }
+    catch(e){ body.innerHTML='<div style="opacity:.7">No se pudo cargar.</div>'; return; }
+    const have=new Set(est.archivos||[]); const cb=Date.now();
+    const slot=(pieza,edad)=>{ const fn=edad?(pieza+'_'+edad+'.png'):(pieza+'.png'); const ok=have.has(fn);
+      const thumb=ok?`<img src="/dash/pieza-img?tema=${encodeURIComponent(tema)}&archivo=${fn}&cb=${cb}" style="width:54px;height:54px;object-fit:contain;border-radius:5px;display:block;background:rgba(255,255,255,.06)" alt="">`:`<span style="font-size:20px;line-height:54px;display:block">⬆️</span>`;
+      return `<div class="pz-slot" data-pieza="${pieza}" data-edad="${edad||''}" style="position:relative;display:inline-block">
+        ${ok?`<button class="pz-del" title="Eliminar" style="position:absolute;top:-7px;right:-7px;z-index:2;background:#C73E3A;color:#fff;border:0;border-radius:50%;width:21px;height:21px;font-size:12px;cursor:pointer;line-height:19px;padding:0">✕</button>`:''}
+        <label style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;border:1.5px ${ok?'solid #2D8C5A':'dashed #7a7a8a'};border-radius:8px;padding:6px;min-width:64px;background:${ok?'rgba(45,140,90,.12)':'transparent'}">
+          ${thumb}<span style="font-size:11px;opacity:.85">${edad?('Edad '+edad):'Único'}</span>
+          <input type="file" accept="image/*" style="display:none"></label></div>`; };
+    const filasEdad=(est.piezas_edad||[]).map(p=>`<div style="margin:9px 0">
+        <div style="font-weight:700;margin-bottom:4px;text-transform:capitalize">${p.replace(/_/g,' ')}</div>
+        <div style="display:flex;gap:9px;flex-wrap:wrap">${edades.map(e=>slot(p,e)).join('')}</div></div>`).join('');
+    const filasUniv=(est.piezas_univ||[]).map(p=>`<div style="display:inline-block;margin:6px 16px 6px 0;vertical-align:top">
+        <div style="font-weight:700;margin-bottom:4px;text-transform:capitalize">${p.replace(/_/g,' ')}</div>${slot(p,'')}</div>`).join('');
+    body.innerHTML=`<div style="font-size:12px;font-weight:700;opacity:.6;margin-bottom:2px">POR EDAD</div>${filasEdad}
+      <div style="font-size:12px;font-weight:700;opacity:.6;margin:14px 0 4px">ÚNICAS (todas las edades)</div>${filasUniv}`;
+    body.querySelectorAll('.pz-slot').forEach(s=>{
+      const pieza=s.dataset.pieza, edad=s.dataset.edad, inp=s.querySelector('input');
+      inp.onchange=async()=>{ const f=inp.files[0]; if(!f) return;
+        pmsg.textContent='Subiendo '+pieza+(edad?(' edad '+edad):'')+'…';
+        try{ const r=await fetch('/dash/upload-pieza?tema='+encodeURIComponent(tema)+'&pieza='+encodeURIComponent(pieza)+(edad?('&edad='+edad):''),{method:'POST',headers:{'X-API-Key':KEY},body:f});
+          const j=await r.json();
+          if(j.ok){ pmsg.textContent='✓ '+j.archivo+' subida'; await refresh(); }
+          else pmsg.textContent='✕ '+(j.error||'error'); }catch(e){ pmsg.textContent='✕ '+e; } };
+      const del=s.querySelector('.pz-del');
+      if(del) del.onclick=async(e)=>{ e.preventDefault(); e.stopPropagation();
+        if(!confirm('¿Eliminar '+pieza.replace(/_/g,' ')+(edad?(' (edad '+edad+')'):'')+'?'))return;
+        pmsg.textContent='Eliminando…';
+        try{ const r=await fetch('/dash/borrar-pieza?tema='+encodeURIComponent(tema)+'&pieza='+encodeURIComponent(pieza)+(edad?('&edad='+edad):''),{method:'POST',headers:{'X-API-Key':KEY}});
+          const j=await r.json();
+          if(j.ok){ pmsg.textContent='✓ Pieza eliminada'; await refresh(); }
+          else pmsg.textContent='✕ '+(j.error||'error'); }catch(e){ pmsg.textContent='✕ '+e; } };
+    });
+  }
+  refresh();
 }
 const TIPO_LABEL={kit:'Kit completo',invitacion:'Solo invitación',cartel:'Solo afiche / cartel',actividades:'Pack de actividades',milestone:'Tarjetas mes a mes'};
 const TIPO_HINT={kit:'Todas las piezas: invitación + topper + stickers + afiche + separadores + …',invitacion:'Solo la invitación personalizable',cartel:'Solo el afiche / cartel de bienvenida',actividades:'Hojas para colorear + juegos',milestone:'Póster de los 12 meses del bebé'};
