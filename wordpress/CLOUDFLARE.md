@@ -4,7 +4,7 @@ Estado en CT101 (ya hecho por mí):
 - ✅ `cloudflared` instalado (`/usr/local/bin/cloudflared`, v2026.5.0).
 - ✅ `ct3d-kit.service` (el generador) corriendo en `localhost:8787` — `active` + `enabled`.
 - ✅ `ct3d-tunnel.service` instalado, **esperando el token**.
-- ✅ API key del servicio: `f7d40f06445b55ba39c7a13ccce95dd60e27ca44beccd28e`
+- ✅ API key del servicio: `(rotada — ahora vive en /root/ct3d-personalizador/.api_key, NO se commitea)`
 
 Falta **un solo paso tuyo**: crear el túnel con nombre en tu cuenta de Cloudflare y pegar el token.
 
@@ -29,7 +29,7 @@ Falta **un solo paso tuyo**: crear el túnel con nombre en tu cuenta de Cloudfla
 ## Configurar el plugin (una vez que el túnel anda)
 WooCommerce → **CT3D Kit**:
 - **URL del servicio**: `https://kit.casatridimensional.com`
-- **API Key**: `f7d40f06445b55ba39c7a13ccce95dd60e27ca44beccd28e`
+- **API Key**: `(rotada — ahora vive en /root/ct3d-personalizador/.api_key, NO se commitea)`
 
 Con eso, el preview en vivo y la descarga del cliente salen por la URL pública, y el link de descarga se arma solo según el host (no hay que tocar nada más).
 
