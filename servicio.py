@@ -149,7 +149,7 @@ def _session_valid(tok):
 _RL = collections.defaultdict(collections.deque)
 _RL_LOCK = threading.Lock()
 
-def _rate_ok(ip, limit=40, window=60):
+def _rate_ok(ip, limit=120, window=60):
     if not ip or ip.startswith("127.") or ip in ("::1", "localhost"):
         return True                       # llamadas internas (la tienda) no se limitan
     now = time.monotonic()
@@ -284,9 +284,11 @@ class Handler(BaseHTTPRequestHandler):
         u = urllib.parse.urlparse(self.path)
         path = u.path
         # A1: rate limit en endpoints públicos pesados (render Pillow / descargas).
+        # El admin (panel) queda EXENTO: carga muchas miniaturas (editor-bg.png) de una
+        # sola vez al listar temáticas y no debe autobloquearse.
         if path.startswith(("/preview", "/mate/preview", "/cliente-bg.png",
                             "/editor-bg.png", "/descarga/", "/piezas")) \
-                and not _rate_ok(self._client_ip()):
+                and not self._admin_ok(u) and not _rate_ok(self._client_ip()):
             return self._json(429, {"ok": False, "error": "demasiadas solicitudes, esperá un minuto"})
         if path == "/health":
             return self._json(200, {"ok": True, "servicio": "kit-anito-salvaje"})
