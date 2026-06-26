@@ -576,9 +576,15 @@ secs.forEach(s=>io.observe(s));
 
 // tema claro/oscuro (mismo criterio que el dashboard, recordado en localStorage)
 const tb=document.getElementById('themebtn');
-function applyTheme(t){document.body.dataset.theme=t;tb.textContent=t==='dark'?'☀️':'🌙';}
-applyTheme(localStorage.getItem('ct3d_kit_theme')||'light');
-tb.onclick=()=>{const t=document.body.dataset.theme==='dark'?'light':'dark';localStorage.setItem('ct3d_kit_theme',t);applyTheme(t);};
+function applyTheme(t){document.body.dataset.theme=t;if(tb)tb.textContent=t==='dark'?'☀️':'🌙';}
+let savedTheme='light';
+try{ savedTheme=localStorage.getItem('ct3d_kit_theme')||'light'; }catch(e){}
+applyTheme(savedTheme);
+if(tb) tb.addEventListener('click',()=>{
+  const t=document.body.dataset.theme==='dark'?'light':'dark';
+  try{ localStorage.setItem('ct3d_kit_theme',t); }catch(e){}
+  applyTheme(t);
+});
 
 // ── flechas del carrusel (se ocultan si no hay desborde) ──
 const carTrack=document.getElementById('lista'), carPrev=document.getElementById('car-prev'), carNext=document.getElementById('car-next');
