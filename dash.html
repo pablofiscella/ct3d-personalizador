@@ -407,7 +407,7 @@ async function publicar(tema,nombre,re){
   }catch(e){ msg('Error al publicar: '+e,'err'); }
 }
 async function eliminar(tema,nombre){
-  if(!confirm('¿Eliminar la publicación de "'+nombre+'" de la tienda?\n\nSe borra el producto de WooCommerce. La temática y sus imágenes quedan acá; podés volver a publicarla cuando quieras.'))return;
+  if(!confirm('¿Eliminar la publicación de "'+nombre+'" de la tienda?\n\nSe saca el producto de la tienda. La temática y sus imágenes quedan acá; podés volver a publicarla cuando quieras.'))return;
   msg('Eliminando publicación de "'+nombre+'"…');
   try{
     const j=await (await fetch('/dash/despublicar',{method:'POST',headers:{'Content-Type':'application/json','X-API-Key':KEY},body:JSON.stringify({tema})})).json();
