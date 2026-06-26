@@ -360,12 +360,14 @@ async function cargar(){
       </div>
       <div class="tema__actions">
         <button class="btn-ghost ed-open">Abrir editor</button>
+        <button class="btn-ghost piezas">🧩 Piezas del kit</button>
         ${pubRow}
         ${t.base
           ? `<button class="tema__del-tema" disabled title="Es la temática base; no se puede eliminar">Eliminar temática</button>`
           : `<button class="tema__del-tema delt">Eliminar temática</button>`}
       </div>`;
     d.querySelector('.ed-open').onclick=()=>openEditor(t.id,t.nombre);
+    d.querySelector('.piezas').onclick=()=>openPiezas(t.id,t.nombre);
     const bPub=d.querySelector('.pub'); if(bPub)bPub.onclick=()=>publicar(t.id,t.nombre,false);
     const bRep=d.querySelector('.rep'); if(bRep)bRep.onclick=()=>publicar(t.id,t.nombre,true);
     const bDel=d.querySelector('.del'); if(bDel)bDel.onclick=()=>eliminar(t.id,t.nombre);
@@ -373,6 +375,45 @@ async function cargar(){
     cont.appendChild(d);
   });
   updateCarNav();
+}
+async function openPiezas(tema, nombre){
+  let est; try{ est=await (await fetch('/dash/piezas-estado?tema='+encodeURIComponent(tema)+'&cb='+Date.now())).json(); }
+  catch(e){ alert('No se pudo cargar el estado de las piezas'); return; }
+  const edades=[1,2,3,4,5]; const have=new Set(est.archivos||[]);
+  const slot=(pieza,edad)=>{ const fn=edad?(pieza+'_'+edad+'.png'):(pieza+'.png'); const ok=have.has(fn);
+    return `<label class="pz-slot" data-pieza="${pieza}" data-edad="${edad||''}" style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border:1.5px dashed ${ok?'#2D8C5A':'#7a7a8a'};border-radius:8px;padding:7px 9px;min-width:62px;background:${ok?'rgba(45,140,90,.14)':'transparent'}">
+      <span class="pz-ico" style="font-size:17px">${ok?'✅':'⬆️'}</span>
+      <span style="font-size:11px;opacity:.85">${edad?('Edad '+edad):'Único'}</span>
+      <input type="file" accept="image/*" style="display:none"></label>`; };
+  const filasEdad=(est.piezas_edad||[]).map(p=>`<div style="margin:9px 0">
+      <div style="font-weight:700;margin-bottom:4px;text-transform:capitalize">${p.replace(/_/g,' ')}</div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap">${edades.map(e=>slot(p,e)).join('')}</div></div>`).join('');
+  const filasUniv=(est.piezas_univ||[]).map(p=>`<div style="display:inline-block;margin:6px 14px 6px 0">
+      <div style="font-weight:700;margin-bottom:4px;text-transform:capitalize">${p.replace(/_/g,' ')}</div>${slot(p,'')}</div>`).join('');
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:24px';
+  ov.innerHTML=`<div style="background:var(--bg-elevated,#1A1530);color:var(--ink-1,#fff);border-radius:14px;padding:20px;max-width:700px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.5)">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><h2 style="margin:0;font-size:18px">🧩 Piezas del kit — ${nombre}</h2>
+    <button id="pz-close" style="margin-left:auto;background:transparent;border:0;color:inherit;font-size:22px;cursor:pointer">✕</button></div>
+    <p style="opacity:.7;font-size:13px;margin:0 0 12px">Subí cada pieza (arrastrá o tocá). Las de arriba van por edad 1 a 5; las de abajo son únicas. ✅ = ya subida. El kit se arma solo con lo que subas.</p>
+    <div style="font-size:12px;font-weight:700;opacity:.6;margin-bottom:2px">POR EDAD</div>${filasEdad}
+    <div style="font-size:12px;font-weight:700;opacity:.6;margin:14px 0 4px">ÚNICAS (todas las edades)</div>${filasUniv}
+    <p id="pz-msg" style="margin-top:12px;font-size:13px;min-height:18px;opacity:.9"></p></div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('#pz-close').onclick=()=>ov.remove();
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+  ov.querySelectorAll('.pz-slot').forEach(s=>{ const inp=s.querySelector('input');
+    s.onclick=(e)=>{ if(e.target!==inp) inp.click(); };
+    inp.onchange=async()=>{ const f=inp.files[0]; if(!f) return; const msg=ov.querySelector('#pz-msg');
+      const pieza=s.dataset.pieza, edad=s.dataset.edad;
+      msg.textContent='Subiendo '+pieza+(edad?(' edad '+edad):'')+'…';
+      try{ const r=await fetch('/dash/upload-pieza?tema='+encodeURIComponent(tema)+'&pieza='+encodeURIComponent(pieza)+(edad?('&edad='+edad):''),
+            {method:'POST',headers:{'X-API-Key':KEY},body:f});
+        const j=await r.json();
+        if(j.ok){ s.style.borderColor='#2D8C5A'; s.style.background='rgba(45,140,90,.14)'; s.querySelector('.pz-ico').textContent='✅'; msg.textContent='✓ '+j.archivo+' subida'; }
+        else msg.textContent='✕ '+(j.error||'error');
+      }catch(e){ msg.textContent='✕ '+e; } };
+  });
 }
 async function cargarCfg(){
   let j; try{ j=await (await fetch('/dash/config?cb='+Date.now())).json(); }catch(e){ return; }
