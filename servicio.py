@@ -881,19 +881,15 @@ class Handler(BaseHTTPRequestHandler):
         if tema == base:
             return self._json(400, {"ok": False, "error": "no se puede eliminar la temática base"})
         warn = ""
-        # 1) bajar de la tienda si estaba publicada (no fatal si Woo falla)
-        pub = _pub_cfg()
-        ex = pub.get(tema) or {}
-        if ex.get("id"):
-            try:
-                _wc_call("DELETE", "products/%s?force=true" % ex["id"])
-            except urllib.error.HTTPError as e:
-                if e.code != 404:
-                    warn = "el producto quedó en la tienda (borralo a mano)"
-            except Exception:
-                warn = "no se pudo contactar la tienda; borrá el producto a mano"
-            pub.pop(tema, None)
-            _pub_save(pub)
+        # 1) ocultar de la tienda todos los productos de esta temática (no fatal si falla)
+        try:
+            st, est = _tienda_admin("GET", "/kit-admin/estado?tema=%s" % urllib.parse.quote(tema))
+            for p in (est.get("productos") or []):
+                if p.get("publicado"):
+                    _tienda_admin("POST", "/kit-admin/despublicar",
+                                  {"ml_id": p.get("ml_id"), "mostrar": False})
+        except Exception:
+            warn = "puede haber quedado algún producto en la tienda; revisalo"
         # 2) borrar la carpeta del tema (ruta validada: slug + existe + dentro de TEMAS_DIR)
         import shutil
         tdir = os.path.realpath(os.path.join(temas.TEMAS_DIR, tema))

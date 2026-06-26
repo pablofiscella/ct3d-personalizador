@@ -324,12 +324,9 @@ async function cargar(){
   temas.forEach(t=>{
     const edad=(t.edades&&t.edades[0])||1;
     const d=document.createElement('div'); d.className='tema';
-    const pubRow=t.publicado
-      ? `<div class="tema__pubrow"><button class="btn-primary rep">Republicar</button><button class="btn-danger del" title="Eliminar publicación de la tienda">🗑</button></div>`
-      : `<div class="tema__pubrow"><button class="btn-primary pub">Publicar</button></div>`;
+    const pubRow=`<div class="tema__pubrow"><button class="btn-primary pubmodal">🛒 Publicar en la tienda</button></div>`;
     d.innerHTML=`
       <div class="tema__img">
-        ${t.publicado?'<span class="tema__badge">● PUBLICADO</span>':''}
         <img loading="lazy" src="/editor-bg.png?pieza=invitacion&edad=${edad}&tema=${encodeURIComponent(t.id)}&cb=${cb}" alt="Fondo de ${esc(t.nombre)}">
         <div class="tema__cap">
           <div class="tema__name">${esc(t.nombre)}</div>
@@ -346,9 +343,7 @@ async function cargar(){
       </div>`;
     d.querySelector('.ed-open').onclick=()=>openEditor(t.id,t.nombre);
     d.querySelector('.piezas').onclick=()=>openPiezas(t.id,t.nombre);
-    const bPub=d.querySelector('.pub'); if(bPub)bPub.onclick=()=>publicar(t.id,t.nombre,false);
-    const bRep=d.querySelector('.rep'); if(bRep)bRep.onclick=()=>publicar(t.id,t.nombre,true);
-    const bDel=d.querySelector('.del'); if(bDel)bDel.onclick=()=>eliminar(t.id,t.nombre);
+    const bPubM=d.querySelector('.pubmodal'); if(bPubM)bPubM.onclick=()=>openPublicar(t.id,t.nombre);
     const bDelT=d.querySelector('.delt'); if(bDelT)bDelT.onclick=()=>eliminarTema(t.id,t.nombre);
     cont.appendChild(d);
   });
@@ -393,27 +388,50 @@ async function openPiezas(tema, nombre){
       }catch(e){ msg.textContent='✕ '+e; } };
   });
 }
-async function publicar(tema,nombre,re){
-  const precio=prompt((re?'Nuevo precio (vacío = sin cambios) de "':'Precio del kit "')+nombre+'" (ej. 5000):','');
-  if(precio===null)return;
-  msg((re?'Republicando "':'Publicando "')+nombre+'"…');
-  try{
-    const j=await (await fetch('/dash/publicar',{method:'POST',headers:{'Content-Type':'application/json','X-API-Key':KEY},body:JSON.stringify({tema,nombre:'Kit '+nombre,precio})})).json();
-    if(j.ok){
-      if(j.accion==='republicado') msg('✓ Cambios republicados en la tienda.','ok');
-      else { msg('✓ Producto creado como BORRADOR. Abrilo para revisarlo y publicarlo.','ok'); if(j.edit)window.open(j.edit,'_blank'); }
-      await cargar();
-    } else msg('Error al publicar: '+j.error,'err');
-  }catch(e){ msg('Error al publicar: '+e,'err'); }
-}
-async function eliminar(tema,nombre){
-  if(!confirm('¿Eliminar la publicación de "'+nombre+'" de la tienda?\n\nSe saca el producto de la tienda. La temática y sus imágenes quedan acá; podés volver a publicarla cuando quieras.'))return;
-  msg('Eliminando publicación de "'+nombre+'"…');
-  try{
-    const j=await (await fetch('/dash/despublicar',{method:'POST',headers:{'Content-Type':'application/json','X-API-Key':KEY},body:JSON.stringify({tema})})).json();
-    if(j.ok){ msg('✓ Publicación eliminada de la tienda.','ok'); await cargar(); }
-    else msg('Error al eliminar: '+j.error,'err');
-  }catch(e){ msg('Error al eliminar: '+e,'err'); }
+const TIPO_LABEL={kit:'Kit completo',invitacion:'Solo invitación',cartel:'Solo afiche / cartel',actividades:'Pack de actividades',milestone:'Tarjetas mes a mes'};
+const TIPO_HINT={kit:'Todas las piezas: invitación + topper + stickers + afiche + separadores + …',invitacion:'Solo la invitación personalizable',cartel:'Solo el afiche / cartel de bienvenida',actividades:'Hojas para colorear + juegos',milestone:'Póster de los 12 meses del bebé'};
+async function openPublicar(tema,nombre){
+  let est; try{ est=await (await fetch('/dash/pub-estado?tema='+encodeURIComponent(tema)+'&cb='+Date.now(),{headers:{'X-API-Key':KEY}})).json(); }
+  catch(e){ alert('No se pudo cargar el estado de publicación'); return; }
+  if(!est||!est.ok){ alert('Error: '+((est&&est.error)||'no se pudo consultar la tienda')); return; }
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:24px';
+  const filas=(est.productos||[]).map(p=>{
+    const precio=(p.precio!=null?p.precio:p.precio_sugerido)||'';
+    const estado=p.publicado?'<span style="color:#39d98a;font-size:12px">● publicado</span>':'<span style="color:#9a9aac;font-size:12px">○ oculto</span>';
+    return `<div class="pub-fila" data-tipo="${p.tipo}" data-mlid="${p.ml_id}" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.08)">
+      <div style="flex:1;min-width:160px">
+        <div style="font-weight:700">${TIPO_LABEL[p.tipo]||p.tipo} ${estado}</div>
+        <div style="font-size:12px;opacity:.6">${TIPO_HINT[p.tipo]||''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:3px">$<input class="pub-precio" type="number" min="0" value="${precio}" style="width:90px;padding:6px 8px;border-radius:7px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:inherit"></div>
+      <button class="pub-do btn-primary" style="padding:7px 13px">${p.publicado?'Actualizar':'Publicar'}</button>
+      ${p.publicado?'<button class="pub-hide btn-danger" style="padding:7px 11px">Ocultar</button>':''}
+    </div>`;
+  }).join('');
+  ov.innerHTML=`<div style="background:var(--bg-elevated,#1A1530);color:var(--ink-1,#fff);border-radius:14px;padding:20px;max-width:660px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.5)">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><h2 style="margin:0;font-size:18px">🛒 Publicar en la tienda — ${nombre}</h2>
+    <button id="pub-close" style="margin-left:auto;background:transparent;border:0;color:inherit;font-size:22px;cursor:pointer">✕</button></div>
+    <p style="opacity:.7;font-size:13px;margin:0 0 10px">Elegí qué vender de esta temática. Cada uno es un <b>producto aparte</b> en la tienda con su precio. Subí antes las piezas con 🧩 (el kit completo se arma con lo que subiste).</p>
+    ${filas}
+    <p id="pub-msg" style="margin-top:12px;font-size:13px;min-height:18px;opacity:.95"></p></div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('#pub-close').onclick=()=>ov.remove();
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+  const pmsg=ov.querySelector('#pub-msg');
+  const reload=()=>{ ov.remove(); openPublicar(tema,nombre); };
+  ov.querySelectorAll('.pub-fila').forEach(f=>{
+    const tipo=f.dataset.tipo, precioInp=f.querySelector('.pub-precio');
+    f.querySelector('.pub-do').onclick=async()=>{ pmsg.textContent='Publicando '+(TIPO_LABEL[tipo]||tipo)+'…';
+      try{ const j=await (await fetch('/dash/publicar',{method:'POST',headers:{'Content-Type':'application/json','X-API-Key':KEY},body:JSON.stringify({tema,tipo,precio:precioInp.value})})).json();
+        if(j.ok){ pmsg.innerHTML='✓ '+(TIPO_LABEL[tipo]||tipo)+' publicado. <a href="'+j.permalink+'" target="_blank" style="color:#8ab4ff">ver en la tienda ↗</a>'; setTimeout(reload,1100); }
+        else pmsg.textContent='✕ '+(j.error||'error'); }catch(e){ pmsg.textContent='✕ '+e; } };
+    const hb=f.querySelector('.pub-hide');
+    if(hb) hb.onclick=async()=>{ pmsg.textContent='Ocultando…';
+      try{ const j=await (await fetch('/dash/despublicar',{method:'POST',headers:{'Content-Type':'application/json','X-API-Key':KEY},body:JSON.stringify({tema,tipo,ml_id:f.dataset.mlid})})).json();
+        if(j.ok){ pmsg.textContent='✓ Ocultado de la tienda.'; setTimeout(reload,800); }
+        else pmsg.textContent='✕ '+(j.error||'error'); }catch(e){ pmsg.textContent='✕ '+e; } };
+  });
 }
 async function eliminarTema(tema,nombre){
   if(!confirm('¿ELIMINAR por completo la temática "'+nombre+'"?\n\nSe borran TODAS sus imágenes y configuración del panel, y si está publicada también el producto de la tienda.\n\nEsto NO se puede deshacer.'))return;
