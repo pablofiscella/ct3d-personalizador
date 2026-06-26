@@ -146,6 +146,22 @@ def _pieza_thumb(exdir, archivo):
     except Exception:
         return None
 
+def _sync_edades(tema):
+    """Ajusta tema.json['edades'] a las edades (1-7) que realmente tienen invitación
+    cargada. Así el editor en vivo y la tienda ofrecen una edad solo cuando hay arte."""
+    tdir = os.path.join(temas.TEMAS_DIR, tema)
+    edades = [n for n in range(1, 8) if os.path.isfile(os.path.join(tdir, f"invitacion_{n}.png"))]
+    if not edades:
+        return
+    cfg_path = os.path.join(tdir, "tema.json")
+    try:
+        cfg = json.load(open(cfg_path, encoding="utf-8")) if os.path.isfile(cfg_path) else {}
+        if cfg.get("edades") != edades:
+            cfg["edades"] = edades
+            json.dump(cfg, open(cfg_path, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    except Exception:
+        pass
+
 # C3: sesiones admin con token aleatorio en memoria (la cookie ya NO es la API key;
 # revocable y con TTL). Se pierden al reiniciar → el admin reentra por el link ?key=.
 _SESSIONS = {}
@@ -559,6 +575,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._dash_pub_estado(urllib.parse.parse_qs(u.query))
         if path == "/dash/pieza-img":
             return self._dash_pieza_img(urllib.parse.parse_qs(u.query))
+        if path == "/dash/base-estado":
+            return self._dash_base_estado(urllib.parse.parse_qs(u.query))
+        if path == "/dash/base-img":
+            return self._dash_base_img(urllib.parse.parse_qs(u.query))
         if path == "/dash/config":
             if not self._admin_ok(u):
                 return self._deny()
@@ -640,6 +660,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._dash_upload_pieza()
         if path == "/dash/borrar-pieza":
             return self._dash_borrar_pieza()
+        if path == "/dash/borrar-base":
+            return self._dash_borrar_base()
         if path == "/dash/crear":
             return self._dash_crear()
         if path == "/dash/config":
@@ -725,7 +747,7 @@ class Handler(BaseHTTPRequestHandler):
         q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         tema = slug(q.get("tema", [""])[0])
         sslot = q.get("slot", [""])[0]
-        if not re.match(r"^(invitacion|afiche)_[1-5]$|^animal_[1-9]$|^numero_[1-5]$", sslot):
+        if not re.match(r"^(invitacion|afiche)_[1-7]$|^animal_[1-9]$|^numero_[1-7]$", sslot):
             return self._json(400, {"ok": False, "error": "slot inválido"})
         if not tema:
             return self._json(400, {"ok": False, "error": "falta tema"})
@@ -737,6 +759,10 @@ class Handler(BaseHTTPRequestHandler):
             if sslot.startswith("invitacion") or sslot.startswith("afiche"):
                 os.makedirs(tdir, exist_ok=True)
                 im.save(os.path.join(tdir, sslot + ".png"))
+                generador._specs_cache.pop(tema, None)
+                _pieza_thumb(tdir, sslot + ".png")   # thumb listo para el modal de arte base
+                if sslot.startswith("invitacion"):
+                    _sync_edades(tema)               # nueva edad con invitación → la tienda la ofrece
             else:   # animalitos / números: van a recortes/, recortándoles el fondo
                 rdir = os.path.join(tdir, "recortes")
                 os.makedirs(rdir, exist_ok=True)
@@ -835,6 +861,67 @@ class Handler(BaseHTTPRequestHandler):
                 if os.path.isfile(thumb):
                     os.remove(thumb)
                 return self._json(200, {"ok": True, "archivo": name})
+            return self._json(404, {"ok": False, "error": "no existía"})
+        except Exception as e:
+            return self._json(500, {"ok": False, "error": str(e)})
+
+    # ---- Arte BASE de una temática existente (invitacion_N / afiche_N en la raíz) ----
+    def _dash_base_estado(self, q):
+        """Qué invitaciones/afiches base (edad 1-5) tiene cargados la temática."""
+        if not self._admin_ok():
+            return self._deny()
+        tema = slug((q.get("tema", [""]) or [""])[0])
+        tdir = os.path.join(temas.TEMAS_DIR, tema)
+        files = set(os.listdir(tdir)) if os.path.isdir(tdir) else set()
+        return self._json(200, {"ok": True, "tema": tema,
+                                "invitacion": [n for n in range(1, 8) if f"invitacion_{n}.png" in files],
+                                "afiche": [n for n in range(1, 8) if f"afiche_{n}.png" in files]})
+
+    def _dash_base_img(self, q):
+        """Miniatura del arte base (temas/<tema>/<slot>.png) para el modal."""
+        if not self._admin_ok():
+            return self._deny()
+        tema = slug((q.get("tema", [""]) or [""])[0])
+        slot = re.sub(r"[^a-z0-9_]", "", ((q.get("slot", [""]) or [""])[0] or "").lower())
+        if not re.match(r"^(invitacion|afiche)_[1-7]$", slot):
+            return self._json(400, {"ok": False, "error": "slot inválido"})
+        tdir = os.path.join(temas.TEMAS_DIR, tema)
+        archivo = slot + ".png"
+        if not os.path.isfile(os.path.join(tdir, archivo)):
+            return self._json(404, {"ok": False, "error": "no existe"})
+        thumb = _pieza_thumb(tdir, archivo)
+        if not thumb:
+            return self._json(500, {"ok": False, "error": "no se pudo generar la miniatura"})
+        data = open(thumb, "rb").read()
+        self.send_response(200)
+        self.send_header("Content-Type", "image/png")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers(); self.wfile.write(data)
+
+    def _dash_borrar_base(self):
+        """Borra un arte base (invitacion_N / afiche_N). La invitación de 1 año es
+        obligatoria (la usa el editor y el producto) → no se puede borrar."""
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        slot = re.sub(r"[^a-z0-9_]", "", (q.get("slot", [""])[0] or "").lower())
+        if not re.match(r"^(invitacion|afiche)_[1-7]$", slot):
+            return self._json(400, {"ok": False, "error": "slot inválido"})
+        if slot == "invitacion_1":
+            return self._json(400, {"ok": False, "error": "la invitación de 1 año es obligatoria, no se puede borrar (sí reemplazar)"})
+        tdir = os.path.join(temas.TEMAS_DIR, tema)
+        path = os.path.join(tdir, slot + ".png")
+        try:
+            if os.path.isfile(path):
+                os.remove(path); generador._specs_cache.pop(tema, None)
+                thumb = os.path.join(tdir, ".thumbs", slot + ".png")
+                if os.path.isfile(thumb):
+                    os.remove(thumb)
+                if slot.startswith("invitacion"):
+                    _sync_edades(tema)
+                return self._json(200, {"ok": True, "slot": slot})
             return self._json(404, {"ok": False, "error": "no existía"})
         except Exception as e:
             return self._json(500, {"ok": False, "error": str(e)})
