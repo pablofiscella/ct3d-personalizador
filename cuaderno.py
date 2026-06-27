@@ -219,123 +219,204 @@ def _draw_ws(dr, g, sol, y, mostrar_sol=False):
         dr.text((Wp / 2, yy), txt, font=fw, fill=INK, anchor="mm"); yy += 38
     return yy
 
+# ───────────────────────── sombra ─────────────────────────
+def _shadow(path):
+    m = Image.open(path).convert("RGBA")
+    s = Image.new("RGBA", m.size, (74, 68, 96, 255)); s.putalpha(m.split()[3]); return s
+
+# ───────────────────────── builder con paginado automático ─────────────────────────
+TOP = 180; BOT = Hp - 90
+
+class _Book:
+    def __init__(self, edad, mons, seed):
+        self.edad = edad; self.mons = mons; self.rnd = random.Random(seed)
+        self.pages = []; self.im = None; self.dr = None; self.y = 0; self.secn = 0; self.sol = {}
+    def _flush(self):
+        if self.im is not None: _foot(self.dr); self.pages.append(self.im)
+    def _newpage(self):
+        self._flush(); self.im, self.dr = _page(); _header(self.dr, self.edad); self.y = TOP
+    def ensure(self, h):
+        if self.im is None or self.y + h > BOT: self._newpage()
+    def sec(self, titulo, instr, h):
+        self.ensure(h + 100); self.secn += 1; self.y = _sec(self.dr, self.y, self.secn, titulo, instr)
+    def mon(self, i):
+        return self.mons[i % len(self.mons)] if self.mons else None
+    def finish(self):
+        self._flush()
+
+def _IM(p): return Image.open(p).convert("RGBA")
+
+# ───────────────────────── actividades ─────────────────────────
+def _a_laberinto(b, n):
+    for s in range(1, 60):
+        w = _maze(n, n, s)
+        if _maze_path(w, n, n): break
+    assert _maze_path(w, n, n)
+    b.sec("El laberinto", "Ayudá al monstruo a llegar a la torta.", n * 60 + 20)
+    b.y = _draw_maze(b.im, b.dr, w, n, n, b.y, b.mons) + 30
+    b.sol["maze"] = (w, n, n)
+
+def _a_sopa(b):
+    for s in range(5, 95):
+        g, sol = _wordsearch(PALABRAS, 12, s)
+        if g and all(_ws_has(g, x) for x in PALABRAS): break
+    assert g and all(_ws_has(g, x) for x in PALABRAS)
+    b.sec("Sopa de letras", "Encontrá las 8 palabras escondidas.", 12 * 50 + 170)
+    b.y = _draw_ws(b.dr, g, sol, b.y) + 20
+    b.sol["ws"] = (g, sol)
+
+def _a_puntos(b, nd):
+    b.sec("Uní los puntos", "Uní del 1 al %d y descubrí la figura." % nd, 460)
+    cx, cy, R = Wp / 2, b.y + 205, 190
+    for i, (px, py) in enumerate(_star_pts(cx, cy, R)[:nd]):
+        b.dr.ellipse([px - 9, py - 9, px + 9, py + 9], fill=NAVY)
+        b.dr.text((px + 14, py - 16), str(i + 1), font=_font(28), fill=COLS[i % len(COLS)])
+    b.y = cy + R + 30
+
+def _a_contar(b, na, nb):
+    b.sec("Contá", "¿Cuántos hay de cada uno? Escribí el número.", 430)
+    y = b.y; b.dr.rounded_rectangle([60, y, Wp - 60, y + 250], 20, outline=(220, 215, 225), width=3)
+    spots = []
+    def free():
+        for _ in range(400):
+            x = b.rnd.randint(150, Wp - 160); yy = b.rnd.randint(y + 55, y + 205)
+            if all((x - a) ** 2 + (yy - c) ** 2 > 150 ** 2 for a, c in spots): spots.append((x, yy)); return x, yy
+        return b.rnd.randint(150, Wp - 160), b.rnd.randint(y + 55, y + 205)
+    mA, mB = b.mon(1), b.mon(5)
+    for _ in range(na):
+        x, yy = free();  (mA and _paste_h(b.im, _IM(mA), x, yy, 105))
+    for _ in range(nb):
+        x, yy = free();  (mB and _paste_h(b.im, _IM(mB), x, yy, 105))
+    yb = y + 300
+    if mA: _paste_h(b.im, _IM(mA), 130, yb, 85)
+    b.dr.text((190, yb), "Amarillos:", font=_font(30), fill=INK, anchor="lm")
+    b.dr.rounded_rectangle([470, yb - 30, 535, yb + 30], 8, outline=NAVY, width=3)
+    if mB: _paste_h(b.im, _IM(mB), 130, yb + 90, 85)
+    b.dr.text((190, yb + 90), "Rojos:", font=_font(30), fill=INK, anchor="lm")
+    b.dr.rounded_rectangle([470, yb + 60, 535, yb + 120], 8, outline=NAVY, width=3)
+    b.y = yb + 150; b.sol["count"] = (na, nb)
+
+def _a_sombra(b, k):
+    if not b.mons: return
+    b.sec("Uní con su sombra", "Uní cada monstruo con su sombra.", k * 150 + 20)
+    idx = list(range(min(len(b.mons), 7))); b.rnd.shuffle(idx); idx = idx[:k]
+    right = idx[:]; b.rnd.shuffle(right)
+    y0 = b.y + 20; step = 150; lx = 330; rx = Wp - 330
+    for row, i in enumerate(idx):
+        yy = y0 + row * step
+        _paste_h(b.im, _IM(b.mons[i]), lx, yy, 120)
+        b.dr.ellipse([lx + 132, yy - 8, lx + 148, yy + 8], fill=NAVY)
+    for row, i in enumerate(right):
+        yy = y0 + row * step
+        _paste_h(b.im, _shadow(b.mons[i]), rx, yy, 120)
+        b.dr.ellipse([rx - 148, yy - 8, rx - 132, yy + 8], fill=NAVY)
+    b.y = y0 + k * step + 10
+
+def _a_diferente(b, rows):
+    if not b.mons: return
+    b.sec("¿Cuál es diferente?", "Marcá con un círculo el que no es igual.", rows * 135 + 20)
+    pool = list(range(min(len(b.mons), 7)))
+    for r in range(rows):
+        base, diff = b.rnd.sample(pool, 2); m = 5; odd = b.rnd.randrange(m)
+        yy = b.y + r * 135 + 55
+        for c in range(m):
+            _paste_h(b.im, _IM(b.mons[diff if c == odd else base]), 180 + c * 190, yy, 105)
+    b.y = b.y + rows * 135 + 20
+
+def _a_patron(b, rows):
+    if not b.mons: return
+    b.sec("Continuá el patrón", "Pintá o dibujá el que sigue en cada fila.", rows * 140 + 20)
+    pool = list(range(min(len(b.mons), 7)))
+    for r in range(rows):
+        pat = b.rnd.sample(pool, b.rnd.choice([2, 2, 3])); yy = b.y + r * 140 + 60; total = 6
+        for c in range(total):
+            x = 160 + c * 165
+            if c < total - 2:
+                _paste_h(b.im, _IM(b.mons[pat[c % len(pat)]]), x, yy, 100)
+            else:
+                b.dr.rounded_rectangle([x - 52, yy - 52, x + 52, yy + 52], 12, outline=NAVY, width=3)
+    b.y = b.y + rows * 140 + 20
+
+def _a_sumas(b, rows):
+    if not b.mons: return
+    b.sec("Sumas con monstruos", "Contá y escribí el resultado.", rows * 150 + 20)
+    res = []
+    for r in range(rows):
+        a = b.rnd.randint(1, 4); bb = b.rnd.randint(1, 4); yy = b.y + r * 150 + 65; x = 110
+        for _ in range(a): _paste_h(b.im, _IM(b.mon(1)), x, yy, 70); x += 74
+        b.dr.text((x + 6, yy), "+", font=_font(48), fill=INK, anchor="lm"); x += 66
+        for _ in range(bb): _paste_h(b.im, _IM(b.mon(5)), x, yy, 70); x += 74
+        b.dr.text((x + 6, yy), "=", font=_font(48), fill=INK, anchor="lm"); x += 66
+        b.dr.rounded_rectangle([x, yy - 42, x + 84, yy + 42], 10, outline=NAVY, width=3)
+        res.append(a + bb)
+    b.y = b.y + rows * 150 + 20; b.sol["sumas"] = res
+
+def _a_colorear(b):
+    b.ensure(1040); b.sec("Pintá el monstruo", "Coloreá como más te guste.", 60)
+    if b.mons:
+        la = _lineart(b.mon(3)).convert("RGBA"); h = 900; w = int(la.width * h / la.height)
+        la = la.resize((w, h), Image.LANCZOS); b.im.alpha_composite(la, (int(Wp / 2 - w / 2), b.y + 10))
+    b.y = BOT
+
+def _solucionario(b):
+    if not any(k in b.sol for k in ("maze", "ws", "sumas")): return
+    im, dr = _page(); _header(dr, b.edad)
+    dr.text((60, 200), "Solucionario", font=_font(40), fill=COLS[0]); y = 280
+    if "maze" in b.sol:
+        w, MW, MH = b.sol["maze"]; dr.text((60, y), "Laberinto:", font=_font(28), fill=VIOLET); y += 44
+        y = _draw_maze(im, dr, w, MW, MH, y, b.mons, sol=True) + 36
+    if "ws" in b.sol:
+        g, sol = b.sol["ws"]; dr.text((60, y), "Sopa de letras:", font=_font(28), fill=VIOLET); y += 44
+        y = _draw_ws(dr, g, sol, y, mostrar_sol=True) + 20
+    lines = []
+    if "count" in b.sol: lines.append("Contar — Amarillos: %d · Rojos: %d" % b.sol["count"])
+    if "sumas" in b.sol: lines.append("Sumas: " + ", ".join(str(x) for x in b.sol["sumas"]))
+    lines.append("(Sombra, ¿cuál es diferente? y patrón se revisan a simple vista.)")
+    yy = Hp - 70 - 34 * len(lines)
+    for ln in lines:
+        dr.text((60, yy), ln, font=_font(23), fill=INK); yy += 34
+    _foot(dr); b.pages.append(im)
+
 # ───────────────────────── plan por edad ─────────────────────────
 def _plan(edad):
     e = int(edad) if str(edad).isdigit() else 6
-    if e <= 3:  return {"maze": 0, "sopa": False, "dots": 6, "count": (3, 2)}
-    if e <= 5:  return {"maze": 7, "sopa": False, "dots": 8, "count": (5, 3)}
-    return {"maze": 9, "sopa": True, "dots": 10, "count": (5, 3)}
+    if e <= 3: return dict(maze=0, sopa=False, dots=6, count=(3, 2), sombra=3, diferente=2, patron=0, sumas=0)
+    if e <= 5: return dict(maze=7, sopa=False, dots=8, count=(5, 3), sombra=4, diferente=3, patron=3, sumas=0)
+    return dict(maze=9, sopa=True, dots=10, count=(5, 3), sombra=4, diferente=3, patron=3, sumas=3)
 
 # ───────────────────────── armado ─────────────────────────
 def generar_cuaderno(tema, edad, out_dir, seed=1):
     os.makedirs(out_dir, exist_ok=True)
-    mons = _extraer_monstruos(tema)
-    plan = _plan(edad)
-    pages = [_portada(mons, edad)]
-    sol_items = {}
-    secn = 0   # para el solucionario
-
-    # — página de laberinto (+ sopa si corresponde) —
-    if plan["maze"]:
-        im, dr = _page(); _header(dr, edad)
-        MW = MH = plan["maze"]
-        for s in range(seed, seed + 60):
-            w = _maze(MW, MH, s)
-            if _maze_path(w, MW, MH): break
-        assert _maze_path(w, MW, MH), "laberinto sin solución"
-        secn += 1; y = _sec(dr, 200, secn, "El laberinto", "Ayudá al monstruo a llegar a la torta.")
-        y = _draw_maze(im, dr, w, MW, MH, y, mons) + 50
-        if plan["sopa"]:
-            for s in range(seed + 5, seed + 90):
-                g, sol = _wordsearch(PALABRAS, 12, s)
-                if g and all(_ws_has(g, x) for x in PALABRAS): break
-            assert g and all(_ws_has(g, x) for x in PALABRAS), "sopa incompleta"
-            secn += 1; y = _sec(dr, y, secn, "Sopa de letras", "Encontrá las 8 palabras escondidas.")
-            _draw_ws(dr, g, sol, y)
-            sol_items["maze"] = (w, MW, MH); sol_items["ws"] = (g, sol)
-        else:
-            sol_items["maze"] = (w, MW, MH)
-        _foot(dr); pages.append(im)
-
-    # — página unir puntos + contar —
-    im, dr = _page(); _header(dr, edad)
-    nd = plan["dots"]
-    secn += 1; y = _sec(dr, 200, secn, "Uní los puntos", "Uní del 1 al %d y descubrí la figura." % nd)
-    cx, cy, R = Wp / 2, y + 240, 210
-    pts = _star_pts(cx, cy, R)[:nd]
-    for i, (px, py) in enumerate(pts):
-        dr.ellipse([px - 9, py - 9, px + 9, py + 9], fill=NAVY)
-        dr.text((px + 14, py - 16), str(i + 1), font=_font(28), fill=COLS[i % len(COLS)])
-    y = cy + R + 50
-    na, nb = plan["count"]
-    secn += 1; y = _sec(dr, y, secn, "Contá", "¿Cuántos hay de cada uno? Escribí el número.") + 16
-    dr.rounded_rectangle([60, y, Wp - 60, y + 300], 20, outline=(220, 215, 225), width=3)
-    rnd = random.Random(seed + 3); spots = []
-    def free():
-        for _ in range(400):
-            x = rnd.randint(150, Wp - 160); yy = rnd.randint(y + 70, y + 250)
-            if all((x - a) ** 2 + (yy - b) ** 2 > 165 ** 2 for a, b in spots): spots.append((x, yy)); return x, yy
-        return rnd.randint(150, Wp - 160), rnd.randint(y + 70, y + 250)
-    mA = mons[1 % len(mons)] if mons else None; mB = mons[5 % len(mons)] if mons else None
-    for _ in range(na):
-        x, yy = free()
-        if mA: _paste_h(im, Image.open(mA).convert("RGBA"), x, yy, 115)
-    for _ in range(nb):
-        x, yy = free()
-        if mB: _paste_h(im, Image.open(mB).convert("RGBA"), x, yy, 115)
-    yb = y + 360
-    if mA: _paste_h(im, Image.open(mA).convert("RGBA"), 130, yb, 95)
-    dr.text((195, yb), "Amarillos:", font=_font(30), fill=INK, anchor="lm")
-    dr.rounded_rectangle([470, yb - 32, 540, yb + 32], 8, outline=NAVY, width=3)
-    if mB: _paste_h(im, Image.open(mB).convert("RGBA"), 130, yb + 95, 95)
-    dr.text((195, yb + 95), "Rojos:", font=_font(30), fill=INK, anchor="lm")
-    dr.rounded_rectangle([470, yb + 63, 540, yb + 127], 8, outline=NAVY, width=3)
-    sol_items["count"] = (na, nb)
-    _foot(dr); pages.append(im)
-
-    # — página colorear —
-    im, dr = _page(); _header(dr, edad)
-    secn += 1; _sec(dr, 200, secn, "Pintá el monstruo", "Coloreá como más te guste.")
-    if mons:
-        la = _lineart(mons[3 % len(mons)]).convert("RGBA")
-        h = 950; w = int(la.width * h / la.height); la = la.resize((w, h), Image.LANCZOS)
-        im.alpha_composite(la, (int(Wp / 2 - w / 2), 360))
-    _foot(dr); pages.append(im)
-
-    # — solucionario (solo si hay laberinto o sopa que resolver) —
-    if "maze" in sol_items or "ws" in sol_items:
-        im, dr = _page(); _header(dr, edad)
-        dr.text((60, 200), "Solucionario", font=_font(40), fill=COLS[0])
-        y = 280
-        if "maze" in sol_items:
-            w, MW, MH = sol_items["maze"]
-            dr.text((60, y), "Laberinto:", font=_font(28), fill=VIOLET); y += 44
-            y = _draw_maze(im, dr, w, MW, MH, y, mons, sol=True) + 40
-        if "ws" in sol_items:
-            g, sol = sol_items["ws"]
-            dr.text((60, y), "Sopa de letras:", font=_font(28), fill=VIOLET); y += 44
-            _draw_ws(dr, g, sol, y, mostrar_sol=True)
-        dr.text((60, Hp - 140), "Contar — Amarillos: %d   Rojos: %d" % sol_items["count"], font=_font(26), fill=INK)
-        _foot(dr); pages.append(im)
-
-    rgb = [p.convert("RGB") for p in pages]
-    # PNGs (siempre; es lo que entrega el motor del kit en el ZIP)
+    mons = _extraer_monstruos(tema); plan = _plan(edad)
+    b = _Book(edad, mons, seed)
+    b.pages.append(_portada(mons, edad))
+    if plan["maze"]: _a_laberinto(b, plan["maze"])
+    if plan["sopa"]: _a_sopa(b)
+    _a_puntos(b, plan["dots"])
+    _a_contar(b, *plan["count"])
+    if plan["sombra"]: _a_sombra(b, plan["sombra"])
+    if plan["diferente"]: _a_diferente(b, plan["diferente"])
+    if plan["patron"]: _a_patron(b, plan["patron"])
+    if plan["sumas"]: _a_sumas(b, plan["sumas"])
+    _a_colorear(b)
+    b.finish()
+    _solucionario(b)
+    rgb = [p.convert("RGB") for p in b.pages]
     paths = []
     for i, p in enumerate(rgb):
-        pp = os.path.join(out_dir, f"pg{i}.png"); p.save(pp); paths.append(pp)
-    # PDF opcional (depende de que el PIL tenga JPEG)
+        pp = os.path.join(out_dir, "pg%d.png" % i); p.save(pp); paths.append(pp)
     out = paths
     try:
-        pdf = os.path.join(out_dir, f"cuaderno_{tema}_{edad}.pdf")
+        pdf = os.path.join(out_dir, "cuaderno_%s_%s.pdf" % (tema, edad))
         rgb[0].save(pdf, save_all=True, append_images=rgb[1:]); out = pdf
-    except Exception as e:
+    except Exception:
         out = paths
-    return out, len(pages)
+    return out, len(b.pages)
 
 
 if __name__ == "__main__":
     import sys
     tema = sys.argv[1] if len(sys.argv) > 1 else "monstruos"
     edad = sys.argv[2] if len(sys.argv) > 2 else "6"
-    pdf, n = generar_cuaderno(tema, edad, "/root/.claude/jobs/2ed32d0f/tmp/act/out")
-    print("OK", pdf, n, "páginas")
+    o, n = generar_cuaderno(tema, edad, "/root/.claude/jobs/2ed32d0f/tmp/act/out")
+    print("OK", n, "páginas")
