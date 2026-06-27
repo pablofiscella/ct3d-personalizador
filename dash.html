@@ -471,6 +471,7 @@ async function openCuaderno(tema, nombre){
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;flex-wrap:wrap">
       <h2 style="margin:0;font-size:18px">📓 Cuaderno — ${nombre}</h2>
       <label style="font-size:13px;margin-left:6px">Edad: <select id="cu-edad" style="margin-left:4px;padding:4px 6px;border-radius:6px;background:var(--bg-sunken,#222);color:inherit;border:1px solid var(--border,#444)">${[1,2,3,4,5,6,7].map(e=>'<option value="'+e+'"'+(e==6?' selected':'')+'>'+e+' años</option>').join('')}</select></label>
+      <label id="cu-add" class="btn-ghost" style="font-size:12px;padding:5px 10px;cursor:pointer" title="Agregar una página tuya al final">➕ Agregar página<input type="file" accept="image/*" style="display:none"></label>
       <button id="cu-regen" class="btn-ghost" style="font-size:12px;padding:5px 10px">🎲 Regenerar</button>
       <button id="cu-close" style="margin-left:auto;background:transparent;border:0;color:inherit;font-size:22px;cursor:pointer">✕</button>
     </div>
@@ -481,11 +482,13 @@ async function openCuaderno(tema, nombre){
   ov.querySelector('#cu-close').onclick=()=>ov.remove();
   ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
   const body=ov.querySelector('#cu-body'), msg=ov.querySelector('#cu-msg'), selE=ov.querySelector('#cu-edad');
+  let lastEst=null;
   async function load(){
     const edad=selE.value; body.innerHTML='Generando cuaderno… (puede tardar unos segundos)';
     let est; try{ est=await (await fetch('/dash/cuaderno-estado?tema='+encodeURIComponent(tema)+'&edad='+edad+'&cb='+Date.now(),{headers:{'X-API-Key':KEY}})).json(); }
     catch(e){ body.innerHTML='No se pudo cargar.'; return; }
     if(!est.ok){ body.innerHTML='Error: '+(est.error||'?'); return; }
+    lastEst=est;
     const cb=Date.now();
     body.innerHTML='<div style="display:flex;gap:14px;flex-wrap:wrap">'+est.paginas.map(p=>{
       const q='tema='+encodeURIComponent(tema)+'&edad='+edad+'&idx='+p.idx;
@@ -518,6 +521,12 @@ async function openCuaderno(tema, nombre){
     msg.textContent='Regenerando…';
     await fetch('/dash/cuaderno-regenerar?tema='+encodeURIComponent(tema)+'&edad='+selE.value,{method:'POST',headers:{'X-API-Key':KEY}});
     msg.textContent='✓ Cuaderno regenerado'; load(); };
+  ov.querySelector('#cu-add').querySelector('input').onchange=async(ev)=>{ const f=ev.target.files[0]; if(!f||!lastEst)return;
+    const nextIdx=Math.max(lastEst.n, ...lastEst.paginas.map(p=>p.idx+1));   // índice nuevo al final
+    msg.textContent='Agregando página…';
+    try{ const j=await (await fetch('/dash/cuaderno-upload?tema='+encodeURIComponent(tema)+'&edad='+selE.value+'&idx='+nextIdx,{method:'POST',headers:{'X-API-Key':KEY},body:f})).json();
+      msg.textContent=j.ok?'✓ Página agregada al final':'✕ '+(j.error||'error'); if(j.ok)load(); }catch(e){ msg.textContent='✕ '+e; }
+    ev.target.value=''; };
   load();
 }
 const TIPO_LABEL={kit:'Kit completo',invitacion:'Solo invitación',cartel:'Solo afiche / cartel',actividades:'Pack de actividades',milestone:'Tarjetas mes a mes'};
