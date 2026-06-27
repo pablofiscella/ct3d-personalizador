@@ -346,6 +346,7 @@ async function cargar(){
         <button class="btn-ghost ed-open">Abrir editor</button>
         <button class="btn-ghost arte">🎨 Invitación y afiche</button>
         <button class="btn-ghost piezas">🧩 Piezas del kit</button>
+        <button class="btn-ghost cuad">📓 Cuaderno actividades</button>
         ${pubRow}
         ${t.base
           ? `<button class="tema__del-tema" disabled title="Es la temática base; no se puede eliminar">Eliminar temática</button>`
@@ -354,6 +355,7 @@ async function cargar(){
     d.querySelector('.ed-open').onclick=()=>openEditor(t.id,t.nombre);
     d.querySelector('.arte').onclick=()=>openBase(t.id,t.nombre);
     d.querySelector('.piezas').onclick=()=>openPiezas(t.id,t.nombre);
+    d.querySelector('.cuad').onclick=()=>openCuaderno(t.id,t.nombre);
     const bPubM=d.querySelector('.pubmodal'); if(bPubM)bPubM.onclick=()=>openPublicar(t.id,t.nombre);
     const bDelT=d.querySelector('.delt'); if(bDelT)bDelT.onclick=()=>eliminarTema(t.id,t.nombre);
     cont.appendChild(d);
@@ -461,6 +463,62 @@ async function openBase(tema, nombre){
     });
   }
   refresh();
+}
+async function openCuaderno(tema, nombre){
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:24px';
+  ov.innerHTML=`<div style="background:var(--bg-elevated,#1A1530);color:var(--ink-1,#fff);border-radius:14px;padding:20px;max-width:900px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.5)">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;flex-wrap:wrap">
+      <h2 style="margin:0;font-size:18px">📓 Cuaderno — ${nombre}</h2>
+      <label style="font-size:13px;margin-left:6px">Edad: <select id="cu-edad" style="margin-left:4px;padding:4px 6px;border-radius:6px;background:var(--bg-sunken,#222);color:inherit;border:1px solid var(--border,#444)">${[1,2,3,4,5,6,7].map(e=>'<option value="'+e+'"'+(e==6?' selected':'')+'>'+e+' años</option>').join('')}</select></label>
+      <button id="cu-regen" class="btn-ghost" style="font-size:12px;padding:5px 10px">🎲 Regenerar</button>
+      <button id="cu-close" style="margin-left:auto;background:transparent;border:0;color:inherit;font-size:22px;cursor:pointer">✕</button>
+    </div>
+    <p style="opacity:.72;font-size:13px;margin:0 0 12px">Cada página del cuaderno. <b>⬇️ descargá</b> para corregirla, <b>🔁 reemplazá</b> subiendo tu versión, o <b>🗑️ quitá</b> la que no te guste. Lo que no toques se entrega como está. Es lo que reciben todos los compradores de esta edad.</p>
+    <div id="cu-body" style="min-height:60px">Cargando…</div>
+    <p id="cu-msg" style="margin-top:12px;font-size:13px;min-height:18px;opacity:.95"></p></div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('#cu-close').onclick=()=>ov.remove();
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+  const body=ov.querySelector('#cu-body'), msg=ov.querySelector('#cu-msg'), selE=ov.querySelector('#cu-edad');
+  async function load(){
+    const edad=selE.value; body.innerHTML='Generando cuaderno… (puede tardar unos segundos)';
+    let est; try{ est=await (await fetch('/dash/cuaderno-estado?tema='+encodeURIComponent(tema)+'&edad='+edad+'&cb='+Date.now(),{headers:{'X-API-Key':KEY}})).json(); }
+    catch(e){ body.innerHTML='No se pudo cargar.'; return; }
+    if(!est.ok){ body.innerHTML='Error: '+(est.error||'?'); return; }
+    const cb=Date.now();
+    body.innerHTML='<div style="display:flex;gap:14px;flex-wrap:wrap">'+est.paginas.map(p=>{
+      const q='tema='+encodeURIComponent(tema)+'&edad='+edad+'&idx='+p.idx;
+      const src='/dash/cuaderno-img?'+q+'&cb='+cb, dl='/dash/cuaderno-img?'+q+'&full=1';
+      return '<div style="width:150px;text-align:center;opacity:'+(p.removed?0.45:1)+'">'
+        +'<div style="position:relative">'
+        +'<img src="'+src+'" style="width:150px;border:2px solid '+(p.override?'#2D8C5A':'rgba(255,255,255,.15)')+';border-radius:8px;background:#fff;display:block">'
+        +(p.removed?'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:700;color:#C73E3A;background:rgba(0,0,0,.25)">QUITADA</div>':'')
+        +(p.override?'<span style="position:absolute;top:5px;left:5px;background:#2D8C5A;color:#fff;font-size:10px;padding:1px 6px;border-radius:6px">tuya</span>':'')
+        +'</div>'
+        +'<div style="font-size:11px;opacity:.7;margin:3px 0">Página '+(p.idx+1)+(p.extra?' (extra)':'')+'</div>'
+        +'<div style="display:flex;gap:8px;justify-content:center;font-size:17px">'
+        +'<a href="'+dl+'" target="_blank" title="Descargar para corregir" style="text-decoration:none">⬇️</a>'
+        +'<label title="Reemplazar por tu versión" style="cursor:pointer">🔁<input type="file" accept="image/*" style="display:none" class="cu-up" data-idx="'+p.idx+'"></label>'
+        +(p.removed
+          ? '<button class="cu-rest" data-idx="'+p.idx+'" title="Restaurar" style="background:0;border:0;cursor:pointer;font-size:17px">↩️</button>'
+          : '<button class="cu-del" data-idx="'+p.idx+'" title="Quitar" style="background:0;border:0;cursor:pointer;font-size:17px">🗑️</button>')
+        +'</div></div>';
+    }).join('')+'</div>';
+    body.querySelectorAll('.cu-up').forEach(inp=>{ inp.onchange=async()=>{ const f=inp.files[0]; if(!f)return;
+      msg.textContent='Subiendo página '+(+inp.dataset.idx+1)+'…';
+      try{ const j=await (await fetch('/dash/cuaderno-upload?tema='+encodeURIComponent(tema)+'&edad='+edad+'&idx='+inp.dataset.idx,{method:'POST',headers:{'X-API-Key':KEY},body:f})).json();
+        msg.textContent=j.ok?'✓ Página reemplazada por la tuya':'✕ '+(j.error||'error'); if(j.ok)load(); }catch(e){ msg.textContent='✕ '+e; } }; });
+    const act=(idx,accion)=>fetch('/dash/cuaderno-borrar?tema='+encodeURIComponent(tema)+'&edad='+edad+'&idx='+idx+'&accion='+accion,{method:'POST',headers:{'X-API-Key':KEY}}).then(r=>r.json());
+    body.querySelectorAll('.cu-del').forEach(b=>{ b.onclick=async()=>{ msg.textContent='Quitando…'; const j=await act(b.dataset.idx,'quitar'); msg.textContent=j.ok?'✓ Página quitada':'✕'; if(j.ok)load(); }; });
+    body.querySelectorAll('.cu-rest').forEach(b=>{ b.onclick=async()=>{ const j=await act(b.dataset.idx,'restaurar'); msg.textContent=j.ok?'✓ Restaurada':'✕'; if(j.ok)load(); }; });
+  }
+  selE.onchange=load;
+  ov.querySelector('#cu-regen').onclick=async()=>{ if(!confirm('¿Generar un cuaderno nuevo (otra distribución) para esta edad? Tus reemplazos/quitados se mantienen.'))return;
+    msg.textContent='Regenerando…';
+    await fetch('/dash/cuaderno-regenerar?tema='+encodeURIComponent(tema)+'&edad='+selE.value,{method:'POST',headers:{'X-API-Key':KEY}});
+    msg.textContent='✓ Cuaderno regenerado'; load(); };
+  load();
 }
 const TIPO_LABEL={kit:'Kit completo',invitacion:'Solo invitación',cartel:'Solo afiche / cartel',actividades:'Pack de actividades',milestone:'Tarjetas mes a mes'};
 const TIPO_HINT={kit:'Todas las piezas: invitación + topper + stickers + afiche + separadores + …',invitacion:'Solo la invitación personalizable',cartel:'Solo el afiche / cartel de bienvenida',actividades:'Hojas para colorear + juegos',milestone:'Póster de los 12 meses del bebé'};
