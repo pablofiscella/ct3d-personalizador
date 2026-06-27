@@ -344,6 +344,15 @@ def piezas_nombres(tipo, tema="safari"):
 def piezas_meta(tipo, tema="safari"):
     """Lista [{idx, nombre, label}] de las piezas de un tipo/tema (para la galería de la ficha).
     El tema importa: los kits con arte estática (extras/) tienen piezas distintas por tema."""
+    if tipo == "actividades":
+        try:
+            import cuaderno
+            ps = cuaderno.preview_paths(tema)
+            if ps:
+                return [{"idx": i, "nombre": "p%02d" % i, "label": "Página %d" % (i + 1)}
+                        for i in range(len(ps))]
+        except Exception:
+            pass
     return [{"idx": i, "nombre": n, "label": pieza_label(n)}
             for i, n in enumerate(piezas_nombres(tipo, tema))]
 
@@ -387,7 +396,12 @@ def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):
     elif pieza == "cartel":
         img = render(data, specs_de(tema)["cartel"])
     elif pieza == "actividades":
-        img = colorear(data, tema)
+        try:
+            import cuaderno
+            ps = cuaderno.preview_paths(tema)
+            img = Image.open(ps[0]).convert("RGB") if ps else colorear(data, tema)
+        except Exception:
+            img = colorear(data, tema)
     elif pieza == "milestone":
         img = milestone(data, tema)
     else:
@@ -399,6 +413,17 @@ def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):
 
 def preview_pieza(data, tema, tipo, idx, max_px=900):
     """Vista previa de UNA pieza específica del tipo (para la galería 'qué trae el ZIP')."""
+    if tipo == "actividades":
+        try:
+            import cuaderno
+            ps = cuaderno.preview_paths(tema)
+            if ps:
+                idx = max(0, min(len(ps) - 1, int(idx)))
+                img = Image.open(ps[idx]).convert("RGB")
+                img.thumbnail((max_px, max_px), Image.LANCZOS)
+                return img
+        except Exception:
+            pass
     items = piezas_tipo(tema, tipo)
     if not items:
         return None

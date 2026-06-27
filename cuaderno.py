@@ -385,7 +385,7 @@ def _plan(edad):
     return dict(maze=9, sopa=True, dots=10, count=(5, 3), sombra=4, diferente=3, patron=3, sumas=3)
 
 # ───────────────────────── armado ─────────────────────────
-def paginas(tema, edad, seed=1):
+def paginas(tema, edad, seed=1, con_solucionario=True):
     """Devuelve la lista de páginas (PIL.Image) del cuaderno, ya verificadas.
     Es lo que consume el motor del kit para empaquetar el ZIP del producto."""
     mons = _extraer_monstruos(tema); plan = _plan(edad)
@@ -401,8 +401,25 @@ def paginas(tema, edad, seed=1):
     if plan["sumas"]: _a_sumas(b, plan["sumas"])
     _a_colorear(b)
     b.finish()
-    _solucionario(b)
+    if con_solucionario:
+        _solucionario(b)
     return b.pages
+
+def preview_paths(tema, edad="6"):
+    """Páginas del cuaderno cacheadas como PNG (para la galería de la ficha de la
+    tienda). Sin solucionario (no spoilea respuestas). Se regenera si no existe."""
+    cache = os.path.join(TEMAS, tema, "actividades_preview")
+    pngs = sorted(glob.glob(os.path.join(cache, "p*.png")))
+    if pngs:
+        return pngs
+    try:
+        pgs = paginas(tema, str(edad), con_solucionario=False)
+    except Exception:
+        return []
+    os.makedirs(cache, exist_ok=True); out = []
+    for i, p in enumerate(pgs):
+        pp = os.path.join(cache, "p%02d.png" % i); p.convert("RGB").save(pp); out.append(pp)
+    return out
 
 def generar_cuaderno(tema, edad, out_dir, seed=1):
     os.makedirs(out_dir, exist_ok=True)
