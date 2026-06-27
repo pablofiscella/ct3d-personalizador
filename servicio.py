@@ -580,6 +580,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._dash_base_estado(urllib.parse.parse_qs(u.query))
         if path == "/dash/base-img":
             return self._dash_base_img(urllib.parse.parse_qs(u.query))
+        if path == "/dash/cuaderno-estado":
+            return self._dash_cuaderno_estado(urllib.parse.parse_qs(u.query))
+        if path == "/dash/cuaderno-img":
+            return self._dash_cuaderno_img(urllib.parse.parse_qs(u.query))
         if path == "/dash/config":
             if not self._admin_ok(u):
                 return self._deny()
@@ -663,6 +667,12 @@ class Handler(BaseHTTPRequestHandler):
             return self._dash_borrar_pieza()
         if path == "/dash/borrar-base":
             return self._dash_borrar_base()
+        if path == "/dash/cuaderno-upload":
+            return self._dash_cuaderno_upload()
+        if path == "/dash/cuaderno-borrar":
+            return self._dash_cuaderno_borrar()
+        if path == "/dash/cuaderno-regenerar":
+            return self._dash_cuaderno_regenerar()
         if path == "/dash/crear":
             return self._dash_crear()
         if path == "/dash/config":
@@ -924,6 +934,100 @@ class Handler(BaseHTTPRequestHandler):
                     _sync_edades(tema)
                 return self._json(200, {"ok": True, "slot": slot})
             return self._json(404, {"ok": False, "error": "no existía"})
+        except Exception as e:
+            return self._json(500, {"ok": False, "error": str(e)})
+
+    # ---- Cuaderno de actividades: ver/quitar/descargar/subir páginas (override) ----
+    @staticmethod
+    def _cuad_args(q):
+        tema = slug((q.get("tema", [""]) or [""])[0])
+        edad = (re.sub(r"\D", "", (q.get("edad", ["6"]) or ["6"])[0]) or "6")[:2]
+        idx = int(re.sub(r"\D", "", (q.get("idx", ["0"]) or ["0"])[0]) or "0")
+        return tema, edad, idx
+
+    def _dash_cuaderno_estado(self, q):
+        if not self._admin_ok():
+            return self._deny()
+        tema, edad, _ = self._cuad_args(q)
+        try:
+            import cuaderno
+            return self._json(200, {"ok": True, **cuaderno.estado(tema, edad)})
+        except Exception as e:
+            return self._json(500, {"ok": False, "error": str(e)})
+
+    def _dash_cuaderno_img(self, q):
+        if not self._admin_ok():
+            return self._deny()
+        tema, edad, idx = self._cuad_args(q)
+        full = (q.get("full", ["0"]) or ["0"])[0] == "1"
+        try:
+            import cuaderno
+            img = cuaderno.pagina_efectiva(tema, edad, idx)
+            if img is None:
+                return self._json(404, {"ok": False, "error": "no existe"})
+            if not full:
+                img = img.copy(); img.thumbnail((480, 480), Image.LANCZOS)
+            buf = io.BytesIO(); img.save(buf, "PNG"); data = buf.getvalue()
+        except Exception as e:
+            return self._json(500, {"ok": False, "error": str(e)})
+        self.send_response(200)
+        self.send_header("Content-Type", "image/png")
+        self.send_header("Cache-Control", "no-store")
+        if full:
+            self.send_header("Content-Disposition",
+                             'attachment; filename="cuaderno_%s_%s_pg%02d.png"' % (tema, edad, idx))
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers(); self.wfile.write(data)
+
+    def _dash_cuaderno_upload(self):
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema, edad, idx = self._cuad_args(q)
+        raw = self._body()
+        if raw is None:
+            return self._json(413, {"ok": False, "error": "imagen demasiado grande"})
+        try:
+            import cuaderno
+            im = Image.open(io.BytesIO(raw)).convert("RGB")
+            od = cuaderno._override_dir(tema, edad); os.makedirs(od, exist_ok=True)
+            im.save(os.path.join(od, "pg%02d.png" % idx))
+            rm = os.path.join(od, "pg%02d.removed" % idx)
+            if os.path.exists(rm):
+                os.remove(rm)               # subir una página la "des-quita"
+            return self._json(200, {"ok": True, "idx": idx, "size": list(im.size)})
+        except Exception as e:
+            return self._json(500, {"ok": False, "error": "upload falló: %s" % e})
+
+    def _dash_cuaderno_borrar(self):
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema, edad, idx = self._cuad_args(q)
+        acc = (q.get("accion", ["quitar"]) or ["quitar"])[0]
+        try:
+            import cuaderno
+            od = cuaderno._override_dir(tema, edad); os.makedirs(od, exist_ok=True)
+            ovp = os.path.join(od, "pg%02d.png" % idx); rmp = os.path.join(od, "pg%02d.removed" % idx)
+            if acc == "restaurar":          # vuelve a la página canónica original
+                for p in (rmp, ovp):
+                    if os.path.exists(p):
+                        os.remove(p)
+            else:                           # quitar la página del cuaderno
+                open(rmp, "w").close()
+            return self._json(200, {"ok": True, "idx": idx, "accion": acc})
+        except Exception as e:
+            return self._json(500, {"ok": False, "error": str(e)})
+
+    def _dash_cuaderno_regenerar(self):
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema, edad, _ = self._cuad_args(q)
+        try:
+            import cuaderno
+            cuaderno.regenerar(tema, edad)
+            return self._json(200, {"ok": True})
         except Exception as e:
             return self._json(500, {"ok": False, "error": str(e)})
 

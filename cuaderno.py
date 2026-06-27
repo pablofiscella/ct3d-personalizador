@@ -453,6 +453,69 @@ def generar_cuaderno(tema, edad, out_dir, seed=1):
     return out, len(rgb)
 
 
+# ───────────── cuaderno canónico + overrides del usuario (panel del kit) ─────────────
+# Cada (tema, edad) tiene UN cuaderno canónico cacheado en actividades_cache/<edad>/b*.png.
+# Pablo lo cura desde el panel: reemplaza (override pg*.png) o quita (pg*.removed) páginas.
+# Todos los compradores reciben esa versión curada (el cuaderno no tiene personalización).
+def _cache_dir(tema, edad): return os.path.join(TEMAS, tema, "actividades_cache", str(edad))
+def _override_dir(tema, edad): return os.path.join(TEMAS, tema, "actividades_override", str(edad))
+
+def base_paginas(tema, edad, seed=1):
+    """Cuaderno canónico (cacheado). Se genera una sola vez por tema+edad."""
+    cd = _cache_dir(tema, edad)
+    pngs = sorted(glob.glob(os.path.join(cd, "b*.png")))
+    if pngs:
+        return [Image.open(p).convert("RGB") for p in pngs]
+    pgs = [p.convert("RGB") for p in paginas(tema, str(edad), seed)]
+    os.makedirs(cd, exist_ok=True)
+    for i, p in enumerate(pgs):
+        p.save(os.path.join(cd, "b%02d.png" % i))
+    return pgs
+
+def pagina_efectiva(tema, edad, idx, base=None):
+    """Página final del índice idx: el override del usuario si existe, si no la canónica."""
+    ov = os.path.join(_override_dir(tema, edad), "pg%02d.png" % idx)
+    if os.path.isfile(ov):
+        return Image.open(ov).convert("RGB")
+    base = base if base is not None else base_paginas(tema, edad)
+    return base[idx] if idx < len(base) else None
+
+def paginas_finales(tema, edad, seed=1):
+    """Cuaderno a entregar: canónico + overrides (reemplazos, quitadas, extras)."""
+    base = base_paginas(tema, edad, seed); od = _override_dir(tema, edad); out = []
+    for i in range(len(base)):
+        if os.path.exists(os.path.join(od, "pg%02d.removed" % i)):
+            continue
+        out.append(pagina_efectiva(tema, edad, i, base))
+    for ep in sorted(glob.glob(os.path.join(od, "pg*.png"))):     # páginas extra agregadas
+        try: idx = int(os.path.basename(ep)[2:4])
+        except ValueError: continue
+        if idx >= len(base):
+            out.append(Image.open(ep).convert("RGB"))
+    return [p for p in out if p is not None]
+
+def estado(tema, edad, seed=1):
+    """Estado de cada página para el panel: idx, si está reemplazada o quitada."""
+    base = base_paginas(tema, edad, seed); od = _override_dir(tema, edad); items = []
+    for i in range(len(base)):
+        items.append({"idx": i,
+                      "removed": os.path.exists(os.path.join(od, "pg%02d.removed" % i)),
+                      "override": os.path.isfile(os.path.join(od, "pg%02d.png" % i)), "extra": False})
+    for ep in sorted(glob.glob(os.path.join(od, "pg*.png"))):
+        try: idx = int(os.path.basename(ep)[2:4])
+        except ValueError: continue
+        if idx >= len(base):
+            items.append({"idx": idx, "removed": False, "override": True, "extra": True})
+    return {"tema": tema, "edad": str(edad), "n": len(base), "paginas": items}
+
+def regenerar(tema, edad):
+    """Borra el cuaderno canónico cacheado (la próxima vez se genera uno nuevo).
+    NO toca los overrides del usuario."""
+    import shutil
+    for d in (_cache_dir(tema, edad), os.path.join(TEMAS, tema, "actividades_preview")):
+        if os.path.isdir(d): shutil.rmtree(d)
+
+
 if __name__ == "__main__":
     import sys
     tema = sys.argv[1] if len(sys.argv) > 1 else "monstruos"
