@@ -508,6 +508,25 @@ def estado(tema, edad, seed=1):
             items.append({"idx": idx, "removed": False, "override": True, "extra": True})
     return {"tema": tema, "edad": str(edad), "n": len(base), "paginas": items}
 
+def galeria_indices(tema, edad="6"):
+    """Índices de página a mostrar en la galería de la ficha: el cuaderno curado
+    (canónico + overrides) SIN la hoja de solucionario (no spoilea respuestas)."""
+    base = base_paginas(tema, edad); od = _override_dir(tema, edad)
+    plan = _plan(edad); tiene_sol = bool(plan["maze"] or plan["sopa"])
+    out = []
+    for i in range(len(base)):
+        if tiene_sol and i == len(base) - 1:           # última = solucionario → no mostrar
+            continue
+        if os.path.exists(os.path.join(od, "pg%02d.removed" % i)):
+            continue
+        out.append(i)
+    for ep in sorted(glob.glob(os.path.join(od, "pg*.png"))):
+        try: idx = int(os.path.basename(ep)[2:4])
+        except ValueError: continue
+        if idx >= len(base):
+            out.append(idx)
+    return out
+
 def regenerar(tema, edad):
     """Borra el cuaderno canónico cacheado (la próxima vez se genera uno nuevo).
     NO toca los overrides del usuario."""

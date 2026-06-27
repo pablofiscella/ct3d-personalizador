@@ -347,10 +347,10 @@ def piezas_meta(tipo, tema="safari"):
     if tipo == "actividades":
         try:
             import cuaderno
-            ps = cuaderno.preview_paths(tema)
-            if ps:
-                return [{"idx": i, "nombre": "p%02d" % i, "label": "Página %d" % (i + 1)}
-                        for i in range(len(ps))]
+            idxs = cuaderno.galeria_indices(tema, "6")
+            if idxs:
+                return [{"idx": ci, "nombre": "p%02d" % ci, "label": "Página %d" % (n + 1)}
+                        for n, ci in enumerate(idxs)]
         except Exception:
             pass
     return [{"idx": i, "nombre": n, "label": pieza_label(n)}
@@ -398,8 +398,7 @@ def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):
     elif pieza == "actividades":
         try:
             import cuaderno
-            ps = cuaderno.preview_paths(tema)
-            img = Image.open(ps[0]).convert("RGB") if ps else colorear(data, tema)
+            img = cuaderno.pagina_efectiva(tema, "6", 0) or colorear(data, tema)
         except Exception:
             img = colorear(data, tema)
     elif pieza == "milestone":
@@ -416,11 +415,9 @@ def preview_pieza(data, tema, tipo, idx, max_px=900):
     if tipo == "actividades":
         try:
             import cuaderno
-            ps = cuaderno.preview_paths(tema)
-            if ps:
-                idx = max(0, min(len(ps) - 1, int(idx)))
-                img = Image.open(ps[idx]).convert("RGB")
-                img.thumbnail((max_px, max_px), Image.LANCZOS)
+            img = cuaderno.pagina_efectiva(tema, "6", int(idx))
+            if img is not None:
+                img = img.copy(); img.thumbnail((max_px, max_px), Image.LANCZOS)
                 return img
         except Exception:
             pass
