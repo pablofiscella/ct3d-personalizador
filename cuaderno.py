@@ -232,7 +232,8 @@ def generar_cuaderno(tema, edad, out_dir, seed=1):
     mons = _extraer_monstruos(tema)
     plan = _plan(edad)
     pages = [_portada(mons, edad)]
-    sol_items = {}   # para el solucionario
+    sol_items = {}
+    secn = 0   # para el solucionario
 
     # — página de laberinto (+ sopa si corresponde) —
     if plan["maze"]:
@@ -242,14 +243,14 @@ def generar_cuaderno(tema, edad, out_dir, seed=1):
             w = _maze(MW, MH, s)
             if _maze_path(w, MW, MH): break
         assert _maze_path(w, MW, MH), "laberinto sin solución"
-        y = _sec(dr, 200, 1, "El laberinto", "Ayudá al monstruo a llegar a la torta.")
+        secn += 1; y = _sec(dr, 200, secn, "El laberinto", "Ayudá al monstruo a llegar a la torta.")
         y = _draw_maze(im, dr, w, MW, MH, y, mons) + 50
         if plan["sopa"]:
             for s in range(seed + 5, seed + 90):
                 g, sol = _wordsearch(PALABRAS, 12, s)
                 if g and all(_ws_has(g, x) for x in PALABRAS): break
             assert g and all(_ws_has(g, x) for x in PALABRAS), "sopa incompleta"
-            y = _sec(dr, y, 2, "Sopa de letras", "Encontrá las 8 palabras escondidas.")
+            secn += 1; y = _sec(dr, y, secn, "Sopa de letras", "Encontrá las 8 palabras escondidas.")
             _draw_ws(dr, g, sol, y)
             sol_items["maze"] = (w, MW, MH); sol_items["ws"] = (g, sol)
         else:
@@ -259,7 +260,7 @@ def generar_cuaderno(tema, edad, out_dir, seed=1):
     # — página unir puntos + contar —
     im, dr = _page(); _header(dr, edad)
     nd = plan["dots"]
-    y = _sec(dr, 200, 3, "Uní los puntos", "Uní del 1 al %d y descubrí la figura." % nd)
+    secn += 1; y = _sec(dr, 200, secn, "Uní los puntos", "Uní del 1 al %d y descubrí la figura." % nd)
     cx, cy, R = Wp / 2, y + 240, 210
     pts = _star_pts(cx, cy, R)[:nd]
     for i, (px, py) in enumerate(pts):
@@ -267,7 +268,7 @@ def generar_cuaderno(tema, edad, out_dir, seed=1):
         dr.text((px + 14, py - 16), str(i + 1), font=_font(28), fill=COLS[i % len(COLS)])
     y = cy + R + 50
     na, nb = plan["count"]
-    y = _sec(dr, y, 4, "Contá", "¿Cuántos hay de cada uno? Escribí el número.") + 16
+    secn += 1; y = _sec(dr, y, secn, "Contá", "¿Cuántos hay de cada uno? Escribí el número.") + 16
     dr.rounded_rectangle([60, y, Wp - 60, y + 300], 20, outline=(220, 215, 225), width=3)
     rnd = random.Random(seed + 3); spots = []
     def free():
@@ -294,28 +295,28 @@ def generar_cuaderno(tema, edad, out_dir, seed=1):
 
     # — página colorear —
     im, dr = _page(); _header(dr, edad)
-    _sec(dr, 200, 5, "Pintá el monstruo", "Coloreá como más te guste.")
+    secn += 1; _sec(dr, 200, secn, "Pintá el monstruo", "Coloreá como más te guste.")
     if mons:
         la = _lineart(mons[3 % len(mons)]).convert("RGBA")
         h = 950; w = int(la.width * h / la.height); la = la.resize((w, h), Image.LANCZOS)
         im.alpha_composite(la, (int(Wp / 2 - w / 2), 360))
     _foot(dr); pages.append(im)
 
-    # — solucionario —
-    im, dr = _page(); _header(dr, edad)
-    dr.text((60, 200), "Solucionario", font=_font(40), fill=COLS[0])
-    y = 280
-    if "maze" in sol_items:
-        w, MW, MH = sol_items["maze"]
-        dr.text((60, y), "Laberinto:", font=_font(28), fill=VIOLET); y += 44
-        y = _draw_maze(im, dr, w, MW, MH, y, mons, sol=True) + 40
-    if "ws" in sol_items:
-        g, sol = sol_items["ws"]
-        dr.text((60, y), "Sopa de letras:", font=_font(28), fill=VIOLET); y += 44
-        _draw_ws(dr, g, sol, y, mostrar_sol=True)
-    na, nb = sol_items["count"]
-    dr.text((60, Hp - 140), "Contar — Amarillos: %d   Rojos: %d" % (na, nb), font=_font(26), fill=INK)
-    _foot(dr); pages.append(im)
+    # — solucionario (solo si hay laberinto o sopa que resolver) —
+    if "maze" in sol_items or "ws" in sol_items:
+        im, dr = _page(); _header(dr, edad)
+        dr.text((60, 200), "Solucionario", font=_font(40), fill=COLS[0])
+        y = 280
+        if "maze" in sol_items:
+            w, MW, MH = sol_items["maze"]
+            dr.text((60, y), "Laberinto:", font=_font(28), fill=VIOLET); y += 44
+            y = _draw_maze(im, dr, w, MW, MH, y, mons, sol=True) + 40
+        if "ws" in sol_items:
+            g, sol = sol_items["ws"]
+            dr.text((60, y), "Sopa de letras:", font=_font(28), fill=VIOLET); y += 44
+            _draw_ws(dr, g, sol, y, mostrar_sol=True)
+        dr.text((60, Hp - 140), "Contar — Amarillos: %d   Rojos: %d" % sol_items["count"], font=_font(26), fill=INK)
+        _foot(dr); pages.append(im)
 
     rgb = [p.convert("RGB") for p in pages]
     # PNGs (siempre; es lo que entrega el motor del kit en el ZIP)
