@@ -362,6 +362,20 @@ def generar(data, dest_dir, tema="safari", tipo=DEFAULT_TIPO):
     """Genera las piezas del TIPO en PDF (300 DPI) y las empaqueta en un ZIP.
 
     Reusa piezas.generar_kit (genérico sobre una lista de piezas)."""
+    if tipo == "actividades":
+        # Cuaderno de actividades por edad (cuaderno.py): páginas verificadas por
+        # código + arte del tema. Cada página entra como una pieza pre-renderizada.
+        try:
+            import cuaderno
+            edad = str(data.get("edad") or "6")
+            pgs = cuaderno.paginas(tema, edad)
+            if pgs:
+                pl = [("%02d_cuaderno" % (i + 1), (lambda im: (lambda d: im))(p), False)
+                      for i, p in enumerate(pgs)]
+                return piezas.generar_kit(data, dest_dir, tema, piezas_list=pl)
+        except Exception as e:
+            import logging
+            logging.getLogger("productos").warning("cuaderno actividades falló (%s); uso piezas viejas", e)
     return piezas.generar_kit(data, dest_dir, tema, piezas_list=piezas_tipo(tema, tipo))
 
 

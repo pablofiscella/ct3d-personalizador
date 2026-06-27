@@ -385,8 +385,9 @@ def _plan(edad):
     return dict(maze=9, sopa=True, dots=10, count=(5, 3), sombra=4, diferente=3, patron=3, sumas=3)
 
 # ───────────────────────── armado ─────────────────────────
-def generar_cuaderno(tema, edad, out_dir, seed=1):
-    os.makedirs(out_dir, exist_ok=True)
+def paginas(tema, edad, seed=1):
+    """Devuelve la lista de páginas (PIL.Image) del cuaderno, ya verificadas.
+    Es lo que consume el motor del kit para empaquetar el ZIP del producto."""
     mons = _extraer_monstruos(tema); plan = _plan(edad)
     b = _Book(edad, mons, seed)
     b.pages.append(_portada(mons, edad))
@@ -401,7 +402,11 @@ def generar_cuaderno(tema, edad, out_dir, seed=1):
     _a_colorear(b)
     b.finish()
     _solucionario(b)
-    rgb = [p.convert("RGB") for p in b.pages]
+    return b.pages
+
+def generar_cuaderno(tema, edad, out_dir, seed=1):
+    os.makedirs(out_dir, exist_ok=True)
+    rgb = [p.convert("RGB") for p in paginas(tema, edad, seed)]
     paths = []
     for i, p in enumerate(rgb):
         pp = os.path.join(out_dir, "pg%d.png" % i); p.save(pp); paths.append(pp)
@@ -411,7 +416,7 @@ def generar_cuaderno(tema, edad, out_dir, seed=1):
         rgb[0].save(pdf, save_all=True, append_images=rgb[1:]); out = pdf
     except Exception:
         out = paths
-    return out, len(b.pages)
+    return out, len(rgb)
 
 
 if __name__ == "__main__":
