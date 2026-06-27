@@ -251,9 +251,14 @@ function drawMarcoJS(g,kind,color,cx,cy,tw,th){
   const px=th*0.72,py=th*0.5,l=cx-tw/2-px,t=cy-th/2-py,r=cx+tw/2+px,b=cy+th/2+py,rad=th*0.3;
   g.save();
   if(kind==='slime'){
-    // mancha orgánica: elipse + bumps en el perímetro + goteras (igual que draw_slime del server)
-    g.fillStyle=(typeof color==='string'&&color)?color:'#66C63A';
-    g.globalAlpha=0.85;
+    // mancha orgánica: elipse + bumps en el perímetro + goteras (igual que draw_slime del server).
+    // Color PRE-MEZCLADO sólido (verde 0.5 sobre crema) y opaco: así el cuerpo y los círculos
+    // quedan EXACTAMENTE del mismo tono (con globalAlpha los solapes se duplicaban y cambiaban de color).
+    const _hx=((typeof color==='string'&&color)?color:'#66C63A').replace('#',''),
+          _cg=[parseInt(_hx.slice(0,2),16),parseInt(_hx.slice(2,4),16),parseInt(_hx.slice(4,6),16)],
+          _cr=[248,245,239];
+    g.fillStyle='rgb('+_cg.map((v,i)=>Math.round(v*0.5+_cr[i]*0.5)).join(',')+')';
+    g.globalAlpha=1;
     const rw=tw*0.58+th*0.55, rh=th*0.85;
     g.beginPath();g.ellipse(cx,cy,rw,rh,0,0,7);g.fill();
     for(let i=0;i<11;i++){const a=2*Math.PI*i/11+0.4,bx=cx+rw*0.93*Math.cos(a),by=cy+rh*0.93*Math.sin(a),br=th*(0.30+0.14*((i*41)%7)/7);g.beginPath();g.arc(bx,by,br,0,7);g.fill();}
