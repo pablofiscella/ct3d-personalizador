@@ -181,8 +181,21 @@ def _sec(dr, y, n, titulo, instr):
     dr.text((60, y), "%d) %s" % (n, titulo), font=_font(34), fill=VIOLET); y += 48
     dr.text((60, y), instr, font=_font(24, False), fill=INK); return y + 44
 
+def _arrow(dr, x0, y0, x1, y1, color=NAVY, w=8):
+    dr.line([x0, y0, x1, y1], fill=color, width=w)
+    ang = math.atan2(y1 - y0, x1 - x0); L = 26
+    for a in (ang + 2.5, ang - 2.5):
+        dr.line([x1, y1, x1 - L * math.cos(a), y1 - L * math.sin(a)], fill=color, width=w)
+
+def _goal_torta(dr, cx, cy, s):
+    for dx, col in ((-s * 0.95, COLS[1]), (s * 0.95, COLS[3])):       # globos a los lados
+        dr.ellipse([cx + dx - s * 0.34, cy - s * 1.0, cx + dx + s * 0.34, cy - s * 0.2], fill=col)
+        dr.line([cx + dx, cy - s * 0.2, cx + dx, cy + s * 0.25], fill=NAVY, width=3)
+    _cake(dr, cx, cy, s)
+
 def _draw_maze(im, dr, w, MW, MH, y, mons, sol=False):
     cell = 60; mx = (Wp - MW * cell) // 2; lw = 4
+    w[0][0].discard('W'); w[MW - 1][MH - 1].discard('E')              # abrir entrada (izq) y salida (der)
     for x in range(MW):
         for yy in range(MH):
             cx, cy = mx + x * cell, y + yy * cell; ww = w[x][yy]
@@ -194,9 +207,13 @@ def _draw_maze(im, dr, w, MW, MH, y, mons, sol=False):
         path = _maze_path(w, MW, MH)
         pts = [(mx + px * cell + cell / 2, y + py * cell + cell / 2) for px, py in path]
         dr.line(pts, fill=COLS[0], width=8, joint="curve")
-    if mons: _paste_h(im, Image.open(mons[3 % len(mons)]).convert("RGBA"), mx + cell / 2, y + cell / 2, cell * 1.5)
-    ex, ey = mx + (MW - 1) * cell, y + (MH - 1) * cell
-    _cake(dr, ex + cell / 2, ey + cell / 2, cell * 0.5)
+    if mons:                                                          # personaje en la entrada + flecha
+        _paste_h(im, Image.open(mons[3 % len(mons)]).convert("RGBA"), mx - 175, y + 150, 200)
+        _arrow(dr, mx - 70, y + 115, mx - 6, y + cell / 2 + 4)
+    gx = mx + MW * cell + 150; gy = y + (MH - 1) * cell + cell / 2    # meta (torta) en la salida + flecha
+    _arrow(dr, mx + MW * cell + 8, gy, gx - 78, gy)
+    _goal_torta(dr, gx, gy, 70)
+    return y + MH * cell
     return y + MH * cell
 
 def _draw_ws(dr, g, sol, y, mostrar_sol=False):
@@ -252,7 +269,7 @@ def _a_laberinto(b, n):
         w = _maze(n, n, s)
         if _maze_path(w, n, n): break
     assert _maze_path(w, n, n)
-    b.sec("El laberinto", "Ayudá al monstruo a llegar a la torta.", n * 60 + 20)
+    b.sec("El laberinto del cumple", "¡Ayudá al monstruo a llegar a la torta de cumpleaños!", n * 60 + 30)
     b.y = _draw_maze(b.im, b.dr, w, n, n, b.y, b.mons) + 30
     b.sol["maze"] = (w, n, n)
 
