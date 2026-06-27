@@ -250,11 +250,17 @@ function rrPath(g,l,t,r,b,rad){g.beginPath();g.moveTo(l+rad,t);g.arcTo(r,t,r,b,r
 function drawMarcoJS(g,kind,color,cx,cy,tw,th){
   const px=th*0.72,py=th*0.5,l=cx-tw/2-px,t=cy-th/2-py,r=cx+tw/2+px,b=cy+th/2+py,rad=th*0.3;
   g.save();
-  if(kind==='slime'||kind==='band'){
+  if(kind==='slime'){
+    // mancha orgánica: elipse + bumps en el perímetro + goteras (igual que draw_slime del server)
     g.fillStyle=(typeof color==='string'&&color)?color:'#66C63A';
-    if(kind==='slime')g.globalAlpha=0.85;
+    g.globalAlpha=0.85;
+    const rw=tw*0.58+th*0.55, rh=th*0.85;
+    g.beginPath();g.ellipse(cx,cy,rw,rh,0,0,7);g.fill();
+    for(let i=0;i<11;i++){const a=2*Math.PI*i/11+0.4,bx=cx+rw*0.93*Math.cos(a),by=cy+rh*0.93*Math.sin(a),br=th*(0.30+0.14*((i*41)%7)/7);g.beginPath();g.arc(bx,by,br,0,7);g.fill();}
+    for(const d of [[-rw*0.45,rh*1.05,th*0.26],[rw*0.05,rh*1.35,th*0.20],[rw*0.5,rh*1.0,th*0.22],[-rw*0.05,rh*0.95,th*0.3]]){g.beginPath();g.arc(cx+d[0],cy+d[1],d[2],0,7);g.fill();}
+  }else if(kind==='band'){
+    g.fillStyle=(typeof color==='string'&&color)?color:'#66C63A';
     rrPath(g,l,t,r,b,rad);g.fill();
-    if(kind==='slime'){const n=5;for(let i=0;i<n;i++){const dx=l+rad+(r-l-2*rad)*i/(n-1),dr=th*(0.16+0.12*(i%2));g.beginPath();g.arc(dx,b,dr,0,7);g.fill();}}
   }else if(kind==='splatter'){
     const cols=Array.isArray(color)&&color.length?color:['#E0556B','#3FA7D6','#F4C95D','#5FB87A'];
     g.globalAlpha=0.9;const n=7;for(let i=0;i<n;i++){const a=i/n*6.283,rr=(tw/2+px)*0.62,dr=th*(0.22+0.16*(i%3));
