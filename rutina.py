@@ -214,7 +214,12 @@ def _columna(im, dr, x0, x1, y0, y1, titulo, ic_titulo, header_col, items, acc):
 
 
 def _decorar_header(im, tema):
-    """Pega 1-2 personajes del tema en las esquinas del encabezado (best-effort)."""
+    """Pega 1-2 personajes PROPIOS del tema en las esquinas del encabezado (best-effort).
+
+    Reglas: 1) personajes recortados del sticker sheet del tema (sirve para cualquier
+    tema que tenga extras/stickers_1.png). 2) si no hay, animales SOLO si el tema es
+    realmente de animales (tiene sus propios recortes, p.ej. safari). NUNCA un fallback
+    genérico: pondría animalitos en temas que no son de animales (bomberos, circo, etc.)."""
     chars = []
     try:
         import cuaderno
@@ -224,11 +229,12 @@ def _decorar_header(im, tema):
     if not chars:
         try:
             import piezas
-            for nm in (piezas.animales(tema) or [])[:2]:
-                try:
-                    chars.append(piezas.load(nm, tema))
-                except Exception:
-                    pass
+            if piezas.has_recortes(tema):
+                for nm in (piezas.animales(tema) or [])[:2]:
+                    try:
+                        chars.append(piezas.load(nm, tema))
+                    except Exception:
+                        pass
         except Exception:
             pass
     if not chars:
