@@ -368,6 +368,33 @@ def _a_sumas(b, rows):
         res.append(a + bb)
     b.y = b.y + rows * 150 + 20; b.sol["sumas"] = res
 
+def _a_buscar(b, n):
+    """Encontrá los escondidos (iSpy): escena con muchos personajes; buscar X de cada
+    tipo. Aprovecha los stickers recortados del tema. Verificable: contamos lo puesto."""
+    if not b.mons: return
+    b.sec("Encontrá los escondidos", "Buscá en el dibujo y marcá con un círculo:", 600)
+    pool = list(range(min(len(b.mons), 7))); imgs = [_IM(b.mons[i]) for i in pool]
+    y0 = b.y; boxh = 470
+    b.dr.rounded_rectangle([60, y0, Wp - 60, y0 + boxh], 18, fill=(250, 248, 244), outline=(220, 215, 225), width=3)
+    placed = {}; spots = []
+    for _ in range(n):
+        ti = b.rnd.randrange(len(pool)); sz = b.rnd.randint(78, 118)
+        x = y = 0
+        for _t in range(40):
+            x = b.rnd.randint(110, Wp - 110); y = b.rnd.randint(y0 + 50, y0 + boxh - 50)
+            if all((x - a) ** 2 + (y - c) ** 2 > 62 ** 2 for a, c in spots): break
+        spots.append((x, y))
+        m = imgs[ti].rotate(b.rnd.randint(-22, 22), expand=True, resample=Image.BICUBIC)
+        _paste_h(b.im, m, x, y, sz); placed[ti] = placed.get(ti, 0) + 1
+    targets = [t for t in placed if placed[t] >= 2][:3] or list(placed.keys())[:2]
+    b.y = y0 + boxh + 18; tx = 110
+    for t in targets:
+        _paste_h(b.im, imgs[t], tx + 42, b.y + 38, 80)
+        b.dr.text((tx + 92, b.y + 38), "× %d" % placed[t], font=_font(36), fill=INK, anchor="lm")
+        tx += 250
+    b.y += 110
+    b.sol["buscar"] = [placed[t] for t in targets]
+
 def _a_colorear(b):
     b.ensure(1040); b.sec("Pintá el monstruo", "Coloreá como más te guste.", 60)
     if b.mons:
@@ -397,9 +424,9 @@ def _solucionario(b):
 # ───────────────────────── plan por edad ─────────────────────────
 def _plan(edad):
     e = int(edad) if str(edad).isdigit() else 6
-    if e <= 3: return dict(maze=0, sopa=False, dots=6, count=(3, 2), sombra=3, diferente=2, patron=0, sumas=0)
-    if e <= 5: return dict(maze=7, sopa=False, dots=8, count=(5, 3), sombra=4, diferente=3, patron=3, sumas=0)
-    return dict(maze=9, sopa=True, dots=10, count=(5, 3), sombra=4, diferente=3, patron=3, sumas=3)
+    if e <= 3: return dict(maze=0, sopa=False, dots=6, count=(3, 2), sombra=3, diferente=2, patron=0, sumas=0, buscar=10)
+    if e <= 5: return dict(maze=7, sopa=False, dots=8, count=(5, 3), sombra=4, diferente=3, patron=3, sumas=0, buscar=14)
+    return dict(maze=9, sopa=True, dots=10, count=(5, 3), sombra=4, diferente=3, patron=3, sumas=3, buscar=18)
 
 # ───────────────────────── armado ─────────────────────────
 def paginas(tema, edad, seed=1, con_solucionario=True):
@@ -412,6 +439,7 @@ def paginas(tema, edad, seed=1, con_solucionario=True):
     if plan["sopa"]: _a_sopa(b)
     _a_puntos(b, plan["dots"])
     _a_contar(b, *plan["count"])
+    if plan.get("buscar"): _a_buscar(b, plan["buscar"])
     if plan["sombra"]: _a_sombra(b, plan["sombra"])
     if plan["diferente"]: _a_diferente(b, plan["diferente"])
     if plan["patron"]: _a_patron(b, plan["patron"])
