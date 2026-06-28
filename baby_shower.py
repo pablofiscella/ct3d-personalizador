@@ -236,7 +236,10 @@ def _p_no_digas(d, s):
         lines = _wrap(r, _body(32), maxw); ly = yc - (len(lines) - 1) * 46 / 2
         for ln in lines:
             dr.text((tcx, ly), ln, font=_body(32), fill=s["ink"], anchor="mm"); ly += 46
-    dr.text((Wp / 2, 1540), "¡Mucha suerte y a cuidar la boquita!", font=_hand(48), fill=s["c1"], anchor="mm")
+    dr.text((Wp / 2, 1525), "¡Mucha suerte y a cuidar la boquita!", font=_hand(48), fill=s["c1"], anchor="mm")
+    bebe = _g(d, "nombre")
+    if bebe:
+        dr.text((Wp / 2, 1600), "Baby Shower de %s" % bebe, font=_body(28, True), fill=s["ink"], anchor="mm")
     return im
 
 def _p_predicciones(d, s):
