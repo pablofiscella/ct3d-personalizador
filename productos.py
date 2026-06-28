@@ -259,6 +259,10 @@ def _piezas_actividades(tema):
 def _piezas_milestone(tema):
     return [("1_tarjetas_mes_a_mes", lambda d: milestone(d, tema), True)]
 
+def _piezas_rutina(tema):
+    import rutina
+    return [("1_rutina_visual", lambda d: rutina.generar_rutina(d, tema), True)]
+
 
 # campos = qué pedir en la ficha (la generación usa el superset igual).
 _CAMPOS_FULL = ["nombre", "fecha", "hora", "lugar", "direccion", "telefono", "edad"]
@@ -299,6 +303,13 @@ TIPOS = {
         "preview": "milestone",
         "piezas": _piezas_milestone,
     },
+    "rutina": {
+        "nombre": "Rutina visual del niño",
+        "descripcion": "Lámina A4 con la rutina de mañana y noche, personalizada con el nombre y la temática. Para imprimir y pegar en el cuarto.",
+        "campos": ["nombre", "edad"],
+        "preview": "rutina",
+        "piezas": _piezas_rutina,
+    },
 }
 
 DEFAULT_TIPO = "kit"
@@ -323,6 +334,7 @@ _PIEZA_LABELS = {
     "5_etiquetas_botellita": "Etiquetas", "6_tags_souvenir": "Tags souvenir",
     "7_banderines": "Banderines", "1_para_colorear": "Para colorear",
     "2_juegos": "Juegos", "1_tarjetas_mes_a_mes": "Póster primer año",
+    "1_rutina_visual": "Rutina visual",
     # kits dinámicos por arte estática (extras/): nombres lindos para la galería
     "01_invitacion": "Invitación", "02_afiche": "Afiche del número",
     "03_topper": "Topper de torta", "04_stickers": "Stickers",
@@ -403,6 +415,9 @@ def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):
             img = colorear(data, tema)
     elif pieza == "milestone":
         img = milestone(data, tema)
+    elif pieza == "rutina":
+        import rutina
+        img = rutina.generar_rutina(data, tema)
     else:
         img = render(data, specs_de(tema)["invitacion"])
     img = img.convert("RGB") if img.mode == "RGBA" else img
