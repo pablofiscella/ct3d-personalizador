@@ -115,6 +115,99 @@ def _maze_path(w, W, H):
                 prev[(x + a, y + b)] = (x, y); q.append((x + a, y + b))
     return None
 
+# ── laberinto circular (theta maze): anillos × sectores, perfecto (siempre tiene salida)
+def _theta_maze(rings, S, rnd, se):
+    RAD = [[True] * S for _ in range(rings)]   # pared radial en el ángulo s*paso del anillo r
+    CIRC = [[True] * S for _ in range(rings)]  # pared circular entre el anillo r y r+1 en el sector s
+    HUB = [True] * S                           # pared entre el centro y (0, s)
+    def neighbors(node):
+        if node == 'C':
+            return [((0, s), ('H', s)) for s in range(S)]
+        r, s = node
+        res = [((r, (s + 1) % S), ('R', r, (s + 1) % S)), ((r, (s - 1) % S), ('R', r, s))]
+        res.append(('C' if r == 0 else (r - 1, s), ('H', s) if r == 0 else ('C', r - 1, s)))
+        if r < rings - 1:
+            res.append(((r + 1, s), ('C', r, s)))
+        return res
+    def remove(w):
+        if w[0] == 'H': HUB[w[1]] = False
+        elif w[0] == 'R': RAD[w[1]][w[2]] = False
+        else: CIRC[w[1]][w[2]] = False
+    visited = {'C'}; stack = ['C']
+    while stack:
+        nb = [(n, w) for n, w in neighbors(stack[-1]) if n not in visited]
+        if not nb: stack.pop(); continue
+        n, w = rnd.choice(nb); remove(w); visited.add(n); stack.append(n)
+    CIRC[rings - 1][se] = False                 # abrir la salida al exterior
+    return RAD, CIRC, HUB
+
+def _theta_path(RAD, CIRC, HUB, rings, S, se):
+    def opens(node):
+        if node == 'C':
+            return [(0, s) for s in range(S) if not HUB[s]]
+        r, s = node; res = []
+        if not RAD[r][(s + 1) % S]: res.append((r, (s + 1) % S))
+        if not RAD[r][s]: res.append((r, (s - 1) % S))
+        if r == 0:
+            if not HUB[s]: res.append('C')
+        elif not CIRC[r - 1][s]: res.append((r - 1, s))
+        if r < rings - 1 and not CIRC[r][s]: res.append((r + 1, s))
+        return res
+    prev = {'C': None}; q = deque(['C']); goal = (rings - 1, se)
+    while q:
+        n = q.popleft()
+        if n == goal:
+            p = []; cur = n
+            while cur is not None: p.append(cur); cur = prev[cur]
+            return p[::-1]
+        for m in opens(n):
+            if m not in prev: prev[m] = n; q.append(m)
+    return None
+
+# ── sudoku 4×4 de figuras: solución única garantizada por conteo
+def _sudoku_ok(g, r, c, v):
+    if any(g[r][i] == v or g[i][c] == v for i in range(4)): return False
+    br, bc = (r // 2) * 2, (c // 2) * 2
+    return all(g[i][j] != v for i in range(br, br + 2) for j in range(bc, bc + 2))
+
+def _sudoku_count(g, limit=2):
+    for r in range(4):
+        for c in range(4):
+            if g[r][c] is None:
+                n = 0
+                for v in range(4):
+                    if _sudoku_ok(g, r, c, v):
+                        g[r][c] = v; n += _sudoku_count(g, limit); g[r][c] = None
+                        if n >= limit: break
+                return n
+    return 1
+
+def _sudoku_make(rnd):
+    g = [[0, 1, 2, 3], [2, 3, 0, 1], [1, 0, 3, 2], [3, 2, 1, 0]]
+    perm = list(range(4)); rnd.shuffle(perm)
+    g = [[perm[v] for v in row] for row in g]
+    for _ in range(8):                          # transformaciones que preservan validez
+        op = rnd.randrange(5)
+        if op == 0: g[0], g[1] = g[1], g[0]
+        elif op == 1: g[2], g[3] = g[3], g[2]
+        elif op == 2: g[0:2], g[2:4] = g[2:4], g[0:2]
+        elif op == 3:
+            for row in g: row[0], row[1] = row[1], row[0]
+        else:
+            for row in g: row[0:2], row[2:4] = row[2:4], row[0:2]
+    sol = [row[:] for row in g]
+    puz = [row[:] for row in g]
+    cells = [(r, c) for r in range(4) for c in range(4)]; rnd.shuffle(cells)
+    quitadas = 0
+    for r, c in cells:
+        if quitadas >= 8: break
+        saved = puz[r][c]; puz[r][c] = None
+        if _sudoku_count([row[:] for row in puz]) != 1:
+            puz[r][c] = saved
+        else:
+            quitadas += 1
+    return sol, puz
+
 _DIRS = [(1, 0), (0, 1), (1, 1), (-1, 1), (-1, 0), (0, -1), (-1, -1), (1, -1)]
 def _wordsearch(words, N, seed):
     r = random.Random(seed); g = [[None] * N for _ in range(N)]; sol = {}
@@ -216,6 +309,36 @@ def _draw_maze(im, dr, w, MW, MH, y, mons, sol=False):
     return y + MH * cell
     return y + MH * cell
 
+def _draw_theta(im, dr, RAD, CIRC, HUB, rings, S, se, cx, cy, R0, dt, mons, sol=False, path=None):
+    step = 2 * math.pi / S; lw = 5
+    def P(rad, ang): return (cx + rad * math.cos(ang), cy + rad * math.sin(ang))
+    for r in range(rings):
+        for s in range(S):
+            if RAD[r][s]:
+                a = s * step; dr.line([P(R0 + r * dt, a), P(R0 + (r + 1) * dt, a)], fill=NAVY, width=lw)
+    for r in range(rings):
+        rad = R0 + (r + 1) * dt
+        for s in range(S):
+            if CIRC[r][s]:
+                dr.arc([cx - rad, cy - rad, cx + rad, cy + rad],
+                       math.degrees(s * step), math.degrees((s + 1) * step), fill=NAVY, width=lw)
+    for s in range(S):
+        if HUB[s]:
+            dr.arc([cx - R0, cy - R0, cx + R0, cy + R0],
+                   math.degrees(s * step), math.degrees((s + 1) * step), fill=NAVY, width=lw)
+    Rmax = R0 + rings * dt; ea = (se + 0.5) * step
+    if sol and path:
+        pts = [(cx, cy) if n == 'C' else P(R0 + (n[0] + 0.5) * dt, (n[1] + 0.5) * step) for n in path]
+        pts.append(P(Rmax + dt * 0.6, ea))
+        dr.line(pts, fill=COLS[0], width=7, joint="curve")
+    else:
+        if mons:
+            _paste_h(im, Image.open(mons[0]).convert("RGBA"), cx, cy, R0 * 1.25)
+        bx, by = P(Rmax, ea); ax, ay = P(Rmax + dt * 0.55, ea)
+        _arrow(dr, bx, by, ax, ay)
+        _goal_torta(dr, *P(Rmax + dt * 1.15, ea), 60)
+    return cy + Rmax
+
 def _draw_ws(dr, g, sol, y, mostrar_sol=False):
     """Sopa CENTRADA: la grilla centrada horizontal y la lista de palabras debajo."""
     N = len(g); gs = 50; gx = (Wp - N * gs) // 2; fg = _font(30)
@@ -272,6 +395,18 @@ def _a_laberinto(b, n):
     b.sec("El laberinto del cumple", "¡Ayudá al monstruo a llegar a la torta de cumpleaños!", n * 60 + 30)
     b.y = _draw_maze(b.im, b.dr, w, n, n, b.y, b.mons) + 30
     b.sol["maze"] = (w, n, n)
+
+def _a_laberinto_circular(b, rings=4):
+    S = 12; se = b.rnd.randrange(0, 6)                # salida en la mitad inferior (queda en página)
+    RAD, CIRC, HUB = _theta_maze(rings, S, b.rnd, se)
+    path = _theta_path(RAD, CIRC, HUB, rings, S, se)
+    assert path                                       # laberinto perfecto → siempre hay salida
+    R0 = 66; dt = 74; Rmax = R0 + rings * dt
+    b.sec("Laberinto circular", "Salí desde el centro hasta afuera siguiendo los caminos.", 2 * Rmax + 150)
+    cx = Wp / 2; cy = b.y + Rmax + 20
+    _draw_theta(b.im, b.dr, RAD, CIRC, HUB, rings, S, se, cx, cy, R0, dt, b.mons)
+    b.y = cy + Rmax + 70
+    b.sol["cmaze"] = (RAD, CIRC, HUB, rings, S, se, path)
 
 def _a_sopa(b):
     for s in range(5, 95):
@@ -368,6 +503,33 @@ def _a_sumas(b, rows):
         res.append(a + bb)
     b.y = b.y + rows * 150 + 20; b.sol["sumas"] = res
 
+def _a_sudoku(b):
+    """Sudoku 4×4 de figuras: cada fila/columna/cuadro lleva un monstruo de cada tipo.
+    Solución única garantizada (se verifica por conteo). El chico escribe el número."""
+    if not b.mons or len(b.mons) < 4: return
+    sol, puz = _sudoku_make(b.rnd)
+    imgs = [_IM(b.mons[i]) for i in range(4)]
+    b.sec("Sudoku de monstruos", "Cada figura es un número. Completá los casilleros vacíos: en cada fila, columna y cuadro va uno de cada.", 1010)
+    # leyenda figura = número
+    ly = b.y; lx = 90
+    for i in range(4):
+        _paste_h(b.im, imgs[i], lx, ly + 42, 80)
+        b.dr.text((lx + 52, ly + 42), "= %d" % (i + 1), font=_font(34), fill=INK, anchor="lm")
+        lx += 270
+    # grilla 4×4
+    cell = 150; gx = (Wp - 4 * cell) // 2; gy = ly + 120
+    for r in range(4):
+        for c in range(4):
+            x0, y0 = gx + c * cell, gy + r * cell
+            b.dr.rectangle([x0, y0, x0 + cell, y0 + cell], outline=(150, 145, 160), width=2)
+            if puz[r][c] is not None:
+                _paste_h(b.im, imgs[puz[r][c]], x0 + cell / 2, y0 + cell / 2, cell - 36)
+    for k in range(0, 5, 2):                          # líneas gruesas de los cuadros 2×2
+        b.dr.line([gx + k * cell, gy, gx + k * cell, gy + 4 * cell], fill=NAVY, width=6)
+        b.dr.line([gx, gy + k * cell, gx + 4 * cell, gy + k * cell], fill=NAVY, width=6)
+    b.y = gy + 4 * cell + 30
+    b.sol["sudoku"] = (sol, [b.mons[i] for i in range(4)])
+
 def _a_buscar(b, n):
     """Encontrá los escondidos (iSpy): escena con muchos personajes; buscar X de cada
     tipo. Aprovecha los stickers recortados del tema. Verificable: contamos lo puesto."""
@@ -403,30 +565,58 @@ def _a_colorear(b):
     b.y = BOT
 
 def _solucionario(b):
-    if not any(k in b.sol for k in ("maze", "ws", "sumas")): return
+    if not any(k in b.sol for k in ("maze", "cmaze", "ws", "sumas", "sudoku")): return
+    pages = []
     im, dr = _page(); _header(dr, b.edad)
     dr.text((60, 200), "Solucionario", font=_font(40), fill=COLS[0]); y = 280
+    def newpage():
+        nonlocal im, dr, y
+        _foot(dr); pages.append(im); im, dr = _page(); _header(dr, b.edad); y = 220
+    def need(h):
+        if y + h > BOT: newpage()
     if "maze" in b.sol:
-        w, MW, MH = b.sol["maze"]; dr.text((60, y), "Laberinto:", font=_font(28), fill=VIOLET); y += 44
+        w, MW, MH = b.sol["maze"]; need(MH * 60 + 70)
+        dr.text((60, y), "Laberinto:", font=_font(28), fill=VIOLET); y += 44
         y = _draw_maze(im, dr, w, MW, MH, y, b.mons, sol=True) + 36
+    if "cmaze" in b.sol:
+        RAD, CIRC, HUB, rings, S, se, path = b.sol["cmaze"]
+        R0 = 40; dt = 46; Rmax = R0 + rings * dt; need(2 * Rmax + 80)
+        dr.text((60, y), "Laberinto circular:", font=_font(28), fill=VIOLET); y += 50
+        cx = Wp / 2; cy = y + Rmax
+        _draw_theta(im, dr, RAD, CIRC, HUB, rings, S, se, cx, cy, R0, dt, b.mons, sol=True, path=path)
+        y = cy + Rmax + 36
     if "ws" in b.sol:
-        g, sol = b.sol["ws"]; dr.text((60, y), "Sopa de letras:", font=_font(28), fill=VIOLET); y += 44
+        g, sol = b.sol["ws"]; need(len(g) * 50 + 90)
+        dr.text((60, y), "Sopa de letras:", font=_font(28), fill=VIOLET); y += 44
         y = _draw_ws(dr, g, sol, y, mostrar_sol=True) + 20
+    if "sudoku" in b.sol:
+        sgrid, _mp = b.sol["sudoku"]; cell = 80; need(4 * cell + 80)
+        dr.text((60, y), "Sudoku (números):", font=_font(28), fill=VIOLET); y += 50
+        gx = (Wp - 4 * cell) // 2
+        for r in range(4):
+            for c in range(4):
+                x0, y0 = gx + c * cell, y + r * cell
+                dr.rectangle([x0, y0, x0 + cell, y0 + cell], outline=(150, 145, 160), width=2)
+                dr.text((x0 + cell / 2, y0 + cell / 2), str(sgrid[r][c] + 1), font=_font(40), fill=NAVY, anchor="mm")
+        for k in range(0, 5, 2):
+            dr.line([gx + k * cell, y, gx + k * cell, y + 4 * cell], fill=NAVY, width=5)
+            dr.line([gx, y + k * cell, gx + 4 * cell, y + k * cell], fill=NAVY, width=5)
+        y += 4 * cell + 30
     lines = []
     if "count" in b.sol: lines.append("Contar — Amarillos: %d · Rojos: %d" % b.sol["count"])
     if "sumas" in b.sol: lines.append("Sumas: " + ", ".join(str(x) for x in b.sol["sumas"]))
     lines.append("(Sombra, ¿cuál es diferente? y patrón se revisan a simple vista.)")
-    yy = Hp - 70 - 34 * len(lines)
+    need(34 * len(lines) + 40)
     for ln in lines:
-        dr.text((60, yy), ln, font=_font(23), fill=INK); yy += 34
-    _foot(dr); b.pages.append(im)
+        dr.text((60, y), ln, font=_font(23), fill=INK); y += 34
+    _foot(dr); pages.append(im); b.pages.extend(pages)
 
 # ───────────────────────── plan por edad ─────────────────────────
 def _plan(edad):
     e = int(edad) if str(edad).isdigit() else 6
-    if e <= 3: return dict(maze=0, sopa=False, dots=6, count=(3, 2), sombra=3, diferente=2, patron=0, sumas=0, buscar=10)
-    if e <= 5: return dict(maze=7, sopa=False, dots=8, count=(5, 3), sombra=4, diferente=3, patron=3, sumas=0, buscar=14)
-    return dict(maze=9, sopa=True, dots=10, count=(5, 3), sombra=4, diferente=3, patron=3, sumas=3, buscar=18)
+    if e <= 3: return dict(maze=0, cmaze=0, sopa=False, dots=6, count=(3, 2), sombra=3, diferente=2, patron=0, sumas=0, sudoku=False, buscar=10)
+    if e <= 5: return dict(maze=7, cmaze=0, sopa=False, dots=8, count=(5, 3), sombra=4, diferente=3, patron=3, sumas=0, sudoku=False, buscar=14)
+    return dict(maze=9, cmaze=4, sopa=True, dots=10, count=(5, 3), sombra=4, diferente=3, patron=3, sumas=3, sudoku=True, buscar=18)
 
 # ───────────────────────── armado ─────────────────────────
 def paginas(tema, edad, seed=1, con_solucionario=True):
@@ -436,6 +626,7 @@ def paginas(tema, edad, seed=1, con_solucionario=True):
     b = _Book(edad, mons, seed)
     b.pages.append(_portada(mons, edad))
     if plan["maze"]: _a_laberinto(b, plan["maze"])
+    if plan.get("cmaze"): _a_laberinto_circular(b, plan["cmaze"])
     if plan["sopa"]: _a_sopa(b)
     _a_puntos(b, plan["dots"])
     _a_contar(b, *plan["count"])
@@ -444,6 +635,7 @@ def paginas(tema, edad, seed=1, con_solucionario=True):
     if plan["diferente"]: _a_diferente(b, plan["diferente"])
     if plan["patron"]: _a_patron(b, plan["patron"])
     if plan["sumas"]: _a_sumas(b, plan["sumas"])
+    if plan.get("sudoku"): _a_sudoku(b)
     _a_colorear(b)
     b.finish()
     if con_solucionario:
