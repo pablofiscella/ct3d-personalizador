@@ -263,6 +263,11 @@ def _piezas_rutina(tema):
     import rutina
     return [("1_rutina_visual", lambda d: rutina.generar_rutina(d, tema), True)]
 
+def _piezas_babyshower(tema):
+    import baby_shower as bs
+    return [("%d_%s" % (i + 1, key), (lambda k: (lambda d: bs.pieza(k, d, tema)))(key), True)
+            for i, (key, _l) in enumerate(bs.PIEZAS)]
+
 
 # campos = qué pedir en la ficha (la generación usa el superset igual).
 _CAMPOS_FULL = ["nombre", "fecha", "hora", "lugar", "direccion", "telefono", "edad"]
@@ -310,6 +315,13 @@ TIPOS = {
         "preview": "rutina",
         "piezas": _piezas_rutina,
     },
+    "babyshower": {
+        "nombre": "Kit de Baby Shower",
+        "descripcion": "6 piezas: invitación, juego «No digas bebé», predicciones, etiquetas, banderines y tarjeta para los 18. Temáticas pastel, personalizado con el nombre del bebé.",
+        "campos": ["nombre", "fecha", "hora", "lugar", "direccion"],
+        "preview": "babyshower",
+        "piezas": _piezas_babyshower,
+    },
 }
 
 DEFAULT_TIPO = "kit"
@@ -335,6 +347,9 @@ _PIEZA_LABELS = {
     "7_banderines": "Banderines", "1_para_colorear": "Para colorear",
     "2_juegos": "Juegos", "1_tarjetas_mes_a_mes": "Póster primer año",
     "1_rutina_visual": "Rutina visual",
+    "1_invitacion": "Invitación", "2_no_digas_bebe": "Juego: No digas «bebé»",
+    "3_predicciones": "Predicciones", "4_etiquetas": "Etiquetas souvenir",
+    "5_banderines": "Banderines", "6_carta_18": "Tarjeta para los 18",
     # kits dinámicos por arte estática (extras/): nombres lindos para la galería
     "01_invitacion": "Invitación", "02_afiche": "Afiche del número",
     "03_topper": "Topper de torta", "04_stickers": "Stickers",
@@ -418,6 +433,9 @@ def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):
     elif pieza == "rutina":
         import rutina
         img = rutina.generar_rutina(data, tema)
+    elif pieza == "babyshower":
+        import baby_shower as bs
+        img = bs.pieza("invitacion", data, tema)
     else:
         img = render(data, specs_de(tema)["invitacion"])
     img = img.convert("RGB") if img.mode == "RGBA" else img
