@@ -2,7 +2,7 @@
 import os
 import shutil
 
-_SLOT_PREFIJOS = ("invitacion_", "afiche_")
+_SLOT_PREFIJOS = ("invitacion_",)
 
 
 def listar_draft(temas_dir, tema):

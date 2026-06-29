@@ -1266,6 +1266,15 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(400, {"ok": False, "error": "tema inválido"})
         res = ia_aprobar.aprobar(temas.TEMAS_DIR, tema)
         generador._specs_cache.pop(tema, None)
+        # refrescar thumbs de los archivos movidos (el modal de arte base no debe
+        # mostrar el thumb viejo del slot invitacion_* sobrescrito)
+        tdir = os.path.join(temas.TEMAS_DIR, tema)
+        exdir = os.path.join(tdir, "extras")
+        for name in res.get("movidas", []):
+            try:
+                _pieza_thumb(tdir if name.startswith("invitacion_") else exdir, name)
+            except Exception:
+                pass
         return self._json(200, {"ok": True, **res})
 
 if __name__ == "__main__":

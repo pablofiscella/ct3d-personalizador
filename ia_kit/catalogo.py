@@ -24,6 +24,15 @@ PIEZAS = [
     Pieza("tarjetas_agradecimiento", _PORTRAIT, False, True,  "una tarjeta de agradecimiento vertical"),
 ]
 
+# Contrato de nombres con productos.py::_piezas_kit (NO cambiar productos.py).
+# Estas 7 piezas se leen como extras/<base>_<edad>.png (con fallback a <base>_1.png).
+EXTRAS_POR_EDAD = ["afiche", "topper", "stickers", "separadores",
+                   "etiqueta_botella", "cajita_sorpresa", "decoracion_sorbetes"]
+# Estas 4 se leen como extras/<base>.png (sin edad).
+EXTRAS_UNIVERSAL = ["banderin", "etiquetas_multiuso", "wrappers_cupcakes",
+                    "tarjetas_agradecimiento"]
+# (invitacion no está en ninguna: es el slot raíz temas/<tema>/invitacion_<edad>.png)
+
 _DEF = {"accent": "#E0514A", "ink": "#4A4A4A", "font": "Baloo2-VF.ttf"}
 
 

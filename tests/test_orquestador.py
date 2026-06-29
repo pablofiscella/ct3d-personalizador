@@ -28,14 +28,15 @@ def test_genera_slots_por_edad_y_universales(tmp_path):
     res = orquestador.generar_tema(c, td, "safari", edades=[1, 2, 3],
                                    quitar=lambda im, protect=True: im)
     draft = os.path.join(td, "safari", "ia_draft")
-    # invitacion y afiche x3
+    # invitacion (slot raíz) y afiche (extra por-edad, arte distinto) x3
     for e in (1, 2, 3):
         assert os.path.exists(os.path.join(draft, "invitacion_%d.png" % e))
         assert os.path.exists(os.path.join(draft, "afiche_%d.png" % e))
     # universal x1
     assert os.path.exists(os.path.join(draft, "banderin.png"))
-    # por_edad False (topper) -> "topper.png" x1
-    assert os.path.exists(os.path.join(draft, "topper.png"))
+    # por_edad False pero FILENAME por-edad (topper) -> arte único como "topper_1.png"
+    assert os.path.exists(os.path.join(draft, "topper_1.png"))
+    assert not os.path.exists(os.path.join(draft, "topper.png"))
     assert not res["errores"]
 
 

@@ -6,7 +6,7 @@ import quitar_fondo
 from . import catalogo
 from .validate import validar_png
 
-_SLOTS = {"invitacion", "afiche"}   # van a temas/<tema>/ (no a extras/)
+_SLOTS = {"invitacion"}   # único slot raíz temas/<tema>/ (el resto va a extras/)
 
 
 def _refs(tema_dir):
@@ -50,10 +50,13 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
                     bb = im.getbbox()
                     if bb:
                         im = im.crop(bb)
-                if p.key in _SLOTS or p.por_edad:
-                    nombre = "%s_%d.png" % (p.key, edad)
-                else:
-                    nombre = "%s.png" % p.key
+                if p.key == "invitacion":
+                    nombre = "invitacion_%d.png" % int(edad)        # -> slot raíz vía aprobar
+                elif p.key in catalogo.EXTRAS_POR_EDAD:
+                    e = int(edad) if p.por_edad else 1              # arte único -> _1 (el motor lo reusa)
+                    nombre = "%s_%d.png" % (p.key, e)              # -> extras/
+                else:                                              # universal
+                    nombre = "%s.png" % p.key                      # -> extras/
                 _guardar(im, draft, nombre)
                 _emit(p.key, edad, True)
             except Exception as e:  # una pieza que falla no frena las demás
