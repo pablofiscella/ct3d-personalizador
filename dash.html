@@ -453,6 +453,14 @@ async function openIA(tema, nombre){
   let lastEventos=[];
   let iaTotal=0;
 
+  function verGrande(url){   // lightbox: ver la pieza a tamaño completo
+    const lb=document.createElement('div');
+    lb.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:10001;display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out';
+    lb.innerHTML='<img src="'+url+'" style="max-width:96%;max-height:96%;object-fit:contain;border-radius:8px;background:#fff;box-shadow:0 8px 40px rgba(0,0,0,.6)">';
+    lb.onclick=()=>lb.remove();
+    document.body.appendChild(lb);
+  }
+
   function nombreArchivo(evt){
     if(evt.archivo) return evt.archivo;   // nombre real que guardó el orquestador
     return (evt.edad!=null && evt.edad!=='' && evt.edad!==undefined)
@@ -471,8 +479,9 @@ async function openIA(tema, nombre){
       card.style.cssText='display:flex;flex-direction:column;align-items:center;gap:5px;border:1.5px '+(ev.ok?'solid #2D8C5A':'solid #C73E3A')+';border-radius:8px;padding:8px;width:90px;box-sizing:border-box;background:'+(ev.ok?'rgba(45,140,90,.1)':'rgba(199,62,58,.1)');
       const imgUrl='/dash/ia-draft?tema='+encodeURIComponent(tema)+'&archivo='+encodeURIComponent(fn)+'&cb='+cb;
       card.innerHTML=ev.ok
-        ? `<img src="${imgUrl}" style="width:74px;height:74px;object-fit:contain;border-radius:5px;background:rgba(255,255,255,.06)" alt="${fn}" onerror="this.style.display='none'">`
+        ? `<img src="${imgUrl}" style="width:74px;height:74px;object-fit:contain;border-radius:5px;background:rgba(255,255,255,.06);cursor:zoom-in" title="Ver grande" alt="${fn}" onerror="this.style.display='none'">`
         : `<span style="font-size:26px;line-height:74px;display:block">❌</span>`;
+      if(ev.ok){ const im=card.querySelector('img'); if(im) im.onclick=()=>verGrande(imgUrl); }
       const lbl=document.createElement('span');
       lbl.textContent=(ev.pieza.replace(/_/g,' '))+(ev.edad!=null&&ev.edad!==''?' '+ev.edad:'');
       lbl.style.cssText='font-size:9.5px;text-align:center;line-height:1.2;opacity:.85;word-break:break-all';
@@ -483,7 +492,8 @@ async function openIA(tema, nombre){
         imsg.textContent='Regenerando '+ev.pieza+(ev.edad!=null&&ev.edad!==''?' edad '+ev.edad:'')+'…';
         const cal=(ov.querySelector('#ia-cal')||{}).value||'low';
         try{
-          const r=await fetch('/dash/ia-regenerar?tema='+encodeURIComponent(tema)+'&pieza='+encodeURIComponent(ev.pieza)+'&calidad='+cal,{method:'POST',headers:{'X-API-Key':KEY}});
+          const edadQ=(ev.edad!=null&&ev.edad!=='')?('&edad='+ev.edad):'';
+          const r=await fetch('/dash/ia-regenerar?tema='+encodeURIComponent(tema)+'&pieza='+encodeURIComponent(ev.pieza)+edadQ+'&calidad='+cal,{method:'POST',headers:{'X-API-Key':KEY}});
           const j=await r.json();
           if(!j.ok||!j.job){ imsg.textContent='✕ '+(j.error||'no arrancó'); btn.disabled=false; btn.textContent='↺ Regener.'; return; }
           const espera=async()=>{   // background + poll (evita el timeout del proxy)

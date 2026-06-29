@@ -1273,6 +1273,9 @@ class Handler(BaseHTTPRequestHandler):
         if client is None:
             return self._json(503, {"ok": False, "error": "falta OPENAI_API_KEY"})
         edades = temas.cargar_tema(tema).get("edades", [1, 2, 3])
+        ed = re.sub(r"\D", "", q.get("edad", [""])[0] or "")[:2]
+        if ed and int(ed) in edades:
+            edades = [int(ed)]   # regenerar SOLO esa edad (no las otras de la pieza)
         calidad = _calidad(q)
         # En background (como ia-generar): regenerar es lento y un POST síncrono daba
         # 504/524 en el proxy. Reusa la maestra cacheada -> 1 sola llamada a OpenAI.

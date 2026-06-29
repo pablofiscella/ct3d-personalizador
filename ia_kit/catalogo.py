@@ -69,13 +69,20 @@ _EXTRA_FORMA = {
 
 def prompt_de(paleta, pieza, edad=None):
     partes = ["Creá %s para un kit de cumpleaños." % pieza.sujeto]
-    if pieza.por_edad and edad is not None:
-        # invitación/afiche: llevan texto encima -> número protagonista + franja libre.
+    if pieza.key == "invitacion":
+        # Se personaliza en el editor (nombre/fecha/EDAD se agregan después):
+        # el arte NO debe llevar el número ni texto; solo decoración temática + espacio.
+        partes.append(
+            "Es una invitación que se personaliza después en un editor: NO incluyas el número "
+            "de edad ni ningún texto. Dejá un ÁREA CENTRAL amplia, limpia y despejada para el "
+            "texto (nombre, fecha y edad se agregan luego); poné solo la decoración temática "
+            "alrededor (marco/escena con los personajes).")
+    elif pieza.por_edad and edad is not None:
+        # afiche: pieza ESTÁTICA (nadie le agrega el número después) -> número ilustrado.
         partes.append(
             "El número %d es el PROTAGONISTA: ubicalo en el CENTRO, MUY GRANDE, ilustrado de "
             "forma temática (decorado/formado con los elementos y personajes del tema), no "
-            "como texto tipográfico simple. Dejá una franja limpia debajo del número para el "
-            "texto del nombre." % int(edad))
+            "como texto tipográfico simple." % int(edad))
     else:
         # piezas decorativas: NO llevan texto -> composición centrada y llena.
         partes.append("Composición CENTRADA y equilibrada que aproveche bien el espacio, "

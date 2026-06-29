@@ -35,7 +35,15 @@ def test_prompt_incluye_paleta_y_sin_texto():
     txt = catalogo.prompt_de(pal, inv, edad=3)
     assert "#E0514A" in txt
     assert "sin texto" in txt.lower() or "no text" in txt.lower()
-    assert "3" in txt  # la edad ilustrada
+    # la INVITACIÓN se personaliza en el editor: el arte NO lleva el número de edad
+    assert "3" not in txt
+
+
+def test_prompt_afiche_si_lleva_numero():
+    pal = {"accent": "#E0514A", "ink": "#4A4A4A", "font": "Baloo2"}
+    af = next(p for p in catalogo.PIEZAS if p.key == "afiche")
+    txt = catalogo.prompt_de(pal, af, edad=3)
+    assert "3" in txt  # el afiche es estático: el número va ilustrado en el arte
 
 
 def test_catalogo_cubre_extras_canonicos():
