@@ -7,6 +7,7 @@ from PIL import Image, ImageDraw, ImageFilter
 
 import quitar_fondo
 from . import catalogo
+from . import cajita as ia_cajita
 from .validate import validar_png
 
 # Piezas que son un único círculo: se recortan a una máscara circular por código,
@@ -85,6 +86,8 @@ def _guardar(im, draft_dir, nombre):
 def contar_piezas(edades, solo=None):
     """Cuántas piezas generará generar_tema (para la barra de progreso)."""
     def n(p):
+        if p.por_edad and p.key in catalogo.UNA_SOLA:
+            return 1                       # una sola: se genera 1 vez y se copia a todas
         if p.por_edad and p.key in catalogo.REPLICABLE and not solo:
             return 1                       # replicable: en el batch solo la 1ª edad
         return len(edades) if p.por_edad else 1
@@ -128,6 +131,10 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
     os.makedirs(draft, exist_ok=True)
 
     def _edades_pieza(p):
+        # invitación: igual en todas las edades (el editor agrega el número) -> se genera
+        # UNA vez y se copia al resto (más barato y consistente).
+        if p.por_edad and p.key in catalogo.UNA_SOLA:
+            return [edades[0]]
         # piezas replicables (afiche): en el batch completo solo la 1ª edad; el resto
         # se replica después cambiando el número (más consistente).
         if p.por_edad and p.key in catalogo.REPLICABLE and not solo:
@@ -144,9 +151,11 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
                                  quality=calidad)
             im = validar_png(raw, size_esperado=tuple(int(x) for x in p.size.split("x")))
             im = im.convert("RGBA")
-            if p.key in _MASCARA_CIRCULAR:      # círculo garantizado por código
+            if p.key == "cajita_sorpresa":     # la IA da la decoración; el molde lo arma el código
+                im = ia_cajita.armar_cajita(im, pal)
+            elif p.key in _MASCARA_CIRCULAR:    # círculo garantizado por código
                 im = _mascara_circular(im)
-            elif p.key in _DIE_CUT:             # die-cut: transparente + borde blanco, sin huecos
+            elif p.key in _DIE_CUT:            # die-cut: transparente + borde blanco, sin huecos
                 im = quitar(im, protect=True)
                 im = _borde_sticker(im)
             elif p.recorte:
@@ -156,6 +165,10 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
                     im = im.crop(bb)
             nombre = _nombre_pieza(p, edad)
             _guardar(im, draft, nombre)
+            if p.key in catalogo.UNA_SOLA and edad is not None:   # misma invitación para todas las edades
+                for e in edades:
+                    if int(e) != int(edad):
+                        _guardar(im, draft, _nombre_pieza(p, e))
             return {"pieza": p.key, "edad": edad, "ok": True, "error": "", "archivo": nombre}
         except Exception as e:  # una pieza que falla no frena a las demás
             return {"pieza": p.key, "edad": edad, "ok": False, "error": str(e), "archivo": ""}

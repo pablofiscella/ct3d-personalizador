@@ -129,10 +129,23 @@ def test_borde_sticker_rellena_hueco_interno():
 
 
 def test_contar_piezas():
-    # invitacion ×3 + afiche ×1 (replicable, solo 1ª edad en batch) + 12 piezas una vez
-    assert orquestador.contar_piezas([1, 2, 3]) == 16   # 3 + 1 + 12
+    # invitacion ×1 (UNA_SOLA: se genera 1 vez y se copia) + afiche ×1 (replicable) + 12 = 14
+    assert orquestador.contar_piezas([1, 2, 3]) == 14   # 1 + 1 + 12
     assert orquestador.contar_piezas([1]) == 14         # 1 + 1 + 12
     assert orquestador.contar_piezas([1, 2, 3], solo={"banderin"}) == 1
+
+
+def test_invitacion_una_sola_se_copia_a_todas(tmp_path):
+    # la invitación se genera UNA vez pero queda en todas las edades (mismo arte)
+    td = _tema_dir(tmp_path)
+    c = _FakeClient()
+    orquestador.generar_tema(c, td, "safari", edades=[1, 2, 3], solo={"invitacion"},
+                             quitar=lambda im, protect=True: im)
+    draft = os.path.join(td, "safari", "ia_draft")
+    for e in (1, 2, 3):
+        assert os.path.exists(os.path.join(draft, "invitacion_%d.png" % e))
+    # solo 1 llamada a OpenAI para la pieza (maestra + 1 invitación), no 3
+    assert sum(1 for pr, _ in c.prompts if "invitación" in pr.lower()) == 1
 
 
 def test_afiche_solo_primera_edad_en_batch(tmp_path):

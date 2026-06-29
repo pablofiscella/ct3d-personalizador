@@ -18,7 +18,7 @@ PIEZAS = [
     Pieza("stickers", _SQUARE, False, True,  "una plancha de stickers variados del personaje"),
     Pieza("separadores", _PORTRAIT, False, True,  "separadores/marcalibros verticales"),
     Pieza("etiqueta_botella", _SQUARE, False, False,  "una etiqueta rectangular para botellita, diseño completo que llena todo el rectángulo"),
-    Pieza("cajita_sorpresa", _SQUARE, False, True,  "el desplegable de una cajita sorpresa"),
+    Pieza("cajita_sorpresa", _SQUARE, False, False, "una ilustración decorativa para las caras de una cajita sorpresa"),
     Pieza("decoracion_sorbetes", _SQUARE, False, True,  "banderitas decorativas para sorbetes"),
     Pieza("banderin", _SQUARE, False, True,  "un banderín triangular decorativo"),
     Pieza("etiquetas_multiuso", _SQUARE, False, True,  "una plancha de etiquetas circulares multiuso"),
@@ -38,6 +38,10 @@ EXTRAS_UNIVERSAL = ["banderin", "etiquetas_multiuso", "wrappers_cupcakes",
 # Piezas por-edad que se generan SOLO en la 1ª edad y luego se REPLICAN al resto cambiando
 # el número (para que las edades queden consistentes en vez de generarse por separado).
 REPLICABLE = {"afiche"}
+
+# Piezas que son IGUALES en todas las edades (no llevan número: el editor lo agrega) -> se
+# generan UNA sola vez y se copian a todas las edades.
+UNA_SOLA = {"invitacion"}
 
 _DEF = {"accent": "#E0514A", "ink": "#4A4A4A", "font": "Baloo2-VF.ttf"}
 
@@ -79,10 +83,10 @@ _EXTRA_FORMA = {
     "wrappers_cupcakes": ("2 o 3 wrappers de cupcake (forma de arco/abanico) apilados, TODOS "
                           "COMPLETOS y enteros DENTRO del cuadro, con MARGEN en todos los bordes; "
                           "que ninguno se corte arriba ni abajo (mejor menos cantidad y enteros)."),
-    "cajita_sorpresa": ("Plantilla DESPLEGABLE (troquel plano) de una cajita que se arma y "
-                        "CIERRA: tiene que tener LAS 6 CARAS conectadas (base, las 4 paredes y "
-                        "la TAPA) más las lengüetas/solapas para pegar y cerrar; líneas de "
-                        "doblez punteadas. Vista plana de frente, decoración temática en las caras."),
+    "cajita_sorpresa": ("Es la ILUSTRACIÓN DECORATIVA para las caras de una cajita (la caja la "
+                        "arma el sistema): personajes del tema repartidos, coloridos, sobre un "
+                        "fondo temático que LLENE TODO el cuadro (sin bordes blancos). NO dibujes "
+                        "la caja, ni el molde, ni líneas de doblez: SOLO la decoración."),
     "stickers": ("Pocos stickers del personaje MUY SEPARADOS entre sí, con MUCHO espacio en "
                  "blanco entre cada uno (al menos medio sticker de distancia): que NO se toquen "
                  "ni queden cerca, porque al recortarlos con borde se pegarían. Cada figura "
