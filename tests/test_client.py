@@ -52,3 +52,27 @@ def test_falla_tras_agotar_reintentos():
     c = OpenAIImageClient("sk-test", opener=opener, max_retries=2, base_sleep=0)
     with pytest.raises(OpenAIError):
         c.editar([b"ref"], "x", "1024x1024")
+
+
+def test_4xx_no_reintenta():
+    """4xx HTTPError debe lanzar OpenAIError inmediatamente sin reintentos."""
+    call_count = {"n": 0}
+    def opener(req, timeout):
+        call_count["n"] += 1
+        raise urllib.error.HTTPError(req.full_url, 422, "Unprocessable Entity", {}, io.BytesIO(b""))
+    c = OpenAIImageClient("sk-test", opener=opener, max_retries=3, base_sleep=0)
+    with pytest.raises(OpenAIError, match="422"):
+        c.editar([b"ref"], "x", "1024x1024")
+    assert call_count["n"] == 1
+
+
+def test_respuesta_malformada_falla_rapido():
+    """Respuesta 200 con payload malformado debe lanzar OpenAIError sin reintentos."""
+    call_count = {"n": 0}
+    def opener(req, timeout):
+        call_count["n"] += 1
+        return _Resp({})  # falta data[0].b64_json
+    c = OpenAIImageClient("sk-test", opener=opener, max_retries=3, base_sleep=0)
+    with pytest.raises(OpenAIError, match="respuesta inesperada"):
+        c.editar([b"ref"], "x", "1024x1024")
+    assert call_count["n"] == 1

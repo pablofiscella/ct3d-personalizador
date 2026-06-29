@@ -38,14 +38,20 @@ class OpenAIImageClient:
                 "Authorization": "Bearer " + self.api_key, "Content-Type": ct})
             try:
                 with self.opener(req, self.timeout) as r:
-                    payload = json.loads(r.read().decode("utf-8") or "{}")
-                return base64.b64decode(payload["data"][0]["b64_json"])
+                    raw = r.read().decode("utf-8")
             except urllib.error.HTTPError as e:
                 last = e
                 if e.code < 500:  # 4xx no se reintenta
                     raise OpenAIError("OpenAI HTTP %s: %s" % (e.code, e.reason))
-            except (urllib.error.URLError, TimeoutError, KeyError, ValueError) as e:
+            except (urllib.error.URLError, TimeoutError) as e:
                 last = e
+            else:
+                # Respuesta HTTP exitosa — parse fail-fast, sin reintentos
+                try:
+                    payload = json.loads(raw)
+                    return base64.b64decode(payload["data"][0]["b64_json"])
+                except (KeyError, IndexError, TypeError, ValueError) as e:
+                    raise OpenAIError("respuesta inesperada de OpenAI: %s" % e)
             if intento < self.max_retries:
                 time.sleep(self.base_sleep * intento)
         raise OpenAIError("falló tras %d intentos: %s" % (self.max_retries, last))
