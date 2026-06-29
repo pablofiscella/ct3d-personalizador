@@ -91,10 +91,12 @@ def prompt_de(paleta, pieza, edad=None):
             "texto (nombre, fecha y edad se agregan luego); poné solo la decoración temática "
             "alrededor (marco/escena con los personajes).")
     elif pieza.key == "afiche":
-        # Cartel: número ilustrado decorativo (NO al centro) + franja central limpia para el nombre.
-        n = (" Integrá el número %d ilustrado de forma decorativa ARRIBA o a un costado, NUNCA "
-             "en el centro." % int(edad)) if edad is not None else ""
-        partes.append("Cartel de bienvenida." + n + " " + _ZONA_LIMPIA)
+        # Cartel: número grande ilustrado (protagonista) + recuadro limpio ABAJO para el nombre.
+        n = (" El número %d es el PROTAGONISTA: GRANDE e ilustrado de forma temática." % int(edad)) if edad is not None else ""
+        partes.append("Cartel de bienvenida." + n +
+                      " SIEMPRE dejá ABAJO un recuadro/cartel rectangular limpio y despejado "
+                      "(tipo etiqueta, sin dibujos ni texto adentro) para el nombre que se "
+                      "agrega después.")
     elif pieza.key in _CON_TEXTO:
         partes.append(_ZONA_LIMPIA)
     elif pieza.key in _EXTRA_FORMA:

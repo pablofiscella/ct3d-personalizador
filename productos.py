@@ -217,8 +217,8 @@ def _extras_dir(tema):
 # Piezas que llevan texto personalizado al CUSTOMIZAR (el arte IA deja un espacio
 # limpio; acá el motor escribe el texto, con la fuente/color del nombre de la invitación).
 _TEXTO_EXTRA = {
-    "afiche":                  {"tpl": "FELIZ CUMPLE {nombre}",   "y": 0.50, "maxw": 0.82, "size": 180},
-    "banderin":                {"tpl": "¡FELIZ CUMPLE {nombre}!", "y": 0.50, "maxw": 0.85, "size": 160},
+    "afiche":                  {"tpl": "FELIZ CUMPLE {nombre}",   "y": 0.86, "maxw": 0.72, "size": 150},
+    "banderin":                {"tpl": "¡FELIZ CUMPLE {nombre}!", "y": 0.50, "maxw": 0.70, "size": 150},
     "cajita_sorpresa":         {"tpl": "FELIZ CUMPLE {nombre}",   "y": 0.50, "maxw": 0.72, "size": 140},
     "decoracion_sorbetes":     {"tpl": "{nombre}",                 "y": 0.50, "maxw": 0.60, "size": 130},
     "tarjetas_agradecimiento": {"tpl": "¡GRACIAS POR VENIR!",     "y": 0.46, "maxw": 0.82, "size": 150},
