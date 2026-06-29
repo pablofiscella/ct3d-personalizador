@@ -1201,9 +1201,14 @@ class Handler(BaseHTTPRequestHandler):
         if not archivo.endswith(".png") or "/" in archivo or ".." in archivo:
             return self._json(400, {"ok": False, "error": "archivo inválido"})
         path = os.path.join(temas.TEMAS_DIR, tema, "ia_draft", archivo)
+        rpath = os.path.realpath(path)
+        base = os.path.realpath(os.path.join(temas.TEMAS_DIR, tema, "ia_draft"))
+        if not rpath.startswith(base + os.sep):
+            return self._json(400, {"ok": False, "error": "ruta inválida"})
         if not os.path.isfile(path):
             return self._json(404, {"ok": False, "error": "no existe"})
-        data = open(path, "rb").read()
+        with open(path, "rb") as f:
+            data = f.read()
         self.send_response(200)
         self.send_header("Content-Type", "image/png")
         self.send_header("Cache-Control", "no-store")
