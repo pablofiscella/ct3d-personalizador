@@ -25,6 +25,12 @@ def _guardar(im, draft_dir, nombre):
     im.save(os.path.join(draft_dir, nombre))
 
 
+def contar_piezas(edades, solo=None):
+    """Cuántas piezas generará generar_tema (para la barra de progreso)."""
+    return sum((len(edades) if p.por_edad else 1)
+               for p in catalogo.PIEZAS if not (solo and p.key not in solo))
+
+
 def _nombre_pieza(p, edad):
     # El nombre de archivo debe matchear lo que productos._piezas_kit levanta.
     if p.key == "invitacion":

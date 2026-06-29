@@ -1235,11 +1235,12 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(503, {"ok": False, "error": "falta OPENAI_API_KEY"})
         edades = temas.cargar_tema(tema).get("edades", [1, 2, 3])
         calidad = _calidad(q)
+        total = ia_orq.contar_piezas(edades)
         def trabajo(emit):
             ia_orq.generar_tema(client, temas.TEMAS_DIR, tema, edades,
                                 progress=emit, calidad=calidad)
         jid = ia_jobs.iniciar(trabajo)
-        return self._json(200, {"ok": True, "job": jid, "calidad": calidad})
+        return self._json(200, {"ok": True, "job": jid, "calidad": calidad, "total": total})
 
     def _ia_estado(self):
         if not self._admin_ok():

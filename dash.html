@@ -435,7 +435,8 @@ async function openIA(tema, nombre){
       </label>
       <button id="ia-btn-aprobar" class="btn-primary" style="font-size:14px;display:none;background:var(--success,#2D8C5A)">✅ Aprobar y publicar</button>
     </div>
-    <div id="ia-progreso" style="font-size:13px;opacity:.8;min-height:18px;margin-bottom:10px"></div>
+    <div id="ia-progreso" style="font-size:13px;opacity:.8;min-height:18px;margin-bottom:6px"></div>
+    <div id="ia-bar" style="display:none;height:8px;background:rgba(255,255,255,.12);border-radius:6px;overflow:hidden;margin-bottom:12px"><div id="ia-bar-fill" style="height:100%;width:0;background:var(--success,#2D8C5A);transition:width .3s"></div></div>
     <div id="ia-grilla" style="display:flex;flex-wrap:wrap;gap:10px"></div>
     <p id="ia-msg" style="margin-top:12px;font-size:13px;min-height:18px;opacity:.95"></p>
   </div>`;
@@ -447,7 +448,10 @@ async function openIA(tema, nombre){
   const imsg=ov.querySelector('#ia-msg');
   const btnGen=ov.querySelector('#ia-btn-generar');
   const btnApr=ov.querySelector('#ia-btn-aprobar');
+  const bar=ov.querySelector('#ia-bar');
+  const barFill=ov.querySelector('#ia-bar-fill');
   let lastEventos=[];
+  let iaTotal=0;
 
   function nombreArchivo(evt){
     if(evt.archivo) return evt.archivo;   // nombre real que guardó el orquestador
@@ -492,12 +496,14 @@ async function openIA(tema, nombre){
     try{
       const r=await fetch('/dash/ia-estado?job='+encodeURIComponent(jid),{headers:{'X-API-Key':KEY}});
       const st=await r.json();
-      const total=st.eventos?st.eventos.length:0;
+      const hechas=st.eventos?st.eventos.length:0;
       const ok_n=(st.eventos||[]).filter(e=>e.ok).length;
+      const pct=iaTotal?Math.round(hechas/iaTotal*100):0;
+      barFill.style.width=(st.estado==='listo'?100:pct)+'%';
       prog.textContent=st.estado==='corriendo'
-        ? (total===0 ? 'Generando estilo base…' : 'Generando… '+total+' piezas procesadas')
+        ? (hechas===0 ? 'Generando estilo base…' : 'Generando… '+hechas+'/'+(iaTotal||'?')+' piezas ('+pct+'%)')
         : st.estado==='listo'
-          ? '✓ Listo — '+ok_n+'/'+total+' piezas generadas'
+          ? '✓ Listo — '+ok_n+'/'+hechas+' piezas generadas'
           : '✕ Error: '+(st.error||'desconocido');
       if(st.estado==='corriendo'){ setTimeout(()=>poll(jid),2000); return; }
       if(st.eventos&&st.eventos.length){ pintarGrilla(st.eventos); btnApr.style.display=''; }
@@ -513,6 +519,7 @@ async function openIA(tema, nombre){
       const r=await fetch('/dash/ia-generar?tema='+encodeURIComponent(tema)+'&calidad='+cal,{method:'POST',headers:{'X-API-Key':KEY}});
       const j=await r.json();
       if(!j.ok||!j.job){ prog.textContent='✕ '+(j.error||'no arrancó'); btnGen.disabled=false; return; }
+      iaTotal=j.total||0; bar.style.display=''; barFill.style.width='0';
       poll(j.job);
     }catch(e){ prog.textContent='✕ '+e; btnGen.disabled=false; }
   };

@@ -83,6 +83,13 @@ def test_evento_lleva_archivo_real(tmp_path):
     assert arch[("banderin", None)] == "banderin.png"   # universal
 
 
+def test_contar_piezas():
+    # 2 piezas por-edad (invitacion, afiche) + 10 piezas una vez
+    assert orquestador.contar_piezas([1, 2, 3]) == 16   # 2*3 + 10
+    assert orquestador.contar_piezas([1]) == 12         # 2*1 + 10
+    assert orquestador.contar_piezas([1, 2, 3], solo={"banderin"}) == 1
+
+
 def test_sin_referencias_falla_claro(tmp_path):
     # ni recortes/ ni arte base -> error claro, NO una llamada vacía a OpenAI
     d = tmp_path / "vacio"; d.mkdir(parents=True)
