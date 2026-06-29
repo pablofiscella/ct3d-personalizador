@@ -42,9 +42,13 @@ class OpenAIImageClient:
                 with self.opener(req, timeout=self.timeout) as r:
                     raw = r.read().decode("utf-8")
             except urllib.error.HTTPError as e:
-                last = e
+                try:    # el cuerpo trae el detalle real del error de OpenAI
+                    cuerpo = e.read().decode("utf-8", "replace")[:600]
+                except Exception:
+                    cuerpo = ""
+                last = "HTTP %s: %s — %s" % (e.code, e.reason, cuerpo)
                 if e.code < 500:  # 4xx no se reintenta
-                    raise OpenAIError("OpenAI HTTP %s: %s" % (e.code, e.reason))
+                    raise OpenAIError("OpenAI " + last)
             except (urllib.error.URLError, TimeoutError) as e:
                 last = e
             else:
