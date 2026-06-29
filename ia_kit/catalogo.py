@@ -74,8 +74,9 @@ _EXTRA_FORMA = {
 }
 
 
-# Piezas que llevan texto personalizado al customizar -> el arte DEBE dejar el espacio limpio.
-_CON_TEXTO = {"banderin", "cajita_sorpresa", "decoracion_sorbetes", "tarjetas_agradecimiento"}
+# Texto personalizado en extras: EN PAUSA. Se hará con un editor (posición/tamaño/nombre)
+# en vez de auto-posicionar. Por ahora vacío -> esas piezas quedan decorativas.
+_CON_TEXTO = set()
 
 _ZONA_LIMPIA = ("SIEMPRE dejá un ÁREA CENTRAL amplia, limpia y despejada (sin dibujos ni texto) "
                 "para el texto que se agrega después; la decoración temática va SOLO alrededor.")
