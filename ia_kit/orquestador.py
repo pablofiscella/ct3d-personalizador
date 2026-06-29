@@ -42,7 +42,8 @@ def _nombre_pieza(p, edad):
 
 
 def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
-                 quitar=quitar_fondo.remove_bg, concurrencia=4, calidad="medium"):
+                 quitar=quitar_fondo.remove_bg, concurrencia=4, calidad="medium",
+                 reusar_maestra=False):
     tema_dir = os.path.join(temas_dir, tema)
     draft = os.path.join(tema_dir, "ia_draft")
     pal = catalogo.paleta_de(temas_dir, tema)
@@ -52,9 +53,17 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
             "El tema '%s' no tiene imágenes de referencia: subí personajes a "
             "recortes/ o cargá el arte base (invitacion_*/afiche_*)." % tema)
     # imagen maestra de estilo: ancla de consistencia, se manda como ref extra.
-    # Es secuencial (las piezas dependen de ella); si falla, aborta (sin ancla no sirve).
-    maestra = client.editar(refs, "Lámina maestra de estilo del tema. " +
-                            catalogo.bloque_estilo(pal), catalogo._SQUARE, quality=calidad)
+    # Se cachea en ia_maestra.png (fuera de ia_draft, no se publica) para reusarla al
+    # regenerar una pieza suelta -> regenerar = 1 sola llamada, sin rehacer la maestra.
+    cache_maestra = os.path.join(tema_dir, "ia_maestra.png")
+    if reusar_maestra and os.path.exists(cache_maestra):
+        with open(cache_maestra, "rb") as f:
+            maestra = f.read()
+    else:
+        maestra = client.editar(refs, "Lámina maestra de estilo del tema. " +
+                                catalogo.bloque_estilo(pal), catalogo._SQUARE, quality=calidad)
+        with open(cache_maestra, "wb") as f:
+            f.write(maestra)
     refs_full = refs + [maestra]
     os.makedirs(draft, exist_ok=True)
 

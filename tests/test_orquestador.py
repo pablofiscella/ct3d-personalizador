@@ -83,6 +83,19 @@ def test_evento_lleva_archivo_real(tmp_path):
     assert arch[("banderin", None)] == "banderin.png"   # universal
 
 
+def test_reusa_maestra_cacheada(tmp_path):
+    # 1ª vez: genera maestra + pieza (2 llamadas). 2ª con reusar_maestra: solo la pieza (1).
+    td = _tema_dir(tmp_path)
+    c1 = _FakeClient()
+    orquestador.generar_tema(c1, td, "safari", edades=[1], solo={"banderin"},
+                             quitar=lambda im, protect=True: im)
+    assert len(c1.prompts) == 2
+    c2 = _FakeClient()
+    orquestador.generar_tema(c2, td, "safari", edades=[1], solo={"banderin"},
+                             reusar_maestra=True, quitar=lambda im, protect=True: im)
+    assert len(c2.prompts) == 1   # reusó la maestra cacheada
+
+
 def test_contar_piezas():
     # 2 piezas por-edad (invitacion, afiche) + 10 piezas una vez
     assert orquestador.contar_piezas([1, 2, 3]) == 16   # 2*3 + 10

@@ -481,15 +481,40 @@ async function openIA(tema, nombre){
       btn.style.cssText='font-size:10px;padding:2px 6px;border-radius:5px;border:1px solid rgba(255,255,255,.25);background:transparent;color:inherit;cursor:pointer;margin-top:2px';
       btn.onclick=async()=>{ btn.disabled=true; btn.textContent='…';
         imsg.textContent='Regenerando '+ev.pieza+(ev.edad!=null&&ev.edad!==''?' edad '+ev.edad:'')+'…';
+        const cal=(ov.querySelector('#ia-cal')||{}).value||'low';
         try{
-          const r=await fetch('/dash/ia-regenerar?tema='+encodeURIComponent(tema)+'&pieza='+encodeURIComponent(ev.pieza)+'&calidad='+((ov.querySelector('#ia-cal')||{}).value||'low'),{method:'POST',headers:{'X-API-Key':KEY}});
+          const r=await fetch('/dash/ia-regenerar?tema='+encodeURIComponent(tema)+'&pieza='+encodeURIComponent(ev.pieza)+'&calidad='+cal,{method:'POST',headers:{'X-API-Key':KEY}});
           const j=await r.json();
-          if(j.ok){ imsg.textContent='✓ Regenerado'; const updated=lastEventos.map(e=>(e.pieza===ev.pieza&&e.edad===ev.edad)?{...e,ok:true,error:''}:e); pintarGrilla(updated); }
-          else{ imsg.textContent='✕ '+(j.error||'error'); btn.disabled=false; btn.textContent='↺ Regener.'; }
+          if(!j.ok||!j.job){ imsg.textContent='✕ '+(j.error||'no arrancó'); btn.disabled=false; btn.textContent='↺ Regener.'; return; }
+          const espera=async()=>{   // background + poll (evita el timeout del proxy)
+            try{
+              const s=await (await fetch('/dash/ia-estado?job='+encodeURIComponent(j.job),{headers:{'X-API-Key':KEY}})).json();
+              if(s.estado==='corriendo'){ setTimeout(espera,2000); return; }
+              imsg.textContent=(s.estado==='listo')?'✓ Regenerado':('✕ '+(s.error||'error'));
+              await cargarBorradores();   // re-render con la imagen nueva
+            }catch(e){ imsg.textContent='✕ '+e; }
+          };
+          espera();
         }catch(e){ imsg.textContent='✕ '+e; btn.disabled=false; btn.textContent='↺ Regener.'; }
       };
       card.appendChild(lbl); card.appendChild(btn); grilla.appendChild(card);
     }
+  }
+
+  async function cargarBorradores(){
+    try{
+      const r=await fetch('/dash/ia-listado?tema='+encodeURIComponent(tema)+'&cb='+Date.now(),{headers:{'X-API-Key':KEY}});
+      const j=await r.json();
+      if(j.ok && j.archivos && j.archivos.length){
+        const evs=j.archivos.map(fn=>{
+          const base=fn.replace(/\.png$/,''); const m=base.match(/^(.*?)_(\d+)$/);
+          return m?{pieza:m[1],edad:parseInt(m[2]),ok:true,archivo:fn}
+                  :{pieza:base,edad:null,ok:true,archivo:fn};
+        });
+        prog.textContent='Borradores ya generados: '+evs.length+' piezas — regenerá las que quieras (↺) y aprobá.';
+        pintarGrilla(evs); btnApr.style.display='';
+      }
+    }catch(e){}
   }
 
   async function poll(jid){
@@ -536,21 +561,7 @@ async function openIA(tema, nombre){
 
   // Al abrir: cargar los borradores ya generados (si hay) para verlos y regenerar
   // individualmente con ↺, sin tener que generar todo de nuevo.
-  (async()=>{
-    try{
-      const r=await fetch('/dash/ia-listado?tema='+encodeURIComponent(tema)+'&cb='+Date.now(),{headers:{'X-API-Key':KEY}});
-      const j=await r.json();
-      if(j.ok && j.archivos && j.archivos.length){
-        const evs=j.archivos.map(fn=>{
-          const base=fn.replace(/\.png$/,''); const m=base.match(/^(.*?)_(\d+)$/);
-          return m?{pieza:m[1],edad:parseInt(m[2]),ok:true,archivo:fn}
-                  :{pieza:base,edad:null,ok:true,archivo:fn};
-        });
-        prog.textContent='Borradores ya generados: '+evs.length+' piezas — regenerá las que quieras (↺) y aprobá.';
-        pintarGrilla(evs); btnApr.style.display='';
-      }
-    }catch(e){}
-  })();
+  cargarBorradores();
 }
 
 async function openBase(tema, nombre){

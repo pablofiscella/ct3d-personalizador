@@ -1273,12 +1273,14 @@ class Handler(BaseHTTPRequestHandler):
         if client is None:
             return self._json(503, {"ok": False, "error": "falta OPENAI_API_KEY"})
         edades = temas.cargar_tema(tema).get("edades", [1, 2, 3])
-        try:
-            ia_orq.generar_tema(client, temas.TEMAS_DIR, tema, edades,
-                                solo={pieza}, calidad=_calidad(q))
-            return self._json(200, {"ok": True})
-        except Exception as e:
-            return self._json(500, {"ok": False, "error": str(e)})
+        calidad = _calidad(q)
+        # En background (como ia-generar): regenerar es lento y un POST síncrono daba
+        # 504/524 en el proxy. Reusa la maestra cacheada -> 1 sola llamada a OpenAI.
+        def trabajo(emit):
+            ia_orq.generar_tema(client, temas.TEMAS_DIR, tema, edades, progress=emit,
+                                solo={pieza}, calidad=calidad, reusar_maestra=True)
+        jid = ia_jobs.iniciar(trabajo)
+        return self._json(200, {"ok": True, "job": jid})
 
     def _ia_aprobar(self):
         if not self._admin_ok():
