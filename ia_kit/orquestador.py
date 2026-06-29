@@ -6,7 +6,7 @@ import quitar_fondo
 from . import catalogo
 from .validate import validar_png
 
-_SLOTS = {"invitacion"}   # único slot raíz temas/<tema>/ (el resto va a extras/)
+# invitacion es el único slot que va a la raíz temas/<tema>/; el resto va a extras/.
 
 
 def _refs(tema_dir):
