@@ -36,6 +36,8 @@ def test_editar_devuelve_bytes_decodificados():
     assert calls["ct"].startswith("multipart/form-data")
     # el campo de la imagen debe ser "image[]" (sintaxis de lista para varias refs)
     assert b'name="image[]"; filename=' in calls["body"]
+    # input_fidelity NO se manda por defecto (gpt-image-2 no lo soporta)
+    assert b"input_fidelity" not in calls["body"]
 
 
 def test_reintenta_en_500_y_despues_ok():

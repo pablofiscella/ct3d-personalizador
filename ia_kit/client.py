@@ -25,9 +25,12 @@ class OpenAIImageClient:
         self.timeout = timeout
 
     def editar(self, refs, prompt, size, quality="medium",
-               input_fidelity="high", background=None):
+               input_fidelity=None, background=None):
         fields = {"model": self.model, "prompt": prompt, "size": size,
-                  "quality": quality, "input_fidelity": input_fidelity, "n": "1"}
+                  "quality": quality, "n": "1"}
+        # gpt-image-2 NO soporta input_fidelity; solo se manda si se pide explícito.
+        if input_fidelity:
+            fields["input_fidelity"] = input_fidelity
         if background:
             fields["background"] = background
         # OpenAI /images/edits: para VARIAS imágenes de referencia el campo es "image[]"
