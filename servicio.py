@@ -1217,6 +1217,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._deny()
         q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         tema = slug(q.get("tema", [""])[0])
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
         pieza = re.sub(r"[^a-z0-9_]", "", (q.get("pieza", [""])[0] or "").lower())[:30]
         client = _openai_client()
         if client is None:
@@ -1233,6 +1235,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._deny()
         q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         tema = slug(q.get("tema", [""])[0])
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
         res = ia_aprobar.aprobar(temas.TEMAS_DIR, tema)
         generador._specs_cache.pop(tema, None)
         return self._json(200, {"ok": True, **res})
