@@ -33,6 +33,10 @@ EXTRAS_UNIVERSAL = ["banderin", "etiquetas_multiuso", "wrappers_cupcakes",
                     "tarjetas_agradecimiento"]
 # (invitacion no está en ninguna: es el slot raíz temas/<tema>/invitacion_<edad>.png)
 
+# Piezas por-edad que se generan SOLO en la 1ª edad y luego se REPLICAN al resto cambiando
+# el número (para que las edades queden consistentes en vez de generarse por separado).
+REPLICABLE = {"afiche"}
+
 _DEF = {"accent": "#E0514A", "ink": "#4A4A4A", "font": "Baloo2-VF.ttf"}
 
 

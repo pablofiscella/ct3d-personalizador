@@ -84,8 +84,11 @@ def _guardar(im, draft_dir, nombre):
 
 def contar_piezas(edades, solo=None):
     """Cuántas piezas generará generar_tema (para la barra de progreso)."""
-    return sum((len(edades) if p.por_edad else 1)
-               for p in catalogo.PIEZAS if not (solo and p.key not in solo))
+    def n(p):
+        if p.por_edad and p.key in catalogo.REPLICABLE and not solo:
+            return 1                       # replicable: en el batch solo la 1ª edad
+        return len(edades) if p.por_edad else 1
+    return sum(n(p) for p in catalogo.PIEZAS if not (solo and p.key not in solo))
 
 
 def _nombre_pieza(p, edad):
@@ -124,9 +127,15 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
     refs_full = refs + [maestra]
     os.makedirs(draft, exist_ok=True)
 
+    def _edades_pieza(p):
+        # piezas replicables (afiche): en el batch completo solo la 1ª edad; el resto
+        # se replica después cambiando el número (más consistente).
+        if p.por_edad and p.key in catalogo.REPLICABLE and not solo:
+            return [edades[0]]
+        return edades if p.por_edad else [None]
     work = [(p, edad) for p in catalogo.PIEZAS
             if not (solo and p.key not in solo)
-            for edad in (edades if p.por_edad else [None])]
+            for edad in _edades_pieza(p)]
 
     def _trabajo(p, edad):
         # corre en un thread; captura sus propios errores y devuelve el evento.
@@ -161,4 +170,41 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
             if progress:
                 progress(evt)
             (generadas if evt["ok"] else errores).append(evt)
+    return {"generadas": generadas, "errores": errores}
+
+
+def replicar_pieza(client, temas_dir, tema, pieza_key, edades, progress=None, calidad="medium"):
+    """Replica <pieza>_<edades[0]> a las demás edades cambiando SOLO el número, usando esa
+    imagen como referencia (mantiene composición/colores/estilo). Para piezas con número
+    por edad (afiche): generás la 1ª, la revisás y replicás el resto."""
+    p = next((x for x in catalogo.PIEZAS if x.key == pieza_key), None)
+    if p is None:
+        raise RuntimeError("pieza desconocida: %s" % pieza_key)
+    draft = os.path.join(temas_dir, tema, "ia_draft")
+    base_edad = int(edades[0])
+    base_path = os.path.join(draft, "%s_%d.png" % (pieza_key, base_edad))
+    if not os.path.exists(base_path):
+        raise RuntimeError("Generá primero el %s de %d año antes de replicar." % (pieza_key, base_edad))
+    with open(base_path, "rb") as f:
+        base = f.read()
+    size_t = tuple(int(x) for x in p.size.split("x"))
+    generadas, errores = [], []
+    for edad in edades:
+        if int(edad) == base_edad:
+            continue
+        nombre = "%s_%d.png" % (pieza_key, int(edad))
+        try:
+            prompt = ("Reproducí esta lámina EXACTAMENTE IGUAL —misma composición, personajes, "
+                      "colores, fondo, recuadro y estilo, sin mover ni cambiar nada— EXCEPTO el "
+                      "número grande de edad: poné el número %d en lugar del %d."
+                      % (int(edad), base_edad))
+            raw = client.editar([base], prompt, p.size, quality=calidad)
+            im = validar_png(raw, size_esperado=size_t).convert("RGBA")
+            _guardar(im, draft, nombre)
+            ev = {"pieza": pieza_key, "edad": edad, "ok": True, "error": "", "archivo": nombre}
+        except Exception as e:
+            ev = {"pieza": pieza_key, "edad": edad, "ok": False, "error": str(e), "archivo": ""}
+        if progress:
+            progress(ev)
+        (generadas if ev["ok"] else errores).append(ev)
     return {"generadas": generadas, "errores": errores}

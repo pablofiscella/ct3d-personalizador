@@ -521,7 +521,32 @@ async function openIA(tema, nombre){
           espera();
         }catch(e){ imsg.textContent='✕ '+e; fin(); }
       };
-      card.appendChild(lbl); card.appendChild(btn); grilla.appendChild(card);
+      card.appendChild(lbl); card.appendChild(btn);
+      if(ev.pieza==='afiche'){   // replicar a las otras edades cambiando solo el número
+        const rb=document.createElement('button');
+        rb.textContent='⧉ otras edades';
+        rb.style.cssText='font-size:10px;padding:2px 6px;border-radius:5px;border:1px solid rgba(255,255,255,.25);background:transparent;color:inherit;cursor:pointer;margin-top:2px';
+        rb.onclick=async()=>{ rb.disabled=true; rb.textContent='…';
+          imsg.textContent='Replicando '+ev.pieza+' a las otras edades (cambia solo el número)…';
+          const cal=(ov.querySelector('#ia-cal')||{}).value||'low';
+          try{
+            const r=await fetch('/dash/ia-replicar?tema='+encodeURIComponent(tema)+'&pieza='+encodeURIComponent(ev.pieza)+'&calidad='+cal,{method:'POST',headers:{'X-API-Key':KEY}});
+            const j=await r.json();
+            if(!j.ok||!j.job){ imsg.textContent='✕ '+(j.error||'no arrancó'); rb.disabled=false; rb.textContent='⧉ otras edades'; return; }
+            const espera=async()=>{
+              try{
+                const s=await (await fetch('/dash/ia-estado?job='+encodeURIComponent(j.job),{headers:{'X-API-Key':KEY}})).json();
+                if(s.estado==='corriendo'){ setTimeout(espera,2000); return; }
+                imsg.textContent=(s.estado==='listo')?'✓ Replicado a las otras edades':('✕ '+(s.error||'error'));
+                rb.disabled=false; rb.textContent='⧉ otras edades'; await cargarBorradores();
+              }catch(e){ imsg.textContent='✕ '+e; rb.disabled=false; rb.textContent='⧉ otras edades'; }
+            };
+            espera();
+          }catch(e){ imsg.textContent='✕ '+e; rb.disabled=false; rb.textContent='⧉ otras edades'; }
+        };
+        card.appendChild(rb);
+      }
+      grilla.appendChild(card);
     }
   }
 

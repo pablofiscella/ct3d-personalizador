@@ -127,10 +127,31 @@ def test_borde_sticker_rellena_hueco_interno():
 
 
 def test_contar_piezas():
-    # 2 piezas por-edad (invitacion, afiche) + 10 piezas una vez
-    assert orquestador.contar_piezas([1, 2, 3]) == 16   # 2*3 + 10
-    assert orquestador.contar_piezas([1]) == 12         # 2*1 + 10
+    # invitacion ×3 + afiche ×1 (replicable, solo 1ª edad en batch) + 10 piezas una vez
+    assert orquestador.contar_piezas([1, 2, 3]) == 14   # 3 + 1 + 10
+    assert orquestador.contar_piezas([1]) == 12         # 1 + 1 + 10
     assert orquestador.contar_piezas([1, 2, 3], solo={"banderin"}) == 1
+
+
+def test_afiche_solo_primera_edad_en_batch(tmp_path):
+    td = _tema_dir(tmp_path)
+    orquestador.generar_tema(_FakeClient(), td, "safari", edades=[1, 2, 3],
+                             quitar=lambda im, protect=True: im)
+    draft = os.path.join(td, "safari", "ia_draft")
+    assert os.path.exists(os.path.join(draft, "afiche_1.png"))
+    assert not os.path.exists(os.path.join(draft, "afiche_2.png"))   # 2 y 3 se replican aparte
+    assert not os.path.exists(os.path.join(draft, "afiche_3.png"))
+
+
+def test_replicar_pieza_genera_otras_edades(tmp_path):
+    td = _tema_dir(tmp_path)
+    orquestador.generar_tema(_FakeClient(), td, "safari", edades=[1, 2, 3],
+                             quitar=lambda im, protect=True: im)   # crea afiche_1
+    res = orquestador.replicar_pieza(_FakeClient(), td, "safari", "afiche", [1, 2, 3])
+    draft = os.path.join(td, "safari", "ia_draft")
+    assert os.path.exists(os.path.join(draft, "afiche_2.png"))
+    assert os.path.exists(os.path.join(draft, "afiche_3.png"))
+    assert not res["errores"]
 
 
 def test_sin_referencias_falla_claro(tmp_path):

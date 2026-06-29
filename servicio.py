@@ -689,6 +689,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._ia_generar()
         if path == "/dash/ia-regenerar":
             return self._ia_regenerar()
+        if path == "/dash/ia-replicar":
+            return self._ia_replicar()
         if path == "/dash/ia-aprobar":
             return self._ia_aprobar()
         if path == "/dash/borrar-pieza":
@@ -1282,6 +1284,26 @@ class Handler(BaseHTTPRequestHandler):
         def trabajo(emit):
             ia_orq.generar_tema(client, temas.TEMAS_DIR, tema, edades, progress=emit,
                                 solo={pieza}, calidad=calidad, reusar_maestra=True)
+        jid = ia_jobs.iniciar(trabajo)
+        return self._json(200, {"ok": True, "job": jid})
+
+    def _ia_replicar(self):
+        # Replica una pieza (ej. afiche) de la 1ª edad al resto cambiando solo el número.
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        pieza = re.sub(r"[^a-z0-9_]", "", (q.get("pieza", [""])[0] or "").lower())[:30]
+        client = _openai_client()
+        if client is None:
+            return self._json(503, {"ok": False, "error": "falta OPENAI_API_KEY"})
+        edades = temas.cargar_tema(tema).get("edades", [1, 2, 3])
+        calidad = _calidad(q)
+        def trabajo(emit):
+            ia_orq.replicar_pieza(client, temas.TEMAS_DIR, tema, pieza, edades,
+                                  progress=emit, calidad=calidad)
         jid = ia_jobs.iniciar(trabajo)
         return self._json(200, {"ok": True, "job": jid})
 
