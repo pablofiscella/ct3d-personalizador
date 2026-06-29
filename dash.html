@@ -418,7 +418,7 @@ async function openPiezas(tema, nombre){
 async function openIA(tema, nombre){
   if(!document.getElementById('ia-spin-style')){   // animación del spinner
     const st=document.createElement('style'); st.id='ia-spin-style';
-    st.textContent='@keyframes ia-spin{to{transform:rotate(360deg)}}';
+    st.textContent='@keyframes ia-spin{to{transform:rotate(360deg)}}@keyframes ia-indet{0%{background-position:-40% 0}100%{background-position:140% 0}}';
     document.head.appendChild(st);
   }
   const ov=document.createElement('div');
@@ -449,6 +449,11 @@ async function openIA(tema, nombre){
   const btnApr=ov.querySelector('#ia-btn-aprobar');
   const bar=ov.querySelector('#ia-bar');
   const barFill=ov.querySelector('#ia-bar-fill');
+  const barIndet=(on)=>{   // animación indeterminada mientras no hay % real (maestra/1ª pieza)
+    if(on){ barFill.style.width='100%'; barFill.style.background='linear-gradient(90deg,transparent,var(--success,#2D8C5A),transparent)';
+            barFill.style.backgroundSize='40% 100%'; barFill.style.backgroundRepeat='no-repeat'; barFill.style.animation='ia-indet 1.1s linear infinite'; }
+    else { barFill.style.animation=''; barFill.style.background='var(--success,#2D8C5A)'; barFill.style.backgroundSize=''; }
+  };
   let lastEventos=[];
   let iaTotal=0;
 
@@ -579,7 +584,7 @@ async function openIA(tema, nombre){
       const hechas=st.eventos?st.eventos.length:0;
       const ok_n=(st.eventos||[]).filter(e=>e.ok).length;
       const pct=iaTotal?Math.round(hechas/iaTotal*100):0;
-      barFill.style.width=(st.estado==='listo'?100:pct)+'%';
+      if(hechas>0||st.estado==='listo'){ barIndet(false); barFill.style.width=(st.estado==='listo'?100:pct)+'%'; }
       prog.textContent=st.estado==='corriendo'
         ? (hechas===0 ? 'Generando estilo base…' : 'Generando… '+hechas+'/'+(iaTotal||'?')+' piezas ('+pct+'%)')
         : st.estado==='listo'
@@ -594,7 +599,7 @@ async function openIA(tema, nombre){
   btnGen.onclick=async()=>{
     btnGen.disabled=true; btnApr.style.display='none';
     grilla.innerHTML=''; imsg.textContent=''; prog.textContent='Iniciando…';
-    bar.style.display=''; barFill.style.width='0';   // mostrar la barra YA, sin esperar al server
+    bar.style.display=''; barIndet(true);   // barra visible + animación indeterminada YA, sin esperar al server
     try{
       const cal=(ov.querySelector('#ia-cal')||{}).value||'low';
       const r=await fetch('/dash/ia-generar?tema='+encodeURIComponent(tema)+'&calidad='+cal,{method:'POST',headers:{'X-API-Key':KEY}});

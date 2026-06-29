@@ -21,7 +21,7 @@ PIEZAS = [
     Pieza("cajita_sorpresa", _SQUARE, False, False, "una ilustración decorativa para las caras de una cajita sorpresa"),
     Pieza("decoracion_sorbetes", _SQUARE, False, True,  "banderitas decorativas para sorbetes"),
     Pieza("banderin", _SQUARE, False, True,  "un banderín triangular decorativo"),
-    Pieza("etiquetas_multiuso", _SQUARE, False, True,  "una plancha de etiquetas circulares multiuso"),
+    Pieza("etiquetas_multiuso", _SQUARE, False, False, "una plancha de etiquetas circulares multiuso"),
     Pieza("wrappers_cupcakes", _SQUARE, False, False,  "una plancha de wrappers (envoltorios) para cupcakes, diseño completo que llena el rectángulo"),
     Pieza("tarjetas_agradecimiento", _PORTRAIT, False, False,  "una tarjeta de agradecimiento vertical, diseño completo que llena todo el rectángulo"),
 ]
@@ -80,9 +80,12 @@ _EXTRA_FORMA = {
                       "con figuras separadas, sin huecos internos. Dejá MARGEN libre abajo. "
                       "Fondo BLANCO liso para recortar. SIN texto y SIN palito (el palito lo "
                       "agrega el sistema)."),
-    "etiquetas_multiuso": ("Es una PLANCHA de varias etiquetas circulares en grilla; en CADA "
-                           "círculo poné UN personaje CENTRADO que LLENE bien la etiqueta "
-                           "(no en un costado, no con el centro vacío), sin salirse del borde."),
+    "etiquetas_multiuso": ("Es una PLANCHA rectangular LLENA de etiquetas circulares en grilla. "
+                           "Cada etiqueta es un círculo RELLENO (con color/fondo sólido, tipo "
+                           "sello/medalla) y un personaje CENTRADO adentro que la llene bien; "
+                           "NINGÚN círculo vacío, hueco ni transparente. El fondo de la lámina "
+                           "entre los círculos es blanco liso. Diseño completo que llena el "
+                           "rectángulo."),
     "wrappers_cupcakes": ("2 o 3 wrappers de cupcake (forma de arco/abanico) apilados, TODOS "
                           "COMPLETOS y enteros DENTRO del cuadro, con MARGEN en todos los bordes; "
                           "que ninguno se corte arriba ni abajo (mejor menos cantidad y enteros)."),
