@@ -24,7 +24,7 @@ import mate as mate_mod  # editor de mates (grabado láser)
 import generador  # layout del editor
 import temas          # alta de temáticas (dashboard)
 import quitar_fondo   # recorte de fondo de animalitos/números subidos
-from ia_kit import jobs as ia_jobs, orquestador as ia_orq, aprobar as ia_aprobar
+from ia_kit import jobs as ia_jobs, orquestador as ia_orq, aprobar as ia_aprobar, upscale as ia_upscale
 from ia_kit.client import OpenAIImageClient
 from PIL import Image
 
@@ -1292,6 +1292,11 @@ class Handler(BaseHTTPRequestHandler):
         tema = slug(q.get("tema", [""])[0])
         if not tema or not temas.existe(tema):
             return self._json(400, {"ok": False, "error": "tema inválido"})
+        # al aprobar: upscale a resolución de impresión (misma imagen) y recién mover
+        try:
+            ia_upscale.upscalar_draft(temas.TEMAS_DIR, tema)
+        except Exception as e:
+            print("[ia] upscale falló (sigo igual):", e)
         res = ia_aprobar.aprobar(temas.TEMAS_DIR, tema)
         generador._specs_cache.pop(tema, None)
         # refrescar thumbs de los archivos movidos (el modal de arte base no debe
