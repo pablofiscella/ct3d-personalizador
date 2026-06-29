@@ -75,10 +75,11 @@ _EXTRA_FORMA = {
                         "CIERRA: tiene que tener LAS 6 CARAS conectadas (base, las 4 paredes y "
                         "la TAPA) más las lengüetas/solapas para pegar y cerrar; líneas de "
                         "doblez punteadas. Vista plana de frente, decoración temática en las caras."),
-    "stickers": ("Varios stickers del personaje BIEN SEPARADOS entre sí (con espacio en blanco "
-                 "claro entre cada uno, que no se toquen). Cada figura COMPACTA y maciza, SIN "
-                 "huecos internos ni elementos flotando separados con espacios en el medio "
-                 "(nada de aros/arcos abiertos). Sobre fondo BLANCO liso para poder recortarlos."),
+    "stickers": ("Pocos stickers del personaje MUY SEPARADOS entre sí, con MUCHO espacio en "
+                 "blanco entre cada uno (al menos medio sticker de distancia): que NO se toquen "
+                 "ni queden cerca, porque al recortarlos con borde se pegarían. Cada figura "
+                 "COMPACTA y maciza, SIN huecos internos ni elementos flotando con espacios en "
+                 "el medio (nada de aros/arcos abiertos). Sobre fondo BLANCO liso."),
 }
 
 
