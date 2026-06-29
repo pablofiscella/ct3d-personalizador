@@ -149,10 +149,7 @@
     </div>
     <aside id="panel">
       <h1>Posicionar textos</h1>
-      <div id="piezas">
-        <button class="pz sel" data-pz="invitacion">Invitación</button>
-        <button class="pz" data-pz="afiche">Afiche</button>
-      </div>
+      <div id="piezas"></div>
       <p class="hint">Tocá un texto sobre la imagen (o un chip) para seleccionarlo. <b>Arrastralo</b> para moverlo, o usá las flechas (⇧ = saltos de 10). Ajustá tamaño y grosor con los sliders. Cuando te guste, <b>Guardar</b>.</p>
       <div class="label-row">Campos</div>
       <div class="chips" id="chips"></div>
@@ -284,18 +281,26 @@ document.getElementById('save').onclick=async()=>{const msg=document.getElementB
 
 // ---- piezas ----
 let PIEZA='invitacion';
+const PZ_LABELS={invitacion:'Invitación',afiche:'Afiche',banderin:'Banderín',
+  cajita_sorpresa:'Cajita',decoracion_sorbetes:'Sorbetes',tarjetas_agradecimiento:'Tarjeta'};
+function construirBotones(piezas, actual){
+  const cont=document.getElementById('piezas'); cont.innerHTML='';
+  (piezas||['invitacion']).filter(p=>p!=='cartel').forEach(p=>{
+    const b=document.createElement('button');
+    b.className='pz'+(p===actual?' sel':''); b.dataset.pz=p;
+    b.textContent=PZ_LABELS[p]||p;
+    b.onclick=async()=>{ const m=document.getElementById('msg'); m.textContent=''; m.className=''; await loadPieza(p); };
+    cont.appendChild(b);
+  });
+}
 async function loadPieza(p){
   PIEZA=p; sel=null; document.getElementById('sel').style.display='none';
   const lay=await (await fetch('/editor/layout?pieza='+p+'&tema='+TEMA+'&cb='+Date.now())).json();
   SIZE=lay.size; fields=lay.fields;
+  construirBotones(lay.piezas, p);   // botones dinámicos (incluye extras con texto)
   await new Promise(res=>{bg.onload=res; bg.onerror=res; bg.src='/editor-bg.png?pieza='+p+'&tema='+TEMA+'&cb='+Date.now();});
   renderChips(); draw();
 }
-document.querySelectorAll('#piezas .pz').forEach(b=>b.onclick=async()=>{
-  document.querySelectorAll('#piezas .pz').forEach(x=>x.classList.remove('sel'));
-  b.classList.add('sel'); document.getElementById('msg').textContent='';document.getElementById('msg').className='';
-  await loadPieza(b.dataset.pz);
-});
 
 // ---- tema chip + toggle de tema ----
 document.getElementById('temachip').textContent=TEMA;

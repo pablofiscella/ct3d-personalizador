@@ -29,6 +29,35 @@ def list_temas():
                 pass
     return out
 
+# Extras que llevan texto personalizable (editable con el editor). Se inyectan como spec
+# (campo "nombre" + layout_file) para reusar el editor genérico. Posición por defecto; el
+# admin la ajusta y se guarda en temas/<tema>/layouts/<pieza>.json. El nombre del cliente
+# se completa al customizar (tpl con {nombre}).
+_EXTRAS_TEXTO = {
+    "afiche":                  {"tpl": "FELIZ CUMPLE {nombre}",   "x": 0.5, "y": 0.86, "size": 120, "maxw": 0.58, "bg": "extras/afiche_{edad}.png",              "size_px": [1536, 2176]},
+    "banderin":                {"tpl": "¡FELIZ CUMPLE {nombre}!", "x": 0.5, "y": 0.50, "size": 150, "maxw": 0.70, "bg": "extras/banderin.png",                   "size_px": [1024, 1024]},
+    "cajita_sorpresa":         {"tpl": "FELIZ CUMPLE {nombre}",   "x": 0.5, "y": 0.50, "size": 130, "maxw": 0.70, "bg": "extras/cajita_sorpresa_{edad}.png",      "size_px": [1024, 1024]},
+    "decoracion_sorbetes":     {"tpl": "{nombre}",                 "x": 0.5, "y": 0.50, "size": 130, "maxw": 0.55, "bg": "extras/decoracion_sorbetes_{edad}.png", "size_px": [1024, 1024]},
+    "tarjetas_agradecimiento": {"tpl": "¡GRACIAS POR VENIR!",     "x": 0.5, "y": 0.46, "size": 140, "maxw": 0.80, "bg": "extras/tarjetas_agradecimiento.png",     "size_px": [1536, 2176]},
+}
+
+def _inyectar_specs_texto(specs, tdir):
+    inv = specs.get("invitacion", {})
+    nf = next((f for f in inv.get("text", []) if f.get("id") == "nombre"), {})
+    font = nf.get("font", "Baloo2-VF.ttf")
+    wght = nf.get("wght")
+    color = nf.get("color") if isinstance(nf.get("color"), (list, tuple)) else (74, 74, 74)
+    for base, cfg in _EXTRAS_TEXTO.items():
+        if base in specs:           # el tema ya lo declara explícitamente -> respetar
+            continue
+        specs[base] = {
+            "_dir": tdir, "bg": CREAM, "art": [], "size": list(cfg["size_px"]),
+            "bgimage": cfg["bg"], "layout_file": "layouts/%s.json" % base,
+            "text": [{"id": "nombre", "tpl": cfg["tpl"], "x": cfg["x"], "y": cfg["y"],
+                      "size": cfg["size"], "maxw": cfg["maxw"], "anchor": "mm",
+                      "font": font, "wght": wght, "color": tuple(color), "editable": True}],
+        }
+
 def cargar_tema(tema_id):
     tdir = os.path.join(TEMAS_DIR, tema_id)
     cfg = json.load(open(os.path.join(tdir, "tema.json"), encoding="utf-8"))
@@ -42,6 +71,7 @@ def cargar_tema(tema_id):
             if "color" in f:
                 f["color"] = _hex_to_rgb(f["color"])
         specs[pieza] = spec
+    _inyectar_specs_texto(specs, tdir)   # extras con texto editable
     return {"id": tema_id, "nombre": cfg.get("nombre", tema_id),
             "edades": cfg.get("edades", [1, 2, 3]), "specs": specs}
 

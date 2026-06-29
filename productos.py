@@ -24,7 +24,7 @@ import piezas
 from piezas import (A4, WHITE, CREAM, MUST, SAGE, make_sheet, txt, fit_into,
                     paste_center, accent, ink_c, font_disp, _band, animales,
                     load, has_recortes, _edad_any, lema, titulo)
-from generador import render, specs_de, draw_text, BROWN, OLIVE, TERRA, _safe_edad
+from generador import render, specs_de, draw_text, _effective_texts, BROWN, OLIVE, TERRA, _safe_edad
 
 INK = (74, 74, 74)  # gris oscuro para líneas de colorear
 
@@ -219,28 +219,21 @@ def _extras_dir(tema):
 # Por ahora SOLO el afiche lleva texto automático (la IA hace un recuadro abajo de forma
 # confiable y el nombre entra ahí). Las demás piezas con texto van por EDITOR (posición/
 # tamaño manual), pendiente. Texto del afiche chico para no tocar los bordes del recuadro.
-_TEXTO_EXTRA = {
-    "afiche": {"tpl": "FELIZ CUMPLE {nombre}", "y": 0.86, "maxw": 0.58, "size": 120},
-}
-
 def _campo_texto_extra(tema, base):
-    """Arma el campo de texto de la pieza, reusando fuente/color del 'nombre' de la invitación.
-    Suma un contorno contrastante para que se lea sobre cualquier fondo (el color de la
-    invitación puede ser claro y caer sobre un área clara del extra)."""
-    cfg = _TEXTO_EXTRA.get(base)
-    if not cfg:
+    """Campo de texto del extra desde su SPEC (con el layout que guardó el editor, vía
+    _effective_texts). Devuelve None si la pieza no lleva texto. Suma contorno contrastante
+    para que se lea sobre cualquier fondo."""
+    spec = specs_de(tema).get(base)
+    if not spec or not spec.get("text"):
         return None
-    inv = specs_de(tema).get("invitacion", {})
-    nf = next((f for f in inv.get("text", []) if f.get("id") == "nombre"), {})
-    color = nf.get("color", INK)
+    f = dict(_effective_texts(spec)[0])   # campo "nombre" con el layout aplicado
+    color = f.get("color", INK)
     c = tuple(color)[:3] if isinstance(color, (list, tuple)) and len(color) >= 3 else INK
     luma = 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
-    stroke_color = (40, 40, 40) if luma > 140 else (255, 255, 255)   # contorno contrastante
-    size = cfg.get("size", 160)
-    return {"tpl": cfg["tpl"], "font": nf.get("font", "Baloo2-VF.ttf"), "wght": nf.get("wght"),
-            "color": c, "size": size, "x": cfg.get("x", 0.5), "y": cfg["y"],
-            "anchor": cfg.get("anchor", "mm"), "maxw": cfg["maxw"],
-            "stroke": max(2, size // 14), "stroke_color": stroke_color}
+    f["color"] = c
+    f["stroke"] = max(2, int(f.get("size", 120)) // 14)
+    f["stroke_color"] = (40, 40, 40) if luma > 140 else (255, 255, 255)   # contorno contrastante
+    return f
 
 def _overlay_texto(img, tema, base, d):
     """Escribe el texto personalizado sobre la pieza (si corresponde). Nunca rompe el kit."""

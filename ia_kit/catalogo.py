@@ -71,6 +71,10 @@ _EXTRA_FORMA = {
     "wrappers_cupcakes": ("2 o 3 wrappers de cupcake (forma de arco/abanico) apilados, TODOS "
                           "COMPLETOS y enteros DENTRO del cuadro, con MARGEN en todos los bordes; "
                           "que ninguno se corte arriba ni abajo (mejor menos cantidad y enteros)."),
+    "cajita_sorpresa": ("Plantilla DESPLEGABLE (troquel plano) de una cajita que se arma y "
+                        "CIERRA: tiene que tener LAS 6 CARAS conectadas (base, las 4 paredes y "
+                        "la TAPA) más las lengüetas/solapas para pegar y cerrar; líneas de "
+                        "doblez punteadas. Vista plana de frente, decoración temática en las caras."),
     "stickers": ("Varios stickers del personaje BIEN SEPARADOS entre sí (con espacio en blanco "
                  "claro entre cada uno, que no se toquen). Cada figura COMPACTA y maciza, SIN "
                  "huecos internos ni elementos flotando separados con espacios en el medio "
