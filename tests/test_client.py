@@ -27,12 +27,15 @@ def test_editar_devuelve_bytes_decodificados():
         assert data is None, "el body va en el Request, no como 2o posicional (data)"
         calls["ct"] = req.headers.get("Content-type")
         calls["auth"] = req.headers.get("Authorization")
+        calls["body"] = req.data
         return _Resp(_ok_payload())
     c = OpenAIImageClient("sk-test", opener=opener)
     out = c.editar([b"ref1"], "dibuja", "1024x1024")
     assert out == b"PNGDATA"
     assert calls["auth"] == "Bearer sk-test"
     assert calls["ct"].startswith("multipart/form-data")
+    # el campo de la imagen debe llamarse "image" (no "image[]")
+    assert b'name="image"; filename=' in calls["body"]
 
 
 def test_reintenta_en_500_y_despues_ok():
