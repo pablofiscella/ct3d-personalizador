@@ -478,7 +478,7 @@ async function openIA(tema, nombre){
       const fn=nombreArchivo(ev);
       const card=document.createElement('div');
       card.style.cssText='display:flex;flex-direction:column;align-items:center;gap:5px;border:1.5px '+(ev.ok?'solid #2D8C5A':'solid #C73E3A')+';border-radius:8px;padding:8px;width:90px;box-sizing:border-box;background:'+(ev.ok?'rgba(45,140,90,.1)':'rgba(199,62,58,.1)');
-      const imgUrl='/dash/ia-draft?tema='+encodeURIComponent(tema)+'&archivo='+encodeURIComponent(fn)+'&cb='+cb;
+      const imgUrl='/dash/ia-draft?tema='+encodeURIComponent(tema)+'&archivo='+encodeURIComponent(fn)+'&cb='+cb+'&key='+encodeURIComponent(KEY);   // key en la URL: el <img> no manda header y la cookie de sesión se pierde al reiniciar
       card.innerHTML=ev.ok
         ? `<img src="${imgUrl}" style="width:74px;height:74px;object-fit:contain;border-radius:5px;${_CHECKER};cursor:zoom-in" title="Ver grande" alt="${fn}" onerror="this.style.display='none'">`
         : `<span style="font-size:26px;line-height:74px;display:block">❌</span>`;
@@ -511,7 +511,7 @@ async function openIA(tema, nombre){
               if(s.estado==='listo'){
                 imsg.textContent='✓ Regenerado: '+ev.pieza+(ev.edad!=null&&ev.edad!==''?' '+ev.edad:'');
                 // actualizar SOLO la imagen de esta tarjeta (no reconstruir toda la grilla).
-                const nuevaUrl='/dash/ia-draft?tema='+encodeURIComponent(tema)+'&archivo='+encodeURIComponent(nombreArchivo(ev))+'&cb='+Date.now();
+                const nuevaUrl='/dash/ia-draft?tema='+encodeURIComponent(tema)+'&archivo='+encodeURIComponent(nombreArchivo(ev))+'&cb='+Date.now()+'&key='+encodeURIComponent(KEY);
                 const im=card.querySelector('img');
                 if(im){ im.style.display=''; im.src=nuevaUrl; im.onclick=()=>verGrande(nuevaUrl); fin(); }
                 else { fin(); await cargarBorradores(); }   // la tarjeta era ❌: recargar
