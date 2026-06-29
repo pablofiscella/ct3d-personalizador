@@ -533,6 +533,24 @@ async function openIA(tema, nombre){
       else{ imsg.textContent='✕ '+(j.error||'error'); btnApr.disabled=false; }
     }catch(e){ imsg.textContent='✕ '+e; btnApr.disabled=false; }
   };
+
+  // Al abrir: cargar los borradores ya generados (si hay) para verlos y regenerar
+  // individualmente con ↺, sin tener que generar todo de nuevo.
+  (async()=>{
+    try{
+      const r=await fetch('/dash/ia-listado?tema='+encodeURIComponent(tema)+'&cb='+Date.now(),{headers:{'X-API-Key':KEY}});
+      const j=await r.json();
+      if(j.ok && j.archivos && j.archivos.length){
+        const evs=j.archivos.map(fn=>{
+          const base=fn.replace(/\.png$/,''); const m=base.match(/^(.*?)_(\d+)$/);
+          return m?{pieza:m[1],edad:parseInt(m[2]),ok:true,archivo:fn}
+                  :{pieza:base,edad:null,ok:true,archivo:fn};
+        });
+        prog.textContent='Borradores ya generados: '+evs.length+' piezas — regenerá las que quieras (↺) y aprobá.';
+        pintarGrilla(evs); btnApr.style.display='';
+      }
+    }catch(e){}
+  })();
 }
 
 async function openBase(tema, nombre){

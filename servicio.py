@@ -598,6 +598,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._ia_draft(urllib.parse.parse_qs(u.query))
         if path == "/dash/ia-estado":
             return self._ia_estado()
+        if path == "/dash/ia-listado":
+            return self._ia_listado(urllib.parse.parse_qs(u.query))
         if path == "/dash/base-img":
             return self._dash_base_img(urllib.parse.parse_qs(u.query))
         if path == "/dash/cuaderno-estado":
@@ -1248,6 +1250,16 @@ class Handler(BaseHTTPRequestHandler):
         q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         st = ia_jobs.estado(q.get("job", [""])[0])
         return self._json(200, {"ok": True, **st})
+
+    def _ia_listado(self, q):
+        # Borradores ya generados en ia_draft/ (para verlos al abrir el modal sin regenerar).
+        if not self._admin_ok():
+            return self._deny()
+        tema = slug(q.get("tema", [""])[0])
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        return self._json(200, {"ok": True,
+                                "archivos": ia_aprobar.listar_draft(temas.TEMAS_DIR, tema)})
 
     def _ia_regenerar(self):
         if not self._admin_ok():
