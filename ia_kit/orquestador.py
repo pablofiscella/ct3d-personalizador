@@ -3,9 +3,28 @@ import concurrent.futures
 import glob
 import os
 
+from PIL import Image, ImageDraw
+
 import quitar_fondo
 from . import catalogo
 from .validate import validar_png
+
+# Piezas que son un único círculo: se recortan a una máscara circular por código,
+# así nada queda fuera del círculo (el prompt solo no lo garantiza).
+_MASCARA_CIRCULAR = {"topper"}
+
+
+def _mascara_circular(im):
+    im = im.convert("RGBA")
+    w, h = im.size
+    d = min(w, h)
+    x0, y0 = (w - d) // 2, (h - d) // 2
+    mask = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(mask).ellipse([x0, y0, x0 + d - 1, y0 + d - 1], fill=255)
+    out = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    out.paste(im, (0, 0), mask)
+    bb = out.getbbox()
+    return out.crop(bb) if bb else out
 
 # invitacion es el único slot que va a la raíz temas/<tema>/; el resto va a extras/.
 
@@ -78,7 +97,9 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
                                  quality=calidad)
             im = validar_png(raw, size_esperado=tuple(int(x) for x in p.size.split("x")))
             im = im.convert("RGBA")
-            if p.recorte:
+            if p.key in _MASCARA_CIRCULAR:      # círculo garantizado por código
+                im = _mascara_circular(im)
+            elif p.recorte:
                 im = quitar(im, protect=True)
                 bb = im.getbbox()
                 if bb:

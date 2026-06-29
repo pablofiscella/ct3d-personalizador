@@ -96,6 +96,14 @@ def test_reusa_maestra_cacheada(tmp_path):
     assert len(c2.prompts) == 1   # reusó la maestra cacheada
 
 
+def test_mascara_circular_recorta_a_circulo():
+    im = Image.new("RGBA", (100, 100), (255, 0, 0, 255))  # cuadrado opaco
+    out = orquestador._mascara_circular(im)
+    cx, cy = out.size[0] // 2, out.size[1] // 2
+    assert out.getpixel((cx, cy))[3] == 255   # centro opaco
+    assert out.getpixel((0, 0))[3] == 0       # esquina transparente (fuera del círculo)
+
+
 def test_contar_piezas():
     # 2 piezas por-edad (invitacion, afiche) + 10 piezas una vez
     assert orquestador.contar_piezas([1, 2, 3]) == 16   # 2*3 + 10
