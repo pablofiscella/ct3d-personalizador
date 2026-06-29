@@ -24,7 +24,7 @@ import piezas
 from piezas import (A4, WHITE, CREAM, MUST, SAGE, make_sheet, txt, fit_into,
                     paste_center, accent, ink_c, font_disp, _band, animales,
                     load, has_recortes, _edad_any, lema, titulo)
-from generador import render, specs_de, BROWN, OLIVE, TERRA, _safe_edad
+from generador import render, specs_de, draw_text, BROWN, OLIVE, TERRA, _safe_edad
 
 INK = (74, 74, 74)  # gris oscuro para líneas de colorear
 
@@ -214,17 +214,57 @@ def _extras_dir(tema):
     d = specs_de(tema).get("invitacion", {}).get("_dir", "")
     return os.path.join(d, "extras") if d else ""
 
-def _mk_extra_edad(exdir, base):
+# Piezas que llevan texto personalizado al CUSTOMIZAR (el arte IA deja un espacio
+# limpio; acá el motor escribe el texto, con la fuente/color del nombre de la invitación).
+_TEXTO_EXTRA = {
+    "afiche":                  {"tpl": "FELIZ CUMPLE {nombre}",   "y": 0.50, "maxw": 0.82, "size": 180},
+    "banderin":                {"tpl": "¡FELIZ CUMPLE {nombre}!", "y": 0.50, "maxw": 0.85, "size": 160},
+    "cajita_sorpresa":         {"tpl": "FELIZ CUMPLE {nombre}",   "y": 0.50, "maxw": 0.72, "size": 140},
+    "decoracion_sorbetes":     {"tpl": "{nombre}",                 "y": 0.50, "maxw": 0.60, "size": 130},
+    "tarjetas_agradecimiento": {"tpl": "¡GRACIAS POR VENIR!",     "y": 0.46, "maxw": 0.82, "size": 150},
+}
+
+def _campo_texto_extra(tema, base):
+    """Arma el campo de texto de la pieza, reusando fuente/color del 'nombre' de la invitación.
+    Suma un contorno contrastante para que se lea sobre cualquier fondo (el color de la
+    invitación puede ser claro y caer sobre un área clara del extra)."""
+    cfg = _TEXTO_EXTRA.get(base)
+    if not cfg:
+        return None
+    inv = specs_de(tema).get("invitacion", {})
+    nf = next((f for f in inv.get("text", []) if f.get("id") == "nombre"), {})
+    color = nf.get("color", INK)
+    c = tuple(color)[:3] if isinstance(color, (list, tuple)) and len(color) >= 3 else INK
+    luma = 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
+    stroke_color = (40, 40, 40) if luma > 140 else (255, 255, 255)   # contorno contrastante
+    size = cfg.get("size", 160)
+    return {"tpl": cfg["tpl"], "font": nf.get("font", "Baloo2-VF.ttf"), "wght": nf.get("wght"),
+            "color": c, "size": size, "x": cfg.get("x", 0.5), "y": cfg["y"],
+            "anchor": cfg.get("anchor", "mm"), "maxw": cfg["maxw"],
+            "stroke": max(2, size // 14), "stroke_color": stroke_color}
+
+def _overlay_texto(img, tema, base, d):
+    """Escribe el texto personalizado sobre la pieza (si corresponde). Nunca rompe el kit."""
+    campo = _campo_texto_extra(tema, base)
+    if not campo:
+        return img
+    try:
+        draw_text(ImageDraw.Draw(img), campo, d, img.width, img.height)
+    except Exception as e:
+        print("[kit] overlay de texto falló en %s: %s" % (base, e))
+    return img
+
+def _mk_extra_edad(exdir, base, tema):
     def fn(d):
         edad = _safe_edad(d.get("edad", "1"))   # C2: sin path traversal
         p = os.path.join(exdir, f"{base}_{edad}.png")
         if not os.path.exists(p):
             p = os.path.join(exdir, f"{base}_1.png")
-        return Image.open(p).convert("RGBA")
+        return _overlay_texto(Image.open(p).convert("RGBA"), tema, base, d)
     return fn
 
-def _mk_extra_fijo(p):
-    return lambda d: Image.open(p).convert("RGBA")
+def _mk_extra_fijo(p, tema, base):
+    return lambda d: _overlay_texto(Image.open(p).convert("RGBA"), tema, base, d)
 
 def _piezas_kit(tema):
     # Si el tema trae arte estático subido (temas/<tema>/extras/), el kit usa esos
@@ -236,11 +276,11 @@ def _piezas_kit(tema):
         n = 2
         for base in _EXTRAS_POR_EDAD:
             if os.path.exists(os.path.join(exdir, f"{base}_1.png")):
-                out.append((f"{n:02d}_{base}", _mk_extra_edad(exdir, base), True)); n += 1
+                out.append((f"{n:02d}_{base}", _mk_extra_edad(exdir, base, tema), True)); n += 1
         for base in _EXTRAS_UNIVERSAL:
             p = os.path.join(exdir, f"{base}.png")
             if os.path.exists(p):
-                out.append((f"{n:02d}_{base}", _mk_extra_fijo(p), True)); n += 1
+                out.append((f"{n:02d}_{base}", _mk_extra_fijo(p, tema, base), True)); n += 1
         return out
     return piezas.piezas_de(tema)  # genérico (las 7), con sus is_rgba
 

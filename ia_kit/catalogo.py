@@ -74,27 +74,34 @@ _EXTRA_FORMA = {
 }
 
 
+# Piezas que llevan texto personalizado al customizar -> el arte DEBE dejar el espacio limpio.
+_CON_TEXTO = {"banderin", "cajita_sorpresa", "decoracion_sorbetes", "tarjetas_agradecimiento"}
+
+_ZONA_LIMPIA = ("SIEMPRE dejá un ÁREA CENTRAL amplia, limpia y despejada (sin dibujos ni texto) "
+                "para el texto que se agrega después; la decoración temática va SOLO alrededor.")
+
+
 def prompt_de(paleta, pieza, edad=None):
     partes = ["Creá %s para un kit de cumpleaños." % pieza.sujeto]
     if pieza.key == "invitacion":
-        # Se personaliza en el editor (nombre/fecha/EDAD se agregan después):
-        # el arte NO debe llevar el número ni texto; solo decoración temática + espacio.
+        # Se personaliza en el editor (nombre/fecha/EDAD se agregan después).
         partes.append(
             "Es una invitación que se personaliza después en un editor: NO incluyas el número "
             "de edad ni ningún texto. Dejá un ÁREA CENTRAL amplia, limpia y despejada para el "
             "texto (nombre, fecha y edad se agregan luego); poné solo la decoración temática "
             "alrededor (marco/escena con los personajes).")
-    elif pieza.por_edad and edad is not None:
-        # afiche: pieza ESTÁTICA (nadie le agrega el número después) -> número ilustrado.
-        partes.append(
-            "El número %d es el PROTAGONISTA: ubicalo en el CENTRO, MUY GRANDE, ilustrado de "
-            "forma temática (decorado/formado con los elementos y personajes del tema), no "
-            "como texto tipográfico simple." % int(edad))
+    elif pieza.key == "afiche":
+        # Cartel: número ilustrado decorativo (NO al centro) + franja central limpia para el nombre.
+        n = (" Integrá el número %d ilustrado de forma decorativa ARRIBA o a un costado, NUNCA "
+             "en el centro." % int(edad)) if edad is not None else ""
+        partes.append("Cartel de bienvenida." + n + " " + _ZONA_LIMPIA)
+    elif pieza.key in _CON_TEXTO:
+        partes.append(_ZONA_LIMPIA)
     elif pieza.key in _EXTRA_FORMA:
         # piezas con forma/encuadre específico (circulares, stickers, etc.)
         partes.append(_EXTRA_FORMA[pieza.key])
     else:
-        # piezas decorativas: NO llevan texto -> composición centrada y llena.
+        # piezas decorativas sin texto -> composición centrada y llena.
         partes.append("Composición CENTRADA y equilibrada que aproveche bien el espacio, "
                       "sin grandes zonas vacías.")
     partes.append(bloque_estilo(paleta))
