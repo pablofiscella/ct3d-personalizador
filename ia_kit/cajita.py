@@ -14,6 +14,9 @@ from PIL import Image, ImageDraw
 _CARAS = [(0, 1), (1, 0), (1, 1), (1, 2), (2, 1), (3, 1)]
 # bordes de cada celda: nombre -> (vecino dr,dc, normal hacia afuera nx,ny)
 _BORDES = {"top": (-1, 0, 0, -1), "bot": (1, 0, 0, 1), "left": (0, -1, -1, 0), "right": (0, 1, 1, 0)}
+# Rotación del arte por cara para que quede DERECHO al plegar el cubo (la red plana las
+# muestra giradas): izquierda -90°, derecha +90°, atrás 180°; tapa/frente/base derechas.
+_ROT_CARA = {(1, 0): -90, (1, 2): 90, (2, 1): 180}
 
 
 def _hex(c):
@@ -50,17 +53,17 @@ def armar_cajita(art, paleta, lado=560):
     out = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(out)
     cara = art.resize((C, C), Image.LANCZOS)
-    cara_flip = cara.transpose(Image.FLIP_LEFT_RIGHT)
     ocup = set(_CARAS)
 
     def box(r, c):
         x, y = pad + c * C, pad + r * C
         return [x, y, x + C, y + C]
 
-    # 1) decorar cada cara con el arte (alternando espejo para que no se note el repetido)
+    # 1) decorar cada cara; las laterales/posterior se rotan para que queden derechas al cubo
     for (r, c) in _CARAS:
         x0, y0, _, _ = box(r, c)
-        out.alpha_composite(cara_flip if (r + c) % 2 else cara, (x0, y0))
+        ang = _ROT_CARA.get((r, c), 0)
+        out.alpha_composite(cara.rotate(ang, expand=False) if ang else cara, (x0, y0))
 
     # 2) solapas (en cada borde LIBRE) + líneas de doblez/corte
     for (r, c) in _CARAS:
