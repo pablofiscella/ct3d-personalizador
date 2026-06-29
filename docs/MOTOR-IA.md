@@ -67,8 +67,11 @@ Conteo total del panel para edades [1,2,3] = **14** (1 invitación + 1 afiche + 
   (equivalente a `skimage.expand_labels` / al offset de corte de Cricut/Silhouette),
   implementado en Pillow puro con **BFS multi-fuente** (`_etiquetar` + `_expandir_labels`,
   sin numpy). Cada figura crece su borde hasta un máximo O hasta la **línea media** con la
-  vecina, dejando un gap → nunca se fusionan. Funciona con **cualquier forma**, no solo
-  círculos. Reporta `aviso` si el arte trae figuras ya pegadas (muy pocas componentes).
+  vecina; luego se **talla una franja transparente** (`gap`) en esa línea media (boundary
+  dilatado con MaxFilter, sin tocar la figura) → entre dos stickers queda espacio claro para
+  que la **imprenta detecte dónde corta cada uno**. Funciona con **cualquier forma**, no solo
+  círculos. Reporta `aviso` si el arte trae figuras ya pegadas (muy pocas componentes → hay
+  que regenerar, p.ej. campamento/superheroes salieron pegados y se rehicieron).
 - **Palito del topper** (`orquestador._palito`): dowel de madera sólido con borde blanco,
   abajo-centro. Más confiable que pedírselo a la IA (lo dibujaba con líneas finas que el
   quita-fondo borraba).
