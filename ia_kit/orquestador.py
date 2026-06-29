@@ -53,6 +53,28 @@ def _borde_sticker(im, frac=0.02):
     return base.crop(bb) if bb else base
 
 
+def _palito(im):
+    """Agrega un PALITO (dowel de madera) sólido abajo-centro a una figura die-cut, con borde
+    blanco, como cake topper para clavar. La IA solo hace la escena; el palito (pieza técnica)
+    lo pone el código, así no queda hueco/roto como cuando lo dibuja la IA con líneas finas."""
+    im = im.convert("RGBA")
+    w, h = im.size
+    pw = max(10, int(w * 0.035))                  # palito fino
+    pl = max(60, int(h * 0.55))                   # largo del palito
+    b = max(5, pw // 2)                            # borde blanco
+    out = Image.new("RGBA", (w, h + pl), (0, 0, 0, 0))
+    out.alpha_composite(im, (0, 0))
+    cx = w // 2
+    y0 = h - int(h * 0.06)                         # arranca un poco dentro del cuerpo
+    d = ImageDraw.Draw(out)
+    d.rounded_rectangle([cx - pw // 2 - b, y0, cx + pw // 2 + b, y0 + pl + b],
+                        radius=pw, fill=(255, 255, 255, 255))           # borde blanco
+    d.rounded_rectangle([cx - pw // 2, y0, cx + pw // 2, y0 + pl],
+                        radius=pw // 2, fill=(201, 160, 106, 255))      # madera
+    bb = out.getbbox()
+    return out.crop(bb) if bb else out
+
+
 def _mascara_circular(im):
     im = im.convert("RGBA")
     w, h = im.size
@@ -158,6 +180,8 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
             elif p.key in _DIE_CUT:            # die-cut: transparente + borde blanco, sin huecos
                 im = quitar(im, protect=True)
                 im = _borde_sticker(im)
+                if p.key == "topper_palito":  # + palito de madera sólido por código
+                    im = _palito(im)
             elif p.recorte:
                 im = quitar(im, protect=True)
                 bb = im.getbbox()

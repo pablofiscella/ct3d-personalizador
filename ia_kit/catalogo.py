@@ -74,9 +74,12 @@ _EXTRA_FORMA = {
     "base_torta": ("Es un DISCO CIRCULAR grande (base/mat para apoyar la torta encima): patrón "
                    "y personajes decorativos repartidos por todo el círculo, CENTRADO, que LLENE "
                    "el disco sin salirse del borde; el centro puede ir más despejado."),
-    "topper_palito": ("Una figura/cartel temático para clavar en la torta con un palito: el "
-                      "personaje o un cartel COMPACTO, recortable, con una lengüeta/base abajo "
-                      "para pegar el palito. Fondo BLANCO liso para recortarlo."),
+    "topper_palito": ("Cake topper para clavar con palito: UN solo grupo COMPACTO con los "
+                      "personajes del tema bien JUNTOS y pegados (idealmente sobre un mismo "
+                      "objeto/vehículo) formando UNA sola silueta maciza, NO una escena ancha "
+                      "con figuras separadas, sin huecos internos. Dejá MARGEN libre abajo. "
+                      "Fondo BLANCO liso para recortar. SIN texto y SIN palito (el palito lo "
+                      "agrega el sistema)."),
     "etiquetas_multiuso": ("Es una PLANCHA de varias etiquetas circulares en grilla; en CADA "
                            "círculo poné UN personaje CENTRADO que LLENE bien la etiqueta "
                            "(no en un costado, no con el centro vacío), sin salirse del borde."),

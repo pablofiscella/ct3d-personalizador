@@ -99,6 +99,16 @@ def test_reusa_maestra_cacheada(tmp_path):
     assert len(c2.prompts) == 1   # reusó la maestra cacheada
 
 
+def test_palito_agrega_dowel_solido_abajo():
+    from PIL import ImageDraw
+    im = Image.new("RGBA", (100, 80), (0, 0, 0, 0))
+    ImageDraw.Draw(im).rectangle([10, 8, 89, 70], fill=(255, 255, 255, 255))  # cuerpo macizo
+    out = orquestador._palito(im)
+    assert out.size[1] > 80                       # creció hacia abajo (el palito)
+    cx = out.size[0] // 2
+    assert out.getpixel((cx, out.size[1] - 4))[3] == 255   # palito sólido hasta abajo (no hueco)
+
+
 def test_mascara_circular_recorta_a_circulo():
     im = Image.new("RGBA", (100, 100), (255, 0, 0, 255))  # cuadrado opaco
     out = orquestador._mascara_circular(im)
