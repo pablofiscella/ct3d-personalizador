@@ -500,9 +500,17 @@ async function openIA(tema, nombre){
             try{
               const s=await (await fetch('/dash/ia-estado?job='+encodeURIComponent(j.job),{headers:{'X-API-Key':KEY}})).json();
               if(s.estado==='corriendo'){ setTimeout(espera,2000); return; }
-              imsg.textContent=(s.estado==='listo')?'✓ Regenerado':('✕ '+(s.error||'error'));
-              await cargarBorradores();   // re-render con la imagen nueva
+              if(s.estado==='listo'){
+                imsg.textContent='✓ Regenerado: '+ev.pieza+(ev.edad!=null&&ev.edad!==''?' '+ev.edad:'');
+                // actualizar SOLO la imagen de esta tarjeta (no reconstruir toda la grilla:
+                // varias regeneraciones a la vez competían y ocultaban las miniaturas).
+                const nuevaUrl='/dash/ia-draft?tema='+encodeURIComponent(tema)+'&archivo='+encodeURIComponent(nombreArchivo(ev))+'&cb='+Date.now();
+                const im=card.querySelector('img');
+                if(im){ im.style.display=''; im.src=nuevaUrl; im.onclick=()=>verGrande(nuevaUrl); }
+                else { await cargarBorradores(); }   // la tarjeta era ❌: recargar
+              } else { imsg.textContent='✕ '+(s.error||'error'); }
             }catch(e){ imsg.textContent='✕ '+e; }
+            btn.disabled=false; btn.textContent='↺ Regener.';
           };
           espera();
         }catch(e){ imsg.textContent='✕ '+e; btn.disabled=false; btn.textContent='↺ Regener.'; }
