@@ -56,11 +56,25 @@ def bloque_estilo(paleta):
     )
 
 
+# Indicaciones de forma/encuadre por pieza (piezas circulares: contener y centrar).
+_EXTRA_FORMA = {
+    "topper": ("Forma CIRCULAR: encuadrá TODO el diseño dentro de un círculo centrado; "
+               "los personajes y la decoración van CONTENIDOS adentro del borde (que nada "
+               "se salga del círculo), bien centrados y con margen al borde."),
+    "etiquetas_multiuso": ("Etiqueta CIRCULAR: el motivo centrado y completamente CONTENIDO "
+                           "dentro de un círculo, sin que ningún elemento cruce el borde."),
+}
+
+
 def prompt_de(paleta, pieza, edad=None):
     partes = ["Creá %s para un kit de cumpleaños." % pieza.sujeto]
     if pieza.por_edad and edad is not None:
         partes.append(
-            "Integrá el número %d de forma ilustrada y decorativa (como globo o adorno), "
-            "no como texto tipográfico." % int(edad))
+            "El número %d es el PROTAGONISTA: ubicalo en el CENTRO, MUY GRANDE, ilustrado de "
+            "forma temática (decorado/formado con los elementos y personajes del tema), no "
+            "como texto tipográfico simple. Dejá una franja limpia debajo del número para el "
+            "texto del nombre." % int(edad))
+    if pieza.key in _EXTRA_FORMA:
+        partes.append(_EXTRA_FORMA[pieza.key])
     partes.append(bloque_estilo(paleta))
     return " ".join(partes)
