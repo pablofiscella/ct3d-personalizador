@@ -587,6 +587,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._dash_pieza_img(urllib.parse.parse_qs(u.query))
         if path == "/dash/base-estado":
             return self._dash_base_estado(urllib.parse.parse_qs(u.query))
+        if path == "/dash/ia-draft":
+            return self._ia_draft(urllib.parse.parse_qs(u.query))
         if path == "/dash/ia-estado":
             return self._ia_estado()
         if path == "/dash/base-img":
@@ -1188,6 +1190,26 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(500, {"ok": False, "error": "no se pudo borrar: %s" % e})
         generador._specs_cache.pop(tema, None)
         return self._json(200, {"ok": True, "warn": warn})
+
+    def _ia_draft(self, q):
+        """Sirve un borrador de IA (temas/<tema>/ia_draft/<archivo>) para previsualizar."""
+        if not self._admin_ok():
+            return self._deny()
+        tema = slug((q.get("tema", [""]) or [""])[0])
+        archivo = os.path.basename((q.get("archivo", [""]) or [""])[0] or "")
+        # Solo permitir .png sin subdirectorios ni traversal
+        if not archivo.endswith(".png") or "/" in archivo or ".." in archivo:
+            return self._json(400, {"ok": False, "error": "archivo inválido"})
+        path = os.path.join(temas.TEMAS_DIR, tema, "ia_draft", archivo)
+        if not os.path.isfile(path):
+            return self._json(404, {"ok": False, "error": "no existe"})
+        data = open(path, "rb").read()
+        self.send_response(200)
+        self.send_header("Content-Type", "image/png")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
 
     def _ia_generar(self):
         if not self._admin_ok():
