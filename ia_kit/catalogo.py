@@ -64,6 +64,9 @@ _EXTRA_FORMA = {
     "etiquetas_multiuso": ("Es una PLANCHA de varias etiquetas circulares en grilla; en CADA "
                            "círculo poné UN personaje CENTRADO que LLENE bien la etiqueta "
                            "(no en un costado, no con el centro vacío), sin salirse del borde."),
+    "wrappers_cupcakes": ("2 o 3 wrappers de cupcake (forma de arco/abanico) apilados, TODOS "
+                          "COMPLETOS y enteros DENTRO del cuadro, con MARGEN en todos los bordes; "
+                          "que ninguno se corte arriba ni abajo (mejor menos cantidad y enteros)."),
     "stickers": ("Varios stickers del personaje BIEN SEPARADOS entre sí (con espacio en blanco "
                  "claro entre cada uno, que no se toquen). Cada figura COMPACTA y maciza, SIN "
                  "huecos internos ni elementos flotando separados con espacios en el medio "
