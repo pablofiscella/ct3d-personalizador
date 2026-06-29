@@ -30,9 +30,10 @@ class OpenAIImageClient:
                   "quality": quality, "input_fidelity": input_fidelity, "n": "1"}
         if background:
             fields["background"] = background
-        # OpenAI /images/edits espera el campo "image" (no "image[]"); para varias
-        # referencias se repite el campo "image".
-        files = [("image", "ref%d.png" % i, raw) for i, raw in enumerate(refs)]
+        # OpenAI /images/edits: para VARIAS imágenes de referencia el campo es "image[]"
+        # (lo confirma el propio error "Duplicate parameter: 'image'... use 'image[]'").
+        # Mandar "image" repetido da 400 duplicate; "image[]" es la sintaxis de lista.
+        files = [("image[]", "ref%d.png" % i, raw) for i, raw in enumerate(refs)]
         ct, body = build_multipart(fields, files)
         last = None
         for intento in range(1, self.max_retries + 1):

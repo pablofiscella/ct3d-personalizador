@@ -34,8 +34,8 @@ def test_editar_devuelve_bytes_decodificados():
     assert out == b"PNGDATA"
     assert calls["auth"] == "Bearer sk-test"
     assert calls["ct"].startswith("multipart/form-data")
-    # el campo de la imagen debe llamarse "image" (no "image[]")
-    assert b'name="image"; filename=' in calls["body"]
+    # el campo de la imagen debe ser "image[]" (sintaxis de lista para varias refs)
+    assert b'name="image[]"; filename=' in calls["body"]
 
 
 def test_reintenta_en_500_y_despues_ok():
