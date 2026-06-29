@@ -48,8 +48,8 @@ def test_prompt_afiche_si_lleva_numero():
 
 def test_catalogo_cubre_extras_canonicos():
     keys = {p.key for p in catalogo.PIEZAS}
-    por_edad = ["afiche", "topper", "stickers", "separadores",
-                "etiqueta_botella", "cajita_sorpresa", "decoracion_sorbetes"]
+    por_edad = ["afiche", "topper", "topper_palito", "base_torta", "stickers",
+                "separadores", "etiqueta_botella", "cajita_sorpresa", "decoracion_sorbetes"]
     universal = ["banderin", "etiquetas_multiuso", "wrappers_cupcakes", "tarjetas_agradecimiento"]
     for b in por_edad + universal + ["invitacion"]:
         assert b in keys, b

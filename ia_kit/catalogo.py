@@ -12,7 +12,9 @@ _SQUARE = "1024x1024"
 PIEZAS = [
     Pieza("invitacion", _PORTRAIT, True,  False, "una invitación de cumpleaños vertical"),
     Pieza("afiche", _PORTRAIT, True,  False, "un cartel/afiche vertical de bienvenida"),
-    Pieza("topper", _SQUARE, False, True,  "un topper de torta circular con el personaje"),
+    Pieza("topper", _SQUARE, False, True,  "un topper de torta circular: disco decorado para apoyar SOBRE la torta"),
+    Pieza("topper_palito", _SQUARE, False, True,  "un cake topper para clavar con palito en la torta"),
+    Pieza("base_torta", _SQUARE, False, True,  "una base/mat circular GRANDE decorada que va DEBAJO de la torta"),
     Pieza("stickers", _SQUARE, False, True,  "una plancha de stickers variados del personaje"),
     Pieza("separadores", _PORTRAIT, False, True,  "separadores/marcalibros verticales"),
     Pieza("etiqueta_botella", _SQUARE, False, False,  "una etiqueta rectangular para botellita, diseño completo que llena todo el rectángulo"),
@@ -26,8 +28,8 @@ PIEZAS = [
 
 # Contrato de nombres con productos.py::_piezas_kit (NO cambiar productos.py).
 # Estas 7 piezas se leen como extras/<base>_<edad>.png (con fallback a <base>_1.png).
-EXTRAS_POR_EDAD = ["afiche", "topper", "stickers", "separadores",
-                   "etiqueta_botella", "cajita_sorpresa", "decoracion_sorbetes"]
+EXTRAS_POR_EDAD = ["afiche", "topper", "topper_palito", "base_torta", "stickers",
+                   "separadores", "etiqueta_botella", "cajita_sorpresa", "decoracion_sorbetes"]
 # Estas 4 se leen como extras/<base>.png (sin edad).
 EXTRAS_UNIVERSAL = ["banderin", "etiquetas_multiuso", "wrappers_cupcakes",
                     "tarjetas_agradecimiento"]
@@ -65,6 +67,12 @@ def bloque_estilo(paleta):
 _EXTRA_FORMA = {
     "topper": ("Es CIRCULAR: un único círculo; poné el personaje/escena CENTRADO y que LLENE "
                "bien el círculo (sin dejar el centro vacío), sin que nada se salga del borde."),
+    "base_torta": ("Es un DISCO CIRCULAR grande (base/mat para apoyar la torta encima): patrón "
+                   "y personajes decorativos repartidos por todo el círculo, CENTRADO, que LLENE "
+                   "el disco sin salirse del borde; el centro puede ir más despejado."),
+    "topper_palito": ("Una figura/cartel temático para clavar en la torta con un palito: el "
+                      "personaje o un cartel COMPACTO, recortable, con una lengüeta/base abajo "
+                      "para pegar el palito. Fondo BLANCO liso para recortarlo."),
     "etiquetas_multiuso": ("Es una PLANCHA de varias etiquetas circulares en grilla; en CADA "
                            "círculo poné UN personaje CENTRADO que LLENE bien la etiqueta "
                            "(no en un costado, no con el centro vacío), sin salirse del borde."),

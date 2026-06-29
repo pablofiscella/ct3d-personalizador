@@ -129,9 +129,9 @@ def test_borde_sticker_rellena_hueco_interno():
 
 
 def test_contar_piezas():
-    # invitacion ×3 + afiche ×1 (replicable, solo 1ª edad en batch) + 10 piezas una vez
-    assert orquestador.contar_piezas([1, 2, 3]) == 14   # 3 + 1 + 10
-    assert orquestador.contar_piezas([1]) == 12         # 1 + 1 + 10
+    # invitacion ×3 + afiche ×1 (replicable, solo 1ª edad en batch) + 12 piezas una vez
+    assert orquestador.contar_piezas([1, 2, 3]) == 16   # 3 + 1 + 12
+    assert orquestador.contar_piezas([1]) == 14         # 1 + 1 + 12
     assert orquestador.contar_piezas([1, 2, 3], solo={"banderin"}) == 1
 
 

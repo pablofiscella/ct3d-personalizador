@@ -206,8 +206,8 @@ def milestone(data, tema=None):
 # REGISTRO DE TIPOS
 # ---------------------------------------------------------------------------
 # Cada tipo: lista de (nombre_archivo, fn(data)->Image) construida sobre una temática.
-_EXTRAS_POR_EDAD  = ["afiche", "topper", "stickers", "separadores",
-                     "etiqueta_botella", "cajita_sorpresa", "decoracion_sorbetes"]
+_EXTRAS_POR_EDAD  = ["afiche", "topper", "topper_palito", "base_torta", "stickers",
+                     "separadores", "etiqueta_botella", "cajita_sorpresa", "decoracion_sorbetes"]
 _EXTRAS_UNIVERSAL = ["banderin", "etiquetas_multiuso", "wrappers_cupcakes", "tarjetas_agradecimiento"]
 
 def _extras_dir(tema):

@@ -588,14 +588,15 @@ async function openIA(tema, nombre){
   btnGen.onclick=async()=>{
     btnGen.disabled=true; btnApr.style.display='none';
     grilla.innerHTML=''; imsg.textContent=''; prog.textContent='Iniciando…';
+    bar.style.display=''; barFill.style.width='0';   // mostrar la barra YA, sin esperar al server
     try{
       const cal=(ov.querySelector('#ia-cal')||{}).value||'low';
       const r=await fetch('/dash/ia-generar?tema='+encodeURIComponent(tema)+'&calidad='+cal,{method:'POST',headers:{'X-API-Key':KEY}});
       const j=await r.json();
-      if(!j.ok||!j.job){ prog.textContent='✕ '+(j.error||'no arrancó'); btnGen.disabled=false; return; }
-      iaTotal=j.total||0; bar.style.display=''; barFill.style.width='0';
+      if(!j.ok||!j.job){ prog.textContent='✕ '+(j.error||'no arrancó'); bar.style.display='none'; btnGen.disabled=false; return; }
+      iaTotal=j.total||0;
       poll(j.job);
-    }catch(e){ prog.textContent='✕ '+e; btnGen.disabled=false; }
+    }catch(e){ prog.textContent='✕ '+e; bar.style.display='none'; btnGen.disabled=false; }
   };
 
   btnApr.onclick=async()=>{

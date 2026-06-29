@@ -11,11 +11,11 @@ from .validate import validar_png
 
 # Piezas que son un único círculo: se recortan a una máscara circular por código,
 # así nada queda fuera del círculo (el prompt solo no lo garantiza).
-_MASCARA_CIRCULAR = {"topper"}
+_MASCARA_CIRCULAR = {"topper", "base_torta"}
 
 # Piezas que se imprimen y cortan por contorno: fondo transparente + borde blanco,
 # silueta sólida sin huecos (el software de print&cut corta offset del borde).
-_DIE_CUT = {"stickers"}   # solo stickers son figuras die-cut; etiqueta/tarjeta/wrappers van rectangulares
+_DIE_CUT = {"stickers", "topper_palito"}   # figuras die-cut (borde + recorte); el resto rectangular/circular
 
 
 def _rellenar_huecos(mask):
