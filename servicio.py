@@ -34,6 +34,13 @@ DATA_DIR = os.environ.get("CT3D_DATA_DIR", os.path.join(os.path.dirname(__file__
 BASE_URL = os.environ.get("CT3D_BASE_URL", f"http://localhost:{PORT}")
 OPENAI_API_KEY     = os.environ.get("OPENAI_API_KEY", "")
 OPENAI_IMAGE_MODEL = os.environ.get("OPENAI_IMAGE_MODEL", "gpt-image-2")
+OPENAI_CALIDAD     = os.environ.get("OPENAI_CALIDAD", "low")  # low p/ depurar barato; medium/high p/ final
+
+
+def _calidad(q):
+    """Calidad de generación: ?calidad=low|medium|high, default OPENAI_CALIDAD."""
+    c = (q.get("calidad", [""])[0] or "").lower()
+    return c if c in ("low", "medium", "high") else OPENAI_CALIDAD
 # Auth del panel (dashboard + editor): token por cookie, sin login interactivo.
 # Se entra una sola vez con ?key=API_KEY (link desde tu dash); kit deja una
 # cookie segura y a partir de ahí todo va autenticado solo. Nadie sin el token
@@ -1227,10 +1234,12 @@ class Handler(BaseHTTPRequestHandler):
         if client is None:
             return self._json(503, {"ok": False, "error": "falta OPENAI_API_KEY"})
         edades = temas.cargar_tema(tema).get("edades", [1, 2, 3])
+        calidad = _calidad(q)
         def trabajo(emit):
-            ia_orq.generar_tema(client, temas.TEMAS_DIR, tema, edades, progress=emit)
+            ia_orq.generar_tema(client, temas.TEMAS_DIR, tema, edades,
+                                progress=emit, calidad=calidad)
         jid = ia_jobs.iniciar(trabajo)
-        return self._json(200, {"ok": True, "job": jid})
+        return self._json(200, {"ok": True, "job": jid, "calidad": calidad})
 
     def _ia_estado(self):
         if not self._admin_ok():
@@ -1252,7 +1261,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(503, {"ok": False, "error": "falta OPENAI_API_KEY"})
         edades = temas.cargar_tema(tema).get("edades", [1, 2, 3])
         try:
-            ia_orq.generar_tema(client, temas.TEMAS_DIR, tema, edades, solo={pieza})
+            ia_orq.generar_tema(client, temas.TEMAS_DIR, tema, edades,
+                                solo={pieza}, calidad=_calidad(q))
             return self._json(200, {"ok": True})
         except Exception as e:
             return self._json(500, {"ok": False, "error": str(e)})

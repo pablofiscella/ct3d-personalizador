@@ -53,6 +53,19 @@ def test_reintenta_en_500_y_despues_ok():
     assert estado["n"] == 2
 
 
+def test_reintenta_en_429_rate_limit():
+    """429 (rate limit) SÍ se reintenta (es transitorio), a diferencia de otros 4xx."""
+    estado = {"n": 0}
+    def opener(req, data=None, timeout=None):
+        estado["n"] += 1
+        if estado["n"] == 1:
+            raise urllib.error.HTTPError(req.full_url, 429, "Too Many Requests", {}, io.BytesIO(b""))
+        return _Resp(_ok_payload())
+    c = OpenAIImageClient("sk-test", opener=opener, max_retries=3, base_sleep=0)
+    assert c.editar([b"ref"], "x", "1024x1024") == b"PNGDATA"
+    assert estado["n"] == 2
+
+
 def test_falla_tras_agotar_reintentos():
     def opener(req, data=None, timeout=None):  # firma real de urllib.request.urlopen
         assert data is None, "el body va en el Request, no como 2o posicional (data)"

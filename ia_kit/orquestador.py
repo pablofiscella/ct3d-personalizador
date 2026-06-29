@@ -1,4 +1,5 @@
 """Orquesta la generación de todas las piezas de un tema hacia ia_draft/."""
+import concurrent.futures
 import glob
 import os
 
@@ -24,8 +25,18 @@ def _guardar(im, draft_dir, nombre):
     im.save(os.path.join(draft_dir, nombre))
 
 
+def _nombre_pieza(p, edad):
+    # El nombre de archivo debe matchear lo que productos._piezas_kit levanta.
+    if p.key == "invitacion":
+        return "invitacion_%d.png" % int(edad)              # -> slot raíz vía aprobar
+    if p.key in catalogo.EXTRAS_POR_EDAD:
+        e = int(edad) if p.por_edad else 1                  # arte único -> _1 (el motor lo reusa)
+        return "%s_%d.png" % (p.key, e)                     # -> extras/
+    return "%s.png" % p.key                                 # universal -> extras/
+
+
 def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
-                 quitar=quitar_fondo.remove_bg):
+                 quitar=quitar_fondo.remove_bg, concurrencia=4, calidad="medium"):
     tema_dir = os.path.join(temas_dir, tema)
     draft = os.path.join(tema_dir, "ia_draft")
     pal = catalogo.paleta_de(temas_dir, tema)
@@ -34,40 +45,43 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
         raise RuntimeError(
             "El tema '%s' no tiene imágenes de referencia: subí personajes a "
             "recortes/ o cargá el arte base (invitacion_*/afiche_*)." % tema)
-    # imagen maestra de estilo: ancla de consistencia, se manda como ref extra
+    # imagen maestra de estilo: ancla de consistencia, se manda como ref extra.
+    # Es secuencial (las piezas dependen de ella); si falla, aborta (sin ancla no sirve).
     maestra = client.editar(refs, "Lámina maestra de estilo del tema. " +
-                            catalogo.bloque_estilo(pal), catalogo._SQUARE)
+                            catalogo.bloque_estilo(pal), catalogo._SQUARE, quality=calidad)
     refs_full = refs + [maestra]
+    os.makedirs(draft, exist_ok=True)
+
+    work = [(p, edad) for p in catalogo.PIEZAS
+            if not (solo and p.key not in solo)
+            for edad in (edades if p.por_edad else [None])]
+
+    def _trabajo(p, edad):
+        # corre en un thread; captura sus propios errores y devuelve el evento.
+        try:
+            raw = client.editar(refs_full, catalogo.prompt_de(pal, p, edad), p.size,
+                                 quality=calidad)
+            im = validar_png(raw, size_esperado=tuple(int(x) for x in p.size.split("x")))
+            im = im.convert("RGBA")
+            if p.recorte:
+                im = quitar(im, protect=True)
+                bb = im.getbbox()
+                if bb:
+                    im = im.crop(bb)
+            nombre = _nombre_pieza(p, edad)
+            _guardar(im, draft, nombre)
+            return {"pieza": p.key, "edad": edad, "ok": True, "error": "", "archivo": nombre}
+        except Exception as e:  # una pieza que falla no frena a las demás
+            return {"pieza": p.key, "edad": edad, "ok": False, "error": str(e), "archivo": ""}
+
     generadas, errores = [], []
-
-    def _emit(pieza, edad, ok, error=""):
-        if progress:
-            progress({"pieza": pieza, "edad": edad, "ok": ok, "error": error})
-        (generadas if ok else errores).append({"pieza": pieza, "edad": edad, "error": error})
-
-    for p in catalogo.PIEZAS:
-        if solo and p.key not in solo:
-            continue
-        edades_pieza = edades if p.por_edad else [None]
-        for edad in edades_pieza:
-            try:
-                raw = client.editar(refs_full, catalogo.prompt_de(pal, p, edad), p.size)
-                im = validar_png(raw, size_esperado=tuple(int(x) for x in p.size.split("x")))
-                im = im.convert("RGBA")
-                if p.recorte:
-                    im = quitar(im, protect=True)
-                    bb = im.getbbox()
-                    if bb:
-                        im = im.crop(bb)
-                if p.key == "invitacion":
-                    nombre = "invitacion_%d.png" % int(edad)        # -> slot raíz vía aprobar
-                elif p.key in catalogo.EXTRAS_POR_EDAD:
-                    e = int(edad) if p.por_edad else 1              # arte único -> _1 (el motor lo reusa)
-                    nombre = "%s_%d.png" % (p.key, e)              # -> extras/
-                else:                                              # universal
-                    nombre = "%s.png" % p.key                      # -> extras/
-                _guardar(im, draft, nombre)
-                _emit(p.key, edad, True)
-            except Exception as e:  # una pieza que falla no frena las demás
-                _emit(p.key, edad, False, str(e))
+    # Las piezas se generan en paralelo (gpt-image-2 es lento); el thread principal
+    # es el único que emite progreso y acumula -> sin necesidad de locks.
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, concurrencia)) as ex:
+        futs = [ex.submit(_trabajo, p, edad) for (p, edad) in work]
+        for fut in concurrent.futures.as_completed(futs):
+            evt = fut.result()
+            if progress:
+                progress(evt)
+            (generadas if evt["ok"] else errores).append(evt)
     return {"generadas": generadas, "errores": errores}

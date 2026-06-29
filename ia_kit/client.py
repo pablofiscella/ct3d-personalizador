@@ -53,7 +53,8 @@ class OpenAIImageClient:
                 except Exception:
                     cuerpo = ""
                 last = "HTTP %s: %s — %s" % (e.code, e.reason, cuerpo)
-                if e.code < 500:  # 4xx no se reintenta
+                # 4xx no se reintenta, SALVO 429 (rate limit) que es transitorio.
+                if e.code != 429 and e.code < 500:
                     raise OpenAIError("OpenAI " + last)
             except (urllib.error.URLError, TimeoutError) as e:
                 last = e

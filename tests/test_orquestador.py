@@ -71,6 +71,18 @@ def test_refs_fallback_al_arte_base(tmp_path):
     assert not res["errores"]
 
 
+def test_evento_lleva_archivo_real(tmp_path):
+    # el evento debe llevar el nombre de archivo REAL (la preview lo usa tal cual)
+    td = _tema_dir(tmp_path)
+    ev = []
+    orquestador.generar_tema(_FakeClient(), td, "safari", edades=[1],
+                             progress=ev.append, quitar=lambda im, protect=True: im)
+    arch = {(e["pieza"], e["edad"]): e["archivo"] for e in ev if e["ok"]}
+    assert arch[("invitacion", 1)] == "invitacion_1.png"
+    assert arch[("topper", None)] == "topper_1.png"     # arte único per-edad -> _1
+    assert arch[("banderin", None)] == "banderin.png"   # universal
+
+
 def test_sin_referencias_falla_claro(tmp_path):
     # ni recortes/ ni arte base -> error claro, NO una llamada vacía a OpenAI
     d = tmp_path / "vacio"; d.mkdir(parents=True)

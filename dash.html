@@ -426,6 +426,13 @@ async function openIA(tema, nombre){
     <p style="opacity:.7;font-size:13px;margin:0 0 14px">Generá automáticamente todas las piezas del kit usando IA. Revisá los borradores y aprobá para publicarlos.</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
       <button id="ia-btn-generar" class="btn-primary" style="font-size:14px">✨ Generar kit con IA</button>
+      <label style="font-size:13px;opacity:.85;display:flex;align-items:center;gap:5px">Calidad
+        <select id="ia-cal" style="font-size:13px;padding:3px 6px;border-radius:6px">
+          <option value="low" selected>baja (barata)</option>
+          <option value="medium">media</option>
+          <option value="high">alta (final)</option>
+        </select>
+      </label>
       <button id="ia-btn-aprobar" class="btn-primary" style="font-size:14px;display:none;background:var(--success,#2D8C5A)">✅ Aprobar y publicar</button>
     </div>
     <div id="ia-progreso" style="font-size:13px;opacity:.8;min-height:18px;margin-bottom:10px"></div>
@@ -443,6 +450,7 @@ async function openIA(tema, nombre){
   let lastEventos=[];
 
   function nombreArchivo(evt){
+    if(evt.archivo) return evt.archivo;   // nombre real que guardó el orquestador
     return (evt.edad!=null && evt.edad!=='' && evt.edad!==undefined)
       ? `${evt.pieza}_${evt.edad}.png`
       : `${evt.pieza}.png`;
@@ -470,7 +478,7 @@ async function openIA(tema, nombre){
       btn.onclick=async()=>{ btn.disabled=true; btn.textContent='…';
         imsg.textContent='Regenerando '+ev.pieza+(ev.edad!=null&&ev.edad!==''?' edad '+ev.edad:'')+'…';
         try{
-          const r=await fetch('/dash/ia-regenerar?tema='+encodeURIComponent(tema)+'&pieza='+encodeURIComponent(ev.pieza),{method:'POST',headers:{'X-API-Key':KEY}});
+          const r=await fetch('/dash/ia-regenerar?tema='+encodeURIComponent(tema)+'&pieza='+encodeURIComponent(ev.pieza)+'&calidad='+((ov.querySelector('#ia-cal')||{}).value||'low'),{method:'POST',headers:{'X-API-Key':KEY}});
           const j=await r.json();
           if(j.ok){ imsg.textContent='✓ Regenerado'; const updated=lastEventos.map(e=>(e.pieza===ev.pieza&&e.edad===ev.edad)?{...e,ok:true,error:''}:e); pintarGrilla(updated); }
           else{ imsg.textContent='✕ '+(j.error||'error'); btn.disabled=false; btn.textContent='↺ Regener.'; }
@@ -487,7 +495,7 @@ async function openIA(tema, nombre){
       const total=st.eventos?st.eventos.length:0;
       const ok_n=(st.eventos||[]).filter(e=>e.ok).length;
       prog.textContent=st.estado==='corriendo'
-        ? 'Generando… '+total+' piezas procesadas'
+        ? (total===0 ? 'Generando estilo base…' : 'Generando… '+total+' piezas procesadas')
         : st.estado==='listo'
           ? '✓ Listo — '+ok_n+'/'+total+' piezas generadas'
           : '✕ Error: '+(st.error||'desconocido');
@@ -501,7 +509,8 @@ async function openIA(tema, nombre){
     btnGen.disabled=true; btnApr.style.display='none';
     grilla.innerHTML=''; imsg.textContent=''; prog.textContent='Iniciando…';
     try{
-      const r=await fetch('/dash/ia-generar?tema='+encodeURIComponent(tema),{method:'POST',headers:{'X-API-Key':KEY}});
+      const cal=(ov.querySelector('#ia-cal')||{}).value||'low';
+      const r=await fetch('/dash/ia-generar?tema='+encodeURIComponent(tema)+'&calidad='+cal,{method:'POST',headers:{'X-API-Key':KEY}});
       const j=await r.json();
       if(!j.ok||!j.job){ prog.textContent='✕ '+(j.error||'no arrancó'); btnGen.disabled=false; return; }
       poll(j.job);
