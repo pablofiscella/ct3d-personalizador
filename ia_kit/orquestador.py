@@ -13,9 +13,9 @@ from .validate import validar_png
 # así nada queda fuera del círculo (el prompt solo no lo garantiza).
 _MASCARA_CIRCULAR = {"topper"}
 
-# Piezas que se imprimen y cortan por contorno: fondo transparente + borde blanco
-# (el software de print&cut genera la línea de corte offset del borde).
-_BORDE_STICKER = {"stickers"}
+# Piezas que se imprimen y cortan por contorno: fondo transparente + borde blanco,
+# silueta sólida sin huecos (el software de print&cut corta offset del borde).
+_DIE_CUT = {"stickers", "etiqueta_botella", "tarjetas_agradecimiento", "wrappers_cupcakes"}
 
 
 def _rellenar_huecos(mask):
@@ -29,18 +29,25 @@ def _rellenar_huecos(mask):
 
 
 def _borde_sticker(im, frac=0.02):
-    """Die-cut: silueta SÓLIDA (cierra gaps finos y rellena huecos internos) + borde blanco."""
+    """Die-cut: silueta SÓLIDA (cierra gaps finos y rellena huecos internos) + borde blanco.
+    TODA la morfología se hace en baja resolución (MaxFilter a full-res con kernel grande es
+    lentísimo); la máscara final se escala a resolución completa. El arte va crudo encima."""
     im = im.convert("RGBA")
     w, h = im.size
-    k = min(2 * max(3, int(min(w, h) * frac)) + 1, 35)    # kernel impar, acotado por velocidad
     a = im.getchannel("A").point(lambda p: 255 if p > 10 else 0)
-    a = a.filter(ImageFilter.MaxFilter(k))                # cerrar gaps finos (líneas punteadas)
-    a = _rellenar_huecos(a)                               # rellenar huecos encerrados
-    a = a.filter(ImageFilter.MinFilter(k))                # restaurar borde (close morfológico)
-    dil = a.filter(ImageFilter.MaxFilter(k))              # silueta sólida + borde blanco
+    esc = min(1.0, 384.0 / max(w, h))
+    sw, sh = max(8, int(w * esc)), max(8, int(h * esc))
+    ks = min(2 * max(2, int(min(sw, sh) * frac * 1.5)) + 1, 21)   # cerrar gaps
+    kb = min(2 * max(2, int(min(sw, sh) * frac)) + 1, 21)         # borde
+    sm = a.resize((sw, sh)).point(lambda p: 255 if p > 128 else 0)
+    sm = sm.filter(ImageFilter.MaxFilter(ks))             # cerrar gaps finos
+    sm = _rellenar_huecos(sm)                             # rellenar huecos encerrados
+    sm = sm.filter(ImageFilter.MinFilter(ks))             # restaurar (close morfológico)
+    sm = sm.filter(ImageFilter.MaxFilter(kb))             # + borde blanco
+    borde = sm.resize((w, h)).point(lambda p: 255 if p > 128 else 0)
     base = Image.composite(Image.new("RGBA", (w, h), (255, 255, 255, 255)),
-                           Image.new("RGBA", (w, h), (0, 0, 0, 0)), dil)
-    base.alpha_composite(im)                              # arte encima; los huecos quedan blancos
+                           Image.new("RGBA", (w, h), (0, 0, 0, 0)), borde)
+    base.alpha_composite(im)                              # arte crudo encima; huecos quedan blancos
     bb = base.getbbox()
     return base.crop(bb) if bb else base
 
@@ -130,7 +137,7 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
             im = im.convert("RGBA")
             if p.key in _MASCARA_CIRCULAR:      # círculo garantizado por código
                 im = _mascara_circular(im)
-            elif p.key in _BORDE_STICKER:       # die-cut: transparente + borde blanco
+            elif p.key in _DIE_CUT:             # die-cut: transparente + borde blanco, sin huecos
                 im = quitar(im, protect=True)
                 im = _borde_sticker(im)
             elif p.recorte:
