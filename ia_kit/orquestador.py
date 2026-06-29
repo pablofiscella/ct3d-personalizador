@@ -75,37 +75,47 @@ def _etiquetar(fg):
     return label, n
 
 
-def _expandir_labels(fg, max_r):
+def _expandir_labels(fg, max_r, gap=4):
     """expand_labels (estilo scikit-image): cada figura crece su borde hasta max_r px O hasta
-    encontrarse con otra figura (línea media), dejando un gap entre vecinas para que NO se
-    peguen. BFS multi-fuente en Pillow puro (sin numpy). Devuelve máscara L de figura+borde."""
+    la línea media con la vecina. Después TALLA una franja transparente de ancho `gap` en esa
+    línea media, para que entre dos stickers quede espacio claro (la imprenta detecta dónde
+    corta cada uno). La figura original NUNCA se talla. BFS multi-fuente en Pillow puro."""
     from collections import deque
     w, h = fg.size
     label, _ = _etiquetar(fg)
     dist = [[0 if label[y][x] else -1 for x in range(w)] for y in range(h)]
     q = deque((x, y) for y in range(h) for x in range(w) if label[y][x])
-    while q:
+    while q:                                      # Voronoi acotado: cada pixel -> figura más cercana
         cx, cy = q.popleft()
         d = dist[cy][cx]
         if d >= max_r:
             continue
         lab = label[cy][cx]
         for nx, ny in ((cx + 1, cy), (cx - 1, cy), (cx, cy + 1), (cx, cy - 1)):
-            if not (0 <= nx < w and 0 <= ny < h) or label[ny][nx] != 0:
-                continue
-            # no reclamar si toca otra figura distinta (deja la línea media = gap)
-            vecino_otro = any(0 <= ax < w and 0 <= ay < h and label[ay][ax] not in (0, lab)
-                              for ax, ay in ((nx + 1, ny), (nx - 1, ny), (nx, ny + 1), (nx, ny - 1)))
-            if vecino_otro:
-                continue
-            label[ny][nx] = lab
-            dist[ny][nx] = d + 1
-            q.append((nx, ny))
-    out = Image.new("L", (w, h), 0)
-    op = out.load()
+            if 0 <= nx < w and 0 <= ny < h and label[ny][nx] == 0:
+                label[ny][nx] = lab
+                dist[ny][nx] = d + 1
+                q.append((nx, ny))
+    exp = Image.new("L", (w, h), 0); ep = exp.load()      # figura + borde
+    bnd = Image.new("L", (w, h), 0); bp = bnd.load()      # línea media (frontera entre figuras)
+    fgp = fg.load()
     for y in range(h):
         for x in range(w):
-            if label[y][x]:
+            l = label[y][x]
+            if not l:
+                continue
+            ep[x, y] = 255
+            if fgp[x, y] <= 128:                  # solo el BORDE puede ser frontera (no la figura)
+                for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                    if 0 <= nx < w and 0 <= ny < h and label[ny][nx] not in (0, l):
+                        bp[x, y] = 255
+                        break
+    if gap > 0:
+        bnd = bnd.filter(ImageFilter.MaxFilter(2 * gap + 1))   # ensanchar la franja a tallar
+    out = Image.new("L", (w, h), 0); op = out.load(); bpp = bnd.load()
+    for y in range(h):
+        for x in range(w):
+            if fgp[x, y] > 128 or (ep[x, y] and not bpp[x, y]):   # figura siempre; borde menos el gap
                 op[x, y] = 255
     return out
 
@@ -122,8 +132,9 @@ def _plancha_stickers(im, frac=0.02):
     sm0 = a.resize((sw, sh)).point(lambda p: 255 if p > 128 else 0)
     sm0 = _rellenar_huecos(sm0)                          # huecos internos (no fusiona separadas)
     _, n = _etiquetar(sm0)
-    max_r = max(2, int(min(sw, sh) * frac))             # ancho del borde (px en baja resolución)
-    sm = _expandir_labels(sm0, max_r)
+    max_r = max(3, int(min(sw, sh) * frac))             # ancho del borde (px en baja resolución)
+    gap = max(4, int(min(sw, sh) * 0.012))              # franja transparente entre stickers
+    sm = _expandir_labels(sm0, max_r, gap=gap)
     borde = sm.resize((w, h)).point(lambda p: 255 if p > 128 else 0)
     base = Image.composite(Image.new("RGBA", (w, h), (255, 255, 255, 255)),
                            Image.new("RGBA", (w, h), (0, 0, 0, 0)), borde)

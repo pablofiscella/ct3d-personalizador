@@ -106,9 +106,10 @@ def test_expand_labels_no_fusiona_figuras_cercanas():
     d = ImageDraw.Draw(fg)
     d.rectangle([8, 10, 22, 20], fill=255)
     d.rectangle([34, 10, 48, 20], fill=255)   # gap de ~12px entre ambos
-    out = orquestador._expandir_labels(fg, max_r=8)   # borde grande a propósito
+    out = orquestador._expandir_labels(fg, max_r=8, gap=2)   # borde grande a propósito
     _, n = orquestador._etiquetar(out.point(lambda p: 255 if p > 128 else 0))
     assert n == 2          # siguen siendo 2 (no se pegaron)
+    assert out.getpixel((28, 15)) == 0   # la línea media quedó TRANSPARENTE (gap para cortar)
 
 
 def test_plancha_stickers_conserva_figuras_y_agrega_borde():
