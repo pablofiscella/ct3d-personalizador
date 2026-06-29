@@ -90,11 +90,14 @@ _EXTRA_FORMA = {
                         "arma el sistema): personajes del tema repartidos, coloridos, sobre un "
                         "fondo temático que LLENE TODO el cuadro (sin bordes blancos). NO dibujes "
                         "la caja, ni el molde, ni líneas de doblez: SOLO la decoración."),
-    "stickers": ("Pocos stickers del personaje MUY SEPARADOS entre sí, con MUCHO espacio en "
-                 "blanco entre cada uno (al menos medio sticker de distancia): que NO se toquen "
-                 "ni queden cerca, porque al recortarlos con borde se pegarían. Cada figura "
-                 "COMPACTA y maciza, SIN huecos internos ni elementos flotando con espacios en "
-                 "el medio (nada de aros/arcos abiertos). Sobre fondo BLANCO liso."),
+    "stickers": ("La MAYOR cantidad posible de stickers del tema (personajes y objetos), "
+                 "ordenados en una GRILLA o filas parejas que LLENE bien la lámina. Cada sticker "
+                 "SEPARADO del de al lado por un espacio en blanco claro (un margen entre cada "
+                 "uno): que NO se toquen ni se superpongan, porque al recortarlos con borde se "
+                 "pegarían. Cada figura COMPACTA y maciza, SIN huecos internos ni elementos "
+                 "flotando con espacios en el medio (nada de aros/arcos abiertos). NO incluyas "
+                 "recuadros, etiquetas ni marcos en blanco, ni manchas/salpicaduras sueltas: "
+                 "solo figuras enteras. Sobre fondo BLANCO liso."),
 }
 
 
