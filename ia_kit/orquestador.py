@@ -3,7 +3,7 @@ import concurrent.futures
 import glob
 import os
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 
 import quitar_fondo
 from . import catalogo
@@ -12,6 +12,23 @@ from .validate import validar_png
 # Piezas que son un único círculo: se recortan a una máscara circular por código,
 # así nada queda fuera del círculo (el prompt solo no lo garantiza).
 _MASCARA_CIRCULAR = {"topper"}
+
+# Piezas que se imprimen y cortan por contorno: fondo transparente + borde blanco
+# (el software de print&cut genera la línea de corte offset del borde).
+_BORDE_STICKER = {"stickers"}
+
+
+def _borde_sticker(im, frac=0.02):
+    """Recorte con borde blanco (look die-cut) para corte por contorno."""
+    im = im.convert("RGBA")
+    w, h = im.size
+    k = min(2 * max(3, int(min(w, h) * frac)) + 1, 49)   # kernel impar, acotado por velocidad
+    dil = im.getchannel("A").filter(ImageFilter.MaxFilter(k))   # alfa dilatado = forma + borde
+    base = Image.composite(Image.new("RGBA", (w, h), (255, 255, 255, 255)),
+                           Image.new("RGBA", (w, h), (0, 0, 0, 0)), dil)
+    base.alpha_composite(im)                              # arte original sobre el borde blanco
+    bb = base.getbbox()
+    return base.crop(bb) if bb else base
 
 
 def _mascara_circular(im):
@@ -99,6 +116,9 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
             im = im.convert("RGBA")
             if p.key in _MASCARA_CIRCULAR:      # círculo garantizado por código
                 im = _mascara_circular(im)
+            elif p.key in _BORDE_STICKER:       # die-cut: transparente + borde blanco
+                im = quitar(im, protect=True)
+                im = _borde_sticker(im)
             elif p.recorte:
                 im = quitar(im, protect=True)
                 bb = im.getbbox()

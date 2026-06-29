@@ -104,6 +104,17 @@ def test_mascara_circular_recorta_a_circulo():
     assert out.getpixel((0, 0))[3] == 0       # esquina transparente (fuera del círculo)
 
 
+def test_borde_sticker_agrega_contorno_blanco():
+    from PIL import ImageDraw
+    im = Image.new("RGBA", (60, 60), (0, 0, 0, 0))
+    ImageDraw.Draw(im).rectangle([22, 22, 37, 37], fill=(255, 0, 0, 255))  # cuadrado rojo
+    out = orquestador._borde_sticker(im, frac=0.12)
+    blancos = sum(1 for p in out.getdata()
+                  if p[3] == 255 and p[0] > 240 and p[1] > 240 and p[2] > 240)
+    assert blancos > 0          # hay borde blanco alrededor de la figura
+    assert out.size[0] > 16     # el contorno agranda respecto al cuadrado original (16px)
+
+
 def test_contar_piezas():
     # 2 piezas por-edad (invitacion, afiche) + 10 piezas una vez
     assert orquestador.contar_piezas([1, 2, 3]) == 16   # 2*3 + 10

@@ -64,6 +64,9 @@ _EXTRA_FORMA = {
     "etiquetas_multiuso": ("Es una PLANCHA de varias etiquetas circulares en grilla; en CADA "
                            "círculo poné UN personaje CENTRADO que LLENE bien la etiqueta "
                            "(no en un costado, no con el centro vacío), sin salirse del borde."),
+    "stickers": ("Varios stickers del personaje BIEN SEPARADOS entre sí (con espacio en blanco "
+                 "claro entre cada uno, que no se toquen), cada uno como figura recortable "
+                 "independiente, sobre fondo BLANCO liso para poder recortarlos."),
 }
 
 
@@ -83,11 +86,12 @@ def prompt_de(paleta, pieza, edad=None):
             "El número %d es el PROTAGONISTA: ubicalo en el CENTRO, MUY GRANDE, ilustrado de "
             "forma temática (decorado/formado con los elementos y personajes del tema), no "
             "como texto tipográfico simple." % int(edad))
+    elif pieza.key in _EXTRA_FORMA:
+        # piezas con forma/encuadre específico (circulares, stickers, etc.)
+        partes.append(_EXTRA_FORMA[pieza.key])
     else:
         # piezas decorativas: NO llevan texto -> composición centrada y llena.
         partes.append("Composición CENTRADA y equilibrada que aproveche bien el espacio, "
                       "sin grandes zonas vacías.")
-    if pieza.key in _EXTRA_FORMA:
-        partes.append(_EXTRA_FORMA[pieza.key])
     partes.append(bloque_estilo(paleta))
     return " ".join(partes)
