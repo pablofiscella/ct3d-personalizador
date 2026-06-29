@@ -46,34 +46,40 @@ def paleta_de(temas_dir, tema):
 
 
 def bloque_estilo(paleta):
+    # Estilo común. OJO: el espacio para texto NO va acá — solo las piezas con texto
+    # (invitación/afiche) lo piden; las decorativas deben ir centradas y llenas.
     return (
         "Estilo: ilustración infantil flat vector, líneas limpias, colores planos. "
         "Paleta principal acento %s, tinta/contornos %s. "
         "Usá EXACTAMENTE los personajes de las imágenes de referencia, sin cambiar su diseño. "
-        "Importante: NO escribas ningún texto, número ni letra en la imagen "
-        "(no text, no letters); dejá zonas limpias y vacías donde luego se coloca el texto."
+        "Importante: NO escribas ningún texto, número ni letra en la imagen (no text, no letters)."
         % (paleta["accent"], paleta["ink"])
     )
 
 
-# Indicaciones de forma/encuadre por pieza (piezas circulares: contener y centrar).
+# Indicaciones de forma/encuadre por pieza (piezas circulares: centrar y llenar el círculo).
 _EXTRA_FORMA = {
-    "topper": ("Forma CIRCULAR: encuadrá TODO el diseño dentro de un círculo centrado; "
-               "los personajes y la decoración van CONTENIDOS adentro del borde (que nada "
-               "se salga del círculo), bien centrados y con margen al borde."),
-    "etiquetas_multiuso": ("Etiqueta CIRCULAR: el motivo centrado y completamente CONTENIDO "
-                           "dentro de un círculo, sin que ningún elemento cruce el borde."),
+    "topper": ("Es CIRCULAR: un único círculo; poné el personaje/escena CENTRADO y que LLENE "
+               "bien el círculo (sin dejar el centro vacío), sin que nada se salga del borde."),
+    "etiquetas_multiuso": ("Es una PLANCHA de varias etiquetas circulares en grilla; en CADA "
+                           "círculo poné UN personaje CENTRADO que LLENE bien la etiqueta "
+                           "(no en un costado, no con el centro vacío), sin salirse del borde."),
 }
 
 
 def prompt_de(paleta, pieza, edad=None):
     partes = ["Creá %s para un kit de cumpleaños." % pieza.sujeto]
     if pieza.por_edad and edad is not None:
+        # invitación/afiche: llevan texto encima -> número protagonista + franja libre.
         partes.append(
             "El número %d es el PROTAGONISTA: ubicalo en el CENTRO, MUY GRANDE, ilustrado de "
             "forma temática (decorado/formado con los elementos y personajes del tema), no "
             "como texto tipográfico simple. Dejá una franja limpia debajo del número para el "
             "texto del nombre." % int(edad))
+    else:
+        # piezas decorativas: NO llevan texto -> composición centrada y llena.
+        partes.append("Composición CENTRADA y equilibrada que aproveche bien el espacio, "
+                      "sin grandes zonas vacías.")
     if pieza.key in _EXTRA_FORMA:
         partes.append(_EXTRA_FORMA[pieza.key])
     partes.append(bloque_estilo(paleta))
