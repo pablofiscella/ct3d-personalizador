@@ -15,7 +15,7 @@ _MASCARA_CIRCULAR = {"topper"}
 
 # Piezas que se imprimen y cortan por contorno: fondo transparente + borde blanco,
 # silueta sólida sin huecos (el software de print&cut corta offset del borde).
-_DIE_CUT = {"stickers", "etiqueta_botella", "tarjetas_agradecimiento", "wrappers_cupcakes"}
+_DIE_CUT = {"stickers"}   # solo stickers son figuras die-cut; etiqueta/tarjeta/wrappers van rectangulares
 
 
 def _rellenar_huecos(mask):

@@ -15,13 +15,13 @@ PIEZAS = [
     Pieza("topper", _SQUARE, False, True,  "un topper de torta circular con el personaje"),
     Pieza("stickers", _SQUARE, False, True,  "una plancha de stickers variados del personaje"),
     Pieza("separadores", _PORTRAIT, False, True,  "separadores/marcalibros verticales"),
-    Pieza("etiqueta_botella", _SQUARE, False, True,  "una etiqueta rectangular para botellita"),
+    Pieza("etiqueta_botella", _SQUARE, False, False,  "una etiqueta rectangular para botellita, diseño completo que llena todo el rectángulo"),
     Pieza("cajita_sorpresa", _SQUARE, False, True,  "el desplegable de una cajita sorpresa"),
     Pieza("decoracion_sorbetes", _SQUARE, False, True,  "banderitas decorativas para sorbetes"),
     Pieza("banderin", _SQUARE, False, True,  "un banderín triangular decorativo"),
     Pieza("etiquetas_multiuso", _SQUARE, False, True,  "una plancha de etiquetas circulares multiuso"),
-    Pieza("wrappers_cupcakes", _SQUARE, False, True,  "wrappers (envoltorios) para cupcakes"),
-    Pieza("tarjetas_agradecimiento", _PORTRAIT, False, True,  "una tarjeta de agradecimiento vertical"),
+    Pieza("wrappers_cupcakes", _SQUARE, False, False,  "una plancha de wrappers (envoltorios) para cupcakes, diseño completo que llena el rectángulo"),
+    Pieza("tarjetas_agradecimiento", _PORTRAIT, False, False,  "una tarjeta de agradecimiento vertical, diseño completo que llena todo el rectángulo"),
 ]
 
 # Contrato de nombres con productos.py::_piezas_kit (NO cambiar productos.py).
