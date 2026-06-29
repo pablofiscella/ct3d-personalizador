@@ -12,6 +12,7 @@ def test_incluye_campos_y_archivos():
     assert b'name="model"' in body and b"gpt-image-2" in body
     assert b'name="prompt"' in body and b"hola" in body
     assert b'name="image[]"; filename="a.png"' in body
+    assert b"Content-Type: image/png" in body  # OpenAI exige mimetype de imagen real
     assert b"\x89PNG\r\n" in body
     assert body.rstrip().endswith(b"--")  # cierre del multipart
 
