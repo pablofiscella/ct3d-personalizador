@@ -99,6 +99,34 @@ def test_reusa_maestra_cacheada(tmp_path):
     assert len(c2.prompts) == 1   # reusó la maestra cacheada
 
 
+def test_expand_labels_no_fusiona_figuras_cercanas():
+    from PIL import ImageDraw
+    # dos cuadrados con un gap chico: el borde NO debe fusionarlos (quedan 2 figuras)
+    fg = Image.new("L", (60, 30), 0)
+    d = ImageDraw.Draw(fg)
+    d.rectangle([8, 10, 22, 20], fill=255)
+    d.rectangle([34, 10, 48, 20], fill=255)   # gap de ~12px entre ambos
+    out = orquestador._expandir_labels(fg, max_r=8)   # borde grande a propósito
+    _, n = orquestador._etiquetar(out.point(lambda p: 255 if p > 128 else 0))
+    assert n == 2          # siguen siendo 2 (no se pegaron)
+
+
+def test_plancha_stickers_conserva_figuras_y_agrega_borde():
+    from PIL import ImageDraw
+    im = Image.new("RGBA", (200, 100), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.ellipse([20, 30, 60, 70], fill=(255, 0, 0, 255))
+    d.ellipse([140, 30, 180, 70], fill=(0, 0, 255, 255))   # dos stickers separados
+    out, tocan = orquestador._plancha_stickers(im)
+    # hay borde blanco
+    blancos = sum(1 for p in out.convert("RGBA").getdata()
+                  if p[3] == 255 and p[0] > 240 and p[1] > 240 and p[2] > 240)
+    assert blancos > 0
+    # siguen separados -> 2 figuras en el alpha
+    _, n = orquestador._etiquetar(out.convert("RGBA").getchannel("A").point(lambda p: 255 if p > 10 else 0))
+    assert n == 2
+
+
 def test_palito_agrega_dowel_solido_abajo():
     from PIL import ImageDraw
     im = Image.new("RGBA", (100, 80), (0, 0, 0, 0))

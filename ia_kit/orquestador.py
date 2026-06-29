@@ -53,6 +53,85 @@ def _borde_sticker(im, frac=0.02):
     return base.crop(bb) if bb else base
 
 
+def _etiquetar(fg):
+    """Connected-Component Labeling (BFS): devuelve (label[y][x], n_figuras). 0 = fondo."""
+    from collections import deque
+    w, h = fg.size
+    px = fg.load()
+    label = [[0] * w for _ in range(h)]
+    n = 0
+    for y in range(h):
+        for x in range(w):
+            if px[x, y] > 128 and label[y][x] == 0:
+                n += 1
+                label[y][x] = n
+                q = deque([(x, y)])
+                while q:
+                    cx, cy = q.popleft()
+                    for nx, ny in ((cx + 1, cy), (cx - 1, cy), (cx, cy + 1), (cx, cy - 1)):
+                        if 0 <= nx < w and 0 <= ny < h and px[nx, ny] > 128 and label[ny][nx] == 0:
+                            label[ny][nx] = n
+                            q.append((nx, ny))
+    return label, n
+
+
+def _expandir_labels(fg, max_r):
+    """expand_labels (estilo scikit-image): cada figura crece su borde hasta max_r px O hasta
+    encontrarse con otra figura (línea media), dejando un gap entre vecinas para que NO se
+    peguen. BFS multi-fuente en Pillow puro (sin numpy). Devuelve máscara L de figura+borde."""
+    from collections import deque
+    w, h = fg.size
+    label, _ = _etiquetar(fg)
+    dist = [[0 if label[y][x] else -1 for x in range(w)] for y in range(h)]
+    q = deque((x, y) for y in range(h) for x in range(w) if label[y][x])
+    while q:
+        cx, cy = q.popleft()
+        d = dist[cy][cx]
+        if d >= max_r:
+            continue
+        lab = label[cy][cx]
+        for nx, ny in ((cx + 1, cy), (cx - 1, cy), (cx, cy + 1), (cx, cy - 1)):
+            if not (0 <= nx < w and 0 <= ny < h) or label[ny][nx] != 0:
+                continue
+            # no reclamar si toca otra figura distinta (deja la línea media = gap)
+            vecino_otro = any(0 <= ax < w and 0 <= ay < h and label[ay][ax] not in (0, lab)
+                              for ax, ay in ((nx + 1, ny), (nx - 1, ny), (nx, ny + 1), (nx, ny - 1)))
+            if vecino_otro:
+                continue
+            label[ny][nx] = lab
+            dist[ny][nx] = d + 1
+            q.append((nx, ny))
+    out = Image.new("L", (w, h), 0)
+    op = out.load()
+    for y in range(h):
+        for x in range(w):
+            if label[y][x]:
+                op[x, y] = 255
+    return out
+
+
+def _plancha_stickers(im, frac=0.02):
+    """Plancha de stickers con borde blanco die-cut por figura, vía expand_labels: cada sticker
+    tiene el MÁXIMO borde posible sin fusionarse con el vecino (se frenan en la línea media).
+    Devuelve (imagen, se_tocan) — se_tocan True si el arte trae muy pocas figuras (pegadas)."""
+    im = im.convert("RGBA")
+    w, h = im.size
+    a = im.getchannel("A").point(lambda p: 255 if p > 10 else 0)
+    esc = min(1.0, 320.0 / max(w, h))
+    sw, sh = max(8, int(w * esc)), max(8, int(h * esc))
+    sm0 = a.resize((sw, sh)).point(lambda p: 255 if p > 128 else 0)
+    sm0 = _rellenar_huecos(sm0)                          # huecos internos (no fusiona separadas)
+    _, n = _etiquetar(sm0)
+    max_r = max(2, int(min(sw, sh) * frac))             # ancho del borde (px en baja resolución)
+    sm = _expandir_labels(sm0, max_r)
+    borde = sm.resize((w, h)).point(lambda p: 255 if p > 128 else 0)
+    base = Image.composite(Image.new("RGBA", (w, h), (255, 255, 255, 255)),
+                           Image.new("RGBA", (w, h), (0, 0, 0, 0)), borde)
+    base.alpha_composite(im)
+    bb = base.getbbox()
+    return (base.crop(bb) if bb else base), (n < 4)
+
+
 def _palito(im):
     """Agrega un PALITO (dowel de madera) sólido abajo-centro a una figura die-cut, con borde
     blanco, como cake topper para clavar. La IA solo hace la escena; el palito (pieza técnica)
@@ -169,6 +248,7 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
     def _trabajo(p, edad):
         # corre en un thread; captura sus propios errores y devuelve el evento.
         try:
+            aviso = ""
             raw = client.editar(refs_full, catalogo.prompt_de(pal, p, edad), p.size,
                                  quality=calidad)
             im = validar_png(raw, size_esperado=tuple(int(x) for x in p.size.split("x")))
@@ -179,9 +259,14 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
                 im = _mascara_circular(im)
             elif p.key in _DIE_CUT:            # die-cut: transparente + borde blanco, sin huecos
                 im = quitar(im, protect=True)
-                im = _borde_sticker(im)
-                if p.key == "topper_palito":  # + palito de madera sólido por código
-                    im = _palito(im)
+                if p.key == "stickers":       # borde ADAPTATIVO: que no se peguen entre sí
+                    im, tocan = _plancha_stickers(im)
+                    if tocan:
+                        aviso = "algunos stickers se tocan en el arte; conviene regenerar"
+                else:
+                    im = _borde_sticker(im)
+                    if p.key == "topper_palito":  # + palito de madera sólido por código
+                        im = _palito(im)
             elif p.recorte:
                 im = quitar(im, protect=True)
                 bb = im.getbbox()
@@ -191,7 +276,8 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
             _guardar(im, draft, nombre)
             # OJO: la invitación (UNA_SOLA) queda como UN solo draft (1 tarjeta en el panel);
             # la copia a todas las edades se hace al APROBAR (ia_kit/aprobar.py).
-            return {"pieza": p.key, "edad": edad, "ok": True, "error": "", "archivo": nombre}
+            return {"pieza": p.key, "edad": edad, "ok": True, "error": "", "archivo": nombre,
+                    "aviso": aviso}
         except Exception as e:  # una pieza que falla no frena a las demás
             return {"pieza": p.key, "edad": edad, "ok": False, "error": str(e), "archivo": ""}
 
