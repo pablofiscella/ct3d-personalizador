@@ -416,6 +416,11 @@ async function openPiezas(tema, nombre){
   refresh();
 }
 async function openIA(tema, nombre){
+  if(!document.getElementById('ia-spin-style')){   // animación del spinner
+    const st=document.createElement('style'); st.id='ia-spin-style';
+    st.textContent='@keyframes ia-spin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(st);
+  }
   const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:24px';
   ov.innerHTML=`<div style="background:var(--bg-elevated,#1A1530);color:var(--ink-1,#fff);border-radius:14px;padding:20px;max-width:720px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.5)">
@@ -490,32 +495,37 @@ async function openIA(tema, nombre){
       const btn=document.createElement('button');
       btn.textContent='↺ Regener.';
       btn.style.cssText='font-size:10px;padding:2px 6px;border-radius:5px;border:1px solid rgba(255,255,255,.25);background:transparent;color:inherit;cursor:pointer;margin-top:2px';
-      btn.onclick=async()=>{ btn.disabled=true; btn.textContent='…';
+      btn.onclick=async()=>{
+        btn.disabled=true;
+        card.style.position='relative';
+        const spin=document.createElement('div');   // spinner girando sobre la pieza
+        spin.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;border-radius:8px';
+        spin.innerHTML='<span style="width:22px;height:22px;border:3px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;display:inline-block;animation:ia-spin .8s linear infinite"></span>';
+        card.appendChild(spin);
+        const fin=()=>{ spin.remove(); btn.disabled=false; btn.textContent='↺ Regener.'; };
         imsg.textContent='Regenerando '+ev.pieza+(ev.edad!=null&&ev.edad!==''?' edad '+ev.edad:'')+'…';
         const cal=(ov.querySelector('#ia-cal')||{}).value||'low';
         try{
           const edadQ=(ev.edad!=null&&ev.edad!=='')?('&edad='+ev.edad):'';
           const r=await fetch('/dash/ia-regenerar?tema='+encodeURIComponent(tema)+'&pieza='+encodeURIComponent(ev.pieza)+edadQ+'&calidad='+cal,{method:'POST',headers:{'X-API-Key':KEY}});
           const j=await r.json();
-          if(!j.ok||!j.job){ imsg.textContent='✕ '+(j.error||'no arrancó'); btn.disabled=false; btn.textContent='↺ Regener.'; return; }
+          if(!j.ok||!j.job){ imsg.textContent='✕ '+(j.error||'no arrancó'); fin(); return; }
           const espera=async()=>{   // background + poll (evita el timeout del proxy)
             try{
               const s=await (await fetch('/dash/ia-estado?job='+encodeURIComponent(j.job),{headers:{'X-API-Key':KEY}})).json();
               if(s.estado==='corriendo'){ setTimeout(espera,2000); return; }
               if(s.estado==='listo'){
                 imsg.textContent='✓ Regenerado: '+ev.pieza+(ev.edad!=null&&ev.edad!==''?' '+ev.edad:'');
-                // actualizar SOLO la imagen de esta tarjeta (no reconstruir toda la grilla:
-                // varias regeneraciones a la vez competían y ocultaban las miniaturas).
+                // actualizar SOLO la imagen de esta tarjeta (no reconstruir toda la grilla).
                 const nuevaUrl='/dash/ia-draft?tema='+encodeURIComponent(tema)+'&archivo='+encodeURIComponent(nombreArchivo(ev))+'&cb='+Date.now();
                 const im=card.querySelector('img');
-                if(im){ im.style.display=''; im.src=nuevaUrl; im.onclick=()=>verGrande(nuevaUrl); }
-                else { await cargarBorradores(); }   // la tarjeta era ❌: recargar
-              } else { imsg.textContent='✕ '+(s.error||'error'); }
-            }catch(e){ imsg.textContent='✕ '+e; }
-            btn.disabled=false; btn.textContent='↺ Regener.';
+                if(im){ im.style.display=''; im.src=nuevaUrl; im.onclick=()=>verGrande(nuevaUrl); fin(); }
+                else { fin(); await cargarBorradores(); }   // la tarjeta era ❌: recargar
+              } else { imsg.textContent='✕ '+(s.error||'error'); fin(); }
+            }catch(e){ imsg.textContent='✕ '+e; fin(); }
           };
           espera();
-        }catch(e){ imsg.textContent='✕ '+e; btn.disabled=false; btn.textContent='↺ Regener.'; }
+        }catch(e){ imsg.textContent='✕ '+e; fin(); }
       };
       card.appendChild(lbl); card.appendChild(btn); grilla.appendChild(card);
     }
