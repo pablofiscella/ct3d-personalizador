@@ -10,8 +10,13 @@ from .validate import validar_png
 
 
 def _refs(tema_dir):
+    # Referencias visuales para OpenAI: primero los cutouts de recortes/; si no hay,
+    # el arte base del tema (invitación/afiche), que ya muestra los personajes y el estilo.
     paths = sorted(glob.glob(os.path.join(tema_dir, "recortes", "*.png")))
-    return [open(p, "rb").read() for p in paths]
+    if not paths:
+        paths = (sorted(glob.glob(os.path.join(tema_dir, "invitacion_*.png")))
+                 + sorted(glob.glob(os.path.join(tema_dir, "afiche_*.png"))))
+    return [open(p, "rb").read() for p in paths[:10]]  # OpenAI admite hasta 16
 
 
 def _guardar(im, draft_dir, nombre):
@@ -25,6 +30,10 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
     draft = os.path.join(tema_dir, "ia_draft")
     pal = catalogo.paleta_de(temas_dir, tema)
     refs = _refs(tema_dir)
+    if not refs:
+        raise RuntimeError(
+            "El tema '%s' no tiene imágenes de referencia: subí personajes a "
+            "recortes/ o cargá el arte base (invitacion_*/afiche_*)." % tema)
     # imagen maestra de estilo: ancla de consistencia, se manda como ref extra
     maestra = client.editar(refs, "Lámina maestra de estilo del tema. " +
                             catalogo.bloque_estilo(pal), catalogo._SQUARE)

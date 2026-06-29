@@ -1,5 +1,6 @@
 import io
 import os
+import pytest
 from PIL import Image
 from ia_kit import orquestador
 
@@ -56,3 +57,23 @@ def test_progress_se_invoca(tmp_path):
                              solo={"banderin"}, progress=eventos.append,
                              quitar=lambda im, protect=True: im)
     assert any(e["pieza"] == "banderin" and e["ok"] for e in eventos)
+
+
+def test_refs_fallback_al_arte_base(tmp_path):
+    # tema SIN recortes/ pero con arte base -> _refs cae al invitacion/afiche
+    d = tmp_path / "safari"; d.mkdir(parents=True)
+    (d / "tema.json").write_text('{"kit":{"accent":"#111111","ink":"#222222"}}')
+    Image.new("RGBA", (32, 32)).save(d / "invitacion_1.png")
+    Image.new("RGBA", (32, 32)).save(d / "afiche_1.png")
+    assert len(orquestador._refs(str(d))) == 2
+    res = orquestador.generar_tema(_FakeClient(), str(tmp_path), "safari", edades=[1],
+                                   solo={"banderin"}, quitar=lambda im, protect=True: im)
+    assert not res["errores"]
+
+
+def test_sin_referencias_falla_claro(tmp_path):
+    # ni recortes/ ni arte base -> error claro, NO una llamada vacía a OpenAI
+    d = tmp_path / "vacio"; d.mkdir(parents=True)
+    (d / "tema.json").write_text("{}")
+    with pytest.raises(RuntimeError, match="referencia"):
+        orquestador.generar_tema(_FakeClient(), str(tmp_path), "vacio", edades=[1])
