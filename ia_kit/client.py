@@ -37,7 +37,9 @@ class OpenAIImageClient:
             req = urllib.request.Request(_URL, data=body, method="POST", headers={
                 "Authorization": "Bearer " + self.api_key, "Content-Type": ct})
             try:
-                with self.opener(req, self.timeout) as r:
+                # timeout SIEMPRE por keyword: el 2º posicional de urlopen es `data`
+                # (el cuerpo), no el timeout — pasarlo posicional manda el int como body.
+                with self.opener(req, timeout=self.timeout) as r:
                     raw = r.read().decode("utf-8")
             except urllib.error.HTTPError as e:
                 last = e
