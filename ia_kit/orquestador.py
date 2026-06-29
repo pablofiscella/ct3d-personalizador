@@ -165,10 +165,8 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
                     im = im.crop(bb)
             nombre = _nombre_pieza(p, edad)
             _guardar(im, draft, nombre)
-            if p.key in catalogo.UNA_SOLA and edad is not None:   # misma invitación para todas las edades
-                for e in edades:
-                    if int(e) != int(edad):
-                        _guardar(im, draft, _nombre_pieza(p, e))
+            # OJO: la invitación (UNA_SOLA) queda como UN solo draft (1 tarjeta en el panel);
+            # la copia a todas las edades se hace al APROBAR (ia_kit/aprobar.py).
             return {"pieza": p.key, "edad": edad, "ok": True, "error": "", "archivo": nombre}
         except Exception as e:  # una pieza que falla no frena a las demás
             return {"pieza": p.key, "edad": edad, "ok": False, "error": str(e), "archivo": ""}

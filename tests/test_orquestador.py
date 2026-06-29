@@ -29,9 +29,10 @@ def test_genera_slots_por_edad_y_universales(tmp_path):
     res = orquestador.generar_tema(c, td, "safari", edades=[1, 2, 3],
                                    quitar=lambda im, protect=True: im)
     draft = os.path.join(td, "safari", "ia_draft")
-    # invitacion (slot raíz) x3
-    for e in (1, 2, 3):
-        assert os.path.exists(os.path.join(draft, "invitacion_%d.png" % e))
+    # invitacion: UNA SOLA en el draft (se copia a todas las edades recién al aprobar)
+    assert os.path.exists(os.path.join(draft, "invitacion_1.png"))
+    assert not os.path.exists(os.path.join(draft, "invitacion_2.png"))
+    assert not os.path.exists(os.path.join(draft, "invitacion_3.png"))
     # afiche es replicable -> en el batch solo la 1ª edad (el resto se replica aparte)
     assert os.path.exists(os.path.join(draft, "afiche_1.png"))
     assert not os.path.exists(os.path.join(draft, "afiche_2.png"))
@@ -135,15 +136,15 @@ def test_contar_piezas():
     assert orquestador.contar_piezas([1, 2, 3], solo={"banderin"}) == 1
 
 
-def test_invitacion_una_sola_se_copia_a_todas(tmp_path):
-    # la invitación se genera UNA vez pero queda en todas las edades (mismo arte)
+def test_invitacion_una_sola_en_draft(tmp_path):
+    # la invitación se genera UNA vez y queda como UN solo draft (1 tarjeta en el panel)
     td = _tema_dir(tmp_path)
     c = _FakeClient()
     orquestador.generar_tema(c, td, "safari", edades=[1, 2, 3], solo={"invitacion"},
                              quitar=lambda im, protect=True: im)
     draft = os.path.join(td, "safari", "ia_draft")
-    for e in (1, 2, 3):
-        assert os.path.exists(os.path.join(draft, "invitacion_%d.png" % e))
+    invs = [f for f in os.listdir(draft) if f.startswith("invitacion_")]
+    assert invs == ["invitacion_1.png"]
     # solo 1 llamada a OpenAI para la pieza (maestra + 1 invitación), no 3
     assert sum(1 for pr, _ in c.prompts if "invitación" in pr.lower()) == 1
 
