@@ -187,6 +187,23 @@ def test_invitacion_una_sola_en_draft(tmp_path):
     assert sum(1 for pr, _ in c.prompts if "invitación" in pr.lower()) == 1
 
 
+def test_solo_faltantes_saltea_lo_existente(tmp_path):
+    td = _tema_dir(tmp_path)
+    # 1ª tanda: genera solo banderin
+    orquestador.generar_tema(_FakeClient(), td, "safari", edades=[1], solo={"banderin"},
+                             quitar=lambda im, protect=True: im)
+    draft = os.path.join(td, "safari", "ia_draft")
+    assert os.path.exists(os.path.join(draft, "banderin.png"))
+    assert orquestador.contar_faltantes(td, "safari", [1]) == orquestador.contar_piezas([1]) - 1
+    # 2ª tanda INCREMENTAL: completa solo lo que falta (NO regenera banderin)
+    res = orquestador.generar_tema(_FakeClient(), td, "safari", edades=[1], solo_faltantes=True,
+                                   reusar_maestra=True, quitar=lambda im, protect=True: im)
+    generadas = {e["pieza"] for e in res["generadas"]}
+    assert "banderin" not in generadas          # ya estaba -> salteado
+    assert "invitacion" in generadas            # faltaba -> generado
+    assert orquestador.contar_faltantes(td, "safari", [1]) == 0   # ahora están todas
+
+
 def test_afiche_solo_primera_edad_en_batch(tmp_path):
     td = _tema_dir(tmp_path)
     orquestador.generar_tema(_FakeClient(), td, "safari", edades=[1, 2, 3],

@@ -184,15 +184,20 @@ def _guardar(im, draft_dir, nombre):
     im.save(os.path.join(draft_dir, nombre))
 
 
+def _edades_de(p, edades, solo):
+    """Qué edades genera una pieza en el batch (1 sola fuente de verdad para generar/contar).
+    invitación (UNA_SOLA) y afiche (REPLICABLE) generan solo la 1ª edad; el resto, todas."""
+    if p.por_edad and p.key in catalogo.UNA_SOLA:
+        return [edades[0]]
+    if p.por_edad and p.key in catalogo.REPLICABLE and not solo:
+        return [edades[0]]
+    return edades if p.por_edad else [None]
+
+
 def contar_piezas(edades, solo=None):
     """Cuántas piezas generará generar_tema (para la barra de progreso)."""
-    def n(p):
-        if p.por_edad and p.key in catalogo.UNA_SOLA:
-            return 1                       # una sola: se genera 1 vez y se copia a todas
-        if p.por_edad and p.key in catalogo.REPLICABLE and not solo:
-            return 1                       # replicable: en el batch solo la 1ª edad
-        return len(edades) if p.por_edad else 1
-    return sum(n(p) for p in catalogo.PIEZAS if not (solo and p.key not in solo))
+    return sum(len(_edades_de(p, edades, solo)) for p in catalogo.PIEZAS
+               if not (solo and p.key not in solo))
 
 
 def _nombre_pieza(p, edad):
@@ -205,9 +210,17 @@ def _nombre_pieza(p, edad):
     return "%s.png" % p.key                                 # universal -> extras/
 
 
+def contar_faltantes(temas_dir, tema, edades, solo=None):
+    """Cuántas piezas FALTAN en el draft (las que ya están no se vuelven a generar)."""
+    draft = os.path.join(temas_dir, tema, "ia_draft")
+    return sum(1 for p in catalogo.PIEZAS if not (solo and p.key not in solo)
+               for edad in _edades_de(p, edades, solo)
+               if not os.path.exists(os.path.join(draft, _nombre_pieza(p, edad))))
+
+
 def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
                  quitar=quitar_fondo.remove_bg, concurrencia=4, calidad="medium",
-                 reusar_maestra=False):
+                 reusar_maestra=False, solo_faltantes=False):
     tema_dir = os.path.join(temas_dir, tema)
     draft = os.path.join(tema_dir, "ia_draft")
     pal = catalogo.paleta_de(temas_dir, tema)
@@ -231,19 +244,12 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
     refs_full = refs + [maestra]
     os.makedirs(draft, exist_ok=True)
 
-    def _edades_pieza(p):
-        # invitación: igual en todas las edades (el editor agrega el número) -> se genera
-        # UNA vez y se copia al resto (más barato y consistente).
-        if p.por_edad and p.key in catalogo.UNA_SOLA:
-            return [edades[0]]
-        # piezas replicables (afiche): en el batch completo solo la 1ª edad; el resto
-        # se replica después cambiando el número (más consistente).
-        if p.por_edad and p.key in catalogo.REPLICABLE and not solo:
-            return [edades[0]]
-        return edades if p.por_edad else [None]
+    # solo_faltantes: saltea las piezas que YA están en el draft (para completar una tanda
+    # que falló a mitad, sin rehacer ni gastar de más).
     work = [(p, edad) for p in catalogo.PIEZAS
             if not (solo and p.key not in solo)
-            for edad in _edades_pieza(p)]
+            for edad in _edades_de(p, edades, solo)
+            if not (solo_faltantes and os.path.exists(os.path.join(draft, _nombre_pieza(p, edad))))]
 
     def _trabajo(p, edad):
         # corre en un thread; captura sus propios errores y devuelve el evento.

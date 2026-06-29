@@ -1239,10 +1239,16 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(503, {"ok": False, "error": "falta OPENAI_API_KEY"})
         edades = temas.cargar_tema(tema).get("edades", [1, 2, 3])
         calidad = _calidad(q)
-        total = ia_orq.contar_piezas(edades)
+        # "Generar kit" es INCREMENTAL: genera solo las piezas que faltan en el draft (para
+        # completar una tanda que falló a mitad sin rehacer ni gastar de más). Reusa la
+        # maestra cacheada. Para rehacer una pieza puntual está ↺ (regenerar).
+        total = ia_orq.contar_faltantes(temas.TEMAS_DIR, tema, edades)
+        if total == 0:
+            return self._json(200, {"ok": True, "job": None, "total": 0,
+                                    "mensaje": "Ya están todas las piezas. Usá ↺ para rehacer una."})
         def trabajo(emit):
-            ia_orq.generar_tema(client, temas.TEMAS_DIR, tema, edades,
-                                progress=emit, calidad=calidad)
+            ia_orq.generar_tema(client, temas.TEMAS_DIR, tema, edades, progress=emit,
+                                calidad=calidad, solo_faltantes=True, reusar_maestra=True)
         jid = ia_jobs.iniciar(trabajo)
         return self._json(200, {"ok": True, "job": jid, "calidad": calidad, "total": total})
 

@@ -586,20 +586,26 @@ async function openIA(tema, nombre){
           ? '✓ Listo — '+ok_n+'/'+hechas+' piezas generadas'
           : '✕ Error: '+(st.error||'desconocido');
       if(st.estado==='corriendo'){ setTimeout(()=>poll(jid),2000); return; }
-      if(st.eventos&&st.eventos.length){ pintarGrilla(st.eventos); btnApr.style.display=''; }
+      if(st.estado==='listo'){
+        await cargarBorradores();                 // muestra TODO el draft (lo nuevo + lo que ya estaba)
+        prog.textContent='✓ Listo — '+ok_n+'/'+hechas+' piezas generadas en esta tanda';
+      } else if(st.eventos&&st.eventos.length){
+        pintarGrilla(st.eventos); btnApr.style.display='';   // error: mostrar lo que haya con su estado
+      }
       btnGen.disabled=false;
     }catch(e){ prog.textContent='✕ Error de red: '+e; btnGen.disabled=false; }
   }
 
   btnGen.onclick=async()=>{
     btnGen.disabled=true; btnApr.style.display='none';
-    grilla.innerHTML=''; imsg.textContent=''; prog.textContent='Iniciando…';
+    imsg.textContent=''; prog.textContent='Iniciando…';   // NO borra la grilla: "Generar" completa lo que falta
     bar.style.display=''; barFill.style.width='5%';   // barra dibujada YA (la 1ª imagen es la maestra de estilo)
     try{
       const cal=(ov.querySelector('#ia-cal')||{}).value||'low';
       const r=await fetch('/dash/ia-generar?tema='+encodeURIComponent(tema)+'&calidad='+cal,{method:'POST',headers:{'X-API-Key':KEY}});
       const j=await r.json();
-      if(!j.ok||!j.job){ prog.textContent='✕ '+(j.error||'no arrancó'); bar.style.display='none'; btnGen.disabled=false; return; }
+      if(!j.ok){ prog.textContent='✕ '+(j.error||'no arrancó'); bar.style.display='none'; btnGen.disabled=false; return; }
+      if(!j.job){ prog.textContent=j.mensaje||'No hay piezas para generar'; bar.style.display='none'; btnGen.disabled=false; return; }  // ya están todas
       iaTotal=j.total||0;
       poll(j.job);
     }catch(e){ prog.textContent='✕ '+e; bar.style.display='none'; btnGen.disabled=false; }
