@@ -431,13 +431,7 @@ async function openIA(tema, nombre){
     <p style="opacity:.7;font-size:13px;margin:0 0 14px">Generá automáticamente todas las piezas del kit usando IA. Revisá los borradores y aprobá para publicarlos.</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
       <button id="ia-btn-generar" class="btn-primary" style="font-size:14px">✨ Generar kit con IA</button>
-      <label style="font-size:13px;opacity:.85;display:flex;align-items:center;gap:5px">Calidad
-        <select id="ia-cal" style="font-size:13px;padding:3px 6px;border-radius:6px">
-          <option value="low" selected>baja (barata)</option>
-          <option value="medium">media</option>
-          <option value="high">alta (final)</option>
-        </select>
-      </label>
+      <span style="font-size:12px;opacity:.65">borradores en baja (al aprobar pasa a alta resolución)</span>
       <button id="ia-btn-aprobar" class="btn-primary" style="font-size:14px;display:none;background:var(--success,#2D8C5A)">✅ Aprobar y publicar</button>
     </div>
     <div id="ia-progreso" style="font-size:13px;opacity:.8;min-height:18px;margin-bottom:6px"></div>
