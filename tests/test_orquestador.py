@@ -115,6 +115,17 @@ def test_borde_sticker_agrega_contorno_blanco():
     assert out.size[0] > 16     # el contorno agranda respecto al cuadrado original (16px)
 
 
+def test_borde_sticker_rellena_hueco_interno():
+    from PIL import ImageDraw
+    im = Image.new("RGBA", (90, 90), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.ellipse([10, 10, 79, 79], fill=(255, 0, 0, 255))   # disco
+    d.ellipse([35, 35, 54, 54], fill=(0, 0, 0, 0))        # hueco transparente en el medio
+    out = orquestador._borde_sticker(im, frac=0.05)
+    cx, cy = out.size[0] // 2, out.size[1] // 2
+    assert out.getpixel((cx, cy))[3] == 255   # el hueco quedó relleno (opaco)
+
+
 def test_contar_piezas():
     # 2 piezas por-edad (invitacion, afiche) + 10 piezas una vez
     assert orquestador.contar_piezas([1, 2, 3]) == 16   # 2*3 + 10

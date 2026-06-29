@@ -65,8 +65,9 @@ _EXTRA_FORMA = {
                            "círculo poné UN personaje CENTRADO que LLENE bien la etiqueta "
                            "(no en un costado, no con el centro vacío), sin salirse del borde."),
     "stickers": ("Varios stickers del personaje BIEN SEPARADOS entre sí (con espacio en blanco "
-                 "claro entre cada uno, que no se toquen), cada uno como figura recortable "
-                 "independiente, sobre fondo BLANCO liso para poder recortarlos."),
+                 "claro entre cada uno, que no se toquen). Cada figura COMPACTA y maciza, SIN "
+                 "huecos internos ni elementos flotando separados con espacios en el medio "
+                 "(nada de aros/arcos abiertos). Sobre fondo BLANCO liso para poder recortarlos."),
 }
 
 

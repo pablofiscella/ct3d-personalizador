@@ -18,15 +18,29 @@ _MASCARA_CIRCULAR = {"topper"}
 _BORDE_STICKER = {"stickers"}
 
 
+def _rellenar_huecos(mask):
+    """Rellena huecos internos (transparentes encerrados) de una máscara binaria L."""
+    w, h = mask.size
+    work = Image.new("L", (w + 2, h + 2), 0)
+    work.paste(mask, (1, 1))
+    ImageDraw.floodfill(work, (0, 0), 128)                # exterior alcanzable -> 128
+    work = work.crop((1, 1, w + 1, h + 1))
+    return work.point(lambda p: 0 if p == 128 else 255)   # sólido = forma + huecos
+
+
 def _borde_sticker(im, frac=0.02):
-    """Recorte con borde blanco (look die-cut) para corte por contorno."""
+    """Die-cut: silueta SÓLIDA (cierra gaps finos y rellena huecos internos) + borde blanco."""
     im = im.convert("RGBA")
     w, h = im.size
-    k = min(2 * max(3, int(min(w, h) * frac)) + 1, 49)   # kernel impar, acotado por velocidad
-    dil = im.getchannel("A").filter(ImageFilter.MaxFilter(k))   # alfa dilatado = forma + borde
+    k = min(2 * max(3, int(min(w, h) * frac)) + 1, 35)    # kernel impar, acotado por velocidad
+    a = im.getchannel("A").point(lambda p: 255 if p > 10 else 0)
+    a = a.filter(ImageFilter.MaxFilter(k))                # cerrar gaps finos (líneas punteadas)
+    a = _rellenar_huecos(a)                               # rellenar huecos encerrados
+    a = a.filter(ImageFilter.MinFilter(k))                # restaurar borde (close morfológico)
+    dil = a.filter(ImageFilter.MaxFilter(k))              # silueta sólida + borde blanco
     base = Image.composite(Image.new("RGBA", (w, h), (255, 255, 255, 255)),
                            Image.new("RGBA", (w, h), (0, 0, 0, 0)), dil)
-    base.alpha_composite(im)                              # arte original sobre el borde blanco
+    base.alpha_composite(im)                              # arte encima; los huecos quedan blancos
     bb = base.getbbox()
     return base.crop(bb) if bb else base
 
