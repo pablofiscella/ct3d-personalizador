@@ -453,10 +453,12 @@ async function openIA(tema, nombre){
   let lastEventos=[];
   let iaTotal=0;
 
+  // cuadriculado de transparencia: muestra bien bordes blancos y zonas transparentes
+  const _CHECKER='background-color:#e8e8e8;background-image:linear-gradient(45deg,#bbb 25%,transparent 25%,transparent 75%,#bbb 75%),linear-gradient(45deg,#bbb 25%,transparent 25%,transparent 75%,#bbb 75%);background-size:24px 24px;background-position:0 0,12px 12px';
   function verGrande(url){   // lightbox: ver la pieza a tamaño completo
     const lb=document.createElement('div');
     lb.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:10001;display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out';
-    lb.innerHTML='<img src="'+url+'" style="max-width:96%;max-height:96%;object-fit:contain;border-radius:8px;background:#fff;box-shadow:0 8px 40px rgba(0,0,0,.6)">';
+    lb.innerHTML='<img src="'+url+'" style="max-width:96%;max-height:96%;object-fit:contain;border-radius:8px;'+_CHECKER+';box-shadow:0 8px 40px rgba(0,0,0,.6)">';
     lb.onclick=()=>lb.remove();
     document.body.appendChild(lb);
   }
@@ -479,7 +481,7 @@ async function openIA(tema, nombre){
       card.style.cssText='display:flex;flex-direction:column;align-items:center;gap:5px;border:1.5px '+(ev.ok?'solid #2D8C5A':'solid #C73E3A')+';border-radius:8px;padding:8px;width:90px;box-sizing:border-box;background:'+(ev.ok?'rgba(45,140,90,.1)':'rgba(199,62,58,.1)');
       const imgUrl='/dash/ia-draft?tema='+encodeURIComponent(tema)+'&archivo='+encodeURIComponent(fn)+'&cb='+cb;
       card.innerHTML=ev.ok
-        ? `<img src="${imgUrl}" style="width:74px;height:74px;object-fit:contain;border-radius:5px;background:rgba(255,255,255,.06);cursor:zoom-in" title="Ver grande" alt="${fn}" onerror="this.style.display='none'">`
+        ? `<img src="${imgUrl}" style="width:74px;height:74px;object-fit:contain;border-radius:5px;${_CHECKER};cursor:zoom-in" title="Ver grande" alt="${fn}" onerror="this.style.display='none'">`
         : `<span style="font-size:26px;line-height:74px;display:block">❌</span>`;
       if(ev.ok){ const im=card.querySelector('img'); if(im) im.onclick=()=>verGrande(imgUrl); }
       const lbl=document.createElement('span');
