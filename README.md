@@ -137,5 +137,10 @@ systemctl restart ct3d-kit.service
 
 Variables: `CT3D_API_KEY`, `CT3D_PORT` (8787), `CT3D_DATA_DIR`, `CT3D_BASE_URL`.
 
+### Generación con IA (OpenAI)
+- `OPENAI_API_KEY` (requerida para `/dash/ia-*`) — key de OpenAI con acceso a imágenes.
+- `OPENAI_IMAGE_MODEL` (default `gpt-image-2`).
+Costo aprox.: ~US$0,80 (medium) / ~US$2,90 (high) por tema, una sola vez.
+
 El plugin de WordPress está en `wordpress/` (dropdown de edad, meta `_ct3d_tema`,
 auto-generación del kit al pagar, link de descarga).
