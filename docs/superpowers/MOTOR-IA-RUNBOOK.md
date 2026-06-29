@@ -1,4 +1,7 @@
 # Runbook — Motor IA piezas del kit
+
+> Documentación técnica completa (procesamiento por pieza, algoritmos, deploy): **`docs/MOTOR-IA.md`**.
+
 1. Setear `OPENAI_API_KEY` en el env del servicio (systemd `ct3d-kit.service`).
 2. Asegurar Tier 2+ de OpenAI (≥20 IPM) antes de tandas grandes.
 3. Subir personajes del tema (recortes/) por /dash.
