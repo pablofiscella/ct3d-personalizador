@@ -526,23 +526,29 @@ async function openIA(tema, nombre){
         const rb=document.createElement('button');
         rb.textContent='⧉ otras edades';
         rb.style.cssText='font-size:10px;padding:2px 6px;border-radius:5px;border:1px solid rgba(255,255,255,.25);background:transparent;color:inherit;cursor:pointer;margin-top:2px';
-        rb.onclick=async()=>{ rb.disabled=true; rb.textContent='…';
+        rb.onclick=async()=>{ rb.disabled=true;
+          card.style.position='relative';
+          const spin=document.createElement('div');   // mismo spinner que regenerar
+          spin.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;border-radius:8px';
+          spin.innerHTML='<span style="width:22px;height:22px;border:3px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;display:inline-block;animation:ia-spin .8s linear infinite"></span>';
+          card.appendChild(spin);
+          const fin=()=>{ spin.remove(); rb.disabled=false; rb.textContent='⧉ otras edades'; };
           imsg.textContent='Replicando '+ev.pieza+' a las otras edades (cambia solo el número)…';
           const cal=(ov.querySelector('#ia-cal')||{}).value||'low';
           try{
             const r=await fetch('/dash/ia-replicar?tema='+encodeURIComponent(tema)+'&pieza='+encodeURIComponent(ev.pieza)+'&calidad='+cal,{method:'POST',headers:{'X-API-Key':KEY}});
             const j=await r.json();
-            if(!j.ok||!j.job){ imsg.textContent='✕ '+(j.error||'no arrancó'); rb.disabled=false; rb.textContent='⧉ otras edades'; return; }
+            if(!j.ok||!j.job){ imsg.textContent='✕ '+(j.error||'no arrancó'); fin(); return; }
             const espera=async()=>{
               try{
                 const s=await (await fetch('/dash/ia-estado?job='+encodeURIComponent(j.job),{headers:{'X-API-Key':KEY}})).json();
                 if(s.estado==='corriendo'){ setTimeout(espera,2000); return; }
                 imsg.textContent=(s.estado==='listo')?'✓ Replicado a las otras edades':('✕ '+(s.error||'error'));
-                rb.disabled=false; rb.textContent='⧉ otras edades'; await cargarBorradores();
-              }catch(e){ imsg.textContent='✕ '+e; rb.disabled=false; rb.textContent='⧉ otras edades'; }
+                fin(); await cargarBorradores();
+              }catch(e){ imsg.textContent='✕ '+e; fin(); }
             };
             espera();
-          }catch(e){ imsg.textContent='✕ '+e; rb.disabled=false; rb.textContent='⧉ otras edades'; }
+          }catch(e){ imsg.textContent='✕ '+e; fin(); }
         };
         card.appendChild(rb);
       }
