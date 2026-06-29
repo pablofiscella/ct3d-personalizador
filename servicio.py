@@ -24,12 +24,16 @@ import mate as mate_mod  # editor de mates (grabado láser)
 import generador  # layout del editor
 import temas          # alta de temáticas (dashboard)
 import quitar_fondo   # recorte de fondo de animalitos/números subidos
+from ia_kit import jobs as ia_jobs, orquestador as ia_orq, aprobar as ia_aprobar
+from ia_kit.client import OpenAIImageClient
 from PIL import Image
 
 API_KEY  = os.environ.get("CT3D_API_KEY", "cambiame-ya")
 PORT     = int(os.environ.get("CT3D_PORT", "8787"))
 DATA_DIR = os.environ.get("CT3D_DATA_DIR", os.path.join(os.path.dirname(__file__), "pedidos"))
 BASE_URL = os.environ.get("CT3D_BASE_URL", f"http://localhost:{PORT}")
+OPENAI_API_KEY     = os.environ.get("OPENAI_API_KEY", "")
+OPENAI_IMAGE_MODEL = os.environ.get("OPENAI_IMAGE_MODEL", "gpt-image-2")
 # Auth del panel (dashboard + editor): token por cookie, sin login interactivo.
 # Se entra una sola vez con ?key=API_KEY (link desde tu dash); kit deja una
 # cookie segura y a partir de ahí todo va autenticado solo. Nadie sin el token
@@ -105,6 +109,11 @@ def _tienda_admin(method, path, body=None):
             return e.code, {"ok": False, "error": "la tienda respondió HTTP %s" % e.code}
     except Exception as e:
         return 0, {"ok": False, "error": "no se pudo contactar la tienda: %s" % e}
+
+def _openai_client():
+    if not OPENAI_API_KEY:
+        return None
+    return OpenAIImageClient(OPENAI_API_KEY, model=OPENAI_IMAGE_MODEL)
 
 def slug(s):
     s = re.sub(r"[^a-zA-Z0-9]+", "-", str(s)).strip("-").lower()
@@ -578,6 +587,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._dash_pieza_img(urllib.parse.parse_qs(u.query))
         if path == "/dash/base-estado":
             return self._dash_base_estado(urllib.parse.parse_qs(u.query))
+        if path == "/dash/ia-estado":
+            return self._ia_estado()
         if path == "/dash/base-img":
             return self._dash_base_img(urllib.parse.parse_qs(u.query))
         if path == "/dash/cuaderno-estado":
@@ -663,6 +674,12 @@ class Handler(BaseHTTPRequestHandler):
             return self._dash_upload()
         if path == "/dash/upload-pieza":
             return self._dash_upload_pieza()
+        if path == "/dash/ia-generar":
+            return self._ia_generar()
+        if path == "/dash/ia-regenerar":
+            return self._ia_regenerar()
+        if path == "/dash/ia-aprobar":
+            return self._ia_aprobar()
         if path == "/dash/borrar-pieza":
             return self._dash_borrar_pieza()
         if path == "/dash/borrar-base":
@@ -1171,6 +1188,54 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(500, {"ok": False, "error": "no se pudo borrar: %s" % e})
         generador._specs_cache.pop(tema, None)
         return self._json(200, {"ok": True, "warn": warn})
+
+    def _ia_generar(self):
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        client = _openai_client()
+        if client is None:
+            return self._json(503, {"ok": False, "error": "falta OPENAI_API_KEY"})
+        edades = temas.cargar_tema(tema).get("edades", [1, 2, 3])
+        def trabajo(emit):
+            ia_orq.generar_tema(client, temas.TEMAS_DIR, tema, edades, progress=emit)
+        jid = ia_jobs.iniciar(trabajo)
+        return self._json(200, {"ok": True, "job": jid})
+
+    def _ia_estado(self):
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        st = ia_jobs.estado(q.get("job", [""])[0])
+        return self._json(200, {"ok": True, **st})
+
+    def _ia_regenerar(self):
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        pieza = re.sub(r"[^a-z0-9_]", "", (q.get("pieza", [""])[0] or "").lower())[:30]
+        client = _openai_client()
+        if client is None:
+            return self._json(503, {"ok": False, "error": "falta OPENAI_API_KEY"})
+        edades = temas.cargar_tema(tema).get("edades", [1, 2, 3])
+        try:
+            ia_orq.generar_tema(client, temas.TEMAS_DIR, tema, edades, solo={pieza})
+            return self._json(200, {"ok": True})
+        except Exception as e:
+            return self._json(500, {"ok": False, "error": str(e)})
+
+    def _ia_aprobar(self):
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        res = ia_aprobar.aprobar(temas.TEMAS_DIR, tema)
+        generador._specs_cache.pop(tema, None)
+        return self._json(200, {"ok": True, **res})
 
 if __name__ == "__main__":
     os.makedirs(DATA_DIR, exist_ok=True)
