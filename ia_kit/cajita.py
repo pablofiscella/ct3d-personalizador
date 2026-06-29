@@ -15,8 +15,8 @@ _CARAS = [(0, 1), (1, 0), (1, 1), (1, 2), (2, 1), (3, 1)]
 # bordes de cada celda: nombre -> (vecino dr,dc, normal hacia afuera nx,ny)
 _BORDES = {"top": (-1, 0, 0, -1), "bot": (1, 0, 0, 1), "left": (0, -1, -1, 0), "right": (0, 1, 1, 0)}
 # Rotación del arte por cara para que quede DERECHO al plegar el cubo (la red plana las
-# muestra giradas): izquierda -90°, derecha +90°, atrás 180°; tapa/frente/base derechas.
-_ROT_CARA = {(1, 0): -90, (1, 2): 90, (2, 1): 180}
+# muestra giradas): izquierda +90°, derecha -90°, atrás 180°; tapa/frente/base derechas.
+_ROT_CARA = {(1, 0): 90, (1, 2): -90, (2, 1): 180}
 
 
 def _hex(c):
