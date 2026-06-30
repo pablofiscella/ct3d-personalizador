@@ -900,12 +900,26 @@ def _construir(b, e):
         _a_contar(b, 6, 4); _a_tamano(b, 3); _a_tateti(b); _a_colorear(b, 2)
 
 # ───────────────────────── armado ─────────────────────────
+def _cover_mons(tema, mons):
+    """6 personajes para la portada. Por defecto los primeros 6 (orden de lectura). Cada tema
+    puede curarlos con tema.json::portada_mons = [índices] (p.ej. para elegir un payaso más
+    prolijo). Completa con el resto si la lista es corta."""
+    try:
+        idx = json.load(open(os.path.join(TEMAS, tema, "tema.json"), encoding="utf-8")).get("portada_mons")
+    except Exception:
+        idx = None
+    if idx:
+        sel = [mons[i] for i in idx if 0 <= i < len(mons)]
+        resto = [p for p in mons if p not in sel]
+        return (sel + resto)[:6]
+    return mons[:6]
+
 def _build(tema, edad, seed):
     """Devuelve (paginas_actividades, paginas_solucionario) por separado, para que la galería
     de la tienda pueda excluir el solucionario sin regenerar."""
     mons = _extraer_monstruos(tema); nombre = _tema_nombre(tema)
     b = _Book(edad, mons, seed, nombre); b._colorear = _colorear_imgs(tema)
-    portada = _portada(mons, edad, nombre)
+    portada = _portada(_cover_mons(tema, mons), edad, nombre)
     e = int(edad) if str(edad).isdigit() else 6
     _construir(b, e); b.finish()
     acts = [portada] + list(b.pages)
