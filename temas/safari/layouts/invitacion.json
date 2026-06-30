@@ -4,7 +4,10 @@
     "y": 0.34,
     "size": 320.0,
     "maxw": 0.66,
-    "wght": 700.0
+    "wght": 700.0,
+    "font": "DancingScript-VF.ttf",
+    "color": "#c8674e",
+    "anchor": "mm"
   },
   "fecha": {
     "x": 0.4,

@@ -1,0 +1,92 @@
+{
+  "titulo": {
+    "x": 0.4966,
+    "y": 0.1626,
+    "size": 46.0,
+    "maxw": 0.78,
+    "wght": 500.0,
+    "font": "LuckiestGuy.ttf",
+    "color": "#ffffff",
+    "anchor": "mm"
+  },
+  "nombre": {
+    "x": 0.4949,
+    "y": 0.244,
+    "size": 209.0,
+    "maxw": 0.78,
+    "wght": 500.0,
+    "font": "LuckiestGuy.ttf",
+    "color": "#e53935",
+    "anchor": "mm"
+  },
+  "edad": {
+    "x": 0.4983,
+    "y": 0.3195,
+    "size": 52.0,
+    "maxw": 0.66,
+    "wght": 500.0,
+    "font": "LuckiestGuy.ttf",
+    "color": "#3e3e3e",
+    "anchor": "mm"
+  },
+  "fecha": {
+    "x": 0.3667,
+    "y": 0.4013,
+    "size": 42.0,
+    "maxw": 0.62,
+    "wght": 600.0,
+    "font": "Nunito-VF.ttf",
+    "color": "#4a4a4a",
+    "anchor": "lm"
+  },
+  "hora": {
+    "x": 0.3667,
+    "y": 0.4333,
+    "size": 42.0,
+    "maxw": 0.62,
+    "wght": 600.0,
+    "font": "Nunito-VF.ttf",
+    "color": "#4a4a4a",
+    "anchor": "lm"
+  },
+  "lugar": {
+    "x": 0.3667,
+    "y": 0.4653,
+    "size": 42.0,
+    "maxw": 0.62,
+    "wght": 600.0,
+    "font": "Nunito-VF.ttf",
+    "color": "#4a4a4a",
+    "anchor": "lm"
+  },
+  "direccion": {
+    "x": 0.3667,
+    "y": 0.4973,
+    "size": 38.0,
+    "maxw": 0.62,
+    "wght": 600.0,
+    "font": "Nunito-VF.ttf",
+    "color": "#4a4a4a",
+    "anchor": "lm"
+  },
+  "rsvp": {
+    "x": 0.7936,
+    "y": 0.9816,
+    "size": 40.0,
+    "maxw": 0.8,
+    "wght": 700.0,
+    "font": "Nunito-VF.ttf",
+    "color": "#e53935",
+    "anchor": "mm"
+  },
+  "pie": {
+    "x": 0.2992,
+    "y": 0.9835,
+    "size": 30.0,
+    "maxw": 0.86,
+    "wght": 500.0,
+    "font": "Nunito-VF.ttf",
+    "color": "#3e3e3e",
+    "anchor": "mm"
+  }
+}

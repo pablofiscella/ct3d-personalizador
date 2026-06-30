@@ -1,0 +1,92 @@
+{
+  "titulo": {
+    "x": 0.5067,
+    "y": 0.2093,
+    "size": 40.0,
+    "maxw": 0.84,
+    "wght": 700.0,
+    "font": "Fredoka-VF.ttf",
+    "color": "#ff5b6b",
+    "anchor": "mm"
+  },
+  "nombre": {
+    "x": 0.5101,
+    "y": 0.2645,
+    "size": 185.0,
+    "maxw": 0.74,
+    "wght": 700.0,
+    "font": "Fredoka-VF.ttf",
+    "color": "#f5fff0",
+    "anchor": "mm"
+  },
+  "edad": {
+    "x": 0.5067,
+    "y": 0.3149,
+    "size": 62.0,
+    "maxw": 0.64,
+    "wght": 700.0,
+    "font": "Fredoka-VF.ttf",
+    "color": "#ff9f2d",
+    "anchor": "mm"
+  },
+  "fecha": {
+    "x": 0.3718,
+    "y": 0.4065,
+    "size": 42.0,
+    "maxw": 0.62,
+    "wght": 600.0,
+    "font": "Nunito-VF.ttf",
+    "color": "#4a4a4a",
+    "anchor": "lm"
+  },
+  "hora": {
+    "x": 0.3718,
+    "y": 0.4405,
+    "size": 42.0,
+    "maxw": 0.62,
+    "wght": 600.0,
+    "font": "Nunito-VF.ttf",
+    "color": "#4a4a4a",
+    "anchor": "lm"
+  },
+  "lugar": {
+    "x": 0.3718,
+    "y": 0.4745,
+    "size": 42.0,
+    "maxw": 0.62,
+    "wght": 600.0,
+    "font": "Nunito-VF.ttf",
+    "color": "#4a4a4a",
+    "anchor": "lm"
+  },
+  "direccion": {
+    "x": 0.3718,
+    "y": 0.5085,
+    "size": 38.0,
+    "maxw": 0.62,
+    "wght": 600.0,
+    "font": "Nunito-VF.ttf",
+    "color": "#4a4a4a",
+    "anchor": "lm"
+  },
+  "rsvp": {
+    "x": 0.5067,
+    "y": 0.5541,
+    "size": 40.0,
+    "maxw": 0.8,
+    "wght": 700.0,
+    "font": "Nunito-VF.ttf",
+    "color": "#4a4a4a",
+    "anchor": "mm"
+  },
+  "pie": {
+    "x": 0.5135,
+    "y": 0.5769,
+    "size": 30.0,
+    "maxw": 0.86,
+    "wght": 500.0,
+    "font": "Nunito-VF.ttf",
+    "color": "#ff5b6b",
+    "anchor": "mm"
+  }
+}
