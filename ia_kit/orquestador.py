@@ -129,8 +129,27 @@ def _stickers_individuales(im):
         fig = im.crop((x0 + bb[0], y0 + bb[1], x0 + bb[2], y0 + bb[3]))
         cut = Image.new("RGBA", fig.size, (0, 0, 0, 0))
         cut.paste(fig, (0, 0), comp)                     # solo esta figura, con TODO su detalle
-        stickers.append(_borde_sticker(cut))
+        stickers.append(cut)                             # SIN borde: el borde uniforme va al final
     return stickers, n
+
+
+def _sticker_borde(fig, ancho):
+    """Borde blanco de ancho UNIFORME alrededor de la figura (die-cut), a la resolución final
+    (después de escalar) para que TODOS los stickers tengan el mismo margen siguiendo el contorno."""
+    fig = fig.convert("RGBA")
+    m = ancho + 2
+    w, h = fig.size
+    padded = Image.new("RGBA", (w + 2 * m, h + 2 * m), (0, 0, 0, 0))
+    padded.paste(fig, (m, m))
+    a = _rellenar_huecos(padded.getchannel("A").point(lambda p: 255 if p > 40 else 0))
+    for _ in range(max(1, round(ancho / 4))):            # dilatar uniforme (pasos rápidos)
+        a = a.filter(ImageFilter.MaxFilter(9))
+    W2, H2 = padded.size
+    base = Image.composite(Image.new("RGBA", (W2, H2), (255, 255, 255, 255)),
+                           Image.new("RGBA", (W2, H2), (0, 0, 0, 0)), a)
+    base.alpha_composite(padded)                         # arte crudo encima
+    bb = base.getbbox()
+    return base.crop(bb) if bb else base
 
 
 def _regrid_stickers(stickers, W, H, menos=1):
@@ -147,12 +166,14 @@ def _regrid_stickers(stickers, W, H, menos=1):
     cols = max(1, base - menos)                           # 1 columna menos -> más aire
     rows = (N + cols - 1) // cols                         # filas para que entren TODOS
     cw, ch = W / cols, H / rows
+    ancho = max(6, int(min(W, H) * 0.011))                # margen UNIFORME para TODOS los stickers
     for i, s in enumerate(stickers):
         r, c = divmod(i, cols)
-        maxw, maxh = cw * 0.82, ch * 0.82                # margen claro dentro de la celda
+        maxw, maxh = cw * 0.74, ch * 0.74                # dejar lugar para el borde + aire
         if s.width > maxw or s.height > maxh:
             f = min(maxw / s.width, maxh / s.height)
             s = s.resize((max(1, int(s.width * f)), max(1, int(s.height * f))), Image.LANCZOS)
+        s = _sticker_borde(s, ancho)                     # borde uniforme DESPUÉS de escalar
         cx, cy = cw * (c + 0.5), ch * (r + 0.5)
         out.alpha_composite(s, (int(cx - s.width / 2), int(cy - s.height / 2)))
     return out, 0

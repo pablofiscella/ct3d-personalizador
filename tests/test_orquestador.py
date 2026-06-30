@@ -99,18 +99,27 @@ def test_reusa_maestra_cacheada(tmp_path):
     assert len(c2.prompts) == 1   # reusó la maestra cacheada
 
 
-def test_stickers_individuales_extrae_y_bordea():
+def test_stickers_individuales_extrae_cada_figura():
     from PIL import ImageDraw
     im = Image.new("RGBA", (240, 120), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
     d.ellipse([20, 30, 70, 90], fill=(255, 0, 0, 255))
     d.ellipse([170, 30, 220, 90], fill=(0, 0, 255, 255))   # dos figuras separadas
     sts, n = orquestador._stickers_individuales(im)
-    assert n == 2 and len(sts) == 2
-    for s in sts:                                          # cada sticker tiene borde blanco
-        blancos = sum(1 for p in s.convert("RGBA").getdata()
-                      if p[3] == 255 and min(p[:3]) > 240)
-        assert blancos > 0
+    assert n == 2 and len(sts) == 2                        # extrae cada figura (sin borde aún)
+    for s in sts:                                          # conserva el arte (no vacío)
+        assert s.convert("RGBA").getbbox() is not None
+
+
+def test_sticker_borde_uniforme():
+    fig = Image.new("RGBA", (40, 40), (0, 0, 0, 0))
+    from PIL import ImageDraw
+    ImageDraw.Draw(fig).ellipse([8, 8, 31, 31], fill=(255, 0, 0, 255))
+    out = orquestador._sticker_borde(fig, ancho=6)
+    assert out.size[0] > 24 and out.size[1] > 24          # creció por el borde
+    blancos = sum(1 for p in out.convert("RGBA").getdata()
+                  if p[3] == 255 and min(p[:3]) > 240)
+    assert blancos > 0                                    # hay borde blanco alrededor
 
 
 def test_regrid_coloca_todos_separados():
