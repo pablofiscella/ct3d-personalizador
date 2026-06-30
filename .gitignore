@@ -10,5 +10,13 @@ salida/
 __pycache__/
 *.pyc
 
+# ── Cachés del cuaderno + staging del motor IA (regenerables, NO versionar) ──
+temas/*/actividades_cache/
+temas/*/actividades_mon/
+temas/*/actividades_preview/
+temas/*/ia_draft/
+temas/*/ia_maestra.png
+temas/*/.thumbs/
+
 # ── Dependencias regenerables (npm install) ──
 node_modules/
