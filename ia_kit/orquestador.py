@@ -75,72 +75,73 @@ def _etiquetar(fg):
     return label, n
 
 
-def _expandir_labels(fg, max_r, gap=4):
-    """expand_labels (estilo scikit-image): cada figura crece su borde hasta max_r px O hasta
-    la línea media con la vecina. Después TALLA una franja transparente de ancho `gap` en esa
-    línea media, para que entre dos stickers quede espacio claro (la imprenta detecta dónde
-    corta cada uno). La figura original NUNCA se talla. BFS multi-fuente en Pillow puro."""
-    from collections import deque
-    w, h = fg.size
-    label, _ = _etiquetar(fg)
-    dist = [[0 if label[y][x] else -1 for x in range(w)] for y in range(h)]
-    q = deque((x, y) for y in range(h) for x in range(w) if label[y][x])
-    while q:                                      # Voronoi acotado: cada pixel -> figura más cercana
-        cx, cy = q.popleft()
-        d = dist[cy][cx]
-        if d >= max_r:
-            continue
-        lab = label[cy][cx]
-        for nx, ny in ((cx + 1, cy), (cx - 1, cy), (cx, cy + 1), (cx, cy - 1)):
-            if 0 <= nx < w and 0 <= ny < h and label[ny][nx] == 0:
-                label[ny][nx] = lab
-                dist[ny][nx] = d + 1
-                q.append((nx, ny))
-    exp = Image.new("L", (w, h), 0); ep = exp.load()      # figura + borde
-    bnd = Image.new("L", (w, h), 0); bp = bnd.load()      # línea media (frontera entre figuras)
-    fgp = fg.load()
-    for y in range(h):
-        for x in range(w):
-            l = label[y][x]
-            if not l:
-                continue
-            ep[x, y] = 255
-            if fgp[x, y] <= 128:                  # solo el BORDE puede ser frontera (no la figura)
-                for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
-                    if 0 <= nx < w and 0 <= ny < h and label[ny][nx] not in (0, l):
-                        bp[x, y] = 255
-                        break
-    if gap > 0:
-        bnd = bnd.filter(ImageFilter.MaxFilter(2 * gap + 1))   # ensanchar la franja a tallar
-    out = Image.new("L", (w, h), 0); op = out.load(); bpp = bnd.load()
-    for y in range(h):
-        for x in range(w):
-            if fgp[x, y] > 128 or (ep[x, y] and not bpp[x, y]):   # figura siempre; borde menos el gap
-                op[x, y] = 255
-    return out
-
-
-def _plancha_stickers(im, frac=0.02):
-    """Plancha de stickers con borde blanco die-cut por figura, vía expand_labels: cada sticker
-    tiene el MÁXIMO borde posible sin fusionarse con el vecino (se frenan en la línea media).
-    Devuelve (imagen, se_tocan) — se_tocan True si el arte trae muy pocas figuras (pegadas)."""
+def _stickers_individuales(im):
+    """Extrae cada sticker (componente conexa) del sheet ya sin fondo y le pone su borde
+    die-cut COMPLETO por separado (sin vecinos que se lo coman / sin cortes en el borde).
+    Devuelve (lista de RGBA recortados, n_figuras)."""
     im = im.convert("RGBA")
-    w, h = im.size
+    W, H = im.size
     a = im.getchannel("A").point(lambda p: 255 if p > 10 else 0)
-    esc = min(1.0, 320.0 / max(w, h))
-    sw, sh = max(8, int(w * esc)), max(8, int(h * esc))
+    esc = min(1.0, 320.0 / max(W, H))
+    sw, sh = max(8, int(W * esc)), max(8, int(H * esc))
     sm0 = a.resize((sw, sh)).point(lambda p: 255 if p > 128 else 0)
-    sm0 = _rellenar_huecos(sm0)                          # huecos internos (no fusiona separadas)
-    _, n = _etiquetar(sm0)
-    max_r = max(3, int(min(sw, sh) * frac))             # ancho del borde (px en baja resolución)
-    gap = max(4, int(min(sw, sh) * 0.012))              # franja transparente entre stickers
-    sm = _expandir_labels(sm0, max_r, gap=gap)
-    borde = sm.resize((w, h)).point(lambda p: 255 if p > 128 else 0)
-    base = Image.composite(Image.new("RGBA", (w, h), (255, 255, 255, 255)),
-                           Image.new("RGBA", (w, h), (0, 0, 0, 0)), borde)
-    base.alpha_composite(im)
-    bb = base.getbbox()
-    return (base.crop(bb) if bb else base), (n < 4)
+    sm0 = _rellenar_huecos(sm0)
+    label, n = _etiquetar(sm0)
+    pts = {}                                             # pixeles de cada figura (1 pasada)
+    for y in range(sh):
+        row = label[y]
+        for x in range(sw):
+            k = row[x]
+            if k:
+                pts.setdefault(k, []).append((x, y))
+    stickers = []
+    for plist in pts.values():
+        if len(plist) < 6:                               # ruido / motas
+            continue
+        mk = Image.new("L", (sw, sh), 0)
+        ImageDraw.Draw(mk).point(plist, fill=255)
+        mkf = mk.resize((W, H)).point(lambda p: 255 if p > 100 else 0)
+        bb = mkf.getbbox()
+        if not bb:
+            continue
+        fig = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        fig.paste(im, (0, 0), mkf)                       # solo el arte de ESTA figura
+        stickers.append(_borde_sticker(fig.crop(bb)))    # su borde completo, aislado
+    return stickers, n
+
+
+def _regrid_stickers(stickers, W, H, menos=1):
+    """Reacomoda TODOS los stickers en una grilla con 1 columna menos que el empaque ajustado
+    (más espacio horizontal) y las filas necesarias para que entren todos, cada uno centrado
+    con margen claro en su celda -> contornos completos y separados. Devuelve (imagen, 0)."""
+    out = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    N = len(stickers)
+    if not N:
+        return out, 0
+    base = int(N ** 0.5)                                  # grilla ~cuadrada que entra justa
+    if base * base < N:
+        base += 1
+    cols = max(1, base - menos)                           # 1 columna menos -> más aire
+    rows = (N + cols - 1) // cols                         # filas para que entren TODOS
+    cw, ch = W / cols, H / rows
+    for i, s in enumerate(stickers):
+        r, c = divmod(i, cols)
+        maxw, maxh = cw * 0.82, ch * 0.82                # margen claro dentro de la celda
+        if s.width > maxw or s.height > maxh:
+            f = min(maxw / s.width, maxh / s.height)
+            s = s.resize((max(1, int(s.width * f)), max(1, int(s.height * f))), Image.LANCZOS)
+        cx, cy = cw * (c + 0.5), ch * (r + 0.5)
+        out.alpha_composite(s, (int(cx - s.width / 2), int(cy - s.height / 2)))
+    return out, 0
+
+
+def _plancha_stickers(im):
+    """Plancha de stickers: extrae cada figura con su borde die-cut completo y las reacomoda
+    en grilla con más espacio (1 fila y 1 columna menos). Devuelve (imagen, pocas_figuras)."""
+    im = im.convert("RGBA")
+    stickers, n = _stickers_individuales(im)
+    out, _descartados = _regrid_stickers(stickers, im.size[0], im.size[1])
+    return out, (n < 4)
 
 
 def _palito(im):
