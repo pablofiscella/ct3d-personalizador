@@ -11,7 +11,7 @@ colorear, + página de SOLUCIONARIO. El set y la dificultad dependen de la edad.
 
 API: generar_cuaderno(tema, edad, out_dir) -> path del PDF.
 """
-import os, math, random, glob
+import os, math, random, glob, json
 from collections import deque
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
@@ -20,7 +20,18 @@ TEMAS = os.path.join(KIT, "temas")
 Wp, Hp = 1240, 1754
 NAVY = (29, 25, 79); VIOLET = (107, 91, 210); INK = (40, 38, 55); CREAM = (246, 242, 236)
 COLS = [(224, 85, 107), (63, 167, 214), (232, 155, 44), (95, 184, 122), (139, 91, 210), (38, 140, 90)]
-PALABRAS = ["MONSTRUO", "FIESTA", "GLOBO", "TORTA", "REGALO", "JUGAR", "DULCE", "AMIGOS"]
+PALABRAS = ["CUMPLE", "FIESTA", "GLOBO", "TORTA", "REGALO", "JUGAR", "DULCE", "AMIGOS"]
+
+def _tema_nombre(tema):
+    """Nombre corto del tema para el encabezado (lo que va donde antes decía 'Monstruos').
+    Lee tema.json::nombre y corta lo de antes del guión ('Circo — Gran Función' -> 'Circo').
+    Fallback: el id del tema capitalizado."""
+    try:
+        n = json.load(open(os.path.join(TEMAS, tema, "tema.json"), encoding="utf-8")).get("nombre", "")
+    except Exception:
+        n = ""
+    n = (n.split("—")[0].split("-")[0].strip()) if n else ""
+    return n or tema.replace("_", " ").capitalize()
 
 def _font(sz, bold=True):
     for p in glob.glob(f"{KIT}/**/Fredoka*.ttf", recursive=True):
@@ -34,24 +45,27 @@ def _font(sz, bold=True):
 
 # ───────────────────────── arte: monstruos del tema ─────────────────────────
 def _extraer_monstruos(tema):
-    """Recorta los monstruos individuales de temas/<tema>/extras/stickers_1.png
-    (los separa por color, ya que los halos blancos se tocan). Cachea en
-    temas/<tema>/actividades_mon/c*.png. Devuelve lista de paths (vacía si no hay)."""
+    """Recorta cada personaje del tema desde la hoja de stickers, por COMPONENTE DE ALPHA: los
+    stickers nuevos vienen separados por un gap transparente, así que cada componente conexo del
+    canal alpha = un personaje (con su bordecito). Mucho más simple/robusto que separar por color.
+    Lee ia_draft/ (nuevo) o extras/. Cachea en temas/<tema>/actividades_mon/c*.png."""
     cache = os.path.join(TEMAS, tema, "actividades_mon")
     if os.path.isdir(cache):
         ya = sorted(glob.glob(f"{cache}/c*.png"))
         if ya: return ya
-    sheet = os.path.join(TEMAS, tema, "extras", "stickers_1.png")
-    if not os.path.isfile(sheet):
+    sheet = next((p for p in (os.path.join(TEMAS, tema, "ia_draft", "stickers_1.png"),
+                              os.path.join(TEMAS, tema, "extras", "stickers_1.png"))
+                  if os.path.isfile(p)), None)
+    if not sheet:
         return []
     im = Image.open(sheet).convert("RGBA"); W, H = im.size
-    rgb = im.convert("RGB").load()
-    lab = [[0] * H for _ in range(W)]; comps = []; cur = 0
-    sat = lambda x, y: (lambda r, g, b: max(r, g, b) - min(r, g, b))(*rgb[x, y]) > 45
-    for x in range(W):
-        for y in range(H):
-            if sat(x, y) and not lab[x][y]:
-                cur += 1; q = deque([(x, y)]); lab[x][y] = cur
+    esc = min(1.0, 320.0 / max(W, H)); sw, sh = max(8, int(W * esc)), max(8, int(H * esc))
+    sm = im.getchannel("A").resize((sw, sh)).point(lambda p: 255 if p > 100 else 0)
+    px = sm.load(); lab = [[0] * sw for _ in range(sh)]; boxes = []; cur = 0
+    for y in range(sh):
+        for x in range(sw):
+            if px[x, y] == 255 and not lab[y][x]:
+                cur += 1; q = deque([(x, y)]); lab[y][x] = cur
                 mnx = mxx = x; mny = mxy = y; n = 0
                 while q:
                     cx, cy = q.popleft(); n += 1
@@ -59,20 +73,16 @@ def _extraer_monstruos(tema):
                     for dx in (-1, 0, 1):
                         for dy in (-1, 0, 1):
                             nx, ny = cx + dx, cy + dy
-                            if 0 <= nx < W and 0 <= ny < H and not lab[nx][ny] and sat(nx, ny):
-                                lab[nx][ny] = cur; q.append((nx, ny))
-                if n > 2500: comps.append((mnx, mny, mxx, mxy, cur))
-    comps.sort(key=lambda c: (round(c[1] / 120), c[0]))
+                            if 0 <= nx < sw and 0 <= ny < sh and not lab[ny][nx] and px[nx, ny] == 255:
+                                lab[ny][nx] = cur; q.append((nx, ny))
+                if n > 30: boxes.append((mnx, mny, mxx, mxy))
+    boxes.sort(key=lambda b: (round(b[1] / 16), b[0]))   # orden de lectura
+    sx, sy = W / sw, H / sh
     os.makedirs(cache, exist_ok=True); out = []
-    for i, (x0, y0, x1, y1, cid) in enumerate(comps):
-        bm = Image.new("L", (W, H), 0); bp = bm.load()
-        for x in range(max(0, x0 - 30), min(W, x1 + 30)):
-            for y in range(max(0, y0 - 30), min(H, y1 + 30)):
-                if lab[x][y] == cid: bp[x, y] = 255
-        bm = bm.filter(ImageFilter.MaxFilter(29)).filter(ImageFilter.GaussianBlur(2))  # incluir borde blanco
-        cut = im.copy(); cut.putalpha(bm)
-        c = cut.crop((max(0, x0 - 30), max(0, y0 - 30), min(W, x1 + 30), min(H, y1 + 30)))
-        p = f"{cache}/c{i}.png"; c.save(p); out.append(p)
+    for i, (x0, y0, x1, y1) in enumerate(boxes):
+        bb = (max(0, int(x0 * sx) - 4), max(0, int(y0 * sy) - 4),
+              min(W, int((x1 + 1) * sx) + 4), min(H, int((y1 + 1) * sy) + 4))
+        p = f"{cache}/c{i}.png"; im.crop(bb).save(p); out.append(p)
     return out
 
 def _lineart(path, thr=75):
@@ -239,10 +249,10 @@ def _ws_has(g, w):
 # ───────────────────────── piezas de página ─────────────────────────
 def _page():
     im = Image.new("RGBA", (Wp, Hp), (255, 255, 255, 255)); return im, ImageDraw.Draw(im)
-def _header(dr, edad):
+def _header(dr, edad, nombre="Cumpleaños"):
     dr.rectangle([0, 0, Wp, 150], fill=NAVY)
     dr.text((60, 42), "Cuaderno de Actividades", font=_font(46), fill="white")
-    dr.text((62, 100), "Monstruos · %s años" % edad, font=_font(26, False), fill=(200, 195, 225))
+    dr.text((62, 100), "%s · %s años" % (nombre, edad), font=_font(26, False), fill=(200, 195, 225))
     dr.rounded_rectangle([Wp - 230, 40, Wp - 60, 110], 35, fill=VIOLET)
     dr.text((Wp - 145, 75), str(edad), font=_font(40), fill="white", anchor="mm")
 def _foot(dr):
@@ -258,13 +268,15 @@ def _star_pts(cx, cy, R):
     return [(cx + (R if i % 2 == 0 else R * .45) * math.cos(-math.pi / 2 + i * math.pi / 5),
              cy + (R if i % 2 == 0 else R * .45) * math.sin(-math.pi / 2 + i * math.pi / 5)) for i in range(10)]
 
-def _portada(mons, edad):
+def _portada(mons, edad, nombre="Cumpleaños"):
     im, dr = _page(); dr.rectangle([0, 0, Wp, Hp], fill=CREAM)
     dr.rounded_rectangle([55, 55, Wp - 55, Hp - 55], 40, outline=VIOLET, width=8)
     dr.text((Wp / 2, 290), "Cuaderno de", font=_font(70), fill=NAVY, anchor="mm")
     dr.text((Wp / 2, 390), "Actividades", font=_font(92), fill=VIOLET, anchor="mm")
-    dr.rounded_rectangle([Wp / 2 - 230, 470, Wp / 2 + 230, 560], 45, fill=COLS[1])
-    dr.text((Wp / 2, 515), "Monstruos · %s años" % edad, font=_font(40), fill="white", anchor="mm")
+    etiqueta = "%s · %s años" % (nombre, edad)
+    ew = max(460, _font(40).getlength(etiqueta) + 80)
+    dr.rounded_rectangle([Wp / 2 - ew / 2, 470, Wp / 2 + ew / 2, 560], 45, fill=COLS[1])
+    dr.text((Wp / 2, 515), etiqueta, font=_font(40), fill="white", anchor="mm")
     pos = [(300, 820, 300), (950, 800, 300), (625, 1080, 360), (330, 1360, 300), (930, 1360, 300), (625, 1500, 240)]
     for (x, y, h), p in zip(pos, mons):
         _paste_h(im, Image.open(p).convert("RGBA"), x, y, h)
@@ -368,13 +380,13 @@ def _shadow(path):
 TOP = 180; BOT = Hp - 90
 
 class _Book:
-    def __init__(self, edad, mons, seed):
-        self.edad = edad; self.mons = mons; self.rnd = random.Random(seed)
+    def __init__(self, edad, mons, seed, nombre="Cumpleaños"):
+        self.edad = edad; self.mons = mons; self.rnd = random.Random(seed); self.nombre = nombre
         self.pages = []; self.im = None; self.dr = None; self.y = 0; self.secn = 0; self.sol = {}
     def _flush(self):
         if self.im is not None: _foot(self.dr); self.pages.append(self.im)
     def _newpage(self):
-        self._flush(); self.im, self.dr = _page(); _header(self.dr, self.edad); self.y = TOP
+        self._flush(); self.im, self.dr = _page(); _header(self.dr, self.edad, self.nombre); self.y = TOP
     def ensure(self, h):
         if self.im is None or self.y + h > BOT: self._newpage()
     def sec(self, titulo, instr, h):
@@ -392,7 +404,7 @@ def _a_laberinto(b, n):
         w = _maze(n, n, s)
         if _maze_path(w, n, n): break
     assert _maze_path(w, n, n)
-    b.sec("El laberinto del cumple", "¡Ayudá al monstruo a llegar a la torta de cumpleaños!", n * 60 + 30)
+    b.sec("El laberinto del cumple", "¡Ayudá al personaje a llegar a la torta de cumpleaños!", n * 60 + 30)
     b.y = _draw_maze(b.im, b.dr, w, n, n, b.y, b.mons) + 30
     b.sol["maze"] = (w, n, n)
 
@@ -450,7 +462,7 @@ def _a_contar(b, na, nb):
 
 def _a_sombra(b, k):
     if not b.mons: return
-    b.sec("Uní con su sombra", "Uní cada monstruo con su sombra.", k * 150 + 20)
+    b.sec("Uní con su sombra", "Uní cada personaje con su sombra.", k * 150 + 20)
     idx = list(range(min(len(b.mons), 7))); b.rnd.shuffle(idx); idx = idx[:k]
     right = idx[:]; b.rnd.shuffle(right)
     y0 = b.y + 20; step = 150; lx = 330; rx = Wp - 330
@@ -491,7 +503,7 @@ def _a_patron(b, rows):
 
 def _a_sumas(b, rows):
     if not b.mons: return
-    b.sec("Sumas con monstruos", "Contá y escribí el resultado.", rows * 150 + 20)
+    b.sec("Sumas con personajes", "Contá y escribí el resultado.", rows * 150 + 20)
     res = []
     for r in range(rows):
         a = b.rnd.randint(1, 4); bb = b.rnd.randint(1, 4); yy = b.y + r * 150 + 65; x = 110
@@ -509,7 +521,7 @@ def _a_sudoku(b):
     if not b.mons or len(b.mons) < 4: return
     sol, puz = _sudoku_make(b.rnd)
     imgs = [_IM(b.mons[i]) for i in range(4)]
-    b.sec("Sudoku de monstruos", "Cada figura es un número. Completá los casilleros vacíos: en cada fila, columna y cuadro va uno de cada.", 1010)
+    b.sec("Sudoku de personajes", "Cada figura es un número. Completá los casilleros vacíos: en cada fila, columna y cuadro va uno de cada.", 1010)
     # leyenda figura = número
     ly = b.y; lx = 90
     for i in range(4):
@@ -558,7 +570,7 @@ def _a_buscar(b, n):
     b.sol["buscar"] = [placed[t] for t in targets]
 
 def _a_colorear(b):
-    b.ensure(1040); b.sec("Pintá el monstruo", "Coloreá como más te guste.", 60)
+    b.ensure(1040); b.sec("Pintá el dibujo", "Coloreá como más te guste.", 60)
     if b.mons:
         la = _lineart(b.mon(3)).convert("RGBA"); h = 900; w = int(la.width * h / la.height)
         la = la.resize((w, h), Image.LANCZOS); b.im.alpha_composite(la, (int(Wp / 2 - w / 2), b.y + 10))
@@ -567,11 +579,11 @@ def _a_colorear(b):
 def _solucionario(b):
     if not any(k in b.sol for k in ("maze", "cmaze", "ws", "sumas", "sudoku")): return
     pages = []
-    im, dr = _page(); _header(dr, b.edad)
+    im, dr = _page(); _header(dr, b.edad, b.nombre)
     dr.text((60, 200), "Solucionario", font=_font(40), fill=COLS[0]); y = 280
     def newpage():
         nonlocal im, dr, y
-        _foot(dr); pages.append(im); im, dr = _page(); _header(dr, b.edad); y = 220
+        _foot(dr); pages.append(im); im, dr = _page(); _header(dr, b.edad, b.nombre); y = 220
     def need(h):
         if y + h > BOT: newpage()
     if "maze" in b.sol:
@@ -622,9 +634,9 @@ def _plan(edad):
 def paginas(tema, edad, seed=1, con_solucionario=True):
     """Devuelve la lista de páginas (PIL.Image) del cuaderno, ya verificadas.
     Es lo que consume el motor del kit para empaquetar el ZIP del producto."""
-    mons = _extraer_monstruos(tema); plan = _plan(edad)
-    b = _Book(edad, mons, seed)
-    b.pages.append(_portada(mons, edad))
+    mons = _extraer_monstruos(tema); plan = _plan(edad); nombre = _tema_nombre(tema)
+    b = _Book(edad, mons, seed, nombre)
+    b.pages.append(_portada(mons, edad, nombre))
     if plan["maze"]: _a_laberinto(b, plan["maze"])
     if plan.get("cmaze"): _a_laberinto_circular(b, plan["cmaze"])
     if plan["sopa"]: _a_sopa(b)
