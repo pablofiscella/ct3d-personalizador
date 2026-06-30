@@ -1120,13 +1120,16 @@ class Handler(BaseHTTPRequestHandler):
         if not tema:
             return self._json(400, {"ok": False, "error": "falta nombre"})
         tdir = os.path.join(temas.TEMAS_DIR, tema)
-        req = ["invitacion_1", "invitacion_2", "invitacion_3", "afiche_1", "afiche_2", "afiche_3"]
-        faltan = [s for s in req if not os.path.isfile(os.path.join(tdir, s + ".png"))]
-        if faltan:
-            return self._json(400, {"ok": False, "error": "faltan imágenes: " + ", ".join(faltan)})
+        # Flujo nuevo: alcanza con UNA invitación (la IA genera el resto desde ella
+        # + los personajes de referencia). Todo lo demás es opcional.
+        edades_up = [n for n in range(1, 8)
+                     if os.path.isfile(os.path.join(tdir, "invitacion_%d.png" % n))]
+        if not edades_up:
+            return self._json(400, {"ok": False, "error": "subí al menos una invitación"})
         base = json.load(open(os.path.join(temas.TEMAS_DIR, "safari", "tema.json"), encoding="utf-8"))
         base["id"] = tema
         base["nombre"] = nombre or tema
+        base["edades"] = edades_up
         try:    # ajustar la resolución de salida del afiche a la imagen subida
             aw = Image.open(os.path.join(tdir, "afiche_1.png")).size[0]
             dw = base["piezas"]["afiche"]["size"][0]
