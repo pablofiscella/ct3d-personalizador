@@ -16,7 +16,7 @@ PIEZAS = [
     Pieza("topper_palito", _SQUARE, False, True,  "un cake topper para clavar con palito en la torta"),
     Pieza("base_torta", _SQUARE, False, True,  "una base/mat circular GRANDE decorada que va DEBAJO de la torta"),
     Pieza("stickers", _SQUARE, False, True,  "una plancha de stickers variados del personaje"),
-    Pieza("separadores", _PORTRAIT, False, True,  "separadores/marcalibros verticales"),
+    Pieza("separadores", _PORTRAIT, False, False, "una lámina con varios separadores/marcalibros verticales en hilera, cada uno con FONDO de color y diseño temático que LLENA su tira de punta a punta (nada de fondo transparente ni zonas vacías)"),
     Pieza("etiqueta_botella", _SQUARE, False, False,  "una etiqueta rectangular para botellita, diseño completo que llena todo el rectángulo"),
     Pieza("cajita_sorpresa", _SQUARE, False, False, "una ilustración decorativa para las caras de una cajita sorpresa"),
     Pieza("decoracion_sorbetes", _SQUARE, False, True,  "banderitas decorativas para sorbetes"),

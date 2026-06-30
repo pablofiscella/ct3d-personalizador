@@ -1356,6 +1356,9 @@ class Handler(BaseHTTPRequestHandler):
         if client is None:
             return self._json(503, {"ok": False, "error": "falta OPENAI_API_KEY"})
         edades = temas.cargar_tema(tema).get("edades", [1, 2, 3])
+        if len([e for e in edades if int(e) != int(edades[0])]) == 0:
+            return self._json(400, {"ok": False, "error":
+                "este tema tiene una sola edad; subí invitaciones de otras edades para poder replicar"})
         calidad = _calidad(q)
         def trabajo(emit):
             ia_orq.replicar_pieza(client, temas.TEMAS_DIR, tema, pieza, edades,

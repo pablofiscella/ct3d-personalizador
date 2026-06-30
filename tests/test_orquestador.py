@@ -111,6 +111,17 @@ def test_stickers_individuales_extrae_cada_figura():
         assert s.convert("RGBA").getbbox() is not None
 
 
+def test_stickers_no_parte_figura_por_franja_fina():
+    """Una figura partida por una franja transparente fina NO debe quedar en dos mitades."""
+    from PIL import ImageDraw
+    im = Image.new("RGBA", (240, 240), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rectangle([40, 40, 200, 200], fill=(255, 0, 0, 255))   # un cuerpo macizo
+    d.rectangle([118, 40, 122, 200], fill=(0, 0, 0, 0))       # franja transparente fina que lo parte
+    sts, n = orquestador._stickers_individuales(im)
+    assert n == 1 and len(sts) == 1                          # se reconecta: UN solo sticker
+
+
 def test_sticker_borde_uniforme():
     fig = Image.new("RGBA", (40, 40), (0, 0, 0, 0))
     from PIL import ImageDraw

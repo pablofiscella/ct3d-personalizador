@@ -3,7 +3,7 @@ import concurrent.futures
 import glob
 import os
 
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 import quitar_fondo
 from . import catalogo
@@ -75,6 +75,18 @@ def _etiquetar(fg):
     return label, n
 
 
+def _cerrar(mask, frac=0.015):
+    """Close morfológico en baja resolución (rápido) reescalado a full-res: reconecta una figura
+    PARTIDA por una franja transparente fina SIN unir vecinos bien separados (kernel chico)."""
+    w, h = mask.size
+    esc = min(1.0, 384.0 / max(w, h))
+    sw, sh = max(8, int(w * esc)), max(8, int(h * esc))
+    ks = min(2 * max(2, int(min(sw, sh) * frac)) + 1, 15)
+    sm = mask.resize((sw, sh)).point(lambda p: 255 if p > 128 else 0)
+    sm = sm.filter(ImageFilter.MaxFilter(ks)).filter(ImageFilter.MinFilter(ks))
+    return sm.resize((w, h)).point(lambda p: 255 if p > 128 else 0)
+
+
 def _stickers_individuales(im):
     """Extrae cada sticker (componente conexa) a RESOLUCIÓN COMPLETA con floodfill: conserva el
     detalle fino (brazos/colas/patas) Y aísla la figura del vecino aunque caiga en el mismo
@@ -82,10 +94,13 @@ def _stickers_individuales(im):
     im = im.convert("RGBA")
     W, H = im.size
     abin = _rellenar_huecos(im.getchannel("A").point(lambda p: 255 if p > 10 else 0))
+    # link = silueta con gaps finos cerrados: se usa SOLO para agrupar (que una figura partida
+    # por una franja transparente no quede en dos mitades); el recorte final sigue el alpha crudo.
+    link = _cerrar(abin)
     # etiquetado en baja resolución: rápido, solo para ubicar cada figura (bbox + semilla)
     esc = min(1.0, 320.0 / max(W, H))
     sw, sh = max(8, int(W * esc)), max(8, int(H * esc))
-    sm = abin.resize((sw, sh)).point(lambda p: 255 if p > 128 else 0)
+    sm = link.resize((sw, sh)).point(lambda p: 255 if p > 128 else 0)
     label, n = _etiquetar(sm)
     boxes = {}
     for y in range(sh):
@@ -100,7 +115,7 @@ def _stickers_individuales(im):
             else:
                 b[0] = min(b[0], x); b[1] = min(b[1], y)
                 b[2] = max(b[2], x); b[3] = max(b[3], y)
-    work = abin.copy()
+    work = link.copy()
     wpx = work.load()
     sx, sy = W / sw, H / sh
     pad = int(0.04 * min(W, H))
@@ -121,6 +136,7 @@ def _stickers_individuales(im):
         ImageDraw.floodfill(work, seed, 128)             # rellena SOLO la figura conexa (full res)
         region = work.crop((x0, y0, x1, y1))
         comp = region.point(lambda p: 255 if p == 128 else 0)   # máscara exacta (excluye vecinos)
+        comp = ImageChops.multiply(comp, abin.crop((x0, y0, x1, y1)))   # recorte = alpha crudo (detalle)
         work.paste(region.point(lambda p: 0 if p == 128 else p), (x0, y0))   # marcar visitado
         bb = comp.getbbox()
         if not bb or max(bb[2] - bb[0], bb[3] - bb[1]) < mindim:
