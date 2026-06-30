@@ -602,6 +602,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._ia_listado(urllib.parse.parse_qs(u.query))
         if path == "/dash/base-img":
             return self._dash_base_img(urllib.parse.parse_qs(u.query))
+        if path == "/dash/arte-descargar":
+            return self._dash_arte_descargar(urllib.parse.parse_qs(u.query))
+        if path == "/dash/arte-zip":
+            return self._dash_arte_zip(urllib.parse.parse_qs(u.query))
         if path == "/dash/cuaderno-estado":
             return self._dash_cuaderno_estado(urllib.parse.parse_qs(u.query))
         if path == "/dash/cuaderno-img":
@@ -937,6 +941,48 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", "image/png")
         self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers(); self.wfile.write(data)
+
+    def _dash_arte_descargar(self, q):
+        """Descarga el arte base a RESOLUCIÓN COMPLETA (invitación/afiche SIN texto: es el arte
+        que genera el motor; el texto lo agrega el editor al personalizar)."""
+        if not self._admin_ok():
+            return self._deny()
+        tema = slug((q.get("tema", [""]) or [""])[0])
+        slot = re.sub(r"[^a-z0-9_]", "", ((q.get("slot", [""]) or [""])[0] or "").lower())
+        if not re.match(r"^(invitacion|afiche)_[1-7]$", slot):
+            return self._json(400, {"ok": False, "error": "slot inválido"})
+        path = os.path.join(temas.TEMAS_DIR, tema, slot + ".png")
+        if not os.path.isfile(path):
+            return self._json(404, {"ok": False, "error": "no existe"})
+        data = open(path, "rb").read()
+        self.send_response(200)
+        self.send_header("Content-Type", "image/png")
+        self.send_header("Content-Disposition", 'attachment; filename="%s-%s.png"' % (slot.replace("_", "-"), tema))
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers(); self.wfile.write(data)
+
+    def _dash_arte_zip(self, q):
+        """ZIP con TODAS las invitaciones (o afiches) base de un tema, SIN texto."""
+        if not self._admin_ok():
+            return self._deny()
+        import zipfile
+        tema = slug((q.get("tema", [""]) or [""])[0])
+        tipo = "afiche" if ((q.get("tipo", [""]) or [""])[0] == "afiche") else "invitacion"
+        tdir = os.path.join(temas.TEMAS_DIR, tema)
+        buf = io.BytesIO(); n = 0
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+            for e in range(1, 8):
+                p = os.path.join(tdir, "%s_%d.png" % (tipo, e))
+                if os.path.isfile(p):
+                    z.write(p, "%s-%s-%danios.png" % (tipo, tema, e)); n += 1
+        if not n:
+            return self._json(404, {"ok": False, "error": "no hay arte"})
+        data = buf.getvalue()
+        self.send_response(200)
+        self.send_header("Content-Type", "application/zip")
+        self.send_header("Content-Disposition", 'attachment; filename="%s-%s-sin-texto.zip"' % (tipo, tema))
         self.send_header("Content-Length", str(len(data)))
         self.end_headers(); self.wfile.write(data)
 

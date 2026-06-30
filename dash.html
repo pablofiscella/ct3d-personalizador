@@ -647,14 +647,17 @@ async function openBase(tema, nombre){
     const slot=(g,edad)=>{ const sl=g+'_'+edad; const ok=(est[g]||[]).includes(edad);
       const thumb=ok?`<img src="/dash/base-img?tema=${encodeURIComponent(tema)}&slot=${sl}&cb=${cb}" style="width:56px;height:78px;object-fit:contain;border-radius:5px;display:block;background:rgba(255,255,255,.06)" alt="">`:`<span style="font-size:20px;line-height:78px;display:block">⬆️</span>`;
       const canDel=ok && sl!=='invitacion_1';
+      const dl=ok?`<a class="ba-dl" href="/dash/arte-descargar?tema=${encodeURIComponent(tema)}&slot=${sl}&key=${encodeURIComponent(KEY)}" download title="Descargar sin texto" style="position:absolute;top:-7px;left:-7px;z-index:2;background:#2D6CC7;color:#fff;border:0;border-radius:50%;width:21px;height:21px;font-size:11px;line-height:21px;text-align:center;text-decoration:none">⬇</a>`:'';
       return `<div class="ba-slot" data-slot="${sl}" style="position:relative;display:inline-block">
-        ${canDel?`<button class="ba-del" title="Eliminar" style="position:absolute;top:-7px;right:-7px;z-index:2;background:#C73E3A;color:#fff;border:0;border-radius:50%;width:21px;height:21px;font-size:12px;cursor:pointer;line-height:19px;padding:0">✕</button>`:''}
+        ${dl}${canDel?`<button class="ba-del" title="Eliminar" style="position:absolute;top:-7px;right:-7px;z-index:2;background:#C73E3A;color:#fff;border:0;border-radius:50%;width:21px;height:21px;font-size:12px;cursor:pointer;line-height:19px;padding:0">✕</button>`:''}
         <label style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;border:1.5px ${ok?'solid #2D8C5A':'dashed #7a7a8a'};border-radius:8px;padding:6px;min-width:66px;background:${ok?'rgba(45,140,90,.12)':'transparent'}">
           ${thumb}<span style="font-size:11px;opacity:.85">${edad} año${edad>1?'s':''}${sl==='invitacion_1'?' *':''}</span>
           <input type="file" accept="image/*" style="display:none"></label></div>`; };
-    const grupo=(g,titulo)=>`<div style="margin:10px 0">
-      <div style="font-weight:700;margin-bottom:4px">${titulo}</div>
-      <div style="display:flex;gap:9px;flex-wrap:wrap">${edades.map(e=>slot(g,e)).join('')}</div></div>`;
+    const grupo=(g,titulo)=>{ const hay=(est[g]||[]).length;
+      const zip=hay?`<a href="/dash/arte-zip?tema=${encodeURIComponent(tema)}&tipo=${g}&key=${encodeURIComponent(KEY)}" download style="font-size:11px;background:#2D6CC7;color:#fff;text-decoration:none;padding:3px 9px;border-radius:6px;margin-left:8px">⬇ Descargar todas (sin texto)</a>`:'';
+      return `<div style="margin:10px 0">
+      <div style="font-weight:700;margin-bottom:4px">${titulo}${zip}</div>
+      <div style="display:flex;gap:9px;flex-wrap:wrap">${edades.map(e=>slot(g,e)).join('')}</div></div>`; };
     body.innerHTML=grupo('invitacion','Invitación')+grupo('afiche','Afiche')+
       `<p style="font-size:11px;opacity:.55;margin:8px 0 0">* La invitación de 1 año es obligatoria (se reemplaza, no se borra).</p>`;
     body.querySelectorAll('.ba-slot').forEach(s=>{
