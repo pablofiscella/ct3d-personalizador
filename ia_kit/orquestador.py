@@ -76,39 +76,60 @@ def _etiquetar(fg):
 
 
 def _stickers_individuales(im):
-    """Extrae cada sticker (componente conexa) del sheet ya sin fondo y le pone su borde
-    die-cut COMPLETO por separado (sin vecinos que se lo coman / sin cortes en el borde).
-    Devuelve (lista de RGBA recortados, n_figuras)."""
+    """Extrae cada sticker (componente conexa) a RESOLUCIÓN COMPLETA con floodfill: conserva el
+    detalle fino (brazos/colas/patas) Y aísla la figura del vecino aunque caiga en el mismo
+    rectángulo (la máscara es solo lo conexo, no el rectángulo). Devuelve (lista RGBA, n)."""
     im = im.convert("RGBA")
     W, H = im.size
-    a = im.getchannel("A").point(lambda p: 255 if p > 10 else 0)
+    abin = _rellenar_huecos(im.getchannel("A").point(lambda p: 255 if p > 10 else 0))
+    # etiquetado en baja resolución: rápido, solo para ubicar cada figura (bbox + semilla)
     esc = min(1.0, 320.0 / max(W, H))
     sw, sh = max(8, int(W * esc)), max(8, int(H * esc))
-    sm0 = a.resize((sw, sh)).point(lambda p: 255 if p > 128 else 0)
-    sm0 = _rellenar_huecos(sm0)
-    label, n = _etiquetar(sm0)
-    pts = {}                                             # pixeles de cada figura (1 pasada)
+    sm = abin.resize((sw, sh)).point(lambda p: 255 if p > 128 else 0)
+    label, n = _etiquetar(sm)
+    boxes = {}
     for y in range(sh):
         row = label[y]
         for x in range(sw):
             k = row[x]
-            if k:
-                pts.setdefault(k, []).append((x, y))
-    mindim = max(6, int(0.06 * min(sw, sh)))             # descartar fragmentos/motas (banderines sueltos, etc.)
+            if not k:
+                continue
+            b = boxes.get(k)
+            if b is None:
+                boxes[k] = [x, y, x, y]
+            else:
+                b[0] = min(b[0], x); b[1] = min(b[1], y)
+                b[2] = max(b[2], x); b[3] = max(b[3], y)
+    work = abin.copy()
+    wpx = work.load()
+    sx, sy = W / sw, H / sh
+    pad = int(0.04 * min(W, H))
+    mindim = max(8, int(0.05 * min(W, H)))
     stickers = []
-    for plist in pts.values():
-        xs = [p[0] for p in plist]; ys = [p[1] for p in plist]
-        if len(plist) < 6 or max(max(xs) - min(xs), max(ys) - min(ys)) < mindim:
+    for b in boxes.values():
+        x0 = max(0, int(b[0] * sx) - pad); y0 = max(0, int(b[1] * sy) - pad)
+        x1 = min(W, int((b[2] + 1) * sx) + pad); y1 = min(H, int((b[3] + 1) * sy) + pad)
+        seed = None                                      # un pixel fg de esta figura
+        for yy in range(y0, y1, 2):
+            for xx in range(x0, x1, 2):
+                if wpx[xx, yy] == 255:
+                    seed = (xx, yy); break
+            if seed:
+                break
+        if not seed:
             continue
-        mk = Image.new("L", (sw, sh), 0)
-        ImageDraw.Draw(mk).point(plist, fill=255)
-        mkf = mk.resize((W, H)).point(lambda p: 255 if p > 100 else 0)
-        bb = mkf.getbbox()
-        if not bb:
+        ImageDraw.floodfill(work, seed, 128)             # rellena SOLO la figura conexa (full res)
+        region = work.crop((x0, y0, x1, y1))
+        comp = region.point(lambda p: 255 if p == 128 else 0)   # máscara exacta (excluye vecinos)
+        work.paste(region.point(lambda p: 0 if p == 128 else p), (x0, y0))   # marcar visitado
+        bb = comp.getbbox()
+        if not bb or max(bb[2] - bb[0], bb[3] - bb[1]) < mindim:
             continue
-        fig = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        fig.paste(im, (0, 0), mkf)                       # solo el arte de ESTA figura
-        stickers.append(_borde_sticker(fig.crop(bb)))    # su borde completo, aislado
+        comp = comp.crop(bb)
+        fig = im.crop((x0 + bb[0], y0 + bb[1], x0 + bb[2], y0 + bb[3]))
+        cut = Image.new("RGBA", fig.size, (0, 0, 0, 0))
+        cut.paste(fig, (0, 0), comp)                     # solo esta figura, con TODO su detalle
+        stickers.append(_borde_sticker(cut))
     return stickers, n
 
 
