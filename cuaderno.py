@@ -121,19 +121,24 @@ def _paste_h(base, img, cx, cy, h):
     base.alpha_composite(img.resize((w, int(h)), Image.LANCZOS), (int(cx - w / 2), int(cy - h / 2)))
 
 def _sin_halo(im):
-    """Saca SOLO el aro blanco del die-cut (borde de los stickers), sin erosionar los bordes
-    de color del personaje. Así no queda contorno blanco sobre la portada (crema) y NO se
-    comen partes finas como la mano levantada del payaso (la erosión uniforme sí las comía).
-    Quita del alpha únicamente los píxeles que son del aro exterior Y casi blancos."""
-    im = im.convert("RGBA")
+    """Saca el aro blanco del die-cut conservando las partes blancas del personaje (guantes).
+    Los personajes tienen CONTORNO OSCURO; el aro es el blanco que queda POR FUERA de ese
+    contorno. Floodfill desde las esquinas (exterior) avanzando por blanco/transparente hasta
+    chocar el contorno oscuro: lo alcanzado = aro -> se quita del alpha. Los guantes, que están
+    DENTRO del contorno oscuro, no se alcanzan y quedan intactos. Para la portada (crema)."""
+    im = im.convert("RGBA"); W, H = im.size
     a = im.getchannel("A")
-    abin = a.point(lambda v: 255 if v > 128 else 0)
-    core = abin.filter(ImageFilter.MinFilter(7))               # núcleo sin el aro exterior (~3px)
-    ring = ImageChops.subtract(abin, core)                     # el aro exterior
     r, g, bl = im.convert("RGB").split()
     mn = ImageChops.darker(ImageChops.darker(r, g), bl)        # canal mínimo = qué tan blanco
-    white = mn.point(lambda v: 255 if v > 222 else 0)          # casi blanco
-    quitar = ImageChops.multiply(ring, white)                  # solo el aro QUE es blanco
+    near_white = mn.point(lambda v: 255 if v > 205 else 0)
+    transp = a.point(lambda v: 255 if v < 40 else 0)
+    passable = ImageChops.lighter(near_white, transp)          # 255 = exterior o aro blanco
+    work = passable.copy()
+    for seed in ((0, 0), (W - 1, 0), (0, H - 1), (W - 1, H - 1)):
+        if work.getpixel(seed) == 255:
+            ImageDraw.floodfill(work, seed, 128)               # marca lo alcanzable desde afuera
+    reached = work.point(lambda v: 255 if v == 128 else 0)
+    quitar = ImageChops.multiply(reached, near_white)          # aro blanco alcanzable (no los guantes)
     out = im.copy(); out.putalpha(ImageChops.subtract(a, quitar)); bb = out.getbbox()
     return out.crop(bb) if bb else out
 
