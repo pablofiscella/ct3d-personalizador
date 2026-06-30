@@ -121,12 +121,20 @@ def _paste_h(base, img, cx, cy, h):
     base.alpha_composite(img.resize((w, int(h)), Image.LANCZOS), (int(cx - w / 2), int(cy - h / 2)))
 
 def _sin_halo(im):
-    """Recorta el aro blanco del die-cut (borde de los stickers) erosionando el alpha. Las
-    partes blancas INTERNAS del personaje (p.ej. guantes del payaso) no se tocan: solo se come
-    el borde exterior. Sirve para apoyarlos sobre fondos no-blancos (la portada) sin contorno."""
+    """Saca SOLO el aro blanco del die-cut (borde de los stickers), sin erosionar los bordes
+    de color del personaje. Así no queda contorno blanco sobre la portada (crema) y NO se
+    comen partes finas como la mano levantada del payaso (la erosión uniforme sí las comía).
+    Quita del alpha únicamente los píxeles que son del aro exterior Y casi blancos."""
     im = im.convert("RGBA")
-    a = im.getchannel("A").filter(ImageFilter.MinFilter(7))   # erosiona ~3px el borde
-    out = im.copy(); out.putalpha(a); bb = out.getbbox()
+    a = im.getchannel("A")
+    abin = a.point(lambda v: 255 if v > 128 else 0)
+    core = abin.filter(ImageFilter.MinFilter(7))               # núcleo sin el aro exterior (~3px)
+    ring = ImageChops.subtract(abin, core)                     # el aro exterior
+    r, g, bl = im.convert("RGB").split()
+    mn = ImageChops.darker(ImageChops.darker(r, g), bl)        # canal mínimo = qué tan blanco
+    white = mn.point(lambda v: 255 if v > 222 else 0)          # casi blanco
+    quitar = ImageChops.multiply(ring, white)                  # solo el aro QUE es blanco
+    out = im.copy(); out.putalpha(ImageChops.subtract(a, quitar)); bb = out.getbbox()
     return out.crop(bb) if bb else out
 
 # ───────────────────────── generadores verificados ─────────────────────────
