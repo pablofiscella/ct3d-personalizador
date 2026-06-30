@@ -16,7 +16,7 @@ temas/*/actividades_mon/
 temas/*/actividades_preview/
 temas/*/ia_draft/
 temas/*/ia_maestra.png
-temas/*/.thumbs/
+.thumbs/
 
 # ── Dependencias regenerables (npm install) ──
 node_modules/
