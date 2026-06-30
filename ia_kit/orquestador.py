@@ -142,8 +142,7 @@ def _sticker_borde(fig, ancho):
     padded = Image.new("RGBA", (w + 2 * m, h + 2 * m), (0, 0, 0, 0))
     padded.paste(fig, (m, m))
     a = _rellenar_huecos(padded.getchannel("A").point(lambda p: 255 if p > 40 else 0))
-    for _ in range(max(1, round(ancho / 4))):            # dilatar uniforme (pasos rápidos)
-        a = a.filter(ImageFilter.MaxFilter(9))
+    a = a.filter(ImageFilter.MaxFilter(2 * max(1, ancho) + 1))   # dilatación uniforme exacta
     W2, H2 = padded.size
     base = Image.composite(Image.new("RGBA", (W2, H2), (255, 255, 255, 255)),
                            Image.new("RGBA", (W2, H2), (0, 0, 0, 0)), a)
@@ -166,7 +165,7 @@ def _regrid_stickers(stickers, W, H, menos=1):
     cols = max(1, base - menos)                           # 1 columna menos -> más aire
     rows = (N + cols - 1) // cols                         # filas para que entren TODOS
     cw, ch = W / cols, H / rows
-    ancho = max(4, int(min(W, H) * 0.006))                # margen UNIFORME (fino) para TODOS
+    ancho = max(2, int(min(W, H) * 0.003))                # margen UNIFORME (fino) para TODOS
     for i, s in enumerate(stickers):
         r, c = divmod(i, cols)
         maxw, maxh = cw * 0.74, ch * 0.74                # dejar lugar para el borde + aire
