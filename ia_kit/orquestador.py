@@ -209,6 +209,18 @@ def _palito(im):
     return out.crop(bb) if bb else out
 
 
+def _limpiar_colorear(im):
+    """Garantiza line art B/N PURO para la página de colorear: aplana sobre blanco, umbral
+    (mata cualquier gris/sombra que el modelo cuele) y engrosa apenas el trazo. El modelo
+    dibuja la estética; el código asegura el blanco y negro (nunca un blob gris)."""
+    im = im.convert("RGBA")
+    bg = Image.new("RGBA", im.size, (255, 255, 255, 255))
+    bg.alpha_composite(im)
+    g = bg.convert("L").point(lambda v: 0 if v < 165 else 255)   # B/N puro
+    g = g.filter(ImageFilter.MinFilter(3))                       # trazo un poco más grueso
+    return g.convert("RGBA")
+
+
 def _mascara_circular(im):
     im = im.convert("RGBA")
     w, h = im.size
@@ -328,6 +340,8 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
                     im = _borde_sticker(im)
                     if p.key == "topper_palito":  # + palito de madera sólido por código
                         im = _palito(im)
+            elif p.key == "colorear":          # line art: el código garantiza B/N puro
+                im = _limpiar_colorear(im)
             elif p.recorte:
                 im = quitar(im, protect=True)
                 bb = im.getbbox()

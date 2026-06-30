@@ -24,6 +24,7 @@ PIEZAS = [
     Pieza("etiquetas_multiuso", _SQUARE, False, False, "una plancha de etiquetas circulares multiuso"),
     Pieza("wrappers_cupcakes", _SQUARE, False, False,  "una plancha de wrappers (envoltorios) para cupcakes, diseño completo que llena el rectángulo"),
     Pieza("tarjetas_agradecimiento", _PORTRAIT, False, False,  "una tarjeta de agradecimiento vertical, diseño completo que llena todo el rectángulo"),
+    Pieza("colorear", _SQUARE, False, False, "una página para colorear (line art)"),
 ]
 
 # Contrato de nombres con productos.py::_piezas_kit (NO cambiar productos.py).
@@ -114,6 +115,17 @@ _ZONA_LIMPIA = ("SIEMPRE dejá un ÁREA CENTRAL amplia, limpia y despejada (sin 
 
 
 def prompt_de(paleta, pieza, edad=None):
+    if pieza.key == "colorear":
+        # Página para colorear: line art puro. NO usa el bloque de estilo (que pide colores
+        # planos); el modelo dibuja SOLO contornos negros sobre blanco y el código garantiza
+        # el B/N puro después. Usa los personajes del tema de las referencias.
+        return ("Creá una PÁGINA PARA COLOREAR infantil con los personajes del tema de las "
+                "imágenes de referencia (mismos personajes, sin cambiar su diseño). "
+                "DIBUJO SOLO EN LÍNEAS: contornos negros gruesos, limpios y CERRADOS, sobre "
+                "fondo BLANCO liso. Una escena simple y clara, personajes grandes y centrados, "
+                "con espacios amplios para pintar. SIN relleno, SIN color, SIN grises, SIN "
+                "sombras, SIN texturas, SIN tramas, SIN texto ni números. Estilo libro de "
+                "colorear, line art, blanco y negro.")
     partes = ["Creá %s para un kit de cumpleaños." % pieza.sujeto]
     if pieza.key == "invitacion":
         # Se personaliza en el editor (nombre/fecha/EDAD se agregan después).

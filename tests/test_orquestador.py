@@ -184,10 +184,34 @@ def test_borde_sticker_rellena_hueco_interno():
     assert out.getpixel((cx, cy))[3] == 255   # el hueco quedó relleno (opaco)
 
 
+def test_colorear_genera_y_es_byn(tmp_path):
+    # la página para colorear se genera como colorear.png y el código la deja en B/N puro
+    td = _tema_dir(tmp_path)
+    orquestador.generar_tema(_FakeClient(), td, "safari", edades=[1],
+                             solo={"colorear"}, quitar=lambda im, protect=True: im)
+    p = os.path.join(td, "safari", "ia_draft", "colorear.png")
+    assert os.path.exists(p)
+    assert set(Image.open(p).convert("L").getdata()) <= {0, 255}   # sin grises
+
+
+def test_limpiar_colorear_mata_grises():
+    im = Image.new("RGBA", (20, 20), (128, 128, 128, 255))         # gris medio
+    assert set(orquestador._limpiar_colorear(im).convert("L").getdata()) <= {0, 255}
+
+
+def test_prompt_colorear_es_line_art():
+    from ia_kit import catalogo
+    p = next(x for x in catalogo.PIEZAS if x.key == "colorear")
+    low = catalogo.prompt_de(catalogo._DEF, p).lower()
+    assert "colorear" in low and "líneas" in low
+    assert "colores planos" not in low                            # NO usa el bloque flat-vector
+
+
 def test_contar_piezas():
-    # invitacion ×1 (UNA_SOLA: se genera 1 vez y se copia) + afiche ×1 (replicable) + 12 = 14
-    assert orquestador.contar_piezas([1, 2, 3]) == 14   # 1 + 1 + 12
-    assert orquestador.contar_piezas([1]) == 14         # 1 + 1 + 12
+    # invitacion ×1 (UNA_SOLA: se genera 1 vez y se copia) + afiche ×1 (replicable)
+    # + 12 extras + colorear ×1 = 15
+    assert orquestador.contar_piezas([1, 2, 3]) == 15   # 1 + 1 + 12 + 1
+    assert orquestador.contar_piezas([1]) == 15         # 1 + 1 + 12 + 1
     assert orquestador.contar_piezas([1, 2, 3], solo={"banderin"}) == 1
 
 

@@ -13,7 +13,7 @@ API: generar_cuaderno(tema, edad, out_dir) -> path del PDF.
 """
 import os, math, random, glob, json
 from collections import deque
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageChops
 
 KIT = os.path.dirname(os.path.abspath(__file__))
 TEMAS = os.path.join(KIT, "temas")
@@ -75,23 +75,36 @@ def _extraer_monstruos(tema):
                             nx, ny = cx + dx, cy + dy
                             if 0 <= nx < sw and 0 <= ny < sh and not lab[ny][nx] and px[nx, ny] == 255:
                                 lab[ny][nx] = cur; q.append((nx, ny))
-                if n > 30: boxes.append((mnx, mny, mxx, mxy))
+                if n > 30: boxes.append((mnx, mny, mxx, mxy, n))
+    if not boxes:
+        os.makedirs(cache, exist_ok=True); return []
+    # descartar fragmentos sueltos (salpicaduras/motas de pintura que la IA mete pese al
+    # prompt): un componente mucho más chico que la mediana NO es un personaje y al ampliarlo
+    # (p.ej. en la página de colorear) queda una mancha. Umbral relativo = robusto entre temas.
+    ns = sorted(b[4] for b in boxes); med = ns[len(ns) // 2]
+    boxes = [b for b in boxes if b[4] >= 0.22 * med]
     boxes.sort(key=lambda b: (round(b[1] / 16), b[0]))   # orden de lectura
     sx, sy = W / sw, H / sh
     os.makedirs(cache, exist_ok=True); out = []
-    for i, (x0, y0, x1, y1) in enumerate(boxes):
+    for i, (x0, y0, x1, y1, _n) in enumerate(boxes):
         bb = (max(0, int(x0 * sx) - 4), max(0, int(y0 * sy) - 4),
               min(W, int((x1 + 1) * sx) + 4), min(H, int((y1 + 1) * sy) + 4))
-        p = f"{cache}/c{i}.png"; im.crop(bb).save(p); out.append(p)
+        p = f"{cache}/c{i:03d}.png"; im.crop(bb).save(p); out.append(p)
     return out
 
-def _lineart(path, thr=75):
-    """Monstruo → line-art cerrado para colorear (umbral + engrose leve que cierra
-    los contornos abiertos de arriba)."""
+def _lineart(path):
+    """Personaje → line-art (contorno negro sobre blanco) para colorear, por DETECCIÓN DE
+    BORDES en vez de umbral de luminancia: el umbral rellenaba de negro a los personajes de
+    color oscuro. Combina el borde de la silueta (canal alpha) con el detalle interno
+    (luminancia), engrosa un poco y lo invierte a líneas negras sobre blanco."""
     s = Image.open(path).convert("RGBA")
+    a = s.getchannel("A").point(lambda v: 255 if v > 128 else 0)
+    edges_a = a.filter(ImageFilter.FIND_EDGES)                       # borde de la silueta
     bg = Image.new("RGBA", s.size, (255, 255, 255, 255)); bg.alpha_composite(s)
-    la = bg.convert("L").point(lambda v: 0 if v < thr else 255)
-    return la.filter(ImageFilter.MinFilter(3))
+    edges_g = bg.convert("L").filter(ImageFilter.FIND_EDGES)         # detalle interno
+    comb = ImageChops.lighter(edges_a, edges_g).point(lambda v: 255 if v > 38 else 0)
+    comb = comb.filter(ImageFilter.MaxFilter(3))                     # engrosar el trazo
+    return comb.point(lambda v: 0 if v > 0 else 255)                # líneas negras sobre blanco
 
 def _paste_h(base, img, cx, cy, h):
     w = max(1, int(img.width * h / img.height))
@@ -569,11 +582,31 @@ def _a_buscar(b, n):
     b.y += 110
     b.sol["buscar"] = [placed[t] for t in targets]
 
-def _a_colorear(b):
+def _colorear_img(tema):
+    """Página para colorear DIBUJADA por OpenAI (aprobada en extras/ o aún en ia_draft/).
+    Aplica un umbral idempotente como garantía de B/N. Devuelve None si el tema todavía no
+    tiene una generada -> el cuaderno cae al line art derivado del personaje (fallback)."""
+    p = next((q for q in (os.path.join(TEMAS, tema, "extras", "colorear.png"),
+                          os.path.join(TEMAS, tema, "ia_draft", "colorear.png"))
+              if os.path.isfile(q)), None)
+    if not p:
+        return None
+    im = Image.open(p).convert("RGBA")
+    bg = Image.new("RGBA", im.size, (255, 255, 255, 255)); bg.alpha_composite(im)
+    return bg.convert("L").point(lambda v: 0 if v < 165 else 255).convert("RGBA")
+
+def _a_colorear(b, tema):
     b.ensure(1040); b.sec("Pintá el dibujo", "Coloreá como más te guste.", 60)
-    if b.mons:
-        la = _lineart(b.mon(3)).convert("RGBA"); h = 900; w = int(la.width * h / la.height)
-        la = la.resize((w, h), Image.LANCZOS); b.im.alpha_composite(la, (int(Wp / 2 - w / 2), b.y + 10))
+    la = _colorear_img(tema)                  # 1º: la página dibujada por OpenAI (la que te gusta)
+    if la is None and b.mons:                 # fallback: line art del personaje MÁS ALTO (no un manchón ancho)
+        src = max(b.mons, key=lambda p: Image.open(p).size[1])
+        la = _lineart(src).convert("RGBA")
+    if la is not None:
+        h = 980; w = int(la.width * h / la.height)
+        if w > Wp - 160:                      # clamp por si la pieza es muy ancha
+            w = Wp - 160; h = int(la.height * w / la.width)
+        la = la.resize((w, h), Image.LANCZOS)
+        b.im.alpha_composite(la, (int(Wp / 2 - w / 2), b.y + 10))
     b.y = BOT
 
 def _solucionario(b):
@@ -648,7 +681,7 @@ def paginas(tema, edad, seed=1, con_solucionario=True):
     if plan["patron"]: _a_patron(b, plan["patron"])
     if plan["sumas"]: _a_sumas(b, plan["sumas"])
     if plan.get("sudoku"): _a_sudoku(b)
-    _a_colorear(b)
+    _a_colorear(b, tema)
     b.finish()
     if con_solucionario:
         _solucionario(b)
