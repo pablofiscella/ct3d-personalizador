@@ -98,9 +98,10 @@ _EXTRA_FORMA = {
                  "SEPARADO del de al lado por un espacio en blanco claro (un margen entre cada "
                  "uno): que NO se toquen ni se superpongan, porque al recortarlos con borde se "
                  "pegarían. Cada figura COMPACTA y maciza, SIN huecos internos ni elementos "
-                 "flotando con espacios en el medio (nada de aros/arcos abiertos). NO incluyas "
-                 "recuadros, etiquetas ni marcos en blanco, ni manchas/salpicaduras sueltas: "
-                 "solo figuras enteras. Sobre fondo BLANCO liso."),
+                 "flotando con espacios en el medio (nada de aros/arcos abiertos). Cada sticker "
+                 "es UNA figura ENTERA e independiente (un personaje, un animal, un objeto); NO "
+                 "guirnaldas ni banderines en tira, NO recuadros/etiquetas/marcos en blanco, NO "
+                 "manchas/salpicaduras ni elementos diminutos sueltos. Sobre fondo BLANCO liso."),
 }
 
 

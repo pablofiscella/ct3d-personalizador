@@ -94,9 +94,11 @@ def _stickers_individuales(im):
             k = row[x]
             if k:
                 pts.setdefault(k, []).append((x, y))
+    mindim = max(6, int(0.06 * min(sw, sh)))             # descartar fragmentos/motas (banderines sueltos, etc.)
     stickers = []
     for plist in pts.values():
-        if len(plist) < 6:                               # ruido / motas
+        xs = [p[0] for p in plist]; ys = [p[1] for p in plist]
+        if len(plist) < 6 or max(max(xs) - min(xs), max(ys) - min(ys)) < mindim:
             continue
         mk = Image.new("L", (sw, sh), 0)
         ImageDraw.Draw(mk).point(plist, fill=255)
