@@ -166,7 +166,7 @@ def _regrid_stickers(stickers, W, H, menos=1):
     cols = max(1, base - menos)                           # 1 columna menos -> más aire
     rows = (N + cols - 1) // cols                         # filas para que entren TODOS
     cw, ch = W / cols, H / rows
-    ancho = max(6, int(min(W, H) * 0.011))                # margen UNIFORME para TODOS los stickers
+    ancho = max(4, int(min(W, H) * 0.006))                # margen UNIFORME (fino) para TODOS
     for i, s in enumerate(stickers):
         r, c = divmod(i, cols)
         maxw, maxh = cw * 0.74, ch * 0.74                # dejar lugar para el borde + aire
