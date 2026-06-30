@@ -120,6 +120,15 @@ def _paste_h(base, img, cx, cy, h):
     w = max(1, int(img.width * h / img.height))
     base.alpha_composite(img.resize((w, int(h)), Image.LANCZOS), (int(cx - w / 2), int(cy - h / 2)))
 
+def _sin_halo(im):
+    """Recorta el aro blanco del die-cut (borde de los stickers) erosionando el alpha. Las
+    partes blancas INTERNAS del personaje (p.ej. guantes del payaso) no se tocan: solo se come
+    el borde exterior. Sirve para apoyarlos sobre fondos no-blancos (la portada) sin contorno."""
+    im = im.convert("RGBA")
+    a = im.getchannel("A").filter(ImageFilter.MinFilter(7))   # erosiona ~3px el borde
+    out = im.copy(); out.putalpha(a); bb = out.getbbox()
+    return out.crop(bb) if bb else out
+
 # ───────────────────────── generadores verificados ─────────────────────────
 def _maze(W, H, seed):
     r = random.Random(seed)
@@ -307,9 +316,9 @@ def _figura_pts(figura, cx, cy, R, n):
     return _heart_pts(cx, cy, R, n) if figura == "corazon" else _star_pts(cx, cy, R)[:n]
 
 def _portada(mons, edad, nombre="Cumpleaños"):
-    # Fondo BLANCO: los personajes traen un borde blanco (die-cut de los stickers) que sobre
-    # crema se notaba como contorno; sobre blanco queda invisible.
-    im, dr = _page(); dr.rectangle([0, 0, Wp, Hp], fill=(255, 255, 255))
+    # Fondo crema (cálido). Los personajes se pegan SIN el aro blanco del die-cut (_sin_halo),
+    # así no se ve contorno en crema y tampoco desaparecen sus partes blancas internas.
+    im, dr = _page(); dr.rectangle([0, 0, Wp, Hp], fill=CREAM)
     dr.rounded_rectangle([55, 55, Wp - 55, Hp - 55], 40, outline=VIOLET, width=8)
     dr.text((Wp / 2, 290), "Cuaderno de", font=_font(70), fill=NAVY, anchor="mm")
     dr.text((Wp / 2, 390), "Actividades", font=_font(92), fill=VIOLET, anchor="mm")
@@ -319,18 +328,21 @@ def _portada(mons, edad, nombre="Cumpleaños"):
     dr.text((Wp / 2, 515), etiqueta, font=_font(40), fill="white", anchor="mm")
     pos = [(300, 820, 300), (950, 800, 300), (625, 1080, 360), (330, 1360, 300), (930, 1360, 300), (625, 1500, 240)]
     for (x, y, h), p in zip(pos, mons):
-        _paste_h(im, Image.open(p).convert("RGBA"), x, y, h)
+        _paste_h(im, _sin_halo(Image.open(p).convert("RGBA")), x, y, h)
     _foot(dr); return im
 
 def _sec(dr, y, titulo, instr):
     dr.text((60, y), titulo, font=_font(38), fill=VIOLET); y += 52
     dr.text((60, y), instr, font=_font(25, False), fill=INK); return y + 48
 
-def _arrow(dr, x0, y0, x1, y1, color=NAVY, w=8):
-    dr.line([x0, y0, x1, y1], fill=color, width=w)
-    ang = math.atan2(y1 - y0, x1 - x0); L = 26
-    for a in (ang + 2.5, ang - 2.5):
-        dr.line([x1, y1, x1 - L * math.cos(a), y1 - L * math.sin(a)], fill=color, width=w)
+def _arrow(dr, x0, y0, x1, y1, color=NAVY, w=5):
+    # flecha chica y prolija: línea fina + cabeza triangular rellena.
+    ang = math.atan2(y1 - y0, x1 - x0); L = 16
+    bx, by = x1 - L * 0.85 * math.cos(ang), y1 - L * 0.85 * math.sin(ang)
+    dr.line([x0, y0, bx, by], fill=color, width=w)
+    dr.polygon([(x1, y1),
+                (x1 - L * math.cos(ang - 0.5), y1 - L * math.sin(ang - 0.5)),
+                (x1 - L * math.cos(ang + 0.5), y1 - L * math.sin(ang + 0.5))], fill=color)
 
 def _goal_torta(dr, cx, cy, s):
     for dx, col in ((-s * 0.95, COLS[1]), (s * 0.95, COLS[3])):       # globos a los lados
@@ -497,11 +509,18 @@ def _a_sopa(b, words=None):
 
 def _a_puntos(b, nd, figura="estrella"):
     nombre = "el corazón" if figura == "corazon" else "la figura"
-    b.sec("Uní los puntos", "Uní del 1 al %d y descubrí %s." % (nd, nombre))
-    top = b.y; R = min(380, int((BOT - top) * 0.42)); cx, cy = Wp / 2, top + (BOT - top) / 2
-    for i, (px, py) in enumerate(_figura_pts(figura, cx, cy, R, nd)):
+    b.sec("Uní los puntos", "Uní los puntos en orden, del 1 al %d, y descubrí %s." % (nd, nombre))
+    top = b.y; R = min(360, int((BOT - top) * 0.4)); cx, cy = Wp / 2, top + (BOT - top) / 2
+    pts = _figura_pts(figura, cx, cy, R, nd); fg = _font(34)
+    for i, (px, py) in enumerate(pts):
+        # el número va al COSTADO del círculo (no encima); del lado OPUESTO al vecino más
+        # cercano, así dos círculos juntos no se tapan los números (uno a izq, otro a der).
+        nb = min((q for j, q in enumerate(pts) if j != i),
+                 key=lambda q: (q[0] - px) ** 2 + (q[1] - py) ** 2, default=(px - 1, py))
+        side = -1 if nb[0] > px else 1
         b.dr.ellipse([px - 11, py - 11, px + 11, py + 11], fill=NAVY)
-        b.dr.text((px + 18, py - 22), str(i + 1), font=_font(36), fill=COLS[i % len(COLS)])
+        b.dr.text((px + side * 24, py), str(i + 1), font=fg,
+                  fill=COLS[i % len(COLS)], anchor=("lm" if side > 0 else "rm"))
     b.y = BOT
 
 def _a_contar(b, na, nb):
@@ -852,7 +871,7 @@ def _construir(b, e):
     if e <= 3:
         _a_colorear(b, 0); _a_trazos(b, 4); _a_sombra(b, 3); _a_iguales(b, 3)
         _a_contar(b, 3, 2); _a_tamano(b, 3); _a_patron(b, 3); _a_mas_menos(b, 3)
-        _a_puntos(b, 6, "estrella"); _a_trazos(b, 4); _a_buscar(b, 8); _a_colorear(b, 1)
+        _a_puntos(b, 8, "corazon"); _a_trazos(b, 4); _a_buscar(b, 8); _a_colorear(b, 1)
     elif e <= 5:
         _a_trazos(b, 4); _a_puntos(b, 10, "estrella"); _a_laberinto(b, 7); _a_contar(b, 5, 3)
         _a_patron(b, 3); _a_diferente(b, 3); _a_sombra(b, 4); _a_sudoku(b)
