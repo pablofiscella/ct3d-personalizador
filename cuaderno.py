@@ -21,6 +21,8 @@ Wp, Hp = 1240, 1754
 NAVY = (29, 25, 79); VIOLET = (107, 91, 210); INK = (40, 38, 55); CREAM = (246, 242, 236)
 COLS = [(224, 85, 107), (63, 167, 214), (232, 155, 44), (95, 184, 122), (139, 91, 210), (38, 140, 90)]
 PALABRAS = ["CUMPLE", "FIESTA", "GLOBO", "TORTA", "REGALO", "JUGAR", "DULCE", "AMIGOS"]
+PALABRAS2 = ["SORPRESA", "CORONA", "CANCION", "BAILAR", "FELIZ", "JUEGOS", "PINATA", "RISA"]
+BRAND = "CASATRIDIMENSIONAL"
 
 def _tema_nombre(tema):
     """Nombre corto del tema para el encabezado (lo que va donde antes decía 'Monstruos').
@@ -102,9 +104,17 @@ def _lineart(path):
     edges_a = a.filter(ImageFilter.FIND_EDGES)                       # borde de la silueta
     bg = Image.new("RGBA", s.size, (255, 255, 255, 255)); bg.alpha_composite(s)
     edges_g = bg.convert("L").filter(ImageFilter.FIND_EDGES)         # detalle interno
-    comb = ImageChops.lighter(edges_a, edges_g).point(lambda v: 255 if v > 38 else 0)
+    comb = ImageChops.lighter(edges_a, edges_g).point(lambda v: 255 if v > 55 else 0)
     comb = comb.filter(ImageFilter.MaxFilter(3))                     # engrosar el trazo
     return comb.point(lambda v: 0 if v > 0 else 255)                # líneas negras sobre blanco
+
+def _contorno(path):
+    """Solo el CONTORNO (silueta) del personaje, línea negra fina sobre blanco. Para 'dibujá
+    la otra mitad': una forma limpia para espejar (el line-art interno completo ensucia)."""
+    s = Image.open(path).convert("RGBA")
+    a = s.getchannel("A").point(lambda v: 255 if v > 128 else 0)
+    edge = a.filter(ImageFilter.FIND_EDGES).filter(ImageFilter.MaxFilter(3))
+    return edge.point(lambda v: 0 if v > 40 else 255)
 
 def _paste_h(base, img, cx, cy, h):
     w = max(1, int(img.width * h / img.height))
@@ -262,12 +272,14 @@ def _ws_has(g, w):
 # ───────────────────────── piezas de página ─────────────────────────
 def _page():
     im = Image.new("RGBA", (Wp, Hp), (255, 255, 255, 255)); return im, ImageDraw.Draw(im)
-def _header(dr, edad, nombre="Cumpleaños"):
-    dr.rectangle([0, 0, Wp, 150], fill=NAVY)
-    dr.text((60, 42), "Cuaderno de Actividades", font=_font(46), fill="white")
-    dr.text((62, 100), "%s · %s años" % (nombre, edad), font=_font(26, False), fill=(200, 195, 225))
-    dr.rounded_rectangle([Wp - 230, 40, Wp - 60, 110], 35, fill=VIOLET)
-    dr.text((Wp - 145, 75), str(edad), font=_font(40), fill="white", anchor="mm")
+BANNER_H = 92
+def _banner(dr, etiqueta):
+    """Banner FINO superior: marca CASATRIDIMENSIONAL a la izquierda y la etiqueta
+    ('Actividad N · 6 años' o 'Soluciones') a la derecha, con un filete violeta."""
+    dr.rectangle([0, 0, Wp, BANNER_H], fill=NAVY)
+    dr.text((60, BANNER_H / 2), BRAND, font=_font(30), fill="white", anchor="lm")
+    dr.text((Wp - 60, BANNER_H / 2), etiqueta, font=_font(26, False), fill=(205, 200, 230), anchor="rm")
+    dr.rectangle([0, BANNER_H, Wp, BANNER_H + 4], fill=VIOLET)
 def _foot(dr):
     dr.text((Wp / 2, Hp - 40), "casatridimensional.com.ar", font=_font(20, False), fill=(150, 150, 160), anchor="mm")
 
@@ -280,6 +292,19 @@ def _cake(dr, ccx, ccy, sgn):
 def _star_pts(cx, cy, R):
     return [(cx + (R if i % 2 == 0 else R * .45) * math.cos(-math.pi / 2 + i * math.pi / 5),
              cy + (R if i % 2 == 0 else R * .45) * math.sin(-math.pi / 2 + i * math.pi / 5)) for i in range(10)]
+
+def _heart_pts(cx, cy, R, n):
+    """n puntos en ORDEN sobre el contorno de un corazón (para unir del 1 al n)."""
+    pts = []
+    for i in range(n):
+        t = math.pi / 2 + 2 * math.pi * i / n          # arranca arriba, sentido horario
+        x = 16 * math.sin(t) ** 3
+        y = -(13 * math.cos(t) - 5 * math.cos(2 * t) - 2 * math.cos(3 * t) - math.cos(4 * t))
+        pts.append((cx + x * R / 16, cy + y * R / 16))
+    return pts
+
+def _figura_pts(figura, cx, cy, R, n):
+    return _heart_pts(cx, cy, R, n) if figura == "corazon" else _star_pts(cx, cy, R)[:n]
 
 def _portada(mons, edad, nombre="Cumpleaños"):
     im, dr = _page(); dr.rectangle([0, 0, Wp, Hp], fill=CREAM)
@@ -295,9 +320,9 @@ def _portada(mons, edad, nombre="Cumpleaños"):
         _paste_h(im, Image.open(p).convert("RGBA"), x, y, h)
     _foot(dr); return im
 
-def _sec(dr, y, n, titulo, instr):
-    dr.text((60, y), "%d) %s" % (n, titulo), font=_font(34), fill=VIOLET); y += 48
-    dr.text((60, y), instr, font=_font(24, False), fill=INK); return y + 44
+def _sec(dr, y, titulo, instr):
+    dr.text((60, y), titulo, font=_font(38), fill=VIOLET); y += 52
+    dr.text((60, y), instr, font=_font(25, False), fill=INK); return y + 48
 
 def _arrow(dr, x0, y0, x1, y1, color=NAVY, w=8):
     dr.line([x0, y0, x1, y1], fill=color, width=w)
@@ -364,7 +389,7 @@ def _draw_theta(im, dr, RAD, CIRC, HUB, rings, S, se, cx, cy, R0, dt, mons, sol=
         _goal_torta(dr, *P(Rmax + dt * 1.15, ea), 60)
     return cy + Rmax
 
-def _draw_ws(dr, g, sol, y, mostrar_sol=False):
+def _draw_ws(dr, g, sol, y, words, mostrar_sol=False):
     """Sopa CENTRADA: la grilla centrada horizontal y la lista de palabras debajo."""
     N = len(g); gs = 50; gx = (Wp - N * gs) // 2; fg = _font(30)
     if mostrar_sol:
@@ -378,8 +403,8 @@ def _draw_ws(dr, g, sol, y, mostrar_sol=False):
     yy = y + N * gs + 24
     dr.text((Wp / 2, yy), "Buscá:", font=_font(26), fill=VIOLET, anchor="mm"); yy += 40
     fw = _font(24, False); per = 4
-    for row in range((len(PALABRAS) + per - 1) // per):
-        grp = PALABRAS[row * per:(row + 1) * per]
+    for row in range((len(words) + per - 1) // per):
+        grp = words[row * per:(row + 1) * per]
         txt = "   ".join("• " + w.capitalize() for w in grp)
         dr.text((Wp / 2, yy), txt, font=fw, fill=INK, anchor="mm"); yy += 38
     return yy
@@ -389,23 +414,31 @@ def _shadow(path):
     m = Image.open(path).convert("RGBA")
     s = Image.new("RGBA", m.size, (74, 68, 96, 255)); s.putalpha(m.split()[3]); return s
 
-# ───────────────────────── builder con paginado automático ─────────────────────────
-TOP = 180; BOT = Hp - 90
+# ───────────────────────── builder: UNA actividad por página ─────────────────────────
+TOP = BANNER_H + 78; BOT = Hp - 90
 
 class _Book:
     def __init__(self, edad, mons, seed, nombre="Cumpleaños"):
         self.edad = edad; self.mons = mons; self.rnd = random.Random(seed); self.nombre = nombre
-        self.pages = []; self.im = None; self.dr = None; self.y = 0; self.secn = 0; self.sol = {}
+        self.pages = []; self.im = None; self.dr = None; self.y = 0; self.act = 0; self.sol = {}
+        self._etq = ""
     def _flush(self):
         if self.im is not None: _foot(self.dr); self.pages.append(self.im)
-    def _newpage(self):
-        self._flush(); self.im, self.dr = _page(); _header(self.dr, self.edad, self.nombre); self.y = TOP
+    def _newpage(self, etiqueta=None):
+        self._flush(); self.im, self.dr = _page()
+        _banner(self.dr, etiqueta if etiqueta is not None else self._etq); self.y = TOP
     def ensure(self, h):
         if self.im is None or self.y + h > BOT: self._newpage()
-    def sec(self, titulo, instr, h):
-        self.ensure(h + 100); self.secn += 1; self.y = _sec(self.dr, self.y, self.secn, titulo, instr)
+    def sec(self, titulo, instr, h=0):
+        # cada actividad = su propia página, numerada en el banner.
+        self.act += 1
+        self._etq = "Actividad %d · %s años" % (self.act, self.edad)
+        self._newpage()
+        self.y = _sec(self.dr, self.y, titulo, instr)
     def mon(self, i):
         return self.mons[i % len(self.mons)] if self.mons else None
+    def soladd(self, key, val):                          # acumula soluciones (puede repetirse el tipo)
+        self.sol.setdefault(key, []).append(val)
     def finish(self):
         self._flush()
 
@@ -413,13 +446,14 @@ def _IM(p): return Image.open(p).convert("RGBA")
 
 # ───────────────────────── actividades ─────────────────────────
 def _a_laberinto(b, n):
-    for s in range(1, 60):
+    seeds = [b.rnd.randrange(1, 10 ** 6) for _ in range(80)]   # semillas variables -> repetible distinto
+    for s in seeds:
         w = _maze(n, n, s)
         if _maze_path(w, n, n): break
     assert _maze_path(w, n, n)
-    b.sec("El laberinto del cumple", "¡Ayudá al personaje a llegar a la torta de cumpleaños!", n * 60 + 30)
+    b.sec("El laberinto del cumple", "¡Ayudá al personaje a llegar a la torta de cumpleaños!")
     b.y = _draw_maze(b.im, b.dr, w, n, n, b.y, b.mons) + 30
-    b.sol["maze"] = (w, n, n)
+    b.soladd("maze", (w, n, n))
 
 def _a_laberinto_circular(b, rings=4):
     S = 12; se = b.rnd.randrange(0, 6)                # salida en la mitad inferior (queda en página)
@@ -427,28 +461,31 @@ def _a_laberinto_circular(b, rings=4):
     path = _theta_path(RAD, CIRC, HUB, rings, S, se)
     assert path                                       # laberinto perfecto → siempre hay salida
     R0 = 66; dt = 74; Rmax = R0 + rings * dt
-    b.sec("Laberinto circular", "Salí desde el centro hasta afuera siguiendo los caminos.", 2 * Rmax + 150)
+    b.sec("Laberinto circular", "Salí desde el centro hasta afuera siguiendo los caminos.")
     cx = Wp / 2; cy = b.y + Rmax + 20
     _draw_theta(b.im, b.dr, RAD, CIRC, HUB, rings, S, se, cx, cy, R0, dt, b.mons)
     b.y = cy + Rmax + 70
-    b.sol["cmaze"] = (RAD, CIRC, HUB, rings, S, se, path)
+    b.soladd("cmaze", (RAD, CIRC, HUB, rings, S, se, path))
 
-def _a_sopa(b):
-    for s in range(5, 95):
-        g, sol = _wordsearch(PALABRAS, 12, s)
-        if g and all(_ws_has(g, x) for x in PALABRAS): break
-    assert g and all(_ws_has(g, x) for x in PALABRAS)
-    b.sec("Sopa de letras", "Encontrá las 8 palabras escondidas.", 12 * 50 + 170)
-    b.y = _draw_ws(b.dr, g, sol, b.y) + 20
-    b.sol["ws"] = (g, sol)
+def _a_sopa(b, words=None):
+    words = words or PALABRAS
+    base = b.rnd.randrange(1000)
+    for s in range(base, base + 120):
+        g, sol = _wordsearch(words, 12, s)
+        if g and all(_ws_has(g, x) for x in words): break
+    assert g and all(_ws_has(g, x) for x in words)
+    b.sec("Sopa de letras", "Encontrá las %d palabras escondidas." % len(words))
+    b.y = _draw_ws(b.dr, g, sol, b.y, words) + 20
+    b.soladd("ws", (g, sol, words))
 
-def _a_puntos(b, nd):
-    b.sec("Uní los puntos", "Uní del 1 al %d y descubrí la figura." % nd, 460)
-    cx, cy, R = Wp / 2, b.y + 205, 190
-    for i, (px, py) in enumerate(_star_pts(cx, cy, R)[:nd]):
-        b.dr.ellipse([px - 9, py - 9, px + 9, py + 9], fill=NAVY)
-        b.dr.text((px + 14, py - 16), str(i + 1), font=_font(28), fill=COLS[i % len(COLS)])
-    b.y = cy + R + 30
+def _a_puntos(b, nd, figura="estrella"):
+    nombre = "el corazón" if figura == "corazon" else "la figura"
+    b.sec("Uní los puntos", "Uní del 1 al %d y descubrí %s." % (nd, nombre))
+    cx, cy, R = Wp / 2, b.y + 250, 235
+    for i, (px, py) in enumerate(_figura_pts(figura, cx, cy, R, nd)):
+        b.dr.ellipse([px - 10, py - 10, px + 10, py + 10], fill=NAVY)
+        b.dr.text((px + 16, py - 18), str(i + 1), font=_font(30), fill=COLS[i % len(COLS)])
+    b.y = cy + R + 40
 
 def _a_contar(b, na, nb):
     b.sec("Contá", "¿Cuántos hay de cada uno? Escribí el número.", 430)
@@ -466,12 +503,12 @@ def _a_contar(b, na, nb):
         x, yy = free();  (mB and _paste_h(b.im, _IM(mB), x, yy, 105))
     yb = y + 300
     if mA: _paste_h(b.im, _IM(mA), 130, yb, 85)
-    b.dr.text((190, yb), "Amarillos:", font=_font(30), fill=INK, anchor="lm")
+    b.dr.text((190, yb), "¿Cuántos?", font=_font(30), fill=INK, anchor="lm")
     b.dr.rounded_rectangle([470, yb - 30, 535, yb + 30], 8, outline=NAVY, width=3)
     if mB: _paste_h(b.im, _IM(mB), 130, yb + 90, 85)
-    b.dr.text((190, yb + 90), "Rojos:", font=_font(30), fill=INK, anchor="lm")
+    b.dr.text((190, yb + 90), "¿Cuántos?", font=_font(30), fill=INK, anchor="lm")
     b.dr.rounded_rectangle([470, yb + 60, 535, yb + 120], 8, outline=NAVY, width=3)
-    b.y = yb + 150; b.sol["count"] = (na, nb)
+    b.y = yb + 150; b.soladd("count", (na, nb))
 
 def _a_sombra(b, k):
     if not b.mons: return
@@ -526,7 +563,7 @@ def _a_sumas(b, rows):
         b.dr.text((x + 6, yy), "=", font=_font(48), fill=INK, anchor="lm"); x += 66
         b.dr.rounded_rectangle([x, yy - 42, x + 84, yy + 42], 10, outline=NAVY, width=3)
         res.append(a + bb)
-    b.y = b.y + rows * 150 + 20; b.sol["sumas"] = res
+    b.y = b.y + rows * 150 + 20; b.soladd("sumas", res)
 
 def _a_sudoku(b):
     """Sudoku 4×4 de figuras: cada fila/columna/cuadro lleva un monstruo de cada tipo.
@@ -553,7 +590,7 @@ def _a_sudoku(b):
         b.dr.line([gx + k * cell, gy, gx + k * cell, gy + 4 * cell], fill=NAVY, width=6)
         b.dr.line([gx, gy + k * cell, gx + 4 * cell, gy + k * cell], fill=NAVY, width=6)
     b.y = gy + 4 * cell + 30
-    b.sol["sudoku"] = (sol, [b.mons[i] for i in range(4)])
+    b.soladd("sudoku", sol)
 
 def _a_buscar(b, n):
     """Encontrá los escondidos (iSpy): escena con muchos personajes; buscar X de cada
@@ -580,112 +617,256 @@ def _a_buscar(b, n):
         b.dr.text((tx + 92, b.y + 38), "× %d" % placed[t], font=_font(36), fill=INK, anchor="lm")
         tx += 250
     b.y += 110
-    b.sol["buscar"] = [placed[t] for t in targets]
+    b.soladd("buscar", [placed[t] for t in targets])
 
-def _colorear_img(tema):
-    """Página para colorear DIBUJADA por OpenAI (aprobada en extras/ o aún en ia_draft/).
-    Aplica un umbral idempotente como garantía de B/N. Devuelve None si el tema todavía no
-    tiene una generada -> el cuaderno cae al line art derivado del personaje (fallback)."""
-    p = next((q for q in (os.path.join(TEMAS, tema, "extras", "colorear.png"),
-                          os.path.join(TEMAS, tema, "ia_draft", "colorear.png"))
-              if os.path.isfile(q)), None)
-    if not p:
-        return None
-    im = Image.open(p).convert("RGBA")
-    bg = Image.new("RGBA", im.size, (255, 255, 255, 255)); bg.alpha_composite(im)
-    return bg.convert("L").point(lambda v: 0 if v < 165 else 255).convert("RGBA")
+def _colorear_imgs(tema):
+    """Páginas para colorear DIBUJADAS por OpenAI (colorear*.png en extras/ o ia_draft/),
+    cada una con garantía B/N idempotente. Lista (puede haber varias). Vacía si todavía no
+    hay ninguna -> el cuaderno cae al line art derivado del personaje (fallback)."""
+    seen, out = set(), []
+    for d in ("extras", "ia_draft"):
+        for p in sorted(glob.glob(os.path.join(TEMAS, tema, d, "colorear*.png"))):
+            n = os.path.basename(p)
+            if n in seen:
+                continue
+            seen.add(n)
+            im = Image.open(p).convert("RGBA")
+            bg = Image.new("RGBA", im.size, (255, 255, 255, 255)); bg.alpha_composite(im)
+            out.append(bg.convert("L").point(lambda v: 0 if v < 165 else 255).convert("RGBA"))
+    return out
 
-def _a_colorear(b, tema):
-    b.ensure(1040); b.sec("Pintá el dibujo", "Coloreá como más te guste.", 60)
-    la = _colorear_img(tema)                  # 1º: la página dibujada por OpenAI (la que te gusta)
-    if la is None and b.mons:                 # fallback: line art del personaje MÁS ALTO (no un manchón ancho)
-        src = max(b.mons, key=lambda p: Image.open(p).size[1])
-        la = _lineart(src).convert("RGBA")
+def _a_colorear(b, k=0):
+    b.sec("Pintá el dibujo", "Coloreá como más te guste.")
+    imgs = getattr(b, "_colorear", [])
+    la = imgs[k] if k < len(imgs) else None    # no repetir la misma: si no alcanza, fallback
+    if la is None and b.mons:                 # fallback: line art de un personaje (varía por página)
+        la = _lineart(b.mons[(k + 1) % len(b.mons)]).convert("RGBA")
     if la is not None:
         h = 980; w = int(la.width * h / la.height)
-        if w > Wp - 160:                      # clamp por si la pieza es muy ancha
+        if w > Wp - 160:
             w = Wp - 160; h = int(la.height * w / la.width)
         la = la.resize((w, h), Image.LANCZOS)
         b.im.alpha_composite(la, (int(Wp / 2 - w / 2), b.y + 10))
     b.y = BOT
 
+# ── actividades nuevas (todas por código, reusan los recortes del tema) ──
+def _a_restas(b, rows):
+    if not b.mons: return
+    b.sec("Restas con personajes", "Tachá los que se van y escribí cuántos quedan.")
+    m = _IM(b.mon(2)); res = []
+    for r in range(rows):
+        a = b.rnd.randint(2, 5); c = b.rnd.randint(1, a - 1); yy = b.y + r * 150 + 75; x = 120
+        for i in range(a):
+            _paste_h(b.im, m, x, yy, 76)
+            if i >= a - c:
+                b.dr.line([x - 32, yy - 32, x + 32, yy + 32], fill=COLS[0], width=7)
+            x += 84
+        b.dr.text((x + 6, yy), "=", font=_font(50), fill=INK, anchor="lm"); x += 72
+        b.dr.rounded_rectangle([x, yy - 46, x + 92, yy + 46], 10, outline=NAVY, width=3)
+        res.append(a - c)
+    b.y = b.y + rows * 150 + 20; b.soladd("restas", res)
+
+def _a_serie(b, rows):
+    b.sec("Completá la serie", "Mirá los números y escribí los que faltan.")
+    res = []
+    for r in range(rows):
+        step = b.rnd.choice([1, 1, 2]); start = b.rnd.randint(1, 6)
+        seq = [start + step * i for i in range(7)]
+        blanks = sorted(b.rnd.sample(range(2, 7), 2))
+        yy = b.y + r * 155 + 75; x0 = 120; gap = 150
+        for i, v in enumerate(seq):
+            cx = x0 + i * gap
+            if i in blanks:
+                b.dr.rounded_rectangle([cx - 46, yy - 46, cx + 46, yy + 46], 12, outline=NAVY, width=3)
+            else:
+                b.dr.ellipse([cx - 46, yy - 46, cx + 46, yy + 46], fill=COLS[i % len(COLS)])
+                b.dr.text((cx, yy), str(v), font=_font(44), fill="white", anchor="mm")
+        res.append([seq[i] for i in blanks])
+    b.y = b.y + rows * 155 + 20; b.soladd("serie", res)
+
+def _a_mas_menos(b, rows):
+    if not b.mons: return
+    b.sec("¿Cuál tiene más?", "Marcá con un círculo el grupo que tiene MÁS.")
+    bw = (Wp - 120 - 40) // 2; res = []
+    for r in range(rows):
+        yy = b.y + r * 215 + 20
+        counts = [b.rnd.randint(1, 5), b.rnd.randint(1, 5)]
+        while counts[0] == counts[1]:
+            counts[1] = b.rnd.randint(1, 5)
+        m = _IM(b.mon(r + 1))
+        for side in (0, 1):
+            bx = 60 + side * (bw + 40)
+            b.dr.rounded_rectangle([bx, yy, bx + bw, yy + 185], 18, outline=(210, 205, 220), width=3)
+            for i in range(counts[side]):
+                cx = bx + 80 + (i % 3) * 120; cyy = yy + 55 + (i // 3) * 88
+                _paste_h(b.im, m, cx, cyy, 78)
+        res.append(0 if counts[0] > counts[1] else 1)
+    b.y = b.y + rows * 215 + 10; b.soladd("masmenos", res)
+
+def _a_tamano(b, rows):
+    if not b.mons: return
+    b.sec("Grande y chico", "En cada fila, marcá con un círculo el MÁS GRANDE.")
+    res = []
+    for r in range(rows):
+        m = _IM(b.mon(r + 2)); yy = b.y + r * 205 + 100
+        sizes = [80, 130, 70, 165]; b.rnd.shuffle(sizes)
+        for c, h in enumerate(sizes):
+            _paste_h(b.im, m, 230 + c * 250, yy, h)
+        res.append(sizes.index(max(sizes)))
+    b.y = b.y + rows * 205 + 10; b.soladd("tamano", res)
+
+def _a_iguales(b, k):
+    if not b.mons or len(b.mons) < k: return
+    b.sec("Uní los iguales", "Uní cada dibujo con su igual.")
+    idx = list(range(min(len(b.mons), 7))); b.rnd.shuffle(idx); idx = idx[:k]
+    right = idx[:]; b.rnd.shuffle(right)
+    y0 = b.y + 20; step = 150; lx = 330; rx = Wp - 330
+    for row, i in enumerate(idx):
+        yy = y0 + row * step
+        _paste_h(b.im, _IM(b.mons[i]), lx, yy, 120)
+        b.dr.ellipse([lx + 132, yy - 8, lx + 148, yy + 8], fill=NAVY)
+    for row, i in enumerate(right):
+        yy = y0 + row * step
+        _paste_h(b.im, _IM(b.mons[i]), rx, yy, 120)
+        b.dr.ellipse([rx - 148, yy - 8, rx - 132, yy + 8], fill=NAVY)
+    b.y = y0 + k * step + 10
+
+def _a_trazos(b, rows):
+    b.sec("Repasá las líneas", "Seguí la línea punteada con el lápiz, de izquierda a derecha.")
+    estilos = ["recta", "zigzag", "curva", "onda", "lazo"]; b.rnd.shuffle(estilos)
+    for r in range(rows):
+        yy = b.y + r * 185 + 95; est = estilos[r % len(estilos)]; x0, x1 = 250, Wp - 230
+        pts = []
+        for i in range(81):
+            t = i / 80; x = x0 + (x1 - x0) * t
+            if est == "recta": y = yy
+            elif est == "zigzag": y = yy + (45 if int(t * 8) % 2 else -45)
+            elif est == "curva": y = yy - 70 * math.sin(t * math.pi)
+            elif est == "onda": y = yy - 48 * math.sin(t * math.pi * 4)
+            else: y = yy - 58 * math.sin(t * math.pi * 3)
+            pts.append((x, y))
+        for i in range(0, len(pts) - 1, 2):
+            b.dr.line([pts[i], pts[i + 1]], fill=NAVY, width=7)
+        if b.mons:
+            _paste_h(b.im, _IM(b.mon(r)), x0 - 80, yy, 115)
+        _goal_torta(b.dr, x1 + 70, yy, 52)
+    b.y = b.y + rows * 185 + 10
+
+def _a_otra_mitad(b):
+    if not b.mons: return
+    b.sec("Dibujá la otra mitad", "Mirá la mitad del dibujo y dibujá la que falta.")
+    src = _contorno(max(b.mons, key=lambda p: Image.open(p).size[1])).convert("RGBA")
+    h = 760; w = int(src.width * h / src.height); src = src.resize((w, h), Image.LANCZOS)
+    half = src.crop((0, 0, w // 2, h)); axis = Wp // 2; top = b.y + 40
+    b.im.alpha_composite(half, (axis - w // 2, top))
+    for yy in range(top - 10, top + h + 10, 30):
+        b.dr.line([axis, yy, axis, yy + 15], fill=(150, 150, 160), width=4)
+    b.y = BOT
+
+def _a_tateti(b):
+    b.sec("Ta-te-ti", "Jugá con un amigo. Cada uno elige un personaje; gana quien hace tres en línea.")
+    if b.mons:
+        _paste_h(b.im, _IM(b.mon(0)), 250, b.y + 40, 95)
+        b.dr.text((320, b.y + 40), "vs", font=_font(38), fill=INK, anchor="lm")
+        _paste_h(b.im, _IM(b.mon(1)), 470, b.y + 40, 95)
+    y0 = b.y + 130; g = 330; gap = 90; bx0 = (Wp - (2 * g + gap)) // 2
+    for bi in range(4):
+        r, c = divmod(bi, 2); ox = bx0 + c * (g + gap); oy = y0 + r * (g + gap)
+        for k in (1, 2):
+            b.dr.line([ox + k * g / 3, oy, ox + k * g / 3, oy + g], fill=NAVY, width=6)
+            b.dr.line([ox, oy + k * g / 3, ox + g, oy + k * g / 3], fill=NAVY, width=6)
+    b.y = BOT
+
 def _solucionario(b):
-    if not any(k in b.sol for k in ("maze", "cmaze", "ws", "sumas", "sudoku")): return
-    pages = []
-    im, dr = _page(); _header(dr, b.edad, b.nombre)
-    dr.text((60, 200), "Solucionario", font=_font(40), fill=COLS[0]); y = 280
+    keys = ("maze", "cmaze", "ws", "sudoku", "sumas", "restas", "serie", "count", "masmenos", "tamano")
+    if not any(k in b.sol for k in keys): return
+    pages = []; im, dr = _page(); _banner(dr, "Soluciones"); y = TOP
+    dr.text((60, y), "Soluciones", font=_font(44), fill=COLS[0]); y += 76
     def newpage():
         nonlocal im, dr, y
-        _foot(dr); pages.append(im); im, dr = _page(); _header(dr, b.edad, b.nombre); y = 220
+        _foot(dr); pages.append(im); im, dr = _page(); _banner(dr, "Soluciones"); y = TOP
     def need(h):
         if y + h > BOT: newpage()
-    if "maze" in b.sol:
-        w, MW, MH = b.sol["maze"]; need(MH * 60 + 70)
-        dr.text((60, y), "Laberinto:", font=_font(28), fill=VIOLET); y += 44
+    for (w, MW, MH) in b.sol.get("maze", []):
+        need(MH * 60 + 80); dr.text((60, y), "Laberinto:", font=_font(28), fill=VIOLET); y += 44
         y = _draw_maze(im, dr, w, MW, MH, y, b.mons, sol=True) + 36
-    if "cmaze" in b.sol:
-        RAD, CIRC, HUB, rings, S, se, path = b.sol["cmaze"]
-        R0 = 40; dt = 46; Rmax = R0 + rings * dt; need(2 * Rmax + 80)
-        dr.text((60, y), "Laberinto circular:", font=_font(28), fill=VIOLET); y += 50
+    for (RAD, CIRC, HUB, rings, S, se, path) in b.sol.get("cmaze", []):
+        R0 = 40; dt = 46; Rmax = R0 + rings * dt; need(2 * Rmax + 90)
+        dr.text((60, y), "Laberinto circular:", font=_font(28), fill=VIOLET); y += 54
         cx = Wp / 2; cy = y + Rmax
         _draw_theta(im, dr, RAD, CIRC, HUB, rings, S, se, cx, cy, R0, dt, b.mons, sol=True, path=path)
         y = cy + Rmax + 36
-    if "ws" in b.sol:
-        g, sol = b.sol["ws"]; need(len(g) * 50 + 90)
-        dr.text((60, y), "Sopa de letras:", font=_font(28), fill=VIOLET); y += 44
-        y = _draw_ws(dr, g, sol, y, mostrar_sol=True) + 20
-    if "sudoku" in b.sol:
-        sgrid, _mp = b.sol["sudoku"]; cell = 80; need(4 * cell + 80)
-        dr.text((60, y), "Sudoku (números):", font=_font(28), fill=VIOLET); y += 50
+    for (g, sol, words) in b.sol.get("ws", []):
+        need(len(g) * 50 + 130); dr.text((60, y), "Sopa de letras:", font=_font(28), fill=VIOLET); y += 44
+        y = _draw_ws(dr, g, sol, y, words, mostrar_sol=True) + 24
+    for sgrid in b.sol.get("sudoku", []):
+        cell = 76; need(4 * cell + 90); dr.text((60, y), "Sudoku (números):", font=_font(28), fill=VIOLET); y += 50
         gx = (Wp - 4 * cell) // 2
         for r in range(4):
             for c in range(4):
                 x0, y0 = gx + c * cell, y + r * cell
                 dr.rectangle([x0, y0, x0 + cell, y0 + cell], outline=(150, 145, 160), width=2)
-                dr.text((x0 + cell / 2, y0 + cell / 2), str(sgrid[r][c] + 1), font=_font(40), fill=NAVY, anchor="mm")
+                dr.text((x0 + cell / 2, y0 + cell / 2), str(sgrid[r][c] + 1), font=_font(38), fill=NAVY, anchor="mm")
         for k in range(0, 5, 2):
             dr.line([gx + k * cell, y, gx + k * cell, y + 4 * cell], fill=NAVY, width=5)
             dr.line([gx, y + k * cell, gx + 4 * cell, y + k * cell], fill=NAVY, width=5)
         y += 4 * cell + 30
     lines = []
-    if "count" in b.sol: lines.append("Contar — Amarillos: %d · Rojos: %d" % b.sol["count"])
-    if "sumas" in b.sol: lines.append("Sumas: " + ", ".join(str(x) for x in b.sol["sumas"]))
-    lines.append("(Sombra, ¿cuál es diferente? y patrón se revisan a simple vista.)")
-    need(34 * len(lines) + 40)
+    for res in b.sol.get("sumas", []): lines.append("Sumas: " + ", ".join(map(str, res)))
+    for res in b.sol.get("restas", []): lines.append("Restas: " + ", ".join(map(str, res)))
+    for res in b.sol.get("serie", []):
+        lines.append("Serie — faltan: " + "  ".join("/".join(map(str, blk)) for blk in res))
+    for (na, nb) in b.sol.get("count", []): lines.append("Contar — Grupo 1: %d · Grupo 2: %d" % (na, nb))
+    for res in b.sol.get("masmenos", []):
+        lines.append("¿Cuál tiene más?: " + ", ".join("izquierda" if v == 0 else "derecha" for v in res))
+    for res in b.sol.get("tamano", []):
+        lines.append("El más grande: posición " + ", ".join(str(v + 1) for v in res))
+    lines.append("(Sombra, intruso, patrón, iguales, trazos, otra mitad y colorear se revisan a simple vista.)")
     for ln in lines:
-        dr.text((60, y), ln, font=_font(23), fill=INK); y += 34
+        need(40); dr.text((60, y), ln, font=_font(23), fill=INK); y += 36
     _foot(dr); pages.append(im); b.pages.extend(pages)
 
-# ───────────────────────── plan por edad ─────────────────────────
-def _plan(edad):
-    e = int(edad) if str(edad).isdigit() else 6
-    if e <= 3: return dict(maze=0, cmaze=0, sopa=False, dots=6, count=(3, 2), sombra=3, diferente=2, patron=0, sumas=0, sudoku=False, buscar=10)
-    if e <= 5: return dict(maze=7, cmaze=0, sopa=False, dots=8, count=(5, 3), sombra=4, diferente=3, patron=3, sumas=0, sudoku=False, buscar=14)
-    return dict(maze=9, cmaze=4, sopa=True, dots=10, count=(5, 3), sombra=4, diferente=3, patron=3, sumas=3, sudoku=True, buscar=18)
+# ───────────────────── armado por banda de edad ─────────────────────
+def _construir(b, e):
+    """Secuencia de actividades por banda de edad (2-3 / 4-5 / 6-7). Algunos tipos se
+    repiten con contenido nuevo (otra figura/lista/números) para sumar variedad. ~13/18/24."""
+    if e <= 3:
+        _a_colorear(b, 0); _a_trazos(b, 4); _a_sombra(b, 3); _a_iguales(b, 3)
+        _a_contar(b, 3, 2); _a_tamano(b, 3); _a_patron(b, 3); _a_mas_menos(b, 3)
+        _a_puntos(b, 6, "estrella"); _a_trazos(b, 4); _a_buscar(b, 8); _a_colorear(b, 1)
+    elif e <= 5:
+        _a_trazos(b, 4); _a_puntos(b, 10, "estrella"); _a_laberinto(b, 7); _a_contar(b, 5, 3)
+        _a_patron(b, 3); _a_diferente(b, 3); _a_sombra(b, 4); _a_sudoku(b)
+        _a_mas_menos(b, 3); _a_iguales(b, 4); _a_tamano(b, 3); _a_otra_mitad(b)
+        _a_buscar(b, 14); _a_laberinto(b, 7); _a_puntos(b, 10, "corazon"); _a_tateti(b)
+        _a_colorear(b, 0); _a_colorear(b, 1)
+    else:
+        _a_laberinto(b, 9); _a_sopa(b); _a_puntos(b, 10, "estrella"); _a_contar(b, 5, 3)
+        _a_sombra(b, 4); _a_colorear(b, 0); _a_sumas(b, 4); _a_diferente(b, 3)
+        _a_laberinto_circular(b, 4); _a_patron(b, 3); _a_buscar(b, 18); _a_restas(b, 4)
+        _a_colorear(b, 1); _a_sudoku(b); _a_mas_menos(b, 3); _a_serie(b, 4)
+        _a_iguales(b, 5); _a_otra_mitad(b); _a_laberinto(b, 9); _a_sopa(b, PALABRAS2)
+        _a_puntos(b, 12, "corazon"); _a_contar(b, 6, 4); _a_tamano(b, 3); _a_tateti(b)
+        _a_colorear(b, 2)
 
 # ───────────────────────── armado ─────────────────────────
+def _build(tema, edad, seed):
+    """Devuelve (paginas_actividades, paginas_solucionario) por separado, para que la galería
+    de la tienda pueda excluir el solucionario sin regenerar."""
+    mons = _extraer_monstruos(tema); nombre = _tema_nombre(tema)
+    b = _Book(edad, mons, seed, nombre); b._colorear = _colorear_imgs(tema)
+    portada = _portada(mons, edad, nombre)
+    e = int(edad) if str(edad).isdigit() else 6
+    _construir(b, e); b.finish()
+    acts = [portada] + list(b.pages)
+    b.pages = []; _solucionario(b)
+    return acts, list(b.pages)
+
 def paginas(tema, edad, seed=1, con_solucionario=True):
-    """Devuelve la lista de páginas (PIL.Image) del cuaderno, ya verificadas.
-    Es lo que consume el motor del kit para empaquetar el ZIP del producto."""
-    mons = _extraer_monstruos(tema); plan = _plan(edad); nombre = _tema_nombre(tema)
-    b = _Book(edad, mons, seed, nombre)
-    b.pages.append(_portada(mons, edad, nombre))
-    if plan["maze"]: _a_laberinto(b, plan["maze"])
-    if plan.get("cmaze"): _a_laberinto_circular(b, plan["cmaze"])
-    if plan["sopa"]: _a_sopa(b)
-    _a_puntos(b, plan["dots"])
-    _a_contar(b, *plan["count"])
-    if plan.get("buscar"): _a_buscar(b, plan["buscar"])
-    if plan["sombra"]: _a_sombra(b, plan["sombra"])
-    if plan["diferente"]: _a_diferente(b, plan["diferente"])
-    if plan["patron"]: _a_patron(b, plan["patron"])
-    if plan["sumas"]: _a_sumas(b, plan["sumas"])
-    if plan.get("sudoku"): _a_sudoku(b)
-    _a_colorear(b, tema)
-    b.finish()
-    if con_solucionario:
-        _solucionario(b)
-    return b.pages
+    """Lista de páginas (PIL.Image) del cuaderno, ya verificadas. Es lo que consume el motor
+    del kit para empaquetar el ZIP del producto."""
+    acts, sols = _build(tema, edad, seed)
+    return acts + sols if con_solucionario else acts
 
 def preview_paths(tema, edad="6"):
     """Páginas del cuaderno cacheadas como PNG (para la galería de la ficha de la
@@ -731,11 +912,20 @@ def base_paginas(tema, edad, seed=1):
     pngs = sorted(glob.glob(os.path.join(cd, "b*.png")))
     if pngs:
         return [Image.open(p).convert("RGB") for p in pngs]
-    pgs = [p.convert("RGB") for p in paginas(tema, str(edad), seed)]
+    acts, sols = _build(tema, str(edad), seed)
+    pgs = [p.convert("RGB") for p in (acts + sols)]
     os.makedirs(cd, exist_ok=True)
     for i, p in enumerate(pgs):
         p.save(os.path.join(cd, "b%02d.png" % i))
+    with open(os.path.join(cd, "nsol.txt"), "w") as f:    # cuántas páginas finales son solucionario
+        f.write(str(len(sols)))
     return pgs
+
+def _n_sol(tema, edad):
+    try:
+        return int(open(os.path.join(_cache_dir(tema, edad), "nsol.txt")).read().strip())
+    except Exception:
+        return 1
 
 def pagina_efectiva(tema, edad, idx, base=None):
     """Página final del índice idx: el override del usuario si existe, si no la canónica."""
@@ -777,10 +967,10 @@ def galeria_indices(tema, edad="6"):
     """Índices de página a mostrar en la galería de la ficha: el cuaderno curado
     (canónico + overrides) SIN la hoja de solucionario (no spoilea respuestas)."""
     base = base_paginas(tema, edad); od = _override_dir(tema, edad)
-    plan = _plan(edad); tiene_sol = bool(plan["maze"] or plan["sopa"])
+    cut = len(base) - _n_sol(tema, edad)               # las últimas páginas son el solucionario
     out = []
     for i in range(len(base)):
-        if tiene_sol and i == len(base) - 1:           # última = solucionario → no mostrar
+        if i >= cut:                                   # solucionario → no mostrar en la galería
             continue
         if os.path.exists(os.path.join(od, "pg%02d.removed" % i)):
             continue
