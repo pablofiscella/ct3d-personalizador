@@ -18,6 +18,20 @@ _MASCARA_CIRCULAR = {"topper", "base_torta"}
 # silueta sólida sin huecos (el software de print&cut corta offset del borde).
 _DIE_CUT = {"stickers", "topper_palito"}   # figuras die-cut (borde + recorte); el resto rectangular/circular
 
+# Piezas de diseño COMPLETO que deben tener SIEMPRE fondo opaco (llenan el rectángulo).
+# gpt-image-2 a veces devuelve el fondo transparente aunque se le pida con color -> se
+# aplana sobre blanco por código para GARANTIZAR que no queden "sin fondo".
+_FONDO_SOLIDO = {"separadores", "etiqueta_botella", "tarjetas_agradecimiento", "wrappers_cupcakes"}
+
+
+def _aplanar_blanco(im):
+    """Compone la imagen sobre un fondo BLANCO opaco: rellena las zonas transparentes que
+    OpenAI deja aunque se le pida fondo de color. Garantiza que la pieza tenga fondo."""
+    im = im.convert("RGBA")
+    base = Image.new("RGBA", im.size, (255, 255, 255, 255))
+    base.alpha_composite(im)
+    return base
+
 
 def _rellenar_huecos(mask):
     """Rellena huecos internos (transparentes encerrados) de una máscara binaria L."""
@@ -358,6 +372,8 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
                         im = _palito(im)
             elif p.key == "colorear":          # line art: el código garantiza B/N puro
                 im = _limpiar_colorear(im)
+            elif p.key in _FONDO_SOLIDO:       # diseño completo: fondo opaco garantizado
+                im = _aplanar_blanco(im)
             elif p.recorte:
                 im = quitar(im, protect=True)
                 bb = im.getbbox()
@@ -408,7 +424,10 @@ def replicar_pieza(client, temas_dir, tema, pieza_key, edades, progress=None, ca
         try:
             prompt = ("Reproducí esta lámina EXACTAMENTE IGUAL —misma composición, personajes, "
                       "colores, fondo, recuadro y estilo, sin mover ni cambiar nada— EXCEPTO el "
-                      "número grande de edad: poné el número %d en lugar del %d."
+                      "número grande de edad: poné el número %d en lugar del %d. El número nuevo "
+                      "con EXACTAMENTE el mismo estilo, tamaño, grosor, color y RELLENO que el "
+                      "original: si el número original es de CONTORNO hueco (relleno claro), el "
+                      "nuevo también hueco de contorno; NO lo dibujes macizo/relleno de color."
                       % (int(edad), base_edad))
             raw = client.editar([base], prompt, p.size, quality=calidad)
             im = validar_png(raw, size_esperado=size_t).convert("RGBA")

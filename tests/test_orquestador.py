@@ -111,6 +111,18 @@ def test_stickers_individuales_extrae_cada_figura():
         assert s.convert("RGBA").getbbox() is not None
 
 
+def test_aplanar_blanco_deja_fondo_opaco():
+    """Una imagen con fondo transparente queda 100% opaca (con fondo) tras aplanar."""
+    im = Image.new("RGBA", (60, 90), (0, 0, 0, 0))          # todo transparente
+    from PIL import ImageDraw
+    ImageDraw.Draw(im).ellipse([10, 10, 40, 40], fill=(200, 40, 40, 255))  # una figura
+    out = orquestador._aplanar_blanco(im)
+    alphas = [p[3] for p in out.convert("RGBA").getdata()]
+    assert min(alphas) == 255                                # ningún pixel transparente
+    esquina = out.convert("RGBA").getpixel((0, 0))
+    assert esquina[3] == 255 and min(esquina[:3]) > 240      # el fondo es blanco opaco
+
+
 def test_stickers_no_parte_figura_por_franja_fina():
     """Una figura partida por una franja transparente fina NO debe quedar en dos mitades."""
     from PIL import ImageDraw
