@@ -55,7 +55,7 @@ def antifaz_mariposa(data, tema="safari"):
     while _font(fs).getbbox(nombre)[2] > 400 and fs > 18:
         fs -= 2
     dr.text((cx, cy + h / 2 + 60), nombre, font=_font(fs), fill=acc, anchor="mm")
-    dr.text((cx, cy + h / 2 + 100), "✂ Recortá y pegá en un palito", font=_font(20, False), fill=_tint(INK, 0.3), anchor="mm")
+    dr.text((cx, cy + h / 2 + 100), "Recortá y pegá en un palito", font=_font(20, False), fill=_tint(INK, 0.3), anchor="mm")
     return im
 
 

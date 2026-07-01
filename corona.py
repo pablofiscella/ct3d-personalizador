@@ -36,7 +36,7 @@ def _tint(c, p):
 
 
 def _draw_instrucciones(dr, x, y, col):
-    dr.text((x, y), "✂ Instrucciones:", font=_font(28, False), fill=col, anchor="mm")
+    dr.text((x, y), "Instrucciones:", font=_font(28, False), fill=col, anchor="mm")
     pasos = ["1. Recortá por la línea de corte", "2. Doblá por la línea punteada",
              "3. Pegá las solapas con adhesivo"]
     for i, txt in enumerate(pasos):

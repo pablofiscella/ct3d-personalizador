@@ -102,7 +102,7 @@ def rompecabezas_nombre(data, tema="safari"):
             dr.text((px + cw / 2, py + ch / 2), letter, font=_font(lfs), fill=_tint(acc, 0.5 + (ni % 3) * 0.15), anchor="mm")
 
     y_info = area_y0 + area_h + 40
-    dr.text((Wp / 2, y_info), "✂ Recortá las piezas por las líneas y armá el nombre",
+    dr.text((Wp / 2, y_info), "Recortá las piezas por las líneas y armá el nombre",
             font=_font(26, False), fill=INK, anchor="mm")
 
     dr.rounded_rectangle([Wp / 2 - 250, y_info + 60, Wp / 2 + 250, y_info + 120], 15, fill=acc)

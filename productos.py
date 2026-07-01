@@ -637,7 +637,7 @@ def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):
         img = memoria.generar_memoria(data, tema)
     else:
         img = render(data, specs_de(tema)["invitacion"])
-    img = img.convert("RGB") if img.mode == "RGBA" else img
+    img = piezas.to_rgb(img) if img.mode == "RGBA" else img
     img.thumbnail((max_px, max_px), Image.LANCZOS)
     return img
 
@@ -658,6 +658,6 @@ def preview_pieza(data, tema, tipo, idx, max_px=900):
         return None
     idx = max(0, min(len(items) - 1, int(idx)))
     img = items[idx][1](data)
-    img = img.convert("RGB") if img.mode == "RGBA" else img
+    img = piezas.to_rgb(img) if img.mode == "RGBA" else img
     img.thumbnail((max_px, max_px), Image.LANCZOS)
     return img
