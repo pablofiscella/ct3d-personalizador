@@ -29,6 +29,7 @@ import os
 from PIL import Image, ImageDraw
 
 import piezas
+import temas
 from piezas import (A4, WHITE, CREAM, MUST, SAGE, make_sheet, txt, fit_into,
                     paste_center, accent, ink_c, font_disp, _band, animales,
                     load, has_recortes, _edad_any, lema, titulo)
@@ -491,9 +492,26 @@ def _spec(tipo):
 def campos_tipo(tipo):
     return list(_spec(tipo)["campos"])
 
+def override_path(tema, tipo, idx):
+    """Ruta de un reemplazo subido a mano para la pieza <idx> de <tipo> en <tema> (ej. una
+    versión mejorada con IA de una pieza que hoy es 100% procedural). Si existe, se usa esa
+    imagen en vez de la función procedural — ningún cambio de código, solo un archivo."""
+    return os.path.join(temas.TEMAS_DIR, tema or "safari", "overrides", tipo, "%d.png" % idx)
+
+def _con_overrides(tema, tipo, items):
+    out = []
+    for idx, (nombre, fn, is_rgba) in enumerate(items):
+        ov = override_path(tema, tipo, idx)
+        if os.path.isfile(ov):
+            fn = (lambda p: (lambda d: Image.open(p).convert("RGBA")))(ov)
+        out.append((nombre, fn, is_rgba))
+    return out
+
 def piezas_tipo(tema, tipo):
-    """Lista [(nombre_archivo, fn(data)->Image, is_rgba)] del tipo sobre la temática."""
-    return _spec(tipo)["piezas"](tema or "safari")
+    """Lista [(nombre_archivo, fn(data)->Image, is_rgba)] del tipo sobre la temática.
+    Aplica overrides subidos a mano (ver override_path) sobre el diseño procedural."""
+    items = _spec(tipo)["piezas"](tema or "safari")
+    return _con_overrides(tema, tipo, items)
 
 _PIEZA_LABELS = {
     "1_invitacion": "Invitación", "2_cartel": "Cartel", "1_cartel": "Cartel",
@@ -608,33 +626,11 @@ def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):
     elif pieza == "babyshower":
         import baby_shower as bs
         img = bs.pieza("invitacion", data, tema)
-    elif pieza == "certificado":
-        import certificado
-        img = certificado.generar_certificado(data, tema)
-    elif pieza == "corona":
-        import corona
-        img = corona.corona(data, tema)
-    elif pieza == "antifaces":
-        import antifaces
-        img = antifaces.antifaz_mariposa(data, tema)
-    elif pieza == "menu":
-        import menu_infantil
-        img = menu_infantil.generar_menu(data, tema)
-    elif pieza == "rompecabezas":
-        import rompecabezas
-        img = rompecabezas.rompecabezas_nombre(data, tema)
-    elif pieza == "capsula":
-        import capsula_tiempo
-        img = capsula_tiempo.portada_sobre(data, tema)
-    elif pieza == "calendario":
-        import calendario
-        img = calendario.mes_hoja(1, int(data.get("anyo") or "2026"), data.get("nombre") or "Mi familia", calendario._accent(tema), tema)
-    elif pieza == "papertoys":
-        import papertoys
-        img = papertoys.cubo_personalizado(data, tema)
-    elif pieza == "memoria":
-        import memoria
-        img = memoria.generar_memoria(data, tema)
+    elif pieza in ("certificado", "corona", "antifaces", "menu", "rompecabezas",
+                  "capsula", "calendario", "papertoys", "memoria"):
+        # 100% procedurales: pasan por piezas_tipo() para que un override subido a mano
+        # (ver override_path) se refleje también en la miniatura del producto.
+        img = piezas_tipo(tema, pieza)[0][1](data)
     else:
         img = render(data, specs_de(tema)["invitacion"])
     img = piezas.to_rgb(img) if img.mode == "RGBA" else img

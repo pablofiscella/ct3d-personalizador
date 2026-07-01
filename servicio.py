@@ -594,6 +594,12 @@ class Handler(BaseHTTPRequestHandler):
             return self._dash_pieza_img(urllib.parse.parse_qs(u.query))
         if path == "/dash/base-estado":
             return self._dash_base_estado(urllib.parse.parse_qs(u.query))
+        if path == "/dash/producto-piezas":
+            return self._dash_producto_piezas(urllib.parse.parse_qs(u.query))
+        if path == "/dash/producto-descargar":
+            return self._dash_producto_descargar(urllib.parse.parse_qs(u.query))
+        if path == "/dash/producto-zip":
+            return self._dash_producto_zip(urllib.parse.parse_qs(u.query))
         if path == "/dash/ia-draft":
             return self._ia_draft(urllib.parse.parse_qs(u.query))
         if path == "/dash/ia-estado":
@@ -697,6 +703,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._dash_agregar_edades()
         if path == "/dash/ia-colorear-variantes":
             return self._ia_colorear_variantes()
+        if path == "/dash/producto-upload":
+            return self._dash_producto_upload()
+        if path == "/dash/producto-borrar-override":
+            return self._dash_producto_borrar_override()
         if path == "/dash/ia-replicar":
             return self._ia_replicar()
         if path == "/dash/ia-aprobar":
@@ -913,6 +923,123 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(404, {"ok": False, "error": "no existía"})
         except Exception as e:
             return self._json(500, {"ok": False, "error": str(e)})
+
+    # ---- Piezas de los productos 100% procedurales (certificado/corona/calendario/…) ----
+    # No tienen ia_draft/extras (no los dibuja OpenAI): se calculan al vuelo con Pillow.
+    # "Override" = una imagen subida a mano que reemplaza el diseño procedural de UNA pieza
+    # puntual (ej. si Pablo la mejora con otra IA y quiere usar esa versión).
+    def _dash_producto_piezas(self, q):
+        """Lista las piezas reales de un tipo/tema con su label y si tienen override."""
+        if not self._admin_ok():
+            return self._deny()
+        tema = slug((q.get("tema", [""]) or [""])[0])
+        tipo = re.sub(r"[^a-z0-9_]", "", ((q.get("tipo", [""]) or [""])[0] or "").lower())[:30]
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        try:
+            meta = productos.piezas_meta(tipo, tema)
+        except Exception as e:
+            return self._json(400, {"ok": False, "error": str(e)})
+        for p in meta:
+            p["override"] = os.path.isfile(productos.override_path(tema, tipo, p["idx"]))
+        return self._json(200, {"ok": True, "piezas": meta})
+
+    def _dash_producto_descargar(self, q):
+        """Descarga UNA pieza a resolución completa, SIN marca de agua (admin)."""
+        if not self._admin_ok():
+            return self._deny()
+        tema = slug((q.get("tema", [""]) or [""])[0])
+        tipo = re.sub(r"[^a-z0-9_]", "", ((q.get("tipo", [""]) or [""])[0] or "").lower())[:30]
+        try:
+            idx = int((q.get("pieza", ["0"]) or ["0"])[0])
+        except ValueError:
+            return self._json(400, {"ok": False, "error": "pieza inválida"})
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        try:
+            items = productos.piezas_tipo(tema, tipo)
+            nombre, fn, _ = items[idx]
+        except Exception:
+            return self._json(404, {"ok": False, "error": "pieza no encontrada"})
+        muestra = {"nombre": "Tomás", "edad": "5", "anyo": "2026"}
+        img = piezas.to_rgb(fn(muestra))
+        buf = io.BytesIO(); img.save(buf, "PNG"); data = buf.getvalue()
+        self.send_response(200)
+        self.send_header("Content-Type", "image/png")
+        self.send_header("Content-Disposition", 'attachment; filename="%s-%s-%s.png"' % (tipo, tema, nombre))
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers(); self.wfile.write(data)
+
+    def _dash_producto_zip(self, q):
+        """ZIP con TODAS las piezas de un tipo/tema a resolución completa, sin marca de agua."""
+        if not self._admin_ok():
+            return self._deny()
+        import zipfile
+        tema = slug((q.get("tema", [""]) or [""])[0])
+        tipo = re.sub(r"[^a-z0-9_]", "", ((q.get("tipo", [""]) or [""])[0] or "").lower())[:30]
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        try:
+            items = productos.piezas_tipo(tema, tipo)
+        except Exception as e:
+            return self._json(400, {"ok": False, "error": str(e)})
+        muestra = {"nombre": "Tomás", "edad": "5", "anyo": "2026"}
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+            for nombre, fn, _ in items:
+                img = piezas.to_rgb(fn(muestra))
+                pbuf = io.BytesIO(); img.save(pbuf, "PNG")
+                z.writestr("%s-%s-%s.png" % (tipo, tema, nombre), pbuf.getvalue())
+        data = buf.getvalue()
+        self.send_response(200)
+        self.send_header("Content-Type", "application/zip")
+        self.send_header("Content-Disposition", 'attachment; filename="%s-%s.zip"' % (tipo, tema))
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers(); self.wfile.write(data)
+
+    def _dash_producto_upload(self):
+        """Sube un reemplazo (override) para UNA pieza puntual — ej. la misma pieza
+        mejorada con otra IA. No toca el diseño procedural; solo lo tapa para ese tema."""
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        tipo = re.sub(r"[^a-z0-9_]", "", (q.get("tipo", [""])[0] or "").lower())[:30]
+        try:
+            idx = int(q.get("pieza", ["0"])[0])
+        except ValueError:
+            return self._json(400, {"ok": False, "error": "pieza inválida"})
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        try:
+            n = int(self.headers.get("Content-Length", "0"))
+            raw = self.rfile.read(n) if n else b""
+            if not raw:
+                return self._json(400, {"ok": False, "error": "sin archivo"})
+            im = Image.open(io.BytesIO(raw)).convert("RGBA")
+        except Exception as e:
+            return self._json(400, {"ok": False, "error": "imagen inválida: %s" % e})
+        dest = productos.override_path(tema, tipo, idx)
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        im.save(dest)
+        return self._json(200, {"ok": True})
+
+    def _dash_producto_borrar_override(self):
+        """Saca el reemplazo subido a mano: la pieza vuelve a su diseño procedural."""
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        tipo = re.sub(r"[^a-z0-9_]", "", (q.get("tipo", [""])[0] or "").lower())[:30]
+        try:
+            idx = int(q.get("pieza", ["0"])[0])
+        except ValueError:
+            return self._json(400, {"ok": False, "error": "pieza inválida"})
+        dest = productos.override_path(tema, tipo, idx)
+        if os.path.isfile(dest):
+            os.remove(dest)
+            return self._json(200, {"ok": True, "borrado": True})
+        return self._json(200, {"ok": True, "borrado": False})
 
     # ---- Arte BASE de una temática existente (invitacion_N / afiche_N en la raíz) ----
     def _dash_base_estado(self, q):
