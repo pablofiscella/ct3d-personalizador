@@ -13,7 +13,12 @@
   .wrap{max-width:1100px;margin:0 auto;padding:16px;display:grid;gap:18px;grid-template-columns:1fr}
   @media(min-width:780px){.wrap{grid-template-columns:1fr 340px;align-items:start}.preview{position:sticky;top:14px}}
   .preview{background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.12);padding:14px;text-align:center}
-  .preview img{max-width:100%;height:auto;border-radius:8px;display:block;margin:0 auto;background:#faf8f4}
+  .preview__img-wrap{position:relative}
+  .preview img{max-width:100%;height:auto;border-radius:8px;display:block;margin:0 auto;background:#faf8f4;min-height:220px}
+  .preview__loading{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,.72);border-radius:8px}
+  .preview__loading.on{display:flex}
+  .preview__spinner{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--violet);border-radius:50%;animation:pv-spin .8s linear infinite}
+  @keyframes pv-spin{to{transform:rotate(360deg)}}
   .panel{background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.10);padding:16px}
   h1{font-size:1.05rem;margin:0 0 4px}
   .sub{font-size:.85rem;color:#6b6580;margin:0 0 14px}
@@ -33,7 +38,10 @@
 <div class="wrap">
   <div class="preview">
     <div class="tabs" id="tabs" style="display:none"></div>
-    <img id="pv" alt="Vista previa">
+    <div class="preview__img-wrap">
+      <img id="pv" alt="Vista previa">
+      <div class="preview__loading" id="pv-loading"><span class="preview__spinner"></span></div>
+    </div>
     <p class="note">La marca de agua es solo de la muestra; lo que se compra sale limpio.</p>
   </div>
   <div class="panel">
@@ -52,10 +60,18 @@
   var TEMA = (qs.get('tema')||'safari').toLowerCase();
   var EDAD = qs.get('edad')||'1';
   var pv = document.getElementById('pv');
+  var pvLoading = document.getElementById('pv-loading');
   var inp = document.getElementById('nombre');
   var hint = document.getElementById('hint');
   var titulo = document.getElementById('titulo');
   var tabsBox = document.getElementById('tabs');
+
+  // Cada cambio de pestaña/nombre pide una imagen nueva al servidor y puede tardar
+  // (el cuaderno de actividades renderiza la página en el momento) — sin esto la imagen
+  // vieja se queda quieta y parece colgado. Overlay con spinner hasta que cargue.
+  pv.addEventListener('load', function(){ pvLoading.classList.remove('on'); });
+  pv.addEventListener('error', function(){ pvLoading.classList.remove('on'); });
+  function cargarPreview(){ pvLoading.classList.add('on'); pv.src = previewUrl(); }
 
   var LABELS = { milestone:'Personalizá tus tarjetas mes a mes', actividades:'Personalizá las actividades', cartel:'Personalizá el cartel' };
   titulo.textContent = LABELS[TIPO] || 'Personalizá tu diseño';
@@ -102,7 +118,7 @@
     }catch(e){}
   }
   var t=null;
-  function refrescar(){ clearTimeout(t); t=setTimeout(function(){ pv.src = previewUrl(); }, 350); emit(false); }
+  function refrescar(){ clearTimeout(t); t=setTimeout(cargarPreview, 350); emit(false); }
 
   inp.addEventListener('input', function(){
     refrescar();
@@ -126,7 +142,7 @@
     .catch(function(){})
     .then(function(){
       pintarTabs();
-      pv.src = previewUrl();
+      cargarPreview();
     });
 })();
 </script>
