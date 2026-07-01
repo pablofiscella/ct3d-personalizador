@@ -19,11 +19,16 @@ def upscalar_imagen(im, objetivo=2400, maxfactor=3.0):
     return im.resize((round(im.width * f), round(im.height * f)), Image.LANCZOS)
 
 
-def upscalar_draft(temas_dir, tema, objetivo=2400):
-    """Upscalea en su lugar cada PNG del staging ia_draft/ del tema. Devuelve cuántas tocó."""
+def upscalar_draft(temas_dir, tema, objetivo=2400, progress=None):
+    """Upscalea en su lugar cada PNG del staging ia_draft/ del tema. Devuelve cuántas tocó.
+    `progress(nombre_archivo)` se llama antes de procesar cada una (feedback en jobs largos:
+    aprobar puede tardar bastante con 14+ piezas y sin esto se ve como colgado)."""
     d = os.path.join(temas_dir, tema, "ia_draft")
     n = 0
-    for p in sorted(glob.glob(os.path.join(d, "*.png"))):
+    archivos = sorted(glob.glob(os.path.join(d, "*.png")))
+    for p in archivos:
+        if progress:
+            progress(os.path.basename(p))
         with Image.open(p) as im:
             up = upscalar_imagen(im, objetivo)
             if up.size != im.size:

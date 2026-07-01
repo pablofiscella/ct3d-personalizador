@@ -1,5 +1,15 @@
+import os
 from PIL import Image
 from ia_kit import upscale
+
+
+def test_upscalar_draft_llama_progress_por_archivo(tmp_path):
+    d = tmp_path / "circo" / "ia_draft"; d.mkdir(parents=True)
+    Image.new("RGBA", (500, 500)).save(d / "afiche_1.png")
+    Image.new("RGBA", (500, 500)).save(d / "topper_1.png")
+    vistos = []
+    upscale.upscalar_draft(str(tmp_path), "circo", objetivo=800, progress=vistos.append)
+    assert sorted(vistos) == ["afiche_1.png", "topper_1.png"]
 
 
 def test_upscalar_agranda_y_preserva_rgba_y_ratio():

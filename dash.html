@@ -653,12 +653,31 @@ async function openIA(tema, nombre){
   };
 
   btnApr.onclick=async()=>{
-    btnApr.disabled=true; imsg.textContent='Aprobando…';
+    btnApr.disabled=true; imsg.innerHTML='<span style="display:inline-flex;align-items:center;gap:7px"><span style="width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;display:inline-block;animation:ia-spin .8s linear infinite"></span>Aprobando… (escalando piezas a resolución de impresión)</span>';
     try{
       const r=await fetch('/dash/ia-aprobar?tema='+encodeURIComponent(tema),{method:'POST',headers:{'X-API-Key':KEY}});
       const j=await r.json();
-      if(j.ok){ imsg.textContent='✓ '+j.n+' piezas aprobadas y listas para publicar.'; btnApr.disabled=false; }
-      else{ imsg.textContent='✕ '+(j.error||'error'); btnApr.disabled=false; }
+      if(!j.ok||!j.job){ imsg.textContent='✕ '+(j.error||'no arrancó'); btnApr.disabled=false; return; }
+      const esperar=async()=>{
+        try{
+          const s=await (await fetch('/dash/ia-estado?job='+encodeURIComponent(j.job),{headers:{'X-API-Key':KEY}})).json();
+          const evs=s.eventos||[];
+          const ultimo=evs[evs.length-1];
+          if(s.estado==='corriendo'){
+            const txt=ultimo&&ultimo.fase==='upscale'?('escalando '+ultimo.archivo+'…'):'preparando…';
+            imsg.innerHTML='<span style="display:inline-flex;align-items:center;gap:7px"><span style="width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;display:inline-block;animation:ia-spin .8s linear infinite"></span>Aprobando… '+txt+'</span>';
+            setTimeout(esperar,1200); return;
+          }
+          if(s.estado==='listo'){
+            const n=(ultimo&&ultimo.n)||0;
+            imsg.textContent='✓ '+n+' piezas aprobadas y listas para publicar.';
+          } else {
+            imsg.textContent='✕ '+(s.error||'error');
+          }
+          btnApr.disabled=false;
+        }catch(e){ imsg.textContent='✕ '+e; btnApr.disabled=false; }
+      };
+      esperar();
     }catch(e){ imsg.textContent='✕ '+e; btnApr.disabled=false; }
   };
 

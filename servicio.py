@@ -1426,29 +1426,36 @@ class Handler(BaseHTTPRequestHandler):
         return self._json(200, {"ok": True, "job": jid})
 
     def _ia_aprobar(self):
+        """Upscale a resolución de impresión + mover a extras/. Puede tardar bastante con
+        muchas piezas (14+) -> corre en BACKGROUND con progreso por archivo, igual que
+        generar/regenerar (un POST síncrono largo se veía "colgado" y arriesgaba 504/524
+        en el proxy)."""
         if not self._admin_ok():
             return self._deny()
         q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         tema = slug(q.get("tema", [""])[0])
         if not tema or not temas.existe(tema):
             return self._json(400, {"ok": False, "error": "tema inválido"})
-        # al aprobar: upscale a resolución de impresión (misma imagen) y recién mover
-        try:
-            ia_upscale.upscalar_draft(temas.TEMAS_DIR, tema)
-        except Exception as e:
-            print("[ia] upscale falló (sigo igual):", e)
-        res = ia_aprobar.aprobar(temas.TEMAS_DIR, tema)
-        generador._specs_cache.pop(tema, None)
-        # refrescar thumbs de los archivos movidos (el modal de arte base no debe
-        # mostrar el thumb viejo del slot invitacion_* sobrescrito)
-        tdir = os.path.join(temas.TEMAS_DIR, tema)
-        exdir = os.path.join(tdir, "extras")
-        for name in res.get("movidas", []):
+        def trabajo(emit):
             try:
-                _pieza_thumb(tdir if name.startswith("invitacion_") else exdir, name)
-            except Exception:
-                pass
-        return self._json(200, {"ok": True, **res})
+                ia_upscale.upscalar_draft(temas.TEMAS_DIR, tema,
+                                          progress=lambda a: emit({"fase": "upscale", "archivo": a}))
+            except Exception as e:
+                print("[ia] upscale falló (sigo igual):", e)
+            res = ia_aprobar.aprobar(temas.TEMAS_DIR, tema)
+            generador._specs_cache.pop(tema, None)
+            # refrescar thumbs de los archivos movidos (el modal de arte base no debe
+            # mostrar el thumb viejo del slot invitacion_* sobrescrito)
+            tdir = os.path.join(temas.TEMAS_DIR, tema)
+            exdir = os.path.join(tdir, "extras")
+            for name in res.get("movidas", []):
+                try:
+                    _pieza_thumb(tdir if name.startswith("invitacion_") else exdir, name)
+                except Exception:
+                    pass
+            emit({"fase": "listo", **res})
+        jid = ia_jobs.iniciar(trabajo)
+        return self._json(200, {"ok": True, "job": jid})
 
 if __name__ == "__main__":
     os.makedirs(DATA_DIR, exist_ok=True)
