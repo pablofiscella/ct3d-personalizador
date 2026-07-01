@@ -1233,17 +1233,16 @@ cargar();
 </div>
 
 <script>
-(function(){
-  const editorBtn = document.getElementById('cal-editor-btn');
-  const editorModal = document.getElementById('cal-editor-modal');
-  
-  if (editorBtn && editorModal) {
-    editorBtn.addEventListener('click', () => {
+// Event delegation - el botón se crea dinámicamente
+document.addEventListener('click', (e) => {
+  if (e.target.id === 'cal-editor-btn') {
+    const modal = document.getElementById('cal-editor-modal');
+    if (modal && typeof tema !== 'undefined') {
       window.TEMA_ACTUAL = tema;
-      editorModal.showModal();
-    });
+      modal.showModal();
+    }
   }
-})();
+});
 </script>
 </dialog>
 
