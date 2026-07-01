@@ -7,15 +7,23 @@ usar de vista previa. El pipeline de compra/pago/entrega de la tienda no cambia:
 solo viaja un `tipo` extra.
 
 Tipos:
-- kit         → las 7 piezas (comportamiento histórico, default).
-- invitacion  → solo la invitación (1 PDF).
-- cartel      → solo el cartel/afiche de bienvenida (1 PDF).
-- actividades → pack para imprimir: hoja "para colorear" + hoja de "juegos".
-- milestone   → tarjetas mes a mes del bebé (1 mes … 12 meses).
+- kit           → las 7 piezas (comportamiento histórico, default).
+- invitacion    → solo la invitación (1 PDF).
+- cartel        → solo el cartel/afiche de bienvenida (1 PDF).
+- actividades   → pack para imprimir: hoja "para colorear" + hoja de "juegos".
+- milestone     → tarjetas mes a mes del bebé (1 mes … 12 meses).
+- certificado   → diploma oficial de cumpleañero.
+- corona        → gorro cónico + corona de rey para armar.
+- antifaces     → antifaz, bigotes y lentes para photo booth.
+- menu          → menú infantil para la mesa del salón.
+- rompecabezas  → nombre partido en piezas para recortar y armar.
+- capsula       → carta para el futuro (sobre + hoja de preguntas).
+- calendario    → 12 meses personalizados con la temática.
+- papertoys     → cubo 3D con letras del nombre para armar.
+- memoria       → juego de memoria con 24 cartas (12 pares).
 
 Las piezas nuevas se arman 100% procedurales (Pillow), reutilizando la paleta y
-tipografía de cada temática (bloque "kit" del tema.json). Sirven para las 9
-temáticas sin arte nuevo.
+tipografía de cada temática (bloque "kit" del tema.json).
 """
 import os
 from PIL import Image, ImageDraw
@@ -300,6 +308,58 @@ def _piezas_babyshower(tema):
     return [("%d_%s" % (i + 1, key), (lambda k: (lambda d: bs.pieza(k, d, tema)))(key), True)
             for i, (key, _l) in enumerate(bs.PIEZAS)]
 
+def _piezas_certificado(tema):
+    import certificado
+    return [("1_certificado", lambda d: certificado.generar_certificado(d, tema), True)]
+
+def _piezas_corona(tema):
+    import corona
+    return [("1_gorro", lambda d: corona.gorro(d, tema), True),
+            ("2_corona", lambda d: corona.corona(d, tema), True)]
+
+def _piezas_antifaces(tema):
+    import antifaces
+    return [("1_antifaz", lambda d: antifaces.antifaz_mariposa(d, tema), True),
+            ("2_bigotes", lambda d: antifaces.bigotes(d, tema), True),
+            ("3_lentes", lambda d: antifaces.lentes_fiesta(d, tema), True)]
+
+def _piezas_menu(tema):
+    import menu_infantil
+    return [("1_menu", lambda d: menu_infantil.generar_menu(d, tema), True)]
+
+def _piezas_rompecabezas(tema):
+    import rompecabezas
+    return [("1_rompecabezas", lambda d: rompecabezas.rompecabezas_nombre(d, tema), True)]
+
+def _piezas_capsula(tema):
+    import capsula_tiempo
+    return [("1_sobre", lambda d: capsula_tiempo.portada_sobre(d, tema), True),
+            ("2_carta", lambda d: capsula_tiempo.hoja_carta(d, tema), True)]
+
+def _piezas_calendario(tema):
+    import calendario
+    return [("01_enero", lambda d: calendario.mes_hoja(1, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
+            ("02_febrero", lambda d: calendario.mes_hoja(2, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
+            ("03_marzo", lambda d: calendario.mes_hoja(3, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
+            ("04_abril", lambda d: calendario.mes_hoja(4, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
+            ("05_mayo", lambda d: calendario.mes_hoja(5, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
+            ("06_junio", lambda d: calendario.mes_hoja(6, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
+            ("07_julio", lambda d: calendario.mes_hoja(7, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
+            ("08_agosto", lambda d: calendario.mes_hoja(8, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
+            ("09_septiembre", lambda d: calendario.mes_hoja(9, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
+            ("10_octubre", lambda d: calendario.mes_hoja(10, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
+            ("11_noviembre", lambda d: calendario.mes_hoja(11, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
+            ("12_diciembre", lambda d: calendario.mes_hoja(12, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True)]
+
+def _piezas_papertoys(tema):
+    import papertoys
+    return [("1_cubo", lambda d: papertoys.cubo_personalizado(d, tema), True)]
+
+def _piezas_memoria(tema):
+    import memoria
+    return [("1_cartas_memoria", lambda d: memoria.generar_memoria(d, tema), True),
+            ("2_dorso", lambda d: memoria.dorso_memoria(d, tema), True)]
+
 
 # campos = qué pedir en la ficha (la generación usa el superset igual).
 _CAMPOS_FULL = ["nombre", "fecha", "hora", "lugar", "direccion", "telefono", "edad"]
@@ -354,6 +414,69 @@ TIPOS = {
         "preview": "babyshower",
         "piezas": _piezas_babyshower,
     },
+    "certificado": {
+        "nombre": "Certificado de cumpleañero",
+        "descripcion": "Diploma oficial con el nombre y la edad, listo para imprimir y enmarcar.",
+        "campos": ["nombre", "edad"],
+        "preview": "certificado",
+        "piezas": _piezas_certificado,
+    },
+    "corona": {
+        "nombre": "Gorro y Corona de cumpleaños",
+        "descripcion": "Gorro cónico + corona de rey para armar, recortar y pegar. Dos diseños en un mismo PDF.",
+        "campos": ["nombre", "edad"],
+        "preview": "corona",
+        "piezas": _piezas_corona,
+    },
+    "antifaces": {
+        "nombre": "Photo Booth Props",
+        "descripcion": "Antifaz de mariposa, bigotes divertidos y lentes de fiesta para recortar y pegar en palitos. Ideal para fotos.",
+        "campos": ["nombre"],
+        "preview": "antifaces",
+        "piezas": _piezas_antifaces,
+    },
+    "menu": {
+        "nombre": "Menú infantil personalizado",
+        "descripcion": "Menú del día con el nombre del cumpleañero, ideal para la mesa del salón. Para colorear.",
+        "campos": ["nombre", "edad"],
+        "preview": "menu",
+        "piezas": _piezas_menu,
+    },
+    "rompecabezas": {
+        "nombre": "Rompecabezas del nombre",
+        "descripcion": "Hoja A4 con el nombre partido en piezas para recortar y armar. Incluye solución.",
+        "campos": ["nombre", "edad"],
+        "preview": "rompecabezas",
+        "piezas": _piezas_rompecabezas,
+    },
+    "capsula": {
+        "nombre": "Cápsula del Tiempo",
+        "descripcion": "Carta para el futuro: sobre lacrado + hoja de preguntas para responder. Abrir en 5, 10 o 18 años.",
+        "campos": ["nombre", "edad"],
+        "preview": "capsula",
+        "piezas": _piezas_capsula,
+    },
+    "calendario": {
+        "nombre": "Calendario personalizado",
+        "descripcion": "12 meses con el nombre de la familia, decorado con la temática. Producto recurrente (cada año).",
+        "campos": ["nombre", "anyo"],
+        "preview": "calendario",
+        "piezas": _piezas_calendario,
+    },
+    "papertoys": {
+        "nombre": "Paper Toys — Cubo 3D",
+        "descripcion": "Cubo desplegable con las letras del nombre para recortar, doblar y armar.",
+        "campos": ["nombre"],
+        "preview": "papertoys",
+        "piezas": _piezas_papertoys,
+    },
+    "memoria": {
+        "nombre": "Juego de la Memoria",
+        "descripcion": "24 cartas (12 pares) con emojis y dorsos decorados. Para recortar y jugar.",
+        "campos": ["nombre"],
+        "preview": "memoria",
+        "piezas": _piezas_memoria,
+    },
 }
 
 DEFAULT_TIPO = "kit"
@@ -381,7 +504,24 @@ _PIEZA_LABELS = {
     "1_rutina_visual": "Rutina visual",
     "1_invitacion": "Invitación", "2_no_digas_bebe": "Juego: No digas «bebé»",
     "3_predicciones": "Predicciones", "4_etiquetas": "Etiquetas souvenir",
-    "5_banderines": "Banderines", "6_carta_18": "Tarjeta para los 18",
+    "5_banderines": "Banderines",     "6_carta_18": "Tarjeta para los 18",
+    "1_certificado": "Certificado",
+    "1_gorro": "Gorro para armar",
+    "2_corona": "Corona para armar",
+    "1_antifaz": "Antifaz mariposa",
+    "2_bigotes": "Bigotes divertidos",
+    "3_lentes": "Lentes de fiesta",
+    "1_menu": "Menú infantil",
+    "1_rompecabezas": "Rompecabezas",
+    "1_sobre": "Sobre lacrado",
+    "2_carta": "Carta del futuro",
+    "01_enero": "Enero", "02_febrero": "Febrero", "03_marzo": "Marzo",
+    "04_abril": "Abril", "05_mayo": "Mayo", "06_junio": "Junio",
+    "07_julio": "Julio", "08_agosto": "Agosto", "09_septiembre": "Septiembre",
+    "10_octubre": "Octubre", "11_noviembre": "Noviembre", "12_diciembre": "Diciembre",
+    "1_cubo": "Cubo 3D para armar",
+    "1_cartas_memoria": "Cartas del memory",
+    "2_dorso": "Dorso de cartas",
     # kits dinámicos por arte estática (extras/): nombres lindos para la galería
     "01_invitacion": "Invitación", "02_afiche": "Afiche del número",
     "03_topper": "Topper de torta", "04_stickers": "Stickers",
@@ -468,6 +608,33 @@ def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):
     elif pieza == "babyshower":
         import baby_shower as bs
         img = bs.pieza("invitacion", data, tema)
+    elif pieza == "certificado":
+        import certificado
+        img = certificado.generar_certificado(data, tema)
+    elif pieza == "corona":
+        import corona
+        img = corona.corona(data, tema)
+    elif pieza == "antifaces":
+        import antifaces
+        img = antifaces.antifaz_mariposa(data, tema)
+    elif pieza == "menu":
+        import menu_infantil
+        img = menu_infantil.generar_menu(data, tema)
+    elif pieza == "rompecabezas":
+        import rompecabezas
+        img = rompecabezas.rompecabezas_nombre(data, tema)
+    elif pieza == "capsula":
+        import capsula_tiempo
+        img = capsula_tiempo.portada_sobre(data, tema)
+    elif pieza == "calendario":
+        import calendario
+        img = calendario.mes_hoja(1, int(data.get("anyo") or "2026"), data.get("nombre") or "Mi familia", calendario._accent(tema))
+    elif pieza == "papertoys":
+        import papertoys
+        img = papertoys.cubo_personalizado(data, tema)
+    elif pieza == "memoria":
+        import memoria
+        img = memoria.generar_memoria(data, tema)
     else:
         img = render(data, specs_de(tema)["invitacion"])
     img = img.convert("RGB") if img.mode == "RGBA" else img
