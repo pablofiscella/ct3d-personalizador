@@ -1167,40 +1167,335 @@ cargar();
     <h2 style="margin:0;font-size:18px;font-family:Fredoka,sans-serif;color:#333">⚙️ Editor de Plantilla de Calendario</h2>
   </div>
 <div id="cal-editor-container">
-<!-- Editor de calendario embebible en modal - SIMPLE Y AUTOMÁTICO -->
-<div id="editor-calendario-wrap" style="padding:20px;max-height:80vh;overflow-y:auto;font-family:Nunito,sans-serif">
-  <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:20px;margin-bottom:20px">
-    <!-- Panel izquierdo: imagen + año -->
-    <div>
-      <h3 style="font-size:14px;margin-bottom:10px">1. Plantilla</h3>
-      <label style="display:block;padding:12px;border:2px dashed #4FA11C;border-radius:8px;cursor:pointer;text-align:center;font-size:13px;background:#f9f9f9;margin-bottom:15px">
-        📤 Elegir imagen (A4: 1240×1754)
-        <input type="file" id="cal-editor-file" accept="image/*" style="display:none">
-      </label>
-      <div id="cal-editor-preview" style="max-height:250px;overflow:hidden;border-radius:6px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;min-height:100px">
-        Preview de la imagen
-      </div>
-      
-      <h3 style="font-size:14px;margin-top:15px;margin-bottom:10px">2. Año</h3>
-      <input type="number" id="cal-editor-anyo" value="2026" min="2024" max="2050" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:4px;font-size:13px;font-weight:600">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Nunito', sans-serif; background: #f0ebe3; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+h1 { font-family: 'Fredoka', sans-serif; color: #4FA11C; margin-bottom: 15px; font-size: 28px; }
+.editor-wrap { display: flex; gap: 20px; width: 100%; height: 100%; }
+#canvas-wrap { position: relative; flex: 1; overflow: auto; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); background: #fff; display: flex; align-items: center; justify-content: center; }
+#canvas-wrap canvas { display: block; max-width: 100%; max-height: 100%; }
+#panel { width: 320px; min-width: 320px; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 20px; height: 100%; overflow-y: auto; }
+#panel h2 { font-family: 'Fredoka', sans-serif; font-size: 18px; color: #333; margin-bottom: 12px; border-bottom: 2px solid #8EB85A; padding-bottom: 6px; }
+.group { background: #f8f6f0; border-radius: 8px; padding: 12px; margin-bottom: 12px; border: 2px solid #ddd; cursor: move; }
+.group.active { border-color: #4FA11C; box-shadow: 0 0 0 2px rgba(79,161,28,0.2); }
+.group h3 { font-size: 14px; color: #555; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.group h3 .badge { font-size: 10px; background: #8EB85A; color: #fff; padding: 1px 6px; border-radius: 4px; }
+.row { display: flex; gap: 8px; margin-bottom: 6px; align-items: center; }
+.row label { font-size: 12px; color: #666; min-width: 65px; }
+.row input[type=range] { flex: 1; }
+.row .val { font-size: 12px; color: #333; min-width: 28px; text-align: right; font-weight: 700; }
+.row input[type=color] { width: 32px; height: 32px; border: none; border-radius: 4px; cursor: pointer; padding: 0; }
+.btn { background: #4FA11C; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; width: 100%; font-family: 'Nunito', sans-serif; }
+.btn:hover { background: #3d8a14; }
+.btn.secondary { background: #8EB85A; margin-top: 6px; font-size: 13px; }
+.btn.secondary:hover { background: #7aa84a; }
+.coords { font-size: 11px; color: #888; margin-top: 4px; font-family: monospace; }
+select { padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 13px; }
+#download-link { display: none; }
+.status { font-size: 12px; color: #4FA11C; margin-top: 8px; text-align: center; display: none; }
+</style>
+
+<div class="editor-wrap">
+  <div id="canvas-wrap">
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <div id="panel">
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;color:#666">Plantilla:</label>
+      <input type="file" id="file-input" accept="image/*" style="font-size:12px">
     </div>
 
-    <!-- Panel derecho: parámetros (colapsables) -->
-    <div>
-      <h3 style="font-size:14px;margin-bottom:10px">Parámetros avanzados</h3>
-      <details style="font-size:12px;border:1px solid #ddd;border-radius:6px;padding:10px">
-        <summary style="cursor:pointer;font-weight:600">⚙️ Mostrar/Ocultar</summary>
-        <div style="margin-top:10px;display:flex;flex-direction:column;gap:10px">
-          <div>
-            <label>Mes - Tamaño fuente:</label>
-            <input type="range" id="cal-editor-month-size" min="40" max="120" value="110" style="width:100%">
-            <span id="cal-editor-month-size-val">110</span>px
-          </div>
-          <div>
-            <label>Días semana - Tamaño:</label>
-            <input type="range" id="cal-editor-weekday-size" min="14" max="40" value="24" style="width:100%">
-            <span id="cal-editor-weekday-size-val">24</span>px
-          </div>
+    <h2>GROUPS</h2>
+
+    <div class="group active" data-group="month">
+      <h3><span class="badge">MES</span> Nombre del mes</h3>
+      <div class="row"><label>Size:</label><input type="range" id="month-size" min="40" max="120" value="78"><span class="val" id="month-size-val">78</span></div>
+      <div class="row"><label>Weight:</label><select id="month-weight"><option value="500">Medium</option><option value="600">SemiBold</option><option value="700" selected>Bold</option></select></div>
+      <div class="coords" id="month-coords">x: -- y: --</div>
+    </div>
+
+    <div class="group active" data-group="header">
+      <h3><span class="badge">DIAS</span> Días de la semana</h3>
+      <div class="row"><label>Size:</label><input type="range" id="header-size" min="14" max="40" value="24"><span class="val" id="header-size-val">24</span></div>
+      <div class="row"><label>Weight:</label><select id="header-weight"><option value="600">SemiBold</option><option value="700" selected>Bold</option><option value="800">ExtraBold</option></select></div>
+      <div class="row"><label>Tracking:</label><input type="range" id="header-tracking" min="-5" max="5" value="0"><span class="val" id="header-tracking-val">0</span></div>
+      <div class="row"><label>Col pad:</label><input type="range" id="header-colpad" min="0" max="30" value="8"><span class="val" id="header-colpad-val">8</span></div>
+      <div class="coords" id="header-coords">x: -- y: --</div>
+    </div>
+
+    <div class="group active" data-group="numbers">
+      <h3><span class="badge">NUM</span> Números</h3>
+      <div class="row"><label>Size:</label><input type="range" id="num-size" min="16" max="48" value="28"><span class="val" id="num-size-val">28</span></div>
+      <div class="row"><label>Weight:</label><select id="num-weight"><option value="700">Bold</option><option value="800">ExtraBold</option><option value="900" selected>Black</option></select></div>
+      <div class="row"><label>Tracking:</label><input type="range" id="num-tracking" min="-6" max="2" value="-2"><span class="val" id="num-tracking-val">-2</span></div>
+      <div class="row"><label>Col pad:</label><input type="range" id="num-colpad" min="0" max="30" value="6"><span class="val" id="num-colpad-val">6</span></div>
+      <div class="row"><label>V. offset:</label><input type="range" id="num-voffset" min="-20" max="20" value="-4"><span class="val" id="num-voffset-val">-4</span></div>
+      <div class="coords" id="nums-coords">x: -- y: --</div>
+    </div>
+
+    <hr style="margin:12px 0;border:none;border-top:1px solid #ddd">
+
+    <div class="row"><label style="min-width:auto">Año:</label><select id="anno"><option>2025</option><option selected>2026</option><option>2027</option></select></div>
+    <div class="row"><label style="min-width:auto">Grid W:</label><input type="range" id="grid-w" min="700" max="1200" value="958"><span class="val" id="grid-w-val">958</span></div>
+    <div class="row"><label style="min-width:auto">Grid H:</label><input type="range" id="grid-h" min="400" max="800" value="570"><span class="val" id="grid-h-val">570</span></div>
+
+    <button class="btn" id="generate-btn">🚀 Generar 12 meses</button>
+    <div class="status" id="status"></div>
+  </div>
+</div>
+
+<a id="download-link"></a>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let img = null;
+let imgLoaded = false;
+
+const MONTHS = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+const DAYS = ['LUN','MAR','MIÉ','JUE','VIE','SÁB','DOM'];
+
+const state = {
+  month: { x: 746, y: 220, size: 78, weight: 700 },
+  header: { x: 257, y: 353, w: 958, size: 24, weight: 700, tracking: 0, colpad: 8 },
+  numbers: { x: 257, y: 390, w: 958, h: 570, size: 28, weight: 900, tracking: -2, voffset: -4, colpad: 6 },
+  cols: 7, rows: 6,
+  anno: 2026,
+};
+
+let dragging = null;
+let dragOffX = 0, dragOffY = 0;
+
+function loadImage(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    img = new Image();
+    img.onload = function() {
+      imgLoaded = true;
+      canvas.width = img.width;
+      canvas.height = img.height;
+      render();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+document.getElementById('file-input').addEventListener('change', function(e) {
+  if (e.target.files[0]) loadImage(e.target.files[0]);
+});
+
+function getGroupAt(mx, my) {
+  const s = state;
+  if (my > 170 && my < 320 && mx > 200 && mx < 1200) return 'month';
+  if (my > 320 && my < 395 && mx > s.header.x && mx < s.header.x + s.header.w) return 'header';
+  if (my > s.numbers.y && my < s.numbers.y + s.numbers.h && mx > s.numbers.x && mx < s.numbers.x + s.numbers.w) return 'numbers';
+  return null;
+}
+
+let canvasRect = null;
+function getCanvasCoords(e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  return {
+    x: (e.clientX - rect.left) * scaleX,
+    y: (e.clientY - rect.top) * scaleY,
+  };
+}
+
+canvas.addEventListener('mousedown', function(e) {
+  const c = getCanvasCoords(e);
+  canvasRect = canvas.getBoundingClientRect();
+  const group = getGroupAt(c.x, c.y);
+  if (group) {
+    dragging = group;
+    if (group === 'month') { dragOffX = c.x - state.month.x; dragOffY = c.y - state.month.y; }
+    else if (group === 'header') { dragOffX = c.x - state.header.x; dragOffY = c.y - state.header.y; }
+    else if (group === 'numbers') { dragOffX = c.x - state.numbers.x; dragOffY = c.y - state.numbers.y; }
+    document.querySelectorAll('.group').forEach(g => g.classList.remove('active'));
+    document.querySelector('[data-group="' + group + '"]').classList.add('active');
+  }
+});
+
+window.addEventListener('mousemove', function(e) {
+  if (!dragging) return;
+  const c = getCanvasCoords(e);
+  if (dragging === 'month') {
+    state.month.x = Math.round(c.x - dragOffX);
+    state.month.y = Math.round(c.y - dragOffY);
+  } else if (dragging === 'header') {
+    state.header.x = Math.round(c.x - dragOffX);
+    state.header.y = Math.round(c.y - dragOffY);
+  } else if (dragging === 'numbers') {
+    state.numbers.x = Math.round(c.x - dragOffX);
+    state.numbers.y = Math.round(c.y - dragOffY);
+  }
+  render();
+});
+
+window.addEventListener('mouseup', function() {
+  dragging = null;
+});
+
+function render() {
+  if (!imgLoaded) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(img, 0, 0);
+
+  const s = state;
+
+  ctx.font = s.month.weight + ' ' + s.month.size + 'px Fredoka, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillText('ENERO', s.month.x, s.month.y);
+
+  ctx.font = s.header.weight + ' ' + s.header.size + 'px Nunito, sans-serif';
+  const cellW = s.numbers.w / s.cols;
+  const hPad = s.header.colpad || 0;
+  for (let col = 0; col < 7; col++) {
+    const cx = s.header.x + col * cellW + cellW / 2;
+    ctx.fillStyle = (col === 6) ? '#D62828' : '#FFFFFF';
+    if (hPad > 0) {
+      const w = cellW - hPad * 2;
+      ctx.fillText(DAYS[col], cx, s.header.y, w);
+    } else {
+      ctx.fillText(DAYS[col], cx, s.header.y);
+    }
+  }
+
+  ctx.font = s.numbers.weight + ' ' + s.numbers.size + 'px Nunito, sans-serif';
+  const cellH = s.numbers.h / s.rows;
+  const firstWD = new Date(s.anno, 0, 1).getDay();
+  const firstWDadj = (firstWD === 0) ? 6 : firstWD - 1;
+  const numDays = new Date(s.anno, 1, 0).getDate();
+  const nPad = s.numbers.colpad || 0;
+  let dn = 1;
+  for (let r = 0; r < s.rows; r++) {
+    for (let col = 0; col < s.cols; col++) {
+      if (r === 0 && col < firstWDadj) continue;
+      if (dn > numDays) break;
+      const cx = s.numbers.x + col * cellW + cellW / 2;
+      const cy = s.numbers.y + r * cellH + cellH / 2 + s.numbers.voffset;
+      ctx.fillStyle = (col === 6) ? '#D62828' : '#1E1E1E';
+      const txt = String(dn);
+      const maxW = cellW - (nPad || 0) * 2;
+      ctx.fillText(txt, cx, cy, maxW > 0 ? maxW : undefined);
+      dn++;
+    }
+    if (dn > numDays) break;
+  }
+
+  document.getElementById('month-coords').textContent = 'x: ' + s.month.x + '  y: ' + s.month.y;
+  document.getElementById('header-coords').textContent = 'x: ' + s.header.x + '  y: ' + s.header.y + '  w: ' + s.header.w;
+  document.getElementById('nums-coords').textContent = 'x: ' + s.numbers.x + '  y: ' + s.numbers.y + '  w: ' + s.numbers.w + '  h: ' + s.numbers.h;
+}
+
+function bindSlider(id, valId, key, subkey) {
+  const el = document.getElementById(id);
+  const valEl = document.getElementById(valId);
+  el.addEventListener('input', function() {
+    const v = parseInt(this.value);
+    valEl.textContent = v;
+    if (subkey) state[key][subkey] = v;
+    else state[key] = v;
+    render();
+  });
+}
+
+bindSlider('month-size', 'month-size-val', 'month', 'size');
+bindSlider('header-size', 'header-size-val', 'header', 'size');
+bindSlider('header-tracking', 'header-tracking-val', 'header', 'tracking');
+bindSlider('header-colpad', 'header-colpad-val', 'header', 'colpad');
+bindSlider('num-size', 'num-size-val', 'numbers', 'size');
+bindSlider('num-tracking', 'num-tracking-val', 'numbers', 'tracking');
+bindSlider('num-colpad', 'num-colpad-val', 'numbers', 'colpad');
+bindSlider('num-voffset', 'num-voffset-val', 'numbers', 'voffset');
+bindSlider('grid-w', 'grid-w-val', 'numbers', 'w');
+bindSlider('grid-h', 'grid-h-val', 'numbers', 'h');
+
+document.getElementById('grid-w').addEventListener('input', function() {
+  state.numbers.w = parseInt(this.value);
+  state.header.w = parseInt(this.value);
+  render();
+});
+document.getElementById('grid-h').addEventListener('input', function() {
+  state.numbers.h = parseInt(this.value);
+  render();
+});
+
+document.getElementById('month-weight').addEventListener('change', function() {
+  state.month.weight = parseInt(this.value);
+  render();
+});
+document.getElementById('header-weight').addEventListener('change', function() {
+  state.header.weight = parseInt(this.value);
+  render();
+});
+document.getElementById('num-weight').addEventListener('change', function() {
+  state.numbers.weight = parseInt(this.value);
+  render();
+});
+
+document.getElementById('anno').addEventListener('change', function() {
+  state.anno = parseInt(this.value);
+  render();
+});
+
+document.getElementById('generate-btn').addEventListener('click', function() {
+  const status = document.getElementById('status');
+  const btn = this;
+
+  if (!imgLoaded) {
+    status.textContent = '⚠️ Carga una imagen primero';
+    status.style.display = 'block';
+    return;
+  }
+
+  status.style.display = 'block';
+  status.textContent = '⏳ Generando...';
+  btn.disabled = true;
+
+  const s = state;
+
+  canvas.toBlob(function(blob) {
+    const fd = new FormData();
+    fd.append('plantilla', blob, 'plantilla.png');
+    fd.append('tema', window.TEMA_ACTUAL || 'default');
+    fd.append('anyo', s.anno);
+
+    fetch('/kit-admin/calendario-generar', {method: 'POST', body: fd})
+      .then(r => r.json())
+      .then(jr => {
+        if (jr.ok) {
+          status.textContent = '✅ ' + jr.piezas.length + ' meses generados!';
+          if (window.cargarPiezas) {
+            window.cargarPiezas().then(() => {
+              setTimeout(() => {
+                if (document.getElementById('cal-editor-modal')) {
+                  document.getElementById('cal-editor-modal').close();
+                }
+              }, 800);
+            });
+          }
+        } else {
+          status.textContent = '✕ ' + (jr.error || 'Error');
+        }
+        btn.disabled = false;
+      })
+      .catch(e => {
+        status.textContent = '✕ ' + e;
+        btn.disabled = false;
+      });
+  }, 'image/png');
+});
+
+window.addEventListener('load', render);
+</script>
+
+</div>
           <div>
             <label>Números - Tamaño:</label>
             <input type="range" id="cal-editor-day-size" min="16" max="48" value="28" style="width:100%">
