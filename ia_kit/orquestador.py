@@ -439,3 +439,51 @@ def replicar_pieza(client, temas_dir, tema, pieza_key, edades, progress=None, ca
             progress(ev)
         (generadas if ev["ok"] else errores).append(ev)
     return {"generadas": generadas, "errores": errores}
+
+
+def generar_variantes_colorear(client, temas_dir, tema, n=3, calidad="low",
+                               intentos_por_variante=4, progress=None):
+    """Genera N variantes DISTINTAS de la página 'colorear' (colorear.png, colorear_2.png, …):
+    el cuaderno de actividades usa hasta 3 escenas distintas y si faltan cae a un fallback
+    algorítmico (line-art por bordes) que con personajes de IA sombreados da un blob negro
+    ilegible — más vale tener las 3. OpenAI a veces RECHAZA la generación por moderación de
+    forma aleatoria (la MISMA referencia a veces pasa, a veces no, típico en escenas de acción)
+    -> cada variante reintenta sola hasta `intentos_por_variante` veces."""
+    tema_dir = os.path.join(temas_dir, tema)
+    draft = os.path.join(tema_dir, "ia_draft")
+    p = next((x for x in catalogo.PIEZAS if x.key == "colorear"), None)
+    if p is None:
+        raise RuntimeError("pieza desconocida: colorear")
+    pal = catalogo.paleta_de(temas_dir, tema)
+    refs = _refs(tema_dir)
+    if not refs:
+        raise RuntimeError("el tema no tiene recortes/arte base para usar de referencia")
+    size_t = tuple(int(x) for x in p.size.split("x"))
+    prompt = catalogo.prompt_de(pal, p)
+    generadas, errores = [], []
+    for i in range(n):
+        nombre = "colorear.png" if i == 0 else "colorear_%d.png" % (i + 1)
+        ok, ultimo_error, bloqueada = False, "", False
+        for intento in range(1, intentos_por_variante + 1):
+            try:
+                raw = client.editar(refs, prompt, p.size, quality=calidad)
+                im = validar_png(raw, size_esperado=size_t).convert("RGBA")
+                im = _limpiar_colorear(im)
+                _guardar(im, draft, nombre)
+                ok = True
+                break
+            except Exception as e:
+                ultimo_error = str(e)
+                bloqueada = "moderation" in ultimo_error.lower()
+                if progress:
+                    progress({"pieza": "colorear", "variante": i + 1, "intento": intento,
+                              "ok": False, "reintentando": True,
+                              "error": ultimo_error, "archivo": ""})
+                if not bloqueada:   # error real (no moderación) -> no insistir de más
+                    break
+        ev = {"pieza": "colorear", "variante": i + 1, "ok": ok,
+              "archivo": nombre if ok else "", "error": "" if ok else ultimo_error}
+        if progress:
+            progress(ev)
+        (generadas if ok else errores).append(ev)
+    return {"generadas": generadas, "errores": errores}

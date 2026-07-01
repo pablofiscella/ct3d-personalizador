@@ -695,6 +695,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._ia_regenerar()
         if path == "/dash/agregar-edades":
             return self._dash_agregar_edades()
+        if path == "/dash/ia-colorear-variantes":
+            return self._ia_colorear_variantes()
         if path == "/dash/ia-replicar":
             return self._ia_replicar()
         if path == "/dash/ia-aprobar":
@@ -1373,6 +1375,30 @@ class Handler(BaseHTTPRequestHandler):
         def trabajo(emit):
             ia_orq.generar_tema(client, temas.TEMAS_DIR, tema, edades, progress=emit,
                                 solo={pieza}, calidad=calidad, reusar_maestra=True)
+        jid = ia_jobs.iniciar(trabajo)
+        return self._json(200, {"ok": True, "job": jid})
+
+    def _ia_colorear_variantes(self):
+        """Genera las 3 variantes de 'colorear' que necesita el cuaderno de actividades
+        (colorear.png/_2/_3), reintentando sola si OpenAI bloquea por moderación (aleatorio).
+        Sin esto, el cuaderno cae a un fallback algorítmico roto (blob negro)."""
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        client = _openai_client()
+        if client is None:
+            return self._json(503, {"ok": False, "error": "falta OPENAI_API_KEY"})
+        calidad = _calidad(q)
+        def trabajo(emit):
+            ia_orq.generar_variantes_colorear(client, temas.TEMAS_DIR, tema, n=3,
+                                              calidad=calidad, progress=emit)
+            import shutil   # el cuaderno cachea páginas armadas -> limpiar para que tome lo nuevo
+            cache = os.path.join(temas.TEMAS_DIR, tema, "actividades_cache")
+            if os.path.isdir(cache):
+                shutil.rmtree(cache, ignore_errors=True)
         jid = ia_jobs.iniciar(trabajo)
         return self._json(200, {"ok": True, "job": jid})
 

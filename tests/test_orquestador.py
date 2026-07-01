@@ -295,3 +295,47 @@ def test_sin_referencias_falla_claro(tmp_path):
     (d / "tema.json").write_text("{}")
     with pytest.raises(RuntimeError, match="referencia"):
         orquestador.generar_tema(_FakeClient(), str(tmp_path), "vacio", edades=[1])
+
+
+class _ClienteModeracion:
+    """Simula el bloqueo aleatorio por moderación de OpenAI: falla las primeras
+    `fallas` veces con 'moderation_blocked' y después genera bien."""
+    def __init__(self, fallas=0, error_real_en=None):
+        self.llamadas = 0
+        self.fallas = fallas
+        self.error_real_en = error_real_en   # índice de llamada (1-based) con error NO-moderación
+    def editar(self, refs, prompt, size, **kw):
+        self.llamadas += 1
+        if self.error_real_en and self.llamadas == self.error_real_en:
+            raise RuntimeError("OpenAI HTTP 400: Bad Request — algo real, no moderación")
+        if self.llamadas <= self.fallas:
+            raise RuntimeError(
+                'OpenAI HTTP 400: Bad Request — {"error": {"code": "moderation_blocked"}}')
+        w, h = (int(x) for x in size.split("x"))
+        buf = io.BytesIO(); Image.new("RGB", (w, h), (self.llamadas * 10, 0, 0)).save(buf, "PNG")
+        return buf.getvalue()
+
+
+def test_genera_variantes_colorear_ok(tmp_path):
+    td = _tema_dir(tmp_path)
+    res = orquestador.generar_variantes_colorear(_FakeClient(), td, "safari", n=3)
+    draft = os.path.join(td, "safari", "ia_draft")
+    assert len(res["generadas"]) == 3 and not res["errores"]
+    for nombre in ("colorear.png", "colorear_2.png", "colorear_3.png"):
+        assert os.path.exists(os.path.join(draft, nombre))
+
+
+def test_genera_variantes_colorear_reintenta_moderacion(tmp_path):
+    td = _tema_dir(tmp_path)
+    cliente = _ClienteModeracion(fallas=2)   # falla 2 veces por moderación, 3ra OK
+    res = orquestador.generar_variantes_colorear(cliente, td, "safari", n=1, intentos_por_variante=4)
+    assert len(res["generadas"]) == 1 and not res["errores"]
+    assert cliente.llamadas == 3   # 2 fallidas + 1 exitosa
+
+
+def test_genera_variantes_colorear_error_real_no_insiste(tmp_path):
+    td = _tema_dir(tmp_path)
+    cliente = _ClienteModeracion(fallas=0, error_real_en=1)   # falla real en la 1ra, no moderación
+    res = orquestador.generar_variantes_colorear(cliente, td, "safari", n=1, intentos_por_variante=4)
+    assert len(res["errores"]) == 1 and not res["generadas"]
+    assert cliente.llamadas == 1   # no reintenta un error que no es de moderación

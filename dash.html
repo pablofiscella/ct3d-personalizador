@@ -471,6 +471,10 @@ async function openIA(tema, nombre){
       <span style="font-size:12px;opacity:.65">borradores en baja (al aprobar pasa a alta resolución)</span>
       <button id="ia-btn-aprobar" class="btn-primary" style="font-size:14px;display:none;background:var(--success,#2D8C5A)">✅ Aprobar y publicar</button>
     </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+      <button id="ia-btn-colorear3" class="btn-ghost" style="font-size:13px">🎨 Generar 3 variantes de colorear</button>
+      <span style="font-size:12px;opacity:.65">para el cuaderno de actividades (evita el blob negro si faltan)</span>
+    </div>
     <div id="ia-progreso" style="font-size:13px;opacity:.8;min-height:18px;margin-bottom:6px"></div>
     <div id="ia-bar" style="display:none;height:8px;background:rgba(255,255,255,.12);border-radius:6px;overflow:hidden;margin-bottom:12px"><div id="ia-bar-fill" style="height:100%;width:0;background:var(--success,#2D8C5A);transition:width .3s"></div></div>
     <div id="ia-grilla" style="display:flex;flex-wrap:wrap;gap:10px"></div>
@@ -656,6 +660,35 @@ async function openIA(tema, nombre){
       if(j.ok){ imsg.textContent='✓ '+j.n+' piezas aprobadas y listas para publicar.'; btnApr.disabled=false; }
       else{ imsg.textContent='✕ '+(j.error||'error'); btnApr.disabled=false; }
     }catch(e){ imsg.textContent='✕ '+e; btnApr.disabled=false; }
+  };
+
+  const btnColor3=ov.querySelector('#ia-btn-colorear3');
+  btnColor3.onclick=async()=>{
+    btnColor3.disabled=true; imsg.textContent=''; prog.textContent='Generando 3 variantes de colorear…';
+    try{
+      const cal=(ov.querySelector('#ia-cal')||{}).value||'low';
+      const r=await fetch('/dash/ia-colorear-variantes?tema='+encodeURIComponent(tema)+'&calidad='+cal,{method:'POST',headers:{'X-API-Key':KEY}});
+      const j=await r.json();
+      if(!j.ok||!j.job){ prog.textContent='✕ '+(j.error||'no arrancó'); btnColor3.disabled=false; return; }
+      const esperar=async()=>{
+        try{
+          const s=await (await fetch('/dash/ia-estado?job='+encodeURIComponent(j.job),{headers:{'X-API-Key':KEY}})).json();
+          const evs=s.eventos||[];
+          const finales=evs.filter(e=>!e.reintentando);
+          const listas=finales.filter(e=>e.ok).length;
+          const reintentos=evs.filter(e=>e.reintentando).length;
+          prog.textContent = s.estado==='corriendo'
+            ? 'Generando variantes de colorear… '+listas+'/3 listas'+(reintentos?' ('+reintentos+' reintento(s) por moderación de OpenAI)':'')
+            : (s.estado==='listo'
+                ? (listas===3 ? '✓ 3 variantes de colorear generadas' : '⚠ '+listas+'/3 generadas — reintentá para completar las que fallaron')
+                : '✕ '+(s.error||'error'));
+          if(s.estado==='corriendo'){ setTimeout(esperar,3000); return; }
+          btnColor3.disabled=false;
+          await cargarBorradores();
+        }catch(e){ prog.textContent='✕ '+e; btnColor3.disabled=false; }
+      };
+      esperar();
+    }catch(e){ prog.textContent='✕ '+e; btnColor3.disabled=false; }
   };
 
   // Al abrir: cargar los borradores ya generados (si hay) para verlos y regenerar
