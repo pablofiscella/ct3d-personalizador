@@ -507,6 +507,7 @@ async function openProductosNuevos(tema, nombre){
           <input type="number" id="cal-anyo" value="2026" min="2024" max="2050" style="width:80px;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-elevated);color:inherit;font:inherit;font-size:12px">
           <input type="text" id="cal-nombre" placeholder="Nombre del niño/familia" value="Mi familia" style="flex:1;min-width:120px;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-elevated);color:inherit;font:inherit;font-size:12px">
           <button id="cal-generar-btn" class="btn-primary" style="padding:6px 12px;font-size:12px" disabled>Generar 12 meses</button>
+          <button id="cal-editor-btn" class="btn-primary" style="padding:6px 12px;font-size:12px;background:#6B5BD2">⚙️ Editor de plantilla</button>
         </div>
         <div id="cal-status" style="font-size:12px;margin-top:8px;min-height:18px"></div>
       </div>` : '') +
@@ -1160,5 +1161,38 @@ window.addEventListener('resize',updateCarNav);
 
 cargar();
 </script>
+
+<dialog id="cal-editor-modal" style="border:none;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.3);max-width:900px;width:90%">
+  <div style="padding:20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee">
+    <h2 style="margin:0;font-size:18px;font-family:Fredoka,sans-serif;color:#333">⚙️ Editor de Plantilla de Calendario</h2>
+  </div>
+  <div id="cal-editor-container"></div>
+</dialog>
+
+<script>
+(function(){
+  const editorBtn = document.getElementById('cal-editor-btn');
+  const editorModal = document.getElementById('cal-editor-modal');
+  const editorContainer = document.getElementById('cal-editor-container');
+  
+  if (editorBtn && editorModal) {
+    editorBtn.addEventListener('click', async () => {
+      // Cargar el contenido del editor si no está cargado
+      if (!editorContainer.innerHTML) {
+        try {
+          const r = await fetch('/editor_calendario_modal.html');
+          const html = await r.text();
+          editorContainer.innerHTML = html;
+          window.TEMA_ACTUAL = tema;  // Pasar el tema actual al editor
+        } catch (e) {
+          editorContainer.innerHTML = '✕ Error cargando editor: ' + e;
+        }
+      }
+      editorModal.showModal();
+    });
+  }
+})();
+</script>
+
 </body>
 </html>
