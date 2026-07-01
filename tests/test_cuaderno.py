@@ -39,6 +39,30 @@ def test_personajes_decorativos_sin_stickers_lista_vacia(tmp_path, monkeypatch):
     assert cuaderno.personajes_decorativos("vacio", n=2) == []   # sin fallback genérico
 
 
+def test_regenerar_pagina_guarda_override_y_no_afecta_otras(tmp_path, monkeypatch):
+    monkeypatch.setattr(cuaderno, "TEMAS", str(tmp_path))
+    _mk_tema(tmp_path)
+    base = cuaderno.base_paginas("circo", 6)   # arma y cachea el cuaderno canónico
+    n = len(base)
+    assert n > 2
+    ok = cuaderno.regenerar_pagina("circo", 6, 1)
+    assert ok is True
+    od = cuaderno._override_dir("circo", 6)
+    assert os.path.isfile(os.path.join(od, "pg01.png"))   # quedó guardada como override
+    assert not os.path.isfile(os.path.join(od, "pg00.png"))   # las demás no se tocaron
+    assert not os.path.isfile(os.path.join(od, "pg02.png"))
+    # pagina_efectiva ahora sirve el override para la 1, la canónica para el resto
+    efectiva1 = cuaderno.pagina_efectiva("circo", 6, 1)
+    assert efectiva1.size == base[1].size
+
+
+def test_regenerar_pagina_idx_invalido_devuelve_false(tmp_path, monkeypatch):
+    monkeypatch.setattr(cuaderno, "TEMAS", str(tmp_path))
+    _mk_tema(tmp_path)
+    cuaderno.base_paginas("circo", 6)
+    assert cuaderno.regenerar_pagina("circo", 6, 9999) is False
+
+
 def test_build_separa_actividades_y_solucionario(tmp_path, monkeypatch):
     monkeypatch.setattr(cuaderno, "TEMAS", str(tmp_path))
     _mk_tema(tmp_path)

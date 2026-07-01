@@ -1024,6 +1024,26 @@ def _n_sol(tema, edad):
     except Exception:
         return 1
 
+def regenerar_pagina(tema, edad, idx):
+    """Genera una VARIANTE NUEVA de la página <idx> (mismo tipo de actividad —el orden del
+    menú por banda de edad es fijo—, pero contenido interno distinto: otro laberinto, otra
+    sopa de letras, etc.) y la guarda como override. No toca el resto del cuaderno."""
+    import random as _random
+    base = base_paginas(tema, edad)
+    if idx >= len(base):
+        return False
+    seed = _random.randint(2, 999999)   # el seed 1 es el canónico; cualquier otro da otra variante
+    acts, sols = _build(tema, str(edad), seed)
+    fresh = [p.convert("RGB") for p in (acts + sols)]
+    if idx >= len(fresh):
+        return False
+    od = _override_dir(tema, edad); os.makedirs(od, exist_ok=True)
+    fresh[idx].save(os.path.join(od, "pg%02d.png" % idx))
+    rmp = os.path.join(od, "pg%02d.removed" % idx)
+    if os.path.exists(rmp):
+        os.remove(rmp)
+    return True
+
 def pagina_efectiva(tema, edad, idx, base=None):
     """Página final del índice idx: el override del usuario si existe, si no la canónica."""
     ov = os.path.join(_override_dir(tema, edad), "pg%02d.png" % idx)

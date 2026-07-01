@@ -721,6 +721,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._dash_cuaderno_borrar()
         if path == "/dash/cuaderno-regenerar":
             return self._dash_cuaderno_regenerar()
+        if path == "/dash/cuaderno-regenerar-pagina":
+            return self._dash_cuaderno_regenerar_pagina()
         if path == "/dash/crear":
             return self._dash_crear()
         if path == "/dash/config":
@@ -1235,6 +1237,20 @@ class Handler(BaseHTTPRequestHandler):
             import cuaderno
             cuaderno.regenerar(tema, edad)
             return self._json(200, {"ok": True})
+        except Exception as e:
+            return self._json(500, {"ok": False, "error": str(e)})
+
+    def _dash_cuaderno_regenerar_pagina(self):
+        """Regenera SOLO una página del cuaderno (misma actividad, otro contenido interno) —
+        a diferencia de 'Regenerar' (global), que rehace las 25-29 páginas."""
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema, edad, idx = self._cuad_args(q)
+        try:
+            import cuaderno
+            ok = cuaderno.regenerar_pagina(tema, edad, idx)
+            return self._json(200, {"ok": ok, "idx": idx})
         except Exception as e:
             return self._json(500, {"ok": False, "error": str(e)})
 
