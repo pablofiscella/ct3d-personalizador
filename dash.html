@@ -1242,6 +1242,107 @@ document.addEventListener('click', (e) => {
     }
   }
 });
+
+// Editor de calendario - manejadores
+const fileInput = document.getElementById('cal-editor-file');
+const preview = document.getElementById('cal-editor-preview');
+const genBtn = document.getElementById('cal-editor-generar');
+const cerrarBtn = document.getElementById('cal-editor-cerrar');
+const statusDiv = document.getElementById('cal-editor-status');
+const anyoInput = document.getElementById('cal-editor-anyo');
+
+// Sliders de tamaños
+const monthSizeInput = document.getElementById('cal-editor-month-size');
+const weekdaySizeInput = document.getElementById('cal-editor-weekday-size');
+const daySizeInput = document.getElementById('cal-editor-day-size');
+const monthSizeVal = document.getElementById('cal-editor-month-size-val');
+const weekdaySizeVal = document.getElementById('cal-editor-weekday-size-val');
+const daySizeVal = document.getElementById('cal-editor-day-size-val');
+
+// Grid inputs
+const gridXInput = document.getElementById('cal-editor-grid-x');
+const gridYInput = document.getElementById('cal-editor-grid-y');
+
+let plantillaFile = null;
+
+// Cargar imagen
+if (fileInput) {
+  fileInput.addEventListener('change', (e) => {
+    plantillaFile = e.target.files[0];
+    if (plantillaFile) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        preview.innerHTML = '<img src="' + evt.target.result + '" style="max-width:100%;max-height:250px">';
+        genBtn.disabled = false;
+        statusDiv.textContent = '✅ Imagen cargada';
+      };
+      reader.readAsDataURL(plantillaFile);
+    }
+  });
+}
+
+// Actualizar valores de sliders
+if (monthSizeInput) monthSizeInput.addEventListener('input', (e) => monthSizeVal.textContent = e.target.value);
+if (weekdaySizeInput) weekdaySizeInput.addEventListener('input', (e) => weekdaySizeVal.textContent = e.target.value);
+if (daySizeInput) daySizeInput.addEventListener('input', (e) => daySizeVal.textContent = e.target.value);
+
+// Generar meses
+if (genBtn) {
+  genBtn.addEventListener('click', async () => {
+    if (!plantillaFile || !window.TEMA_ACTUAL) {
+      statusDiv.textContent = '❌ Falta imagen o tema';
+      return;
+    }
+    
+    genBtn.disabled = true;
+    statusDiv.textContent = '⏳ Generando...';
+    
+    const formData = new FormData();
+    formData.append('plantilla', plantillaFile);
+    formData.append('tema', window.TEMA_ACTUAL);
+    formData.append('anyo', anyoInput.value);
+    formData.append('config', JSON.stringify({
+      font_sizes: {
+        month: parseInt(monthSizeInput.value),
+        weekday: parseInt(weekdaySizeInput.value),
+        day: parseInt(daySizeInput.value)
+      },
+      grid: {
+        x: parseInt(gridXInput.value),
+        y: parseInt(gridYInput.value)
+      }
+    }));
+    
+    try {
+      const res = await fetch('/kit-admin/calendario-generar', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (res.ok) {
+        statusDiv.textContent = '✅ 12 meses generados';
+        setTimeout(() => {
+          document.getElementById('cal-editor-modal').close();
+          location.reload();
+        }, 1000);
+      } else {
+        const err = await res.text();
+        statusDiv.textContent = '❌ Error: ' + err.substring(0, 50);
+        genBtn.disabled = false;
+      }
+    } catch (e) {
+      statusDiv.textContent = '❌ ' + e.message;
+      genBtn.disabled = false;
+    }
+  });
+}
+
+// Cerrar modal
+if (cerrarBtn) {
+  cerrarBtn.addEventListener('click', () => {
+    document.getElementById('cal-editor-modal').close();
+  });
+}
 </script>
 </dialog>
 
