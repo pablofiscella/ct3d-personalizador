@@ -60,17 +60,26 @@
   var LABELS = { milestone:'Personalizá tus tarjetas mes a mes', actividades:'Personalizá las actividades', cartel:'Personalizá el cartel' };
   titulo.textContent = LABELS[TIPO] || 'Personalizá tu diseño';
 
-  // Páginas (piezas) por tipo: actividades = 2 hojas; el resto = 1.
-  var PAGINAS = (TIPO==='actividades') ? [{i:0,t:'Para colorear'},{i:1,t:'Juegos'}] : [{i:0,t:''}];
+  // Páginas (piezas) reales del tipo — se piden al servidor: cada tipo tiene su propia
+  // cantidad (actividades puede tener 13-29 según la edad, corona 2, antifaces 3,
+  // certificado 1…). Antes esto estaba hardcodeado a 2 fijas ("actividades") o 1
+  // ("el resto"), así que el editor no mostraba las piezas reales de un tipo nuevo.
+  var PAGINAS = [{i:0,t:''}];   // placeholder mientras carga / si falla el fetch
   var pagina = 0;
-  if(PAGINAS.length > 1){
-    tabsBox.style.display = 'flex';
-    PAGINAS.forEach(function(p,idx){
-      var b=document.createElement('button');
-      b.className='tab'+(idx===0?' active':''); b.textContent=p.t; b.type='button';
-      b.onclick=function(){ pagina=idx; [].forEach.call(tabsBox.children,function(c){c.classList.remove('active');}); b.classList.add('active'); refrescar(); };
-      tabsBox.appendChild(b);
-    });
+
+  function pintarTabs(){
+    tabsBox.innerHTML = '';
+    if(PAGINAS.length > 1){
+      tabsBox.style.display = 'flex';
+      PAGINAS.forEach(function(p,idx){
+        var b=document.createElement('button');
+        b.className='tab'+(idx===pagina?' active':''); b.textContent=p.t||('Página '+(idx+1)); b.type='button';
+        b.onclick=function(){ pagina=idx; [].forEach.call(tabsBox.children,function(c){c.classList.remove('active');}); b.classList.add('active'); refrescar(); };
+        tabsBox.appendChild(b);
+      });
+    } else {
+      tabsBox.style.display = 'none';
+    }
   }
 
   function previewUrl(){
@@ -107,7 +116,18 @@
     hint.textContent='✓ Diseño confirmado.';
   });
 
-  pv.src = previewUrl();
+  fetch('/piezas?tipo='+encodeURIComponent(TIPO)+'&tema='+encodeURIComponent(TEMA))
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d && d.ok && Array.isArray(d.piezas) && d.piezas.length){
+        PAGINAS = d.piezas.map(function(p){ return {i:p.idx, t:p.label||''}; });
+      }
+    })
+    .catch(function(){})
+    .then(function(){
+      pintarTabs();
+      pv.src = previewUrl();
+    });
 })();
 </script>
 </body>
