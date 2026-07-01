@@ -1234,116 +1234,18 @@ cargar();
 
 <script>
 (function(){
-  const fileInput = document.getElementById('cal-editor-file');
-  const preview = document.getElementById('cal-editor-preview');
-  const generarBtn = document.getElementById('cal-editor-generar');
-  const cerrarBtn = document.getElementById('cal-editor-cerrar');
-  const statusDiv = document.getElementById('cal-editor-status');
-  const anyoInput = document.getElementById('cal-editor-anyo');
-  
-  let selectedFile = null;
-
-  // Al seleccionar imagen: habilita botón "Generar"
-  fileInput.addEventListener('change', (e) => {
-    selectedFile = e.target.files[0];
-    if (selectedFile) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        preview.innerHTML = '<img src="' + ev.target.result + '" style="width:100%;border-radius:4px">';
-        statusDiv.textContent = '✓ Imagen seleccionada: ' + selectedFile.name;
-        generarBtn.disabled = false;  // Habilita el botón
-      };
-      reader.readAsDataURL(selectedFile);
-    }
-  });
-
-  // Actualizar valores mostrados en parámetros
-  document.getElementById('cal-editor-month-size').addEventListener('input', (e) => {
-    document.getElementById('cal-editor-month-size-val').textContent = e.target.value;
-  });
-  document.getElementById('cal-editor-weekday-size').addEventListener('input', (e) => {
-    document.getElementById('cal-editor-weekday-size-val').textContent = e.target.value;
-  });
-  document.getElementById('cal-editor-day-size').addEventListener('input', (e) => {
-    document.getElementById('cal-editor-day-size-val').textContent = e.target.value;
-  });
-
-  // Click "Generar 12 meses" - automático
-  generarBtn.addEventListener('click', async () => {
-    if (!selectedFile) {
-      statusDiv.textContent = '✕ Selecciona una imagen';
-      return;
-    }
-    
-    generarBtn.disabled = true;
-    generarBtn.textContent = '⏳ Generando...';
-    statusDiv.textContent = '⏳ Generando 12 meses automáticamente...';
-    
-    try {
-      const fd = new FormData();
-      fd.append('plantilla', selectedFile);
-      fd.append('tema', window.TEMA_ACTUAL);
-      fd.append('anyo', anyoInput.value);
-      
-      const r = await fetch('/kit-admin/calendario-generar', {method: 'POST', body: fd});
-      const jr = await r.json();
-      
-      if (jr.ok) {
-        statusDiv.textContent = '✅ ' + jr.piezas.length + ' meses generados. Actualizando panel...';
-        setTimeout(() => {
-          // Recargar las piezas en el dashboard
-          if (window.cargarPiezas) {
-            window.cargarPiezas().then(() => {
-              cerrarBtn.click();
-            });
-          } else {
-            cerrarBtn.click();
-          }
-        }, 800);
-      } else {
-        statusDiv.textContent = '✕ Error: ' + (jr.error || 'desconocido');
-      }
-    } catch (e) {
-      statusDiv.textContent = '✕ ' + e;
-    }
-    
-    generarBtn.disabled = false;
-    generarBtn.textContent = '🚀 Generar 12 meses';
-  });
-
-  cerrarBtn.addEventListener('click', () => {
-    document.getElementById('cal-editor-modal').close();
-  });
-})();
-</script>
-
-</div>
-</dialog>
-
-<script>
-(function(){
   const editorBtn = document.getElementById('cal-editor-btn');
   const editorModal = document.getElementById('cal-editor-modal');
-  const editorContainer = document.getElementById('cal-editor-container');
   
   if (editorBtn && editorModal) {
-    editorBtn.addEventListener('click', async () => {
-      // Cargar el contenido del editor si no está cargado
-          //       if (!editorContainer.innerHTML) {
-          //         try {
-          //           const r = await fetch('/editor_calendario_modal.html');
-          //           const html = await r.text();
-          //           editorContainer.innerHTML = html;
-          window.TEMA_ACTUAL = tema;  // Pasar el tema actual al editor
-          //         } catch (e) {
-          editorContainer.innerHTML = '✕ Error cargando editor: ' + e;
-        }
-      }
+    editorBtn.addEventListener('click', () => {
+      window.TEMA_ACTUAL = tema;
       editorModal.showModal();
     });
   }
 })();
 </script>
+</dialog>
 
 </body>
 </html>
