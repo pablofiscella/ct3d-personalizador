@@ -82,12 +82,16 @@ el cuaderno). El cuaderno usa `colorear*.png` de `extras/` o `ia_draft/`
 ```
 Creá una PÁGINA PARA COLOREAR infantil con los personajes del tema de las
 imágenes de referencia (mismos personajes, sin cambiar su diseño). DIBUJO SOLO
-EN LÍNEAS: contornos negros gruesos, limpios y CERRADOS, sobre fondo BLANCO
+EN LÍNEAS: contornos negros de grosor MEDIO —ni finos ni muy gruesos, como un
+libro de colorear infantil estándar—, limpios y CERRADOS, sobre fondo BLANCO
 liso. Una escena simple y clara, personajes grandes y centrados, con espacios
 amplios para pintar. SIN relleno, SIN color, SIN grises, SIN sombras, SIN
 texturas, SIN tramas, SIN texto ni números. Estilo libro de colorear, line art,
 blanco y negro.
 ```
+
+(30-jun: se moderó de "gruesos" a "grosor MEDIO" — con "gruesos" algunos temas
+salían con trazo demasiado pesado, ej. un-espacio-de-locura.)
 
 NO usa el bloque de estilo flat-vector (ese pide colores planos). Para **varias
 escenas distintas** del mismo tema, se le agrega al final una línea
@@ -109,12 +113,19 @@ line-art se EXTRAEN BORDES, nunca se "saca el color" (eso da blobs negros).
    ```bash
    OAKEY=$(sudo tr '\0' '\n' < /proc/$(systemctl show -p MainPID --value ct3d-kit.service)/environ | grep ^OPENAI_API_KEY= | cut -d= -f2-)
    ```
-   Generar 1–3 escenas (con el prompt de arriba + `Escena sugerida`), pasar cada
-   una por `_limpiar_colorear` y guardarlas en `temas/<tema>/ia_draft/colorear.png`,
-   `colorear_2.png`, `colorear_3.png` (quedan pendientes de aprobar en el panel;
-   el cuaderno ya las toma desde `ia_draft/`). Calidad `low` (borrador). Cada
-   llamada gpt-image-2 tarda >60s → correr de a una con `timeout` alto, NO 2
-   secuenciales en un Bash de 120s.
+   Generar SIEMPRE las 3 escenas (nunca menos — el cuaderno usa 3 slots de
+   colorear; si falta alguna, cae al fallback `_lineart` por detección de
+   bordes, que con personajes de la IA con sombreado/degradé da un BLOB NEGRO
+   roto e ilegible, no "un trazo grueso": confirmado 30-jun con
+   un-espacio-de-locura, que solo tenía 1 variante). Con el prompt de arriba +
+   `Escena sugerida`, pasar cada una por `_limpiar_colorear` y guardarlas en
+   `temas/<tema>/ia_draft/colorear.png`, `colorear_2.png`, `colorear_3.png`
+   (quedan pendientes de aprobar en el panel; el cuaderno ya las toma desde
+   `ia_draft/`). Calidad `low` (borrador). Cada llamada gpt-image-2 tarda >60s
+   → correr de a una con `timeout` alto, NO 2 secuenciales en un Bash de 120s.
+   Después de generar/reemplazar cualquier colorear*.png hay que borrar
+   `temas/<tema>/actividades_cache/<edad>/` para que el cuaderno no sirva la
+   versión vieja cacheada.
 2. **Render del cuaderno** para revisar: `cuaderno.paginas(tema, edad)` para
    edad 6/5/3, armar un montage y MIRARLO (no asumir). Verificar: banner, que
    cada hoja se llene, personajes reales del tema, colorear distintas.
