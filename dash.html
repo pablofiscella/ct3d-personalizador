@@ -463,6 +463,7 @@ const PROD_NUEVOS_TIPOS=[['certificado','🎓 Certificado'],['corona','👑 Gorr
   ['capsula','✉️ Cápsula del tiempo'],['calendario','📅 Calendario'],['papertoys','📦 Paper toy'],
   ['memoria','🃏 Memoria']];
 async function openProductosNuevos(tema, nombre){
+  window.TEMA_ACTUAL = tema;
   const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:24px';
@@ -1233,17 +1234,14 @@ cargar();
 </div>
 
 <script>
-(function(){
-  const editorBtn = document.getElementById('cal-editor-btn');
-  const editorModal = document.getElementById('cal-editor-modal');
-  
-  if (editorBtn && editorModal) {
-    editorBtn.addEventListener('click', () => {
-      window.TEMA_ACTUAL = tema;
-      editorModal.showModal();
-    });
+document.addEventListener('click', (e) => {
+  if (e.target.id === 'cal-editor-btn') {
+    const modal = document.getElementById('cal-editor-modal');
+    if (modal && window.TEMA_ACTUAL) {
+      modal.showModal();
+    }
   }
-})();
+});
 </script>
 </dialog>
 
