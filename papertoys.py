@@ -36,6 +36,19 @@ def _tint(c, p):
     return tuple(int(v + (255 - v) * p) for v in c[:3])
 
 
+def _personajes(tema, n=2):
+    try:
+        import cuaderno
+        return cuaderno.personajes_decorativos(tema, n)
+    except Exception:
+        return []
+
+
+def _paste_h(base, img, cx, cy, h):
+    w = max(1, int(img.width * h / img.height))
+    base.alpha_composite(img.resize((w, int(h)), Image.LANCZOS), (int(cx - w / 2), int(cy - h / 2)))
+
+
 def cubo_personalizado(data, tema="safari"):
     """Cubo desplegable (6 caras) con letras del nombre + decoración."""
     acc = _accent(tema)
@@ -88,6 +101,12 @@ def cubo_personalizado(data, tema="safari"):
     for t in instrucciones:
         dr.text((Wp / 2, y), t, font=_font(26, False), fill=INK, anchor="mm")
         y += 42
+
+    personajes = _personajes(tema, 2)
+    if personajes:
+        spots = [(Wp * 0.3, Hp - 300), (Wp * 0.7, Hp - 300)] if len(personajes) > 1 else [(Wp / 2, Hp - 300)]
+        for p, (sx, sy) in zip(personajes, spots):
+            _paste_h(im, p, sx, sy, 340)
 
     dr.text((Wp / 2, Hp - 40), "casatridimensional.com.ar", font=_font(18, False), fill=(180, 180, 180), anchor="mm")
     return im

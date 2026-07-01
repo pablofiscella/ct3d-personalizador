@@ -39,6 +39,19 @@ def _tint(c, p):
     return tuple(int(v + (255 - v) * p) for v in c[:3])
 
 
+def _personajes(tema, n=2):
+    try:
+        import cuaderno
+        return cuaderno.personajes_decorativos(tema, n)
+    except Exception:
+        return []
+
+
+def _paste_h(base, img, cx, cy, h):
+    w = max(1, int(img.width * h / img.height))
+    base.alpha_composite(img.resize((w, int(h)), Image.LANCZOS), (int(cx - w / 2), int(cy - h / 2)))
+
+
 def _generar_piezas(imagen, cols, rows):
     """Genera las piezas del rompecabezas recortando la imagen con bordes
     de puzzle (curvas entrantes/salientes). Devuelve lista de PIL.Image."""
@@ -111,6 +124,12 @@ def rompecabezas_nombre(data, tema="safari"):
     while _font(fs2).getbbox(nombre)[2] > 420 and fs2 > 30:
         fs2 -= 4
     dr.text((Wp / 2, y_info + 310), nombre, font=_font(fs2), fill=_tint(INK, 0.2), anchor="mm")
+
+    personajes = _personajes(tema, 2)
+    if personajes:
+        spots = [(220, Hp - 260), (Wp - 220, Hp - 260)] if len(personajes) > 1 else [(Wp / 2, Hp - 260)]
+        for p, (sx, sy) in zip(personajes, spots):
+            _paste_h(im, p, sx, sy, 260)
 
     dr.text((Wp / 2, Hp - 50), "casatridimensional.com.ar", font=_font(18, False), fill=(180, 180, 180), anchor="mm")
     return im

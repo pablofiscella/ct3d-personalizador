@@ -338,18 +338,18 @@ def _piezas_capsula(tema):
 
 def _piezas_calendario(tema):
     import calendario
-    return [("01_enero", lambda d: calendario.mes_hoja(1, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
-            ("02_febrero", lambda d: calendario.mes_hoja(2, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
-            ("03_marzo", lambda d: calendario.mes_hoja(3, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
-            ("04_abril", lambda d: calendario.mes_hoja(4, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
-            ("05_mayo", lambda d: calendario.mes_hoja(5, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
-            ("06_junio", lambda d: calendario.mes_hoja(6, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
-            ("07_julio", lambda d: calendario.mes_hoja(7, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
-            ("08_agosto", lambda d: calendario.mes_hoja(8, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
-            ("09_septiembre", lambda d: calendario.mes_hoja(9, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
-            ("10_octubre", lambda d: calendario.mes_hoja(10, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
-            ("11_noviembre", lambda d: calendario.mes_hoja(11, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True),
-            ("12_diciembre", lambda d: calendario.mes_hoja(12, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema)), True)]
+    return [("01_enero", lambda d: calendario.mes_hoja(1, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
+            ("02_febrero", lambda d: calendario.mes_hoja(2, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
+            ("03_marzo", lambda d: calendario.mes_hoja(3, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
+            ("04_abril", lambda d: calendario.mes_hoja(4, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
+            ("05_mayo", lambda d: calendario.mes_hoja(5, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
+            ("06_junio", lambda d: calendario.mes_hoja(6, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
+            ("07_julio", lambda d: calendario.mes_hoja(7, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
+            ("08_agosto", lambda d: calendario.mes_hoja(8, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
+            ("09_septiembre", lambda d: calendario.mes_hoja(9, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
+            ("10_octubre", lambda d: calendario.mes_hoja(10, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
+            ("11_noviembre", lambda d: calendario.mes_hoja(11, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
+            ("12_diciembre", lambda d: calendario.mes_hoja(12, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True)]
 
 def _piezas_papertoys(tema):
     import papertoys
@@ -628,7 +628,7 @@ def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):
         img = capsula_tiempo.portada_sobre(data, tema)
     elif pieza == "calendario":
         import calendario
-        img = calendario.mes_hoja(1, int(data.get("anyo") or "2026"), data.get("nombre") or "Mi familia", calendario._accent(tema))
+        img = calendario.mes_hoja(1, int(data.get("anyo") or "2026"), data.get("nombre") or "Mi familia", calendario._accent(tema), tema)
     elif pieza == "papertoys":
         import papertoys
         img = papertoys.cubo_personalizado(data, tema)

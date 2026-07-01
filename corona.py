@@ -47,6 +47,19 @@ def _draw_instrucciones_en(im, dr, x, y, col):
     _draw_instrucciones(dr, x, y, col)
 
 
+def _personajes(tema, n=2):
+    try:
+        import cuaderno
+        return cuaderno.personajes_decorativos(tema, n)
+    except Exception:
+        return []
+
+
+def _paste_h(base, img, cx, cy, h):
+    w = max(1, int(img.width * h / img.height))
+    base.alpha_composite(img.resize((w, int(h)), Image.LANCZOS), (int(cx - w / 2), int(cy - h / 2)))
+
+
 def gorro(data, tema="safari"):
     """Gorro cónico de cumpleaños para armar. Ocupa media hoja A4."""
     acc = _accent(tema)
@@ -95,6 +108,10 @@ def gorro(data, tema="safari"):
         dr.text((cx + 110, cy - 40), edad, font=_font(efs), fill=(255, 255, 255) if acc else acc, anchor="mm")
 
     _draw_instrucciones_en(im, dr, Wp / 2, 700, acc)
+
+    personajes = _personajes(tema, 1)
+    if personajes:
+        _paste_h(im, personajes[0], Wp / 2, Hp - 280, 320)
 
     dr.text((Wp / 2, Hp - 40), "casatridimensional.com.ar", font=_font(18, False), fill=(180, 180, 180), anchor="mm")
     return im
@@ -145,6 +162,12 @@ def corona(data, tema="safari"):
     dr.text((Wp - x0 + 10, y0 + h_banda + 75), "Doblar →", font=_font(18, False), fill=(150, 150, 150), anchor="ra")
 
     _draw_instrucciones_en(im, dr, Wp / 2, y0 + h_banda + 180, acc)
+
+    personajes = _personajes(tema, 2)
+    if personajes:
+        spots = [(Wp * 0.3, Hp - 280), (Wp * 0.7, Hp - 280)] if len(personajes) > 1 else [(Wp / 2, Hp - 280)]
+        for p, (sx, sy) in zip(personajes, spots):
+            _paste_h(im, p, sx, sy, 300)
 
     dr.text((Wp / 2, Hp - 40), "casatridimensional.com.ar", font=_font(18, False), fill=(180, 180, 180), anchor="mm")
     return im

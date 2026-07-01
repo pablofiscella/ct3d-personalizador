@@ -35,12 +35,25 @@ def _accent(tema):
 def _tint(c, p):
     return tuple(int(v + (255 - v) * p) for v in c[:3])
 
+
+def _personajes(tema, n=1):
+    try:
+        import cuaderno
+        return cuaderno.personajes_decorativos(tema, n)
+    except Exception:
+        return []
+
+
+def _paste_h(base, img, cx, cy, h):
+    w = max(1, int(img.width * h / img.height))
+    base.alpha_composite(img.resize((w, int(h)), Image.LANCZOS), (int(cx - w / 2), int(cy - h / 2)))
+
 _MESES_ES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
              "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
 _DIAS_ES = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
 
 
-def mes_hoja(mes, anyo, nombre, acc):
+def mes_hoja(mes, anyo, nombre, acc, tema="safari"):
     """Genera una hoja A4 para un mes específico."""
     im = Image.new("RGBA", (Wp, Hp), (255, 255, 255, 255))
     dr = ImageDraw.Draw(im)
@@ -74,8 +87,12 @@ def mes_hoja(mes, anyo, nombre, acc):
 
     y_info = y + 40
     dr.text((Wp / 2, y_info), "Días especiales:", font=_font(26, False), fill=INK, anchor="mm")
-    dr.text((Wp / 2, y_info + 40), "✨ ¡El cumpleaños de %s!" % nombre,
+    dr.text((Wp / 2, y_info + 40), "¡El cumpleaños de %s!" % nombre,
             font=_font(28), fill=acc, anchor="mm")
+
+    personajes = _personajes(tema, 1)
+    if personajes:
+        _paste_h(im, personajes[0], Wp - 150, Hp - 220, 280)
 
     dr.text((Wp / 2, Hp - 40), "casatridimensional.com.ar", font=_font(18, False), fill=(180, 180, 180), anchor="mm")
     return im
@@ -87,7 +104,7 @@ def generar_calendario(data, tema="safari"):
     nombre = str(data.get("nombre") or "").strip() or "Mi familia"
     anyo = int(data.get("anyo") or "2026")
     return [("%02d_%s" % (m, _MESES_ES[m - 1].lower()),
-             (lambda m: (lambda d: mes_hoja(m, anyo, nombre, acc)))(m), True)
+             (lambda m: (lambda d: mes_hoja(m, anyo, nombre, acc, tema)))(m), True)
             for m in range(1, 13)]
 
 

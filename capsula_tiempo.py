@@ -42,6 +42,19 @@ def _anyo_actual():
     return datetime.date.today().year
 
 
+def _personajes(tema, n=1):
+    try:
+        import cuaderno
+        return cuaderno.personajes_decorativos(tema, n)
+    except Exception:
+        return []
+
+
+def _paste_h(base, img, cx, cy, h):
+    w = max(1, int(img.width * h / img.height))
+    base.alpha_composite(img.resize((w, int(h)), Image.LANCZOS), (int(cx - w / 2), int(cy - h / 2)))
+
+
 def portada_sobre(data, tema="safari"):
     """Portada del sobre: 'NO ABRIR HASTA...' con sello decorativo."""
     acc = _accent(tema)
@@ -57,7 +70,9 @@ def portada_sobre(data, tema="safari"):
     dr.rounded_rectangle([110, 110, Wp - 110, Hp - 250], 30, outline=_tint(acc, 0.4), width=3)
 
     dr.ellipse([Wp / 2 - 120, 220, Wp / 2 + 120, 460], outline=acc, width=8)
-    dr.text((Wp / 2, 310), "🔒", font=_font(60), anchor="mm")
+    personajes = _personajes(tema, 1)
+    if personajes:
+        _paste_h(im, personajes[0], Wp / 2, 320, 160)
     dr.text((Wp / 2, 390), "CÁPSULA", font=_font(40), fill=acc, anchor="mm")
 
     dr.text((Wp / 2, 550), "NO ABRIR HASTA", font=_font(52), fill=acc, anchor="mm")
@@ -88,6 +103,10 @@ def hoja_carta(data, tema="safari"):
 
     dr.rounded_rectangle([80, 60, Wp - 80, 180], 25, fill=acc)
     dr.text((Wp / 2, 120), "CARTA PARA MI YO DEL FUTURO", font=_font(38), fill="white", anchor="mm")
+
+    personajes = _personajes(tema, 1)
+    if personajes:
+        _paste_h(im, personajes[0], Wp - 170, 118, 130)
 
     preguntas = [
         "¿Cuál es tu comida favorita?",

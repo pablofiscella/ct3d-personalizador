@@ -94,6 +94,39 @@ def _extraer_monstruos(tema):
         p = f"{cache}/c{i:03d}.png"; im.crop(bb).save(p); out.append(p)
     return out
 
+def personajes_decorativos(tema, n=2):
+    """n personajes reales del tema (recortados de la hoja de stickers) para decorar otros
+    productos (rompecabezas, calendario, corona, cápsula, certificado, papertoys…). Reusa
+    _extraer_monstruos; SIN fallback genérico — si el tema no tiene stickers, lista vacía
+    (nunca mezcla personajes de un tema con otro). Prioriza las figuras MÁS GRANDES (más
+    probable que sean personajes/animales protagonistas, no íconos u objetos chicos) y las
+    reparte a lo largo de esa lista para variedad (evitar sacar 2 veces el mismo tipo)."""
+    try:
+        paths = _extraer_monstruos(tema) or []
+    except Exception:
+        return []
+    if not paths:
+        return []
+    con_area = []
+    for p in paths:
+        try:
+            im = Image.open(p)
+            con_area.append((im.size[0] * im.size[1], p))
+        except Exception:
+            pass
+    if not con_area:
+        return []
+    con_area.sort(key=lambda t: -t[0])
+    grandes = [p for _, p in con_area[:max(n, len(con_area) // 2)]]
+    paso = max(1, len(grandes) // n)
+    out = []
+    for p in grandes[::paso][:n]:
+        try:
+            out.append(Image.open(p).convert("RGBA"))
+        except Exception:
+            pass
+    return out
+
 def _lineart(path):
     """Personaje → line-art (contorno negro sobre blanco) para colorear, por DETECCIÓN DE
     BORDES en vez de umbral de luminancia: el umbral rellenaba de negro a los personajes de

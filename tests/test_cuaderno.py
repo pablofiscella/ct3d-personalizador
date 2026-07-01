@@ -23,6 +23,22 @@ def test_tema_nombre_corto(tmp_path, monkeypatch):
     assert cuaderno._tema_nombre("circo") == "Circo"          # corta antes del guión
 
 
+def test_personajes_decorativos_devuelve_n_imagenes(tmp_path, monkeypatch):
+    monkeypatch.setattr(cuaderno, "TEMAS", str(tmp_path))
+    _mk_tema(tmp_path)
+    imgs = cuaderno.personajes_decorativos("circo", n=2)
+    assert len(imgs) == 2
+    for im in imgs:
+        assert im.mode == "RGBA" and im.size[0] > 0
+
+
+def test_personajes_decorativos_sin_stickers_lista_vacia(tmp_path, monkeypatch):
+    monkeypatch.setattr(cuaderno, "TEMAS", str(tmp_path))
+    d = tmp_path / "vacio"; d.mkdir()
+    (d / "tema.json").write_text("{}", encoding="utf-8")
+    assert cuaderno.personajes_decorativos("vacio", n=2) == []   # sin fallback genérico
+
+
 def test_build_separa_actividades_y_solucionario(tmp_path, monkeypatch):
     monkeypatch.setattr(cuaderno, "TEMAS", str(tmp_path))
     _mk_tema(tmp_path)

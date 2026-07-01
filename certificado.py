@@ -52,6 +52,19 @@ def _sello(dr, cx, cy, r, col):
         dr.line([x1, y1, x2, y2], fill=col, width=max(2, r//16))
 
 
+def _personajes(tema, n=1):
+    try:
+        import cuaderno
+        return cuaderno.personajes_decorativos(tema, n)
+    except Exception:
+        return []
+
+
+def _paste_h(base, img, cx, cy, h):
+    w = max(1, int(img.width * h / img.height))
+    base.alpha_composite(img.resize((w, int(h)), Image.LANCZOS), (int(cx - w / 2), int(cy - h / 2)))
+
+
 def generar_certificado(data, tema="safari"):
     acc = _accent(tema)
     nombre = (str(data.get("nombre") or "").strip()) or "______________"
@@ -88,6 +101,9 @@ def generar_certificado(data, tema="safari"):
     dr.text((Wp/2, 1160), "con alegría, amor y mucha diversión.", font=_font(28, False), fill=INK, anchor="mm")
 
     _sello(dr, Wp*0.75, Hp - 250, 80, GOLD)
+    personajes = _personajes(tema, 1)
+    if personajes:
+        _paste_h(im, personajes[0], Wp * 0.25, Hp - 260, 190)
 
     dr.line([Wp*0.2, Hp - 180, Wp*0.45, Hp - 180], fill=INK, width=2)
     dr.text((Wp*0.325, Hp - 165), "Firma", font=_font(24, False), fill=(150, 150, 160), anchor="mm")
