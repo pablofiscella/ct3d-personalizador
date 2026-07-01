@@ -350,6 +350,7 @@ async function cargar(){
         <button class="btn-ghost piezas">🧩 Piezas del kit</button>
         <button class="btn-ghost cuad">📓 Cuaderno actividades</button>
         <button class="btn-ghost ia-kit">✨ Generar con IA</button>
+        <button class="btn-ghost prod-nuevos">🖼️ Otros productos</button>
         ${pubRow}
         ${t.base
           ? `<button class="tema__del-tema" disabled title="Es la temática base; no se puede eliminar">Eliminar temática</button>`
@@ -360,6 +361,7 @@ async function cargar(){
     d.querySelector('.piezas').onclick=()=>openPiezas(t.id,t.nombre);
     d.querySelector('.cuad').onclick=()=>openCuaderno(t.id,t.nombre);
     d.querySelector('.ia-kit').onclick=()=>openIA(t.id,t.nombre);
+    d.querySelector('.prod-nuevos').onclick=()=>openProductosNuevos(t.id,t.nombre);
     const bPubM=d.querySelector('.pubmodal'); if(bPubM)bPubM.onclick=()=>openPublicar(t.id,t.nombre);
     const bDelT=d.querySelector('.delt'); if(bDelT)bDelT.onclick=()=>eliminarTema(t.id,t.nombre);
     d.querySelector('.ed-edades').onclick=()=>editarEdades(t.id,t.nombre,t.edades||[]);
@@ -451,6 +453,81 @@ async function openPiezas(tema, nombre){
     });
   }
   refresh();
+}
+// Los 9 productos 100% procedurales (no pasan por "Generar con IA": no hay nada que
+// OpenAI dibuje). Acá se VE cada pieza, se DESCARGA (para mejorarla con otra IA si
+// se quiere) y se SUBE el reemplazo (override) — o se vuelve al diseño original.
+const PROD_NUEVOS_TIPOS=[['certificado','🎓 Certificado'],['corona','👑 Gorro y corona'],
+  ['antifaces','🎭 Photo booth'],['menu','🍽️ Menú infantil'],['rompecabezas','🧩 Rompecabezas'],
+  ['capsula','✉️ Cápsula del tiempo'],['calendario','📅 Calendario'],['papertoys','📦 Paper toy'],
+  ['memoria','🃏 Memoria']];
+async function openProductosNuevos(tema, nombre){
+  const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:24px';
+  ov.innerHTML=`<div style="background:var(--bg-elevated,#1A1530);color:var(--ink-1,#fff);border-radius:14px;padding:20px;max-width:900px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.5)">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><h2 style="margin:0;font-size:18px">🖼️ Otros productos — ${esc(nombre)}</h2>
+    <button id="pn-close" style="margin-left:auto;background:transparent;border:0;color:inherit;font-size:22px;cursor:pointer">✕</button></div>
+    <p style="opacity:.7;font-size:13px;margin:0 0 12px">Estos productos son 100% diseño por código (no pasan por "Generar con IA"). Descargá una pieza para mejorarla con otra IA y volvé a subirla acá — reemplaza solo esa pieza, para este tema.</p>
+    <div id="pn-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px"></div>
+    <div id="pn-body" style="min-height:80px">Cargando…</div>
+    <p id="pn-msg" style="margin-top:10px;font-size:13px;min-height:18px;opacity:.95"></p></div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('#pn-close').onclick=()=>ov.remove();
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+  const tabsBox=ov.querySelector('#pn-tabs'), body=ov.querySelector('#pn-body'), pmsg=ov.querySelector('#pn-msg');
+  let tipoActual=PROD_NUEVOS_TIPOS[0][0];
+  function pintarTabs(){
+    tabsBox.innerHTML=PROD_NUEVOS_TIPOS.map(([tp,lbl])=>
+      `<button class="btn-ghost pn-tab" data-tipo="${tp}" style="font-size:12px;padding:6px 10px${tp===tipoActual?';background:var(--accent-tint,rgba(255,255,255,.15))':''}">${lbl}</button>`).join('');
+    tabsBox.querySelectorAll('.pn-tab').forEach(b=>b.onclick=()=>{ tipoActual=b.dataset.tipo; pintarTabs(); cargarPiezas(); });
+  }
+  async function cargarPiezas(){
+    body.innerHTML='Cargando…'; pmsg.textContent='';
+    let j; try{ j=await (await fetch('/dash/producto-piezas?tema='+encodeURIComponent(tema)+'&tipo='+encodeURIComponent(tipoActual)+'&key='+encodeURIComponent(KEY))).json(); }
+    catch(e){ body.innerHTML='No se pudo cargar.'; return; }
+    if(!j.ok){ body.innerHTML='✕ '+(j.error||'error'); return; }
+    const cb=Date.now();
+    body.innerHTML=`<div style="margin-bottom:10px"><a class="btn-ghost" style="font-size:12px;text-decoration:none;display:inline-block"
+        href="/dash/producto-zip?tema=${encodeURIComponent(tema)}&tipo=${encodeURIComponent(tipoActual)}&key=${encodeURIComponent(KEY)}">⬇ Descargar todas (ZIP)</a></div>
+      <div id="pn-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px"></div>`;
+    const grid=body.querySelector('#pn-grid');
+    grid.innerHTML=j.piezas.map(p=>`
+      <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:8px;text-align:center">
+        <img loading="lazy" src="/preview?tipo=${encodeURIComponent(tipoActual)}&tema=${encodeURIComponent(tema)}&pieza=${p.idx}&max=260&cb=${cb}"
+             style="width:100%;height:130px;object-fit:contain;background:#fff;border-radius:6px;display:block" alt="">
+        <div style="font-size:11.5px;font-weight:600;margin:6px 0 2px">${esc(p.label)}${p.override?' <span style="color:#39d98a">✓ personalizada</span>':''}</div>
+        <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:5px">
+          <a class="btn-ghost pn-dl" style="font-size:10.5px;padding:4px 8px;text-decoration:none" href="/dash/producto-descargar?tema=${encodeURIComponent(tema)}&tipo=${encodeURIComponent(tipoActual)}&pieza=${p.idx}&key=${encodeURIComponent(KEY)}">⬇</a>
+          <label class="btn-ghost" style="font-size:10.5px;padding:4px 8px;cursor:pointer">📤<input type="file" accept="image/*" data-idx="${p.idx}" class="pn-up" style="display:none"></label>
+          ${p.override?`<button class="btn-ghost pn-revert" data-idx="${p.idx}" style="font-size:10.5px;padding:4px 8px">↺ original</button>`:''}
+        </div>
+      </div>`).join('');
+    grid.querySelectorAll('.pn-up').forEach(inp=>inp.onchange=async()=>{
+      const f=inp.files[0]; if(!f) return;
+      pmsg.textContent='Subiendo…';
+      try{
+        const r=await fetch('/dash/producto-upload?tema='+encodeURIComponent(tema)+'&tipo='+encodeURIComponent(tipoActual)+'&pieza='+inp.dataset.idx,
+          {method:'POST',headers:{'X-API-Key':KEY},body:f});
+        const jr=await r.json();
+        if(jr.ok){ pmsg.textContent='✓ Reemplazo subido.'; await cargarPiezas(); }
+        else pmsg.textContent='✕ '+(jr.error||'error');
+      }catch(e){ pmsg.textContent='✕ '+e; }
+    });
+    grid.querySelectorAll('.pn-revert').forEach(b=>b.onclick=async()=>{
+      if(!confirm('¿Volver al diseño original de esta pieza?'))return;
+      pmsg.textContent='Restaurando…';
+      try{
+        const r=await fetch('/dash/producto-borrar-override?tema='+encodeURIComponent(tema)+'&tipo='+encodeURIComponent(tipoActual)+'&pieza='+b.dataset.idx,
+          {method:'POST',headers:{'X-API-Key':KEY}});
+        const jr=await r.json();
+        if(jr.ok){ pmsg.textContent='✓ Vuelta al diseño original.'; await cargarPiezas(); }
+        else pmsg.textContent='✕ '+(jr.error||'error');
+      }catch(e){ pmsg.textContent='✕ '+e; }
+    });
+  }
+  pintarTabs();
+  cargarPiezas();
 }
 async function openIA(tema, nombre){
   if(!document.getElementById('ia-spin-style')){   // animación del spinner
