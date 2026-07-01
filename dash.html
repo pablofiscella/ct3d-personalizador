@@ -621,35 +621,42 @@ async function openIA(tema, nombre){
       const ok_n=(st.eventos||[]).filter(e=>e.ok).length;
       const pct=iaTotal?Math.round(hechas/iaTotal*100):0;
       barFill.style.width=(st.estado==='listo'?100:(hechas>0?pct:5))+'%';   // 5% mientras hace la maestra
-      prog.textContent=st.estado==='corriendo'
-        ? 'Generando… '+hechas+'/'+(iaTotal||'?')+' piezas '+(hechas===0?'(estilo base)':'('+pct+'%)')
-        : st.estado==='listo'
-          ? '✓ Listo — '+ok_n+'/'+hechas+' piezas generadas'
-          : '✕ Error: '+(st.error||'desconocido');
-      if(st.estado==='corriendo'){ setTimeout(()=>poll(jid),2000); return; }
+      if(st.estado==='corriendo'){
+        prog.innerHTML=_spinTxt('Generando… '+hechas+'/'+(iaTotal||'?')+' piezas '+(hechas===0?'(estilo base)':'('+pct+'%)'));
+        setTimeout(()=>poll(jid),2000); return;
+      }
       if(st.estado==='listo'){
-        await cargarBorradores();                 // muestra TODO el draft (lo nuevo + lo que ya estaba)
+        await cargarBorradores();                 // muestra TODO el draft (lo nuevo + lo que ya estaba) + reactiva Aprobar
         prog.textContent='✓ Listo — '+ok_n+'/'+hechas+' piezas generadas en esta tanda';
-      } else if(st.eventos&&st.eventos.length){
-        pintarGrilla(st.eventos); btnApr.style.display='';   // error: mostrar lo que haya con su estado
+      } else {
+        prog.textContent='✕ Error: '+(st.error||'desconocido');
+        if(st.eventos&&st.eventos.length) pintarGrilla(st.eventos);
+        btnApr.style.display=''; btnApr.disabled=false;   // mostrar lo que haya con su estado
       }
       btnGen.disabled=false;
-    }catch(e){ prog.textContent='✕ Error de red: '+e; btnGen.disabled=false; }
+    }catch(e){ prog.textContent='✕ Error de red: '+e; btnGen.disabled=false; btnApr.disabled=false; }
   }
 
+  const _spinTxt=(t)=>'<span style="display:inline-flex;align-items:center;gap:7px"><span style="width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;display:inline-block;animation:ia-spin .8s linear infinite"></span>'+t+'</span>';
+
   btnGen.onclick=async()=>{
-    btnGen.disabled=true; btnApr.style.display='none';
-    imsg.textContent=''; prog.textContent='Iniciando…';   // NO borra la grilla: "Generar" completa lo que falta
+    btnGen.disabled=true;
+    // NO ocultar "Aprobar": las piezas que ya estaban listas siguen siendo válidas mientras
+    // se generan las que faltan (es incremental) — solo se deshabilita para evitar aprobar
+    // a mitad de una tanda que todavía está escribiendo archivos.
+    if(btnApr.style.display!=='none') btnApr.disabled=true;
+    imsg.textContent=''; prog.innerHTML=_spinTxt('Iniciando…');   // NO borra la grilla: "Generar" completa lo que falta
     bar.style.display=''; barFill.style.width='5%';   // barra dibujada YA (la 1ª imagen es la maestra de estilo)
+    const restaurar=async()=>{ btnGen.disabled=false; btnApr.disabled=false; await cargarBorradores(); };
     try{
       const cal=(ov.querySelector('#ia-cal')||{}).value||'low';
       const r=await fetch('/dash/ia-generar?tema='+encodeURIComponent(tema)+'&calidad='+cal,{method:'POST',headers:{'X-API-Key':KEY}});
       const j=await r.json();
-      if(!j.ok){ prog.textContent='✕ '+(j.error||'no arrancó'); bar.style.display='none'; btnGen.disabled=false; return; }
-      if(!j.job){ prog.textContent=j.mensaje||'No hay piezas para generar'; bar.style.display='none'; btnGen.disabled=false; return; }  // ya están todas
+      if(!j.ok){ prog.textContent='✕ '+(j.error||'no arrancó'); bar.style.display='none'; await restaurar(); return; }
+      if(!j.job){ prog.textContent=j.mensaje||'No hay piezas para generar'; bar.style.display='none'; await restaurar(); return; }  // ya están todas
       iaTotal=j.total||0;
       poll(j.job);
-    }catch(e){ prog.textContent='✕ '+e; bar.style.display='none'; btnGen.disabled=false; }
+    }catch(e){ prog.textContent='✕ '+e; bar.style.display='none'; await restaurar(); }
   };
 
   btnApr.onclick=async()=>{
