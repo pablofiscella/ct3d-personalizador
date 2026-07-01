@@ -1170,8 +1170,8 @@ cargar();
 <div id="cal-editor-container">
 <!-- Editor de calendario embebible en modal - SIMPLE Y AUTOMÁTICO -->
 <div id="editor-calendario-wrap" style="padding:20px;max-height:80vh;overflow-y:auto;font-family:Nunito,sans-serif">
-  <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:20px;margin-bottom:20px">
-    <!-- Panel izquierdo: controles -->
+  <div style="display:grid;grid-template-columns:30% 70%;gap:20px;margin-bottom:20px">
+    <!-- Panel izquierdo: controles (30%) -->
     <div style="display:flex;flex-direction:column;gap:15px;overflow-y:auto;max-height:700px">
       <div>
         <h3 style="font-size:13px;margin:0 0 10px 0;font-weight:600">📤 Plantilla</h3>
@@ -1297,8 +1297,13 @@ function dibujarPreview() {
   canvas.width = 1240 * scale;
   canvas.height = 1754 * scale;
   
-  // Dibujar imagen
-  ctx.drawImage(imagenCargada, 0, 0, canvas.width, canvas.height);
+  // Dibujar imagen respetando proporción original (cover, igual que el backend)
+  const coverScale = Math.max(canvas.width / imagenCargada.width, canvas.height / imagenCargada.height);
+  const drawW = imagenCargada.width * coverScale;
+  const drawH = imagenCargada.height * coverScale;
+  const drawX = (canvas.width - drawW) / 2;
+  const drawY = (canvas.height - drawH) / 2;
+  ctx.drawImage(imagenCargada, drawX, drawY, drawW, drawH);
   
   // Leer parámetros
   const monthX = (parseInt(monthXInput.value) || 620) * scale;
