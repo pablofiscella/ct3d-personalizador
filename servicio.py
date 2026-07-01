@@ -713,6 +713,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._dash_producto_upload()
         if path == "/dash/producto-borrar-override":
             return self._dash_producto_borrar_override()
+        if path == "/dash/calendario-generar":
+            return self._dash_calendario_generar()
         if path == "/dash/ia-replicar":
             return self._ia_replicar()
         if path == "/dash/ia-aprobar":
@@ -1053,6 +1055,48 @@ class Handler(BaseHTTPRequestHandler):
             os.remove(dest)
             return self._json(200, {"ok": True, "borrado": True})
         return self._json(200, {"ok": True, "borrado": False})
+
+    def _dash_calendario_generar(self):
+        """Sube UNA imagen de fondo y genera automáticamente los 12 meses del calendario
+        superponiendo la grilla sobre esa imagen. Cada mes se guarda como override del
+        tipo 'calendario', así el producto ya queda listo."""
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        anyo_str = re.sub(r"\D", "", (q.get("anyo", ["2026"])[0] or "2026"))[:4]
+        nombre = (q.get("nombre", [""])[0] or "").strip() or "Mi familia"
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        try:
+            n = int(self.headers.get("Content-Length", "0"))
+            raw = self.rfile.read(n) if n else b""
+            if not raw:
+                return self._json(400, {"ok": False, "error": "sin archivo"})
+            fondo = Image.open(io.BytesIO(raw)).convert("RGBA")
+        except Exception as e:
+            return self._json(400, {"ok": False, "error": "imagen inválida: %s" % e})
+
+        try:
+            import calendario
+            meses = calendario.generar_calendario_desde_fondo(
+                {"nombre": nombre, "anyo": anyo_str}, fondo, tema)
+            tdir = os.path.join(temas.TEMAS_DIR, tema)
+            fondo_dir = os.path.join(tdir, "calendario")
+            os.makedirs(fondo_dir, exist_ok=True)
+            fondo.save(os.path.join(fondo_dir, "fondo.png"))
+
+            override_dir = os.path.join(tdir, "overrides", "calendario")
+            os.makedirs(override_dir, exist_ok=True)
+            generados = []
+            for idx, (archivo, img) in enumerate(meses):
+                p = os.path.join(override_dir, "%d.png" % idx)
+                piezas.to_rgb(img).save(p)
+                generados.append({"idx": idx, "archivo": archivo})
+            return self._json(200, {"ok": True, "tema": tema, "anyo": anyo_str,
+                                    "generados": len(generados), "meses": generados})
+        except Exception as e:
+            return self._json(500, {"ok": False, "error": "generación falló: %s" % e})
 
     # ---- Arte BASE de una temática existente (invitacion_N / afiche_N en la raíz) ----
     def _dash_base_estado(self, q):

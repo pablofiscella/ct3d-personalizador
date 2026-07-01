@@ -1,0 +1,52 @@
+{
+  "template": "plantilla.png",
+  "output": "calendario.png",
+  "month": 1,
+  "year": 2026,
+  "draw_grid": false,
+  "day_text_y_offset": -4,
+  "day_tracking": -2,
+  "col_padding": 6,
+  "header_col_padding": 8,
+  "grid": {
+    "x": 271,
+    "y": 399,
+    "width": 939,
+    "height": 557,
+    "cols": 7,
+    "rows": 6,
+    "color": "#8EB85A",
+    "line_width": 2,
+    "corner_radius": 18
+  },
+  "month_banner": {
+    "draw_background": false,
+    "text_y": 247
+  },
+  "days_header": {
+    "draw_background": false,
+    "x": 272,
+    "y": 335,
+    "width": 939,
+    "height": 50,
+    "text_y": 360
+  },
+  "font_sizes": {
+    "month": 110,
+    "weekday": 24,
+    "day": 28
+  },
+  "fonts": {
+    "month": "Fredoka-Bold.ttf",
+    "weekday": "Nunito-Bold.ttf",
+    "day": "Nunito-ExtraBold.ttf"
+  },
+  "colors": {
+    "background": "#F8F5EE",
+    "month_text": "#FFFFFF",
+    "weekday_text": "#FFFFFF",
+    "sunday_weekday_text": "#D62828",
+    "day_text": "#1E1E1E",
+    "sunday_day_text": "#D62828"
+  }
+}
