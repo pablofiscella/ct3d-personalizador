@@ -341,7 +341,7 @@ async function cargar(){
         <img loading="lazy" src="/editor-bg.png?pieza=invitacion&edad=${edad}&tema=${encodeURIComponent(t.id)}&cb=${cb}" alt="Fondo de ${esc(t.nombre)}">
         <div class="tema__cap">
           <div class="tema__name">${esc(t.nombre)}</div>
-          <div class="tema__meta">Edades ${t.edades.join(' / ')}</div>
+          <div class="tema__meta">Edades ${t.edades.join(' / ')} <button class="ed-edades" title="Elegir para qué edades se ofrece el tema" style="font-size:11px;padding:1px 7px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:inherit;cursor:pointer">✏️ edades</button></div>
         </div>
       </div>
       <div class="tema__actions">
@@ -362,9 +362,44 @@ async function cargar(){
     d.querySelector('.ia-kit').onclick=()=>openIA(t.id,t.nombre);
     const bPubM=d.querySelector('.pubmodal'); if(bPubM)bPubM.onclick=()=>openPublicar(t.id,t.nombre);
     const bDelT=d.querySelector('.delt'); if(bDelT)bDelT.onclick=()=>eliminarTema(t.id,t.nombre);
+    d.querySelector('.ed-edades').onclick=()=>editarEdades(t.id,t.nombre,t.edades||[]);
     cont.appendChild(d);
   });
   updateCarNav();
+}
+async function editarEdades(tema, nombre, actuales){
+  const esc2=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const set=new Set((actuales||[]).map(Number));
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px';
+  const btns=[1,2,3,4,5,6,7].map(e=>`<button data-e="${e}" class="edt" style="width:46px;height:46px;border-radius:10px;border:2px solid ${set.has(e)?'#7C5CFC':'rgba(255,255,255,.25)'};background:${set.has(e)?'#7C5CFC':'transparent'};color:inherit;font-weight:700;cursor:pointer">${e}</button>`).join('');
+  ov.innerHTML=`<div style="background:var(--bg-elevated,#1A1530);color:var(--ink-1,#fff);border-radius:14px;padding:22px;max-width:430px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.5)">
+    <h3 style="margin:0 0 6px">Edades de "${esc2(nombre)}"</h3>
+    <p style="opacity:.7;font-size:13px;margin:0 0 14px">Marcá para qué edades se ofrece el tema. Se usa tu única invitación para todas (la edad se agrega en el editor). Después generá el afiche y replicá con "otras edades".</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">${btns}</div>
+    <div id="edmsg" style="font-size:13px;min-height:18px;margin-bottom:10px"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button id="edcancel" style="padding:8px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:transparent;color:inherit;cursor:pointer">Cancelar</button>
+      <button id="edok" class="btn-primary">Aplicar</button>
+    </div></div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+  ov.querySelectorAll('.edt').forEach(b=>b.onclick=()=>{ const e=Number(b.dataset.e);
+    if(set.has(e)){set.delete(e);b.style.background='transparent';b.style.borderColor='rgba(255,255,255,.25)';}
+    else{set.add(e);b.style.background='#7C5CFC';b.style.borderColor='#7C5CFC';} });
+  ov.querySelector('#edcancel').onclick=()=>ov.remove();
+  ov.querySelector('#edok').onclick=async()=>{
+    const edades=[...set].sort((a,b)=>a-b); const m=ov.querySelector('#edmsg');
+    if(!edades.length){m.textContent='Elegí al menos una edad.';return;}
+    m.textContent='Aplicando…';
+    try{
+      const r=await fetch('/dash/agregar-edades?tema='+encodeURIComponent(tema)+'&edades='+edades.join(','),{method:'POST',headers:{'X-API-Key':KEY}});
+      const j=await r.json();
+      if(!j.ok){m.textContent='✕ '+(j.error||'error');return;}
+      m.textContent='✓ Edades: '+(j.edades||[]).join(' / ');
+      setTimeout(async()=>{ ov.remove(); await cargar(); },700);
+    }catch(e){ m.textContent='✕ '+e; }
+  };
 }
 async function openPiezas(tema, nombre){
   const ov=document.createElement('div');

@@ -693,6 +693,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._ia_generar()
         if path == "/dash/ia-regenerar":
             return self._ia_regenerar()
+        if path == "/dash/agregar-edades":
+            return self._dash_agregar_edades()
         if path == "/dash/ia-replicar":
             return self._ia_replicar()
         if path == "/dash/ia-aprobar":
@@ -1141,6 +1143,37 @@ class Handler(BaseHTTPRequestHandler):
             json.dump(base, f, ensure_ascii=False, indent=2)
         generador._specs_cache.pop(tema, None)   # por si estaba cacheada
         return self._json(200, {"ok": True, "tema": tema, "nombre": base["nombre"]})
+
+    def _dash_agregar_edades(self):
+        """Marca para qué edades se ofrece el tema. Como la invitación es ÚNICA (la edad se
+        agrega en el editor), copia esa única invitación a las edades elegidas: así el tema
+        pasa a ofrecerlas y el afiche se puede replicar por edad. No borra edades existentes."""
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        pedidas = sorted({int(t) for t in (q.get("edades", [""])[0] or "").split(",")
+                          if t.strip().isdigit() and 1 <= int(t.strip()) <= 7})
+        if not pedidas:
+            return self._json(400, {"ok": False, "error": "elegí al menos una edad"})
+        tdir = os.path.join(temas.TEMAS_DIR, tema)
+        fuente = next((os.path.join(tdir, "invitacion_%d.png" % n) for n in range(1, 8)
+                       if os.path.isfile(os.path.join(tdir, "invitacion_%d.png" % n))), None)
+        if not fuente:
+            return self._json(400, {"ok": False, "error": "el tema no tiene invitación cargada"})
+        import shutil
+        copiadas = []
+        for e in pedidas:
+            dst = os.path.join(tdir, "invitacion_%d.png" % e)
+            if not os.path.isfile(dst):
+                shutil.copyfile(fuente, dst)
+                copiadas.append(e)
+        _sync_edades(tema)
+        generador._specs_cache.pop(tema, None)
+        edades = temas.cargar_tema(tema).get("edades", [])
+        return self._json(200, {"ok": True, "edades": edades, "copiadas": copiadas})
 
     def _dash_config(self):
         if not self._admin_ok():
