@@ -49,6 +49,7 @@
     <p class="sub">Escribí el nombre y mirá la vista previa actualizarse.</p>
     <label for="nombre">Nombre</label>
     <input type="text" id="nombre" placeholder="Ej.: Catalina" autocomplete="off">
+    <div id="campos-extra"></div>
     <button class="btn" id="confirmar" type="button">Confirmar diseño</button>
     <p class="hint" id="hint"></p>
   </div>
@@ -65,6 +66,28 @@
   var hint = document.getElementById('hint');
   var titulo = document.getElementById('titulo');
   var tabsBox = document.getElementById('tabs');
+  var camposBox = document.getElementById('campos-extra');
+
+  // Campos propios del tipo más allá de nombre/edad/año (ej. menu_entrada/menu_plato del
+  // menú infantil) — se piden a /tipos y se arman inputs solos, sin tocar este archivo
+  // cada vez que un tipo nuevo suma un campo personalizable.
+  var CAMPOS_EXTRA = [];   // [{nombre, label}], se llena tras el fetch de /tipos
+  var ESTRUCTURALES = {nombre:1, edad:1, anyo:1};
+  function pintarCamposExtra(){
+    camposBox.innerHTML = CAMPOS_EXTRA.map(function(c){
+      return '<label for="ce-'+c.nombre+'">'+c.label+'</label>'+
+             '<input type="text" id="ce-'+c.nombre+'" data-campo="'+c.nombre+'" autocomplete="off">';
+    }).join('');
+    camposBox.querySelectorAll('input').forEach(function(el){ el.addEventListener('input', refrescar); });
+  }
+  function valoresCamposExtra(){
+    var out = {};
+    CAMPOS_EXTRA.forEach(function(c){
+      var el = document.getElementById('ce-'+c.nombre);
+      if(el && el.value.trim()) out[c.nombre] = el.value.trim();
+    });
+    return out;
+  }
 
   // Cada cambio de pestaña/nombre pide una imagen nueva al servidor y puede tardar
   // (el cuaderno de actividades renderiza la página en el momento) — sin esto la imagen
@@ -103,6 +126,8 @@
     var q = 'tipo='+encodeURIComponent(TIPO)+'&tema='+encodeURIComponent(TEMA)
           + '&nombre='+encodeURIComponent(nombre)+'&edad='+encodeURIComponent(EDAD)
           + '&pieza='+PAGINAS[pagina].i+'&max=820&cb='+Date.now();
+    var extra = valoresCamposExtra();
+    for(var k in extra) q += '&'+encodeURIComponent(k)+'='+encodeURIComponent(extra[k]);
     return '/preview?'+q;
   }
   // A6: origin real del padre (la tienda), nunca "*".
@@ -112,8 +137,11 @@
   function emit(confirm){
     try{
       if(window.parent!==window){
+        var data = {nombre:(inp.value||'').trim()};
+        var extra = valoresCamposExtra();
+        for(var k in extra) data[k] = extra[k];
         window.parent.postMessage({type:'ct3d-kit', confirm:!!confirm,
-          payload:{tema:TEMA, edad:EDAD, data:{nombre:(inp.value||'').trim()}, over:{}}}, PARENT_ORIGIN);
+          payload:{tema:TEMA, edad:EDAD, data:data, over:{}}}, PARENT_ORIGIN);
       }
     }catch(e){}
   }
@@ -132,18 +160,31 @@
     hint.textContent='✓ Diseño confirmado.';
   });
 
-  fetch('/piezas?tipo='+encodeURIComponent(TIPO)+'&tema='+encodeURIComponent(TEMA))
+  var pPiezas = fetch('/piezas?tipo='+encodeURIComponent(TIPO)+'&tema='+encodeURIComponent(TEMA))
     .then(function(r){ return r.json(); })
     .then(function(d){
       if(d && d.ok && Array.isArray(d.piezas) && d.piezas.length){
         PAGINAS = d.piezas.map(function(p){ return {i:p.idx, t:p.label||''}; });
       }
     })
-    .catch(function(){})
-    .then(function(){
-      pintarTabs();
-      cargarPreview();
-    });
+    .catch(function(){});
+
+  var pTipos = fetch('/tipos')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var info = d && d.ok && d.tipos && d.tipos[TIPO];
+      if(!info) return;
+      var labels = info.campos_labels || {};
+      CAMPOS_EXTRA = (info.campos || []).filter(function(c){ return !ESTRUCTURALES[c]; })
+        .map(function(c){ return {nombre:c, label: labels[c] || (c.charAt(0).toUpperCase()+c.slice(1).replace(/_/g,' '))}; });
+    })
+    .catch(function(){});
+
+  Promise.all([pPiezas, pTipos]).then(function(){
+    pintarTabs();
+    pintarCamposExtra();
+    cargarPreview();
+  });
 })();
 </script>
 </body>

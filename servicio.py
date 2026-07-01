@@ -383,6 +383,12 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/preview":
             q = urllib.parse.parse_qs(u.query)
             data = {c: (q.get(c, [""])[0] or "") for c in CAMPOS}
+            # campos EXTRA propios de un tipo (ej. menu_entrada/menu_plato del menú
+            # infantil): cualquier query param que no sea de control se suma tal cual,
+            # así un tipo nuevo con campos propios no necesita tocar este endpoint.
+            for k, vals in q.items():
+                if k not in CAMPOS and k not in ("tema", "tipo", "max", "fmt", "over", "pieza", "cb"):
+                    data[k] = vals[0] if vals else ""
             if not data["nombre"]:
                 data["nombre"] = "Tomás"
             tema = q.get("tema", ["safari"])[0]
@@ -746,6 +752,11 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(400, {"ok": False, "error": "JSON inválido"})
 
         data = {c: str(payload.get(c, "")).strip() for c in CAMPOS}
+        # campos EXTRA propios de un tipo (ej. menu_entrada/menu_plato del menú infantil):
+        # ver mismo criterio en /preview.
+        for k, v in payload.items():
+            if k not in CAMPOS and k not in ("tema", "tipo", "order_id", "over"):
+                data[k] = str(v).strip()
         if not data["nombre"]:
             return self._json(400, {"ok": False, "error": "falta 'nombre'"})
         if isinstance(payload.get("over"), dict):    # personalización del cliente (mini-editor)

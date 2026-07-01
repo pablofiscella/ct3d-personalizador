@@ -62,6 +62,21 @@ def _icono(tipo, size, color):
     return im
 
 
+_DEFAULT_ITEMS = {
+    "menu_entrada": "Picada divertida\nPapas fritas y palitos",
+    "menu_plato": "Pizza o hamburguesa\ncon papas",
+    "menu_postre": "Torta de cumpleaños\n¡con velitas!",
+    "menu_bebida": "Jugo o gaseosa",
+}
+
+
+def _desc_lineas(texto, max_chars=30):
+    """Texto del cliente (una línea, sin \\n) -> hasta 2 líneas que entran en la tarjeta."""
+    import textwrap
+    lineas = textwrap.wrap(texto, max_chars) or [texto]
+    return lineas[:2]
+
+
 def generar_menu(data, tema="safari"):
     acc = _accent(tema)
     nombre = str(data.get("nombre") or "").strip() or "______________"
@@ -75,18 +90,19 @@ def generar_menu(data, tema="safari"):
     dr.text((Wp / 2, 198), "Hoy cumple %s" % nombre, font=_font(32, False), fill=_tint(acc, 0.75), anchor="mm")
 
     items = [
-        ("entrada", "Entrada", "Picada divertida\nPapas fritas y palitos"),
-        ("plato", "Plato principal", "Pizza o hamburguesa\ncon papas"),
-        ("postre", "Postre", "Torta de cumpleaños\n¡con velitas!"),
-        ("bebida", "Bebida", "Jugo o gaseosa"),
+        ("entrada", "Entrada", "menu_entrada"),
+        ("plato", "Plato principal", "menu_plato"),
+        ("postre", "Postre", "menu_postre"),
+        ("bebida", "Bebida", "menu_bebida"),
     ]
     y = 310
-    for tipo, titulo, desc in items:
+    for tipo, titulo, campo in items:
         dr.rounded_rectangle([100, y, Wp - 100, y + 170], 25, fill=(255, 255, 255), outline=_tint(acc, 0.5), width=3)
         ic = _icono(tipo, 90, acc)
         im.alpha_composite(ic, (115, int(y + 40)))
         dr.text((280, y + 40), titulo, font=_font(36), fill=acc, anchor="lm")
-        dl = desc.split("\n")
+        custom = str(data.get(campo) or "").strip()
+        dl = _desc_lineas(custom) if custom else _DEFAULT_ITEMS[campo].split("\n")
         for i, line in enumerate(dl):
             dr.text((280, y + 85 + i * 32), line, font=_font(26, False), fill=INK, anchor="lm")
         y += 190

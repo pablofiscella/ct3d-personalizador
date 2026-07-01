@@ -439,7 +439,9 @@ TIPOS = {
     "menu": {
         "nombre": "Menú infantil personalizado",
         "descripcion": "Menú del día con el nombre del cumpleañero, ideal para la mesa del salón. Para colorear.",
-        "campos": ["nombre", "edad"],
+        "campos": ["nombre", "edad", "menu_entrada", "menu_plato", "menu_postre", "menu_bebida"],
+        "campos_labels": {"menu_entrada": "Entrada", "menu_plato": "Plato principal",
+                          "menu_postre": "Postre", "menu_bebida": "Bebida"},
         "preview": "menu",
         "piezas": _piezas_menu,
     },
@@ -576,8 +578,8 @@ def piezas_meta(tipo, tema="safari"):
 def tipos_publicos():
     """Para el endpoint /tipos: metadata sin las funciones."""
     return {k: {"nombre": v["nombre"], "descripcion": v["descripcion"],
-                "campos": v["campos"], "preview": v["preview"],
-                "piezas": piezas_meta(k)}
+                "campos": v["campos"], "campos_labels": v.get("campos_labels", {}),
+                "preview": v["preview"], "piezas": piezas_meta(k)}
             for k, v in TIPOS.items()}
 
 
