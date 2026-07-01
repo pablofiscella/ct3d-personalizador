@@ -127,11 +127,12 @@ def prompt_de(paleta, pieza, edad=None):
         # el B/N puro después. Usa los personajes del tema de las referencias.
         return ("Creá una PÁGINA PARA COLOREAR infantil con los personajes del tema de las "
                 "imágenes de referencia (mismos personajes, sin cambiar su diseño). "
-                "DIBUJO SOLO EN LÍNEAS: contornos negros gruesos, limpios y CERRADOS, sobre "
-                "fondo BLANCO liso. Una escena simple y clara, personajes grandes y centrados, "
-                "con espacios amplios para pintar. SIN relleno, SIN color, SIN grises, SIN "
-                "sombras, SIN texturas, SIN tramas, SIN texto ni números. Estilo libro de "
-                "colorear, line art, blanco y negro.")
+                "DIBUJO SOLO EN LÍNEAS: contornos negros de grosor MEDIO —ni finos ni muy "
+                "gruesos, como un libro de colorear infantil estándar—, limpios y CERRADOS, "
+                "sobre fondo BLANCO liso. Una escena simple y clara, personajes grandes y "
+                "centrados, con espacios amplios para pintar. SIN relleno, SIN color, SIN "
+                "grises, SIN sombras, SIN texturas, SIN tramas, SIN texto ni números. Estilo "
+                "libro de colorear, line art, blanco y negro.")
     partes = ["Creá %s para un kit de cumpleaños." % pieza.sujeto]
     if pieza.key == "invitacion":
         # Se personaliza en el editor (nombre/fecha/EDAD se agregan después).
