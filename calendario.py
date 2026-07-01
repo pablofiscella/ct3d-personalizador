@@ -240,3 +240,30 @@ if __name__ == "__main__":
         maker({"nombre": nombre}).convert("RGB").save(f"{out}_{fn}.png")
         print(f"OK -> {out}_{fn}.png")
         break
+
+
+def generar_calendario_con_plantilla(data, plantilla_img, tema="safari"):
+    """Genera los 12 meses usando una plantilla pasada como PIL Image.
+    Útil para el editor interactivo del dashboard.
+    plantilla_img: PIL Image RGBA (o None para modo procedural)
+    """
+    nombre = str(data.get("nombre") or "").strip() or "Mi familia"
+    anyo = int(data.get("anyo") or "2026")
+    acc = _accent(tema)
+
+    config = _load_config(tema)
+    
+    # Si pasó una plantilla, úsala. Si no, carga del disco o modo procedural.
+    plantilla = plantilla_img if plantilla_img else _load_plantilla(tema)
+    usar_config = config and plantilla
+
+    if usar_config:
+        # Modo con config + plantilla
+        return [("%02d_%s" % (m, _MESES_ES[m - 1].lower()),
+                 (lambda m: (lambda d: mes_hoja_desde_config(m, anyo, nombre, config, plantilla, tema)))(m), True)
+                for m in range(1, 13)]
+    else:
+        # Modo procedural
+        return [("%02d_%s" % (m, _MESES_ES[m - 1].lower()),
+                 (lambda m: (lambda d: mes_hoja_procedural(m, anyo, nombre, acc, tema)))(m), True)
+                for m in range(1, 13)]
