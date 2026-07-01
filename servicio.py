@@ -1206,11 +1206,14 @@ class Handler(BaseHTTPRequestHandler):
         tipo = (payload.get("tipo") or "kit").lower().strip()
         nombre = (payload.get("nombre") or payload.get("titulo") or "").strip()
         precio = str(payload.get("precio", "")).strip()
+        mostrar = bool(payload.get("mostrar", True))   # default True: el botón "Publicar" del
+        # panel publica de verdad; pero un caller que pide mostrar=False (crear oculto para
+        # revisar precio antes) DEBE respetarse (antes quedaba hardcodeado a True siempre).
         # Publica en la tienda Flask (no más WooCommerce). Cada (tipo, tema) es un
         # producto: KIT-<TEMA> (kit completo) / KIT-INVITACION-<TEMA> / KIT-CARTEL-<TEMA>…
         st, r = _tienda_admin("POST", "/kit-admin/publicar", {
             "tipo": tipo, "tema": tema,
-            "precio": precio or None, "titulo": nombre or None, "mostrar": True})
+            "precio": precio or None, "titulo": nombre or None, "mostrar": mostrar})
         if st != 200 or not r.get("ok"):
             return self._json(502 if st in (0, 502) else st,
                               {"ok": False, "error": r.get("error", "no se pudo publicar en la tienda")})
