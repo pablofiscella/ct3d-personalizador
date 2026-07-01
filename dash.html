@@ -1274,6 +1274,67 @@ const gridYInput = document.getElementById('cal-editor-grid-y');
 
 let plantillaFile = null;
 
+// Variable global para la imagen cargada
+let imagenCargada = null;
+
+function dibujarPreviewConNumeros() {
+  if (!imagenCargada || !document.getElementById('cal-editor-img-canvas')) return;
+  
+  const imgCanvas = document.getElementById('cal-editor-img-canvas');
+  const imgCtx = imgCanvas.getContext('2d');
+  
+  // Escala
+  const scale = imgCanvas.width / 1240;
+  
+  // Dibujar imagen de fondo
+  imgCtx.drawImage(imagenCargada, 0, 0, imgCanvas.width, imgCanvas.height);
+  
+  // Parámetros
+  const gridX = (parseInt(gridXInput.value) || 271) * scale;
+  const gridY = (parseInt(gridYInput.value) || 399) * scale;
+  const gridW = (939 * scale);
+  const gridH = (557 * scale);
+  const cols = 7, rows = 6;
+  const cell_w = gridW / cols;
+  const cell_h = gridH / rows;
+  
+  // Tamaños de fuente (escalados)
+  const monthSize = Math.round((parseInt(monthSizeInput.value) || 110) * scale);
+  const weekdaySize = Math.round((parseInt(weekdaySizeInput.value) || 24) * scale);
+  const daySize = Math.round((parseInt(daySizeInput.value) || 28) * scale);
+  
+  imgCtx.fillStyle = '#000';
+  imgCtx.strokeStyle = '#000';
+  
+  // Mes (arriba)
+  imgCtx.font = 'bold ' + monthSize + 'px sans-serif';
+  imgCtx.textAlign = 'center';
+  imgCtx.textBaseline = 'middle';
+  imgCtx.fillText('ENERO 2026', imgCanvas.width / 2, 80 * scale);
+  
+  // Días de la semana
+  const dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  imgCtx.font = weekdaySize + 'px sans-serif';
+  for (let i = 0; i < 7; i++) {
+    const cx = gridX + i * cell_w + cell_w / 2;
+    imgCtx.fillText(dias[i], cx, gridY - 8 * scale);
+  }
+  
+  // Números de días
+  imgCtx.font = daySize + 'px sans-serif';
+  let dayNum = 1;
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      if (dayNum > 31) break;
+      const cx = gridX + col * cell_w + cell_w / 2;
+      const cy = gridY + row * cell_h + cell_h / 2;
+      imgCtx.fillText(dayNum, cx, cy);
+      dayNum++;
+    }
+    if (dayNum > 31) break;
+  }
+}
+
 // Cargar imagen
 if (fileInput) {
   fileInput.addEventListener('change', (e) => {
@@ -1283,10 +1344,11 @@ if (fileInput) {
       reader.onload = (evt) => {
         const img = new Image();
         img.onload = () => {
+          imagenCargada = img;
+          
           // Mostrar imagen en preview
           preview.innerHTML = '<canvas id="cal-editor-img-canvas" style="max-width:100%;max-height:350px;border-radius:6px"></canvas>';
           const imgCanvas = document.getElementById('cal-editor-img-canvas');
-          const imgCtx = imgCanvas.getContext('2d');
           
           // Escala para caber en preview
           const maxW = 380, maxH = 350;
@@ -1294,24 +1356,10 @@ if (fileInput) {
           imgCanvas.width = img.width * scale;
           imgCanvas.height = img.height * scale;
           
-          // Dibujar imagen
-          imgCtx.drawImage(img, 0, 0, imgCanvas.width, imgCanvas.height);
-          
-          // Dibujar grilla de referencia encima
-          const gridX = (parseInt(gridXInput.value) || 271) * scale;
-          const gridY = (parseInt(gridYInput.value) || 399) * scale;
-          const gridW = (939 * scale);
-          const gridH = (557 * scale);
-          
-          imgCtx.strokeStyle = 'rgba(255, 100, 100, 0.5)';
-          imgCtx.lineWidth = 2;
-          imgCtx.strokeRect(gridX, gridY, gridW, gridH);
-          
-          imgCtx.fillStyle = 'rgba(255, 100, 100, 0.3)';
-          imgCtx.fillRect(gridX, gridY, gridW, gridH);
+          dibujarPreviewConNumeros();
           
           genBtn.disabled = false;
-          statusDiv.textContent = '✅ Imagen cargada - (área roja = zona de números)';
+          statusDiv.textContent = '✅ Imagen cargada - Ajusta parámetros para ver cambios';
         };
         img.src = evt.target.result;
       };
@@ -1399,19 +1447,28 @@ function drawCalendarPreview() {
 if (monthSizeInput) monthSizeInput.addEventListener('input', (e) => {
   monthSizeVal.textContent = e.target.value;
   drawCalendarPreview();
+  dibujarPreviewConNumeros();
 });
 if (weekdaySizeInput) weekdaySizeInput.addEventListener('input', (e) => {
   weekdaySizeVal.textContent = e.target.value;
   drawCalendarPreview();
+  dibujarPreviewConNumeros();
 });
 if (daySizeInput) daySizeInput.addEventListener('input', (e) => {
   daySizeVal.textContent = e.target.value;
   drawCalendarPreview();
+  dibujarPreviewConNumeros();
 });
 
 // Actualizar grid
-if (gridXInput) gridXInput.addEventListener('input', drawCalendarPreview);
-if (gridYInput) gridYInput.addEventListener('input', drawCalendarPreview);
+if (gridXInput) gridXInput.addEventListener('input', () => {
+  drawCalendarPreview();
+  dibujarPreviewConNumeros();
+});
+if (gridYInput) gridYInput.addEventListener('input', () => {
+  drawCalendarPreview();
+  dibujarPreviewConNumeros();
+});
 
 // Draw initial preview
 drawCalendarPreview();
