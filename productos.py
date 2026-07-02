@@ -624,8 +624,14 @@ def _con_overrides(tema, tipo, items):
 
 def piezas_tipo(tema, tipo):
     """Lista [(nombre_archivo, fn(data)->Image, is_rgba)] del tipo sobre la temática.
-    Aplica overrides subidos a mano (ver override_path) sobre el diseño procedural."""
+    Aplica overrides subidos a mano (ver override_path) sobre el diseño procedural.
+    EXCEPCIÓN 'libro': ahí el override (mismo path) es solo la ILUSTRACIÓN de la
+    página y lo aplica libro.py adentro — el texto personalizado (nombre/dedicatoria)
+    siempre lo escribe el motor; si el override tapara la página entera, el nombre
+    del chico quedaría fijo dentro de la imagen subida."""
     items = _spec(tipo)["piezas"](tema or "safari")
+    if tipo == "libro":
+        return items
     return _con_overrides(tema, tipo, items)
 
 _PIEZA_LABELS = {

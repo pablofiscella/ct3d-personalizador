@@ -366,13 +366,16 @@ _NOCTURNOS = (_m_dormitorio, _m_casa)
 _INTERIORES = (_m_dormitorio, _m_luces)   # sin colinas (pasan adentro / en la magia)
 
 
-def _escena(im, dr, box, tema, pagina, acc, motivo=None):
-    """Ilustración procedural de una página que REPRESENTA lo que cuenta el texto:
-    cada página de historia tiene su motivo (_MOTIVOS[n]): cama+invitación → luces
-    mágicas → fiesta → problema (nube con ?) → solución (árbol y sendero) → tesoro →
-    casita de noche. Encima van los personajes del tema. Determinística (misma
-    página -> misma escena). Se pinta en una capa aparte y se pega con máscara
-    redondeada, así nada (colinas, personajes) se desborda del panel."""
+def _escena(im, dr, box, tema, pagina, acc, motivo=None, idx_pieza=None):
+    """Ilustración de una página que REPRESENTA lo que cuenta el texto. Si hay
+    ilustración override para idx_pieza (subida por el dash o generada con IA),
+    va esa. Si no, la escena procedural: cada página de historia tiene su motivo
+    (_MOTIVOS[n]): cama+invitación → luces mágicas → fiesta → problema (nube con ?)
+    → solución (árbol y sendero) → tesoro → casita de noche. Encima van los
+    personajes del tema. Determinística (misma página -> misma escena). Se pinta en
+    una capa aparte y se pega con máscara redondeada, así nada se desborda del panel."""
+    if idx_pieza is not None and _panel_ilustracion(im, dr, box, tema, idx_pieza, acc):
+        return
     x0, y0, x1, y1 = box
     W = x1 - x0; H = y1 - y0
     rnd = random.Random("%s-%d" % (tema, pagina))
@@ -431,6 +434,45 @@ def _escena(im, dr, box, tema, pagina, acc, motivo=None):
     dr.rounded_rectangle(box, 36, outline=_tint(acc, 0.25), width=6)
 
 
+# ── ilustraciones subidas / generadas con IA (override POR ESCENA) ───────────
+def override_escena_path(tema, idx):
+    """La ILUSTRACIÓN de la página idx (0..9): temas/<tema>/overrides/libro/<idx>.png.
+    A diferencia del resto de los productos, en el libro el override NO reemplaza la
+    página completa: es solo el ARTE de la escena, y el motor sigue escribiendo el
+    texto personalizado encima (si tapara la página entera, el nombre del chico
+    quedaría fijo dentro de la imagen). Por eso productos.piezas_tipo saltea el
+    override genérico para el tipo 'libro'. La imagen llega acá de dos maneras:
+    subida a mano por el dash (botón 📤 de la pieza) o generada con IA (libro_ia.py)."""
+    import temas as _temas
+    return os.path.join(_temas.TEMAS_DIR, tema or "safari", "overrides", "libro",
+                        "%d.png" % int(idx))
+
+
+def _cover(img, W, H):
+    """Escala y recorta la imagen para CUBRIR WxH (estilo object-fit: cover)."""
+    s = max(W / img.width, H / img.height)
+    im2 = img.resize((max(1, int(img.width * s)), max(1, int(img.height * s))), Image.LANCZOS)
+    x = (im2.width - W) // 2
+    y = (im2.height - H) // 2
+    return im2.crop((x, y, x + W, y + H))
+
+
+def _panel_ilustracion(im, dr, box, tema, idx, acc):
+    """Si hay ilustración override para la página idx, la pega en el panel (cover +
+    máscara redondeada + marco) y devuelve True. Si no hay, False (escena procedural)."""
+    p = override_escena_path(tema, idx)
+    if not os.path.isfile(p):
+        return False
+    x0, y0, x1, y1 = box
+    W, H = x1 - x0, y1 - y0
+    art = _cover(Image.open(p).convert("RGBA"), W, H)
+    mask = Image.new("L", (W, H), 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, W - 1, H - 1], 36, fill=255)
+    im.paste(art, (x0, y0), mask)
+    dr.rounded_rectangle(box, 36, outline=_tint(acc, 0.25), width=6)
+    return True
+
+
 def _pie(dr, acc):
     dr.text((Wp / 2, Hp - 52), "casatridimensional.com.ar",
             font=_font(20, False), fill=_tint(acc, 0.35), anchor="mm")
@@ -459,7 +501,8 @@ def portada(data, tema="safari"):
     ew = max(520, _font(36).getlength(etiqueta) + 90)
     dr.rounded_rectangle([Wp / 2 - ew / 2, 585, Wp / 2 + ew / 2, 665], 40, fill=acc)
     dr.text((Wp / 2, 625), etiqueta, font=_font(36), fill="white", anchor="mm")
-    _escena(im, dr, (140, 760, Wp - 140, Hp - 260), tema, -1, acc, motivo=_m_fiesta)
+    _escena(im, dr, (140, 760, Wp - 140, Hp - 260), tema, -1, acc, motivo=_m_fiesta,
+            idx_pieza=0)
     _estrella(dr, Wp / 2, Hp - 165, 34, GOLD)
     _pie(dr, acc)
     return im
@@ -479,9 +522,10 @@ def dedicatoria(data, tema="safari"):
     dr.line([Wp * 0.28, 650, Wp * 0.72, 650], fill=_tint(acc, 0.45), width=3)
     _estrella(dr, Wp * 0.24, 650, 18, GOLD); _estrella(dr, Wp * 0.76, 650, 18, GOLD)
     _parrafo(dr, "“" + dedic + "”", Wp / 2, 800, _font(40, False), INK, Wp - 420)
-    mons = _personajes(tema, 1)
-    if mons:
-        _paste_h(im, mons[0], Wp / 2, Hp - 460, 320)
+    if not _panel_ilustracion(im, dr, (270, 1010, Wp - 270, Hp - 220), tema, 1, acc):
+        mons = _personajes(tema, 1)
+        if mons:
+            _paste_h(im, mons[0], Wp / 2, Hp - 460, 320)
     _pie(dr, acc)
     return im
 
@@ -492,7 +536,7 @@ def pagina_historia(n, data, tema="safari"):
     textos = cuento(data, tema)
     im = Image.new("RGBA", (Wp, Hp), (255, 255, 255, 255))
     dr = ImageDraw.Draw(im)
-    _escena(im, dr, (90, 90, Wp - 90, int(Hp * 0.60)), tema, n, acc)
+    _escena(im, dr, (90, 90, Wp - 90, int(Hp * 0.60)), tema, n, acc, idx_pieza=n + 2)
     # banda de texto
     dr.rounded_rectangle([90, int(Hp * 0.63), Wp - 90, Hp - 150], 36, fill=CREAM + (255,),
                          outline=_tint(acc, 0.5), width=3)
@@ -509,22 +553,32 @@ def fin(data, tema="safari"):
     nombre = (str(data.get("nombre") or "").strip()) or "Alex"
     im = Image.new("RGBA", (Wp, Hp), (255, 255, 255, 255))
     dr = ImageDraw.Draw(im)
-    _cielo(im, (0, 0, Wp, Hp), (44, 42, 92), (108, 100, 168))
+    ov = override_escena_path(tema, TOTAL_PAGINAS - 1)
+    if os.path.isfile(ov):
+        # ilustración a página completa + banda oscura translúcida para que el
+        # FIN y el mensaje se lean sobre cualquier arte
+        im.paste(_cover(Image.open(ov).convert("RGBA"), Wp, Hp), (0, 0))
+        velo = Image.new("RGBA", (Wp, Hp), (0, 0, 0, 0))
+        ImageDraw.Draw(velo).rounded_rectangle(
+            [Wp * 0.12, Hp * 0.22, Wp * 0.88, Hp * 0.60], 46, fill=(44, 42, 92, 170))
+        im.alpha_composite(velo)
+    else:
+        _cielo(im, (0, 0, Wp, Hp), (44, 42, 92), (108, 100, 168))
+        rnd = random.Random(tema + "-fin")
+        puestas = 0
+        while puestas < 26:
+            sx, sy = rnd.randint(120, Wp - 120), rnd.randint(120, Hp - 320)
+            if Hp * 0.24 < sy < Hp * 0.58 and Wp * 0.14 < sx < Wp * 0.86:
+                continue    # no pisar el FIN ni el mensaje
+            _estrella(dr, sx, sy, rnd.randint(8, 20), (255, 250, 220))
+            puestas += 1
+        mons = _personajes(tema, 3)
+        for fx, m in zip((0.28, 0.5, 0.72), mons):
+            _paste_h(im, m, Wp * fx, Hp - 420, 260)
     dr.rounded_rectangle([70, 70, Wp - 70, Hp - 70], 40, outline=_tint(acc, 0.6), width=6)
-    rnd = random.Random(tema + "-fin")
-    puestas = 0
-    while puestas < 26:
-        sx, sy = rnd.randint(120, Wp - 120), rnd.randint(120, Hp - 320)
-        if Hp * 0.24 < sy < Hp * 0.58 and Wp * 0.14 < sx < Wp * 0.86:
-            continue    # no pisar el FIN ni el mensaje
-        _estrella(dr, sx, sy, rnd.randint(8, 20), (255, 250, 220))
-        puestas += 1
     dr.text((Wp / 2, Hp * 0.34), "FIN", font=_font(220), fill=(255, 250, 220), anchor="mm")
     _parrafo(dr, "Y colorín colorado, la aventura de %s apenas ha comenzado." % nombre,
              Wp / 2, int(Hp * 0.48), _font(44, False), (238, 234, 255), Wp - 360, lh=1.45)
-    mons = _personajes(tema, 3)
-    for fx, m in zip((0.28, 0.5, 0.72), mons):
-        _paste_h(im, m, Wp * fx, Hp - 420, 260)
     dr.text((Wp / 2, Hp - 130), "Un cuento hecho especialmente para vos",
             font=_font(30, False), fill=(210, 204, 240), anchor="mm")
     _pie(dr, acc)
