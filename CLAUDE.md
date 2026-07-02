@@ -5,9 +5,10 @@
 
 ## Qué es
 
-Motor procedural de **9 tipos de piezas imprimibles:**
+Motor procedural de **10 tipos de piezas imprimibles:**
 - Kit completo (invitación, cartel, actividades, etc.)
 - Productos individuales: certificado, corona, antifaces, menú, rompecabezas, cápsula, calendario, papertoys, memoria
+- **Libro de cuento personalizado** (`libro.py`): 10 páginas donde el chico es el protagonista — portada, dedicatoria, 7 páginas de historia (cada una con escena procedural que ILUSTRA lo que cuenta el texto: cama+invitación → luces mágicas → fiesta → problema → solución → tesoro → casita de noche) y FIN. Historia ambientada por temática (`libro.HISTORIAS`, con fallback genérico). Campos: nombre, edad, dedicatoria. Cada página se reemplaza con arte IA vía `temas/{tema}/overrides/libro/{idx}.png`.
 
 **Tecnología:** Pillow (procedural generation) + OpenAI gpt-image-2 (cuaderno de actividades con IA) + override system (cliente puede reemplazar cualquier pieza).
 

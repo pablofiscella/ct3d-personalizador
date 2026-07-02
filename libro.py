@@ -224,53 +224,203 @@ def _estrella(dr, cx, cy, r, color):
     dr.polygon(pts, fill=color)
 
 
-def _escena(im, dr, box, tema, pagina, acc):
-    """Ilustración procedural de una página: cielo, colinas, sol o luna+estrellas y los
-    personajes del tema. Determinística (misma página -> misma escena). La última página
-    (pagina 6) es NOCTURNA (la vuelta a casa). Se pinta en una capa aparte y se pega con
-    máscara redondeada, así nada (colinas, personajes) se desborda del panel."""
+# ── motivos narrativos: cada página dibuja LO QUE CUENTA su texto ────────────
+_COLS = [(224, 85, 107), (63, 167, 214), (232, 155, 44), (95, 184, 122),
+         (139, 91, 210), (255, 214, 98)]
+
+
+def _dash(dc, pts, color, width=7, dash=26):
+    """Línea punteada siguiendo la polilínea pts (para caminos/senderos)."""
+    import itertools
+    total = 0
+    for (ax, ay), (bx, by) in zip(pts, pts[1:]):
+        L = math.hypot(bx - ax, by - ay)
+        n = max(1, int(L // dash))
+        for i in range(0, n, 2):
+            t0, t1 = i / n, min(1, (i + 1) / n)
+            dc.line([ax + (bx - ax) * t0, ay + (by - ay) * t0,
+                     ax + (bx - ax) * t1, ay + (by - ay) * t1], fill=color, width=width)
+        total += L
+
+
+def _m_dormitorio(dc, W, H, acc, rnd):
+    """Pág. 1: la cama y la invitación brillante debajo de la almohada."""
+    bx0, bx1, by0, by1 = W * 0.24, W * 0.76, H * 0.50, H * 0.80
+    dc.rounded_rectangle([bx0 - W * 0.05, by0 - H * 0.14, bx0 + W * 0.01, by1], 18,
+                         fill=(139, 94, 60))                       # respaldo
+    dc.rounded_rectangle([bx0, by0, bx1, by1], 24, fill=_tint(acc, 0.30))   # colchón/manta
+    dc.rounded_rectangle([bx0, by0 + (by1 - by0) * 0.42, bx1, by1], 24, fill=acc)  # frazada
+    dc.ellipse([bx0 + W * 0.02, by0 - H * 0.045, bx0 + W * 0.20, by0 + H * 0.055],
+               fill=(255, 255, 255))                               # almohada
+    # el sobre brillante (asomando sobre la almohada)
+    sx0, sy0, sx1, sy1 = bx0 + W * 0.055, by0 - H * 0.145, bx0 + W * 0.165, by0 - H * 0.045
+    dc.rounded_rectangle([sx0, sy0, sx1, sy1], 8, fill=(255, 248, 214), outline=GOLD, width=4)
+    dc.line([sx0, sy0, (sx0 + sx1) / 2, (sy0 + sy1) / 2], fill=GOLD, width=4)
+    dc.line([sx1, sy0, (sx0 + sx1) / 2, (sy0 + sy1) / 2], fill=GOLD, width=4)
+    for dx, dy in ((-0.035, -0.03), (0.16, -0.05), (0.13, 0.02)):
+        _estrella(dc, sx0 + W * dx, sy0 + H * dy, 14, GOLD)
+
+
+def _m_luces(dc, W, H, acc, rnd):
+    """Pág. 2: la habitación se llena de luces de colores (espiral mágica)."""
+    cx, cy = W / 2, H * 0.46
+    for i in range(30):
+        ang = i * 0.55
+        rad = W * 0.03 + i * W * 0.013
+        r = 10 + (i % 4) * 4
+        px, py = cx + rad * math.cos(ang), cy + rad * 0.72 * math.sin(ang)
+        dc.ellipse([px - r, py - r, px + r, py + r], fill=_COLS[i % len(_COLS)])
+    for _ in range(8):
+        _estrella(dc, rnd.randint(40, W - 40), rnd.randint(30, H - 60),
+                  rnd.randint(10, 18), (255, 250, 220))
+
+
+def _m_fiesta(dc, W, H, acc, rnd):
+    """Pág. 3 (y portada): fiesta de bienvenida — banderines, globos y torta."""
+    # banderines colgados de una cuerda
+    for lado in (0, 1):
+        x0, y0 = (0, H * 0.03) if lado == 0 else (W * 0.52, H * 0.16)
+        x1, y1 = (W * 0.48, H * 0.16) if lado == 0 else (W, H * 0.03)
+        dc.line([x0, y0, x1, y1], fill=(120, 110, 130), width=4)
+        for i in range(6):
+            t = (i + 0.5) / 6
+            px, py = x0 + (x1 - x0) * t, y0 + (y1 - y0) * t
+            dc.polygon([(px - 22, py), (px + 22, py), (px, py + 44)],
+                       fill=_COLS[(i + lado) % len(_COLS)])
+    # globos
+    for i, fx in enumerate((0.14, 0.26, 0.76, 0.88)):
+        gx, gy = W * fx, H * (0.36 + (i % 2) * 0.08); r = W * 0.045
+        dc.line([gx, gy + r * 1.2, gx, gy + r * 1.2 + H * 0.14], fill=(120, 110, 130), width=3)
+        dc.ellipse([gx - r, gy - r * 1.2, gx + r, gy + r * 1.2], fill=_COLS[i % len(_COLS)])
+    # torta
+    tx, ty, tw, th = W * 0.5, H * 0.66, W * 0.115, H * 0.075
+    dc.rounded_rectangle([tx - tw, ty, tx + tw, ty + th], 16, fill=_COLS[2])
+    dc.rounded_rectangle([tx - tw * 0.72, ty - th * 0.8, tx + tw * 0.72, ty], 12, fill=_COLS[0])
+    for k in range(3):
+        vx = tx - tw * 0.45 + k * tw * 0.45
+        dc.line([vx, ty - th * 0.8, vx, ty - th * 1.5], fill=(63, 167, 214), width=5)
+        dc.ellipse([vx - 7, ty - th * 1.75, vx + 7, ty - th * 1.5], fill=(255, 214, 98))
+
+
+def _m_problema(dc, W, H, acc, rnd):
+    """Pág. 4: el problema — nube gris grande con un signo de pregunta."""
+    cx, cy = W * 0.5, H * 0.26
+    for dx, dy, r in ((0, 0, W * 0.13), (-W * 0.12, H * 0.03, W * 0.095),
+                      (W * 0.12, H * 0.03, W * 0.095), (0, H * 0.055, W * 0.11)):
+        dc.ellipse([cx + dx - r, cy + dy - r, cx + dx + r, cy + dy + r], fill=(172, 172, 186))
+    dc.text((cx, cy + H * 0.01), "?", font=_font(int(H * 0.17)), fill="white", anchor="mm")
+    # caminos que se separan (¿por dónde ir?)
+    _dash(dc, [(W * 0.5, H * 0.88), (W * 0.42, H * 0.70), (W * 0.20, H * 0.56)], (255, 255, 255), 7)
+    _dash(dc, [(W * 0.5, H * 0.88), (W * 0.58, H * 0.70), (W * 0.80, H * 0.56)], (255, 255, 255), 7)
+
+
+def _m_solucion(dc, W, H, acc, rnd):
+    """Pág. 5: la solución — el árbol más alto con el sendero descubierto."""
+    tx, tw = W * 0.66, W * 0.028
+    dc.rounded_rectangle([tx - tw, H * 0.36, tx + tw, H * 0.80], 10, fill=(139, 94, 60))
+    for dx, dy, r in ((0, -0.06, 0.105), (-0.085, 0.0, 0.085), (0.085, 0.0, 0.085),
+                      (0, 0.065, 0.09)):
+        dc.ellipse([tx + W * dx - W * r, H * 0.30 + H * dy - W * r,
+                    tx + W * dx + W * r, H * 0.30 + H * dy + W * r], fill=(95, 184, 122))
+    _estrella(dc, tx, H * 0.145, 26, GOLD)      # la meta, bien arriba
+    _dash(dc, [(W * 0.10, H * 0.86), (W * 0.30, H * 0.78), (W * 0.48, H * 0.82),
+               (tx, H * 0.80)], (255, 255, 255), 7)
+
+
+def _m_tesoro(dc, W, H, acc, rnd):
+    """Pág. 6: el regalo/tesoro de agradecimiento."""
+    gx0, gx1, gy0, gy1 = W * 0.40, W * 0.60, H * 0.42, H * 0.68
+    dc.rounded_rectangle([gx0, gy0, gx1, gy1], 14, fill=acc)
+    dc.rounded_rectangle([gx0 - W * 0.02, gy0 - H * 0.07, gx1 + W * 0.02, gy0], 10,
+                         fill=_tint(acc, 0.25))
+    dc.rectangle([(gx0 + gx1) / 2 - W * 0.018, gy0 - H * 0.07, (gx0 + gx1) / 2 + W * 0.018, gy1],
+                 fill=(255, 250, 220))
+    for s in (-1, 1):   # moño
+        dc.ellipse([(gx0 + gx1) / 2 + (s * W * 0.055) - W * 0.045, gy0 - H * 0.135,
+                    (gx0 + gx1) / 2 + (s * W * 0.055) + W * 0.045, gy0 - H * 0.065],
+                   outline=(255, 250, 220), width=8)
+    for fx, fy in ((0.30, 0.36), (0.70, 0.34), (0.26, 0.62), (0.74, 0.62), (0.5, 0.28)):
+        _estrella(dc, W * fx, H * fy, 16, GOLD)
+
+
+def _m_casa(dc, W, H, acc, rnd):
+    """Pág. 7: de vuelta en casa, a dormir (casita de noche, ventana encendida)."""
+    hx0, hx1, hy0, hy1 = W * 0.36, W * 0.64, H * 0.42, H * 0.76
+    dc.polygon([(hx0 - W * 0.04, hy0), (hx1 + W * 0.04, hy0), ((hx0 + hx1) / 2, H * 0.24)],
+               fill=acc)                                            # techo
+    dc.rectangle([hx0, hy0, hx1, hy1], fill=(246, 240, 228))        # cuerpo
+    dc.rounded_rectangle([hx0 + W * 0.035, hy0 + H * 0.13, hx0 + W * 0.10, hy1], 8,
+                         fill=(139, 94, 60))                        # puerta
+    vx0, vy0 = hx1 - W * 0.115, hy0 + H * 0.055                     # ventana encendida
+    dc.rounded_rectangle([vx0, vy0, vx0 + W * 0.08, vy0 + H * 0.09], 6,
+                         fill=(255, 224, 120), outline=(139, 94, 60), width=4)
+    dc.line([vx0 + W * 0.04, vy0, vx0 + W * 0.04, vy0 + H * 0.09], fill=(139, 94, 60), width=3)
+    dc.line([vx0, vy0 + H * 0.045, vx0 + W * 0.08, vy0 + H * 0.045], fill=(139, 94, 60), width=3)
+    for i, (dx, dy) in enumerate(((0.03, -0.05), (0.065, -0.10), (0.10, -0.15))):
+        dc.text((hx1 + W * dx, vy0 + H * dy), "z", font=_font(30 + i * 12),
+                fill=(255, 250, 220), anchor="mm")
+
+
+_MOTIVOS = [_m_dormitorio, _m_luces, _m_fiesta, _m_problema, _m_solucion, _m_tesoro, _m_casa]
+_NOCTURNOS = (_m_dormitorio, _m_casa)
+_INTERIORES = (_m_dormitorio, _m_luces)   # sin colinas (pasan adentro / en la magia)
+
+
+def _escena(im, dr, box, tema, pagina, acc, motivo=None):
+    """Ilustración procedural de una página que REPRESENTA lo que cuenta el texto:
+    cada página de historia tiene su motivo (_MOTIVOS[n]): cama+invitación → luces
+    mágicas → fiesta → problema (nube con ?) → solución (árbol y sendero) → tesoro →
+    casita de noche. Encima van los personajes del tema. Determinística (misma
+    página -> misma escena). Se pinta en una capa aparte y se pega con máscara
+    redondeada, así nada (colinas, personajes) se desborda del panel."""
     x0, y0, x1, y1 = box
     W = x1 - x0; H = y1 - y0
     rnd = random.Random("%s-%d" % (tema, pagina))
-    noche = pagina >= PAGINAS_HISTORIA - 1
+    if motivo is None:
+        motivo = _MOTIVOS[pagina] if 0 <= pagina < len(_MOTIVOS) else _m_fiesta
+    noche = motivo in _NOCTURNOS
+    magico = motivo is _m_luces
     capa = Image.new("RGBA", (W, H))
     dc = ImageDraw.Draw(capa)
     if noche:
         _cielo(capa, (0, 0, W, H), (44, 42, 92), (108, 100, 168))
+    elif magico:
+        _cielo(capa, (0, 0, W, H), (66, 52, 120), (140, 120, 200))
     else:
         _cielo(capa, (0, 0, W, H), _tint(acc, 0.55), _tint(acc, 0.88))
-    # colinas
-    for k, p in enumerate((0.35, 0.18)):
-        hy = H - int(H * (0.30 - k * 0.13))
-        col = _tint(acc, p) if not noche else _tint((44, 42, 92), 0.25 + k * 0.2)
-        dc.ellipse([-W * 0.3 + k * W * 0.5, hy, W * 0.9 + k * W * 0.5, H + H * 0.5], fill=col)
+    # colinas / piso
+    if motivo not in _INTERIORES:
+        for k, p in enumerate((0.35, 0.18)):
+            hy = H - int(H * (0.30 - k * 0.13))
+            col = _tint(acc, p) if not noche else _tint((44, 42, 92), 0.25 + k * 0.2)
+            dc.ellipse([-W * 0.3 + k * W * 0.5, hy, W * 0.9 + k * W * 0.5, H + H * 0.5], fill=col)
+    elif motivo is _m_dormitorio:
+        dc.rectangle([0, H * 0.78, W, H], fill=_tint(acc, 0.20))    # piso del cuarto
     if noche:
-        # luna + estrellas
-        dc.ellipse([W * 0.76, H * 0.08, W * 0.90, H * 0.08 + W * 0.14], fill=(250, 245, 210))
-        for _ in range(14):
-            _estrella(dc, rnd.randint(30, W - 30), rnd.randint(20, int(H * 0.5)),
-                      rnd.randint(8, 16), (255, 250, 220))
-    else:
-        # sol con rayos + nubes + confeti
-        scx, scy, sr = W * 0.15, H * 0.07 + W * 0.07, W * 0.07
+        dc.ellipse([W * 0.76, H * 0.06, W * 0.88, H * 0.06 + W * 0.12], fill=(250, 245, 210))
+        for _ in range(12):
+            _estrella(dc, rnd.randint(30, W - 30), rnd.randint(20, int(H * 0.4)),
+                      rnd.randint(8, 15), (255, 250, 220))
+    elif not magico:
+        # sol con rayos + nubes
+        scx, scy, sr = W * 0.13, H * 0.06 + W * 0.06, W * 0.06
         for i in range(12):
             a = i * math.pi / 6
             dc.line([scx + sr * 1.15 * math.cos(a), scy + sr * 1.15 * math.sin(a),
                      scx + sr * 1.5 * math.cos(a), scy + sr * 1.5 * math.sin(a)],
                     fill=(255, 214, 98), width=9)
         dc.ellipse([scx - sr, scy - sr, scx + sr, scy + sr], fill=(255, 214, 98))
-        for _ in range(3):
-            nx = rnd.randint(int(W * 0.30), int(W * 0.85)); ny = rnd.randint(40, int(H * 0.3))
-            for dx, dy, r in ((0, 0, 46), (-40, 12, 34), (44, 14, 34)):
+        for _ in range(2):
+            nx = rnd.randint(int(W * 0.30), int(W * 0.85)); ny = rnd.randint(40, int(H * 0.22))
+            for dx, dy, r in ((0, 0, 40), (-36, 10, 30), (38, 12, 30)):
                 dc.ellipse([nx + dx - r, ny + dy - r, nx + dx + r, ny + dy + r],
                            fill=(255, 255, 255))
-        for _ in range(10):
-            cx_ = rnd.randint(40, W - 40); cy_ = rnd.randint(int(H * 0.35), int(H * 0.6))
-            _estrella(dc, cx_, cy_, rnd.randint(9, 15), _tint(acc, rnd.choice((0.0, 0.15, 0.3))))
-    # personajes del tema, en composición distinta por página
-    mons = _personajes(tema, 4)
+    # el motivo narrativo de la página
+    motivo(dc, W, H, acc, rnd)
+    # personajes del tema acompañando (salvo en el dormitorio, que es "antes del viaje")
+    mons = _personajes(tema, 4) if motivo is not _m_dormitorio else []
     if mons:
-        posiciones = [(0.30, 0.74, 0.42), (0.68, 0.72, 0.38), (0.50, 0.78, 0.30)]
+        posiciones = [(0.22, 0.78, 0.34), (0.82, 0.76, 0.30), (0.5, 0.84, 0.24)]
         rnd.shuffle(mons)
         for (fx, fy, fh), m in zip(posiciones[:1 + pagina % 3], mons):
             _paste_h(capa, m, W * fx, H * fy, H * fh)
@@ -309,7 +459,7 @@ def portada(data, tema="safari"):
     ew = max(520, _font(36).getlength(etiqueta) + 90)
     dr.rounded_rectangle([Wp / 2 - ew / 2, 585, Wp / 2 + ew / 2, 665], 40, fill=acc)
     dr.text((Wp / 2, 625), etiqueta, font=_font(36), fill="white", anchor="mm")
-    _escena(im, dr, (140, 760, Wp - 140, Hp - 260), tema, 0, acc)
+    _escena(im, dr, (140, 760, Wp - 140, Hp - 260), tema, -1, acc, motivo=_m_fiesta)
     _estrella(dr, Wp / 2, Hp - 165, 34, GOLD)
     _pie(dr, acc)
     return im
