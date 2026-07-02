@@ -1170,9 +1170,17 @@ cargar();
 <div id="cal-editor-container">
 <!-- Editor de calendario embebible en modal - SIMPLE Y AUTOMÁTICO -->
 <div id="editor-calendario-wrap" style="padding:20px;max-height:80vh;overflow-y:auto;font-family:Nunito,sans-serif">
-  <div style="display:grid;grid-template-columns:30% 70%;gap:20px;margin-bottom:20px">
-    <!-- Panel izquierdo: controles (30%) -->
-    <div style="display:flex;flex-direction:column;gap:15px;overflow-y:auto;max-height:700px">
+  <div style="display:grid;grid-template-columns:70% 30%;gap:20px;margin-bottom:20px">
+    <!-- Panel izquierdo: preview (70%) -->
+    <div>
+      <h3 style="font-size:13px;margin:0 0 10px 0;font-weight:600">📸 Vista previa</h3>
+      <div id="cal-editor-preview" style="max-height:900px;overflow:hidden;border-radius:6px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;min-height:500px">
+        Preview de la imagen
+      </div>
+    </div>
+
+    <!-- Panel derecho: controles (30%) -->
+    <div style="display:flex;flex-direction:column;gap:15px;overflow-y:auto;max-height:900px">
       <div>
         <h3 style="font-size:13px;margin:0 0 10px 0;font-weight:600">📤 Plantilla</h3>
         <label style="display:block;padding:12px;border:2px dashed #4FA11C;border-radius:8px;cursor:pointer;text-align:center;font-size:12px;background:#f9f9f9">
@@ -1180,20 +1188,20 @@ cargar();
           <input type="file" id="cal-editor-file" accept="image/*" style="display:none">
         </label>
       </div>
-      
+
       <div>
-        <label style="font-size:12px;font-weight:600">Año</label>
+        <label style="font-size:12px;font-weight:600">Año a generar</label>
         <input type="number" id="cal-editor-anyo" value="2026" min="2024" max="2050" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;font-size:12px">
       </div>
 
       <hr style="margin:5px 0;border:none;border-top:1px solid #eee">
 
       <div>
-        <h4 style="font-size:12px;margin:0 0 8px 0;font-weight:600">📅 MES (posición y tamaño)</h4>
+        <h4 style="font-size:12px;margin:0 0 8px 0;font-weight:600">📅 MES (solo el nombre, sin año)</h4>
         <div style="display:flex;flex-direction:column;gap:6px;font-size:11px">
-          <div><label>Pos X:</label><input type="number" id="cal-month-x" value="620" style="width:100%;padding:4px;box-sizing:border-box"></div>
-          <div><label>Pos Y:</label><input type="number" id="cal-month-y" value="80" style="width:100%;padding:4px;box-sizing:border-box"></div>
-          <div><label>Tamaño fuente:</label><input type="number" id="cal-month-size" value="110" min="20" max="200" style="width:100%;padding:4px;box-sizing:border-box"></div>
+          <div><label>Pos X: <span id="cal-month-x-val">620</span></label><input type="range" id="cal-month-x" value="620" min="0" max="1240" style="width:100%"></div>
+          <div><label>Pos Y: <span id="cal-month-y-val">80</span></label><input type="range" id="cal-month-y" value="80" min="0" max="1754" style="width:100%"></div>
+          <div><label>Tamaño: <span id="cal-month-size-val">110</span></label><input type="range" id="cal-month-size" value="110" min="20" max="200" style="width:100%"></div>
         </div>
       </div>
 
@@ -1202,10 +1210,10 @@ cargar();
       <div>
         <h4 style="font-size:12px;margin:0 0 8px 0;font-weight:600">📆 DÍAS DE SEMANA</h4>
         <div style="display:flex;flex-direction:column;gap:6px;font-size:11px">
-          <div><label>Pos X:</label><input type="number" id="cal-weekday-x" value="271" style="width:100%;padding:4px;box-sizing:border-box"></div>
-          <div><label>Pos Y:</label><input type="number" id="cal-weekday-y" value="335" style="width:100%;padding:4px;box-sizing:border-box"></div>
-          <div><label>Tamaño fuente:</label><input type="number" id="cal-weekday-size" value="24" min="10" max="50" style="width:100%;padding:4px;box-sizing:border-box"></div>
-          <div><label>Espaciado H:</label><input type="number" id="cal-weekday-spacing" value="134" style="width:100%;padding:4px;box-sizing:border-box"></div>
+          <div><label>Pos X: <span id="cal-weekday-x-val">271</span></label><input type="range" id="cal-weekday-x" value="271" min="0" max="1240" style="width:100%"></div>
+          <div><label>Pos Y: <span id="cal-weekday-y-val">335</span></label><input type="range" id="cal-weekday-y" value="335" min="0" max="1754" style="width:100%"></div>
+          <div><label>Tamaño: <span id="cal-weekday-size-val">24</span></label><input type="range" id="cal-weekday-size" value="24" min="10" max="50" style="width:100%"></div>
+          <div><label>Espaciado H: <span id="cal-weekday-spacing-val">134</span></label><input type="range" id="cal-weekday-spacing" value="134" min="20" max="300" style="width:100%"></div>
         </div>
       </div>
 
@@ -1214,20 +1222,12 @@ cargar();
       <div>
         <h4 style="font-size:12px;margin:0 0 8px 0;font-weight:600">🔢 NÚMEROS DE DÍAS</h4>
         <div style="display:flex;flex-direction:column;gap:6px;font-size:11px">
-          <div><label>Pos X (inicio):</label><input type="number" id="cal-days-x" value="271" style="width:100%;padding:4px;box-sizing:border-box"></div>
-          <div><label>Pos Y (inicio):</label><input type="number" id="cal-days-y" value="399" style="width:100%;padding:4px;box-sizing:border-box"></div>
-          <div><label>Tamaño fuente:</label><input type="number" id="cal-day-size" value="28" min="10" max="60" style="width:100%;padding:4px;box-sizing:border-box"></div>
-          <div><label>Espaciado H (entre columnas):</label><input type="number" id="cal-days-spacing-h" value="134" style="width:100%;padding:4px;box-sizing:border-box"></div>
-          <div><label>Espaciado V (entre filas):</label><input type="number" id="cal-days-spacing-v" value="93" style="width:100%;padding:4px;box-sizing:border-box"></div>
+          <div><label>Pos X: <span id="cal-days-x-val">271</span></label><input type="range" id="cal-days-x" value="271" min="0" max="1240" style="width:100%"></div>
+          <div><label>Pos Y: <span id="cal-days-y-val">399</span></label><input type="range" id="cal-days-y" value="399" min="0" max="1754" style="width:100%"></div>
+          <div><label>Tamaño: <span id="cal-day-size-val">28</span></label><input type="range" id="cal-day-size" value="28" min="10" max="60" style="width:100%"></div>
+          <div><label>Espaciado H: <span id="cal-days-spacing-h-val">134</span></label><input type="range" id="cal-days-spacing-h" value="134" min="20" max="300" style="width:100%"></div>
+          <div><label>Espaciado V: <span id="cal-days-spacing-v-val">93</span></label><input type="range" id="cal-days-spacing-v" value="93" min="20" max="300" style="width:100%"></div>
         </div>
-      </div>
-    </div>
-
-    <!-- Panel derecho: preview -->
-    <div>
-      <h3 style="font-size:13px;margin:0 0 10px 0;font-weight:600">📸 Vista previa</h3>
-      <div id="cal-editor-preview" style="max-height:700px;overflow:hidden;border-radius:6px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;min-height:400px">
-        Preview de la imagen
       </div>
     </div>
   </div>
@@ -1307,13 +1307,13 @@ function dibujarPreview() {
 
   let canvas = document.getElementById('cal-editor-canvas');
   if (!canvas) {
-    preview.innerHTML = '<canvas id="cal-editor-canvas" style="max-width:100%;max-height:700px;border-radius:6px;cursor:grab;touch-action:none"></canvas>';
+    preview.innerHTML = '<canvas id="cal-editor-canvas" style="max-width:100%;max-height:900px;border-radius:6px;cursor:grab;touch-action:none"></canvas>';
     canvas = document.getElementById('cal-editor-canvas');
     attachDragHandlers(canvas);
   }
   const ctx = canvas.getContext('2d');
 
-  const maxW = 600, maxH = 700;
+  const maxW = 900, maxH = 900;
   const scale = Math.min(maxW / 1240, maxH / 1754);
   lastScale = scale;
   canvas.width = 1240 * scale;
@@ -1348,7 +1348,7 @@ function dibujarPreview() {
 
   ctx.fillStyle = '#000';
   ctx.font = 'bold ' + Math.round(p.monthSize * scale) + 'px sans-serif';
-  ctx.fillText('ENERO ' + (anyoInput.value || '2026'), p.monthX * scale, p.monthY * scale);
+  ctx.fillText('ENERO', p.monthX * scale, p.monthY * scale);
 
   const dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   ctx.font = Math.round(p.weekdaySize * scale) + 'px sans-serif';
@@ -1419,6 +1419,11 @@ function attachDragHandlers(canvas) {
     dibujarPreview();
   };
 
+  const syncLabel = (input) => {
+    const label = document.getElementById(input.id + '-val');
+    if (label) label.textContent = input.value;
+  };
+
   const onMove = (e) => {
     if (!dragMode) return;
     e.preventDefault();
@@ -1428,12 +1433,15 @@ function attachDragHandlers(canvas) {
     if (dragMode === 'month') {
       monthXInput.value = dragOrigin.x + dx;
       monthYInput.value = dragOrigin.y + dy;
+      syncLabel(monthXInput); syncLabel(monthYInput);
     } else if (dragMode === 'weekday') {
       weekdayXInput.value = dragOrigin.x + dx;
       weekdayYInput.value = dragOrigin.y + dy;
+      syncLabel(weekdayXInput); syncLabel(weekdayYInput);
     } else if (dragMode === 'days') {
       daysXInput.value = dragOrigin.x + dx;
       daysYInput.value = dragOrigin.y + dy;
+      syncLabel(daysXInput); syncLabel(daysYInput);
     }
     dibujarPreview();
   };
@@ -1474,12 +1482,21 @@ if (fileInput) {
   });
 }
 
-// Los inputs numéricos también actualizan el preview en tiempo real
-[monthXInput, monthYInput, monthSizeInput, weekdayXInput, weekdayYInput,
- weekdaySizeInput, weekdaySpacingInput, daysXInput, daysYInput, daySizeInput,
- daysSpacingHInput, daysSpacingVInput, anyoInput].forEach(input => {
-  if (input) input.addEventListener('input', dibujarPreview);
+// Sliders: mostrar valor en vivo + redibujar
+const SLIDER_IDS = ['cal-month-x', 'cal-month-y', 'cal-month-size',
+  'cal-weekday-x', 'cal-weekday-y', 'cal-weekday-size', 'cal-weekday-spacing',
+  'cal-days-x', 'cal-days-y', 'cal-day-size', 'cal-days-spacing-h', 'cal-days-spacing-v'];
+SLIDER_IDS.forEach(id => {
+  const input = document.getElementById(id);
+  const label = document.getElementById(id + '-val');
+  if (input) {
+    input.addEventListener('input', () => {
+      if (label) label.textContent = input.value;
+      dibujarPreview();
+    });
+  }
 });
+if (anyoInput) anyoInput.addEventListener('input', dibujarPreview);
 
 // Generar meses
 if (genBtn) {

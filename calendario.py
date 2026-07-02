@@ -182,7 +182,7 @@ def mes_hoja_desde_config(mes, anyo, nombre, config, plantilla, tema="safari"):
         days_spacing_v = days_cfg.get("spacingV", 93)
         day_color = _color("day_text", "#000000")
 
-        dr.text((month_x, month_y), "%s %d" % (_MESES_ES[mes - 1], anyo),
+        dr.text((month_x, month_y), _MESES_ES[mes - 1],
                 font=_font(month_size), fill=month_color, anchor="mm")
 
         for i, dlabel in enumerate(_DIAS_ES):
