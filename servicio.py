@@ -1057,39 +1057,45 @@ class Handler(BaseHTTPRequestHandler):
         return self._json(200, {"ok": True, "borrado": False})
 
     def _dash_calendario_generar(self):
-        """Sube UNA imagen de fondo y genera automáticamente los 12 meses del calendario
-        superponiendo la grilla sobre esa imagen. Cada mes se guarda como override del
-        tipo 'calendario', así el producto ya queda listo."""
+        """Sube UNA imagen de plantilla y genera automáticamente los 12 meses del calendario
+        superponiendo mes/días/números (posición, tamaño y grosor definidos en el editor visual
+        del dashboard) sobre esa imagen. Cada mes se guarda como override del tipo 'calendario'."""
         if not self._admin_ok():
             return self._deny()
         q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         tema = slug(q.get("tema", [""])[0])
         anyo_str = re.sub(r"\D", "", (q.get("anyo", ["2026"])[0] or "2026"))[:4]
         nombre = (q.get("nombre", [""])[0] or "").strip() or "Mi familia"
+        config_str = q.get("config", [""])[0] or ""
         if not tema or not temas.existe(tema):
             return self._json(400, {"ok": False, "error": "tema inválido"})
+        try:
+            config = json.loads(config_str) if config_str else None
+        except Exception:
+            config = None
         try:
             n = int(self.headers.get("Content-Length", "0"))
             raw = self.rfile.read(n) if n else b""
             if not raw:
                 return self._json(400, {"ok": False, "error": "sin archivo"})
-            fondo = Image.open(io.BytesIO(raw)).convert("RGBA")
+            plantilla = Image.open(io.BytesIO(raw)).convert("RGBA")
         except Exception as e:
             return self._json(400, {"ok": False, "error": "imagen inválida: %s" % e})
 
         try:
             import calendario
-            meses = calendario.generar_calendario_desde_fondo(
-                {"nombre": nombre, "anyo": anyo_str}, fondo, tema)
+            piezas_meses = calendario.generar_calendario_con_plantilla(
+                {"nombre": nombre, "anyo": anyo_str}, plantilla, tema, config=config)
             tdir = os.path.join(temas.TEMAS_DIR, tema)
             fondo_dir = os.path.join(tdir, "calendario")
             os.makedirs(fondo_dir, exist_ok=True)
-            fondo.save(os.path.join(fondo_dir, "fondo.png"))
+            plantilla.save(os.path.join(fondo_dir, "fondo.png"))
 
             override_dir = os.path.join(tdir, "overrides", "calendario")
             os.makedirs(override_dir, exist_ok=True)
             generados = []
-            for idx, (archivo, img) in enumerate(meses):
+            for idx, (archivo, maker, _) in enumerate(piezas_meses):
+                img = maker({"nombre": nombre})
                 p = os.path.join(override_dir, "%d.png" % idx)
                 piezas.to_rgb(img).save(p)
                 generados.append({"idx": idx, "archivo": archivo})

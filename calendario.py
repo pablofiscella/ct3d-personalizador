@@ -299,22 +299,16 @@ if __name__ == "__main__":
         break
 
 
-def generar_calendario_con_plantilla(data, plantilla_img, tema="safari", config_temp_path=None):
+def generar_calendario_con_plantilla(data, plantilla_img, tema="safari", config=None):
     """Genera los 12 meses usando una plantilla pasada como PIL Image.
     Útil para el editor interactivo del dashboard.
     plantilla_img: PIL Image RGBA (o None para modo procedural)
-    config_temp_path: ruta a config JSON temporal generado por el editor (prioridad sobre el del tema)
+    config: dict con posiciones/tamaños del editor (prioridad sobre el config_calendario.json del tema)
     """
     nombre = str(data.get("nombre") or "").strip() or "Mi familia"
     anyo = int(data.get("anyo") or "2026")
     acc = _accent(tema)
 
-    config = None
-    if config_temp_path:
-        try:
-            config = json.load(open(config_temp_path))
-        except Exception:
-            config = None
     if not config:
         config = _load_config(tema)
 

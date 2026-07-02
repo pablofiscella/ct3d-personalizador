@@ -1529,20 +1529,22 @@ if (genBtn) {
     statusDiv.textContent = '⏳ Generando...';
 
     const p = leerParams();
-    const formData = new FormData();
-    formData.append('plantilla', plantillaFile);
-    formData.append('tema', window.TEMA_ACTUAL);
-    formData.append('anyo', anyoInput.value);
-    formData.append('config', JSON.stringify({
+    const config = {
       month: { x: p.monthX, y: p.monthY, size: p.monthSize, weight: p.monthWeight },
       weekday: { x: p.weekdayX, y: p.weekdayY, size: p.weekdaySize, spacing: p.weekdaySpacing, weight: p.weekdayWeight },
       days: { x: p.daysX, y: p.daysY, size: p.daySize, spacingH: p.daysSpacingH, spacingV: p.daysSpacingV, weight: p.dayWeight }
-    }));
+    };
+    const qs = new URLSearchParams({
+      tema: window.TEMA_ACTUAL,
+      anyo: anyoInput.value,
+      config: JSON.stringify(config)
+    });
 
     try {
-      const res = await fetch('/kit-admin/calendario-generar', {
+      const res = await fetch('/dash/calendario-generar?' + qs.toString(), {
         method: 'POST',
-        body: formData
+        headers: { 'X-API-Key': KEY },
+        body: plantillaFile
       });
 
       if (res.ok) {
