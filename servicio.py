@@ -759,7 +759,11 @@ class Handler(BaseHTTPRequestHandler):
         for k, v in payload.items():
             if k not in CAMPOS and k not in ("tema", "tipo", "order_id", "over"):
                 data[k] = str(v).strip()
-        if not data["nombre"]:
+        tipo_pre = str(payload.get("tipo", "kit")).strip() or "kit"
+        # 'nombre' solo es obligatorio si el tipo lo usa (ej. el cortante 3D no lleva
+        # personalización: campos=[]).
+        if not data["nombre"] and (not productos.existe_tipo(tipo_pre)
+                                   or "nombre" in productos.campos_tipo(tipo_pre)):
             return self._json(400, {"ok": False, "error": "falta 'nombre'"})
         if isinstance(payload.get("over"), dict):    # personalización del cliente (mini-editor)
             data["_over"] = payload["over"]

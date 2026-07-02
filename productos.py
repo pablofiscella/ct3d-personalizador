@@ -695,7 +695,7 @@ def generar(data, dest_dir, tema="safari", tipo=DEFAULT_TIPO):
         nombre = str(data.get("nombre") or "").strip() or "Cumple"
         edad = str(data.get("edad") or "").strip()
         texto = f"{nombre.upper()} {edad}".strip() if edad else nombre.upper()
-        zip_path = os.path.join(dest_dir, "stl.zip")
+        zip_path = os.path.join(dest_dir, "kit.zip")  # mismo nombre que el resto: /descarga lo busca así
         if tipo == "stl-pack":
             with open(zip_path, "wb") as f:
                 f.write(stl3d.generar_pack_cumple(tema, nombre, edad))
