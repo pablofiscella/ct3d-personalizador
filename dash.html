@@ -1199,8 +1199,7 @@ cargar();
       <div>
         <h4 style="font-size:12px;margin:0 0 8px 0;font-weight:600">📅 MES (solo el nombre, sin año)</h4>
         <div style="display:flex;flex-direction:column;gap:6px;font-size:11px">
-          <div><label>Pos X: <span id="cal-month-x-val">620</span></label><input type="range" id="cal-month-x" value="620" min="0" max="1240" style="width:100%"></div>
-          <div><label>Pos Y: <span id="cal-month-y-val">80</span></label><input type="range" id="cal-month-y" value="80" min="0" max="1754" style="width:100%"></div>
+          <input type="hidden" id="cal-month-x" value="620"><input type="hidden" id="cal-month-y" value="80">
           <div><label>Tamaño: <span id="cal-month-size-val">110</span></label><input type="range" id="cal-month-size" value="110" min="20" max="200" style="width:100%"></div>
         </div>
       </div>
@@ -1210,8 +1209,7 @@ cargar();
       <div>
         <h4 style="font-size:12px;margin:0 0 8px 0;font-weight:600">📆 DÍAS DE SEMANA</h4>
         <div style="display:flex;flex-direction:column;gap:6px;font-size:11px">
-          <div><label>Pos X: <span id="cal-weekday-x-val">271</span></label><input type="range" id="cal-weekday-x" value="271" min="0" max="1240" style="width:100%"></div>
-          <div><label>Pos Y: <span id="cal-weekday-y-val">335</span></label><input type="range" id="cal-weekday-y" value="335" min="0" max="1754" style="width:100%"></div>
+          <input type="hidden" id="cal-weekday-x" value="271"><input type="hidden" id="cal-weekday-y" value="335">
           <div><label>Tamaño: <span id="cal-weekday-size-val">24</span></label><input type="range" id="cal-weekday-size" value="24" min="10" max="50" style="width:100%"></div>
           <div><label>Espaciado H: <span id="cal-weekday-spacing-val">134</span></label><input type="range" id="cal-weekday-spacing" value="134" min="20" max="300" style="width:100%"></div>
         </div>
@@ -1222,8 +1220,7 @@ cargar();
       <div>
         <h4 style="font-size:12px;margin:0 0 8px 0;font-weight:600">🔢 NÚMEROS DE DÍAS</h4>
         <div style="display:flex;flex-direction:column;gap:6px;font-size:11px">
-          <div><label>Pos X: <span id="cal-days-x-val">271</span></label><input type="range" id="cal-days-x" value="271" min="0" max="1240" style="width:100%"></div>
-          <div><label>Pos Y: <span id="cal-days-y-val">399</span></label><input type="range" id="cal-days-y" value="399" min="0" max="1754" style="width:100%"></div>
+          <input type="hidden" id="cal-days-x" value="271"><input type="hidden" id="cal-days-y" value="399">
           <div><label>Tamaño: <span id="cal-day-size-val">28</span></label><input type="range" id="cal-day-size" value="28" min="10" max="60" style="width:100%"></div>
           <div><label>Espaciado H: <span id="cal-days-spacing-h-val">134</span></label><input type="range" id="cal-days-spacing-h" value="134" min="20" max="300" style="width:100%"></div>
           <div><label>Espaciado V: <span id="cal-days-spacing-v-val">93</span></label><input type="range" id="cal-days-spacing-v" value="93" min="20" max="300" style="width:100%"></div>
@@ -1433,15 +1430,12 @@ function attachDragHandlers(canvas) {
     if (dragMode === 'month') {
       monthXInput.value = dragOrigin.x + dx;
       monthYInput.value = dragOrigin.y + dy;
-      syncLabel(monthXInput); syncLabel(monthYInput);
     } else if (dragMode === 'weekday') {
       weekdayXInput.value = dragOrigin.x + dx;
       weekdayYInput.value = dragOrigin.y + dy;
-      syncLabel(weekdayXInput); syncLabel(weekdayYInput);
     } else if (dragMode === 'days') {
       daysXInput.value = dragOrigin.x + dx;
       daysYInput.value = dragOrigin.y + dy;
-      syncLabel(daysXInput); syncLabel(daysYInput);
     }
     dibujarPreview();
   };
@@ -1483,9 +1477,9 @@ if (fileInput) {
 }
 
 // Sliders: mostrar valor en vivo + redibujar
-const SLIDER_IDS = ['cal-month-x', 'cal-month-y', 'cal-month-size',
-  'cal-weekday-x', 'cal-weekday-y', 'cal-weekday-size', 'cal-weekday-spacing',
-  'cal-days-x', 'cal-days-y', 'cal-day-size', 'cal-days-spacing-h', 'cal-days-spacing-v'];
+const SLIDER_IDS = ['cal-month-size',
+  'cal-weekday-size', 'cal-weekday-spacing',
+  'cal-day-size', 'cal-days-spacing-h', 'cal-days-spacing-v'];
 SLIDER_IDS.forEach(id => {
   const input = document.getElementById(id);
   const label = document.getElementById(id + '-val');
