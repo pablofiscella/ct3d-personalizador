@@ -13,11 +13,14 @@ CREAM = (253, 250, 242)
 INK = (60, 50, 45)
 
 
-def _font(sz, bold=True):
+def _font(sz, weight=True):
+    """weight acepta bool (compat: True=700, False=500) o un número 300-700
+    (eje de peso variable de Fredoka — usado por el slider de grosor del editor)."""
+    numeric_weight = (700 if weight else 500) if isinstance(weight, bool) else weight
     for p in glob.glob(f"{KIT}/**/Fredoka*.ttf", recursive=True):
         try:
             f = ImageFont.truetype(p, sz)
-            try: f.set_variation_by_axes([700 if bold else 500])
+            try: f.set_variation_by_axes([numeric_weight])
             except Exception: pass
             return f
         except Exception: pass
@@ -167,12 +170,14 @@ def mes_hoja_desde_config(mes, anyo, nombre, config, plantilla, tema="safari"):
         month_x = month_cfg.get("x", 620)
         month_y = month_cfg.get("y", 80)
         month_size = month_cfg.get("size", 110)
+        month_weight = month_cfg.get("weight", 700)
         month_color = _color("month_text", "#000000")
 
         weekday_x = weekday_cfg.get("x", 271)
         weekday_y = weekday_cfg.get("y", 335)
         weekday_size = weekday_cfg.get("size", 24)
         weekday_spacing = weekday_cfg.get("spacing", 134)
+        weekday_weight = weekday_cfg.get("weight", 500)
         weekday_color = _color("weekday_text", "#000000")
 
         days_x = days_cfg.get("x", 271)
@@ -180,14 +185,15 @@ def mes_hoja_desde_config(mes, anyo, nombre, config, plantilla, tema="safari"):
         day_size = days_cfg.get("size", 28)
         days_spacing_h = days_cfg.get("spacingH", 134)
         days_spacing_v = days_cfg.get("spacingV", 93)
+        day_weight = days_cfg.get("weight", 500)
         day_color = _color("day_text", "#000000")
 
         dr.text((month_x, month_y), _MESES_ES[mes - 1],
-                font=_font(month_size), fill=month_color, anchor="mm")
+                font=_font(month_size, weight=month_weight), fill=month_color, anchor="mm")
 
         for i, dlabel in enumerate(_DIAS_ES):
             dr.text((weekday_x + i * weekday_spacing, weekday_y), dlabel,
-                    font=_font(weekday_size), fill=weekday_color, anchor="mm")
+                    font=_font(weekday_size, weight=weekday_weight), fill=weekday_color, anchor="mm")
 
         cal = calendar.Calendar()
         days = cal.monthdayscalendar(anyo, mes)
@@ -197,7 +203,7 @@ def mes_hoja_desde_config(mes, anyo, nombre, config, plantilla, tema="safari"):
                     continue
                 cx = days_x + col * days_spacing_h
                 cy = days_y + row * days_spacing_v
-                dr.text((cx, cy), str(day), font=_font(day_size), fill=day_color, anchor="mm")
+                dr.text((cx, cy), str(day), font=_font(day_size, weight=day_weight), fill=day_color, anchor="mm")
 
         im = Image.alpha_composite(im, overlay)
         return im

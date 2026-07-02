@@ -1201,6 +1201,7 @@ cargar();
         <div style="display:flex;flex-direction:column;gap:6px;font-size:11px">
           <input type="hidden" id="cal-month-x" value="620"><input type="hidden" id="cal-month-y" value="80">
           <div><label>Tamaño: <span id="cal-month-size-val">110</span></label><input type="range" id="cal-month-size" value="110" min="20" max="200" style="width:100%"></div>
+          <div><label>Grosor: <span id="cal-month-weight-val">700</span></label><input type="range" id="cal-month-weight" value="700" min="300" max="700" style="width:100%"></div>
         </div>
       </div>
 
@@ -1211,6 +1212,7 @@ cargar();
         <div style="display:flex;flex-direction:column;gap:6px;font-size:11px">
           <input type="hidden" id="cal-weekday-x" value="271"><input type="hidden" id="cal-weekday-y" value="335">
           <div><label>Tamaño: <span id="cal-weekday-size-val">24</span></label><input type="range" id="cal-weekday-size" value="24" min="10" max="50" style="width:100%"></div>
+          <div><label>Grosor: <span id="cal-weekday-weight-val">500</span></label><input type="range" id="cal-weekday-weight" value="500" min="300" max="700" style="width:100%"></div>
           <div><label>Espaciado H: <span id="cal-weekday-spacing-val">134</span></label><input type="range" id="cal-weekday-spacing" value="134" min="20" max="300" style="width:100%"></div>
         </div>
       </div>
@@ -1222,6 +1224,7 @@ cargar();
         <div style="display:flex;flex-direction:column;gap:6px;font-size:11px">
           <input type="hidden" id="cal-days-x" value="271"><input type="hidden" id="cal-days-y" value="399">
           <div><label>Tamaño: <span id="cal-day-size-val">28</span></label><input type="range" id="cal-day-size" value="28" min="10" max="60" style="width:100%"></div>
+          <div><label>Grosor: <span id="cal-day-weight-val">500</span></label><input type="range" id="cal-day-weight" value="500" min="300" max="700" style="width:100%"></div>
           <div><label>Espaciado H: <span id="cal-days-spacing-h-val">134</span></label><input type="range" id="cal-days-spacing-h" value="134" min="20" max="300" style="width:100%"></div>
           <div><label>Espaciado V: <span id="cal-days-spacing-v-val">93</span></label><input type="range" id="cal-days-spacing-v" value="93" min="20" max="300" style="width:100%"></div>
         </div>
@@ -1263,17 +1266,20 @@ const anyoInput = document.getElementById('cal-editor-anyo');
 const monthXInput = document.getElementById('cal-month-x');
 const monthYInput = document.getElementById('cal-month-y');
 const monthSizeInput = document.getElementById('cal-month-size');
+const monthWeightInput = document.getElementById('cal-month-weight');
 
 const weekdayXInput = document.getElementById('cal-weekday-x');
 const weekdayYInput = document.getElementById('cal-weekday-y');
 const weekdaySizeInput = document.getElementById('cal-weekday-size');
 const weekdaySpacingInput = document.getElementById('cal-weekday-spacing');
+const weekdayWeightInput = document.getElementById('cal-weekday-weight');
 
 const daysXInput = document.getElementById('cal-days-x');
 const daysYInput = document.getElementById('cal-days-y');
 const daySizeInput = document.getElementById('cal-day-size');
 const daysSpacingHInput = document.getElementById('cal-days-spacing-h');
 const daysSpacingVInput = document.getElementById('cal-days-spacing-v');
+const dayWeightInput = document.getElementById('cal-day-weight');
 
 let plantillaFile = null;
 let imagenCargada = null;
@@ -1287,15 +1293,18 @@ function leerParams() {
     monthX: parseInt(monthXInput.value) || 620,
     monthY: parseInt(monthYInput.value) || 80,
     monthSize: parseInt(monthSizeInput.value) || 110,
+    monthWeight: parseInt(monthWeightInput.value) || 700,
     weekdayX: parseInt(weekdayXInput.value) || 271,
     weekdayY: parseInt(weekdayYInput.value) || 335,
     weekdaySize: parseInt(weekdaySizeInput.value) || 24,
     weekdaySpacing: parseInt(weekdaySpacingInput.value) || 134,
+    weekdayWeight: parseInt(weekdayWeightInput.value) || 500,
     daysX: parseInt(daysXInput.value) || 271,
     daysY: parseInt(daysYInput.value) || 399,
     daySize: parseInt(daySizeInput.value) || 28,
     daysSpacingH: parseInt(daysSpacingHInput.value) || 134,
-    daysSpacingV: parseInt(daysSpacingVInput.value) || 93
+    daysSpacingV: parseInt(daysSpacingVInput.value) || 93,
+    dayWeight: parseInt(dayWeightInput.value) || 500
   };
 }
 
@@ -1343,23 +1352,39 @@ function dibujarPreview() {
     ctx.restore();
   }
 
+  // Grosor simulado con trazo (faux-bold), proporcional al slider 300-700
   ctx.fillStyle = '#000';
-  ctx.font = 'bold ' + Math.round(p.monthSize * scale) + 'px sans-serif';
+  ctx.strokeStyle = '#000';
+  ctx.lineJoin = 'round';
+
+  const grosorTrazo = (weight, fontPx) => Math.max(0, (weight - 300) / 400) * fontPx * 0.09;
+
+  ctx.font = Math.round(p.monthSize * scale) + 'px sans-serif';
+  let lw = grosorTrazo(p.monthWeight, p.monthSize * scale);
+  ctx.lineWidth = lw;
+  if (lw > 0.3) ctx.strokeText('ENERO', p.monthX * scale, p.monthY * scale);
   ctx.fillText('ENERO', p.monthX * scale, p.monthY * scale);
 
   const dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   ctx.font = Math.round(p.weekdaySize * scale) + 'px sans-serif';
+  lw = grosorTrazo(p.weekdayWeight, p.weekdaySize * scale);
+  ctx.lineWidth = lw;
   for (let i = 0; i < 7; i++) {
-    ctx.fillText(dias[i], (p.weekdayX + i * p.weekdaySpacing) * scale, p.weekdayY * scale);
+    const wx = (p.weekdayX + i * p.weekdaySpacing) * scale, wy = p.weekdayY * scale;
+    if (lw > 0.3) ctx.strokeText(dias[i], wx, wy);
+    ctx.fillText(dias[i], wx, wy);
   }
 
   ctx.font = Math.round(p.daySize * scale) + 'px sans-serif';
+  lw = grosorTrazo(p.dayWeight, p.daySize * scale);
+  ctx.lineWidth = lw;
   let dayNum = 1;
   for (let row = 0; row < 6; row++) {
     for (let col = 0; col < 7; col++) {
       if (dayNum > 31) break;
       const x = (p.daysX + col * p.daysSpacingH) * scale;
       const y = (p.daysY + row * p.daysSpacingV) * scale;
+      if (lw > 0.3) ctx.strokeText(dayNum, x, y);
       ctx.fillText(dayNum, x, y);
       dayNum++;
     }
@@ -1477,9 +1502,9 @@ if (fileInput) {
 }
 
 // Sliders: mostrar valor en vivo + redibujar
-const SLIDER_IDS = ['cal-month-size',
-  'cal-weekday-size', 'cal-weekday-spacing',
-  'cal-day-size', 'cal-days-spacing-h', 'cal-days-spacing-v'];
+const SLIDER_IDS = ['cal-month-size', 'cal-month-weight',
+  'cal-weekday-size', 'cal-weekday-spacing', 'cal-weekday-weight',
+  'cal-day-size', 'cal-days-spacing-h', 'cal-days-spacing-v', 'cal-day-weight'];
 SLIDER_IDS.forEach(id => {
   const input = document.getElementById(id);
   const label = document.getElementById(id + '-val');
@@ -1509,9 +1534,9 @@ if (genBtn) {
     formData.append('tema', window.TEMA_ACTUAL);
     formData.append('anyo', anyoInput.value);
     formData.append('config', JSON.stringify({
-      month: { x: p.monthX, y: p.monthY, size: p.monthSize },
-      weekday: { x: p.weekdayX, y: p.weekdayY, size: p.weekdaySize, spacing: p.weekdaySpacing },
-      days: { x: p.daysX, y: p.daysY, size: p.daySize, spacingH: p.daysSpacingH, spacingV: p.daysSpacingV }
+      month: { x: p.monthX, y: p.monthY, size: p.monthSize, weight: p.monthWeight },
+      weekday: { x: p.weekdayX, y: p.weekdayY, size: p.weekdaySize, spacing: p.weekdaySpacing, weight: p.weekdayWeight },
+      days: { x: p.daysX, y: p.daysY, size: p.daySize, spacingH: p.daysSpacingH, spacingV: p.daysSpacingV, weight: p.dayWeight }
     }));
 
     try {
