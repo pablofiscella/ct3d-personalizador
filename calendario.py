@@ -188,12 +188,16 @@ def mes_hoja_desde_config(mes, anyo, nombre, config, plantilla, tema="safari"):
         day_weight = days_cfg.get("weight", 500)
         day_color = _color("day_text", "#000000")
 
+        domingo_rojo = config.get("domingo_rojo", True)
+        ROJO_DOMINGO = (211, 47, 47)  # #D32F2F — mismo tono que usa el preview del editor
+
         dr.text((month_x, month_y), _MESES_ES[mes - 1],
                 font=_font(month_size, weight=month_weight), fill=month_color, anchor="mm")
 
         for i, dlabel in enumerate(_DIAS_ES):
+            color = ROJO_DOMINGO if (domingo_rojo and i == 6) else weekday_color
             dr.text((weekday_x + i * weekday_spacing, weekday_y), dlabel,
-                    font=_font(weekday_size, weight=weekday_weight), fill=weekday_color, anchor="mm")
+                    font=_font(weekday_size, weight=weekday_weight), fill=color, anchor="mm")
 
         cal = calendar.Calendar()
         days = cal.monthdayscalendar(anyo, mes)
@@ -201,9 +205,10 @@ def mes_hoja_desde_config(mes, anyo, nombre, config, plantilla, tema="safari"):
             for col, day in enumerate(week):
                 if day == 0:
                     continue
+                color = ROJO_DOMINGO if (domingo_rojo and col == 6) else day_color
                 cx = days_x + col * days_spacing_h
                 cy = days_y + row * days_spacing_v
-                dr.text((cx, cy), str(day), font=_font(day_size, weight=day_weight), fill=day_color, anchor="mm")
+                dr.text((cx, cy), str(day), font=_font(day_size, weight=day_weight), fill=color, anchor="mm")
 
         im = Image.alpha_composite(im, overlay)
         return im
