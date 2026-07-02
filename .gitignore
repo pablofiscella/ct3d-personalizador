@@ -16,6 +16,7 @@ temas/*/actividades_mon/
 temas/*/actividades_preview/
 temas/*/ia_draft/
 temas/*/ia_maestra.png
+temas/*/stl3d_cache/
 .thumbs/
 
 # ── Dependencias regenerables (npm install) ──

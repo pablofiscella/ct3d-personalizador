@@ -362,6 +362,67 @@ def _piezas_memoria(tema):
             ("2_dorso", lambda d: memoria.dorso_memoria(d, tema), True)]
 
 
+# ── STL 3D (medalla/topper/trofeo/cortante/pack) ────────────────────────────
+# Piezas generadas por código (OpenSCAD) desde el personaje del tema — sin STL de
+# terceros, cero duda de licencia. La galería de la ficha usa un preview PNG
+# CACHEADO en disco (con texto genérico "NOMBRE") para no recompilar OpenSCAD en
+# cada vista; la descarga real de la compra sí genera con los datos del cliente
+# (ver el branch especial en generar(), más abajo).
+
+def _stl3d_cache_path(tema, pieza):
+    import temas as _temas
+    return os.path.join(_temas.TEMAS_DIR, tema, "stl3d_cache", pieza + ".png")
+
+def _stl3d_preview(tema, pieza):
+    """PIL Image del preview cacheado de una pieza STL para la temática. Genera y
+    cachea en disco la primera vez que se pide (queda para todas las vistas futuras
+    de esa temática, hasta que se borre el cache a mano)."""
+    from PIL import Image as _Image
+    path = _stl3d_cache_path(tema, pieza)
+    if os.path.exists(path):
+        return _Image.open(path).convert("RGB")
+    import stl3d
+    gen = {"medalla": stl3d.generar_medalla, "topper": stl3d.generar_topper,
+           "trofeo": stl3d.generar_trofeo}[pieza]
+    _, png_bytes = gen(tema, "NOMBRE", con_preview=True)
+    import io as _io
+    img = _Image.open(_io.BytesIO(png_bytes)).convert("RGB")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    img.save(path)
+    return img
+
+def _stl3d_preview_cortante(tema):
+    path = _stl3d_cache_path(tema, "cortante")
+    from PIL import Image as _Image
+    if os.path.exists(path):
+        return _Image.open(path).convert("RGB")
+    import stl3d
+    _, png_bytes = stl3d.generar_cortante(tema, con_preview=True)
+    import io as _io
+    img = _Image.open(_io.BytesIO(png_bytes)).convert("RGB")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    img.save(path)
+    return img
+
+def _piezas_stl_medalla(tema):
+    return [("1_medalla", lambda d: _stl3d_preview(tema, "medalla"), False)]
+
+def _piezas_stl_topper(tema):
+    return [("1_topper", lambda d: _stl3d_preview(tema, "topper"), False)]
+
+def _piezas_stl_trofeo(tema):
+    return [("1_trofeo", lambda d: _stl3d_preview(tema, "trofeo"), False)]
+
+def _piezas_stl_cortante(tema):
+    return [("1_cortante", lambda d: _stl3d_preview_cortante(tema), False)]
+
+def _piezas_stl_pack(tema):
+    return [("1_medalla", lambda d: _stl3d_preview(tema, "medalla"), False),
+            ("2_topper", lambda d: _stl3d_preview(tema, "topper"), False),
+            ("3_trofeo", lambda d: _stl3d_preview(tema, "trofeo"), False),
+            ("4_cortante", lambda d: _stl3d_preview_cortante(tema), False)]
+
+
 # campos = qué pedir en la ficha (la generación usa el superset igual).
 _CAMPOS_FULL = ["nombre", "fecha", "hora", "lugar", "direccion", "telefono", "edad"]
 
@@ -480,6 +541,41 @@ TIPOS = {
         "preview": "memoria",
         "piezas": _piezas_memoria,
     },
+    "stl-medalla": {
+        "nombre": "Medalla 3D imprimible",
+        "descripcion": "Medalla con el personaje del tema en relieve + nombre/edad grabado. Archivo STL para imprimir en 3D, generado 100% por código (sin diseños de terceros).",
+        "campos": ["nombre", "edad"],
+        "preview": "stl-medalla",
+        "piezas": _piezas_stl_medalla,
+    },
+    "stl-topper": {
+        "nombre": "Topper de torta 3D imprimible",
+        "descripcion": "Silueta del personaje del tema + nombre y edad, con palito para la torta. Archivo STL para imprimir en 3D.",
+        "campos": ["nombre", "edad"],
+        "preview": "stl-topper",
+        "piezas": _piezas_stl_topper,
+    },
+    "stl-trofeo": {
+        "nombre": "Trofeo 3D imprimible",
+        "descripcion": "Trofeo con el personaje del tema en relieve y placa grabada con nombre/edad o texto libre. Archivo STL para imprimir en 3D.",
+        "campos": ["nombre", "edad"],
+        "preview": "stl-trofeo",
+        "piezas": _piezas_stl_trofeo,
+    },
+    "stl-cortante": {
+        "nombre": "Cortante de galletitas 3D imprimible",
+        "descripcion": "El contorno del personaje del tema convertido en cortante de masa, con asa para empujar. Sin personalización (es el mismo por temática). Archivo STL para imprimir en 3D.",
+        "campos": [],
+        "preview": "stl-cortante",
+        "piezas": _piezas_stl_cortante,
+    },
+    "stl-pack": {
+        "nombre": "Pack Cumple 3D",
+        "descripcion": "Medalla + topper + trofeo (los 3 personalizados con nombre/edad) + cortante de galletitas del tema. Los 4 archivos STL en un ZIP, listos para imprimir.",
+        "campos": ["nombre", "edad"],
+        "preview": "stl-pack",
+        "piezas": _piezas_stl_pack,
+    },
 }
 
 DEFAULT_TIPO = "kit"
@@ -590,6 +686,28 @@ def generar(data, dest_dir, tema="safari", tipo=DEFAULT_TIPO):
     """Genera las piezas del TIPO en PDF (300 DPI) y las empaqueta en un ZIP.
 
     Reusa piezas.generar_kit (genérico sobre una lista de piezas)."""
+    if tipo in ("stl-medalla", "stl-topper", "stl-trofeo", "stl-cortante", "stl-pack"):
+        # Piezas 3D (STL) — no son imágenes, así que no pasan por piezas.generar_kit.
+        # Acá SÍ se genera con los datos reales del cliente (la galería de la ficha
+        # usa un preview cacheado con texto genérico, ver _stl3d_preview arriba).
+        import stl3d, zipfile
+        os.makedirs(dest_dir, exist_ok=True)
+        nombre = str(data.get("nombre") or "").strip() or "Cumple"
+        edad = str(data.get("edad") or "").strip()
+        texto = f"{nombre.upper()} {edad}".strip() if edad else nombre.upper()
+        zip_path = os.path.join(dest_dir, "stl.zip")
+        if tipo == "stl-pack":
+            with open(zip_path, "wb") as f:
+                f.write(stl3d.generar_pack_cumple(tema, nombre, edad))
+            return zip_path
+        gen = {"stl-medalla": ("medalla.stl", lambda: stl3d.generar_medalla(tema, texto)[0]),
+               "stl-topper": ("topper.stl", lambda: stl3d.generar_topper(tema, texto)[0]),
+               "stl-trofeo": ("trofeo.stl", lambda: stl3d.generar_trofeo(tema, texto)[0]),
+               "stl-cortante": ("cortante.stl", lambda: stl3d.generar_cortante(tema)[0])}
+        nombre_archivo, fn = gen[tipo]
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+            z.writestr(nombre_archivo, fn())
+        return zip_path
     if tipo == "actividades":
         # Cuaderno de actividades por edad (cuaderno.py): páginas verificadas por
         # código + arte del tema. Cada página entra como una pieza pre-renderizada.
@@ -629,7 +747,8 @@ def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):
         import baby_shower as bs
         img = bs.pieza("invitacion", data, tema)
     elif pieza in ("certificado", "corona", "antifaces", "menu", "rompecabezas",
-                  "capsula", "calendario", "papertoys", "memoria"):
+                  "capsula", "calendario", "papertoys", "memoria",
+                  "stl-medalla", "stl-topper", "stl-trofeo", "stl-cortante", "stl-pack"):
         # 100% procedurales: pasan por piezas_tipo() para que un override subido a mano
         # (ver override_path) se refleje también en la miniatura del producto.
         img = piezas_tipo(tema, pieza)[0][1](data)
