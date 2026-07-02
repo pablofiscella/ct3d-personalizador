@@ -1263,18 +1263,15 @@ const cerrarBtn = document.getElementById('cal-editor-cerrar');
 const statusDiv = document.getElementById('cal-editor-status');
 const anyoInput = document.getElementById('cal-editor-anyo');
 
-// Inputs del mes
 const monthXInput = document.getElementById('cal-month-x');
 const monthYInput = document.getElementById('cal-month-y');
 const monthSizeInput = document.getElementById('cal-month-size');
 
-// Inputs días de semana
 const weekdayXInput = document.getElementById('cal-weekday-x');
 const weekdayYInput = document.getElementById('cal-weekday-y');
 const weekdaySizeInput = document.getElementById('cal-weekday-size');
 const weekdaySpacingInput = document.getElementById('cal-weekday-spacing');
 
-// Inputs números de días
 const daysXInput = document.getElementById('cal-days-x');
 const daysYInput = document.getElementById('cal-days-y');
 const daySizeInput = document.getElementById('cal-day-size');
@@ -1283,72 +1280,177 @@ const daysSpacingVInput = document.getElementById('cal-days-spacing-v');
 
 let plantillaFile = null;
 let imagenCargada = null;
+let dragMode = null;       // 'month' | 'weekday' | 'days' | null
+let dragStartReal = null;  // {x,y} en coords reales 1240x1754
+let dragOrigin = null;     // {x,y} valores originales de los inputs al empezar el drag
+let lastScale = 1;
+
+function leerParams() {
+  return {
+    monthX: parseInt(monthXInput.value) || 620,
+    monthY: parseInt(monthYInput.value) || 80,
+    monthSize: parseInt(monthSizeInput.value) || 110,
+    weekdayX: parseInt(weekdayXInput.value) || 271,
+    weekdayY: parseInt(weekdayYInput.value) || 335,
+    weekdaySize: parseInt(weekdaySizeInput.value) || 24,
+    weekdaySpacing: parseInt(weekdaySpacingInput.value) || 134,
+    daysX: parseInt(daysXInput.value) || 271,
+    daysY: parseInt(daysYInput.value) || 399,
+    daySize: parseInt(daySizeInput.value) || 28,
+    daysSpacingH: parseInt(daysSpacingHInput.value) || 134,
+    daysSpacingV: parseInt(daysSpacingVInput.value) || 93
+  };
+}
 
 function dibujarPreview() {
   if (!imagenCargada || !preview) return;
-  
-  preview.innerHTML = '<canvas id="cal-editor-canvas" style="max-width:100%;max-height:700px;border-radius:6px"></canvas>';
-  const canvas = document.getElementById('cal-editor-canvas');
+
+  let canvas = document.getElementById('cal-editor-canvas');
+  if (!canvas) {
+    preview.innerHTML = '<canvas id="cal-editor-canvas" style="max-width:100%;max-height:700px;border-radius:6px;cursor:grab;touch-action:none"></canvas>';
+    canvas = document.getElementById('cal-editor-canvas');
+    attachDragHandlers(canvas);
+  }
   const ctx = canvas.getContext('2d');
-  
-  // Escala para caber
+
   const maxW = 600, maxH = 700;
   const scale = Math.min(maxW / 1240, maxH / 1754);
+  lastScale = scale;
   canvas.width = 1240 * scale;
   canvas.height = 1754 * scale;
-  
-  // Dibujar imagen respetando proporción original (cover, igual que el backend)
-  const coverScale = Math.max(canvas.width / imagenCargada.width, canvas.height / imagenCargada.height);
-  const drawW = imagenCargada.width * coverScale;
-  const drawH = imagenCargada.height * coverScale;
+
+  ctx.fillStyle = '#f0f0f0';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Dibujar imagen completa sin recortar (contain), igual que el backend
+  const containScale = Math.min(canvas.width / imagenCargada.width, canvas.height / imagenCargada.height);
+  const drawW = imagenCargada.width * containScale;
+  const drawH = imagenCargada.height * containScale;
   const drawX = (canvas.width - drawW) / 2;
   const drawY = (canvas.height - drawH) / 2;
   ctx.drawImage(imagenCargada, drawX, drawY, drawW, drawH);
-  
-  // Leer parámetros
-  const monthX = (parseInt(monthXInput.value) || 620) * scale;
-  const monthY = (parseInt(monthYInput.value) || 80) * scale;
-  const monthSize = Math.round((parseInt(monthSizeInput.value) || 110) * scale);
-  
-  const weekdayX = (parseInt(weekdayXInput.value) || 271) * scale;
-  const weekdayY = (parseInt(weekdayYInput.value) || 335) * scale;
-  const weekdaySize = Math.round((parseInt(weekdaySizeInput.value) || 24) * scale);
-  const weekdaySpacing = (parseInt(weekdaySpacingInput.value) || 134) * scale;
-  
-  const daysX = (parseInt(daysXInput.value) || 271) * scale;
-  const daysY = (parseInt(daysYInput.value) || 399) * scale;
-  const daySize = Math.round((parseInt(daySizeInput.value) || 28) * scale);
-  const daysSpacingH = (parseInt(daysSpacingHInput.value) || 134) * scale;
-  const daysSpacingV = (parseInt(daysSpacingVInput.value) || 93) * scale;
-  
-  ctx.fillStyle = '#000';
+
+  const p = leerParams();
+
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  
-  // Mes
-  ctx.font = 'bold ' + monthSize + 'px sans-serif';
-  ctx.fillText('ENERO ' + anyoInput.value, monthX, monthY);
-  
-  // Días de semana
-  const dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-  ctx.font = weekdaySize + 'px sans-serif';
-  for (let i = 0; i < 7; i++) {
-    ctx.fillText(dias[i], weekdayX + i * weekdaySpacing, weekdayY);
+
+  // Resaltar región activa mientras se arrastra
+  if (dragMode) {
+    ctx.save();
+    ctx.strokeStyle = '#4FA11C';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    const box = hitBox(dragMode, p);
+    ctx.strokeRect(box.x1 * scale, box.y1 * scale, (box.x2 - box.x1) * scale, (box.y2 - box.y1) * scale);
+    ctx.restore();
   }
-  
-  // Números de días
-  ctx.font = daySize + 'px sans-serif';
+
+  ctx.fillStyle = '#000';
+  ctx.font = 'bold ' + Math.round(p.monthSize * scale) + 'px sans-serif';
+  ctx.fillText('ENERO ' + (anyoInput.value || '2026'), p.monthX * scale, p.monthY * scale);
+
+  const dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  ctx.font = Math.round(p.weekdaySize * scale) + 'px sans-serif';
+  for (let i = 0; i < 7; i++) {
+    ctx.fillText(dias[i], (p.weekdayX + i * p.weekdaySpacing) * scale, p.weekdayY * scale);
+  }
+
+  ctx.font = Math.round(p.daySize * scale) + 'px sans-serif';
   let dayNum = 1;
   for (let row = 0; row < 6; row++) {
     for (let col = 0; col < 7; col++) {
       if (dayNum > 31) break;
-      const x = daysX + col * daysSpacingH;
-      const y = daysY + row * daysSpacingV;
+      const x = (p.daysX + col * p.daysSpacingH) * scale;
+      const y = (p.daysY + row * p.daysSpacingV) * scale;
       ctx.fillText(dayNum, x, y);
       dayNum++;
     }
     if (dayNum > 31) break;
   }
+}
+
+// Caja de colisión (en coords reales 1240x1754) para cada grupo arrastrable
+function hitBox(mode, p) {
+  if (mode === 'month') {
+    return { x1: p.monthX - 220, y1: p.monthY - p.monthSize / 2 - 10, x2: p.monthX + 220, y2: p.monthY + p.monthSize / 2 + 10 };
+  }
+  if (mode === 'weekday') {
+    return { x1: p.weekdayX - 40, y1: p.weekdayY - p.weekdaySize, x2: p.weekdayX + 6 * p.weekdaySpacing + 40, y2: p.weekdayY + p.weekdaySize };
+  }
+  if (mode === 'days') {
+    return { x1: p.daysX - 40, y1: p.daysY - p.daysSpacingV / 2, x2: p.daysX + 6 * p.daysSpacingH + 40, y2: p.daysY + 5 * p.daysSpacingV + p.daysSpacingV / 2 };
+  }
+  return null;
+}
+
+function detectarGrupo(realX, realY) {
+  const p = leerParams();
+  // Chequear del más chico/específico al más grande
+  for (const mode of ['month', 'weekday', 'days']) {
+    const b = hitBox(mode, p);
+    if (realX >= b.x1 && realX <= b.x2 && realY >= b.y1 && realY <= b.y2) return mode;
+  }
+  return null;
+}
+
+function canvasEventToReal(e, canvas) {
+  const rect = canvas.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  const px = (clientX - rect.left) * (canvas.width / rect.width);
+  const py = (clientY - rect.top) * (canvas.height / rect.height);
+  return { x: px / lastScale, y: py / lastScale };
+}
+
+function attachDragHandlers(canvas) {
+  const onDown = (e) => {
+    e.preventDefault();
+    const real = canvasEventToReal(e, canvas);
+    const grupo = detectarGrupo(real.x, real.y);
+    if (!grupo) return;
+    dragMode = grupo;
+    dragStartReal = real;
+    const p = leerParams();
+    if (grupo === 'month') dragOrigin = { x: p.monthX, y: p.monthY };
+    if (grupo === 'weekday') dragOrigin = { x: p.weekdayX, y: p.weekdayY };
+    if (grupo === 'days') dragOrigin = { x: p.daysX, y: p.daysY };
+    canvas.style.cursor = 'grabbing';
+    dibujarPreview();
+  };
+
+  const onMove = (e) => {
+    if (!dragMode) return;
+    e.preventDefault();
+    const real = canvasEventToReal(e, canvas);
+    const dx = Math.round(real.x - dragStartReal.x);
+    const dy = Math.round(real.y - dragStartReal.y);
+    if (dragMode === 'month') {
+      monthXInput.value = dragOrigin.x + dx;
+      monthYInput.value = dragOrigin.y + dy;
+    } else if (dragMode === 'weekday') {
+      weekdayXInput.value = dragOrigin.x + dx;
+      weekdayYInput.value = dragOrigin.y + dy;
+    } else if (dragMode === 'days') {
+      daysXInput.value = dragOrigin.x + dx;
+      daysYInput.value = dragOrigin.y + dy;
+    }
+    dibujarPreview();
+  };
+
+  const onUp = () => {
+    if (!dragMode) return;
+    dragMode = null;
+    canvas.style.cursor = 'grab';
+    dibujarPreview();
+  };
+
+  canvas.addEventListener('mousedown', onDown);
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+  canvas.addEventListener('touchstart', onDown, { passive: false });
+  document.addEventListener('touchmove', onMove, { passive: false });
+  document.addEventListener('touchend', onUp);
 }
 
 // Cargar imagen
@@ -1363,7 +1465,7 @@ if (fileInput) {
           imagenCargada = img;
           dibujarPreview();
           genBtn.disabled = false;
-          statusDiv.textContent = '✅ Imagen cargada - Ajusta parámetros';
+          statusDiv.textContent = '✅ Imagen cargada - Arrastrá el mes, los días o los números para moverlos';
         };
         img.src = evt.target.result;
       };
@@ -1372,15 +1474,12 @@ if (fileInput) {
   });
 }
 
-// Event listeners para actualizar preview en tiempo real
-[monthXInput, monthYInput, monthSizeInput, weekdayXInput, weekdayYInput, 
- weekdaySizeInput, weekdaySpacingInput, daysXInput, daysYInput, daySizeInput, 
+// Los inputs numéricos también actualizan el preview en tiempo real
+[monthXInput, monthYInput, monthSizeInput, weekdayXInput, weekdayYInput,
+ weekdaySizeInput, weekdaySpacingInput, daysXInput, daysYInput, daySizeInput,
  daysSpacingHInput, daysSpacingVInput, anyoInput].forEach(input => {
   if (input) input.addEventListener('input', dibujarPreview);
 });
-
-// Draw initial preview
-
 
 // Generar meses
 if (genBtn) {
@@ -1389,32 +1488,27 @@ if (genBtn) {
       statusDiv.textContent = '❌ Falta imagen o tema';
       return;
     }
-    
+
     genBtn.disabled = true;
     statusDiv.textContent = '⏳ Generando...';
-    
+
+    const p = leerParams();
     const formData = new FormData();
     formData.append('plantilla', plantillaFile);
     formData.append('tema', window.TEMA_ACTUAL);
     formData.append('anyo', anyoInput.value);
     formData.append('config', JSON.stringify({
-      font_sizes: {
-        month: parseInt(monthSizeInput.value),
-        weekday: parseInt(weekdaySizeInput.value),
-        day: parseInt(daySizeInput.value)
-      },
-      grid: {
-        x: parseInt(gridXInput.value),
-        y: parseInt(gridYInput.value)
-      }
+      month: { x: p.monthX, y: p.monthY, size: p.monthSize },
+      weekday: { x: p.weekdayX, y: p.weekdayY, size: p.weekdaySize, spacing: p.weekdaySpacing },
+      days: { x: p.daysX, y: p.daysY, size: p.daySize, spacingH: p.daysSpacingH, spacingV: p.daysSpacingV }
     }));
-    
+
     try {
       const res = await fetch('/kit-admin/calendario-generar', {
         method: 'POST',
         body: formData
       });
-      
+
       if (res.ok) {
         statusDiv.textContent = '✅ 12 meses generados';
         setTimeout(() => {
@@ -1439,6 +1533,7 @@ if (cerrarBtn) {
     document.getElementById('cal-editor-modal').close();
   });
 }
+
 </script>
 </dialog>
 

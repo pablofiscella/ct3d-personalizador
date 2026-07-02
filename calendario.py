@@ -52,12 +52,12 @@ def _paste_h(base, img, cx, cy, h):
 
 
 def _paste_fill(base, img):
-    """Escala y recorta img para cubrir toda la hoja A4 (Wp×Hp) — cover. Sin deformar."""
-    r = max(Wp / img.width, Hp / img.height)
+    """Escala img para caber completa en la hoja A4 (Wp×Hp) — contain, sin recortar ni deformar."""
+    r = min(Wp / img.width, Hp / img.height)
     im = img.resize((int(img.width * r), int(img.height * r)), Image.LANCZOS)
-    x = int((im.width - Wp) / 2)
-    y = int((im.height - Hp) / 2)
-    base.paste(im.crop((x, y, x + Wp, y + Hp)), (0, 0))
+    x = int((Wp - im.width) / 2)
+    y = int((Hp - im.height) / 2)
+    base.paste(im, (x, y), im if im.mode == "RGBA" else None)
 
 
 def _hex_to_rgb(hex_color):
@@ -140,7 +140,9 @@ def mes_hoja_procedural(mes, anyo, nombre, acc, tema="safari"):
 
 def mes_hoja_desde_config(mes, anyo, nombre, config, plantilla, tema="safari"):
     """Genera un mes calendario usando config JSON + plantilla PNG.
-    El config especifica posiciones, tamaños, colores, etc."""
+    El config especifica posiciones, tamaños, colores, etc.
+    Soporta dos esquemas: nuevo (month/weekday/days — editor con arrastre)
+    y viejo (grid/month_banner/days_header — config_calendario.json de temas)."""
     im = plantilla.copy().convert("RGBA") if plantilla else Image.new("RGBA", (Wp, Hp), (255, 255, 255, 255))
 
     if im.size != (Wp, Hp):
@@ -151,7 +153,56 @@ def mes_hoja_desde_config(mes, anyo, nombre, config, plantilla, tema="safari"):
     overlay = Image.new("RGBA", (Wp, Hp), (0, 0, 0, 0))
     dr = ImageDraw.Draw(overlay)
 
-    # Leer config
+    if "month" in config or "weekday" in config or "days" in config:
+        colors = config.get("colors", {})
+
+        def _color(key, default):
+            v = colors.get(key, default)
+            return _hex_to_rgb(v) if isinstance(v, str) else v
+
+        month_cfg = config.get("month", {})
+        weekday_cfg = config.get("weekday", {})
+        days_cfg = config.get("days", {})
+
+        month_x = month_cfg.get("x", 620)
+        month_y = month_cfg.get("y", 80)
+        month_size = month_cfg.get("size", 110)
+        month_color = _color("month_text", "#000000")
+
+        weekday_x = weekday_cfg.get("x", 271)
+        weekday_y = weekday_cfg.get("y", 335)
+        weekday_size = weekday_cfg.get("size", 24)
+        weekday_spacing = weekday_cfg.get("spacing", 134)
+        weekday_color = _color("weekday_text", "#000000")
+
+        days_x = days_cfg.get("x", 271)
+        days_y = days_cfg.get("y", 399)
+        day_size = days_cfg.get("size", 28)
+        days_spacing_h = days_cfg.get("spacingH", 134)
+        days_spacing_v = days_cfg.get("spacingV", 93)
+        day_color = _color("day_text", "#000000")
+
+        dr.text((month_x, month_y), "%s %d" % (_MESES_ES[mes - 1], anyo),
+                font=_font(month_size), fill=month_color, anchor="mm")
+
+        for i, dlabel in enumerate(_DIAS_ES):
+            dr.text((weekday_x + i * weekday_spacing, weekday_y), dlabel,
+                    font=_font(weekday_size), fill=weekday_color, anchor="mm")
+
+        cal = calendar.Calendar()
+        days = cal.monthdayscalendar(anyo, mes)
+        for row, week in enumerate(days):
+            for col, day in enumerate(week):
+                if day == 0:
+                    continue
+                cx = days_x + col * days_spacing_h
+                cy = days_y + row * days_spacing_v
+                dr.text((cx, cy), str(day), font=_font(day_size), fill=day_color, anchor="mm")
+
+        im = Image.alpha_composite(im, overlay)
+        return im
+
+    # --- esquema viejo (config_calendario.json de temas existentes) ---
     grid_cfg = config.get("grid", {})
     grid_x = grid_cfg.get("x", 271)
     grid_y = grid_cfg.get("y", 399)
@@ -242,17 +293,25 @@ if __name__ == "__main__":
         break
 
 
-def generar_calendario_con_plantilla(data, plantilla_img, tema="safari"):
+def generar_calendario_con_plantilla(data, plantilla_img, tema="safari", config_temp_path=None):
     """Genera los 12 meses usando una plantilla pasada como PIL Image.
     Útil para el editor interactivo del dashboard.
     plantilla_img: PIL Image RGBA (o None para modo procedural)
+    config_temp_path: ruta a config JSON temporal generado por el editor (prioridad sobre el del tema)
     """
     nombre = str(data.get("nombre") or "").strip() or "Mi familia"
     anyo = int(data.get("anyo") or "2026")
     acc = _accent(tema)
 
-    config = _load_config(tema)
-    
+    config = None
+    if config_temp_path:
+        try:
+            config = json.load(open(config_temp_path))
+        except Exception:
+            config = None
+    if not config:
+        config = _load_config(tema)
+
     # Si pasó una plantilla, úsala. Si no, carga del disco o modo procedural.
     plantilla = plantilla_img if plantilla_img else _load_plantilla(tema)
     usar_config = config and plantilla
