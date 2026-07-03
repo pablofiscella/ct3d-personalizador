@@ -25,7 +25,7 @@ class OpenRouterError(Exception):
 
 
 class OpenRouterImageClient:
-    def __init__(self, api_key, model="openai/gpt-image-1", opener=None,
+    def __init__(self, api_key, model="openai/gpt-5.4-image-2", opener=None,
                  max_retries=3, base_sleep=1.0, timeout=180):
         self.api_key = api_key
         self.model = model
