@@ -25,3 +25,6 @@ node_modules/
 
 # invitaciones web interactivas (datos de eventos en runtime, vigencia 180d)
 invitaciones/
+
+# audiolibros web (datos de pedidos en runtime, vigencia 365d)
+audiolibros/

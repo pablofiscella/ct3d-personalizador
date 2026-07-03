@@ -565,6 +565,32 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(data)
             return
+        # ---- audiolibro web (página narrada con page-flip; link con token) ----
+        m = re.match(r"^/al/([A-Za-z0-9_-]+)(?:/([a-z_0-9.]+))?$", path)
+        if m:
+            import audiolibro
+            token, arch = m.group(1), m.group(2)
+            if arch:
+                r = audiolibro.archivo(token, arch)
+                if r is None:
+                    return self._json(404, {"ok": False, "error": "no existe"})
+                data_b, ct = r
+                self.send_response(200)
+                self.send_header("Content-Type", ct)
+                self.send_header("Cache-Control", "public, max-age=86400")
+                self.send_header("Content-Length", str(len(data_b)))
+                self.end_headers(); self.wfile.write(data_b)
+                return
+            page = audiolibro.html(token, base_url=self.base_url())
+            if page is None:
+                return self._json(404, {"ok": False, "error": "audiolibro no encontrado"})
+            body = page.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers(); self.wfile.write(body)
+            return
         # ---- invitación web interactiva (pública: el link SE COMPARTE por WhatsApp) ----
         m = re.match(r"^/i/([A-Za-z0-9_-]+)(/hero\.png)?$", path)
         if m:
@@ -605,7 +631,10 @@ class Handler(BaseHTTPRequestHandler):
                         que = open(flag_path).read().strip()
                     except OSError:
                         que = ""
-                    if que == "video-invitacion":
+                    if que == "libro-audio":
+                        icono, titulo, detalle = "🎧", "Tu audiolibro se está grabando", \
+                            "Estamos narrando el cuento página por página. Tarda 1-2 minutos."
+                    elif que == "video-invitacion":
                         icono, titulo, detalle = "🎬", "Tu video-invitación se está armando", \
                             "Estamos animando el video con los datos de tu fiesta. Tarda menos de un minuto."
                     elif que == "fiesta-completa":
@@ -890,6 +919,35 @@ class Handler(BaseHTTPRequestHandler):
                     threading.Thread(target=_hero_worker, daemon=True).start()
             return self._json(200, {"ok": True, "token": tok,
                                     "download_url": f"{self.base_url()}/i/{tok}"})
+        if tipo == "libro-audio":
+            # Genera páginas + narración TTS (~1-2 min) y devuelve el LINK del visor.
+            os.makedirs(dest, exist_ok=True)
+            with open(os.path.join(dest, "generando.flag"), "w") as f:
+                f.write("libro-audio")
+            with open(os.path.join(dest, "meta.json"), "w", encoding="utf-8") as f:
+                json.dump({"order_id": payload.get("order_id"), "tema": tema, "tipo": tipo,
+                           "nombre": data.get("nombre", "")}, f, ensure_ascii=False, indent=2)
+
+            def _audio_worker(data=data, dest=dest, tema=tema):
+                import audiolibro, zipfile
+                try:
+                    tok_al = audiolibro.crear(data, tema, OPENAI_API_KEY)
+                    with zipfile.ZipFile(os.path.join(dest, "kit.zip"), "w") as z:
+                        z.writestr("TU_AUDIOLIBRO.txt",
+                                   "Tu audiolibro narrado está en:\n%s/al/%s\n\n"
+                                   "Compartí ese link con la familia — dura 1 año." %
+                                   (BASE_URL, tok_al))
+                except Exception as e:
+                    print("[libro-audio] falló: %s" % e, flush=True)
+                finally:
+                    try:
+                        os.remove(os.path.join(dest, "generando.flag"))
+                    except OSError:
+                        pass
+
+            threading.Thread(target=_audio_worker, daemon=True).start()
+            return self._json(200, {"ok": True, "token": token, "generando": True,
+                                    "download_url": f"{self.base_url()}/descarga/{token}"})
         if tipo == "video-invitacion":
             # El render tarda 30-60s (> timeout de la tienda): async con espera.
             os.makedirs(dest, exist_ok=True)

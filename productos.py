@@ -568,6 +568,14 @@ TIPOS = {
         "preview": "capsula",
         "piezas": _piezas_capsula,
     },
+    "libro-audio": {
+        "nombre": "Audiolibro web narrado",
+        "descripcion": "El cuento personalizado hecho EXPERIENCIA: una página web donde una voz cálida narra la historia (¡dice el nombre de tu peque!) y las hojas giran solas al ritmo del relato. Link para escuchar en cualquier pantalla, dura 1 año.",
+        "campos": ["nombre", "edad", "dedicatoria"],
+        "campos_labels": {"dedicatoria": "Dedicatoria (opcional)"},
+        "preview": "libro",
+        "piezas": _piezas_libro,
+    },
     "video-invitacion": {
         "nombre": "Video-invitación animada",
         "descripcion": "Video vertical de ~14 segundos con el nombre, la edad y los datos de la fiesta animados con la temática — listo para mandar por WhatsApp. La forma más canchera y económica de invitar.",
