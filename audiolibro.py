@@ -150,9 +150,11 @@ button { background:#6B5BD2; color:#fff; border:0; border-radius:50%%; width:54p
   <button id="play">▶</button>
   <button class="sec" id="next">⏭</button>
   <span class="pag" id="pag">1 / %(n)d</span>
-  <select id="vel" style="background:#453a66;color:#fff;border:0;border-radius:8px;padding:8px">
-    <option value="0.8">🐢 lenta</option><option value="1" selected>normal</option>
-    <option value="1.25">🐇 rápida</option></select>
+  <span style="color:#b8aede;font-size:16px">🐢</span>
+  <input type="range" id="vel" min="0.7" max="1.4" step="0.05" value="1"
+         style="width:110px;accent-color:#6B5BD2">
+  <span style="color:#b8aede;font-size:16px">🐇</span>
+  <span class="pag" id="velval" style="min-width:38px">1.0x</span>
 </div>
 <div id="diag" style="color:#e0b0b0;font-size:12px;min-height:16px"></div>
 <audio id="audio" preload="auto"></audio>
@@ -202,7 +204,11 @@ audio.addEventListener('ended', function(){
   if (actual < N-1) { if(flip){ flip.flipNext(); } else { reproducir(actual+1); } }
   else { narrando=false; play.textContent='▶'; }
 });
-vel.onchange = function(){ audio.playbackRate = parseFloat(vel.value); };
+var velval=document.getElementById('velval');
+vel.oninput = function(){
+  audio.playbackRate = parseFloat(vel.value);
+  velval.textContent = parseFloat(vel.value).toFixed(2).replace(/0$/,'')+'x';
+};
 play.onclick = function(){
   if (narrando) { narrando=false; audio.pause(); play.textContent='▶'; return; }
   narrando=true; play.textContent='⏸'; err('');
