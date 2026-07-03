@@ -433,7 +433,9 @@ class Handler(BaseHTTPRequestHandler):
             body = buf.getvalue()
             self.send_response(200)
             self.send_header("Content-Type", ctype)
-            self.send_header("Cache-Control", "public, max-age=86400")
+            # 10 min, no 24h: si se regenera el arte de un tema, la tienda lo refleja
+            # enseguida (24h dejaba fichas con imágenes viejas en navegador+Cloudflare).
+            self.send_header("Cache-Control", "public, max-age=600")
             self.send_header("Content-Length", str(len(body)))
             self.end_headers(); self.wfile.write(body)
             return
