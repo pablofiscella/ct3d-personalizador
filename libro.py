@@ -600,8 +600,8 @@ def _panel_ilustracion(im, dr, box, tema, idx, acc):
     return True
 
 
-def _pie(dr, acc):
-    dr.text((Wp / 2, Hp - 52), "casatridimensional.com.ar",
+def _pie(dr, acc, y=Hp - 52):
+    dr.text((Wp / 2, y), "casatridimensional.com.ar",
             font=_font(20, False), fill=_tint(acc, 0.35), anchor="mm")
 
 
@@ -631,7 +631,9 @@ def portada(data, tema="safari"):
     _escena(im, dr, (140, 760, Wp - 140, Hp - 260), tema, -1, acc, motivo=_m_fiesta,
             idx_pieza=0)
     _estrella(dr, Wp / 2, Hp - 165, 34, GOLD)
-    _pie(dr, acc)
+    # la portada tiene marco doble hasta Hp-55 (las demás páginas no) — el pie
+    # sube para no quedar tapado por esa línea
+    _pie(dr, acc, y=Hp - 100)
     return im
 
 
