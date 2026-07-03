@@ -370,6 +370,23 @@ async function cargar(){
   });
   updateCarNav();
 }
+function confirmModal(mensaje){
+  return new Promise(resolve=>{
+    const ov=document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:24px';
+    ov.innerHTML=`<div style="background:var(--bg-elevated,#1A1530);color:var(--ink-1,#fff);border-radius:14px;padding:22px;max-width:430px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.5);white-space:pre-line">
+      <p style="margin:0 0 18px;line-height:1.5">${String(mensaje)}</p>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button id="cm-no" style="padding:8px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:transparent;color:inherit;cursor:pointer">Cancelar</button>
+        <button id="cm-si" class="btn-primary">Confirmar</button>
+      </div></div>`;
+    document.body.appendChild(ov);
+    const cerrar=v=>{ ov.remove(); resolve(v); };
+    ov.addEventListener('click',e=>{ if(e.target===ov) cerrar(false); });
+    ov.querySelector('#cm-no').onclick=()=>cerrar(false);
+    ov.querySelector('#cm-si').onclick=()=>cerrar(true);
+  });
+}
 async function editarEdades(tema, nombre, actuales){
   const esc2=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const set=new Set((actuales||[]).map(Number));
@@ -570,7 +587,7 @@ async function openProductosNuevos(tema, nombre){
     if(libroBtn){
       const st=document.getElementById('libro-ia-status');
       libroBtn.onclick=async()=>{
-        if(!confirm('¿Generar las 10 ilustraciones del libro con IA? Las páginas ya personalizadas se pisan (después podés rehacer o subir otra en cualquier página).'))return;
+        if(!await confirmModal('¿Generar las 10 ilustraciones del libro con IA? Las páginas ya personalizadas se pisan (después podés rehacer o subir otra en cualquier página).'))return;
         libroBtn.disabled=true; st.textContent='Arrancando…';
         try{
           const r=await fetch('/dash/libro-ia?tema='+encodeURIComponent(tema),{method:'POST',headers:{'X-API-Key':KEY}});
