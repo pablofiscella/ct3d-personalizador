@@ -278,6 +278,15 @@ def hero_png(token):
 
 # ── página HTML ──────────────────────────────────────────────────────────────
 
+def _hero_version(tema):
+    """Entero que cambia cuando cambia el arte del hero — va como ?v= en la URL
+    para que Cloudflare (max-age largo) no sirva la versión vieja tras un update."""
+    try:
+        return int(os.path.getmtime(_hero_ia_path(tema)))
+    except OSError:
+        return 0
+
+
 def html(token, base_url=""):
     """La página de la invitación (HTML completo, todo inline). None si no existe."""
     reg = cargar(token)
@@ -342,7 +351,7 @@ def html(token, base_url=""):
 <title>%(titulo)s</title>
 <meta property="og:title" content="%(titulo)s">
 <meta property="og:description" content="¡Estás invitado! Tocá para ver la invitación 🎈">
-<meta property="og:image" content="%(base)s/i/%(token)s/hero.png">
+<meta property="og:image" content="%(base)s/i/%(token)s/hero.png?v=%(hv)d">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Trebuchet MS',system-ui,sans-serif; background:%(suave)s; color:#3a3340; }
@@ -379,7 +388,7 @@ h1 { color:%(acc)s; font-size:clamp(26px,7vw,40px); margin-bottom:6px; }
   <span class="globo" style="left:55%%;animation-duration:12s;animation-delay:6s">🎉</span>
   <span class="globo" style="left:78%%;animation-duration:15s;animation-delay:1s">🎈</span>
 </div>
-<img class="hero" src="%(base)s/i/%(token)s/hero.png" alt="">
+<img class="hero" src="%(base)s/i/%(token)s/hero.png?v=%(hv)d" alt="">
 <div class="tarjeta">
   <h1>%(titulo_e)s</h1>
   <div class="sub">¡Estás invitado a festejar!</div>
@@ -392,6 +401,7 @@ h1 { color:%(acc)s; font-size:clamp(26px,7vw,40px); margin-bottom:6px; }
 </body></html>""" % {
         "titulo": e(titulo), "titulo_e": e(titulo), "token": e(token),
         "base": e(base_url), "acc": acc, "suave": suave,
+        "hv": _hero_version(reg["tema"]),
         "countdown_html": countdown_html, "countdown_js": countdown_js,
         "datos_filas": datos_filas, "botones": botones,
     }
