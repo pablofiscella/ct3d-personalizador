@@ -131,13 +131,13 @@ def html(token, base_url=""):
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
 <title>%(titulo)s</title><style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { background:#2a2438; font-family:system-ui,sans-serif; min-height:100vh;
-  display:flex; flex-direction:column; align-items:center; justify-content:center; padding:12px; }
-#flip { width:min(92vw, calc((100vh - 150px) * 0.707)); }
+html,body { height:100%%; }
+body { background:#2a2438; font-family:system-ui,sans-serif; overflow:hidden;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; }
 #flip img { border-radius:6px; }
-.controles { display:flex; gap:14px; margin-top:16px; align-items:center; }
-button { background:#6B5BD2; color:#fff; border:0; border-radius:50%%; width:56px; height:56px;
-  font-size:22px; cursor:pointer; } button.sec { background:#453a66; width:46px; height:46px; font-size:16px; }
+.controles { display:flex; gap:14px; align-items:center; flex-shrink:0; }
+button { background:#6B5BD2; color:#fff; border:0; border-radius:50%%; width:54px; height:54px;
+  font-size:22px; cursor:pointer; } button.sec { background:#453a66; width:44px; height:44px; font-size:15px; }
 .pag { color:#b8aede; font-size:14px; min-width:52px; text-align:center; }
 </style></head><body>
 <div id="flip"></div>
@@ -152,34 +152,39 @@ button { background:#6B5BD2; color:#fff; border:0; border-radius:50%%; width:56p
 <script>
 var N=%(n)d, base="%(base)s/al/%(token)s/";
 var audio=document.getElementById('audio'), play=document.getElementById('play'),
-    pag=document.getElementById('pag'), narrando=false;
+    pag=document.getElementById('pag'), narrando=false, actual=0;
 function pad(x){return ('0'+x).slice(-2);}
-var urls=[]; for(var k=0;k<N;k++) urls.push(base+'pag_'+pad(k)+'.jpg');
-// Pasado de página REAL (papel que se dobla con sombra): StPageFlip
+// Tamaño en PÍXELES: el ALTO manda (pantalla - controles); el ancho sale del
+// aspecto 827:1169. Nunca se corta en vertical.
+var availH = Math.max(300, window.innerHeight - 110);
+var h = availH, w = Math.round(h * 827 / 1169);
+if (w > window.innerWidth * 0.94) { w = Math.round(window.innerWidth * 0.94); h = Math.round(w * 1169 / 827); }
 var flip = new St.PageFlip(document.getElementById('flip'), {
-  width: 827, height: 1169, size: 'stretch',
-  minWidth: 240, maxWidth: 900, minHeight: 340, maxHeight: 1400,
+  width: w, height: h, size: 'fixed',
   usePortrait: true, showCover: true, maxShadowOpacity: 0.65,
-  mobileScrollSupport: false, flippingTime: 900 });
+  mobileScrollSupport: false, flippingTime: 850 });
+var urls=[]; for(var k=0;k<N;k++) urls.push(base+'pag_'+pad(k)+'.jpg');
 flip.loadFromImages(urls);
-function narrar(i){
-  audio.src = base+'pag_'+pad(i)+'.mp3';
-  if(narrando){ audio.play(); }
+function reproducir(i){
+  actual = i;
   pag.textContent = (i+1)+' / '+N;
+  audio.src = base+'pag_'+pad(i)+'.mp3';
+  if (narrando) {
+    var p = audio.play();
+    if (p && p.catch) p.catch(function(){ narrando=false; play.textContent='▶'; });
+  }
 }
-flip.on('flip', function(e){ narrar(e.data); });
-audio.onended = function(){
-  var i = flip.getCurrentPageIndex();
-  if(i < N-1){ flip.flipNext(); } else { narrando=false; play.textContent='▶'; }
-};
+flip.on('flip', function(e){ reproducir(e.data); });
+audio.addEventListener('ended', function(){
+  if (actual < N-1) { flip.flipNext(); }
+  else { narrando=false; play.textContent='▶'; }
+});
 play.onclick = function(){
-  if(audio.paused){
-    narrando=true; play.textContent='⏸';
-    if(!audio.src){ narrar(flip.getCurrentPageIndex()); } else { audio.play(); }
-  } else { narrando=false; audio.pause(); play.textContent='▶'; }
+  if (narrando) { narrando=false; audio.pause(); play.textContent='▶'; return; }
+  narrando=true; play.textContent='⏸';
+  reproducir(flip.getCurrentPageIndex ? flip.getCurrentPageIndex() : actual);
 };
 document.getElementById('prev').onclick = function(){ flip.flipPrev(); };
 document.getElementById('next').onclick = function(){ flip.flipNext(); };
-pag.textContent = '1 / '+N;
 </script></body></html>""" % {"titulo": e(titulo), "token": e(token),
                               "base": e(base_url), "n": n}
