@@ -21,3 +21,6 @@ temas/*/stl3d_cache/
 
 # ── Dependencias regenerables (npm install) ──
 node_modules/
+
+# invitaciones web interactivas (datos de eventos en runtime, vigencia 180d)
+invitaciones/
