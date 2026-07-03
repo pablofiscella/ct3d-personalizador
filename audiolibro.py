@@ -59,7 +59,8 @@ def crear(data, tema, api_key, escenas_dir=None, progress=None):
     d = os.path.join(AUDIOLIBROS_DIR, token)
     os.makedirs(d, exist_ok=True)
     textos = _textos_narracion(data, tema)
-    ctx = libro.usar_escenas_dir(escenas_dir) if escenas_dir else None
+    ctx = libro.usar_escenas_dir(escenas_dir) if escenas_dir else \
+          libro.usar_genero(data.get("genero"))
     try:
         if ctx:
             ctx.__enter__()
@@ -135,8 +136,16 @@ body { background:#2a2438; font-family:system-ui,sans-serif; min-height:100vh;
 .escenario { perspective:1600px; width:min(92vw, 62vh); }
 .hoja { width:100%%; border-radius:12px; box-shadow:0 18px 60px rgba(0,0,0,.5);
   display:block; transform-origin:left center; backface-visibility:hidden; }
-.girando { animation:flip .8s ease-in-out; }
-@keyframes flip { 0%%{transform:rotateY(0)} 50%%{transform:rotateY(-88deg)} 100%%{transform:rotateY(0)} }
+.girando { animation:curl .9s cubic-bezier(.4,.1,.3,1); }
+@keyframes curl {
+  0%%   { transform:rotateY(0) skewY(0); border-radius:12px; filter:brightness(1); }
+  35%%  { transform:rotateY(-24deg) skewY(-1.5deg); border-top-right-radius:70px;
+          border-bottom-right-radius:40px; filter:brightness(.92);
+          box-shadow:-30px 18px 50px rgba(0,0,0,.45); }
+  60%%  { transform:rotateY(-10deg) skewY(-.5deg); border-top-right-radius:26px;
+          filter:brightness(.97); }
+  100%% { transform:rotateY(0) skewY(0); border-radius:12px; filter:brightness(1); }
+}
 .controles { display:flex; gap:14px; margin-top:18px; align-items:center; }
 button { background:#6B5BD2; color:#fff; border:0; border-radius:50%%; width:56px; height:56px;
   font-size:22px; cursor:pointer; } button.sec { background:#453a66; width:46px; height:46px; font-size:16px; }

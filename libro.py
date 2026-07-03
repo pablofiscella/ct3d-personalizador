@@ -457,6 +457,21 @@ def usar_escenas_dir(path):
         _ESCENAS_LOCAL.dir = prev
 
 
+@contextlib.contextmanager
+def usar_genero(genero):
+    """Dentro del with, el arte de las escenas prefiere la variante por género
+    (<idx>_nena.png / <idx>_nene.png) si existe — para que 'Valentina' no aparezca
+    con un nene dibujado en las páginas donde está el protagonista."""
+    prev = getattr(_ESCENAS_LOCAL, "genero", None)
+    g = (genero or "").strip().lower()
+    _ESCENAS_LOCAL.genero = "nena" if g in ("nena", "niña", "nina", "f") else \
+                            ("nene" if g in ("nene", "niño", "nino", "varon", "varón", "m") else None)
+    try:
+        yield
+    finally:
+        _ESCENAS_LOCAL.genero = prev
+
+
 def _escena_efectiva_path(tema, idx):
     """Path del arte de la página idx: primero el del pedido premium (si este hilo
     está dentro de usar_escenas_dir), después el override del tema."""
@@ -465,6 +480,12 @@ def _escena_efectiva_path(tema, idx):
         p = os.path.join(d, "%d.png" % int(idx))
         if os.path.isfile(p):
             return p
+    g = getattr(_ESCENAS_LOCAL, "genero", None)
+    if g:
+        base = override_escena_path(tema, idx)
+        pg = base.replace(".png", "_%s.png" % g)
+        if os.path.isfile(pg):
+            return pg
     return override_escena_path(tema, idx)
 
 
