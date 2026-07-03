@@ -118,9 +118,20 @@ def _tienda_admin(method, path, body=None):
         return 0, {"ok": False, "error": "no se pudo contactar la tienda: %s" % e}
 
 def _openai_client():
+    """Cliente de imágenes: OpenAI directo, con failover automático a OpenRouter
+    si OPENROUTER_API_KEY está configurada (el tope mensual de OpenAI nos frenó
+    generaciones 2 veces el 03-jul; con respaldo, el pipeline sigue solo)."""
+    or_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
     if not OPENAI_API_KEY:
+        if or_key:
+            from ia_kit.client_openrouter import OpenRouterImageClient
+            return OpenRouterImageClient(or_key)
         return None
-    return OpenAIImageClient(OPENAI_API_KEY, model=OPENAI_IMAGE_MODEL)
+    primario = OpenAIImageClient(OPENAI_API_KEY, model=OPENAI_IMAGE_MODEL)
+    if or_key:
+        from ia_kit.client_openrouter import OpenRouterImageClient, ClienteImagenesFailover
+        return ClienteImagenesFailover(primario, OpenRouterImageClient(or_key))
+    return primario
 
 def slug(s):
     s = re.sub(r"[^a-zA-Z0-9]+", "-", str(s)).strip("-").lower()
