@@ -537,6 +537,14 @@ TIPOS = {
         "preview": "libro",
         "piezas": _piezas_libro,
     },
+    "libro-premium": {
+        "nombre": "Libro de cuento premium — edición única",
+        "descripcion": "El mismo cuento de 10 páginas, pero con TODAS las ilustraciones pintadas por IA especialmente para este pedido: cada libro es único e irrepetible. La generación tarda unos minutos; el link de descarga se activa solo al terminar.",
+        "campos": ["nombre", "edad", "dedicatoria"],
+        "campos_labels": {"dedicatoria": "Dedicatoria (opcional)"},
+        "preview": "libro",
+        "piezas": _piezas_libro,
+    },
     "calendario": {
         "nombre": "Calendario personalizado",
         "descripcion": "12 meses con el nombre de la familia, decorado con la temática. Producto recurrente (cada año).",
@@ -630,7 +638,7 @@ def piezas_tipo(tema, tipo):
     siempre lo escribe el motor; si el override tapara la página entera, el nombre
     del chico quedaría fijo dentro de la imagen subida."""
     items = _spec(tipo)["piezas"](tema or "safari")
-    if tipo == "libro":
+    if tipo in ("libro", "libro-premium"):
         return items
     return _con_overrides(tema, tipo, items)
 

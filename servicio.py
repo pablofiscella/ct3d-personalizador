@@ -141,6 +141,10 @@ _SEM = threading.Semaphore(16)    # máx 16 requests concurrentes (A7, anti thre
 # Generar thumbs decodifica PNGs de ~140MB en RAM; se limitan a 3 a la vez para no
 # reventar memoria cuando el modal pide 40 miniaturas de golpe.
 _THUMB_SEM = threading.Semaphore(3)
+# Libro premium: ilustra 10 páginas con OpenAI por pedido (~10 min). De a UNO para
+# no quemar rate-limit ni acumular gasto si entran varias compras juntas; los demás
+# pedidos esperan su turno dentro del hilo de fondo (el cliente ya tiene su link).
+_LIBRO_PREMIUM_SEM = threading.Semaphore(1)
 _KEY_RE = re.compile(r"(key=)[^&\s\"']+", re.I)
 
 def _pieza_thumb(exdir, archivo):
@@ -538,6 +542,28 @@ class Handler(BaseHTTPRequestHandler):
             zip_path = os.path.join(DATA_DIR, token, "kit.zip")
             meta_path = os.path.join(DATA_DIR, token, "meta.json")
             if not os.path.isfile(zip_path):
+                if os.path.isfile(os.path.join(DATA_DIR, token, "generando.flag")):
+                    # Libro premium ilustrándose: página amigable que se recarga sola.
+                    body = ("<!doctype html><html lang='es'><head><meta charset='utf-8'>"
+                            "<meta http-equiv='refresh' content='45'>"
+                            "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+                            "<title>Tu libro se está ilustrando…</title></head>"
+                            "<body style='font-family:sans-serif;background:#FDF7EE;display:flex;"
+                            "align-items:center;justify-content:center;min-height:100vh;margin:0'>"
+                            "<div style='text-align:center;max-width:420px;padding:24px'>"
+                            "<div style='font-size:56px'>🎨</div>"
+                            "<h1 style='color:#6B5BD2;font-size:24px'>Tu libro se está ilustrando</h1>"
+                            "<p style='color:#555;line-height:1.5'>Cada página se pinta especialmente "
+                            "para este pedido. Suele tardar unos 10 minutos.<br>Esta página se "
+                            "actualiza sola — no hace falta que hagas nada.</p>"
+                            "</div></body></html>").encode("utf-8")
+                    self.send_response(200)
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.send_header("Cache-Control", "no-store")
+                    self.send_header("Content-Length", str(len(body)))
+                    self.end_headers()
+                    self.wfile.write(body)
+                    return
                 return self._json(404, {"ok": False, "error": "kit no encontrado"})
             nombre = "kit"
             if os.path.isfile(meta_path):
@@ -776,6 +802,51 @@ class Handler(BaseHTTPRequestHandler):
         order_id = slug(payload.get("order_id", "s"))
         token = f"{order_id}-{secrets.token_hex(16)}"   # A2: 128 bits, no brute-forceable
         dest = os.path.join(DATA_DIR, token)
+        if tipo == "libro-premium":
+            # Ilustrar 10 páginas tarda ~10 min: la HTTP no puede esperar. Se devuelve
+            # el link YA y un hilo genera; /descarga muestra "ilustrándose…" (flag)
+            # hasta que kit.zip existe. Si la IA falla, el libro sale igual con el
+            # arte standard del tema (el cliente SIEMPRE recibe su libro).
+            client = _openai_client()
+            if client is None:
+                return self._json(503, {"ok": False, "error": "libro premium no disponible (falta OPENAI_API_KEY)"})
+            os.makedirs(dest, exist_ok=True)
+            with open(os.path.join(dest, "generando.flag"), "w") as f:
+                f.write("libro-premium")
+            with open(os.path.join(dest, "meta.json"), "w", encoding="utf-8") as f:
+                json.dump({"order_id": payload.get("order_id"), "tema": tema, "tipo": tipo,
+                           "nombre": data.get("nombre", "")}, f, ensure_ascii=False, indent=2)
+
+            def _premium_worker(data=data, dest=dest, tema=tema):
+                import libro, libro_ia
+                escenas = os.path.join(dest, "escenas")
+                with _LIBRO_PREMIUM_SEM:
+                    try:
+                        libro_ia.generar_ilustraciones(client, tema, dest_dir=escenas)
+                    except Exception as e:
+                        # El cliente recibe el libro IGUAL (arte standard) — pero esto
+                        # es un pedido premium: dejar rastro para regenerar/compensar.
+                        print("[libro-premium] IA falló (%s) — sale con arte standard" % e,
+                              flush=True)
+                        try:
+                            with open(os.path.join(dest, "ia_fallo.txt"), "w") as ff:
+                                ff.write(str(e))
+                        except OSError:
+                            pass
+                    try:
+                        with libro.usar_escenas_dir(escenas):
+                            productos.generar(data, dest, tema, "libro")
+                    except Exception as e:
+                        print("[libro-premium] render falló: %s" % e, flush=True)
+                    finally:
+                        try:
+                            os.remove(os.path.join(dest, "generando.flag"))
+                        except OSError:
+                            pass
+
+            threading.Thread(target=_premium_worker, daemon=True).start()
+            return self._json(200, {"ok": True, "token": token, "generando": True,
+                                    "download_url": f"{self.base_url()}/descarga/{token}"})
         try:
             productos.generar(data, dest, tema, tipo)
             # A3: meta MÍNIMA (solo lo que usa /descarga para el nombre del archivo).

@@ -14,7 +14,8 @@ resto de los productos, cero cambio de código.
 
 API: paginas_libro(data, tema) -> [PIL.Image] · pagina_libro(idx, data, tema) -> PIL.Image
 """
-import os, json, glob, math, random
+import contextlib
+import os, json, glob, math, random, threading
 from PIL import Image, ImageDraw, ImageFont
 
 KIT = os.path.dirname(os.path.abspath(__file__))
@@ -435,6 +436,38 @@ def _escena(im, dr, box, tema, pagina, acc, motivo=None, idx_pieza=None):
 
 
 # ── ilustraciones subidas / generadas con IA (override POR ESCENA) ───────────
+# ── arte por VENTA (libro premium) ───────────────────────────────────────────
+# El libro premium ilustra cada pedido con arte único (libro_ia con dest_dir).
+# usar_escenas_dir() redirige _panel_ilustracion a ese directorio mientras se
+# renderizan las páginas del pedido. Thread-local: la generación premium corre en
+# su propio hilo (servicio._api_generar) y no pisa los renders concurrentes del
+# dash ni de otros pedidos.
+_ESCENAS_LOCAL = threading.local()
+
+
+@contextlib.contextmanager
+def usar_escenas_dir(path):
+    """Dentro del with, las ilustraciones salen de <path>/<idx>.png (si existen)
+    en vez de los overrides del tema. Para el libro premium (arte por pedido)."""
+    prev = getattr(_ESCENAS_LOCAL, "dir", None)
+    _ESCENAS_LOCAL.dir = path
+    try:
+        yield
+    finally:
+        _ESCENAS_LOCAL.dir = prev
+
+
+def _escena_efectiva_path(tema, idx):
+    """Path del arte de la página idx: primero el del pedido premium (si este hilo
+    está dentro de usar_escenas_dir), después el override del tema."""
+    d = getattr(_ESCENAS_LOCAL, "dir", None)
+    if d:
+        p = os.path.join(d, "%d.png" % int(idx))
+        if os.path.isfile(p):
+            return p
+    return override_escena_path(tema, idx)
+
+
 def override_escena_path(tema, idx):
     """La ILUSTRACIÓN de la página idx (0..9): temas/<tema>/overrides/libro/<idx>.png.
     A diferencia del resto de los productos, en el libro el override NO reemplaza la
@@ -460,7 +493,7 @@ def _cover(img, W, H):
 def _panel_ilustracion(im, dr, box, tema, idx, acc):
     """Si hay ilustración override para la página idx, la pega en el panel (cover +
     máscara redondeada + marco) y devuelve True. Si no hay, False (escena procedural)."""
-    p = override_escena_path(tema, idx)
+    p = _escena_efectiva_path(tema, idx)
     if not os.path.isfile(p):
         return False
     x0, y0, x1, y1 = box

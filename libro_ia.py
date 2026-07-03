@@ -107,10 +107,15 @@ def _boceto(tema, idx):
     return buf.getvalue()
 
 
-def generar_ilustraciones(client, tema, paginas=None, calidad="medium", progress=None):
+def generar_ilustraciones(client, tema, paginas=None, calidad="medium", progress=None,
+                          dest_dir=None):
     """Genera y guarda las ilustraciones de `paginas` (default: las 10). Devuelve la
     lista de paths escritos. `client` es ia_kit.client.OpenAIImageClient (o cualquier
-    objeto con .editar(refs, prompt, size, quality=) -> bytes PNG)."""
+    objeto con .editar(refs, prompt, size, quality=) -> bytes PNG).
+
+    dest_dir: si se pasa, guarda en <dest_dir>/<idx>.png en vez de los overrides del
+    tema — es el modo LIBRO PREMIUM (arte único por pedido; se renderiza después con
+    libro.usar_escenas_dir(dest_dir))."""
     paginas = list(paginas) if paginas is not None else list(range(libro.TOTAL_PAGINAS))
     refs = referencias(tema)
     out = []
@@ -124,7 +129,10 @@ def generar_ilustraciones(client, tema, paginas=None, calidad="medium", progress
                       "la composición. " + prompt)
         raw = client.editar(r, prompt, tam_pagina(idx), quality=calidad)
         img = Image.open(io.BytesIO(raw)).convert("RGBA")   # valida que sea imagen
-        dest = libro.override_escena_path(tema, idx)
+        if dest_dir:
+            dest = os.path.join(dest_dir, "%d.png" % idx)
+        else:
+            dest = libro.override_escena_path(tema, idx)
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         img.save(dest)
         out.append(dest)
