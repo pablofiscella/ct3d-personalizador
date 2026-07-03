@@ -536,6 +536,33 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(data)))
             self.end_headers(); self.wfile.write(data)
             return
+        # ---- invitación web interactiva (pública: el link SE COMPARTE por WhatsApp) ----
+        m = re.match(r"^/i/([A-Za-z0-9_-]+)(/hero\.png)?$", path)
+        if m:
+            import invitacion_web as iw
+            token, es_hero = m.group(1), bool(m.group(2))
+            if es_hero:
+                png = iw.hero_png(token)
+                if png is None:
+                    return self._json(404, {"ok": False, "error": "no existe"})
+                self.send_response(200)
+                self.send_header("Content-Type", "image/png")
+                self.send_header("Cache-Control", "public, max-age=86400")
+                self.send_header("Content-Length", str(len(png)))
+                self.end_headers()
+                self.wfile.write(png)
+                return
+            page = iw.html(token, base_url=self.base_url())
+            if page is None:
+                return self._json(404, {"ok": False, "error": "invitación no encontrada o vencida"})
+            body = page.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         m = re.match(r"^/descarga/([A-Za-z0-9_-]+)$", path)
         if m:
             token = m.group(1)
@@ -802,6 +829,13 @@ class Handler(BaseHTTPRequestHandler):
         order_id = slug(payload.get("order_id", "s"))
         token = f"{order_id}-{secrets.token_hex(16)}"   # A2: 128 bits, no brute-forceable
         dest = os.path.join(DATA_DIR, token)
+        if tipo == "invitacion-web":
+            # El producto ES un link (página viva), no un archivo: se crea el evento
+            # y se devuelve su URL como download_url (la tienda ya sabe mostrar eso).
+            import invitacion_web as iw
+            tok = iw.crear(data, tema)
+            return self._json(200, {"ok": True, "token": tok,
+                                    "download_url": f"{self.base_url()}/i/{tok}"})
         if tipo == "libro-premium":
             # Ilustrar 10 páginas tarda ~10 min: la HTTP no puede esperar. Se devuelve
             # el link YA y un hilo genera; /descarga muestra "ilustrándose…" (flag)

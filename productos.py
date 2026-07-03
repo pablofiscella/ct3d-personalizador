@@ -338,6 +338,10 @@ def _piezas_capsula(tema):
     return [("1_sobre", lambda d: capsula_tiempo.portada_sobre(d, tema), True),
             ("2_carta", lambda d: capsula_tiempo.hoja_carta(d, tema), True)]
 
+def _piezas_invitacion_web(tema):
+    import invitacion_web
+    return [("1_invitacion_web", lambda d: invitacion_web.preview_mock(d, tema), False)]
+
 def _piezas_libro(tema):
     import libro
     nombres = (["01_portada", "02_dedicatoria"] +
@@ -528,6 +532,15 @@ TIPOS = {
         "campos": ["nombre", "edad"],
         "preview": "capsula",
         "piezas": _piezas_capsula,
+    },
+    "invitacion-web": {
+        "nombre": "Invitación web interactiva",
+        "descripcion": "No es un PDF: es una PÁGINA para compartir por WhatsApp, con cuenta regresiva en vivo, botón «Cómo llegar» (Google Maps) y confirmación de asistencia directo a tu WhatsApp. Siempre actualizada: si cambia la hora o el lugar, el mismo link muestra la info nueva.",
+        "campos": ["nombre", "edad", "fecha", "hora", "lugar", "direccion", "telefono"],
+        "campos_labels": {"fecha": "Fecha (DD/MM/AAAA para la cuenta regresiva)",
+                          "telefono": "Tu WhatsApp (ahí llegan las confirmaciones)"},
+        "preview": "invitacion-web",
+        "piezas": _piezas_invitacion_web,
     },
     "libro": {
         "nombre": "Libro de cuento personalizado",
@@ -783,6 +796,7 @@ def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):
         img = bs.pieza("invitacion", data, tema)
     elif pieza in ("certificado", "corona", "antifaces", "menu", "rompecabezas",
                   "capsula", "libro", "calendario", "papertoys", "memoria",
+                  "invitacion-web",
                   "stl-medalla", "stl-topper", "stl-trofeo", "stl-cortante", "stl-pack"):
         # 100% procedurales: pasan por piezas_tipo() para que un override subido a mano
         # (ver override_path) se refleje también en la miniatura del producto.
