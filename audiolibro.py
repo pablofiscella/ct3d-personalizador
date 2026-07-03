@@ -176,8 +176,16 @@ try {
     usePortrait: true, showCover: true, maxShadowOpacity: 0.65,
     mobileScrollSupport: false, flippingTime: 850 });
   var urls=[]; for(var k=0;k<N;k++) urls.push(base+'pag_'+pad(k)+'.jpg');
+  // Página en blanco extra como CONTRATAPA del FIN: con cantidad impar, la librería
+  // recicla el canvas de la hoja anterior durante la transición (se veía la página
+  // vieja hasta que terminaba el giro). El blanco se genera acá, sin pedir nada.
+  var cv=document.createElement('canvas'); cv.width=827; cv.height=1169;
+  var cx=cv.getContext('2d'); cx.fillStyle='#FDF7EE'; cx.fillRect(0,0,827,1169);
+  urls.push(cv.toDataURL('image/jpeg', 0.7));
   flip.loadFromImages(urls);
-  flip.on('flip', function(e){ actual=e.data; pag.textContent=(actual+1)+' / '+N;
+  flip.on('flip', function(e){
+    if (e.data >= N) { pag.textContent=N+' / '+N; return; }
+    actual=e.data; pag.textContent=(actual+1)+' / '+N;
     if(narrando) reproducir(actual); });
 } catch(ex) { err('visor: '+ex.message); }
 function reproducir(i){
