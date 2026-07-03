@@ -822,7 +822,8 @@ class Handler(BaseHTTPRequestHandler):
                 escenas = os.path.join(dest, "escenas")
                 with _LIBRO_PREMIUM_SEM:
                     try:
-                        libro_ia.generar_ilustraciones(client, tema, dest_dir=escenas)
+                        libro_ia.generar_ilustraciones(client, tema, dest_dir=escenas,
+                                                       genero=data.get("genero"))
                     except Exception as e:
                         # El cliente recibe el libro IGUAL (arte standard) — pero esto
                         # es un pedido premium: dejar rastro para regenerar/compensar.

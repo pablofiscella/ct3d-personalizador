@@ -540,8 +540,8 @@ TIPOS = {
     "libro-premium": {
         "nombre": "Libro de cuento premium — edición única",
         "descripcion": "El mismo cuento de 10 páginas, pero con TODAS las ilustraciones pintadas por IA especialmente para este pedido: cada libro es único e irrepetible. La generación tarda unos minutos; el link de descarga se activa solo al terminar.",
-        "campos": ["nombre", "edad", "dedicatoria"],
-        "campos_labels": {"dedicatoria": "Dedicatoria (opcional)"},
+        "campos": ["nombre", "edad", "genero", "dedicatoria"],
+        "campos_labels": {"genero": "¿Nena o nene?", "dedicatoria": "Dedicatoria (opcional)"},
         "preview": "libro",
         "piezas": _piezas_libro,
     },

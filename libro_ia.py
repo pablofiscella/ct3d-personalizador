@@ -39,11 +39,11 @@ _ESCENAS = [
     "Un remolino mágico de luces de colores llenando un dormitorio de noche, "
     "destellos y estrellas, sensación de comienzo de viaje.",
     "Una gran fiesta de bienvenida en {mundo}: banderines, globos y una torta, con "
-    "los personajes del tema festejando alrededor de un niño visto de espaldas.",
+    "los personajes del tema festejando alrededor de {protagonista}.",
     "Momento de preocupación en {mundo}: {desafio}. Los personajes del tema miran "
     "preocupados, cielo con una gran nube gris.",
-    "Momento heroico: un niño visto de espaldas o de lejos que {solucion}, mientras "
-    "los personajes del tema lo alientan felices.",
+    "Momento heroico: {protagonista} que {solucion}, mientras "
+    "los personajes del tema alientan felices.",
     "Los personajes del tema regalan {tesoro}, presentado brillante y destacado en "
     "el centro de la escena, con destellos dorados.",
     "Una casita de noche con una ventana iluminada cálida, cielo estrellado con "
@@ -68,10 +68,25 @@ def tam_pagina(idx):
     return _VERTICAL if idx == libro.TOTAL_PAGINAS - 1 else _CUADRADA
 
 
-def prompt_pagina(tema, idx):
+def _protagonista(genero):
+    """Frase del protagonista para las escenas donde aparece. El campo llega libre
+    del formulario («nena», «niña», «nene», «varón»…) — se normaliza acá. Siempre
+    de espaldas/lejos: la cara nunca se ve (funciona con cualquier chico)."""
+    g = (genero or "").strip().lower()
+    if g in ("nena", "niña", "nina", "mujer", "girl", "f"):
+        return "una nena pequeña vista de espaldas (nunca se le ve la cara)"
+    if g in ("nene", "niño", "nino", "varon", "varón", "boy", "m"):
+        return "un nene pequeño visto de espaldas (nunca se le ve la cara)"
+    return "un niño visto de espaldas (nunca se le ve la cara)"
+
+
+def prompt_pagina(tema, idx, genero=None):
     """Prompt de la ilustración de la página idx, con la ambientación de la historia
-    del tema (libro.HISTORIAS) y el mismo bloque de estilo del resto del kit."""
-    h = libro.HISTORIAS.get(tema, libro.HISTORIA_DEFAULT)
+    del tema (libro.HISTORIAS) y el mismo bloque de estilo del resto del kit.
+    genero («nena»/«nene», opcional): cómo dibujar al protagonista en las escenas
+    donde aparece — lo usa el libro premium, que ilustra por pedido."""
+    h = dict(libro.HISTORIAS.get(tema, libro.HISTORIA_DEFAULT))
+    h["protagonista"] = _protagonista(genero)
     pal = _paleta(tema)
     escena = _ESCENAS[idx].format(**h)
     return (
@@ -108,7 +123,7 @@ def _boceto(tema, idx):
 
 
 def generar_ilustraciones(client, tema, paginas=None, calidad="medium", progress=None,
-                          dest_dir=None):
+                          dest_dir=None, genero=None):
     """Genera y guarda las ilustraciones de `paginas` (default: las 10). Devuelve la
     lista de paths escritos. `client` es ia_kit.client.OpenAIImageClient (o cualquier
     objeto con .editar(refs, prompt, size, quality=) -> bytes PNG).
@@ -123,7 +138,7 @@ def generar_ilustraciones(client, tema, paginas=None, calidad="medium", progress
         if progress:
             progress("Página %d de %d (pieza %d)…" % (n + 1, len(paginas), idx))
         r = refs or [_boceto(tema, idx)]
-        prompt = prompt_pagina(tema, idx)
+        prompt = prompt_pagina(tema, idx, genero=genero)
         if not refs:
             prompt = ("Redibujá este boceto como ilustración profesional, conservando "
                       "la composición. " + prompt)

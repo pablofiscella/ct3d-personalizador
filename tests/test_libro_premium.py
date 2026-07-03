@@ -79,7 +79,8 @@ def test_tipo_libro_premium_existe_y_genera():
     """El tipo está registrado con los mismos campos que libro, y generar() produce
     el ZIP con las 10 páginas (camino síncrono, sin IA — arte standard)."""
     assert productos.existe_tipo("libro-premium")
-    assert productos.campos_tipo("libro-premium") == productos.campos_tipo("libro")
+    # mismos campos que libro + genero (para dibujar al protagonista en el arte por pedido)
+    assert set(productos.campos_tipo("libro-premium")) == set(productos.campos_tipo("libro")) | {"genero"}
     with tempfile.TemporaryDirectory() as d:
         zip_path = productos.generar({"nombre": "Emma", "edad": "4"}, d,
                                      tema="safari", tipo="libro-premium")
@@ -104,3 +105,36 @@ def test_contexto_es_por_hilo():
             t.start()
             t.join()
         assert resultado["path"] == libro.override_escena_path("safari", 1)
+
+
+def test_prompt_genero_nena_y_nene():
+    """El género del formulario cambia cómo se describe al protagonista en las
+    escenas donde aparece (4: fiesta de bienvenida, 6: momento heroico)."""
+    for idx in (4, 6):
+        p_nena = libro_ia.prompt_pagina("safari", idx, genero="nena")
+        p_nene = libro_ia.prompt_pagina("safari", idx, genero="Niño")  # normaliza
+        p_default = libro_ia.prompt_pagina("safari", idx)
+        assert "una nena pequeña vista de espaldas" in p_nena
+        assert "un nene pequeño visto de espaldas" in p_nene
+        assert "un niño visto de espaldas" in p_default
+        assert "{protagonista}" not in p_nena  # el placeholder siempre se resuelve
+
+
+def test_prompt_paginas_sin_protagonista_no_cambian():
+    """Las páginas donde el chico NO aparece son idénticas con o sin género."""
+    for idx in (0, 1, 2, 3, 5, 7, 8, 9):
+        assert (libro_ia.prompt_pagina("safari", idx, genero="nena")
+                == libro_ia.prompt_pagina("safari", idx))
+
+
+def test_campo_genero_solo_en_premium():
+    assert "genero" in productos.campos_tipo("libro-premium")
+    assert "genero" not in productos.campos_tipo("libro")
+
+
+def test_generar_ilustraciones_pasa_genero():
+    """El género llega hasta el prompt que recibe el cliente de OpenAI."""
+    fake = _FakeClient()
+    with tempfile.TemporaryDirectory() as d:
+        libro_ia.generar_ilustraciones(fake, "safari", paginas=[4], dest_dir=d, genero="nena")
+    assert "una nena pequeña vista de espaldas" in fake.llamadas[0]["prompt"]
