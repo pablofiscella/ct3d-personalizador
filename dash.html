@@ -501,6 +501,7 @@ async function openProductosNuevos(tema, nombre){
             <div style="font-size:11.5px;opacity:.7">Generá las 10 con IA (una sola vez por tema — el nombre del chico siempre lo escribe el motor) o subí la tuya en cada página con 📤</div>
           </div>
           <button id="libro-ia-btn" class="btn-primary" style="padding:8px 14px;font-size:12px">✨ Generar 10 con IA</button>
+          <button id="libro-audio-btn" class="btn-primary" style="padding:8px 14px;font-size:12px;background:#2E8B57">▶ Escuchar audiolibro</button>
         </div>
         <div id="libro-ia-status" style="font-size:12px;margin-top:8px;min-height:18px"></div>
       </div>` : '') +
@@ -584,6 +585,32 @@ async function openProductosNuevos(tema, nombre){
             }catch(_){}
           },2500);
         }catch(e){ st.textContent='✕ '+e; libroBtn.disabled=false; }
+      };
+    }
+    // Libro: escuchar el audiolibro demo del tema (se genera una vez)
+    const laBtn=document.getElementById('libro-audio-btn');
+    if(laBtn){
+      const st=document.getElementById('libro-ia-status');
+      laBtn.onclick=async()=>{
+        laBtn.disabled=true; st.textContent='Preparando audiolibro de muestra…';
+        try{
+          const r=await fetch('/dash/libro-audio-demo?tema='+encodeURIComponent(tema),{method:'POST',headers:{'X-API-Key':KEY}});
+          const jr=await r.json();
+          if(jr.url){ st.textContent='✓'; window.open(jr.url,'_blank'); laBtn.disabled=false; return; }
+          if(!jr.ok){ st.textContent='✕ '+(jr.error||'error'); laBtn.disabled=false; return; }
+          const poll=setInterval(async()=>{
+            try{
+              const e=await (await fetch('/dash/ia-estado?job='+jr.job+'&key='+encodeURIComponent(KEY))).json();
+              const ev=(e.eventos||[]); st.textContent=ev.length?ev[ev.length-1]:'Narrando…';
+              if(e.estado==='listo'){ clearInterval(poll);
+                const r2=await fetch('/dash/libro-audio-demo?tema='+encodeURIComponent(tema),{method:'POST',headers:{'X-API-Key':KEY}});
+                const j2=await r2.json();
+                if(j2.url){ st.textContent='✓'; window.open(j2.url,'_blank'); }
+                laBtn.disabled=false; }
+              if(e.estado==='error'){ clearInterval(poll); st.textContent='✕ '+(e.error||'falló'); laBtn.disabled=false; }
+            }catch(_){}
+          },2500);
+        }catch(e){ st.textContent='✕ '+e; laBtn.disabled=false; }
       };
     }
     // Calendario: upload de fondo + generar 12 meses

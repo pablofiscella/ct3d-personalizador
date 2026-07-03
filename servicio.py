@@ -835,6 +835,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._ia_colorear_variantes()
         if path == "/dash/producto-upload":
             return self._dash_producto_upload()
+        if path == "/dash/libro-audio-demo":
+            return self._dash_libro_audio_demo()
         if path == "/dash/libro-ia":
             return self._dash_libro_ia()
         if path == "/dash/producto-borrar-override":
@@ -1788,6 +1790,35 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
+
+    def _dash_libro_audio_demo(self):
+        """Audiolibro DEMO del tema (nombre genérico) para escuchar desde el panel.
+        Se genera una vez y se cachea (temas/<tema>/audiolibro_demo.txt guarda el
+        token). 1ª llamada: arranca el job; cuando está, devuelve {url}."""
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        import audiolibro
+        marca = os.path.join(temas.TEMAS_DIR, tema, "audiolibro_demo.txt")
+        if os.path.isfile(marca):
+            tok = open(marca).read().strip()
+            if audiolibro._cargar(tok):
+                return self._json(200, {"ok": True,
+                                        "url": f"{self.base_url()}/al/{tok}"})
+        if not OPENAI_API_KEY:
+            return self._json(503, {"ok": False, "error": "falta OPENAI_API_KEY"})
+
+        def trabajo(emit):
+            emit("Narrando el cuento de muestra…")
+            tok = audiolibro.crear({"nombre": "Alex", "edad": "5"}, tema, OPENAI_API_KEY,
+                                   progress=emit)
+            with open(marca, "w") as f:
+                f.write(tok)
+        jid = ia_jobs.iniciar(trabajo)
+        return self._json(200, {"ok": True, "job": jid})
 
     def _dash_libro_ia(self):
         """Genera con IA las ilustraciones del libro de cuento del tema y las guarda
