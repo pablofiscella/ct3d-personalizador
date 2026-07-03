@@ -160,7 +160,7 @@ button { background:#6B5BD2; color:#fff; border:0; border-radius:50%%; width:54p
 <audio id="audio" preload="auto"></audio>
 <script src="https://unpkg.com/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 <script>
-var N=%(n)d, base="%(base)s/al/%(token)s/";
+var N=%(n)d, base="%(base)s/al/%(token)s/", V="?v=%(v)d";
 var audio=document.getElementById('audio'), play=document.getElementById('play'),
     pag=document.getElementById('pag'), vel=document.getElementById('vel'),
     diag=document.getElementById('diag');
@@ -177,7 +177,7 @@ try {
     width: w, height: h, size: 'fixed',
     usePortrait: true, showCover: true, maxShadowOpacity: 0.65,
     mobileScrollSupport: false, flippingTime: 850 });
-  var urls=[]; for(var k=0;k<N;k++) urls.push(base+'pag_'+pad(k)+'.jpg');
+  var urls=[]; for(var k=0;k<N;k++) urls.push(base+'pag_'+pad(k)+'.jpg'+V);
   // Página en blanco extra como CONTRATAPA del FIN: con cantidad impar, la librería
   // recicla el canvas de la hoja anterior durante la transición (se veía la página
   // vieja hasta que terminaba el giro). El blanco se genera acá, sin pedir nada.
@@ -207,7 +207,7 @@ function narrarVisibles(){
   reproducir(cola.shift());
 }
 function reproducir(i){
-  audio.src = base+'pag_'+pad(i)+'.mp3';
+  audio.src = base+'pag_'+pad(i)+'.mp3'+V;
   audio.load();
   // load() resetea playbackRate → defaultPlaybackRate manda para las páginas siguientes
   audio.defaultPlaybackRate = parseFloat(vel.value);
@@ -238,4 +238,5 @@ document.getElementById('prev').onclick = function(){ if(flip) flip.flipPrev(); 
 document.getElementById('next').onclick = function(){ if(flip) flip.flipNext(); };
 pag.textContent='1 / '+N;
 </script></body></html>""" % {"titulo": e(titulo), "token": e(token),
-                              "base": e(base_url), "n": n}
+                              "base": e(base_url), "n": n,
+                              "v": int(reg.get("creado", 0))}
