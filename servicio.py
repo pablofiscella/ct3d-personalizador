@@ -946,7 +946,9 @@ class Handler(BaseHTTPRequestHandler):
                             try:
                                 libro_ia.generar_ilustraciones(
                                     client, tema, dest_dir=escenas,
-                                    genero=data.get("genero"), historia=hist)
+                                    genero=data.get("genero"), historia=hist,
+                                    verificar=True,
+                                    fallos_log=os.path.join(dest, "qa_fallos.txt"))
                             except Exception as e:
                                 print("[libro-audio] arte falló (%s) — arte del tema" % e,
                                       flush=True)
@@ -1038,7 +1040,9 @@ class Handler(BaseHTTPRequestHandler):
                     try:
                         libro_ia.generar_ilustraciones(client, tema, dest_dir=escenas,
                                                        genero=data.get("genero"),
-                                                       historia=data.get("historia"))
+                                                       historia=data.get("historia"),
+                                                       verificar=True,
+                                                       fallos_log=os.path.join(dest, "qa_fallos.txt"))
                     except Exception as e:
                         # El cliente recibe el libro IGUAL (arte standard) — pero esto
                         # es un pedido premium: dejar rastro para regenerar/compensar.

@@ -14,6 +14,7 @@ Uso:
   - CLI:  OPENAI_API_KEY=... python libro_ia.py <tema> [pagina]
 """
 import io
+import json
 import os
 import sys
 
@@ -156,8 +157,46 @@ def _boceto(tema, idx):
     return buf.getvalue()
 
 
+_QA_URL = "https://api.openai.com/v1/chat/completions"
+
+
+def verificar_ilustracion(api_key, png_bytes, escena, timeout=60):
+    """Mira la ilustración generada con un modelo de visión y devuelve (ok, motivo).
+    Chequea lo que más sale mal: texto/letras pegadas, personajes deformes o
+    cortados, y que la imagen tenga que ver con la escena pedida. Best-effort:
+    si el QA falla (red, etc.) se considera OK — no frena la venta."""
+    import base64 as _b64
+    import urllib.request as _rq
+    try:
+        body = json.dumps({
+            "model": os.environ.get("OPENAI_QA_MODEL", "gpt-4o-mini"),
+            "max_tokens": 60,
+            "messages": [{"role": "user", "content": [
+                {"type": "text", "text":
+                 "Ilustración de libro infantil. Escena pedida: «%s». "
+                 "¿Tiene alguno de estos problemas? (1) texto/letras/números dentro "
+                 "de la imagen, (2) personajes deformes, cortados o con anatomía rara, "
+                 "(3) no tiene nada que ver con la escena pedida. "
+                 "Respondé SOLO 'OK' o 'MAL: <motivo corto>'." % escena[:400]},
+                {"type": "image_url", "image_url": {"url":
+                 "data:image/png;base64," + _b64.b64encode(png_bytes).decode(),
+                 "detail": "low"}}]}]}).encode()
+        req = _rq.Request(_QA_URL, data=body, method="POST", headers={
+            "Authorization": "Bearer " + api_key,
+            "Content-Type": "application/json"})
+        with _rq.urlopen(req, timeout=timeout) as r:
+            out = json.loads(r.read())
+        resp = (out["choices"][0]["message"]["content"] or "").strip()
+        if resp.upper().startswith("OK"):
+            return True, ""
+        return False, resp[:160]
+    except Exception as e:
+        return True, "qa saltado: %s" % str(e)[:80]
+
+
 def generar_ilustraciones(client, tema, paginas=None, calidad="medium", progress=None,
-                          dest_dir=None, genero=None, historia=None):
+                          dest_dir=None, genero=None, historia=None,
+                          verificar=False, fallos_log=None):
     """Genera y guarda las ilustraciones de `paginas` (default: las 10). Devuelve la
     lista de paths escritos. `client` es ia_kit.client.OpenAIImageClient (o cualquier
     objeto con .editar(refs, prompt, size, quality=) -> bytes PNG).
@@ -177,6 +216,26 @@ def generar_ilustraciones(client, tema, paginas=None, calidad="medium", progress
             prompt = ("Redibujá este boceto como ilustración profesional, conservando "
                       "la composición. " + prompt)
         raw = client.editar(r, prompt, tam_pagina(idx), quality=calidad)
+        qa_key = os.environ.get("OPENAI_API_KEY")
+        if verificar and qa_key:
+            ok, motivo = verificar_ilustracion(qa_key, raw, prompt)
+            if not ok:
+                if progress:
+                    progress("Página %d rechazada por QA (%s) — reintento…" % (idx, motivo))
+                raw2 = client.editar(r, prompt + " MUY IMPORTANTE: " + motivo,
+                                     tam_pagina(idx), quality=calidad)
+                ok2, motivo2 = verificar_ilustracion(qa_key, raw2, prompt)
+                if ok2:
+                    raw = raw2
+                else:
+                    # dos rechazos: NO guardar (la página cae al arte del tema) y
+                    # dejar constancia para revisión humana
+                    if fallos_log:
+                        with open(fallos_log, "a", encoding="utf-8") as fl:
+                            fl.write("pagina %d: %s / %s\n" % (idx, motivo, motivo2))
+                    if progress:
+                        progress("Página %d: QA rechazó 2 veces — usa arte del tema" % idx)
+                    continue
         img = Image.open(io.BytesIO(raw)).convert("RGBA")   # valida que sea imagen
         if dest_dir:
             dest = os.path.join(dest_dir, "%d.png" % idx)
