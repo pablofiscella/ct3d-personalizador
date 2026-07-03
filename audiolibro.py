@@ -68,9 +68,10 @@ def crear(data, tema, api_key, escenas_dir=None, progress=None):
     try:
         if ctx:
             ctx.__enter__()
-        for i in range(libro.TOTAL_PAGINAS):
+        total = libro.total_paginas(tema)
+        for i in range(total):
             if progress:
-                progress("Página %d de %d…" % (i + 1, libro.TOTAL_PAGINAS))
+                progress("Página %d de %d…" % (i + 1, total))
             img = libro.pagina_libro(i, data, tema).convert("RGB")
             img.resize((img.width * 2 // 3, img.height * 2 // 3)).save(
                 os.path.join(d, "pag_%02d.jpg" % i), quality=86)
@@ -81,7 +82,7 @@ def crear(data, tema, api_key, escenas_dir=None, progress=None):
             ctx.__exit__(None, None, None)
     with open(os.path.join(d, "manifest.json"), "w", encoding="utf-8") as f:
         json.dump({"tema": tema, "nombre": data.get("nombre", ""),
-                   "paginas": libro.TOTAL_PAGINAS, "creado": int(time.time())},
+                   "paginas": libro.total_paginas(tema), "creado": int(time.time())},
                   f, ensure_ascii=False)
     _limpiar_vencidos()
     return token

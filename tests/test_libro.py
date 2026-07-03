@@ -90,10 +90,39 @@ def test_cuento_personalizado_con_nombre_y_edad():
 
 
 def test_cuento_tema_desconocido_usa_fallback():
+    # un tema sin tema.json es "nuevo" -> 12 páginas de historia (15 en total)
     textos = libro.cuento({"nombre": "Mateo"}, "tema-que-no-existe")
-    assert len(textos) == libro.PAGINAS_HISTORIA
+    assert len(textos) == libro.PAGINAS_HISTORIA_NUEVO
     assert any("Mateo" in t for t in textos)
     assert any("mundo mágico" in t for t in textos)
+
+
+def test_paginas_historia_por_tema():
+    # temas existentes: pineados a 7 (no cambia el largo de lo ya vendido)
+    assert libro.paginas_historia("safari") == 7
+    assert libro.total_paginas("safari") == 10
+    # tema nuevo (sin tema.json::libro_paginas_historia): 12 -> 15 en total
+    assert libro.paginas_historia("tema-que-no-existe") == 12
+    assert libro.total_paginas("tema-que-no-existe") == 15
+
+
+def test_cuento_extendido_por_arco():
+    data = {"nombre": "Mateo", "edad": "6"}
+    for historia in ("aventura", "tesoro", "rescate", "gran-dia",
+                      "noche-estrellas", "cumple-sorpresa", "pequeno-maestro",
+                      "ayudar-a-todos"):
+        textos = libro.cuento(dict(data, historia=historia), "tema-que-no-existe")
+        assert len(textos) == 12
+        assert sum("Mateo" in t for t in textos) >= 3
+
+    # las 3 narrativas clásicas siguen andando igual en temas legado (7 páginas,
+    # texto de las primeras páginas IDÉNTICO al de antes de extenderlas)
+    for historia in ("tesoro", "rescate", "gran-dia"):
+        legado = libro.cuento(dict(data, historia=historia), "safari")
+        assert len(legado) == 7
+        assert legado == [t.format(**dict(libro.HISTORIAS["safari"], nombre="Mateo",
+                                          conteo="contar hasta 6", conteo_num="6"))
+                          for t in libro.ARGUMENTOS[historia]]
 
 
 def test_campos_se_respetan_en_las_paginas():

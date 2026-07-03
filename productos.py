@@ -358,9 +358,10 @@ def _piezas_invitacion_web(tema):
 
 def _piezas_libro(tema):
     import libro
+    n_hist = libro.paginas_historia(tema)
     nombres = (["01_portada", "02_dedicatoria"] +
-               ["%02d_pagina_%d" % (i + 3, i + 1) for i in range(libro.PAGINAS_HISTORIA)] +
-               ["%02d_fin" % libro.TOTAL_PAGINAS])
+               ["%02d_pagina_%d" % (i + 3, i + 1) for i in range(n_hist)] +
+               ["%02d_fin" % (n_hist + 3)])
     return [(n, (lambda i: (lambda d: libro.pagina_libro(i, d, tema)))(i), True)
             for i, n in enumerate(nombres)]
 

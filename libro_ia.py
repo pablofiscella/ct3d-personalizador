@@ -56,6 +56,25 @@ _ESCENAS = [
 ]
 
 
+_ESCENAS_EXT = [
+    _ESCENAS[0], _ESCENAS[1],
+    _ESCENAS[2], _ESCENAS[3], _ESCENAS[4], _ESCENAS[5], _ESCENAS[6], _ESCENAS[7],
+    "Un gran juego grupal en {mundo}: los personajes del tema jugando y riendo a "
+    "carcajadas, ambiente muy alegre y colorido.",
+    "Un rincón secreto y mágico de {mundo}, con una luz suave y misteriosa "
+    "guiando el camino, sensación de descubrimiento.",
+    "Un jardín mágico de pequeñas luces brillantes flotando como estrellas "
+    "caídas, {protagonista} y los personajes del tema maravillados mirando "
+    "alrededor.",
+    "Los personajes del tema abrazados en ronda junto a {protagonista}, "
+    "prometiendo guardar un secreto, ambiente cálido y tierno.",
+    "Un cielo lleno de colores de atardecer sobre {mundo}, los personajes del "
+    "tema despidiéndose con la mano en alto, sensación de final feliz.",
+    _ESCENAS[8],   # cierre (misma escena que el legado, ahora más adelante)
+    _ESCENAS[9],   # FIN
+]
+
+
 # Escenas por ARGUMENTO (idx 2..8 — portada/dedicatoria/fin son comunes): el arte
 # por pedido (premium/audiolibro) ilustra la historia que el cliente eligió.
 _ESCENAS_POR_HISTORIA = {
@@ -88,6 +107,165 @@ _ESCENAS_POR_HISTORIA = {
     },
 }
 
+# Versión extendida (12 páginas, idx 2..13) de las mismas 3 narrativas de arriba +
+# las narrativas nuevas (que ya nacen extendidas). idx 2..7 = misma escena que la
+# versión legado (páginas sin cambios); idx 8..12 = las 5 páginas nuevas del medio;
+# idx 13 = la escena de cierre (la que en el legado estaba en idx 8).
+_ESCENAS_POR_HISTORIA_EXT = {
+    "tesoro": {
+        2: _ESCENAS_POR_HISTORIA["tesoro"][2], 3: _ESCENAS_POR_HISTORIA["tesoro"][3],
+        4: _ESCENAS_POR_HISTORIA["tesoro"][4], 5: _ESCENAS_POR_HISTORIA["tesoro"][5],
+        6: _ESCENAS_POR_HISTORIA["tesoro"][6], 7: _ESCENAS_POR_HISTORIA["tesoro"][7],
+        8: "Los personajes del tema sentados en ronda alrededor de {protagonista}, "
+           "admirando de cerca {tesoro} que brilla en el centro, ambiente cálido.",
+        9: "Un mapa antiguo que brilla y revela un segundo camino dorado, sorpresa "
+           "y asombro en los personajes del tema.",
+        10: "Los personajes del tema empujando juntos una piedra enorme en {mundo}, "
+            "esfuerzo y trabajo en equipo, polvo de aventura.",
+        11: "Una merienda alegre bajo un árbol grande en {mundo}, los personajes "
+            "del tema compartiendo comida y riendo.",
+        12: "{protagonista} y los personajes del tema dándose la mano en señal de "
+            "promesa, mirando juntos el mapa, atardecer cálido.",
+        13: _ESCENAS_POR_HISTORIA["tesoro"][8],
+    },
+    "rescate": {
+        2: _ESCENAS_POR_HISTORIA["rescate"][2], 3: _ESCENAS_POR_HISTORIA["rescate"][3],
+        4: _ESCENAS_POR_HISTORIA["rescate"][4], 5: _ESCENAS_POR_HISTORIA["rescate"][5],
+        6: _ESCENAS_POR_HISTORIA["rescate"][6], 7: _ESCENAS_POR_HISTORIA["rescate"][7],
+        8: "Un personajito pequeño del tema abrazando fuerte y agradecido a "
+           "{protagonista}, ambiente muy tierno.",
+        9: "Los personajes del tema tomados de la mano en fila caminando juntos "
+           "por {mundo}, explorando con confianza.",
+        10: "Un rincón mágico escondido de {mundo} lleno de lucecitas como "
+            "estrellas caídas, los personajes del tema maravillados.",
+        11: "Los personajes del tema decorando con cariño su nuevo rincón "
+            "secreto favorito en {mundo}.",
+        12: "Los personajes del tema cantando juntos en ronda de noche junto a "
+            "las lucecitas mágicas, ambiente feliz y cálido.",
+        13: _ESCENAS_POR_HISTORIA["rescate"][8],
+    },
+    "gran-dia": {
+        2: _ESCENAS_POR_HISTORIA["gran-dia"][2], 3: _ESCENAS_POR_HISTORIA["gran-dia"][3],
+        4: _ESCENAS_POR_HISTORIA["gran-dia"][4], 5: _ESCENAS_POR_HISTORIA["gran-dia"][5],
+        6: _ESCENAS_POR_HISTORIA["gran-dia"][6], 7: _ESCENAS_POR_HISTORIA["gran-dia"][7],
+        8: "{protagonista} con {tesoro} puesto, dando la bienvenida a los "
+           "personajes del tema que van llegando a la fiesta en {mundo}.",
+        9: "Un equipo de música apagado en medio de la fiesta, los personajes "
+           "del tema con cara de sorpresa.",
+        10: "{protagonista} organizando a los personajes del tema para hacer "
+            "música con las manos y los pies, ambiente divertido.",
+        11: "Los personajes del tema bailando felices al ritmo de la música "
+            "improvisada, mucha energía y color.",
+        12: "Los personajes del tema en ronda al atardecer en {mundo}, "
+            "agradeciendo a {protagonista} con cariño.",
+        13: _ESCENAS_POR_HISTORIA["gran-dia"][8],
+    },
+    "noche-estrellas": {
+        2: "{protagonista} mirando el cielo nocturno desde la ventana de un "
+           "cuarto infantil, viendo caer una estrella fugaz hacia {mundo}.",
+        3: "{protagonista} en pantuflas saliendo de casa de noche, mirando el "
+           "cielo estrellado, camino hacia {mundo}.",
+        4: "Los personajes del tema buscando entre las sombras de {mundo} de "
+           "noche, con linternas, buscando algo brillante.",
+        5: "Momento de oscuridad y desafío en {mundo} de noche: {desafio}, los "
+           "personajes del tema desorientados.",
+        6: "{protagonista} que {solucion}, iluminando el camino en la "
+           "oscuridad, los personajes del tema aliviados.",
+        7: "Una estrella fugaz brillante y cansada posada en el suelo de "
+           "{mundo}, los personajes del tema acercándose con ternura.",
+        8: "Los personajes del tema armando una camita suave de nubes para la "
+           "estrella fugaz, ambiente tierno y nocturno.",
+        9: "La estrella fugaz brillando fuerte iluminando todo {mundo} como si "
+           "fuera de día, luz cálida y mágica.",
+        10: "Los personajes del tema jugando a las escondidas entre sombras "
+            "iluminadas, mucha alegría.",
+        11: "La estrella fugaz entregando {tesoro} brillante a {protagonista}, "
+            "momento mágico de despedida.",
+        12: "Los personajes del tema mirando juntos el cielo estrellado de "
+            "{mundo}, prometiendo cuidarlo cada noche.",
+        13: "Un cuarto infantil de noche, cama con ventana abierta al cielo "
+            "estrellado, ambiente muy calmo.",
+    },
+    "cumple-sorpresa": {
+        2: "{protagonista} descubriendo un cartel o calendario que marca un "
+           "cumpleaños muy pronto, cara de sorpresa emocionada, en {mundo}.",
+        3: "{protagonista} planeando en secreto con una libretita, gesto de "
+           "'shhh', ambiente de misterio divertido.",
+        4: "Los personajes del tema reunidos en secreto susurrando un plan, "
+           "ambiente cómplice y divertido en {mundo}.",
+        5: "Momento de tensión: {desafio}, los personajes del tema con cara de "
+           "preocupación mientras preparan la sorpresa.",
+        6: "{protagonista} que {solucion} justo a tiempo, salvando el plan "
+           "secreto, alivio y sonrisas.",
+        7: "Los personajes del tema decorando {mundo} con globos y "
+           "guirnaldas, escondidos detrás de árboles y esquinas.",
+        8: "El cumpleañero del tema acercándose sin sospechar nada, los demás "
+           "personajes escondidos aguantando la risa.",
+        9: "Explosión de sorpresa y alegría: confetti, globos, todos los "
+           "personajes del tema festejando alrededor del cumpleañero.",
+        10: "Una gran torta de cumpleaños festiva en el centro de {mundo}, los "
+            "personajes del tema jugando y riendo alrededor.",
+        11: "Los personajes del tema entregando {tesoro} hecho con cariño al "
+            "cumpleañero, momento emotivo.",
+        12: "El cumpleañero abrazando fuerte a {protagonista}, ambiente muy "
+            "tierno y feliz.",
+        13: "Una casita de noche con ventana cálida iluminada, globos "
+            "desinflándose suavemente afuera, cierre tierno del día.",
+    },
+    "pequeno-maestro": {
+        2: "{protagonista} haciendo algo especial y único frente a los "
+           "personajes del tema, que miran admirados en {mundo}.",
+        3: "Los personajes del tema pidiéndole con ilusión a {protagonista} "
+           "que les enseñe, ambiente de entusiasmo.",
+        4: "Primera clase improvisada en {mundo}: los personajes del tema "
+           "intentando aprender, gestos torpes y divertidos.",
+        5: "Momento de frustración: {desafio}, los personajes del tema "
+           "desanimados, caras tristes.",
+        6: "{protagonista} que {solucion}, animando con paciencia y una gran "
+           "sonrisa a los personajes del tema.",
+        7: "Los personajes del tema logrando poco a poco, caras de orgullo y "
+           "sorpresa feliz.",
+        8: "{protagonista} festejando cada intento de los personajes del "
+           "tema, aplausos y ánimo, ambiente cálido.",
+        9: "Cada personaje del tema mostrando su propio estilo único de hacer "
+           "lo aprendido, variedad y color.",
+        10: "Una pequeña muestra o exhibición en {mundo}, los personajes del "
+            "tema mostrando lo aprendido con orgullo.",
+        11: "Los personajes del tema aplaudiendo y entregando {tesoro} a "
+            "{protagonista} como agradecimiento.",
+        12: "{protagonista} pensativo y feliz, rodeado de los personajes del "
+            "tema, ambiente de cierre cálido.",
+        13: "Una casita de noche con ventana cálida, libros o herramientas de "
+            "aprendizaje apoyados cerca de la cama.",
+    },
+    "ayudar-a-todos": {
+        2: "{protagonista} despertando con energía en un cuarto luminoso, "
+           "ganas de hacer algo bueno, en {mundo}.",
+        3: "{protagonista} caminando por {mundo} con botas puestas, buscando "
+           "a quién ayudar, ambiente soleado.",
+        4: "Un personaje del tema triste porque {desafio}, {protagonista} "
+           "acercándose con gesto amable.",
+        5: "{protagonista} que {solucion}, ayudando con una sonrisa, el "
+           "personaje ya más animado.",
+        6: "{protagonista} compartiendo su merienda de la mochila con un "
+           "personaje del tema con hambre, gesto generoso.",
+        7: "Los personajes del tema buscando juntos un juguete perdido entre "
+           "plantas y rincones de {mundo}.",
+        8: "Alegría de encontrar el juguete perdido, los personajes del tema "
+           "festejando juntos.",
+        9: "Los personajes del tema cargando algo pesado entre todos, trabajo "
+           "en equipo, ambiente de esfuerzo alegre.",
+        10: "Atardecer en {mundo}, los personajes del tema cansados pero "
+            "sonrientes tras un día de buenas acciones.",
+        11: "Los personajes del tema entregando {tesoro} a {protagonista} "
+            "como agradecimiento por un día ayudando a todos.",
+        12: "{protagonista} rodeado de todos los personajes del tema en un "
+            "abrazo grupal, ambiente muy cálido.",
+        13: "Una casita de noche con ventana cálida iluminada, ambiente "
+            "tranquilo tras un día de buenas acciones.",
+    },
+}
+
 
 def _paleta(tema):
     import json
@@ -98,9 +276,9 @@ def _paleta(tema):
     return {"accent": k.get("accent") or "#6B5BD2", "ink": k.get("ink") or "#4a4a4a"}
 
 
-def tam_pagina(idx):
+def tam_pagina(tema, idx):
     """La página FIN es a hoja completa (vertical); el resto son paneles ~cuadrados."""
-    if idx == libro.TOTAL_PAGINAS - 1:
+    if idx == libro.total_paginas(tema) - 1:
         return _VERTICAL
     # la dedicatoria va en un panel apaisado (700x524): generarla cuadrada
     # obligaba a recortar 12%% arriba y abajo — apaisada casi no se recorta
@@ -129,8 +307,11 @@ def prompt_pagina(tema, idx, genero=None, historia=None):
     h = dict(libro.HISTORIAS.get(tema, libro.HISTORIA_DEFAULT))
     h["protagonista"] = _protagonista(genero)
     pal = _paleta(tema)
-    arco = _ESCENAS_POR_HISTORIA.get((historia or "").strip().lower(), {})
-    escena = arco.get(idx, _ESCENAS[idx]).format(**h)
+    extendido = libro.paginas_historia(tema) > libro.PAGINAS_HISTORIA
+    tabla = _ESCENAS_POR_HISTORIA_EXT if extendido else _ESCENAS_POR_HISTORIA
+    fallback = _ESCENAS_EXT if extendido else _ESCENAS
+    arco = tabla.get((historia or "").strip().lower(), {})
+    escena = arco.get(idx, fallback[idx]).format(**h)
     return (
         "Ilustración para la página de un libro de cuentos infantil profesional. "
         "Escena: %s "
@@ -141,6 +322,12 @@ def prompt_pagina(tema, idx, genero=None, historia=None):
         "IMPORTANTE: los personajes SIEMPRE completos y lejos de los bordes de la "
         "imagen (dejá margen de seguridad alrededor: al encuadrar la página se "
         "recortan los bordes y no se les puede cortar la cara ni el cuerpo). "
+        "IMPORTANTE: cada animal con la cantidad EXACTA de patas de su especie "
+        "(4 patas: nunca una de más ni de menos, ni siquiera si está saludando o "
+        "en movimiento — la cola es la cola, no una pata extra). Si un personaje "
+        "saluda con una pata/mano levantada, dibujalo SIEMPRE de pie con las otras "
+        "3 patas apoyadas y bien separadas (nunca sentado saludando: sentado es más "
+        "difícil de dibujar bien y las patas quedan amontonadas o poco claras). "
         "Importante: NO escribas ningún texto, número ni letra (no text, no letters)."
         % (escena, pal["accent"], pal["ink"])
     )
@@ -211,9 +398,13 @@ def verificar_ilustracion(api_key, png_bytes, escena, timeout=60):
                  "deformes o rotos, (3) la imagen no tiene NINGUNA relación con la "
                  "escena, (4) algún personaje TOCANDO un borde de la imagen (al "
                  "encuadrar la página el borde se recorta y le cortaría la cara o "
-                 "el cuerpo — eso es MAL aunque en esta imagen se vea completo). "
+                 "el cuerpo — eso es MAL aunque en esta imagen se vea completo), "
+                 "(5) algún animal con una cantidad de patas/piernas incorrecta para "
+                 "su especie (contá con cuidado: una pata levantada saludando SUMA, "
+                 "la cola NO es una pata). "
                  "Ante la duda en 1-3 respondé OK — solo marcá MAL si un cliente "
-                 "que pagó lo devolvería. Respondé SOLO 'OK' o 'MAL: <motivo corto>'."
+                 "que pagó lo devolvería. En 4 y 5 mirá con detenimiento antes de "
+                 "responder OK. Respondé SOLO 'OK' o 'MAL: <motivo corto>'."
                  % escena[:400]},
                 {"type": "image_url", "image_url": {"url":
                  "data:image/png;base64," + _b64.b64encode(png_bytes).decode(),
@@ -241,7 +432,7 @@ def generar_ilustraciones(client, tema, paginas=None, calidad="medium", progress
     dest_dir: si se pasa, guarda en <dest_dir>/<idx>.png en vez de los overrides del
     tema — es el modo LIBRO PREMIUM (arte único por pedido; se renderiza después con
     libro.usar_escenas_dir(dest_dir))."""
-    paginas = list(paginas) if paginas is not None else list(range(libro.TOTAL_PAGINAS))
+    paginas = list(paginas) if paginas is not None else list(range(libro.total_paginas(tema)))
     refs = referencias(tema)
     out = []
     for n, idx in enumerate(paginas):
@@ -252,7 +443,7 @@ def generar_ilustraciones(client, tema, paginas=None, calidad="medium", progress
         if not refs:
             prompt = ("Redibujá este boceto como ilustración profesional, conservando "
                       "la composición. " + prompt)
-        raw = client.editar(r, prompt, tam_pagina(idx), quality=calidad)
+        raw = client.editar(r, prompt, tam_pagina(tema, idx), quality=calidad)
         qa_key = os.environ.get("OPENAI_API_KEY")
         if verificar and qa_key:
             ok, motivo = verificar_ilustracion(qa_key, _como_en_panel(raw, idx), prompt)
@@ -260,7 +451,7 @@ def generar_ilustraciones(client, tema, paginas=None, calidad="medium", progress
                 if progress:
                     progress("Página %d rechazada por QA (%s) — reintento…" % (idx, motivo))
                 raw2 = client.editar(r, prompt + " MUY IMPORTANTE: " + motivo,
-                                     tam_pagina(idx), quality=calidad)
+                                     tam_pagina(tema, idx), quality=calidad)
                 ok2, motivo2 = verificar_ilustracion(qa_key, _como_en_panel(raw2, idx), prompt)
                 if ok2:
                     raw = raw2

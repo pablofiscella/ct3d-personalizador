@@ -25,8 +25,28 @@ CREAM = (253, 250, 242)
 INK = (60, 52, 62)
 GOLD = (212, 175, 55)
 
-PAGINAS_HISTORIA = 7          # páginas de cuento (además de portada, dedicatoria y fin)
-TOTAL_PAGINAS = PAGINAS_HISTORIA + 3
+PAGINAS_HISTORIA = 7          # legado: páginas de cuento de los temas existentes
+PAGINAS_HISTORIA_NUEVO = 12   # temas nuevos (15 páginas en total)
+TOTAL_PAGINAS = PAGINAS_HISTORIA + 3   # legado — usado solo como valor por default
+
+
+def paginas_historia(tema):
+    """Páginas de historia del tema: 7 en los libros ya vendidos (para no cambiarles
+    el largo), 12 en los temas nuevos. Se fija una vez en tema.json::libro_paginas_historia
+    — todos los temas existentes lo tienen seteado a 7 explícitamente; cualquier tema
+    sin ese campo (los nuevos) usa 12 por default."""
+    try:
+        d = json.load(open(os.path.join(TEMAS, tema, "tema.json")))
+        n = d.get("libro_paginas_historia")
+        if isinstance(n, int) and n > 0:
+            return n
+    except Exception:
+        pass
+    return PAGINAS_HISTORIA_NUEVO
+
+
+def total_paginas(tema):
+    return paginas_historia(tema) + 3
 
 # ── ambientación por temática (fallback genérico para temas nuevos) ─────────
 HISTORIAS = {
@@ -240,24 +260,177 @@ ARGUMENTOS = {
 ARGUMENTO_LABELS = {"aventura": "La invitación mágica (clásico)",
                     "tesoro": "El mapa del tesoro",
                     "rescate": "El gran rescate",
-                    "gran-dia": "El gran día"}
+                    "gran-dia": "El gran día",
+                    "noche-estrellas": "La noche de las estrellas",
+                    "cumple-sorpresa": "El cumpleaños sorpresa",
+                    "pequeno-maestro": "El pequeño maestro",
+                    "ayudar-a-todos": "El día de ayudar a todos"}
+
+# Versión extendida (12 páginas) de las 4 narrativas clásicas: para los temas NUEVOS
+# (15 páginas en total). Los primeros 6 textos son IDÉNTICOS a ARGUMENTOS (arriba) —
+# no se toca el contenido ya vendido — se le suman 5 páginas de historia en el medio
+# y el cierre (idéntico al original) pasa al final.
+ARGUMENTOS_EXT = {
+    "tesoro": ARGUMENTOS["tesoro"][:6] + [
+        "Todos se sentaron en ronda para admirar {tesoro} de cerca. {amigos} le "
+        "contaron a {nombre} la leyenda de quién lo había escondido hace tantos años.",
+        "De pronto, el mapa volvió a brillar: ¡tenía una segunda cara! Mostraba un "
+        "camino nuevo, más corto, de vuelta a casa a través de {mundo}.",
+        "En el camino encontraron una piedra enorme bloqueando el paso. Entre "
+        "todos, empujando juntos y contando hasta tres, lograron correrla.",
+        "Como festejo por el trabajo en equipo, armaron una merienda bajo un "
+        "árbol, y {nombre} repartió un pedacito de aventura para cada amigo.",
+        "Antes de despedirse, {amigos} le prometieron a {nombre} que el mapa "
+        "tendría siempre una pista nueva esperando para la próxima vez.",
+    ] + ARGUMENTOS["tesoro"][6:],
+    "rescate": ARGUMENTOS["rescate"][:6] + [
+        "El pequeño rescatado abrazó fuerte a {nombre} y le contó que se había "
+        "perdido siguiendo una mariposa brillante que quería atrapar.",
+        "«¿Y si la buscamos juntos, pero esta vez sin separarnos?», propuso "
+        "{nombre}. Todos se tomaron de la mano y salieron a explorar {mundo}.",
+        "La mariposa los llevó hasta un lugar precioso que nadie en {mundo} "
+        "conocía: un rincón lleno de luces que parecían pequeñas estrellas caídas.",
+        "{amigos} decidieron que ese sería su nuevo lugar de encuentro secreto, "
+        "y todos prometieron cuidarlo entre todos.",
+        "Ya de noche, cantaron juntos alrededor de las lucecitas, felices de que "
+        "la aventura hubiera terminado bien para todos.",
+    ] + ARGUMENTOS["rescate"][6:],
+    "gran-dia": ARGUMENTOS["gran-dia"][:6] + [
+        "Con {tesoro} bien puesto, {nombre} fue el encargado de dar la "
+        "bienvenida a cada invitado que llegaba a {mundo}.",
+        "A mitad de la fiesta, la música se cortó de repente. ¡El equipo de "
+        "sonido se había quedado sin pilas!",
+        "{nombre} tuvo una idea genial: organizó a {amigos} para hacer música "
+        "con las manos, los pies y lo que tenían a mano.",
+        "La banda improvisada sonó tan bien que todos terminaron bailando más "
+        "fuerte que antes, ¡y nadie extrañó la música original!",
+        "Cuando el sol empezó a esconderse, {amigos} armaron una ronda final "
+        "para agradecerle a {nombre} por no dejar que nada arruinara el gran día.",
+    ] + ARGUMENTOS["gran-dia"][6:],
+    "noche-estrellas": [
+        "Una noche, {nombre} miraba el cielo desde la ventana cuando vio caer "
+        "una estrella fugaz directo hacia {mundo}.",
+        "Sin pensarlo dos veces, se puso las pantuflas y salió a buscarla, "
+        "contando los pasos hasta {conteo_num} para no perderse.",
+        "En {mundo}, {amigos} también habían visto la estrella caer y ya "
+        "estaban buscando entre las sombras.",
+        "Pero la noche era muy oscura, y {desafio}. Nadie encontraba el "
+        "camino... nadie, excepto {nombre}.",
+        "Con valentía, {nombre} {solucion}, y así encontraron la luz que los "
+        "guiaba.",
+        "Siguiendo el brillo, llegaron hasta la estrella fugaz: estaba cansada "
+        "de tanto viajar y solo quería un lugar donde descansar.",
+        "{amigos} le armaron una camita de nubes suaves, y {nombre} le cantó "
+        "una canción bajito para que se sintiera en casa.",
+        "La estrella, agradecida, empezó a brillar tan fuerte que iluminó todo "
+        "{mundo} como si fuera de día.",
+        "Con esa luz mágica, todos jugaron a las escondidas entre las sombras "
+        "que ya no daban miedo.",
+        "Antes de despedirse, la estrella le regaló a {nombre} {tesoro}, para "
+        "recordar esa noche para siempre.",
+        "{amigos} prometieron cuidar el cielo de {mundo} cada noche, por si "
+        "otra estrella necesitaba ayuda.",
+        "De vuelta en su cama, {nombre} se durmió mirando las estrellas, "
+        "sabiendo que ahora tenía una amiga ahí arriba.",
+    ],
+    "cumple-sorpresa": [
+        "{nombre} descubrió un secreto: ¡mañana era el cumpleaños de su mejor "
+        "amigo en {mundo}, y nadie lo sabía!",
+        "Emocionado, empezó a {conteo} para calmar los nervios y se puso manos "
+        "a la obra con el plan más secreto de todos.",
+        "Primero necesitaba ayuda, así que fue a buscar a {amigos} y les contó "
+        "la misión, susurrando para que nadie escuchara.",
+        "Todos se pusieron a preparar la sorpresa, pero {desafio}, y el plan "
+        "estuvo a punto de arruinarse.",
+        "Por suerte, {nombre} {solucion} justo a tiempo, y la fiesta sorpresa "
+        "se pudo salvar.",
+        "Decoraron cada rincón de {mundo} con globos y guirnaldas, escondidos "
+        "detrás de cada esquina, esperando el momento justo.",
+        "Cuando el cumpleañero se acercó sin sospechar nada, todos contuvieron "
+        "la risa lo más fuerte que pudieron.",
+        "«¡SORPRESA!», gritaron {amigos} a la vez, y el cumpleañero se llevó "
+        "el susto más lindo de su vida.",
+        "Hubo torta, juegos y muchas risas. {nombre} había pensado en cada "
+        "detalle para que fuera un día inolvidable.",
+        "Como regalo especial, todos juntos le entregaron {tesoro}, hecho con "
+        "mucho cariño entre todos.",
+        "El cumpleañero, con lágrimas de alegría, abrazó a {nombre} y le dijo "
+        "que nunca iba a olvidar ese día.",
+        "Esa noche, {nombre} se durmió pensando que las mejores sorpresas son "
+        "las que se preparan con el corazón.",
+    ],
+    "pequeno-maestro": [
+        "En {mundo}, {nombre} sabía hacer algo muy especial que nadie más "
+        "sabía hacer todavía.",
+        "Un día, {amigos} le pidieron: «¿Nos enseñás? ¡Queremos aprender igual "
+        "que vos!». {nombre} se puso a {conteo} de la emoción.",
+        "La primera clase empezó con muchas ganas, pero a nadie le salía bien "
+        "al principio.",
+        "Entonces pasó algo: {desafio}, y todos empezaron a desanimarse "
+        "pensando que nunca iban a aprender.",
+        "{nombre} no se rindió: {solucion}, y les mostró que equivocarse "
+        "también es parte de aprender.",
+        "Poco a poco, uno por uno, {amigos} empezaron a lograrlo, ¡y las caras "
+        "de orgullo no se podían esconder!",
+        "{nombre} festejaba cada intento, aunque no saliera perfecto: «¡Lo "
+        "importante es probar!», repetía siempre con una sonrisa.",
+        "Con el tiempo, cada amigo encontró su propia forma de hacerlo, un "
+        "poquito distinta y única a la vez.",
+        "Organizaron una muestra en {mundo} para mostrarle a todos lo que "
+        "habían aprendido juntos.",
+        "Todos aplaudieron fuerte, y {amigos} le agradecieron a {nombre} con "
+        "{tesoro}, por ser el mejor maestro que tuvieron.",
+        "{nombre} entendió que enseñar algo que uno ama es tan lindo como "
+        "aprenderlo por primera vez.",
+        "Esa noche, {nombre} se durmió pensando en la próxima cosa nueva que "
+        "le encantaría compartir con sus amigos.",
+    ],
+    "ayudar-a-todos": [
+        "Esa mañana, {nombre} se despertó con muchas ganas de hacer algo "
+        "bueno por todos en {mundo}.",
+        "Se puso las botas, empezó a {conteo} para tomar impulso, y salió a "
+        "caminar por {mundo} buscando a quién ayudar primero.",
+        "El primero en aparecer fue un amigo muy triste porque {desafio}, y "
+        "no sabía cómo resolverlo solo.",
+        "{nombre} pensó rápido y {solucion}. El amigo sonrió agradecido y se "
+        "sumó a la aventura.",
+        "Juntos siguieron caminando y encontraron a otro de {amigos} que se "
+        "había quedado sin merienda para compartir.",
+        "Sin dudarlo, {nombre} repartió lo que tenía en su mochila para que "
+        "nadie se quedara con hambre.",
+        "Más adelante, alguien había perdido un juguete muy querido en algún "
+        "rincón de {mundo}.",
+        "Todos se organizaron en equipos y, buscando entre risas, lo "
+        "encontraron escondido detrás de unas plantas.",
+        "Ya cansados pero felices, se cruzaron con el último amigo del día, "
+        "que necesitaba una mano para cargar algo pesado.",
+        "Entre todos lo cargaron como si nada, demostrando que las cosas "
+        "pesadas pesan menos cuando se ayudan entre varios.",
+        "Al caer la tarde, {amigos} se juntaron para agradecerle a {nombre} "
+        "regalándole {tesoro}, por un día lleno de buenas acciones.",
+        "{nombre} volvió a casa cansado pero con el corazón lleno, pensando "
+        "que ayudar a los demás es la mejor forma de jugar.",
+    ],
+}
 
 
 def cuento(data, tema="safari"):
-    """Los 7 textos de la historia, personalizados con nombre/edad + la ambientación
-    del tema. Testeable sin renderizar (el nombre TIENE que aparecer en el cuento)."""
+    """Los textos de la historia (7 páginas en temas legado, 12 en temas nuevos),
+    personalizados con nombre/edad + la ambientación del tema. Testeable sin
+    renderizar (el nombre TIENE que aparecer en el cuento)."""
     h = HISTORIAS.get(tema, HISTORIA_DEFAULT)
     nombre = (str(data.get("nombre") or "").strip()) or "Alex"
     edad = str(data.get("edad") or "").strip()
     conteo = ("contar hasta %s" % edad) if edad.isdigit() else "contar hasta tres"
     historia = (str(data.get("historia") or "").strip().lower()) or "aventura"
-    arco = ARGUMENTOS.get(historia)
+    extendido = paginas_historia(tema) > PAGINAS_HISTORIA
+    arco = (ARGUMENTOS_EXT if extendido else ARGUMENTOS).get(historia)
     if arco:
         ctx = dict(h)
         ctx.update({"nombre": nombre, "conteo": conteo,
                     "conteo_num": edad if edad.isdigit() else "tres"})
         return [t.format(**ctx) for t in arco]
-    return [
+    base = [
         "Esta noche, antes de dormir, %s encontró una invitación brillante debajo "
         "de la almohada. Decía: «Te esperamos en %s»." % (nombre, h["mundo"]),
         "Al cerrar los ojos y %s, la habitación se llenó de luces de colores. "
@@ -270,8 +443,26 @@ def cuento(data, tema="safari"):
         % (nombre, h["solucion"]),
         "Como agradecimiento, %s le regalaron %s: un recuerdo para siempre."
         % (h["amigos"], h["tesoro"]),
-        "De vuelta en casa, %s se durmió con una sonrisa. Porque quien es valiente "
-        "y ayuda a los demás, siempre tiene una nueva aventura esperando." % nombre,
+    ]
+    cierre = ("De vuelta en casa, %s se durmió con una sonrisa. Porque quien es "
+              "valiente y ayuda a los demás, siempre tiene una nueva aventura "
+              "esperando." % nombre)
+    if not extendido:
+        return base + [cierre]
+    return base + [
+        "Para festejar, %s propusieron un juego gigante en %s, y todos se "
+        "turnaron para inventar la payasada más divertida."
+        % (h["amigos"], h["mundo"]),
+        "De repente, una música suave los llevó hasta un rincón secreto de %s "
+        "que %s nunca le habían mostrado a nadie." % (h["mundo"], h["amigos"]),
+        "Ahí, %s descubrió algo mágico: un pequeño jardín de luces que solo se "
+        "veía cuando todos estaban juntos y felices." % nombre,
+        "%s prometió cuidar ese secreto junto con %s, y todos se abrazaron "
+        "fuerte antes de despedirse por ese día." % (nombre, h["amigos"]),
+        "El cielo se llenó de colores mientras %s y %s se decían adiós, "
+        "sabiendo que el jardín de luces los esperaría en la próxima visita."
+        % (nombre, h["amigos"]),
+        cierre,
     ]
 
 
@@ -682,7 +873,7 @@ def fin(data, tema="safari"):
     nombre = (str(data.get("nombre") or "").strip()) or "Alex"
     im = Image.new("RGBA", (Wp, Hp), (255, 255, 255, 255))
     dr = ImageDraw.Draw(im)
-    ov = override_escena_path(tema, TOTAL_PAGINAS - 1)
+    ov = override_escena_path(tema, total_paginas(tema) - 1)
     if os.path.isfile(ov):
         # ilustración a página completa + banda oscura translúcida para que el
         # FIN y el mensaje se lean sobre cualquier arte
@@ -715,19 +906,19 @@ def fin(data, tema="safari"):
 
 
 def pagina_libro(idx, data, tema="safari"):
-    """Página idx (0..TOTAL_PAGINAS-1) del libro: 0=portada, 1=dedicatoria,
-    2..8=historia, 9=fin."""
+    """Página idx (0..total_paginas(tema)-1) del libro: 0=portada, 1=dedicatoria,
+    2..N=historia, última=fin."""
     if idx == 0:
         return portada(data, tema)
     if idx == 1:
         return dedicatoria(data, tema)
-    if idx == TOTAL_PAGINAS - 1:
+    if idx == total_paginas(tema) - 1:
         return fin(data, tema)
     return pagina_historia(idx - 2, data, tema)
 
 
 def paginas_libro(data, tema="safari"):
-    return [pagina_libro(i, data, tema) for i in range(TOTAL_PAGINAS)]
+    return [pagina_libro(i, data, tema) for i in range(total_paginas(tema))]
 
 
 if __name__ == "__main__":
