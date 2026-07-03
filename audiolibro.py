@@ -24,13 +24,16 @@ VIGENCIA_DIAS = 365
 
 _TTS_URL = "https://api.openai.com/v1/audio/speech"
 _VOZ = "nova"
+VOCES = {"nova": "Voz femenina cálida", "onyx": "Voz masculina profunda",
+         "fable": "Voz de cuentacuentos"}
 _INSTRUCCIONES = ("Narradora cálida de cuentos infantiles, en español rioplatense, "
                   "ritmo pausado y expresivo, como leyéndole a un chico antes de dormir.")
 
 
-def tts_mp3(api_key, texto, timeout=120):
+def tts_mp3(api_key, texto, timeout=120, voz=None):
     """MP3 de la narración de `texto` (OpenAI TTS)."""
-    body = json.dumps({"model": "gpt-4o-mini-tts", "voice": _VOZ, "input": texto,
+    v = voz if voz in VOCES else _VOZ
+    body = json.dumps({"model": "gpt-4o-mini-tts", "voice": v, "input": texto,
                        "response_format": "mp3",
                        "instructions": _INSTRUCCIONES}).encode()
     req = urllib.request.Request(_TTS_URL, data=body, method="POST", headers={
@@ -53,6 +56,7 @@ def _textos_narracion(data, tema):
 
 
 def crear(data, tema, api_key, escenas_dir=None, progress=None):
+    voz = (str(data.get("voz") or "").strip().lower()) or None
     """Genera páginas JPG + narración MP3 + manifest. Devuelve el token del link."""
     import libro
     token = secrets.token_urlsafe(12)
@@ -71,7 +75,7 @@ def crear(data, tema, api_key, escenas_dir=None, progress=None):
             img.resize((img.width * 2 // 3, img.height * 2 // 3)).save(
                 os.path.join(d, "pag_%02d.jpg" % i), quality=86)
             with open(os.path.join(d, "pag_%02d.mp3" % i), "wb") as f:
-                f.write(tts_mp3(api_key, textos[i]))
+                f.write(tts_mp3(api_key, textos[i], voz=voz))
     finally:
         if ctx:
             ctx.__exit__(None, None, None)
@@ -146,45 +150,58 @@ button { background:#6B5BD2; color:#fff; border:0; border-radius:50%%; width:54p
   <button id="play">▶</button>
   <button class="sec" id="next">⏭</button>
   <span class="pag" id="pag">1 / %(n)d</span>
+  <select id="vel" style="background:#453a66;color:#fff;border:0;border-radius:8px;padding:8px">
+    <option value="0.8">🐢 lenta</option><option value="1" selected>normal</option>
+    <option value="1.25">🐇 rápida</option></select>
 </div>
+<div id="diag" style="color:#e0b0b0;font-size:12px;min-height:16px"></div>
 <audio id="audio" preload="auto"></audio>
 <script src="https://unpkg.com/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 <script>
 var N=%(n)d, base="%(base)s/al/%(token)s/";
 var audio=document.getElementById('audio'), play=document.getElementById('play'),
-    pag=document.getElementById('pag'), narrando=false, actual=0;
+    pag=document.getElementById('pag'), vel=document.getElementById('vel'),
+    diag=document.getElementById('diag');
+var narrando=false, actual=0;
 function pad(x){return ('0'+x).slice(-2);}
-// Tamaño en PÍXELES: el ALTO manda (pantalla - controles); el ancho sale del
-// aspecto 827:1169. Nunca se corta en vertical.
-var availH = Math.max(300, window.innerHeight - 110);
+function err(m){ diag.textContent=m; }
+audio.addEventListener('error', function(){ err('audio error: no se pudo cargar el clip'); });
+var availH = Math.max(300, window.innerHeight - 130);
 var h = availH, w = Math.round(h * 827 / 1169);
 if (w > window.innerWidth * 0.94) { w = Math.round(window.innerWidth * 0.94); h = Math.round(w * 1169 / 827); }
-var flip = new St.PageFlip(document.getElementById('flip'), {
-  width: w, height: h, size: 'fixed',
-  usePortrait: true, showCover: true, maxShadowOpacity: 0.65,
-  mobileScrollSupport: false, flippingTime: 850 });
-var urls=[]; for(var k=0;k<N;k++) urls.push(base+'pag_'+pad(k)+'.jpg');
-flip.loadFromImages(urls);
+var flip=null;
+try {
+  flip = new St.PageFlip(document.getElementById('flip'), {
+    width: w, height: h, size: 'fixed',
+    usePortrait: true, showCover: true, maxShadowOpacity: 0.65,
+    mobileScrollSupport: false, flippingTime: 850 });
+  var urls=[]; for(var k=0;k<N;k++) urls.push(base+'pag_'+pad(k)+'.jpg');
+  flip.loadFromImages(urls);
+  flip.on('flip', function(e){ actual=e.data; pag.textContent=(actual+1)+' / '+N;
+    if(narrando) reproducir(actual); });
+} catch(ex) { err('visor: '+ex.message); }
 function reproducir(i){
-  actual = i;
-  pag.textContent = (i+1)+' / '+N;
+  actual=i; pag.textContent=(i+1)+' / '+N;
   audio.src = base+'pag_'+pad(i)+'.mp3';
-  if (narrando) {
-    var p = audio.play();
-    if (p && p.catch) p.catch(function(){ narrando=false; play.textContent='▶'; });
-  }
+  audio.playbackRate = parseFloat(vel.value);
+  audio.load();
+  var p = audio.play();
+  if (p && p.catch) p.catch(function(e){
+    narrando=false; play.textContent='▶'; err('tocá ▶ de nuevo ('+e.name+')'); });
 }
-flip.on('flip', function(e){ reproducir(e.data); });
 audio.addEventListener('ended', function(){
-  if (actual < N-1) { flip.flipNext(); }
+  if (!narrando) return;
+  if (actual < N-1) { if(flip){ flip.flipNext(); } else { reproducir(actual+1); } }
   else { narrando=false; play.textContent='▶'; }
 });
+vel.onchange = function(){ audio.playbackRate = parseFloat(vel.value); };
 play.onclick = function(){
   if (narrando) { narrando=false; audio.pause(); play.textContent='▶'; return; }
-  narrando=true; play.textContent='⏸';
-  reproducir(flip.getCurrentPageIndex ? flip.getCurrentPageIndex() : actual);
+  narrando=true; play.textContent='⏸'; err('');
+  reproducir(actual);
 };
-document.getElementById('prev').onclick = function(){ flip.flipPrev(); };
-document.getElementById('next').onclick = function(){ flip.flipNext(); };
+document.getElementById('prev').onclick = function(){ if(flip) flip.flipPrev(); };
+document.getElementById('next').onclick = function(){ if(flip) flip.flipNext(); };
+pag.textContent='1 / '+N;
 </script></body></html>""" % {"titulo": e(titulo), "token": e(token),
                               "base": e(base_url), "n": n}

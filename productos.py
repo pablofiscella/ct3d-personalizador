@@ -571,9 +571,9 @@ TIPOS = {
     "libro-audio": {
         "nombre": "Audiolibro web narrado",
         "descripcion": "El cuento personalizado hecho EXPERIENCIA: una página web donde una voz cálida narra la historia (¡dice el nombre de tu peque!) y las hojas giran solas al ritmo del relato. Link para escuchar en cualquier pantalla, dura 1 año.",
-        "campos": ["nombre", "edad", "genero", "historia", "dedicatoria"],
+        "campos": ["nombre", "edad", "genero", "historia", "voz", "dedicatoria"],
         "campos_labels": {"genero": "¿Nena o nene?", "historia": "¿Qué historia?",
-                          "dedicatoria": "Dedicatoria (opcional)"},
+                          "voz": "Voz del narrador", "dedicatoria": "Dedicatoria (opcional)"},
         "preview": "libro",
         "piezas": _piezas_libro,
     },
