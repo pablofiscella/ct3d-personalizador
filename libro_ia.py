@@ -27,6 +27,7 @@ TEMAS = os.path.join(KIT, "temas")
 
 _CUADRADA = "1024x1024"
 _VERTICAL = "1024x1536"
+_APAISADA = "1536x1024"
 
 # Qué ilustrar en cada página (0..9). El protagonista va "de espaldas / a lo lejos"
 # para que funcione con cualquier chico (la cara nunca se ve).
@@ -99,7 +100,13 @@ def _paleta(tema):
 
 def tam_pagina(idx):
     """La página FIN es a hoja completa (vertical); el resto son paneles ~cuadrados."""
-    return _VERTICAL if idx == libro.TOTAL_PAGINAS - 1 else _CUADRADA
+    if idx == libro.TOTAL_PAGINAS - 1:
+        return _VERTICAL
+    # la dedicatoria va en un panel apaisado (700x524): generarla cuadrada
+    # obligaba a recortar 12%% arriba y abajo — apaisada casi no se recorta
+    if idx == 1:
+        return _APAISADA
+    return _CUADRADA
 
 
 def _protagonista(genero):
@@ -131,6 +138,9 @@ def prompt_pagina(tema, idx, genero=None, historia=None):
         "planos con paleta acento %s y tinta %s. "
         "Usá los personajes de las imágenes de referencia manteniendo su diseño. "
         "La escena llena TODA la imagen, sin marcos, bordes ni viñetas. "
+        "IMPORTANTE: los personajes SIEMPRE completos y lejos de los bordes de la "
+        "imagen (dejá margen de seguridad alrededor: al encuadrar la página se "
+        "recortan los bordes y no se les puede cortar la cara ni el cuerpo). "
         "Importante: NO escribas ningún texto, número ni letra (no text, no letters)."
         % (escena, pal["accent"], pal["ink"])
     )
@@ -160,6 +170,27 @@ def _boceto(tema, idx):
 _QA_URL = "https://api.openai.com/v1/chat/completions"
 
 
+# Recorte real que hará libro.py al encuadrar el arte en el panel (object-fit:
+# cover): el QA debe mirar ESTA versión — el arte crudo puede verse bien y aun
+# así quedar con caras cortadas tras el recorte (pasó con safari pág 4).
+_PANEL_WH = {1: (700, 524)}          # dedicatoria; historia (2..8) usa el default
+_PANEL_WH_DEF = (1060, 962)
+
+def _como_en_panel(png_bytes, idx):
+    """PNG del arte recortado exactamente como quedará en el panel de la página."""
+    from PIL import Image
+    import io
+    W, H = _PANEL_WH.get(int(idx), _PANEL_WH_DEF)
+    img = Image.open(io.BytesIO(png_bytes)).convert("RGB")
+    s = max(W / img.width, H / img.height)
+    im2 = img.resize((max(1, int(img.width * s)), max(1, int(img.height * s))))
+    x = (im2.width - W) // 2
+    y = int((im2.height - H) * 0.78)
+    buf = io.BytesIO()
+    im2.crop((x, y, x + W, y + H)).save(buf, format="PNG")
+    return buf.getvalue()
+
+
 def verificar_ilustracion(api_key, png_bytes, escena, timeout=60):
     """Mira la ilustración generada con un modelo de visión y devuelve (ok, motivo).
     Chequea lo que más sale mal: texto/letras pegadas, personajes deformes o
@@ -178,7 +209,10 @@ def verificar_ilustracion(api_key, png_bytes, escena, timeout=60):
                  "(1) palabras o letras legibles dentro de la imagen (las estrellas, "
                  "manchas o decoraciones NO cuentan), (2) personajes claramente "
                  "deformes o rotos, (3) la imagen no tiene NINGUNA relación con la "
-                 "escena. Ante la duda respondé OK — solo marcá MAL si un cliente "
+                 "escena, (4) algún personaje TOCANDO un borde de la imagen (al "
+                 "encuadrar la página el borde se recorta y le cortaría la cara o "
+                 "el cuerpo — eso es MAL aunque en esta imagen se vea completo). "
+                 "Ante la duda en 1-3 respondé OK — solo marcá MAL si un cliente "
                  "que pagó lo devolvería. Respondé SOLO 'OK' o 'MAL: <motivo corto>'."
                  % escena[:400]},
                 {"type": "image_url", "image_url": {"url":
@@ -221,13 +255,13 @@ def generar_ilustraciones(client, tema, paginas=None, calidad="medium", progress
         raw = client.editar(r, prompt, tam_pagina(idx), quality=calidad)
         qa_key = os.environ.get("OPENAI_API_KEY")
         if verificar and qa_key:
-            ok, motivo = verificar_ilustracion(qa_key, raw, prompt)
+            ok, motivo = verificar_ilustracion(qa_key, _como_en_panel(raw, idx), prompt)
             if not ok:
                 if progress:
                     progress("Página %d rechazada por QA (%s) — reintento…" % (idx, motivo))
                 raw2 = client.editar(r, prompt + " MUY IMPORTANTE: " + motivo,
                                      tam_pagina(idx), quality=calidad)
-                ok2, motivo2 = verificar_ilustracion(qa_key, raw2, prompt)
+                ok2, motivo2 = verificar_ilustracion(qa_key, _como_en_panel(raw2, idx), prompt)
                 if ok2:
                     raw = raw2
                 else:

@@ -80,7 +80,7 @@ def test_tipo_libro_premium_existe_y_genera():
     el ZIP con las 10 páginas (camino síncrono, sin IA — arte standard)."""
     assert productos.existe_tipo("libro-premium")
     # mismos campos que libro + genero (para dibujar al protagonista en el arte por pedido)
-    assert set(productos.campos_tipo("libro-premium")) == set(productos.campos_tipo("libro")) | {"genero"}
+    assert set(productos.campos_tipo("libro-premium")) == set(productos.campos_tipo("libro")) | {"genero", "historia"}
     with tempfile.TemporaryDirectory() as d:
         zip_path = productos.generar({"nombre": "Emma", "edad": "4"}, d,
                                      tema="safari", tipo="libro-premium")

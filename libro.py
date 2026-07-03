@@ -571,12 +571,16 @@ def override_escena_path(tema, idx):
                         "%d.png" % int(idx))
 
 
-def _cover(img, W, H):
-    """Escala y recorta la imagen para CUBRIR WxH (estilo object-fit: cover)."""
+def _cover(img, W, H, anchor_y=0.5):
+    """Escala y recorta la imagen para CUBRIR WxH (estilo object-fit: cover).
+    anchor_y: qué parte conservar si sobra alto (0=arriba, 1=abajo). Las
+    ilustraciones ancladas abajo (0.78) sacrifican cielo, nunca personajes:
+    en los cuentos los personajes pisan el piso — un recorte centrado les
+    cortaba la cara (safari pág 4) y ni el QA de visión lo detectaba."""
     s = max(W / img.width, H / img.height)
     im2 = img.resize((max(1, int(img.width * s)), max(1, int(img.height * s))), Image.LANCZOS)
     x = (im2.width - W) // 2
-    y = (im2.height - H) // 2
+    y = int((im2.height - H) * anchor_y)
     return im2.crop((x, y, x + W, y + H))
 
 
@@ -588,7 +592,7 @@ def _panel_ilustracion(im, dr, box, tema, idx, acc):
         return False
     x0, y0, x1, y1 = box
     W, H = x1 - x0, y1 - y0
-    art = _cover(Image.open(p).convert("RGBA"), W, H)
+    art = _cover(Image.open(p).convert("RGBA"), W, H, anchor_y=0.78)
     mask = Image.new("L", (W, H), 0)
     ImageDraw.Draw(mask).rounded_rectangle([0, 0, W - 1, H - 1], 36, fill=255)
     im.paste(art, (x0, y0), mask)
