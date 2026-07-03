@@ -13,6 +13,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import threading
 import zipfile
 
 import cv2
@@ -133,6 +134,12 @@ def _armar_scad(nombre_archivo, silueta_modulo):
 # Invocación a OpenSCAD — cada llamada en su propio dir temporal (concurrencia)
 # ---------------------------------------------------------------------------
 
+# Máximo 2 OpenSCAD simultáneos: cada render (xvfb + openscad) come cientos de MB;
+# la galería del dash pidiendo 4-5 previews de golpe llegó a tirar el servicio por
+# OOM (02-jul 22:02). Los que esperan se encolan acá, no en la RAM.
+_OPENSCAD_SEM = threading.Semaphore(2)
+
+
 def _run_openscad(scad_text, out_ext, defines=None, camera=None, imgsize=(900, 900)):
     tmpdir = tempfile.mkdtemp(prefix="stl3d_")
     try:
@@ -148,7 +155,8 @@ def _run_openscad(scad_text, out_ext, defines=None, camera=None, imgsize=(900, 9
             cmd += ["--imgsize", f"{imgsize[0]},{imgsize[1]}", "--preview"]
             if camera:
                 cmd += ["--camera", camera]
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        with _OPENSCAD_SEM:
+            r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
         if r.returncode != 0 or not os.path.exists(out_path):
             raise RuntimeError("openscad falló: %s" % r.stderr[-1000:])
         with open(out_path, "rb") as f:
