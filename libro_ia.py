@@ -174,13 +174,16 @@ def verificar_ilustracion(api_key, png_bytes, escena, timeout=60):
             "messages": [{"role": "user", "content": [
                 {"type": "text", "text":
                  "Ilustración de libro infantil. Escena pedida: «%s». "
-                 "¿Tiene alguno de estos problemas? (1) texto/letras/números dentro "
-                 "de la imagen, (2) personajes deformes, cortados o con anatomía rara, "
-                 "(3) no tiene nada que ver con la escena pedida. "
-                 "Respondé SOLO 'OK' o 'MAL: <motivo corto>'." % escena[:400]},
+                 "¿Tiene alguno de estos problemas de forma EVIDENTE e inaceptable? "
+                 "(1) palabras o letras legibles dentro de la imagen (las estrellas, "
+                 "manchas o decoraciones NO cuentan), (2) personajes claramente "
+                 "deformes o rotos, (3) la imagen no tiene NINGUNA relación con la "
+                 "escena. Ante la duda respondé OK — solo marcá MAL si un cliente "
+                 "que pagó lo devolvería. Respondé SOLO 'OK' o 'MAL: <motivo corto>'."
+                 % escena[:400]},
                 {"type": "image_url", "image_url": {"url":
                  "data:image/png;base64," + _b64.b64encode(png_bytes).decode(),
-                 "detail": "low"}}]}]}).encode()
+                 "detail": "high"}}]}]}).encode()
         req = _rq.Request(_QA_URL, data=body, method="POST", headers={
             "Authorization": "Bearer " + api_key,
             "Content-Type": "application/json"})
