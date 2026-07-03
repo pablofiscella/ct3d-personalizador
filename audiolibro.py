@@ -187,11 +187,26 @@ try {
   flip.loadFromImages(urls);
   flip.on('flip', function(e){
     if (e.data >= N) { pag.textContent=N+' / '+N; return; }
-    actual=e.data; pag.textContent=(actual+1)+' / '+N;
-    if(narrando) reproducir(actual); });
+    actual=e.data; mostrarPag();
+    if(narrando) narrarVisibles(); });
 } catch(ex) { err('visor: '+ex.message); }
+// En pantalla ancha la librería muestra DOBLE página (pliego): hay que narrar
+// las dos hojas visibles antes de girar — si no, se salteaba una (bug fútbol pág 1).
+var cola = [];
+function visibles(){
+  var esPliego = flip && flip.getOrientation && flip.getOrientation() === 'landscape';
+  if (esPliego && actual > 0 && actual + 1 < N) return [actual, actual + 1];
+  return [actual];
+}
+function mostrarPag(){
+  var v = visibles();
+  pag.textContent = (v.length === 2 ? (v[0]+1)+'-'+(v[1]+1) : (v[0]+1)) + ' / ' + N;
+}
+function narrarVisibles(){
+  cola = visibles().slice();
+  reproducir(cola.shift());
+}
 function reproducir(i){
-  actual=i; pag.textContent=(i+1)+' / '+N;
   audio.src = base+'pag_'+pad(i)+'.mp3';
   audio.playbackRate = parseFloat(vel.value);
   audio.load();
@@ -201,7 +216,9 @@ function reproducir(i){
 }
 audio.addEventListener('ended', function(){
   if (!narrando) return;
-  if (actual < N-1) { if(flip){ flip.flipNext(); } else { reproducir(actual+1); } }
+  if (cola.length) { reproducir(cola.shift()); return; }  // la otra hoja del pliego
+  var ultimaVisible = visibles()[visibles().length - 1];
+  if (ultimaVisible < N-1) { if(flip){ flip.flipNext(); } else { actual++; narrarVisibles(); } }
   else { narrando=false; play.textContent='▶'; }
 });
 var velval=document.getElementById('velval');
@@ -212,7 +229,7 @@ vel.oninput = function(){
 play.onclick = function(){
   if (narrando) { narrando=false; audio.pause(); play.textContent='▶'; return; }
   narrando=true; play.textContent='⏸'; err('');
-  reproducir(actual);
+  narrarVisibles();
 };
 document.getElementById('prev').onclick = function(){ if(flip) flip.flipPrev(); };
 document.getElementById('next').onclick = function(){ if(flip) flip.flipNext(); };
