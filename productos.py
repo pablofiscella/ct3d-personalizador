@@ -338,6 +338,16 @@ def _piezas_capsula(tema):
     return [("1_sobre", lambda d: capsula_tiempo.portada_sobre(d, tema), True),
             ("2_carta", lambda d: capsula_tiempo.hoja_carta(d, tema), True)]
 
+def _piezas_fiesta_completa(tema):
+    import invitacion_web
+    def _libro_portada(d):
+        import libro
+        return libro.pagina_libro(0, d, tema)
+    return [("1_invitacion_web", lambda d: invitacion_web.preview_mock(d, tema), False),
+            ("2_invitacion", lambda d: render(d, specs_de(tema)["invitacion"]), False),
+            ("3_libro_portada", _libro_portada, True),
+            ("4_medalla_3d", lambda d: _stl3d_preview(tema, "medalla"), False)]
+
 def _piezas_invitacion_web(tema):
     import invitacion_web
     return [("1_invitacion_web", lambda d: invitacion_web.preview_mock(d, tema), False)]
@@ -533,6 +543,16 @@ TIPOS = {
         "preview": "capsula",
         "piezas": _piezas_capsula,
     },
+    "fiesta-completa": {
+        "nombre": "Fiesta Completa — todo en uno",
+        "descripcion": "TODO para el cumple en una sola compra: el kit imprimible completo + el libro de cuento personalizado + el pack de impresión 3D (medalla, topper, trofeo y cortante) + la invitación web interactiva con confirmación por WhatsApp. Precio de paquete (ahorrás ~30% vs comprar por separado).",
+        "campos": ["nombre", "edad", "fecha", "hora", "lugar", "direccion", "telefono", "dedicatoria"],
+        "campos_labels": {"fecha": "Fecha (DD/MM/AAAA para la cuenta regresiva)",
+                          "telefono": "Tu WhatsApp (ahí llegan las confirmaciones)",
+                          "dedicatoria": "Dedicatoria del libro (opcional)"},
+        "preview": "fiesta-completa",
+        "piezas": _piezas_fiesta_completa,
+    },
     "invitacion-web": {
         "nombre": "Invitación web interactiva",
         "descripcion": "No es un PDF: es una PÁGINA para compartir por WhatsApp, con cuenta regresiva en vivo, botón «Cómo llegar» (Google Maps) y confirmación de asistencia directo a tu WhatsApp. Siempre actualizada: si cambia la hora o el lugar, el mismo link muestra la info nueva.",
@@ -683,6 +703,8 @@ _PIEZA_LABELS = {
     "03_pagina_1": "Página 1", "04_pagina_2": "Página 2", "05_pagina_3": "Página 3",
     "06_pagina_4": "Página 4", "07_pagina_5": "Página 5", "08_pagina_6": "Página 6",
     "09_pagina_7": "Página 7", "10_fin": "Fin",
+    "1_invitacion_web": "Invitación web interactiva", "2_invitacion": "Invitación del kit",
+    "3_libro_portada": "Libro de cuento", "4_medalla_3d": "Medalla 3D",
     "1_cubo": "Cubo 3D para armar",
     "1_cartas_memoria": "Cartas del memory",
     "2_dorso": "Dorso de cartas",
@@ -734,6 +756,14 @@ def generar(data, dest_dir, tema="safari", tipo=DEFAULT_TIPO):
     """Genera las piezas del TIPO en PDF (300 DPI) y las empaqueta en un ZIP.
 
     Reusa piezas.generar_kit (genérico sobre una lista de piezas)."""
+    if tipo == "fiesta-completa":
+        # Bundle: arma el ZIP con las 3 partes descargables + portada con link/QR
+        # de la invitación web (que se crea acá — es una página, no un archivo).
+        import bundle_fiesta, invitacion_web
+        base = (data.pop("_base_url", "") or os.environ.get(
+            "CT3D_BASE_URL", "https://kit.casatridimensional.com.ar")).rstrip("/")
+        tok = invitacion_web.crear(data, tema)
+        return bundle_fiesta.generar_bundle(data, dest_dir, tema, f"{base}/i/{tok}")
     if tipo in ("stl-medalla", "stl-topper", "stl-trofeo", "stl-cortante", "stl-pack"):
         # Piezas 3D (STL) — no son imágenes, así que no pasan por piezas.generar_kit.
         # Acá SÍ se genera con los datos reales del cliente (la galería de la ficha
@@ -796,7 +826,7 @@ def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):
         img = bs.pieza("invitacion", data, tema)
     elif pieza in ("certificado", "corona", "antifaces", "menu", "rompecabezas",
                   "capsula", "libro", "calendario", "papertoys", "memoria",
-                  "invitacion-web",
+                  "invitacion-web", "fiesta-completa",
                   "stl-medalla", "stl-topper", "stl-trofeo", "stl-cortante", "stl-pack"):
         # 100% procedurales: pasan por piezas_tipo() para que un override subido a mano
         # (ver override_path) se refleje también en la miniatura del producto.

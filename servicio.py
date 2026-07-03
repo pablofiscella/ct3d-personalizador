@@ -569,19 +569,29 @@ class Handler(BaseHTTPRequestHandler):
             zip_path = os.path.join(DATA_DIR, token, "kit.zip")
             meta_path = os.path.join(DATA_DIR, token, "meta.json")
             if not os.path.isfile(zip_path):
-                if os.path.isfile(os.path.join(DATA_DIR, token, "generando.flag")):
-                    # Libro premium ilustrándose: página amigable que se recarga sola.
+                flag_path = os.path.join(DATA_DIR, token, "generando.flag")
+                if os.path.isfile(flag_path):
+                    # Generación en curso: página amigable que se recarga sola.
+                    try:
+                        que = open(flag_path).read().strip()
+                    except OSError:
+                        que = ""
+                    if que == "fiesta-completa":
+                        icono, titulo, detalle = "🎉", "Tu Fiesta Completa se está preparando", \
+                            "Estamos armando el kit, el libro, las piezas 3D y tu invitación web. Suele tardar 1-2 minutos."
+                    else:
+                        icono, titulo, detalle = "🎨", "Tu libro se está ilustrando", \
+                            "Cada página se pinta especialmente para este pedido. Suele tardar unos 10 minutos."
                     body = ("<!doctype html><html lang='es'><head><meta charset='utf-8'>"
                             "<meta http-equiv='refresh' content='45'>"
                             "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-                            "<title>Tu libro se está ilustrando…</title></head>"
+                            "<title>" + titulo + "…</title></head>"
                             "<body style='font-family:sans-serif;background:#FDF7EE;display:flex;"
                             "align-items:center;justify-content:center;min-height:100vh;margin:0'>"
                             "<div style='text-align:center;max-width:420px;padding:24px'>"
-                            "<div style='font-size:56px'>🎨</div>"
-                            "<h1 style='color:#6B5BD2;font-size:24px'>Tu libro se está ilustrando</h1>"
-                            "<p style='color:#555;line-height:1.5'>Cada página se pinta especialmente "
-                            "para este pedido. Suele tardar unos 10 minutos.<br>Esta página se "
+                            "<div style='font-size:56px'>" + icono + "</div>"
+                            "<h1 style='color:#6B5BD2;font-size:24px'>" + titulo + "</h1>"
+                            "<p style='color:#555;line-height:1.5'>" + detalle + "<br>Esta página se "
                             "actualiza sola — no hace falta que hagas nada.</p>"
                             "</div></body></html>").encode("utf-8")
                     self.send_response(200)
@@ -848,6 +858,30 @@ class Handler(BaseHTTPRequestHandler):
                     threading.Thread(target=_hero_worker, daemon=True).start()
             return self._json(200, {"ok": True, "token": tok,
                                     "download_url": f"{self.base_url()}/i/{tok}"})
+        if tipo == "fiesta-completa":
+            # Bundle: genera 3 productos + STLs (~1 min) — async con página de espera.
+            os.makedirs(dest, exist_ok=True)
+            with open(os.path.join(dest, "generando.flag"), "w") as f:
+                f.write("fiesta-completa")
+            with open(os.path.join(dest, "meta.json"), "w", encoding="utf-8") as f:
+                json.dump({"order_id": payload.get("order_id"), "tema": tema, "tipo": tipo,
+                           "nombre": data.get("nombre", "")}, f, ensure_ascii=False, indent=2)
+            data["_base_url"] = self.base_url()
+
+            def _bundle_worker(data=data, dest=dest, tema=tema):
+                try:
+                    productos.generar(data, dest, tema, "fiesta-completa")
+                except Exception as e:
+                    print("[fiesta-completa] generación falló: %s" % e, flush=True)
+                finally:
+                    try:
+                        os.remove(os.path.join(dest, "generando.flag"))
+                    except OSError:
+                        pass
+
+            threading.Thread(target=_bundle_worker, daemon=True).start()
+            return self._json(200, {"ok": True, "token": token, "generando": True,
+                                    "download_url": f"{self.base_url()}/descarga/{token}"})
         if tipo == "libro-premium":
             # Ilustrar 10 páginas tarda ~10 min: la HTTP no puede esperar. Se devuelve
             # el link YA y un hilo genera; /descarga muestra "ilustrándose…" (flag)
