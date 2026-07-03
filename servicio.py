@@ -834,6 +834,18 @@ class Handler(BaseHTTPRequestHandler):
             # y se devuelve su URL como download_url (la tienda ya sabe mostrar eso).
             import invitacion_web as iw
             tok = iw.crear(data, tema)
+            # Tema sin hero IA todavía (tema nuevo): generarlo en background — la
+            # primera vista usa el procedural y las siguientes ya ven el arte bueno.
+            if not os.path.isfile(iw._hero_ia_path(tema)):
+                client = _openai_client()
+                if client is not None:
+                    def _hero_worker(tema=tema):
+                        try:
+                            iw.generar_hero_ia(client, tema)
+                        except Exception as e:
+                            print("[invitacion-web] hero IA falló (%s) — queda el procedural" % e,
+                                  flush=True)
+                    threading.Thread(target=_hero_worker, daemon=True).start()
             return self._json(200, {"ok": True, "token": tok,
                                     "download_url": f"{self.base_url()}/i/{tok}"})
         if tipo == "libro-premium":

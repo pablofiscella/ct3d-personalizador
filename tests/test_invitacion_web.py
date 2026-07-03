@@ -1,4 +1,5 @@
 """Invitación web interactiva: datos, página, links y el tipo en productos."""
+import io
 import os
 import sys
 import tempfile
@@ -88,3 +89,24 @@ def test_vencidas_se_limpian():
     os.utime(p, (viejo, viejo))
     iw.crear(DATA, "safari")   # crear limpia vencidas
     assert not os.path.exists(p)
+
+
+def test_hero_ia_pisa_al_procedural(tmp_path, monkeypatch):
+    """Si el tema tiene invitacion_web_hero.png (arte IA), el hero lo usa; si no,
+    cae al procedural — y el cache por token se regenera cuando el arte aparece."""
+    from PIL import Image as _Img
+    import temas as _temas
+    # tema falso aislado
+    fake_temas = tmp_path / "temas"
+    (fake_temas / "fiesta").mkdir(parents=True)
+    monkeypatch.setattr(_temas, "TEMAS_DIR", str(fake_temas))
+
+    tok = iw.crear(DATA, "fiesta")
+    png_procedural = iw.hero_png(tok)   # sin arte IA -> procedural, cachea
+
+    # aparece el arte IA del tema (rojo puro para distinguirlo)
+    _Img.new("RGB", (1536, 1024), (255, 0, 0)).save(fake_temas / "fiesta" / "invitacion_web_hero.png")
+    png_ia = iw.hero_png(tok)           # detecta arte más nuevo -> regenera
+    assert png_ia != png_procedural
+    im = _Img.open(io.BytesIO(png_ia))
+    assert im.getpixel((100, 100))[0] > 200  # dominante rojo = usó el arte IA

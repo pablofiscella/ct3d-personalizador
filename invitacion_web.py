@@ -175,8 +175,55 @@ def _font(sz, bold=True):
 
 
 # ── imagen hero (encabezado de la página, con el arte del tema) ──────────────
+# Dos niveles, igual que el libro: arte IA generado UNA VEZ por temática (el bueno)
+# y el procedural como fallback para temas que todavía no lo generaron.
+
+def _hero_ia_path(tema):
+    import temas as _temas
+    return os.path.join(_temas.TEMAS_DIR, tema or "safari", "invitacion_web_hero.png")
+
+
+def generar_hero_ia(client, tema, calidad="medium"):
+    """Genera con gpt-image-2 el hero del tema (una vez; queda para todas las
+    invitaciones de esa temática). client = ia_kit OpenAIImageClient."""
+    import libro_ia
+    refs = libro_ia.referencias(tema)
+    prompt = (
+        "Ilustración panorámica para el encabezado de una invitación de cumpleaños "
+        "infantil. Una escena festiva y alegre al aire libre con globos, banderines y "
+        "confeti, con los personajes de las imágenes de referencia celebrando juntos, "
+        "manteniendo su diseño exacto. Estilo ilustración infantil cálida, colores "
+        "vivos. La escena llena TODA la imagen, sin marcos ni bordes. "
+        "Importante: NO escribas ningún texto, número ni letra (no text, no letters)."
+    )
+    raw = client.editar(refs or [], prompt, "1536x1024", quality=calidad)
+    img = Image.open(io.BytesIO(raw)).convert("RGB")
+    dest = _hero_ia_path(tema)
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
+    img.save(dest)
+    return dest
+
+
+def _cover(img, W, H):
+    s = max(W / img.width, H / img.height)
+    im2 = img.resize((max(1, int(img.width * s)), max(1, int(img.height * s))),
+                     Image.LANCZOS)
+    x, y = (im2.width - W) // 2, (im2.height - H) // 2
+    return im2.crop((x, y, x + W, y + H))
+
 
 def _render_hero(tema):
+    # arte IA del tema si existe
+    p = _hero_ia_path(tema)
+    if os.path.isfile(p):
+        try:
+            return _cover(Image.open(p).convert("RGB"), Wh, Hh)
+        except Exception:
+            pass
+    return _render_hero_procedural(tema)
+
+
+def _render_hero_procedural(tema):
     acc = _hex_rgb(_accent(tema))
     im = Image.new("RGB", (Wh, Hh), _tint(acc, 0.85))
     dr = ImageDraw.Draw(im)
@@ -214,12 +261,16 @@ def _render_hero(tema):
 
 
 def hero_png(token):
-    """PNG del hero (cacheado junto al JSON). None si el token no existe."""
+    """PNG del hero (cacheado junto al JSON; se regenera si el arte IA del tema
+    apareció o cambió después). None si el token no existe."""
     reg = cargar(token)
     if not reg:
         return None
     cache = os.path.join(INVITACIONES_DIR, token + "_hero.png")
-    if not os.path.isfile(cache):
+    ia = _hero_ia_path(reg["tema"])
+    desactualizado = (os.path.isfile(ia) and os.path.isfile(cache)
+                      and os.path.getmtime(ia) > os.path.getmtime(cache))
+    if not os.path.isfile(cache) or desactualizado:
         _render_hero(reg["tema"]).save(cache)
     with open(cache, "rb") as f:
         return f.read()
@@ -398,3 +449,19 @@ def preview_mock(data, tema="safari"):
     dr.text((W / 2, py1 - 40), "Invitación web interactiva · se comparte por WhatsApp",
             font=_font(22, False), fill=(110, 100, 118), anchor="mm")
     return im
+
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) < 2:
+        print("Uso: OPENAI_API_KEY=... python invitacion_web.py <tema> [tema2 ...]")
+        sys.exit(1)
+    key = os.environ.get("OPENAI_API_KEY")
+    if not key:
+        print("Falta OPENAI_API_KEY.")
+        sys.exit(1)
+    from ia_kit.client import OpenAIImageClient
+    cl = OpenAIImageClient(key, model=os.environ.get("OPENAI_IMAGE_MODEL", "gpt-image-2"))
+    for t in sys.argv[1:]:
+        print("hero IA de", t, "…")
+        print("  ->", generar_hero_ia(cl, t))
