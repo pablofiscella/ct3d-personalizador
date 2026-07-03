@@ -536,6 +536,24 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(data)))
             self.end_headers(); self.wfile.write(data)
             return
+        # ---- STL de muestra para el visor 3D de la ficha (público, texto genérico) ----
+        m = re.match(r"^/stl-muestra/([a-z]+)/([a-z0-9-]+)\.stl$", path)
+        if m:
+            pieza, tema_m = m.group(1), m.group(2)
+            if pieza not in ("medalla", "topper", "trofeo", "cortante") or not temas.existe(tema_m):
+                return self._json(404, {"ok": False, "error": "no existe"})
+            try:
+                data = productos.stl3d_muestra(tema_m, pieza)
+            except Exception as e:
+                return self._json(500, {"ok": False, "error": str(e)[:120]})
+            self.send_response(200)
+            self.send_header("Content-Type", "model/stl")
+            self.send_header("Cache-Control", "public, max-age=604800")
+            self.send_header("Access-Control-Allow-Origin", "*")  # la ficha vive en otro dominio
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+            return
         # ---- invitación web interactiva (pública: el link SE COMPARTE por WhatsApp) ----
         m = re.match(r"^/i/([A-Za-z0-9_-]+)(/hero\.png)?$", path)
         if m:
@@ -576,7 +594,10 @@ class Handler(BaseHTTPRequestHandler):
                         que = open(flag_path).read().strip()
                     except OSError:
                         que = ""
-                    if que == "fiesta-completa":
+                    if que == "video-invitacion":
+                        icono, titulo, detalle = "🎬", "Tu video-invitación se está armando", \
+                            "Estamos animando el video con los datos de tu fiesta. Tarda menos de un minuto."
+                    elif que == "fiesta-completa":
                         icono, titulo, detalle = "🎉", "Tu Fiesta Completa se está preparando", \
                             "Estamos armando el kit, el libro, las piezas 3D y tu invitación web. Suele tardar 1-2 minutos."
                     else:
@@ -858,6 +879,29 @@ class Handler(BaseHTTPRequestHandler):
                     threading.Thread(target=_hero_worker, daemon=True).start()
             return self._json(200, {"ok": True, "token": tok,
                                     "download_url": f"{self.base_url()}/i/{tok}"})
+        if tipo == "video-invitacion":
+            # El render tarda 30-60s (> timeout de la tienda): async con espera.
+            os.makedirs(dest, exist_ok=True)
+            with open(os.path.join(dest, "generando.flag"), "w") as f:
+                f.write("video-invitacion")
+            with open(os.path.join(dest, "meta.json"), "w", encoding="utf-8") as f:
+                json.dump({"order_id": payload.get("order_id"), "tema": tema, "tipo": tipo,
+                           "nombre": data.get("nombre", "")}, f, ensure_ascii=False, indent=2)
+
+            def _video_worker(data=data, dest=dest, tema=tema):
+                try:
+                    productos.generar(data, dest, tema, "video-invitacion")
+                except Exception as e:
+                    print("[video-invitacion] falló: %s" % e, flush=True)
+                finally:
+                    try:
+                        os.remove(os.path.join(dest, "generando.flag"))
+                    except OSError:
+                        pass
+
+            threading.Thread(target=_video_worker, daemon=True).start()
+            return self._json(200, {"ok": True, "token": token, "generando": True,
+                                    "download_url": f"{self.base_url()}/descarga/{token}"})
         if tipo == "fiesta-completa":
             # Bundle: genera 3 productos + STLs (~1 min) — async con página de espera.
             os.makedirs(dest, exist_ok=True)

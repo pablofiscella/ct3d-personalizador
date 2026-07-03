@@ -338,6 +338,10 @@ def _piezas_capsula(tema):
     return [("1_sobre", lambda d: capsula_tiempo.portada_sobre(d, tema), True),
             ("2_carta", lambda d: capsula_tiempo.hoja_carta(d, tema), True)]
 
+def _piezas_video_invitacion(tema):
+    import video_invitacion
+    return [("1_video_invitacion", lambda d: video_invitacion.preview_frame(d, tema), False)]
+
 def _piezas_fiesta_completa(tema):
     import invitacion_web
     def _libro_portada(d):
@@ -413,6 +417,27 @@ def _stl3d_preview(tema, pieza):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     img.save(path)
     return img
+
+def stl3d_muestra(tema, pieza):
+    """Bytes del STL de MUESTRA de una pieza (texto genérico 'NOMBRE'), cacheado en
+    disco — para el visor 3D de la ficha de la tienda (girar/zoom antes de comprar).
+    La muestra es de baja resolución comercial: la compra real genera el propio."""
+    import stl3d
+    path = _stl3d_cache_path(tema, pieza + "_muestra").replace(".png", ".stl")
+    if os.path.exists(path):
+        with open(path, "rb") as f:
+            return f.read()
+    gen = {"medalla": lambda: stl3d.generar_medalla(tema, "NOMBRE")[0],
+           "topper": lambda: stl3d.generar_topper(tema, "NOMBRE")[0],
+           "trofeo": lambda: stl3d.generar_trofeo(tema, "NOMBRE")[0],
+           "cortante": lambda: stl3d.generar_cortante(tema)[0]}
+    if pieza not in gen:
+        raise ValueError("pieza desconocida: %s" % pieza)
+    data = gen[pieza]()
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as f:
+        f.write(data)
+    return data
 
 def _stl3d_preview_cortante(tema):
     path = _stl3d_cache_path(tema, "cortante")
@@ -542,6 +567,13 @@ TIPOS = {
         "campos": ["nombre", "edad"],
         "preview": "capsula",
         "piezas": _piezas_capsula,
+    },
+    "video-invitacion": {
+        "nombre": "Video-invitación animada",
+        "descripcion": "Video vertical de ~14 segundos con el nombre, la edad y los datos de la fiesta animados con la temática — listo para mandar por WhatsApp. La forma más canchera y económica de invitar.",
+        "campos": ["nombre", "edad", "fecha", "hora", "lugar", "direccion"],
+        "preview": "video-invitacion",
+        "piezas": _piezas_video_invitacion,
     },
     "fiesta-completa": {
         "nombre": "Fiesta Completa — todo en uno",
@@ -703,6 +735,7 @@ _PIEZA_LABELS = {
     "03_pagina_1": "Página 1", "04_pagina_2": "Página 2", "05_pagina_3": "Página 3",
     "06_pagina_4": "Página 4", "07_pagina_5": "Página 5", "08_pagina_6": "Página 6",
     "09_pagina_7": "Página 7", "10_fin": "Fin",
+    "1_video_invitacion": "Video-invitación",
     "1_invitacion_web": "Invitación web interactiva", "2_invitacion": "Invitación del kit",
     "3_libro_portada": "Libro de cuento", "4_medalla_3d": "Medalla 3D",
     "1_cubo": "Cubo 3D para armar",
@@ -756,6 +789,15 @@ def generar(data, dest_dir, tema="safari", tipo=DEFAULT_TIPO):
     """Genera las piezas del TIPO en PDF (300 DPI) y las empaqueta en un ZIP.
 
     Reusa piezas.generar_kit (genérico sobre una lista de piezas)."""
+    if tipo == "video-invitacion":
+        import zipfile, video_invitacion
+        os.makedirs(dest_dir, exist_ok=True)
+        mp4 = os.path.join(dest_dir, "invitacion.mp4")
+        video_invitacion.generar_video(data, tema, mp4)
+        zip_path = os.path.join(dest_dir, "kit.zip")
+        with zipfile.ZipFile(zip_path, "w") as z:   # mp4 ya comprimido: sin deflate
+            z.write(mp4, "video_invitacion.mp4")
+        return zip_path
     if tipo == "fiesta-completa":
         # Bundle: arma el ZIP con las 3 partes descargables + portada con link/QR
         # de la invitación web (que se crea acá — es una página, no un archivo).
@@ -826,7 +868,7 @@ def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):
         img = bs.pieza("invitacion", data, tema)
     elif pieza in ("certificado", "corona", "antifaces", "menu", "rompecabezas",
                   "capsula", "libro", "calendario", "papertoys", "memoria",
-                  "invitacion-web", "fiesta-completa",
+                  "invitacion-web", "fiesta-completa", "video-invitacion",
                   "stl-medalla", "stl-topper", "stl-trofeo", "stl-cortante", "stl-pack"):
         # 100% procedurales: pasan por piezas_tipo() para que un override subido a mano
         # (ver override_path) se refleje también en la miniatura del producto.
