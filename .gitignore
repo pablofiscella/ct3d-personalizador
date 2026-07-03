@@ -28,3 +28,4 @@ invitaciones/
 
 # audiolibros web (datos de pedidos en runtime, vigencia 365d)
 audiolibros/
+temas/*/audiolibro_demo.txt
