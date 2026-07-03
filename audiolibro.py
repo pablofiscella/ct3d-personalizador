@@ -208,8 +208,10 @@ function narrarVisibles(){
 }
 function reproducir(i){
   audio.src = base+'pag_'+pad(i)+'.mp3';
-  audio.playbackRate = parseFloat(vel.value);
   audio.load();
+  // load() resetea playbackRate → defaultPlaybackRate manda para las páginas siguientes
+  audio.defaultPlaybackRate = parseFloat(vel.value);
+  audio.playbackRate = parseFloat(vel.value);
   var p = audio.play();
   if (p && p.catch) p.catch(function(e){
     narrando=false; play.textContent='▶'; err('tocá ▶ de nuevo ('+e.name+')'); });
@@ -223,6 +225,7 @@ audio.addEventListener('ended', function(){
 });
 var velval=document.getElementById('velval');
 vel.oninput = function(){
+  audio.defaultPlaybackRate = parseFloat(vel.value);
   audio.playbackRate = parseFloat(vel.value);
   velval.textContent = parseFloat(vel.value).toFixed(2).replace(/0$/,'')+'x';
 };
