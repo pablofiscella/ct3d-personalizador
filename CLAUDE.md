@@ -5,9 +5,11 @@
 
 ## Qué es
 
-Motor procedural de **9 tipos de piezas imprimibles:**
+Motor procedural de **10 tipos de piezas imprimibles:**
 - Kit completo (invitación, cartel, actividades, etc.)
 - Productos individuales: certificado, corona, antifaces, menú, rompecabezas, cápsula, calendario, papertoys, memoria
+- **Libro de cuento personalizado** (`libro.py`): 10 páginas donde el chico es el protagonista — portada, dedicatoria, 7 páginas de historia (cada una con escena procedural que ILUSTRA lo que cuenta el texto: cama+invitación → luces mágicas → fiesta → problema → solución → tesoro → casita de noche) y FIN. Historia ambientada por temática (`libro.HISTORIAS`, con fallback genérico). Campos: nombre, edad, dedicatoria.
+  - **Ilustraciones (2 caminos, mismo destino):** el override `temas/{tema}/overrides/libro/{idx}.png` es SOLO el arte de la escena (NO la página completa: el texto personalizado siempre lo escribe el motor — por eso `productos.piezas_tipo` saltea el override genérico para `libro`). (1) Subida manual: botón 📤 de cada página en la galería del dash. (2) IA: botón «✨ Generar 10 con IA» en el dash (`POST /dash/libro-ia?tema=X[&pieza=N]`, job + polling con `/dash/ia-estado`) o CLI `OPENAI_API_KEY=... python libro_ia.py <tema> [pagina]`. Prompts en `libro_ia.py` (usan la ambientación de `libro.HISTORIAS`; referencia de estilo: `ia_maestra.png` o stickers del tema; arte SIN texto). Se genera una vez por tema, no por venta.
 
 **Tecnología:** Pillow (procedural generation) + OpenAI gpt-image-2 (cuaderno de actividades con IA) + override system (cliente puede reemplazar cualquier pieza).
 

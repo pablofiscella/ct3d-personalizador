@@ -18,6 +18,7 @@ Tipos:
 - menu          → menú infantil para la mesa del salón.
 - rompecabezas  → nombre partido en piezas para recortar y armar.
 - capsula       → carta para el futuro (sobre + hoja de preguntas).
+- libro         → libro de cuento personalizado (10 páginas, el chico es el protagonista).
 - calendario    → 12 meses personalizados con la temática.
 - papertoys     → cubo 3D con letras del nombre para armar.
 - memoria       → juego de memoria con 24 cartas (12 pares).
@@ -337,6 +338,14 @@ def _piezas_capsula(tema):
     return [("1_sobre", lambda d: capsula_tiempo.portada_sobre(d, tema), True),
             ("2_carta", lambda d: capsula_tiempo.hoja_carta(d, tema), True)]
 
+def _piezas_libro(tema):
+    import libro
+    nombres = (["01_portada", "02_dedicatoria"] +
+               ["%02d_pagina_%d" % (i + 3, i + 1) for i in range(libro.PAGINAS_HISTORIA)] +
+               ["%02d_fin" % libro.TOTAL_PAGINAS])
+    return [(n, (lambda i: (lambda d: libro.pagina_libro(i, d, tema)))(i), True)
+            for i, n in enumerate(nombres)]
+
 def _piezas_calendario(tema):
     import calendario
     return [("01_enero", lambda d: calendario.mes_hoja(1, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
@@ -520,6 +529,14 @@ TIPOS = {
         "preview": "capsula",
         "piezas": _piezas_capsula,
     },
+    "libro": {
+        "nombre": "Libro de cuento personalizado",
+        "descripcion": "Cuento de 10 páginas donde el chico es el protagonista: portada, dedicatoria, 7 páginas de aventura con la temática y final. Listo para imprimir como libro. Cada página puede llevar ilustración IA (override).",
+        "campos": ["nombre", "edad", "dedicatoria"],
+        "campos_labels": {"dedicatoria": "Dedicatoria (opcional)"},
+        "preview": "libro",
+        "piezas": _piezas_libro,
+    },
     "calendario": {
         "nombre": "Calendario personalizado",
         "descripcion": "12 meses con el nombre de la familia, decorado con la temática. Producto recurrente (cada año).",
@@ -607,8 +624,14 @@ def _con_overrides(tema, tipo, items):
 
 def piezas_tipo(tema, tipo):
     """Lista [(nombre_archivo, fn(data)->Image, is_rgba)] del tipo sobre la temática.
-    Aplica overrides subidos a mano (ver override_path) sobre el diseño procedural."""
+    Aplica overrides subidos a mano (ver override_path) sobre el diseño procedural.
+    EXCEPCIÓN 'libro': ahí el override (mismo path) es solo la ILUSTRACIÓN de la
+    página y lo aplica libro.py adentro — el texto personalizado (nombre/dedicatoria)
+    siempre lo escribe el motor; si el override tapara la página entera, el nombre
+    del chico quedaría fijo dentro de la imagen subida."""
     items = _spec(tipo)["piezas"](tema or "safari")
+    if tipo == "libro":
+        return items
     return _con_overrides(tema, tipo, items)
 
 _PIEZA_LABELS = {
@@ -635,6 +658,10 @@ _PIEZA_LABELS = {
     "04_abril": "Abril", "05_mayo": "Mayo", "06_junio": "Junio",
     "07_julio": "Julio", "08_agosto": "Agosto", "09_septiembre": "Septiembre",
     "10_octubre": "Octubre", "11_noviembre": "Noviembre", "12_diciembre": "Diciembre",
+    "01_portada": "Portada", "02_dedicatoria": "Dedicatoria",
+    "03_pagina_1": "Página 1", "04_pagina_2": "Página 2", "05_pagina_3": "Página 3",
+    "06_pagina_4": "Página 4", "07_pagina_5": "Página 5", "08_pagina_6": "Página 6",
+    "09_pagina_7": "Página 7", "10_fin": "Fin",
     "1_cubo": "Cubo 3D para armar",
     "1_cartas_memoria": "Cartas del memory",
     "2_dorso": "Dorso de cartas",
@@ -747,7 +774,7 @@ def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):
         import baby_shower as bs
         img = bs.pieza("invitacion", data, tema)
     elif pieza in ("certificado", "corona", "antifaces", "menu", "rompecabezas",
-                  "capsula", "calendario", "papertoys", "memoria",
+                  "capsula", "libro", "calendario", "papertoys", "memoria",
                   "stl-medalla", "stl-topper", "stl-trofeo", "stl-cortante", "stl-pack"):
         # 100% procedurales: pasan por piezas_tipo() para que un override subido a mano
         # (ver override_path) se refleje también en la miniatura del producto.

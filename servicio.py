@@ -711,6 +711,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._ia_colorear_variantes()
         if path == "/dash/producto-upload":
             return self._dash_producto_upload()
+        if path == "/dash/libro-ia":
+            return self._dash_libro_ia()
         if path == "/dash/producto-borrar-override":
             return self._dash_producto_borrar_override()
         if path == "/dash/calendario-generar":
@@ -1521,6 +1523,35 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
+
+    def _dash_libro_ia(self):
+        """Genera con IA las ilustraciones del libro de cuento del tema y las guarda
+        como overrides de escena (los mismos que la subida manual 📤: cualquier página
+        se puede pisar a mano después). Sin `pieza` genera las 10; con `pieza=N` rehace
+        solo esa. Devuelve un job; el progreso se consulta con /dash/ia-estado."""
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        client = _openai_client()
+        if client is None:
+            return self._json(503, {"ok": False, "error": "falta OPENAI_API_KEY"})
+        paginas = None
+        if q.get("pieza", [""])[0]:
+            try:
+                paginas = [int(q["pieza"][0])]
+            except ValueError:
+                return self._json(400, {"ok": False, "error": "pieza inválida"})
+        calidad = _calidad(q)
+        def trabajo(emit):
+            import libro_ia
+            libro_ia.generar_ilustraciones(client, tema, paginas, calidad=calidad,
+                                           progress=emit)
+        jid = ia_jobs.iniciar(trabajo)
+        total = len(paginas) if paginas else 10
+        return self._json(200, {"ok": True, "job": jid, "total": total, "calidad": calidad})
 
     def _ia_generar(self):
         if not self._admin_ok():
