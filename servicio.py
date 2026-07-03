@@ -118,9 +118,20 @@ def _tienda_admin(method, path, body=None):
         return 0, {"ok": False, "error": "no se pudo contactar la tienda: %s" % e}
 
 def _openai_client():
+    """Cliente de imágenes: OpenAI directo, con failover automático a OpenRouter
+    si OPENROUTER_API_KEY está configurada (el tope mensual de OpenAI nos frenó
+    generaciones 2 veces el 03-jul; con respaldo, el pipeline sigue solo)."""
+    or_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
     if not OPENAI_API_KEY:
+        if or_key:
+            from ia_kit.client_openrouter import OpenRouterImageClient
+            return OpenRouterImageClient(or_key)
         return None
-    return OpenAIImageClient(OPENAI_API_KEY, model=OPENAI_IMAGE_MODEL)
+    primario = OpenAIImageClient(OPENAI_API_KEY, model=OPENAI_IMAGE_MODEL)
+    if or_key:
+        from ia_kit.client_openrouter import OpenRouterImageClient, ClienteImagenesFailover
+        return ClienteImagenesFailover(primario, OpenRouterImageClient(or_key))
+    return primario
 
 def slug(s):
     s = re.sub(r"[^a-zA-Z0-9]+", "-", str(s)).strip("-").lower()
@@ -141,6 +152,10 @@ _SEM = threading.Semaphore(16)    # máx 16 requests concurrentes (A7, anti thre
 # Generar thumbs decodifica PNGs de ~140MB en RAM; se limitan a 3 a la vez para no
 # reventar memoria cuando el modal pide 40 miniaturas de golpe.
 _THUMB_SEM = threading.Semaphore(3)
+# Libro premium: ilustra 10 páginas con OpenAI por pedido (~10 min). De a UNO para
+# no quemar rate-limit ni acumular gasto si entran varias compras juntas; los demás
+# pedidos esperan su turno dentro del hilo de fondo (el cliente ya tiene su link).
+_LIBRO_PREMIUM_SEM = threading.Semaphore(1)
 _KEY_RE = re.compile(r"(key=)[^&\s\"']+", re.I)
 
 def _pieza_thumb(exdir, archivo):
@@ -222,8 +237,11 @@ def _rate_ok(ip, limit=120, window=60):
     return True
 
 
-def _limpiar_pedidos_viejos(dias=30):
-    """A3: borra carpetas de pedidos (ZIP + meta) de más de `dias` — no acumular PII."""
+def _limpiar_pedidos_viejos(dias=7300):
+    """Borra carpetas de pedidos (ZIP + meta) de más de `dias`. Antes eran 30 días
+    (A3, minimizar PII); ahora "para siempre" en la práctica (~20 años) — el pedido
+    respalda la cuenta de cliente de la tienda (Mis compras), que promete acceso
+    indefinido al link ya guardado en tienda_orders.kit_download_url."""
     import shutil
     try:
         corte = time.time() - dias * 86400
@@ -418,7 +436,9 @@ class Handler(BaseHTTPRequestHandler):
             body = buf.getvalue()
             self.send_response(200)
             self.send_header("Content-Type", ctype)
-            self.send_header("Cache-Control", "public, max-age=86400")
+            # 10 min, no 24h: si se regenera el arte de un tema, la tienda lo refleja
+            # enseguida (24h dejaba fichas con imágenes viejas en navegador+Cloudflare).
+            self.send_header("Cache-Control", "public, max-age=600")
             self.send_header("Content-Length", str(len(body)))
             self.end_headers(); self.wfile.write(body)
             return
@@ -532,12 +552,121 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(data)))
             self.end_headers(); self.wfile.write(data)
             return
+        # ---- STL de muestra para el visor 3D de la ficha (público, texto genérico) ----
+        m = re.match(r"^/stl-muestra/([a-z]+)/([a-z0-9-]+)\.stl$", path)
+        if m:
+            pieza, tema_m = m.group(1), m.group(2)
+            if pieza not in ("medalla", "topper", "trofeo", "cortante") or not temas.existe(tema_m):
+                return self._json(404, {"ok": False, "error": "no existe"})
+            try:
+                data = productos.stl3d_muestra(tema_m, pieza)
+            except Exception as e:
+                return self._json(500, {"ok": False, "error": str(e)[:120]})
+            self.send_response(200)
+            self.send_header("Content-Type", "model/stl")
+            self.send_header("Cache-Control", "public, max-age=604800")
+            self.send_header("Access-Control-Allow-Origin", "*")  # la ficha vive en otro dominio
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+            return
+        # ---- audiolibro web (página narrada con page-flip; link con token) ----
+        m = re.match(r"^/al/([A-Za-z0-9_-]+)(?:/([a-z_0-9.]+))?$", path)
+        if m:
+            import audiolibro
+            token, arch = m.group(1), m.group(2)
+            if arch:
+                r = audiolibro.archivo(token, arch)
+                if r is None:
+                    return self._json(404, {"ok": False, "error": "no existe"})
+                data_b, ct = r
+                self.send_response(200)
+                self.send_header("Content-Type", ct)
+                self.send_header("Cache-Control", "public, max-age=86400")
+                self.send_header("Content-Length", str(len(data_b)))
+                self.end_headers(); self.wfile.write(data_b)
+                return
+            page = audiolibro.html(token, base_url=self.base_url())
+            if page is None:
+                return self._json(404, {"ok": False, "error": "audiolibro no encontrado"})
+            body = page.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers(); self.wfile.write(body)
+            return
+        # ---- invitación web interactiva (pública: el link SE COMPARTE por WhatsApp) ----
+        m = re.match(r"^/i/([A-Za-z0-9_-]+)(/hero\.png)?$", path)
+        if m:
+            import invitacion_web as iw
+            token, es_hero = m.group(1), bool(m.group(2))
+            if es_hero:
+                png = iw.hero_png(token)
+                if png is None:
+                    return self._json(404, {"ok": False, "error": "no existe"})
+                self.send_response(200)
+                self.send_header("Content-Type", "image/png")
+                self.send_header("Cache-Control", "public, max-age=86400")
+                self.send_header("Content-Length", str(len(png)))
+                self.end_headers()
+                self.wfile.write(png)
+                return
+            page = iw.html(token, base_url=self.base_url())
+            if page is None:
+                return self._json(404, {"ok": False, "error": "invitación no encontrada o vencida"})
+            body = page.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         m = re.match(r"^/descarga/([A-Za-z0-9_-]+)$", path)
         if m:
             token = m.group(1)
             zip_path = os.path.join(DATA_DIR, token, "kit.zip")
             meta_path = os.path.join(DATA_DIR, token, "meta.json")
             if not os.path.isfile(zip_path):
+                flag_path = os.path.join(DATA_DIR, token, "generando.flag")
+                if os.path.isfile(flag_path):
+                    # Generación en curso: página amigable que se recarga sola.
+                    try:
+                        que = open(flag_path).read().strip()
+                    except OSError:
+                        que = ""
+                    if que == "libro-audio":
+                        icono, titulo, detalle = "🎧", "Tu audiolibro se está grabando", \
+                            "Estamos narrando el cuento página por página. Tarda 1-2 minutos."
+                    elif que == "video-invitacion":
+                        icono, titulo, detalle = "🎬", "Tu video-invitación se está armando", \
+                            "Estamos animando el video con los datos de tu fiesta. Tarda menos de un minuto."
+                    elif que == "fiesta-completa":
+                        icono, titulo, detalle = "🎉", "Tu Fiesta Completa se está preparando", \
+                            "Estamos armando el kit, el libro, las piezas 3D y tu invitación web. Suele tardar 1-2 minutos."
+                    else:
+                        icono, titulo, detalle = "🎨", "Tu libro se está ilustrando", \
+                            "Cada página se pinta especialmente para este pedido. Suele tardar unos 10 minutos."
+                    body = ("<!doctype html><html lang='es'><head><meta charset='utf-8'>"
+                            "<meta http-equiv='refresh' content='45'>"
+                            "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+                            "<title>" + titulo + "…</title></head>"
+                            "<body style='font-family:sans-serif;background:#FDF7EE;display:flex;"
+                            "align-items:center;justify-content:center;min-height:100vh;margin:0'>"
+                            "<div style='text-align:center;max-width:420px;padding:24px'>"
+                            "<div style='font-size:56px'>" + icono + "</div>"
+                            "<h1 style='color:#6B5BD2;font-size:24px'>" + titulo + "</h1>"
+                            "<p style='color:#555;line-height:1.5'>" + detalle + "<br>Esta página se "
+                            "actualiza sola — no hace falta que hagas nada.</p>"
+                            "</div></body></html>").encode("utf-8")
+                    self.send_response(200)
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.send_header("Cache-Control", "no-store")
+                    self.send_header("Content-Length", str(len(body)))
+                    self.end_headers()
+                    self.wfile.write(body)
+                    return
                 return self._json(404, {"ok": False, "error": "kit no encontrado"})
             nombre = "kit"
             if os.path.isfile(meta_path):
@@ -711,8 +840,14 @@ class Handler(BaseHTTPRequestHandler):
             return self._ia_colorear_variantes()
         if path == "/dash/producto-upload":
             return self._dash_producto_upload()
+        if path == "/dash/libro-audio-demo":
+            return self._dash_libro_audio_demo()
+        if path == "/dash/libro-ia":
+            return self._dash_libro_ia()
         if path == "/dash/producto-borrar-override":
             return self._dash_producto_borrar_override()
+        if path == "/dash/calendario-generar":
+            return self._dash_calendario_generar()
         if path == "/dash/ia-replicar":
             return self._ia_replicar()
         if path == "/dash/ia-aprobar":
@@ -757,7 +892,11 @@ class Handler(BaseHTTPRequestHandler):
         for k, v in payload.items():
             if k not in CAMPOS and k not in ("tema", "tipo", "order_id", "over"):
                 data[k] = str(v).strip()
-        if not data["nombre"]:
+        tipo_pre = str(payload.get("tipo", "kit")).strip() or "kit"
+        # 'nombre' solo es obligatorio si el tipo lo usa (ej. el cortante 3D no lleva
+        # personalización: campos=[]).
+        if not data["nombre"] and (not productos.existe_tipo(tipo_pre)
+                                   or "nombre" in productos.campos_tipo(tipo_pre)):
             return self._json(400, {"ok": False, "error": "falta 'nombre'"})
         if isinstance(payload.get("over"), dict):    # personalización del cliente (mini-editor)
             data["_over"] = payload["over"]
@@ -768,6 +907,169 @@ class Handler(BaseHTTPRequestHandler):
         order_id = slug(payload.get("order_id", "s"))
         token = f"{order_id}-{secrets.token_hex(16)}"   # A2: 128 bits, no brute-forceable
         dest = os.path.join(DATA_DIR, token)
+        if tipo == "invitacion-web":
+            # El producto ES un link (página viva), no un archivo: se crea el evento
+            # y se devuelve su URL como download_url (la tienda ya sabe mostrar eso).
+            import invitacion_web as iw
+            tok = iw.crear(data, tema)
+            # Tema sin hero IA todavía (tema nuevo): generarlo en background — la
+            # primera vista usa el procedural y las siguientes ya ven el arte bueno.
+            if not os.path.isfile(iw._hero_ia_path(tema)):
+                client = _openai_client()
+                if client is not None:
+                    def _hero_worker(tema=tema):
+                        try:
+                            iw.generar_hero_ia(client, tema)
+                        except Exception as e:
+                            print("[invitacion-web] hero IA falló (%s) — queda el procedural" % e,
+                                  flush=True)
+                    threading.Thread(target=_hero_worker, daemon=True).start()
+            return self._json(200, {"ok": True, "token": tok,
+                                    "download_url": f"{self.base_url()}/i/{tok}"})
+        if tipo == "libro-audio":
+            # Genera páginas + narración TTS (~1-2 min) y devuelve el LINK del visor.
+            os.makedirs(dest, exist_ok=True)
+            with open(os.path.join(dest, "generando.flag"), "w") as f:
+                f.write("libro-audio")
+            with open(os.path.join(dest, "meta.json"), "w", encoding="utf-8") as f:
+                json.dump({"order_id": payload.get("order_id"), "tema": tema, "tipo": tipo,
+                           "nombre": data.get("nombre", "")}, f, ensure_ascii=False, indent=2)
+
+            def _audio_worker(data=data, dest=dest, tema=tema):
+                import audiolibro, zipfile, libro_ia
+                try:
+                    escenas = None
+                    hist = (data.get("historia") or "").strip().lower()
+                    if hist and hist != "aventura":
+                        # Historia no clásica: el arte del tema no la ilustra —
+                        # se pintan las escenas de ESTE pedido (como el premium).
+                        client = _openai_client()
+                        if client is not None:
+                            escenas = os.path.join(dest, "escenas")
+                            try:
+                                libro_ia.generar_ilustraciones(
+                                    client, tema, dest_dir=escenas,
+                                    genero=data.get("genero"), historia=hist,
+                                    verificar=True,
+                                    fallos_log=os.path.join(dest, "qa_fallos.txt"))
+                            except Exception as e:
+                                print("[libro-audio] arte falló (%s) — arte del tema" % e,
+                                      flush=True)
+                                escenas = None
+                    tok_al = audiolibro.crear(data, tema, OPENAI_API_KEY,
+                                              escenas_dir=escenas)
+                    with zipfile.ZipFile(os.path.join(dest, "kit.zip"), "w") as z:
+                        z.writestr("TU_AUDIOLIBRO.txt",
+                                   "Tu audiolibro narrado está en:\n%s/al/%s\n\n"
+                                   "Compartí ese link con la familia — dura 1 año." %
+                                   (BASE_URL, tok_al))
+                except Exception as e:
+                    print("[libro-audio] falló: %s" % e, flush=True)
+                finally:
+                    try:
+                        os.remove(os.path.join(dest, "generando.flag"))
+                    except OSError:
+                        pass
+
+            threading.Thread(target=_audio_worker, daemon=True).start()
+            return self._json(200, {"ok": True, "token": token, "generando": True,
+                                    "download_url": f"{self.base_url()}/descarga/{token}"})
+        if tipo == "video-invitacion":
+            # El render tarda 30-60s (> timeout de la tienda): async con espera.
+            os.makedirs(dest, exist_ok=True)
+            with open(os.path.join(dest, "generando.flag"), "w") as f:
+                f.write("video-invitacion")
+            with open(os.path.join(dest, "meta.json"), "w", encoding="utf-8") as f:
+                json.dump({"order_id": payload.get("order_id"), "tema": tema, "tipo": tipo,
+                           "nombre": data.get("nombre", "")}, f, ensure_ascii=False, indent=2)
+
+            def _video_worker(data=data, dest=dest, tema=tema):
+                try:
+                    productos.generar(data, dest, tema, "video-invitacion")
+                except Exception as e:
+                    print("[video-invitacion] falló: %s" % e, flush=True)
+                finally:
+                    try:
+                        os.remove(os.path.join(dest, "generando.flag"))
+                    except OSError:
+                        pass
+
+            threading.Thread(target=_video_worker, daemon=True).start()
+            return self._json(200, {"ok": True, "token": token, "generando": True,
+                                    "download_url": f"{self.base_url()}/descarga/{token}"})
+        if tipo == "fiesta-completa":
+            # Bundle: genera 3 productos + STLs (~1 min) — async con página de espera.
+            os.makedirs(dest, exist_ok=True)
+            with open(os.path.join(dest, "generando.flag"), "w") as f:
+                f.write("fiesta-completa")
+            with open(os.path.join(dest, "meta.json"), "w", encoding="utf-8") as f:
+                json.dump({"order_id": payload.get("order_id"), "tema": tema, "tipo": tipo,
+                           "nombre": data.get("nombre", "")}, f, ensure_ascii=False, indent=2)
+            data["_base_url"] = self.base_url()
+
+            def _bundle_worker(data=data, dest=dest, tema=tema):
+                try:
+                    productos.generar(data, dest, tema, "fiesta-completa")
+                except Exception as e:
+                    print("[fiesta-completa] generación falló: %s" % e, flush=True)
+                finally:
+                    try:
+                        os.remove(os.path.join(dest, "generando.flag"))
+                    except OSError:
+                        pass
+
+            threading.Thread(target=_bundle_worker, daemon=True).start()
+            return self._json(200, {"ok": True, "token": token, "generando": True,
+                                    "download_url": f"{self.base_url()}/descarga/{token}"})
+        if tipo == "libro-premium":
+            # Ilustrar 10 páginas tarda ~10 min: la HTTP no puede esperar. Se devuelve
+            # el link YA y un hilo genera; /descarga muestra "ilustrándose…" (flag)
+            # hasta que kit.zip existe. Si la IA falla, el libro sale igual con el
+            # arte standard del tema (el cliente SIEMPRE recibe su libro).
+            client = _openai_client()
+            if client is None:
+                return self._json(503, {"ok": False, "error": "libro premium no disponible (falta OPENAI_API_KEY)"})
+            os.makedirs(dest, exist_ok=True)
+            with open(os.path.join(dest, "generando.flag"), "w") as f:
+                f.write("libro-premium")
+            with open(os.path.join(dest, "meta.json"), "w", encoding="utf-8") as f:
+                json.dump({"order_id": payload.get("order_id"), "tema": tema, "tipo": tipo,
+                           "nombre": data.get("nombre", "")}, f, ensure_ascii=False, indent=2)
+
+            def _premium_worker(data=data, dest=dest, tema=tema):
+                import libro, libro_ia
+                escenas = os.path.join(dest, "escenas")
+                with _LIBRO_PREMIUM_SEM:
+                    try:
+                        libro_ia.generar_ilustraciones(client, tema, dest_dir=escenas,
+                                                       genero=data.get("genero"),
+                                                       historia=data.get("historia"),
+                                                       verificar=True,
+                                                       fallos_log=os.path.join(dest, "qa_fallos.txt"))
+                    except Exception as e:
+                        # El cliente recibe el libro IGUAL (arte standard) — pero esto
+                        # es un pedido premium: dejar rastro para regenerar/compensar.
+                        print("[libro-premium] IA falló (%s) — sale con arte standard" % e,
+                              flush=True)
+                        try:
+                            with open(os.path.join(dest, "ia_fallo.txt"), "w") as ff:
+                                ff.write(str(e))
+                        except OSError:
+                            pass
+                    try:
+                        with libro.usar_escenas_dir(escenas):
+                            productos.generar(data, dest, tema, "libro")
+                    except Exception as e:
+                        print("[libro-premium] render falló: %s" % e, flush=True)
+                    finally:
+                        try:
+                            os.remove(os.path.join(dest, "generando.flag"))
+                        except OSError:
+                            pass
+
+            threading.Thread(target=_premium_worker, daemon=True).start()
+            return self._json(200, {"ok": True, "token": token, "generando": True,
+                                    "download_url": f"{self.base_url()}/descarga/{token}"})
         try:
             productos.generar(data, dest, tema, tipo)
             # A3: meta MÍNIMA (solo lo que usa /descarga para el nombre del archivo).
@@ -1053,6 +1355,54 @@ class Handler(BaseHTTPRequestHandler):
             os.remove(dest)
             return self._json(200, {"ok": True, "borrado": True})
         return self._json(200, {"ok": True, "borrado": False})
+
+    def _dash_calendario_generar(self):
+        """Sube UNA imagen de plantilla y genera automáticamente los 12 meses del calendario
+        superponiendo mes/días/números (posición, tamaño y grosor definidos en el editor visual
+        del dashboard) sobre esa imagen. Cada mes se guarda como override del tipo 'calendario'."""
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        anyo_str = re.sub(r"\D", "", (q.get("anyo", ["2026"])[0] or "2026"))[:4]
+        nombre = (q.get("nombre", [""])[0] or "").strip() or "Mi familia"
+        config_str = q.get("config", [""])[0] or ""
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        try:
+            config = json.loads(config_str) if config_str else None
+        except Exception:
+            config = None
+        try:
+            n = int(self.headers.get("Content-Length", "0"))
+            raw = self.rfile.read(n) if n else b""
+            if not raw:
+                return self._json(400, {"ok": False, "error": "sin archivo"})
+            plantilla = Image.open(io.BytesIO(raw)).convert("RGBA")
+        except Exception as e:
+            return self._json(400, {"ok": False, "error": "imagen inválida: %s" % e})
+
+        try:
+            import calendario
+            piezas_meses = calendario.generar_calendario_con_plantilla(
+                {"nombre": nombre, "anyo": anyo_str}, plantilla, tema, config=config)
+            tdir = os.path.join(temas.TEMAS_DIR, tema)
+            fondo_dir = os.path.join(tdir, "calendario")
+            os.makedirs(fondo_dir, exist_ok=True)
+            plantilla.save(os.path.join(fondo_dir, "fondo.png"))
+
+            override_dir = os.path.join(tdir, "overrides", "calendario")
+            os.makedirs(override_dir, exist_ok=True)
+            generados = []
+            for idx, (archivo, maker, _) in enumerate(piezas_meses):
+                img = maker({"nombre": nombre})
+                p = os.path.join(override_dir, "%d.png" % idx)
+                piezas.to_rgb(img).save(p)
+                generados.append({"idx": idx, "archivo": archivo})
+            return self._json(200, {"ok": True, "tema": tema, "anyo": anyo_str,
+                                    "generados": len(generados), "meses": generados})
+        except Exception as e:
+            return self._json(500, {"ok": False, "error": "generación falló: %s" % e})
 
     # ---- Arte BASE de una temática existente (invitacion_N / afiche_N en la raíz) ----
     def _dash_base_estado(self, q):
@@ -1467,6 +1817,64 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
+
+    def _dash_libro_audio_demo(self):
+        """Audiolibro DEMO del tema (nombre genérico) para escuchar desde el panel.
+        Se genera una vez y se cachea (temas/<tema>/audiolibro_demo.txt guarda el
+        token). 1ª llamada: arranca el job; cuando está, devuelve {url}."""
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        import audiolibro
+        marca = os.path.join(temas.TEMAS_DIR, tema, "audiolibro_demo.txt")
+        if os.path.isfile(marca):
+            tok = open(marca).read().strip()
+            if audiolibro._cargar(tok):
+                return self._json(200, {"ok": True,
+                                        "url": f"{self.base_url()}/al/{tok}"})
+        if not OPENAI_API_KEY:
+            return self._json(503, {"ok": False, "error": "falta OPENAI_API_KEY"})
+
+        def trabajo(emit):
+            emit("Narrando el cuento de muestra…")
+            tok = audiolibro.crear({"nombre": "Alex", "edad": "5"}, tema, OPENAI_API_KEY,
+                                   progress=emit)
+            with open(marca, "w") as f:
+                f.write(tok)
+        jid = ia_jobs.iniciar(trabajo)
+        return self._json(200, {"ok": True, "job": jid})
+
+    def _dash_libro_ia(self):
+        """Genera con IA las ilustraciones del libro de cuento del tema y las guarda
+        como overrides de escena (los mismos que la subida manual 📤: cualquier página
+        se puede pisar a mano después). Sin `pieza` genera las 10; con `pieza=N` rehace
+        solo esa. Devuelve un job; el progreso se consulta con /dash/ia-estado."""
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        client = _openai_client()
+        if client is None:
+            return self._json(503, {"ok": False, "error": "falta OPENAI_API_KEY"})
+        paginas = None
+        if q.get("pieza", [""])[0]:
+            try:
+                paginas = [int(q["pieza"][0])]
+            except ValueError:
+                return self._json(400, {"ok": False, "error": "pieza inválida"})
+        calidad = _calidad(q)
+        def trabajo(emit):
+            import libro_ia
+            libro_ia.generar_ilustraciones(client, tema, paginas, calidad=calidad,
+                                           progress=emit)
+        jid = ia_jobs.iniciar(trabajo)
+        total = len(paginas) if paginas else 10
+        return self._json(200, {"ok": True, "job": jid, "total": total, "calidad": calidad})
 
     def _ia_generar(self):
         if not self._admin_ok():
