@@ -571,8 +571,9 @@ TIPOS = {
     "libro-audio": {
         "nombre": "Audiolibro web narrado",
         "descripcion": "El cuento personalizado hecho EXPERIENCIA: una página web donde una voz cálida narra la historia (¡dice el nombre de tu peque!) y las hojas giran solas al ritmo del relato. Link para escuchar en cualquier pantalla, dura 1 año.",
-        "campos": ["nombre", "edad", "genero", "dedicatoria"],
-        "campos_labels": {"genero": "¿Nena o nene?", "dedicatoria": "Dedicatoria (opcional)"},
+        "campos": ["nombre", "edad", "genero", "historia", "dedicatoria"],
+        "campos_labels": {"genero": "¿Nena o nene?", "historia": "¿Qué historia?",
+                          "dedicatoria": "Dedicatoria (opcional)"},
         "preview": "libro",
         "piezas": _piezas_libro,
     },
@@ -613,8 +614,9 @@ TIPOS = {
     "libro-premium": {
         "nombre": "Libro de cuento premium — edición única",
         "descripcion": "El mismo cuento de 10 páginas, pero con TODAS las ilustraciones pintadas por IA especialmente para este pedido: cada libro es único e irrepetible. La generación tarda unos minutos; el link de descarga se activa solo al terminar.",
-        "campos": ["nombre", "edad", "genero", "dedicatoria"],
-        "campos_labels": {"genero": "¿Nena o nene?", "dedicatoria": "Dedicatoria (opcional)"},
+        "campos": ["nombre", "edad", "genero", "historia", "dedicatoria"],
+        "campos_labels": {"genero": "¿Nena o nene?", "historia": "¿Qué historia?",
+                          "dedicatoria": "Dedicatoria (opcional)"},
         "preview": "libro",
         "piezas": _piezas_libro,
     },

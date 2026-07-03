@@ -933,9 +933,26 @@ class Handler(BaseHTTPRequestHandler):
                            "nombre": data.get("nombre", "")}, f, ensure_ascii=False, indent=2)
 
             def _audio_worker(data=data, dest=dest, tema=tema):
-                import audiolibro, zipfile
+                import audiolibro, zipfile, libro_ia
                 try:
-                    tok_al = audiolibro.crear(data, tema, OPENAI_API_KEY)
+                    escenas = None
+                    hist = (data.get("historia") or "").strip().lower()
+                    if hist and hist != "aventura":
+                        # Historia no clásica: el arte del tema no la ilustra —
+                        # se pintan las escenas de ESTE pedido (como el premium).
+                        client = _openai_client()
+                        if client is not None:
+                            escenas = os.path.join(dest, "escenas")
+                            try:
+                                libro_ia.generar_ilustraciones(
+                                    client, tema, dest_dir=escenas,
+                                    genero=data.get("genero"), historia=hist)
+                            except Exception as e:
+                                print("[libro-audio] arte falló (%s) — arte del tema" % e,
+                                      flush=True)
+                                escenas = None
+                    tok_al = audiolibro.crear(data, tema, OPENAI_API_KEY,
+                                              escenas_dir=escenas)
                     with zipfile.ZipFile(os.path.join(dest, "kit.zip"), "w") as z:
                         z.writestr("TU_AUDIOLIBRO.txt",
                                    "Tu audiolibro narrado está en:\n%s/al/%s\n\n"
@@ -1020,7 +1037,8 @@ class Handler(BaseHTTPRequestHandler):
                 with _LIBRO_PREMIUM_SEM:
                     try:
                         libro_ia.generar_ilustraciones(client, tema, dest_dir=escenas,
-                                                       genero=data.get("genero"))
+                                                       genero=data.get("genero"),
+                                                       historia=data.get("historia"))
                     except Exception as e:
                         # El cliente recibe el libro IGUAL (arte standard) — pero esto
                         # es un pedido premium: dejar rastro para regenerar/compensar.

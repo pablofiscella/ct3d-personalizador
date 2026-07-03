@@ -54,6 +54,39 @@ _ESCENAS = [
 ]
 
 
+# Escenas por ARGUMENTO (idx 2..8 — portada/dedicatoria/fin son comunes): el arte
+# por pedido (premium/audiolibro) ilustra la historia que el cliente eligió.
+_ESCENAS_POR_HISTORIA = {
+    "tesoro": {
+        2: "Un chico dormido... no: {protagonista} descubriendo un mapa antiguo brillante que sale de una mochila, en un cuarto infantil cálido.",
+        3: "Un mapa del tesoro desplegado que brilla con destellos dorados, comienzo de aventura, en {mundo}.",
+        4: "{protagonista} y los personajes del tema mirando juntos un mapa del tesoro en {mundo}, señalando pistas.",
+        5: "Un río ancho cruzando {mundo}; los personajes del tema miran preocupados desde la orilla.",
+        6: "{protagonista} cruzando un puente improvisado de troncos y sogas sobre el río, los personajes del tema festejando; un cofre dorado asoma del otro lado.",
+        7: "Un cofre del tesoro abierto irradiando luz dorada con {tesoro} adentro, los personajes del tema celebrando alrededor.",
+        8: "Una casita de noche con ventana cálida iluminada, cielo estrellado, un mapa enrollado apoyado junto a la cama.",
+    },
+    "rescate": {
+        2: "Una lucecita mágica golpeando la ventana de un cuarto infantil de noche, sensación de mensaje urgente.",
+        3: "{protagonista} volando por el cielo llevado por el viento hacia {mundo}, estrellas y nubes.",
+        4: "Los personajes del tema preocupados buscando a un amiguito perdido en {mundo}, atardecer.",
+        5: "Huellas pequeñitas en el suelo de {mundo} que llevan hacia una cueva; los personajes del tema las siguen con linternas.",
+        6: "{protagonista} saliendo de una cueva de la mano de un personajito pequeño del tema, los demás celebrando aliviados con los brazos en alto.",
+        7: "Los personajes del tema entregando {tesoro} brillante y destacado en el centro, con destellos dorados, ceremonia de héroes.",
+        8: "Un cuarto infantil de noche, un chico dormido con sonrisa... mejor: la casita de noche con ventana cálida y una lucecita mágica despidiéndose.",
+    },
+    "gran-dia": {
+        2: "Una carta de invitación gigante y festiva llegando a un cuarto infantil, confetti saliendo del sobre.",
+        3: "{protagonista} con mochila caminando decidido hacia {mundo}, camino soleado con banderines a lo lejos.",
+        4: "Los personajes del tema preparando una gran fiesta en {mundo}: guirnaldas, música, juegos, mucha actividad alegre.",
+        5: "Una tormenta con viento desarmando las decoraciones de la fiesta en {mundo}; los personajes del tema mirando sorprendidos.",
+        6: "{protagonista} organizando a los personajes del tema para reconstruir la fiesta: todos ayudando juntos, decoraciones volviendo a su lugar, trabajo en equipo.",
+        7: "La gran fiesta espléndida de noche en {mundo} con luces y {tesoro} siendo entregado en el centro con destellos dorados.",
+        8: "Cielo nocturno estrellado sereno sobre {mundo}, los personajes del tema despidiéndose a lo lejos con las manos en alto.",
+    },
+}
+
+
 def _paleta(tema):
     import json
     try:
@@ -80,7 +113,7 @@ def _protagonista(genero):
     return "un niño visto de espaldas (nunca se le ve la cara)"
 
 
-def prompt_pagina(tema, idx, genero=None):
+def prompt_pagina(tema, idx, genero=None, historia=None):
     """Prompt de la ilustración de la página idx, con la ambientación de la historia
     del tema (libro.HISTORIAS) y el mismo bloque de estilo del resto del kit.
     genero («nena»/«nene», opcional): cómo dibujar al protagonista en las escenas
@@ -88,7 +121,8 @@ def prompt_pagina(tema, idx, genero=None):
     h = dict(libro.HISTORIAS.get(tema, libro.HISTORIA_DEFAULT))
     h["protagonista"] = _protagonista(genero)
     pal = _paleta(tema)
-    escena = _ESCENAS[idx].format(**h)
+    arco = _ESCENAS_POR_HISTORIA.get((historia or "").strip().lower(), {})
+    escena = arco.get(idx, _ESCENAS[idx]).format(**h)
     return (
         "Ilustración para la página de un libro de cuentos infantil profesional. "
         "Escena: %s "
@@ -123,7 +157,7 @@ def _boceto(tema, idx):
 
 
 def generar_ilustraciones(client, tema, paginas=None, calidad="medium", progress=None,
-                          dest_dir=None, genero=None):
+                          dest_dir=None, genero=None, historia=None):
     """Genera y guarda las ilustraciones de `paginas` (default: las 10). Devuelve la
     lista de paths escritos. `client` es ia_kit.client.OpenAIImageClient (o cualquier
     objeto con .editar(refs, prompt, size, quality=) -> bytes PNG).
@@ -138,7 +172,7 @@ def generar_ilustraciones(client, tema, paginas=None, calidad="medium", progress
         if progress:
             progress("Página %d de %d (pieza %d)…" % (n + 1, len(paginas), idx))
         r = refs or [_boceto(tema, idx)]
-        prompt = prompt_pagina(tema, idx, genero=genero)
+        prompt = prompt_pagina(tema, idx, genero=genero, historia=historia)
         if not refs:
             prompt = ("Redibujá este boceto como ilustración profesional, conservando "
                       "la composición. " + prompt)

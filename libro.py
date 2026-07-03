@@ -180,7 +180,69 @@ def _parrafo(dr, text, cx, y, font, color, maxw, lh=1.35, anchor="ma"):
     return y
 
 
-# ── cuento ───────────────────────────────────────────────────────────────────
+# ── argumentos: hilos narrativos distintos (mismo tema, otra historia) ────────
+# Cada argumento define los 7 textos de la historia con la ambientación del tema
+# ({mundo}/{amigos}/{tesoro} salen de HISTORIAS; {desafio}/{solucion} solo los usa
+# el clásico). El cliente elige el argumento al comprar (campo "historia") — así
+# la misma temática da libros DIFERENTES y se puede comprar más de uno.
+ARGUMENTOS = {
+    "aventura": None,   # el clásico (invitación mágica) — textos abajo, en cuento()
+    "tesoro": [
+        "Esa mañana, {nombre} encontró un mapa antiguo enrollado en su mochila. "
+        "Marcaba un camino secreto hacia {mundo}.",
+        "Al seguir la primera pista y {conteo}, ¡el mapa empezó a brillar! "
+        "La búsqueda del tesoro había comenzado.",
+        "En {mundo}, {amigos} conocían las pistas: cada uno le contó a {nombre} "
+        "un secreto del camino.",
+        "Pero la última pista estaba del otro lado de un río enorme, y nadie "
+        "sabía cómo cruzarlo... nadie, excepto {nombre}.",
+        "{nombre} armó un puente con troncos y sogas, ¡y cruzaron todos juntos "
+        "cantando! Ahí estaba: un cofre dorado.",
+        "Adentro brillaba {tesoro}. {amigos} aplaudieron: «¡{nombre} es quien "
+        "mejor sigue las pistas en todo {mundo}!»",
+        "De vuelta en casa, {nombre} guardó el mapa bajo la almohada. Los "
+        "mejores tesoros se encuentran con paciencia y buenos amigos.",
+    ],
+    "rescate": [
+        "Una noche, una lucecita golpeó la ventana de {nombre}: era un mensaje "
+        "urgente desde {mundo}. ¡Necesitaban ayuda!",
+        "{nombre} no lo dudó: cerró los ojos, empezó a {conteo}... y el viento "
+        "lo llevó volando hasta {mundo}.",
+        "{amigos} estaban muy preocupados: el más pequeño del grupo se había "
+        "perdido y ya estaba oscureciendo.",
+        "Buscaron por todos lados sin suerte. Entonces {nombre} tuvo una idea: "
+        "«¡Sigamos las huellas más chiquitas!»",
+        "Las huellas llevaron a una cueva. {nombre} entró con su linterna, "
+        "tomó al pequeño de la mano y lo trajo de vuelta. ¡Qué valiente!",
+        "Como agradecimiento, {amigos} le regalaron {tesoro}: la marca de los "
+        "héroes de {mundo}.",
+        "Esa noche {nombre} durmió con una sonrisa gigante. Ayudar a un amigo "
+        "es la aventura más importante de todas.",
+    ],
+    "gran-dia": [
+        "¡Llegó una noticia increíble! En {mundo} se hacía la Gran Fiesta del "
+        "año, y {nombre} estaba en la lista de invitados especiales.",
+        "{nombre} preparó su mochila, contó hasta {conteo_num} para darse "
+        "valor... ¡y salió rumbo a la aventura!",
+        "{amigos} lo recibieron ensayando: había juegos, música y un gran "
+        "desfile para preparar. ¡Faltaba tan poco!",
+        "Pero de pronto, ¡PUM!, una tormenta desarmó todo lo que habían "
+        "preparado. Todos se miraron sin saber qué hacer.",
+        "«¡No nos rindamos!», dijo {nombre}, y organizó a todos: unos ataban, "
+        "otros pintaban... ¡y la fiesta quedó más linda que antes!",
+        "La Gran Fiesta fue inolvidable, y {amigos} le entregaron a {nombre} "
+        "{tesoro}, el premio al invitado más especial.",
+        "Al volver a casa, {nombre} entendió el secreto: los grandes días se "
+        "construyen entre todos, con manos que ayudan.",
+    ],
+}
+
+ARGUMENTO_LABELS = {"aventura": "La invitación mágica (clásico)",
+                    "tesoro": "El mapa del tesoro",
+                    "rescate": "El gran rescate",
+                    "gran-dia": "El gran día"}
+
+
 def cuento(data, tema="safari"):
     """Los 7 textos de la historia, personalizados con nombre/edad + la ambientación
     del tema. Testeable sin renderizar (el nombre TIENE que aparecer en el cuento)."""
@@ -188,6 +250,13 @@ def cuento(data, tema="safari"):
     nombre = (str(data.get("nombre") or "").strip()) or "Alex"
     edad = str(data.get("edad") or "").strip()
     conteo = ("contar hasta %s" % edad) if edad.isdigit() else "contar hasta tres"
+    historia = (str(data.get("historia") or "").strip().lower()) or "aventura"
+    arco = ARGUMENTOS.get(historia)
+    if arco:
+        ctx = dict(h)
+        ctx.update({"nombre": nombre, "conteo": conteo,
+                    "conteo_num": edad if edad.isdigit() else "tres"})
+        return [t.format(**ctx) for t in arco]
     return [
         "Esta noche, antes de dormir, %s encontró una invitación brillante debajo "
         "de la almohada. Decía: «Te esperamos en %s»." % (nombre, h["mundo"]),

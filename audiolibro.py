@@ -132,26 +132,15 @@ def html(token, base_url=""):
 <title>%(titulo)s</title><style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { background:#2a2438; font-family:system-ui,sans-serif; min-height:100vh;
-  display:flex; flex-direction:column; align-items:center; justify-content:center; }
-.escenario { perspective:1600px; width:min(92vw, 62vh); }
-.hoja { width:100%%; border-radius:12px; box-shadow:0 18px 60px rgba(0,0,0,.5);
-  display:block; transform-origin:left center; backface-visibility:hidden; }
-.girando { animation:curl .9s cubic-bezier(.4,.1,.3,1); }
-@keyframes curl {
-  0%%   { transform:rotateY(0) skewY(0); border-radius:12px; filter:brightness(1); }
-  35%%  { transform:rotateY(-24deg) skewY(-1.5deg); border-top-right-radius:70px;
-          border-bottom-right-radius:40px; filter:brightness(.92);
-          box-shadow:-30px 18px 50px rgba(0,0,0,.45); }
-  60%%  { transform:rotateY(-10deg) skewY(-.5deg); border-top-right-radius:26px;
-          filter:brightness(.97); }
-  100%% { transform:rotateY(0) skewY(0); border-radius:12px; filter:brightness(1); }
-}
-.controles { display:flex; gap:14px; margin-top:18px; align-items:center; }
+  display:flex; flex-direction:column; align-items:center; justify-content:center; padding:12px; }
+#flip { width:min(92vw, calc((100vh - 150px) * 0.707)); }
+#flip img { border-radius:6px; }
+.controles { display:flex; gap:14px; margin-top:16px; align-items:center; }
 button { background:#6B5BD2; color:#fff; border:0; border-radius:50%%; width:56px; height:56px;
   font-size:22px; cursor:pointer; } button.sec { background:#453a66; width:46px; height:46px; font-size:16px; }
 .pag { color:#b8aede; font-size:14px; min-width:52px; text-align:center; }
 </style></head><body>
-<div class="escenario"><img id="hoja" class="hoja" src="%(base)s/al/%(token)s/pag_00.jpg"></div>
+<div id="flip"></div>
 <div class="controles">
   <button class="sec" id="prev">⏮</button>
   <button id="play">▶</button>
@@ -159,26 +148,38 @@ button { background:#6B5BD2; color:#fff; border:0; border-radius:50%%; width:56p
   <span class="pag" id="pag">1 / %(n)d</span>
 </div>
 <audio id="audio" preload="auto"></audio>
+<script src="https://unpkg.com/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 <script>
-var N=%(n)d, i=0, base="%(base)s/al/%(token)s/";
-var hoja=document.getElementById('hoja'), audio=document.getElementById('audio');
-var play=document.getElementById('play'), pag=document.getElementById('pag');
+var N=%(n)d, base="%(base)s/al/%(token)s/";
+var audio=document.getElementById('audio'), play=document.getElementById('play'),
+    pag=document.getElementById('pag'), narrando=false;
 function pad(x){return ('0'+x).slice(-2);}
-function cargar(k, auto){
-  i=Math.max(0, Math.min(N-1, k));
-  hoja.classList.remove('girando'); void hoja.offsetWidth; hoja.classList.add('girando');
-  setTimeout(function(){ hoja.src=base+'pag_'+pad(i)+'.jpg'; }, 380);
-  audio.src=base+'pag_'+pad(i)+'.mp3';
-  pag.textContent=(i+1)+' / '+N;
-  if(auto){ audio.play(); play.textContent='⏸'; }
+var urls=[]; for(var k=0;k<N;k++) urls.push(base+'pag_'+pad(k)+'.jpg');
+// Pasado de página REAL (papel que se dobla con sombra): StPageFlip
+var flip = new St.PageFlip(document.getElementById('flip'), {
+  width: 827, height: 1169, size: 'stretch',
+  minWidth: 240, maxWidth: 900, minHeight: 340, maxHeight: 1400,
+  usePortrait: true, showCover: true, maxShadowOpacity: 0.65,
+  mobileScrollSupport: false, flippingTime: 900 });
+flip.loadFromImages(urls);
+function narrar(i){
+  audio.src = base+'pag_'+pad(i)+'.mp3';
+  if(narrando){ audio.play(); }
+  pag.textContent = (i+1)+' / '+N;
 }
-audio.onended=function(){ if(i<N-1){ cargar(i+1, true); } else { play.textContent='▶'; } };
-play.onclick=function(){
-  if(audio.paused){ if(!audio.src) cargar(0,true); else audio.play(); play.textContent='⏸'; }
-  else { audio.pause(); play.textContent='▶'; }
+flip.on('flip', function(e){ narrar(e.data); });
+audio.onended = function(){
+  var i = flip.getCurrentPageIndex();
+  if(i < N-1){ flip.flipNext(); } else { narrando=false; play.textContent='▶'; }
 };
-document.getElementById('prev').onclick=function(){ cargar(i-1, !audio.paused); };
-document.getElementById('next').onclick=function(){ cargar(i+1, !audio.paused); };
-cargar(0, false);
+play.onclick = function(){
+  if(audio.paused){
+    narrando=true; play.textContent='⏸';
+    if(!audio.src){ narrar(flip.getCurrentPageIndex()); } else { audio.play(); }
+  } else { narrando=false; audio.pause(); play.textContent='▶'; }
+};
+document.getElementById('prev').onclick = function(){ flip.flipPrev(); };
+document.getElementById('next').onclick = function(){ flip.flipNext(); };
+pag.textContent = '1 / '+N;
 </script></body></html>""" % {"titulo": e(titulo), "token": e(token),
                               "base": e(base_url), "n": n}
