@@ -1,0 +1,130 @@
+{
+  "id": "futbol",
+  "nombre": "Fútbol",
+  "edades": [
+    1
+  ],
+  "piezas": {
+    "invitacion": {
+      "size": [
+        1500,
+        2100
+      ],
+      "bgimage": "invitacion_{edad}.png",
+      "layout_file": "layouts/invitacion.json",
+      "text": [
+        {
+          "id": "nombre",
+          "tpl": "{nombre}",
+          "editable": true,
+          "font": "DancingScript-VF.ttf",
+          "wght": 700,
+          "size": 195,
+          "color": "#c8674e",
+          "x": 0.5,
+          "y": 0.34,
+          "anchor": "mm",
+          "maxw": 0.64
+        },
+        {
+          "id": "fecha",
+          "tpl": "{fecha}",
+          "editable": true,
+          "font": "Poppins-Medium.ttf",
+          "size": 44,
+          "color": "#6f4e37",
+          "x": 0.4,
+          "y": 0.52,
+          "anchor": "lm",
+          "maxw": 0.5
+        },
+        {
+          "id": "hora",
+          "tpl": "{hora}",
+          "editable": true,
+          "font": "Poppins-Medium.ttf",
+          "size": 44,
+          "color": "#6f4e37",
+          "x": 0.4,
+          "y": 0.57,
+          "anchor": "lm",
+          "maxw": 0.5
+        },
+        {
+          "id": "lugar",
+          "tpl": "{lugar}",
+          "editable": true,
+          "font": "Poppins-Medium.ttf",
+          "size": 44,
+          "color": "#6f4e37",
+          "x": 0.4,
+          "y": 0.618,
+          "anchor": "lm",
+          "maxw": 0.5
+        },
+        {
+          "id": "direccion",
+          "tpl": "{direccion}",
+          "editable": true,
+          "adopts_if_empty": "lugar",
+          "font": "Poppins-Medium.ttf",
+          "size": 30,
+          "color": "#6f4e37",
+          "x": 0.4,
+          "y": 0.655,
+          "anchor": "lm",
+          "maxw": 0.5
+        },
+        {
+          "id": "confirma",
+          "tpl": "Confirmá:",
+          "editable": true,
+          "toggleable": true,
+          "font": "Poppins-Medium.ttf",
+          "size": 41,
+          "color": "#6f4e37",
+          "x": 0.307,
+          "y": 0.981,
+          "anchor": "lm",
+          "maxw": 0.22
+        },
+        {
+          "id": "rsvp",
+          "tpl": "{telefono}",
+          "editable": true,
+          "font": "Poppins-Medium.ttf",
+          "size": 41,
+          "color": "#6f4e37",
+          "x": 0.5033,
+          "y": 0.981,
+          "anchor": "lm",
+          "maxw": 0.44
+        }
+      ]
+    },
+    "afiche": {
+      "size": [
+        1728,
+        2456
+      ],
+      "render_scale": 2.9,
+      "bgimage": "afiche_{edad}.png",
+      "layout_file": "layouts/afiche.json",
+      "text": [
+        {
+          "id": "nombre",
+          "tpl": "{nombre}",
+          "editable": true,
+          "font": "DancingScript-VF.ttf",
+          "wght": 700,
+          "size": 170,
+          "color": "#c8674e",
+          "x": 0.5,
+          "y": 0.27,
+          "anchor": "mm",
+          "maxw": 0.62
+        }
+      ]
+    }
+  }
+}
