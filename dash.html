@@ -1450,8 +1450,15 @@ function dibujarPreview() {
   ctx.lineWidth = lw;
   ctx.fillStyle = p.monthColor;
   ctx.strokeStyle = p.monthColor;
-  if (lw > 0.3) ctx.strokeText('ENERO', p.monthX * scale, p.monthY * scale);
-  ctx.fillText('ENERO', p.monthX * scale, p.monthY * scale);
+  // Centrar la CAJA DE TINTA en el punto (igual que el motor con anchor="mm"),
+  // no el cuadro em: para un título en mayúsculas el em incluye el hueco de las
+  // colas y hacía que en el preview el mes se viera más arriba que en la imagen final.
+  const mM = ctx.measureText('ENERO');
+  const monthBaselineY = p.monthY * scale + (mM.actualBoundingBoxAscent - mM.actualBoundingBoxDescent) / 2;
+  ctx.textBaseline = 'alphabetic';
+  if (lw > 0.3) ctx.strokeText('ENERO', p.monthX * scale, monthBaselineY);
+  ctx.fillText('ENERO', p.monthX * scale, monthBaselineY);
+  ctx.textBaseline = 'middle';
 
   const dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   ctx.font = Math.round(p.weekdaySize * scale) + 'px sans-serif';
