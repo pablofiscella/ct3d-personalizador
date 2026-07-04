@@ -492,8 +492,9 @@ async function openProductosNuevos(tema, nombre){
     <div id="pn-body" style="min-height:80px">Cargando…</div>
     <p id="pn-msg" style="margin-top:10px;font-size:13px;min-height:18px;opacity:.95"></p></div>`;
   document.body.appendChild(ov);
-  ov.querySelector('#pn-close').onclick=()=>ov.remove();
-  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+  const cerrarPanel=()=>{ ov.remove(); if(window.__refrescarProductos===cargarPiezas) window.__refrescarProductos=null; };
+  ov.querySelector('#pn-close').onclick=cerrarPanel;
+  ov.addEventListener('click',e=>{ if(e.target===ov) cerrarPanel(); });
   const tabsBox=ov.querySelector('#pn-tabs'), body=ov.querySelector('#pn-body'), pmsg=ov.querySelector('#pn-msg');
   let tipoActual=PROD_NUEVOS_TIPOS[0][0];
   function pintarTabs(){
@@ -694,6 +695,7 @@ async function openProductosNuevos(tema, nombre){
       });
     }
   }
+  window.__refrescarProductos = cargarPiezas;   // para refrescar la grilla tras generar en el editor
   pintarTabs();
   cargarPiezas();
 }
@@ -1473,10 +1475,13 @@ function dibujarPreview() {
   const mesPrev = window.calEditorMes || 1;
   const anyoPrev = parseInt(anyoInput && anyoInput.value) || 2026;
 
-  // Mes (capitalizado, como escribe el motor: "Enero", no "ENERO")
+  // Mes (capitalizado como el motor: "Enero"). Ancla por la LÍNEA BASE (alphabetic),
+  // igual que anchor="ms" del motor: coincide exacto sin depender de las métricas de la fuente.
   ctx.font = p.monthWeight + ' ' + Math.round(p.monthSize * scale) + 'px ' + FF;
   ctx.fillStyle = p.monthColor;
+  ctx.textBaseline = 'alphabetic';
   ctx.fillText(_MESES_CAL[mesPrev - 1], p.monthX * scale, p.monthY * scale);
+  ctx.textBaseline = 'middle';
 
   const dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   ctx.font = p.weekdayWeight + ' ' + Math.round(p.weekdaySize * scale) + 'px ' + FF;
@@ -1508,7 +1513,8 @@ function dibujarPreview() {
 // Caja de colisión (en coords reales 1240x1754) para cada grupo arrastrable
 function hitBox(mode, p) {
   if (mode === 'month') {
-    return { x1: p.monthX - 220, y1: p.monthY - p.monthSize / 2 - 10, x2: p.monthX + 220, y2: p.monthY + p.monthSize / 2 + 10 };
+    // monthY es la línea base (el texto sube desde ahí): la caja cubre de monthY-alto a monthY
+    return { x1: p.monthX - 220, y1: p.monthY - p.monthSize - 10, x2: p.monthX + 220, y2: p.monthY + 12 };
   }
   if (mode === 'weekday') {
     return { x1: p.weekdayX - 40, y1: p.weekdayY - p.weekdaySize, x2: p.weekdayX + 6 * p.weekdaySpacing + 40, y2: p.weekdayY + p.weekdaySize };
@@ -1740,17 +1746,15 @@ if (genBtn) {
       });
 
       if (res.ok) {
-        window.calHuboCambios = true;
-        if (mes) {
-          statusDiv.textContent = '✅ ' + _MESES_CAL[mes - 1] + ' regenerado. Podés seguir ajustando o cerrar.';
-          genBtn.disabled = false;
-        } else {
-          statusDiv.textContent = '✅ 12 meses generados';
-          setTimeout(() => {
-            document.getElementById('cal-editor-modal').close();
-            location.reload();
-          }, 1000);
-        }
+        // Mismo comportamiento en ambos casos: cerrar el editor y volver al popup
+        // de "Otros productos" refrescado (sin recargar toda la página).
+        window.calHuboCambios = false;
+        statusDiv.textContent = mes ? ('✅ ' + _MESES_CAL[mes - 1] + ' regenerado') : '✅ 12 meses generados';
+        setTimeout(() => {
+          document.getElementById('cal-editor-modal').close();
+          if (window.__refrescarProductos) window.__refrescarProductos();
+          else location.reload();
+        }, 700);
       } else {
         const err = await res.text();
         statusDiv.textContent = '❌ Error: ' + err.substring(0, 50);
@@ -1767,7 +1771,7 @@ if (genBtn) {
 if (cerrarBtn) {
   cerrarBtn.addEventListener('click', () => {
     document.getElementById('cal-editor-modal').close();
-    if (window.calHuboCambios) { window.calHuboCambios = false; location.reload(); }
+    if (window.calHuboCambios) { window.calHuboCambios = false; if (window.__refrescarProductos) window.__refrescarProductos(); }
   });
 }
 

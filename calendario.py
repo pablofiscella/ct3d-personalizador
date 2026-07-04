@@ -222,8 +222,11 @@ def mes_hoja_desde_config(mes, anyo, nombre, config, plantilla, tema="safari"):
         domingo_rojo = config.get("domingo_rojo", True)
         ROJO_DOMINGO = (211, 47, 47)  # #D32F2F — mismo tono que usa el preview del editor
 
+        # Ancla por la LÍNEA BASE (ms), no por el centro (mm): la baseline es una
+        # referencia independiente de la fuente, así el preview del editor (canvas,
+        # textBaseline='alphabetic') cae exactamente donde el motor dibuja el mes.
         dr.text((month_x, month_y), _MESES_ES[mes - 1],
-                font=_font(month_size, weight=month_weight), fill=month_color, anchor="mm")
+                font=_font(month_size, weight=month_weight), fill=month_color, anchor="ms")
 
         for i, dlabel in enumerate(_DIAS_ES):
             color = ROJO_DOMINGO if (domingo_rojo and i == 6) else weekday_color
