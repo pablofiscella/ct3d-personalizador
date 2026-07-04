@@ -69,6 +69,25 @@ def _hex_to_rgb(hex_color):
     return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
 
 
+def _halo(cfg, colors, size, fallback_bg=(255, 255, 255)):
+    """Kwargs de contorno ('halo') para dibujar los números del día legibles cuando
+    caen sobre un personaje de la plantilla. El halo usa el color del fondo de la hoja,
+    así es INVISIBLE en las celdas limpias (los meses que ya quedaban bien no cambian) y
+    solo separa el número cuando pisa un dibujo. Se puede afinar/desactivar desde el config:
+      days.halo        -> bool (default True)
+      days.halo_width  -> px de contorno (default ~12% del tamaño de fuente)
+      days.halo_color  -> color del halo (default colors.background, o blanco)."""
+    if not cfg.get("halo", True):
+        return {}
+    hw = cfg.get("halo_width")
+    hw = int(round(size * 0.12)) if hw is None else int(hw)
+    if hw <= 0:
+        return {}
+    hc = cfg.get("halo_color") or colors.get("background") or fallback_bg
+    hc = _hex_to_rgb(hc) if isinstance(hc, str) else tuple(hc)
+    return {"stroke_width": hw, "stroke_fill": hc}
+
+
 def _load_config(tema):
     """Carga config_calendario.json de la temática. Si no existe, devuelve None."""
     config_path = os.path.join(TEMAS, tema, "config_calendario.json")
@@ -199,6 +218,8 @@ def mes_hoja_desde_config(mes, anyo, nombre, config, plantilla, tema="safari"):
             dr.text((weekday_x + i * weekday_spacing, weekday_y), dlabel,
                     font=_font(weekday_size, weight=weekday_weight), fill=color, anchor="mm")
 
+        day_halo = _halo(days_cfg, colors, day_size)
+
         cal = calendar.Calendar()
         days = cal.monthdayscalendar(anyo, mes)
         for row, week in enumerate(days):
@@ -208,7 +229,8 @@ def mes_hoja_desde_config(mes, anyo, nombre, config, plantilla, tema="safari"):
                 color = ROJO_DOMINGO if (domingo_rojo and col == 6) else day_color
                 cx = days_x + col * days_spacing_h
                 cy = days_y + row * days_spacing_v
-                dr.text((cx, cy), str(day), font=_font(day_size, weight=day_weight), fill=color, anchor="mm")
+                dr.text((cx, cy), str(day), font=_font(day_size, weight=day_weight),
+                        fill=color, anchor="mm", **day_halo)
 
         im = Image.alpha_composite(im, overlay)
         return im
@@ -254,6 +276,8 @@ def mes_hoja_desde_config(mes, anyo, nombre, config, plantilla, tema="safari"):
     days = cal.monthdayscalendar(anyo, mes)
 
     day_text_y_offset = config.get("day_text_y_offset", -4)
+    day_size = font_sizes.get("day", 28)
+    day_halo = _halo(config.get("days", {}), colors, day_size)
     cell_h = grid_h / rows
     y = grid_y
     for week in days:
@@ -262,7 +286,7 @@ def mes_hoja_desde_config(mes, anyo, nombre, config, plantilla, tema="safari"):
             if day == 0:
                 continue
             dr.text((cx, y + cell_h / 2 + day_text_y_offset), str(day),
-                    font=_font(font_sizes.get("day", 28)), fill=day_text_color, anchor="mm")
+                    font=_font(day_size), fill=day_text_color, anchor="mm", **day_halo)
         y += cell_h
 
     im = Image.alpha_composite(im, overlay)
