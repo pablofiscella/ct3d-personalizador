@@ -556,8 +556,10 @@ async function openProductosNuevos(tema, nombre){
     grid.innerHTML=j.piezas.map(p=>{const alerta=esCalendario&&seisFilas.has(p.idx);return `
       <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:8px;text-align:center;position:relative;${alerta?'outline:2px solid #E5484D;outline-offset:-2px':''}">
         ${alerta?`<div title="Este mes tiene 6 semanas (${anyoCal}): si tu plantilla tiene grilla de 5 filas, la última fila de números se desborda sobre el dibujo. Reemplazá este mes con 📤 o rehacé la grilla a 6 filas." style="position:absolute;top:5px;left:5px;z-index:2;background:#E5484D;color:#fff;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.35);cursor:help">⚠ 6 filas</div>`:''}
-        <img loading="lazy" src="/preview?tipo=${encodeURIComponent(tipoActual)}&tema=${encodeURIComponent(tema)}&pieza=${p.idx}&max=260&cb=${cb}"
-             style="width:100%;height:130px;object-fit:contain;background:#2a2735;border-radius:6px;display:block" alt=""
+        <img loading="lazy" class="pn-zoom" title="Click para ver grande"
+             data-full="/preview?tipo=${encodeURIComponent(tipoActual)}&tema=${encodeURIComponent(tema)}&pieza=${p.idx}&max=1200&cb=${cb}"
+             src="/preview?tipo=${encodeURIComponent(tipoActual)}&tema=${encodeURIComponent(tema)}&pieza=${p.idx}&max=260&cb=${cb}"
+             style="width:100%;height:130px;object-fit:contain;background:#2a2735;border-radius:6px;display:block;cursor:zoom-in" alt=""
              onload="this.style.background='#fff'" onerror="this.style.background='#402626'">
         <div style="font-size:11.5px;font-weight:600;margin:6px 0 2px">${esc(p.label)}${p.override?' <span style="color:#39d98a">✓ personalizada</span>':''}</div>
         <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:5px">
@@ -1336,7 +1338,21 @@ cargar();
 </div>
 
 <script>
+// Vista rápida (lightbox) al tocar una miniatura de producto
+window.verImagenGrande = function(url) {
+  const lb = document.createElement('div');
+  lb.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:10001;display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out';
+  lb.innerHTML = '<img src="' + url + '" style="max-width:96%;max-height:96%;object-fit:contain;border-radius:8px;background:#fff;box-shadow:0 8px 40px rgba(0,0,0,.6)">';
+  const cerrar = () => { lb.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = (ev) => { if (ev.key === 'Escape') cerrar(); };
+  lb.onclick = cerrar;
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(lb);
+};
+
 document.addEventListener('click', (e) => {
+  const zi = e.target.closest && e.target.closest('.pn-zoom');
+  if (zi && zi.dataset.full) { window.verImagenGrande(zi.dataset.full); return; }
   if (e.target.id === 'cal-editor-btn') {
     if (window.TEMA_ACTUAL) window.abrirEditorCal(0);
     return;
