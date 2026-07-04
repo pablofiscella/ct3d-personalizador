@@ -6,7 +6,7 @@
 <title>Kits personalizables — Casatridimensional</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700&family=Source+Code+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700&family=Source+Code+Pro:wght@400;500;600;700&family=Fredoka:wght@300..700&display=swap" rel="stylesheet">
 <style>
 /* ──────────────────────────────────────────────────────────────
    Tokens — copiados 1:1 del design system del dashboard CT3D
@@ -1465,57 +1465,43 @@ function dibujarPreview() {
     ctx.restore();
   }
 
-  // Grosor simulado con trazo (faux-bold), proporcional al slider 300-700
-  ctx.lineJoin = 'round';
-
-  const grosorTrazo = (weight, fontPx) => Math.max(0, (weight - 300) / 400) * fontPx * 0.09;
   const DOMINGO_ROJO = '#d32f2f';
+  // Misma fuente que el motor (Fredoka) y mismo modelo de centrado (em / textBaseline
+  // middle == anchor "mm" de Pillow). El mes real y sus días (lunes primero, con las
+  // 6 filas cuando corresponde) para que el preview coincida con la imagen final.
+  const FF = 'Fredoka, sans-serif';
+  const mesPrev = window.calEditorMes || 1;
+  const anyoPrev = parseInt(anyoInput && anyoInput.value) || 2026;
 
-  ctx.font = Math.round(p.monthSize * scale) + 'px sans-serif';
-  let lw = grosorTrazo(p.monthWeight, p.monthSize * scale);
-  ctx.lineWidth = lw;
+  // Mes (capitalizado, como escribe el motor: "Enero", no "ENERO")
+  ctx.font = p.monthWeight + ' ' + Math.round(p.monthSize * scale) + 'px ' + FF;
   ctx.fillStyle = p.monthColor;
-  ctx.strokeStyle = p.monthColor;
-  // Centrar la CAJA DE TINTA en el punto (igual que el motor con anchor="mm"),
-  // no el cuadro em: para un título en mayúsculas el em incluye el hueco de las
-  // colas y hacía que en el preview el mes se viera más arriba que en la imagen final.
-  const mM = ctx.measureText('ENERO');
-  const monthBaselineY = p.monthY * scale + (mM.actualBoundingBoxAscent - mM.actualBoundingBoxDescent) / 2;
-  ctx.textBaseline = 'alphabetic';
-  if (lw > 0.3) ctx.strokeText('ENERO', p.monthX * scale, monthBaselineY);
-  ctx.fillText('ENERO', p.monthX * scale, monthBaselineY);
-  ctx.textBaseline = 'middle';
+  ctx.fillText(_MESES_CAL[mesPrev - 1], p.monthX * scale, p.monthY * scale);
 
   const dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-  ctx.font = Math.round(p.weekdaySize * scale) + 'px sans-serif';
-  lw = grosorTrazo(p.weekdayWeight, p.weekdaySize * scale);
-  ctx.lineWidth = lw;
+  ctx.font = p.weekdayWeight + ' ' + Math.round(p.weekdaySize * scale) + 'px ' + FF;
   for (let i = 0; i < 7; i++) {
-    const esDomingo = p.domingoRojo && i === 6;
-    ctx.fillStyle = esDomingo ? DOMINGO_ROJO : '#000';
-    ctx.strokeStyle = ctx.fillStyle;
-    const wx = (p.weekdayX + i * p.weekdaySpacing) * scale, wy = p.weekdayY * scale;
-    if (lw > 0.3) ctx.strokeText(dias[i], wx, wy);
-    ctx.fillText(dias[i], wx, wy);
+    ctx.fillStyle = (p.domingoRojo && i === 6) ? DOMINGO_ROJO : '#000';
+    ctx.fillText(dias[i], (p.weekdayX + i * p.weekdaySpacing) * scale, p.weekdayY * scale);
   }
 
-  ctx.font = Math.round(p.daySize * scale) + 'px sans-serif';
-  lw = grosorTrazo(p.dayWeight, p.daySize * scale);
-  ctx.lineWidth = lw;
-  let dayNum = 1;
-  for (let row = 0; row < 6; row++) {
-    for (let col = 0; col < 7; col++) {
-      if (dayNum > 31) break;
-      const esDomingo = p.domingoRojo && col === 6;
-      ctx.fillStyle = esDomingo ? DOMINGO_ROJO : '#000';
-      ctx.strokeStyle = ctx.fillStyle;
-      const x = (p.daysX + col * p.daysSpacingH) * scale;
-      const y = (p.daysY + row * p.daysSpacingV) * scale;
-      if (lw > 0.3) ctx.strokeText(dayNum, x, y);
-      ctx.fillText(dayNum, x, y);
-      dayNum++;
+  // Números del mes real: día 1 arranca en su columna (lunes=0), como monthdayscalendar
+  ctx.font = p.dayWeight + ' ' + Math.round(p.daySize * scale) + 'px ' + FF;
+  const startCol = (new Date(anyoPrev, mesPrev - 1, 1).getDay() + 6) % 7;
+  const diasEnMes = new Date(anyoPrev, mesPrev, 0).getDate();
+  let dnum = 1, col = startCol;
+  for (let row = 0; row < 6 && dnum <= diasEnMes; row++) {
+    for (; col < 7 && dnum <= diasEnMes; col++) {
+      ctx.fillStyle = (p.domingoRojo && col === 6) ? DOMINGO_ROJO : '#000';
+      ctx.fillText(String(dnum), (p.daysX + col * p.daysSpacingH) * scale, (p.daysY + row * p.daysSpacingV) * scale);
+      dnum++;
     }
-    if (dayNum > 31) break;
+    col = 0;
+  }
+
+  // Si Fredoka todavía no cargó, redibujar cuando esté (para que coincida con el motor)
+  if (document.fonts && document.fonts.check && !document.fonts.check('700 40px Fredoka')) {
+    document.fonts.load('700 40px Fredoka').then(() => { if (imagenCargada) dibujarPreview(); }).catch(() => {});
   }
 }
 
