@@ -69,23 +69,35 @@ def _hex_to_rgb(hex_color):
     return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
 
 
-def _halo(cfg, colors, size, fallback_bg=(255, 255, 255)):
-    """Kwargs de contorno ('halo') para dibujar los números del día legibles cuando
-    caen sobre un personaje de la plantilla. El halo usa el color del fondo de la hoja,
-    así es INVISIBLE en las celdas limpias (los meses que ya quedaban bien no cambian) y
-    solo separa el número cuando pisa un dibujo. Se puede afinar/desactivar desde el config:
-      days.halo        -> bool (default True)
-      days.halo_width  -> px de contorno (default ~12% del tamaño de fuente)
-      days.halo_color  -> color del halo (default colors.background, o blanco)."""
-    if not cfg.get("halo", True):
-        return {}
-    hw = cfg.get("halo_width")
-    hw = int(round(size * 0.12)) if hw is None else int(hw)
-    if hw <= 0:
-        return {}
-    hc = cfg.get("halo_color") or colors.get("background") or fallback_bg
-    hc = _hex_to_rgb(hc) if isinstance(hc, str) else tuple(hc)
-    return {"stroke_width": hw, "stroke_fill": hc}
+def _color_fondo(plant, colors):
+    """Color de fondo de la hoja para el modo 'números detrás': usa colors.background si
+    está; si no, muestrea una esquina de la plantilla (las hojas tienen borde de fondo)."""
+    bg = colors.get("background") if colors else None
+    if isinstance(bg, str):
+        return _hex_to_rgb(bg)
+    if bg:
+        return tuple(bg)
+    px = plant.convert("RGB").getpixel((2, 2))
+    return tuple(px[:3])
+
+
+def _detras(num_layer, plant, bg, tol=45):
+    """Deja los números del día DETRÁS de los dibujos de la plantilla.
+    La plantilla es una imagen plana (personaje+fondo fusionados), así que separamos por
+    color: donde el pixel es ~fondo, el número se ve; donde hay un dibujo (personaje, banner,
+    guarda), ese dibujo tapa al número → el número queda detrás. Preserva la textura del fondo
+    (no lo aplana: solo recorta el alfa de la capa de números).
+      tol: cuánto puede alejarse un pixel del color de fondo para seguir contando como fondo."""
+    from PIL import ImageChops, ImageFilter
+    base = Image.new("RGB", plant.size, bg)
+    diff = ImageChops.difference(plant.convert("RGB"), base)
+    r, g, b = diff.split()
+    mx = ImageChops.lighter(ImageChops.lighter(r, g), b)   # 0=fondo, alto=dibujo
+    keep = mx.point(lambda v: 255 if v <= tol else 0)      # 255 donde es fondo → mostrar número
+    keep = keep.filter(ImageFilter.GaussianBlur(1))        # bordes suaves
+    out = num_layer.copy()
+    out.putalpha(ImageChops.multiply(num_layer.getchannel("A"), keep))
+    return out
 
 
 def _load_config(tema):
@@ -218,7 +230,9 @@ def mes_hoja_desde_config(mes, anyo, nombre, config, plantilla, tema="safari"):
             dr.text((weekday_x + i * weekday_spacing, weekday_y), dlabel,
                     font=_font(weekday_size, weight=weekday_weight), fill=color, anchor="mm")
 
-        day_halo = _halo(days_cfg, colors, day_size)
+        # Los números del día van en su propia capa para poder meterlos DETRÁS de los dibujos.
+        num_layer = Image.new("RGBA", (Wp, Hp), (0, 0, 0, 0))
+        drn = ImageDraw.Draw(num_layer)
 
         cal = calendar.Calendar()
         days = cal.monthdayscalendar(anyo, mes)
@@ -229,10 +243,15 @@ def mes_hoja_desde_config(mes, anyo, nombre, config, plantilla, tema="safari"):
                 color = ROJO_DOMINGO if (domingo_rojo and col == 6) else day_color
                 cx = days_x + col * days_spacing_h
                 cy = days_y + row * days_spacing_v
-                dr.text((cx, cy), str(day), font=_font(day_size, weight=day_weight),
-                        fill=color, anchor="mm", **day_halo)
+                drn.text((cx, cy), str(day), font=_font(day_size, weight=day_weight),
+                         fill=color, anchor="mm")
 
-        im = Image.alpha_composite(im, overlay)
+        if config.get("detras", days_cfg.get("detras", True)) and plantilla:
+            tol = int(days_cfg.get("detras_tol", config.get("detras_tol", 45)))
+            num_layer = _detras(num_layer, im, _color_fondo(im, colors), tol)
+
+        im = Image.alpha_composite(im, num_layer)   # números (recortados por los dibujos)
+        im = Image.alpha_composite(im, overlay)     # mes + días de semana, siempre arriba
         return im
 
     # --- esquema viejo (config_calendario.json de temas existentes) ---
@@ -277,19 +296,27 @@ def mes_hoja_desde_config(mes, anyo, nombre, config, plantilla, tema="safari"):
 
     day_text_y_offset = config.get("day_text_y_offset", -4)
     day_size = font_sizes.get("day", 28)
-    day_halo = _halo(config.get("days", {}), colors, day_size)
     cell_h = grid_h / rows
+    # Números del día en su propia capa para poder meterlos DETRÁS de los dibujos.
+    num_layer = Image.new("RGBA", (Wp, Hp), (0, 0, 0, 0))
+    drn = ImageDraw.Draw(num_layer)
     y = grid_y
     for week in days:
         for i, day in enumerate(week):
             cx = grid_x + i * cell_w + cell_w / 2
             if day == 0:
                 continue
-            dr.text((cx, y + cell_h / 2 + day_text_y_offset), str(day),
-                    font=_font(day_size), fill=day_text_color, anchor="mm", **day_halo)
+            drn.text((cx, y + cell_h / 2 + day_text_y_offset), str(day),
+                     font=_font(day_size), fill=day_text_color, anchor="mm")
         y += cell_h
 
-    im = Image.alpha_composite(im, overlay)
+    days_cfg = config.get("days", {})
+    if config.get("detras", days_cfg.get("detras", True)) and plantilla:
+        tol = int(days_cfg.get("detras_tol", config.get("detras_tol", 45)))
+        num_layer = _detras(num_layer, im, _color_fondo(im, colors), tol)
+
+    im = Image.alpha_composite(im, num_layer)   # números (recortados por los dibujos)
+    im = Image.alpha_composite(im, overlay)     # mes + días de semana, siempre arriba
     return im
 
 
