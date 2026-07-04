@@ -23,7 +23,7 @@ from PIL import Image, ImageDraw, ImageFont
 KIT = os.path.dirname(os.path.abspath(__file__))
 INVITACIONES_DIR = os.environ.get(
     "CT3D_INVITACIONES_DIR", os.path.join(KIT, "invitaciones"))
-VIGENCIA_DIAS = 180
+VIGENCIA_DIAS = 7300   # "para siempre" en la práctica (~20 años) — respalda Mis compras
 
 Wh, Hh = 1080, 720   # hero (apaisado para el encabezado de la página)
 

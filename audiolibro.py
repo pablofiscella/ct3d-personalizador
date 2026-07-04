@@ -20,7 +20,7 @@ import urllib.request
 KIT = os.path.dirname(os.path.abspath(__file__))
 AUDIOLIBROS_DIR = os.environ.get(
     "CT3D_AUDIOLIBROS_DIR", os.path.join(KIT, "audiolibros"))
-VIGENCIA_DIAS = 365
+VIGENCIA_DIAS = 7300   # "para siempre" en la práctica (~20 años) — respalda Mis compras
 
 _TTS_URL = "https://api.openai.com/v1/audio/speech"
 _VOZ = "nova"

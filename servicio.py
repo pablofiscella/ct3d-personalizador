@@ -237,8 +237,11 @@ def _rate_ok(ip, limit=120, window=60):
     return True
 
 
-def _limpiar_pedidos_viejos(dias=30):
-    """A3: borra carpetas de pedidos (ZIP + meta) de más de `dias` — no acumular PII."""
+def _limpiar_pedidos_viejos(dias=7300):
+    """Borra carpetas de pedidos (ZIP + meta) de más de `dias`. Antes eran 30 días
+    (A3, minimizar PII); ahora "para siempre" en la práctica (~20 años) — el pedido
+    respalda la cuenta de cliente de la tienda (Mis compras), que promete acceso
+    indefinido al link ya guardado en tienda_orders.kit_download_url."""
     import shutil
     try:
         corte = time.time() - dias * 86400
