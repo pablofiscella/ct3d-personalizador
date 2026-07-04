@@ -32,6 +32,28 @@ API_KEY  = os.environ.get("CT3D_API_KEY", "cambiame-ya")
 PORT     = int(os.environ.get("CT3D_PORT", "8787"))
 DATA_DIR = os.environ.get("CT3D_DATA_DIR", os.path.join(os.path.dirname(__file__), "pedidos"))
 BASE_URL = os.environ.get("CT3D_BASE_URL", f"http://localhost:{PORT}")
+
+# Página que ve el cliente si abre su audiolibro mientras aún se está generando
+# (~1-2 min tras la compra). Se auto-refresca hasta que el visor esté listo.
+_AUDIOLIBRO_GENERANDO_HTML = """<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><meta http-equiv="refresh" content="12">
+<title>Tu audiolibro se está grabando…</title><style>
+*{margin:0;padding:0;box-sizing:border-box}html,body{height:100%}
+body{background:#2a2438;color:#efeaff;font-family:system-ui,sans-serif;text-align:center;padding:24px;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}
+.emoji{font-size:64px}h1{font-size:22px;font-weight:700}p{color:#b8aede;max-width:420px;line-height:1.5}
+.dots span{width:10px;height:10px;border-radius:50%;background:#6B5BD2;display:inline-block;margin:0 3px;
+ animation:b 1s infinite alternate}.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+@keyframes b{to{opacity:.2;transform:translateY(-6px)}}
+</style></head><body>
+<div class="emoji">🎧</div>
+<h1>Tu audiolibro se está grabando</h1>
+<p>Estamos ilustrando las páginas y grabando la narración. Tarda un par de minutos.
+Esta página se actualiza sola — ¡no hace falta que hagas nada!</p>
+<div class="dots"><span></span><span></span><span></span></div>
+</body></html>"""
+
 OPENAI_API_KEY     = os.environ.get("OPENAI_API_KEY", "")
 OPENAI_IMAGE_MODEL = os.environ.get("OPENAI_IMAGE_MODEL", "gpt-image-2")
 OPENAI_CALIDAD     = os.environ.get("OPENAI_CALIDAD", "low")  # low p/ depurar barato; medium/high p/ final
@@ -588,6 +610,14 @@ class Handler(BaseHTTPRequestHandler):
                 return
             page = audiolibro.html(token, base_url=self.base_url())
             if page is None:
+                if audiolibro.estado(token) == "generando":
+                    body = _AUDIOLIBRO_GENERANDO_HTML.encode("utf-8")
+                    self.send_response(200)
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.send_header("Cache-Control", "no-store")
+                    self.send_header("Content-Length", str(len(body)))
+                    self.end_headers(); self.wfile.write(body)
+                    return
                 return self._json(404, {"ok": False, "error": "audiolibro no encontrado"})
             body = page.encode("utf-8")
             self.send_response(200)
@@ -874,6 +904,26 @@ class Handler(BaseHTTPRequestHandler):
             return self._dash_eliminar_tema()
         if path == "/dash/publicar":
             return self._dash_publicar()
+        if path == "/api/al-info":
+            # Valida un token de audiolibro y devuelve sus datos. Lo usa la tienda
+            # para "canjear mi libro" (agregar un audiolibro a la cuenta del cliente).
+            # Protegido por API-key + Cloudflare bloquea POST /api/ externo → interno.
+            if not secrets.compare_digest(self.headers.get("X-API-Key", "") or "", API_KEY):
+                return self._json(401, {"ok": False, "error": "API key inválida"})
+            raw = self._body()
+            try:
+                payload = json.loads(raw or b"{}")
+            except Exception:
+                return self._json(400, {"ok": False, "error": "JSON inválido"})
+            import audiolibro
+            tok = str(payload.get("token", "")).strip()
+            est = audiolibro.estado(tok)
+            if est is None:
+                return self._json(404, {"ok": False, "error": "token no encontrado"})
+            reg = audiolibro._cargar(tok) or {}
+            return self._json(200, {"ok": True, "tipo": "libro-audio", "estado": est,
+                                    "nombre": reg.get("nombre", ""), "tema": reg.get("tema", ""),
+                                    "url": f"{self.base_url()}/al/{tok}"})
         if path != "/api/generar":
             return self._json(404, {"ok": False, "error": "ruta no encontrada"})
         if not secrets.compare_digest(self.headers.get("X-API-Key", "") or "", API_KEY):
@@ -927,15 +977,23 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(200, {"ok": True, "token": tok,
                                     "download_url": f"{self.base_url()}/i/{tok}"})
         if tipo == "libro-audio":
-            # Genera páginas + narración TTS (~1-2 min) y devuelve el LINK del visor.
+            # Genera páginas + narración TTS (~1-2 min) EN BACKGROUND, pero devuelve
+            # YA el link estable del visor /al/<tok_al>. Así la tienda lo guarda en la
+            # orden y el cliente lo ve en su biblioteca apenas compra; mientras se
+            # genera, el visor muestra un cartel de "grabándose".
+            import audiolibro
+            tok_al = secrets.token_urlsafe(12)      # link estable, se devuelve ahora
+            base = self.base_url()                  # capturar acá: el worker no tiene request
+            audiolibro.marcar_generando(tok_al)
             os.makedirs(dest, exist_ok=True)
             with open(os.path.join(dest, "generando.flag"), "w") as f:
                 f.write("libro-audio")
             with open(os.path.join(dest, "meta.json"), "w", encoding="utf-8") as f:
                 json.dump({"order_id": payload.get("order_id"), "tema": tema, "tipo": tipo,
-                           "nombre": data.get("nombre", "")}, f, ensure_ascii=False, indent=2)
+                           "nombre": data.get("nombre", ""), "al_token": tok_al},
+                          f, ensure_ascii=False, indent=2)
 
-            def _audio_worker(data=data, dest=dest, tema=tema):
+            def _audio_worker(data=data, dest=dest, tema=tema, tok_al=tok_al, base=base):
                 import audiolibro, zipfile, libro_ia
                 try:
                     escenas = None
@@ -956,13 +1014,13 @@ class Handler(BaseHTTPRequestHandler):
                                 print("[libro-audio] arte falló (%s) — arte del tema" % e,
                                       flush=True)
                                 escenas = None
-                    tok_al = audiolibro.crear(data, tema, OPENAI_API_KEY,
-                                              escenas_dir=escenas)
+                    audiolibro.crear(data, tema, OPENAI_API_KEY,
+                                     escenas_dir=escenas, token=tok_al)
                     with zipfile.ZipFile(os.path.join(dest, "kit.zip"), "w") as z:
                         z.writestr("TU_AUDIOLIBRO.txt",
                                    "Tu audiolibro narrado está en:\n%s/al/%s\n\n"
                                    "Compartí ese link con la familia — dura 1 año." %
-                                   (BASE_URL, tok_al))
+                                   (base, tok_al))
                 except Exception as e:
                     print("[libro-audio] falló: %s" % e, flush=True)
                 finally:
@@ -973,7 +1031,8 @@ class Handler(BaseHTTPRequestHandler):
 
             threading.Thread(target=_audio_worker, daemon=True).start()
             return self._json(200, {"ok": True, "token": token, "generando": True,
-                                    "download_url": f"{self.base_url()}/descarga/{token}"})
+                                    "al_token": tok_al,
+                                    "download_url": f"{base}/al/{tok_al}"})
         if tipo == "video-invitacion":
             # El render tarda 30-60s (> timeout de la tienda): async con espera.
             os.makedirs(dest, exist_ok=True)

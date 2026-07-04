@@ -55,11 +55,49 @@ def _textos_narracion(data, tema):
             + ["Fin. ¡Hasta la próxima aventura, %s!" % nombre])
 
 
-def crear(data, tema, api_key, escenas_dir=None, progress=None):
+def _marca_gen(token):
+    return os.path.join(AUDIOLIBROS_DIR, token, ".generando")
+
+
+def marcar_generando(token):
+    """Reserva el token y lo marca 'en generación', para que el visor muestre un
+    cartel de espera mientras el worker crea páginas + narración (~1-2 min)."""
+    if not re.fullmatch(r"[A-Za-z0-9_-]{8,32}", token or ""):
+        return
+    os.makedirs(os.path.join(AUDIOLIBROS_DIR, token), exist_ok=True)
+    with open(_marca_gen(token), "w") as f:
+        f.write("1")
+
+
+def _quitar_generando(token):
+    try:
+        os.remove(_marca_gen(token))
+    except OSError:
+        pass
+
+
+def estado(token):
+    """'listo' si el audiolibro ya está generado, 'generando' si está en curso,
+    None si el token no existe."""
+    if not re.fullmatch(r"[A-Za-z0-9_-]{8,32}", token or ""):
+        return None
+    d = os.path.join(AUDIOLIBROS_DIR, token)
+    if os.path.isfile(os.path.join(d, "manifest.json")):
+        return "listo"
+    if os.path.isfile(_marca_gen(token)):
+        return "generando"
+    return None
+
+
+def crear(data, tema, api_key, escenas_dir=None, progress=None, token=None):
     voz = (str(data.get("voz") or "").strip().lower()) or None
-    """Genera páginas JPG + narración MP3 + manifest. Devuelve el token del link."""
+    """Genera páginas JPG + narración MP3 + manifest. Devuelve el token del link.
+    Si se pasa `token` (válido), lo usa como link estable del visor — así la tienda
+    puede mostrar la URL /al/<token> apenas arranca la compra, antes de que termine
+    la generación. Si no, genera uno nuevo."""
     import libro
-    token = secrets.token_urlsafe(12)
+    if not (token and re.fullmatch(r"[A-Za-z0-9_-]{8,32}", token)):
+        token = secrets.token_urlsafe(12)
     d = os.path.join(AUDIOLIBROS_DIR, token)
     os.makedirs(d, exist_ok=True)
     textos = _textos_narracion(data, tema)
@@ -84,6 +122,7 @@ def crear(data, tema, api_key, escenas_dir=None, progress=None):
         json.dump({"tema": tema, "nombre": data.get("nombre", ""),
                    "paginas": libro.total_paginas(tema), "creado": int(time.time())},
                   f, ensure_ascii=False)
+    _quitar_generando(token)
     _limpiar_vencidos()
     return token
 
