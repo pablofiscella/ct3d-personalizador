@@ -563,6 +563,7 @@ async function openProductosNuevos(tema, nombre){
         <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:5px">
           <a class="btn-ghost pn-dl" style="font-size:10.5px;padding:4px 8px;text-decoration:none" href="/dash/producto-descargar?tema=${encodeURIComponent(tema)}&tipo=${encodeURIComponent(tipoActual)}&pieza=${p.idx}&key=${encodeURIComponent(KEY)}">⬇</a>
           <label class="btn-ghost" style="font-size:10.5px;padding:4px 8px;cursor:pointer">📤<input type="file" accept="image/*" data-idx="${p.idx}" class="pn-up" style="display:none"></label>
+          ${esCalendario?`<button class="btn-ghost pn-cal-edit" data-mes="${p.idx+1}" data-tema="${esc(tema)}" title="Acomodar y regenerar solo este mes" style="font-size:10.5px;padding:4px 8px">✏️ ajustar</button>`:''}
           ${p.override?`<button class="btn-ghost pn-revert" data-idx="${p.idx}" style="font-size:10.5px;padding:4px 8px">↺ original</button>`:''}
         </div>
       </div>`;}).join('');
@@ -1337,10 +1338,13 @@ cargar();
 <script>
 document.addEventListener('click', (e) => {
   if (e.target.id === 'cal-editor-btn') {
-    const modal = document.getElementById('cal-editor-modal');
-    if (modal && window.TEMA_ACTUAL) {
-      modal.showModal();
-    }
+    if (window.TEMA_ACTUAL) window.abrirEditorCal(0);
+    return;
+  }
+  const edb = e.target.closest && e.target.closest('.pn-cal-edit');
+  if (edb) {
+    e.preventDefault();
+    window.abrirEditorCal(parseInt(edb.dataset.mes) || 0, edb.dataset.tema);
   }
 });
 
@@ -1626,16 +1630,90 @@ if (anyoInput) anyoInput.addEventListener('input', dibujarPreview);
 if (monthColorInput) monthColorInput.addEventListener('input', dibujarPreview);
 if (domingoRojoInput) domingoRojoInput.addEventListener('change', dibujarPreview);
 
+// --- Memoria por tema: precargar coordenadas + fondo guardado ---
+const _MESES_CAL = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+window.calEditorMes = 0;
+window.calHuboCambios = false;
+
+function _setCal(id, val) {
+  if (val === null || val === undefined) return;
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = val;
+  const lab = document.getElementById(id + '-val');
+  if (lab) lab.textContent = val;
+}
+
+function aplicarLayout(cfg) {
+  if (!cfg) return;
+  const m = cfg.month || {}, w = cfg.weekday || {}, d = cfg.days || {}, c = cfg.colors || {};
+  _setCal('cal-month-x', m.x); _setCal('cal-month-y', m.y);
+  _setCal('cal-month-size', m.size); _setCal('cal-month-weight', m.weight);
+  if (c.month_text) _setCal('cal-month-color', c.month_text);
+  if (cfg.domingo_rojo !== undefined && domingoRojoInput) domingoRojoInput.checked = !!cfg.domingo_rojo;
+  _setCal('cal-weekday-x', w.x); _setCal('cal-weekday-y', w.y);
+  _setCal('cal-weekday-size', w.size); _setCal('cal-weekday-spacing', w.spacing); _setCal('cal-weekday-weight', w.weight);
+  _setCal('cal-days-x', d.x); _setCal('cal-days-y', d.y);
+  _setCal('cal-day-size', d.size); _setCal('cal-days-spacing-h', d.spacingH);
+  _setCal('cal-days-spacing-v', d.spacingV); _setCal('cal-day-weight', d.weight);
+}
+
+async function cargarFondoGuardado(tema) {
+  try {
+    const r = await fetch('/dash/calendario-fondo?tema=' + encodeURIComponent(tema), { headers: { 'X-API-Key': KEY } });
+    if (!r.ok) return false;
+    const blob = await r.blob();
+    plantillaFile = new File([blob], 'fondo.png', { type: 'image/png' });
+    await new Promise((res) => { const img = new Image(); img.onload = () => { imagenCargada = img; res(); }; img.onerror = () => res(); img.src = URL.createObjectURL(blob); });
+    if (genBtn) genBtn.disabled = false;
+    return true;
+  } catch (e) { return false; }
+}
+
+window.abrirEditorCal = async function(mes, tema) {
+  mes = mes || 0;
+  if (tema) window.TEMA_ACTUAL = tema;
+  if (!window.TEMA_ACTUAL) return;
+  window.calEditorMes = mes;
+  const modal = document.getElementById('cal-editor-modal');
+  if (!modal) return;
+  imagenCargada = null; plantillaFile = null;
+  if (genBtn) { genBtn.disabled = true; genBtn.textContent = mes ? ('🚀 Regenerar solo ' + _MESES_CAL[mes - 1]) : '🚀 Generar 12 meses'; }
+  if (statusDiv) statusDiv.textContent = 'Cargando…';
+  if (preview) preview.innerHTML = '<div style="padding:40px;color:#999">Cargando…</div>';
+  try { modal.showModal(); } catch (e) {}
+  try {
+    const r = await fetch('/dash/calendario-layout?tema=' + encodeURIComponent(window.TEMA_ACTUAL), { headers: { 'X-API-Key': KEY } });
+    const j = await r.json();
+    if (j && j.ok) {
+      const base = (j.layout && j.layout.base) || {};
+      const perMes = (mes && j.layout && j.layout.meses) ? j.layout.meses[String(mes)] : null;
+      aplicarLayout(perMes || base);
+      if (anyoInput && j.layout && j.layout.anyo) anyoInput.value = j.layout.anyo;
+      if (j.tiene_fondo) await cargarFondoGuardado(window.TEMA_ACTUAL);
+      let msg = '';
+      if (mes) msg = '✏️ Editás SOLO ' + _MESES_CAL[mes - 1] + '. Acomodá la grilla y regenerá ese mes.';
+      else if (j.origen === 'default') msg = 'ℹ️ Coordenadas heredadas de otra temática (ajustalas si hace falta).';
+      else if (j.origen === 'vacio') msg = 'ℹ️ Tema nuevo: posiciones por defecto.';
+      if (!j.tiene_fondo) msg += (msg ? '  ' : '') + '📤 Subí la plantilla de fondo.';
+      if (statusDiv) statusDiv.textContent = msg;
+    }
+  } catch (e) { if (statusDiv) statusDiv.textContent = ''; }
+  if (imagenCargada) dibujarPreview();
+  else if (preview) preview.innerHTML = '<div style="padding:40px;color:#999">Subí la plantilla (imagen de fondo)</div>';
+};
+
 // Generar meses
 if (genBtn) {
   genBtn.addEventListener('click', async () => {
-    if (!plantillaFile || !window.TEMA_ACTUAL) {
+    if ((!plantillaFile && !imagenCargada) || !window.TEMA_ACTUAL) {
       statusDiv.textContent = '❌ Falta imagen o tema';
       return;
     }
 
+    const mes = window.calEditorMes || 0;
     genBtn.disabled = true;
-    statusDiv.textContent = '⏳ Generando...';
+    statusDiv.textContent = mes ? ('⏳ Regenerando ' + _MESES_CAL[mes - 1] + '...') : '⏳ Generando...';
 
     const p = leerParams();
     const config = {
@@ -1650,6 +1728,7 @@ if (genBtn) {
       anyo: anyoInput.value,
       config: JSON.stringify(config)
     });
+    if (mes) qs.set('mes', String(mes));
 
     try {
       const res = await fetch('/dash/calendario-generar?' + qs.toString(), {
@@ -1659,11 +1738,17 @@ if (genBtn) {
       });
 
       if (res.ok) {
-        statusDiv.textContent = '✅ 12 meses generados';
-        setTimeout(() => {
-          document.getElementById('cal-editor-modal').close();
-          location.reload();
-        }, 1000);
+        window.calHuboCambios = true;
+        if (mes) {
+          statusDiv.textContent = '✅ ' + _MESES_CAL[mes - 1] + ' regenerado. Podés seguir ajustando o cerrar.';
+          genBtn.disabled = false;
+        } else {
+          statusDiv.textContent = '✅ 12 meses generados';
+          setTimeout(() => {
+            document.getElementById('cal-editor-modal').close();
+            location.reload();
+          }, 1000);
+        }
       } else {
         const err = await res.text();
         statusDiv.textContent = '❌ Error: ' + err.substring(0, 50);
@@ -1676,10 +1761,11 @@ if (genBtn) {
   });
 }
 
-// Cerrar modal
+// Cerrar modal (si hubo cambios, refresca el panel para ver los meses actualizados)
 if (cerrarBtn) {
   cerrarBtn.addEventListener('click', () => {
     document.getElementById('cal-editor-modal').close();
+    if (window.calHuboCambios) { window.calHuboCambios = false; location.reload(); }
   });
 }
 

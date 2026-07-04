@@ -355,6 +355,29 @@ if __name__ == "__main__":
         break
 
 
+# Config por defecto (esquema NUEVO del editor). Se usa solo como red de seguridad
+# si se pide generar sin config; el editor siempre manda la suya.
+_DEFAULT_CAL_CONFIG = {
+    "month": {"x": 620, "y": 80, "size": 85, "weight": 560},
+    "weekday": {"x": 271, "y": 335, "size": 24, "spacing": 134, "weight": 500},
+    "days": {"x": 271, "y": 399, "size": 28, "spacingH": 134, "spacingV": 93, "weight": 600},
+    "colors": {"month_text": "#000000"},
+    "domingo_rojo": True,
+}
+
+
+def generar_mes_con_plantilla(data, plantilla_img, tema, mes, config):
+    """Genera UN solo mes (1-12) con config + plantilla y devuelve la PIL Image RGBA.
+    Se usa para regenerar un mes puntual desde su tarjeta (editor por mes), con
+    coordenadas propias por mes (ej. acomodar la 6a fila de Marzo/Agosto/Noviembre)."""
+    nombre = str(data.get("nombre") or "").strip() or "Mi familia"
+    anyo = int(data.get("anyo") or "2026")
+    plantilla = plantilla_img if plantilla_img else _load_plantilla(tema)
+    if not config:
+        config = _DEFAULT_CAL_CONFIG
+    return mes_hoja_desde_config(mes, anyo, nombre, config, plantilla, tema)
+
+
 def generar_calendario_con_plantilla(data, plantilla_img, tema="safari", config=None):
     """Genera los 12 meses usando una plantilla pasada como PIL Image.
     Útil para el editor interactivo del dashboard.
