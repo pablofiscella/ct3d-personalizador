@@ -40,7 +40,7 @@ _EL_URL = "https://api.elevenlabs.io/v1/text-to-speech"
 _EL_VOICE = "rrErIO88ehxTnspOjKvf"   # Lizy
 _EL_MODEL = "eleven_multilingual_v2"
 _EL_SETTINGS = {"stability": 0.30, "similarity_boost": 0.80,
-                "style": 0.48, "use_speaker_boost": True, "speed": 1.15}
+                "style": 0.48, "use_speaker_boost": True, "speed": 0.88}
 _EL_KEY_CACHE = {}
 
 
