@@ -1,1 +1,1 @@
-{"month": {"x": 618, "y": 610, "size": 85, "weight": 560}, "weekday": {"x": 252, "y": 686, "size": 24, "spacing": 123, "weight": 500}, "days": {"x": 252, "y": 757, "size": 28, "spacingH": 123, "spacingV": 70, "weight": 600}, "colors": {"month_text": "#ffffff"}, "domingo_rojo": true}
+{"month": {"x": 618, "y": 612, "size": 85, "weight": 560}, "weekday": {"x": 265, "y": 678, "size": 24, "spacing": 120, "weight": 500}, "days": {"x": 256, "y": 737, "size": 28, "spacingH": 121, "spacingV": 58, "weight": 600}, "colors": {"month_text": "#8d8ea0"}, "domingo_rojo": true}
