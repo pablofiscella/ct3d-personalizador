@@ -621,6 +621,18 @@ class Handler(BaseHTTPRequestHandler):
                 if r is None:
                     return self._json(404, {"ok": False, "error": "no existe"})
                 data_b, ct = r
+                # ?wm=1: marca de agua para las páginas de PREVIEW en la ficha de la tienda
+                q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+                if q.get("wm") and ct.startswith("image"):
+                    try:
+                        from PIL import Image
+                        import piezas
+                        _im = Image.open(io.BytesIO(data_b)).convert("RGB")
+                        _buf = io.BytesIO()
+                        piezas.marca_agua(_im).save(_buf, "JPEG", quality=82)
+                        data_b = _buf.getvalue()
+                    except Exception:
+                        pass
                 self.send_response(200)
                 self.send_header("Content-Type", ct)
                 self.send_header("Cache-Control", "public, max-age=86400")
