@@ -34,9 +34,47 @@ _INSTRUCCIONES = (
     "Ritmo pausado y dulce, NUNCA monótono ni robótico, como una maestra jardinera "
     "leyéndole a un nene en la cama.")
 
+# ElevenLabs: voz por default del audiolibro (más natural que OpenAI). Lizy es una voz
+# nativa en español pensada para cuentos infantiles. La key se lee de config.json.
+_EL_URL = "https://api.elevenlabs.io/v1/text-to-speech"
+_EL_VOICE = "rrErIO88ehxTnspOjKvf"   # Lizy
+_EL_MODEL = "eleven_multilingual_v2"
+_EL_SETTINGS = {"stability": 0.30, "similarity_boost": 0.80,
+                "style": 0.48, "use_speaker_boost": True, "speed": 0.88}
+_EL_KEY_CACHE = {}
 
-def tts_mp3(api_key, texto, timeout=120, voz=None):
-    """MP3 de la narración de `texto` (OpenAI TTS)."""
+
+def _elevenlabs_key():
+    if "k" in _EL_KEY_CACHE:
+        return _EL_KEY_CACHE["k"]
+    k = (os.environ.get("ELEVENLABS_API_KEY") or "").strip()
+    if not k:
+        for p in (os.path.join(KIT, "config.json"), "/opt/ct3d/backend/config.json"):
+            try:
+                k = (json.load(open(p)).get("elevenlabs_api_key") or "").strip()
+                if k:
+                    break
+            except Exception:
+                pass
+    _EL_KEY_CACHE["k"] = k
+    return k
+
+
+def _tts_elevenlabs(texto, timeout=120):
+    key = _elevenlabs_key()
+    if not key:
+        return None
+    body = json.dumps({"text": texto, "model_id": _EL_MODEL,
+                       "voice_settings": _EL_SETTINGS}).encode()
+    req = urllib.request.Request(
+        "%s/%s?output_format=mp3_44100_128" % (_EL_URL, _EL_VOICE),
+        data=body, method="POST",
+        headers={"xi-api-key": key, "Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read()
+
+
+def _tts_openai(api_key, texto, timeout=120, voz=None):
     v = voz if voz in VOCES else _VOZ
     body = json.dumps({"model": "gpt-4o-mini-tts", "voice": v, "input": texto,
                        "response_format": "mp3",
@@ -45,6 +83,22 @@ def tts_mp3(api_key, texto, timeout=120, voz=None):
         "Authorization": "Bearer " + api_key, "Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return r.read()
+
+
+def tts_mp3(api_key, texto, timeout=120, voz=None):
+    """MP3 de la narración de `texto`. Por default usa ElevenLabs (voz Lizy, nativa
+    español para cuentos); si el cliente eligió una voz OpenAI (fable/nova/onyx) usa
+    esa; y si ElevenLabs falla, cae a OpenAI (fable) como respaldo automático."""
+    v = (str(voz or "").strip().lower())
+    if v not in VOCES:                    # default o 'lizy' → ElevenLabs
+        try:
+            mp3 = _tts_elevenlabs(texto, timeout)
+            if mp3:
+                return mp3
+        except Exception as e:
+            print("[tts] ElevenLabs falló (%s) — respaldo OpenAI" % e, flush=True)
+        v = _VOZ
+    return _tts_openai(api_key, texto, timeout, v)
 
 
 def _textos_narracion(data, tema):

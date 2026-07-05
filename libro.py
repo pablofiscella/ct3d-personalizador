@@ -906,7 +906,7 @@ def fin(data, tema="safari", catalogo=False):
     nombre = (str(data.get("nombre") or "").strip()) or "Alex"
     im = Image.new("RGBA", (Wp, Hp), (255, 255, 255, 255))
     dr = ImageDraw.Draw(im)
-    ov = override_escena_path(tema, total_paginas(tema, data.get("edad"), data.get("historia"), catalogo) - 1)
+    ov = _escena_efectiva_path(tema, total_paginas(tema, data.get("edad"), data.get("historia"), catalogo) - 1)
     if os.path.isfile(ov):
         # ilustración a página completa + banda oscura translúcida para que el
         # FIN y el mensaje se lean sobre cualquier arte
