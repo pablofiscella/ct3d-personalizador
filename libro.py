@@ -15,7 +15,8 @@ resto de los productos, cero cambio de código.
 API: paginas_libro(data, tema) -> [PIL.Image] · pagina_libro(idx, data, tema) -> PIL.Image
 """
 import contextlib
-import os, json, glob, math, random, threading
+import os, json, glob, math, random, threading, re
+from libro_historias import ARGUMENTOS_LARGO, CORTO_IDX
 from PIL import Image, ImageDraw, ImageFont
 
 KIT = os.path.dirname(os.path.abspath(__file__))
@@ -27,14 +28,26 @@ GOLD = (212, 175, 55)
 
 PAGINAS_HISTORIA = 7          # legado: páginas de cuento de los temas existentes
 PAGINAS_HISTORIA_NUEVO = 12   # temas nuevos (15 páginas en total)
+PAGINAS_HISTORIA_LARGO = 17   # catálogo de audiolibros, 4 años o más (20 en total)
+PAGINAS_HISTORIA_CORTA = 9    # catálogo de audiolibros, hasta 3 años (12 en total)
 TOTAL_PAGINAS = PAGINAS_HISTORIA + 3   # legado — usado solo como valor por default
 
 
-def paginas_historia(tema):
-    """Páginas de historia del tema: 7 en los libros ya vendidos (para no cambiarles
-    el largo), 12 en los temas nuevos. Se fija una vez en tema.json::libro_paginas_historia
-    — todos los temas existentes lo tienen seteado a 7 explícitamente; cualquier tema
-    sin ese campo (los nuevos) usa 12 por default."""
+def _edad_int(edad):
+    """Primer número que aparezca en la edad ('5', '3 años', 5) o None."""
+    m = re.search(r"\d+", str(edad or ""))
+    return int(m.group()) if m else None
+
+
+def paginas_historia(tema, edad=None, historia=None, catalogo=False):
+    """Páginas de historia. El CATÁLOGO de audiolibros (catalogo=True + una de las 8
+    historias) usa largo por EDAD desacoplado del tema: 9 hasta 3 años, 17 de 4 en
+    adelante. Cualquier otro caso (libro de kit, previews) mantiene el largo legado:
+    7 en los temas ya vendidos, 12 en los nuevos. El flag catalogo lo prende SOLO el
+    audiolibro, para no cambiarle el largo al libro de kit aunque comparta tema."""
+    if catalogo and historia and historia in ARGUMENTOS_LARGO:
+        e = _edad_int(edad)
+        return PAGINAS_HISTORIA_CORTA if (e is not None and e <= 3) else PAGINAS_HISTORIA_LARGO
     try:
         d = json.load(open(os.path.join(TEMAS, tema, "tema.json")))
         n = d.get("libro_paginas_historia")
@@ -45,8 +58,8 @@ def paginas_historia(tema):
     return PAGINAS_HISTORIA_NUEVO
 
 
-def total_paginas(tema):
-    return paginas_historia(tema) + 3
+def total_paginas(tema, edad=None, historia=None, catalogo=False):
+    return paginas_historia(tema, edad, historia, catalogo) + 3
 
 # ── ambientación por temática (fallback genérico para temas nuevos) ─────────
 HISTORIAS = {
@@ -414,22 +427,42 @@ ARGUMENTOS_EXT = {
 }
 
 
-def cuento(data, tema="safari"):
-    """Los textos de la historia (7 páginas en temas legado, 12 en temas nuevos),
-    personalizados con nombre/edad + la ambientación del tema. Testeable sin
-    renderizar (el nombre TIENE que aparecer en el cuento)."""
+_RE_INICIO_FRASE = re.compile(r'(^|[.!?]\s+|[¡¿]\s*|»\s+)([a-záéíóúüñ])')
+
+
+def _capitalizar_frases(texto):
+    """Pone mayúscula al inicio del texto y después de cada punto/signo. Necesario
+    porque los placeholders como {amigos} (\"los animales de la selva\") caen a veces
+    al comienzo de una oración y quedarían en minúscula."""
+    return _RE_INICIO_FRASE.sub(lambda m: m.group(1) + m.group(2).upper(), texto)
+
+
+def cuento(data, tema="safari", catalogo=False):
+    """Los textos de la historia, personalizados con nombre/edad + la ambientación
+    del tema. Con catalogo=True (audiolibro) usa la versión rica del catálogo con
+    largo por edad; si no, el largo legado (7/12). Testeable sin renderizar (el
+    nombre TIENE que aparecer en el cuento)."""
     h = HISTORIAS.get(tema, HISTORIA_DEFAULT)
     nombre = (str(data.get("nombre") or "").strip()) or "Alex"
     edad = str(data.get("edad") or "").strip()
     conteo = ("contar hasta %s" % edad) if edad.isdigit() else "contar hasta tres"
-    historia = (str(data.get("historia") or "").strip().lower()) or "aventura"
+    historia_raw = str(data.get("historia") or "").strip().lower()
+    historia = historia_raw or "aventura"
+    ctx = dict(h)
+    ctx.update({"nombre": nombre, "conteo": conteo,
+                "conteo_num": edad if edad.isdigit() else "tres"})
+    # Catálogo de audiolibros: versión rica de 17 páginas, o su subconjunto de 9
+    # para los más chiquitos (largo por edad). Solo si el audiolibro lo pide.
+    arco_largo = ARGUMENTOS_LARGO.get(historia_raw) if catalogo else None
+    if arco_largo is not None:
+        n = paginas_historia(tema, edad, historia_raw, catalogo=True)
+        arco = arco_largo if n >= PAGINAS_HISTORIA_LARGO else [arco_largo[i] for i in CORTO_IDX]
+        return [_capitalizar_frases(t.format(**ctx)) for t in arco]
+    # ----- legado: temas viejos / libro de kit (sin historia elegida) -----
     extendido = paginas_historia(tema) > PAGINAS_HISTORIA
     arco = (ARGUMENTOS_EXT if extendido else ARGUMENTOS).get(historia)
     if arco:
-        ctx = dict(h)
-        ctx.update({"nombre": nombre, "conteo": conteo,
-                    "conteo_num": edad if edad.isdigit() else "tres"})
-        return [t.format(**ctx) for t in arco]
+        return [_capitalizar_frases(t.format(**ctx)) for t in arco]
     base = [
         "Esta noche, antes de dormir, %s encontró una invitación brillante debajo "
         "de la almohada. Decía: «Te esperamos en %s»." % (nombre, h["mundo"]),
@@ -850,10 +883,10 @@ def dedicatoria(data, tema="safari"):
     return im
 
 
-def pagina_historia(n, data, tema="safari"):
-    """Página n (0..6) del cuento: escena ilustrada arriba + texto abajo + número."""
+def pagina_historia(n, data, tema="safari", catalogo=False):
+    """Página n del cuento: escena ilustrada arriba + texto abajo + número."""
     acc = _accent(tema)
-    textos = cuento(data, tema)
+    textos = cuento(data, tema, catalogo)
     im = Image.new("RGBA", (Wp, Hp), (255, 255, 255, 255))
     dr = ImageDraw.Draw(im)
     _escena(im, dr, (90, 90, Wp - 90, int(Hp * 0.60)), tema, n, acc, idx_pieza=n + 2)
@@ -868,12 +901,12 @@ def pagina_historia(n, data, tema="safari"):
     return im
 
 
-def fin(data, tema="safari"):
+def fin(data, tema="safari", catalogo=False):
     acc = _accent(tema)
     nombre = (str(data.get("nombre") or "").strip()) or "Alex"
     im = Image.new("RGBA", (Wp, Hp), (255, 255, 255, 255))
     dr = ImageDraw.Draw(im)
-    ov = override_escena_path(tema, total_paginas(tema) - 1)
+    ov = override_escena_path(tema, total_paginas(tema, data.get("edad"), data.get("historia"), catalogo) - 1)
     if os.path.isfile(ov):
         # ilustración a página completa + banda oscura translúcida para que el
         # FIN y el mensaje se lean sobre cualquier arte
@@ -905,20 +938,20 @@ def fin(data, tema="safari"):
     return im
 
 
-def pagina_libro(idx, data, tema="safari"):
-    """Página idx (0..total_paginas(tema)-1) del libro: 0=portada, 1=dedicatoria,
-    2..N=historia, última=fin."""
+def pagina_libro(idx, data, tema="safari", catalogo=False):
+    """Página idx del libro: 0=portada, 1=dedicatoria, 2..N=historia, última=fin."""
     if idx == 0:
         return portada(data, tema)
     if idx == 1:
         return dedicatoria(data, tema)
-    if idx == total_paginas(tema) - 1:
-        return fin(data, tema)
-    return pagina_historia(idx - 2, data, tema)
+    if idx == total_paginas(tema, data.get("edad"), data.get("historia"), catalogo) - 1:
+        return fin(data, tema, catalogo)
+    return pagina_historia(idx - 2, data, tema, catalogo)
 
 
-def paginas_libro(data, tema="safari"):
-    return [pagina_libro(i, data, tema) for i in range(total_paginas(tema))]
+def paginas_libro(data, tema="safari", catalogo=False):
+    n = total_paginas(tema, data.get("edad"), data.get("historia"), catalogo)
+    return [pagina_libro(i, data, tema, catalogo) for i in range(n)]
 
 
 if __name__ == "__main__":

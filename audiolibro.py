@@ -23,11 +23,16 @@ AUDIOLIBROS_DIR = os.environ.get(
 VIGENCIA_DIAS = 7300   # "para siempre" en la práctica (~20 años) — respalda Mis compras
 
 _TTS_URL = "https://api.openai.com/v1/audio/speech"
-_VOZ = "nova"
-VOCES = {"nova": "Voz femenina cálida", "onyx": "Voz masculina profunda",
-         "fable": "Voz de cuentacuentos"}
-_INSTRUCCIONES = ("Narradora cálida de cuentos infantiles, en español rioplatense, "
-                  "ritmo pausado y expresivo, como leyéndole a un chico antes de dormir.")
+_VOZ = "fable"
+VOCES = {"fable": "Voz de cuentacuentos", "nova": "Voz femenina cálida",
+         "onyx": "Voz masculina profunda"}
+_INSTRUCCIONES = (
+    "Sos una cuentacuentos humana y cariñosa narrando un cuento infantil para dormir, "
+    "en español rioplatense (argentino) neutro. Leé con muchísima calidez y expresión: "
+    "variá la entonación, hacé pausas naturales en las comas y los puntos, subí y bajá el "
+    "tono según la emoción de cada frase (ternura, sorpresa, alegría), y sonreí al hablar. "
+    "Ritmo pausado y dulce, NUNCA monótono ni robótico, como una maestra jardinera "
+    "leyéndole a un nene en la cama.")
 
 
 def tts_mp3(api_key, texto, timeout=120, voz=None):
@@ -48,7 +53,7 @@ def _textos_narracion(data, tema):
     nombre = (str(data.get("nombre") or "").strip()) or "Alex"
     dedic = (str(data.get("dedicatoria") or "").strip()) or \
         "Que nunca dejes de soñar, de jugar y de creer en vos."
-    cuerpo = libro.cuento(data, tema)
+    cuerpo = libro.cuento(data, tema, catalogo=True)
     return (["La gran aventura de %s. Un cuento personalizado." % nombre,
              "Este cuento pertenece a %s. %s" % (nombre, dedic)]
             + cuerpo
@@ -106,11 +111,11 @@ def crear(data, tema, api_key, escenas_dir=None, progress=None, token=None):
     try:
         if ctx:
             ctx.__enter__()
-        total = libro.total_paginas(tema)
+        total = libro.total_paginas(tema, data.get("edad"), data.get("historia"), catalogo=True)
         for i in range(total):
             if progress:
                 progress("Página %d de %d…" % (i + 1, total))
-            img = libro.pagina_libro(i, data, tema).convert("RGB")
+            img = libro.pagina_libro(i, data, tema, catalogo=True).convert("RGB")
             img.resize((img.width * 2 // 3, img.height * 2 // 3)).save(
                 os.path.join(d, "pag_%02d.jpg" % i), quality=86)
             with open(os.path.join(d, "pag_%02d.mp3" % i), "wb") as f:
@@ -120,7 +125,7 @@ def crear(data, tema, api_key, escenas_dir=None, progress=None, token=None):
             ctx.__exit__(None, None, None)
     with open(os.path.join(d, "manifest.json"), "w", encoding="utf-8") as f:
         json.dump({"tema": tema, "nombre": data.get("nombre", ""),
-                   "paginas": libro.total_paginas(tema), "creado": int(time.time())},
+                   "paginas": total, "creado": int(time.time())},
                   f, ensure_ascii=False)
     _quitar_generando(token)
     _limpiar_vencidos()

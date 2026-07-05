@@ -107,20 +107,35 @@ def personajes_decorativos(tema, n=2):
         return []
     if not paths:
         return []
-    con_area = []
+    # Puntúa cada figura por área + DENSIDAD (píxeles opacos / recuadro). Un personaje
+    # limpio llena bien su recuadro; un recorte MEZCLADO (varios stickers pegados con
+    # huecos transparentes en medio) tiene densidad baja → se descarta, así las piezas
+    # no salen con amasijos. También se filtran objetos chicos (hojas/íconos) y tiras.
+    cand = []
     for p in paths:
         try:
-            im = Image.open(p)
-            con_area.append((im.size[0] * im.size[1], p))
+            im = Image.open(p).convert("RGBA")
+            w, h = im.size
+            area = w * h
+            if area < 6000:
+                continue
+            opacos = sum(im.getchannel("A").histogram()[41:])
+            if opacos / area < 0.35:
+                continue
+            # aspecto cercano a un personaje único (no una "torre" de stickers apilados
+            # ni una tira horizontal — esos son recortes mezclados que se ven mal).
+            if max(w, h) / max(1, min(w, h)) > 1.9:
+                continue
+            cand.append((area, p))
         except Exception:
             pass
-    if not con_area:
+    if not cand:
         return []
-    con_area.sort(key=lambda t: -t[0])
-    grandes = [p for _, p in con_area[:max(n, len(con_area) // 2)]]
-    paso = max(1, len(grandes) // n)
+    cand.sort(key=lambda t: -t[0])
+    top = [p for _, p in cand[:max(n, len(cand) // 2)]]
+    paso = max(1, len(top) // n)
     out = []
-    for p in grandes[::paso][:n]:
+    for p in top[::paso][:n]:
         try:
             out.append(Image.open(p).convert("RGBA"))
         except Exception:

@@ -757,6 +757,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._dash_pub_estado(urllib.parse.parse_qs(u.query))
         if path == "/dash/pieza-img":
             return self._dash_pieza_img(urllib.parse.parse_qs(u.query))
+        if path == "/dash/calendario-layout":
+            return self._dash_calendario_layout(urllib.parse.parse_qs(u.query))
+        if path == "/dash/calendario-fondo":
+            return self._dash_calendario_fondo(urllib.parse.parse_qs(u.query))
         if path == "/dash/base-estado":
             return self._dash_base_estado(urllib.parse.parse_qs(u.query))
         if path == "/dash/producto-piezas":
@@ -998,9 +1002,10 @@ class Handler(BaseHTTPRequestHandler):
                 try:
                     escenas = None
                     hist = (data.get("historia") or "").strip().lower()
-                    if hist and hist != "aventura":
-                        # Historia no clásica: el arte del tema no la ilustra —
-                        # se pintan las escenas de ESTE pedido (como el premium).
+                    if hist in libro_ia._ESCENAS_POR_HISTORIA_LARGO:
+                        # Catálogo de audiolibros: se pintan las 17 (o 9) escenas de
+                        # ESTE pedido, a medida de la historia elegida y la edad, para
+                        # que el arte matchee el cuento en todas las páginas.
                         client = _openai_client()
                         if client is not None:
                             escenas = os.path.join(dest, "escenas")
@@ -1008,6 +1013,7 @@ class Handler(BaseHTTPRequestHandler):
                                 libro_ia.generar_ilustraciones(
                                     client, tema, dest_dir=escenas,
                                     genero=data.get("genero"), historia=hist,
+                                    catalogo=True, edad=data.get("edad"),
                                     verificar=True,
                                     fallos_log=os.path.join(dest, "qa_fallos.txt"))
                             except Exception as e:
@@ -1415,51 +1421,151 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(200, {"ok": True, "borrado": True})
         return self._json(200, {"ok": True, "borrado": False})
 
+    def _cal_layout_path(self, tema):
+        return os.path.join(temas.TEMAS_DIR, tema, "calendario", "layout.json")
+
+    def _cal_default_path(self):
+        # Layout base que heredan las temáticas nuevas (la última que se guardó,
+        # porque "casi siempre son iguales" entre temas).
+        return os.path.join(temas.TEMAS_DIR, "_calendario_layout.json")
+
+    def _cal_load_layout(self, tema):
+        p = self._cal_layout_path(tema)
+        if os.path.isfile(p):
+            try:
+                return json.load(open(p, encoding="utf-8"))
+            except Exception:
+                pass
+        return None
+
+    def _cal_save_layout(self, tema, layout):
+        p = self._cal_layout_path(tema)
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        try:
+            json.dump(layout, open(p, "w", encoding="utf-8"), ensure_ascii=False)
+            # default global para temas nuevos
+            json.dump(layout.get("base", {}), open(self._cal_default_path(), "w", encoding="utf-8"),
+                      ensure_ascii=False)
+        except Exception:
+            pass
+
+    def _dash_calendario_layout(self, q):
+        """Devuelve las coordenadas guardadas del calendario de un tema (memoria por tema).
+        Si el tema no tiene, hereda el layout de la última temática configurada."""
+        if not self._admin_ok():
+            return self._deny()
+        tema = slug((q.get("tema", [""]) or [""])[0])
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        layout = self._cal_load_layout(tema)
+        origen = "tema"
+        if not layout:
+            base = {}
+            dp = self._cal_default_path()
+            if os.path.isfile(dp):
+                try:
+                    base = json.load(open(dp, encoding="utf-8"))
+                    origen = "default"
+                except Exception:
+                    base = {}
+            if not base:
+                origen = "vacio"
+            layout = {"base": base, "meses": {}, "anyo": "2026"}
+        fondo = os.path.join(temas.TEMAS_DIR, tema, "calendario", "fondo.png")
+        return self._json(200, {"ok": True, "layout": layout, "origen": origen,
+                                "tiene_fondo": os.path.isfile(fondo)})
+
+    def _dash_calendario_fondo(self, q):
+        """Sirve la plantilla (fondo.png) guardada del calendario del tema, para que el
+        editor la precargue sin tener que volver a subirla."""
+        if not self._admin_ok():
+            return self._deny()
+        tema = slug((q.get("tema", [""]) or [""])[0])
+        fondo = os.path.join(temas.TEMAS_DIR, tema, "calendario", "fondo.png")
+        if not tema or not os.path.isfile(fondo):
+            return self._json(404, {"ok": False, "error": "no hay fondo"})
+        data = open(fondo, "rb").read()
+        self.send_response(200)
+        self.send_header("Content-Type", "image/png")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers(); self.wfile.write(data)
+
     def _dash_calendario_generar(self):
-        """Sube UNA imagen de plantilla y genera automáticamente los 12 meses del calendario
-        superponiendo mes/días/números (posición, tamaño y grosor definidos en el editor visual
-        del dashboard) sobre esa imagen. Cada mes se guarda como override del tipo 'calendario'."""
+        """Genera el calendario superponiendo mes/días/números sobre la plantilla.
+        - Sin `mes`: genera los 12 (guarda base + aplica overrides por mes existentes).
+        - Con `mes` (1-12): regenera SOLO ese mes con sus coordenadas propias (editor por mes).
+        La plantilla viene en el body; si no, se usa el fondo.png guardado del tema.
+        Guarda las coordenadas en layout.json (memoria por tema)."""
         if not self._admin_ok():
             return self._deny()
         q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         tema = slug(q.get("tema", [""])[0])
-        anyo_str = re.sub(r"\D", "", (q.get("anyo", ["2026"])[0] or "2026"))[:4]
+        anyo_str = re.sub(r"\D", "", (q.get("anyo", ["2026"])[0] or "2026"))[:4] or "2026"
         nombre = (q.get("nombre", [""])[0] or "").strip() or "Mi familia"
         config_str = q.get("config", [""])[0] or ""
+        mes_str = re.sub(r"\D", "", q.get("mes", [""])[0] or "")
+        mes = int(mes_str) if mes_str else 0     # 0 = los 12
+        if mes and not (1 <= mes <= 12):
+            return self._json(400, {"ok": False, "error": "mes inválido"})
         if not tema or not temas.existe(tema):
             return self._json(400, {"ok": False, "error": "tema inválido"})
         try:
             config = json.loads(config_str) if config_str else None
         except Exception:
             config = None
+
+        tdir = os.path.join(temas.TEMAS_DIR, tema)
+        fondo_dir = os.path.join(tdir, "calendario")
+        fondo_path = os.path.join(fondo_dir, "fondo.png")
+
+        # plantilla: del body si vino; si no, la guardada (fondo.png)
+        plantilla = None
         try:
             n = int(self.headers.get("Content-Length", "0"))
             raw = self.rfile.read(n) if n else b""
-            if not raw:
-                return self._json(400, {"ok": False, "error": "sin archivo"})
-            plantilla = Image.open(io.BytesIO(raw)).convert("RGBA")
+            if raw:
+                plantilla = Image.open(io.BytesIO(raw)).convert("RGBA")
         except Exception as e:
             return self._json(400, {"ok": False, "error": "imagen inválida: %s" % e})
+        if plantilla is None and os.path.isfile(fondo_path):
+            plantilla = Image.open(fondo_path).convert("RGBA")
+        if plantilla is None:
+            return self._json(400, {"ok": False, "error": "sin plantilla (subí una imagen primero)"})
 
         try:
             import calendario
-            piezas_meses = calendario.generar_calendario_con_plantilla(
-                {"nombre": nombre, "anyo": anyo_str}, plantilla, tema, config=config)
-            tdir = os.path.join(temas.TEMAS_DIR, tema)
-            fondo_dir = os.path.join(tdir, "calendario")
             os.makedirs(fondo_dir, exist_ok=True)
-            plantilla.save(os.path.join(fondo_dir, "fondo.png"))
-
+            plantilla.save(fondo_path)
             override_dir = os.path.join(tdir, "overrides", "calendario")
             os.makedirs(override_dir, exist_ok=True)
+
+            layout = self._cal_load_layout(tema) or {"base": {}, "meses": {}, "anyo": anyo_str}
+            layout.setdefault("meses", {})
+            data = {"nombre": nombre, "anyo": anyo_str}
+
+            if mes:  # un solo mes
+                cfg = config or layout["meses"].get(str(mes)) or layout.get("base") or {}
+                img = calendario.generar_mes_con_plantilla(data, plantilla, tema, mes, cfg)
+                piezas.to_rgb(img).save(os.path.join(override_dir, "%d.png" % (mes - 1)))
+                layout["meses"][str(mes)] = cfg
+                layout["anyo"] = anyo_str
+                self._cal_save_layout(tema, layout)
+                return self._json(200, {"ok": True, "tema": tema, "mes": mes, "generados": 1})
+
+            # los 12
+            base = config or layout.get("base") or {}
+            layout["base"] = base
+            layout["anyo"] = anyo_str
             generados = []
-            for idx, (archivo, maker, _) in enumerate(piezas_meses):
-                img = maker({"nombre": nombre})
-                p = os.path.join(override_dir, "%d.png" % idx)
-                piezas.to_rgb(img).save(p)
-                generados.append({"idx": idx, "archivo": archivo})
+            for m in range(1, 13):
+                cfg = layout["meses"].get(str(m)) or base
+                img = calendario.generar_mes_con_plantilla(data, plantilla, tema, m, cfg)
+                piezas.to_rgb(img).save(os.path.join(override_dir, "%d.png" % (m - 1)))
+                generados.append(m)
+            self._cal_save_layout(tema, layout)
             return self._json(200, {"ok": True, "tema": tema, "anyo": anyo_str,
-                                    "generados": len(generados), "meses": generados})
+                                    "generados": len(generados)})
         except Exception as e:
             return self._json(500, {"ok": False, "error": "generación falló: %s" % e})
 

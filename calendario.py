@@ -69,6 +69,37 @@ def _hex_to_rgb(hex_color):
     return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
 
 
+def _color_fondo(plant, colors):
+    """Color de fondo de la hoja para el modo 'números detrás': usa colors.background si
+    está; si no, muestrea una esquina de la plantilla (las hojas tienen borde de fondo)."""
+    bg = colors.get("background") if colors else None
+    if isinstance(bg, str):
+        return _hex_to_rgb(bg)
+    if bg:
+        return tuple(bg)
+    px = plant.convert("RGB").getpixel((2, 2))
+    return tuple(px[:3])
+
+
+def _detras(num_layer, plant, bg, tol=45):
+    """Deja los números del día DETRÁS de los dibujos de la plantilla.
+    La plantilla es una imagen plana (personaje+fondo fusionados), así que separamos por
+    color: donde el pixel es ~fondo, el número se ve; donde hay un dibujo (personaje, banner,
+    guarda), ese dibujo tapa al número → el número queda detrás. Preserva la textura del fondo
+    (no lo aplana: solo recorta el alfa de la capa de números).
+      tol: cuánto puede alejarse un pixel del color de fondo para seguir contando como fondo."""
+    from PIL import ImageChops, ImageFilter
+    base = Image.new("RGB", plant.size, bg)
+    diff = ImageChops.difference(plant.convert("RGB"), base)
+    r, g, b = diff.split()
+    mx = ImageChops.lighter(ImageChops.lighter(r, g), b)   # 0=fondo, alto=dibujo
+    keep = mx.point(lambda v: 255 if v <= tol else 0)      # 255 donde es fondo → mostrar número
+    keep = keep.filter(ImageFilter.GaussianBlur(1))        # bordes suaves
+    out = num_layer.copy()
+    out.putalpha(ImageChops.multiply(num_layer.getchannel("A"), keep))
+    return out
+
+
 def _load_config(tema):
     """Carga config_calendario.json de la temática. Si no existe, devuelve None."""
     config_path = os.path.join(TEMAS, tema, "config_calendario.json")
@@ -191,13 +222,20 @@ def mes_hoja_desde_config(mes, anyo, nombre, config, plantilla, tema="safari"):
         domingo_rojo = config.get("domingo_rojo", True)
         ROJO_DOMINGO = (211, 47, 47)  # #D32F2F — mismo tono que usa el preview del editor
 
+        # Ancla por la LÍNEA BASE (ms), no por el centro (mm): la baseline es una
+        # referencia independiente de la fuente, así el preview del editor (canvas,
+        # textBaseline='alphabetic') cae exactamente donde el motor dibuja el mes.
         dr.text((month_x, month_y), _MESES_ES[mes - 1],
-                font=_font(month_size, weight=month_weight), fill=month_color, anchor="mm")
+                font=_font(month_size, weight=month_weight), fill=month_color, anchor="ms")
 
         for i, dlabel in enumerate(_DIAS_ES):
             color = ROJO_DOMINGO if (domingo_rojo and i == 6) else weekday_color
             dr.text((weekday_x + i * weekday_spacing, weekday_y), dlabel,
                     font=_font(weekday_size, weight=weekday_weight), fill=color, anchor="mm")
+
+        # Los números del día van en su propia capa para poder meterlos DETRÁS de los dibujos.
+        num_layer = Image.new("RGBA", (Wp, Hp), (0, 0, 0, 0))
+        drn = ImageDraw.Draw(num_layer)
 
         cal = calendar.Calendar()
         days = cal.monthdayscalendar(anyo, mes)
@@ -208,9 +246,15 @@ def mes_hoja_desde_config(mes, anyo, nombre, config, plantilla, tema="safari"):
                 color = ROJO_DOMINGO if (domingo_rojo and col == 6) else day_color
                 cx = days_x + col * days_spacing_h
                 cy = days_y + row * days_spacing_v
-                dr.text((cx, cy), str(day), font=_font(day_size, weight=day_weight), fill=color, anchor="mm")
+                drn.text((cx, cy), str(day), font=_font(day_size, weight=day_weight),
+                         fill=color, anchor="mm")
 
-        im = Image.alpha_composite(im, overlay)
+        if config.get("detras", days_cfg.get("detras", True)) and plantilla:
+            tol = int(days_cfg.get("detras_tol", config.get("detras_tol", 45)))
+            num_layer = _detras(num_layer, im, _color_fondo(im, colors), tol)
+
+        im = Image.alpha_composite(im, num_layer)   # números (recortados por los dibujos)
+        im = Image.alpha_composite(im, overlay)     # mes + días de semana, siempre arriba
         return im
 
     # --- esquema viejo (config_calendario.json de temas existentes) ---
@@ -254,18 +298,28 @@ def mes_hoja_desde_config(mes, anyo, nombre, config, plantilla, tema="safari"):
     days = cal.monthdayscalendar(anyo, mes)
 
     day_text_y_offset = config.get("day_text_y_offset", -4)
+    day_size = font_sizes.get("day", 28)
     cell_h = grid_h / rows
+    # Números del día en su propia capa para poder meterlos DETRÁS de los dibujos.
+    num_layer = Image.new("RGBA", (Wp, Hp), (0, 0, 0, 0))
+    drn = ImageDraw.Draw(num_layer)
     y = grid_y
     for week in days:
         for i, day in enumerate(week):
             cx = grid_x + i * cell_w + cell_w / 2
             if day == 0:
                 continue
-            dr.text((cx, y + cell_h / 2 + day_text_y_offset), str(day),
-                    font=_font(font_sizes.get("day", 28)), fill=day_text_color, anchor="mm")
+            drn.text((cx, y + cell_h / 2 + day_text_y_offset), str(day),
+                     font=_font(day_size), fill=day_text_color, anchor="mm")
         y += cell_h
 
-    im = Image.alpha_composite(im, overlay)
+    days_cfg = config.get("days", {})
+    if config.get("detras", days_cfg.get("detras", True)) and plantilla:
+        tol = int(days_cfg.get("detras_tol", config.get("detras_tol", 45)))
+        num_layer = _detras(num_layer, im, _color_fondo(im, colors), tol)
+
+    im = Image.alpha_composite(im, num_layer)   # números (recortados por los dibujos)
+    im = Image.alpha_composite(im, overlay)     # mes + días de semana, siempre arriba
     return im
 
 
@@ -302,6 +356,29 @@ if __name__ == "__main__":
         maker({"nombre": nombre}).convert("RGB").save(f"{out}_{fn}.png")
         print(f"OK -> {out}_{fn}.png")
         break
+
+
+# Config por defecto (esquema NUEVO del editor). Se usa solo como red de seguridad
+# si se pide generar sin config; el editor siempre manda la suya.
+_DEFAULT_CAL_CONFIG = {
+    "month": {"x": 620, "y": 80, "size": 85, "weight": 560},
+    "weekday": {"x": 271, "y": 335, "size": 24, "spacing": 134, "weight": 500},
+    "days": {"x": 271, "y": 399, "size": 28, "spacingH": 134, "spacingV": 93, "weight": 600},
+    "colors": {"month_text": "#000000"},
+    "domingo_rojo": True,
+}
+
+
+def generar_mes_con_plantilla(data, plantilla_img, tema, mes, config):
+    """Genera UN solo mes (1-12) con config + plantilla y devuelve la PIL Image RGBA.
+    Se usa para regenerar un mes puntual desde su tarjeta (editor por mes), con
+    coordenadas propias por mes (ej. acomodar la 6a fila de Marzo/Agosto/Noviembre)."""
+    nombre = str(data.get("nombre") or "").strip() or "Mi familia"
+    anyo = int(data.get("anyo") or "2026")
+    plantilla = plantilla_img if plantilla_img else _load_plantilla(tema)
+    if not config:
+        config = _DEFAULT_CAL_CONFIG
+    return mes_hoja_desde_config(mes, anyo, nombre, config, plantilla, tema)
 
 
 def generar_calendario_con_plantilla(data, plantilla_img, tema="safari", config=None):

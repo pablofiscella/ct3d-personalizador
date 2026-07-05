@@ -6,7 +6,7 @@
 <title>Kits personalizables — Casatridimensional</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700&family=Source+Code+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700&family=Source+Code+Pro:wght@400;500;600;700&family=Fredoka:wght@300..700&display=swap" rel="stylesheet">
 <style>
 /* ──────────────────────────────────────────────────────────────
    Tokens — copiados 1:1 del design system del dashboard CT3D
@@ -492,8 +492,9 @@ async function openProductosNuevos(tema, nombre){
     <div id="pn-body" style="min-height:80px">Cargando…</div>
     <p id="pn-msg" style="margin-top:10px;font-size:13px;min-height:18px;opacity:.95"></p></div>`;
   document.body.appendChild(ov);
-  ov.querySelector('#pn-close').onclick=()=>ov.remove();
-  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+  const cerrarPanel=()=>{ ov.remove(); if(window.__refrescarProductos===cargarPiezas) window.__refrescarProductos=null; };
+  ov.querySelector('#pn-close').onclick=cerrarPanel;
+  ov.addEventListener('click',e=>{ if(e.target===ov) cerrarPanel(); });
   const tabsBox=ov.querySelector('#pn-tabs'), body=ov.querySelector('#pn-body'), pmsg=ov.querySelector('#pn-msg');
   let tipoActual=PROD_NUEVOS_TIPOS[0][0];
   function pintarTabs(){
@@ -548,18 +549,27 @@ async function openProductosNuevos(tema, nombre){
     </div>
     <div id="pn-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px"></div>`;
     const grid=body.querySelector('#pn-grid');
-    grid.innerHTML=j.piezas.map(p=>`
-      <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:8px;text-align:center">
-        <img loading="lazy" src="/preview?tipo=${encodeURIComponent(tipoActual)}&tema=${encodeURIComponent(tema)}&pieza=${p.idx}&max=260&cb=${cb}"
-             style="width:100%;height:130px;object-fit:contain;background:#2a2735;border-radius:6px;display:block" alt=""
+    // Marcar meses que ocupan 6 semanas: si la plantilla tiene grilla de 5 filas,
+    // la última fila de números se desborda sobre el arte. Determinístico por año (semana arranca lunes).
+    const mesesSeisFilas=(anyo)=>{const s=new Set();for(let m=0;m<12;m++){const startCol=(new Date(anyo,m,1).getDay()+6)%7;const dias=new Date(anyo,m+1,0).getDate();if(Math.ceil((startCol+dias)/7)>=6)s.add(m);}return s;};
+    const anyoCal=parseInt((document.getElementById('cal-anyo')||{}).value)||2026;
+    const seisFilas=esCalendario?mesesSeisFilas(anyoCal):new Set();
+    grid.innerHTML=j.piezas.map(p=>{const alerta=esCalendario&&seisFilas.has(p.idx);return `
+      <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:8px;text-align:center;position:relative;${alerta?'outline:2px solid #E5484D;outline-offset:-2px':''}">
+        ${alerta?`<div title="Este mes tiene 6 semanas (${anyoCal}): si tu plantilla tiene grilla de 5 filas, la última fila de números se desborda sobre el dibujo. Reemplazá este mes con 📤 o rehacé la grilla a 6 filas." style="position:absolute;top:5px;left:5px;z-index:2;background:#E5484D;color:#fff;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.35);cursor:help">⚠ 6 filas</div>`:''}
+        <img loading="lazy" class="pn-zoom" title="Click para ver grande"
+             data-full="/preview?tipo=${encodeURIComponent(tipoActual)}&tema=${encodeURIComponent(tema)}&pieza=${p.idx}&max=1200&cb=${cb}"
+             src="/preview?tipo=${encodeURIComponent(tipoActual)}&tema=${encodeURIComponent(tema)}&pieza=${p.idx}&max=260&cb=${cb}"
+             style="width:100%;height:130px;object-fit:contain;background:#2a2735;border-radius:6px;display:block;cursor:zoom-in" alt=""
              onload="this.style.background='#fff'" onerror="this.style.background='#402626'">
         <div style="font-size:11.5px;font-weight:600;margin:6px 0 2px">${esc(p.label)}${p.override?' <span style="color:#39d98a">✓ personalizada</span>':''}</div>
         <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:5px">
           <a class="btn-ghost pn-dl" style="font-size:10.5px;padding:4px 8px;text-decoration:none" href="/dash/producto-descargar?tema=${encodeURIComponent(tema)}&tipo=${encodeURIComponent(tipoActual)}&pieza=${p.idx}&key=${encodeURIComponent(KEY)}">⬇</a>
           <label class="btn-ghost" style="font-size:10.5px;padding:4px 8px;cursor:pointer">📤<input type="file" accept="image/*" data-idx="${p.idx}" class="pn-up" style="display:none"></label>
+          ${esCalendario?`<button class="btn-ghost pn-cal-edit" data-mes="${p.idx+1}" data-tema="${esc(tema)}" title="Acomodar y regenerar solo este mes" style="font-size:10.5px;padding:4px 8px">✏️ ajustar</button>`:''}
           ${p.override?`<button class="btn-ghost pn-revert" data-idx="${p.idx}" style="font-size:10.5px;padding:4px 8px">↺ original</button>`:''}
         </div>
-      </div>`).join('');
+      </div>`;}).join('');
     grid.querySelectorAll('.pn-up').forEach(inp=>inp.onchange=async()=>{
       const f=inp.files[0]; if(!f) return;
       pmsg.textContent='Subiendo…';
@@ -685,6 +695,7 @@ async function openProductosNuevos(tema, nombre){
       });
     }
   }
+  window.__refrescarProductos = cargarPiezas;   // para refrescar la grilla tras generar en el editor
   pintarTabs();
   cargarPiezas();
 }
@@ -1278,8 +1289,8 @@ cargar();
         <h4 style="font-size:12px;margin:0 0 8px 0;font-weight:600">📅 MES (solo el nombre, sin año)</h4>
         <div style="display:flex;flex-direction:column;gap:6px;font-size:11px">
           <input type="hidden" id="cal-month-x" value="620"><input type="hidden" id="cal-month-y" value="80">
-          <div><label>Tamaño: <span id="cal-month-size-val">110</span></label><input type="range" id="cal-month-size" value="110" min="20" max="200" style="width:100%"></div>
-          <div><label>Grosor: <span id="cal-month-weight-val">700</span></label><input type="range" id="cal-month-weight" value="700" min="300" max="700" style="width:100%"></div>
+          <div><label>Tamaño: <span id="cal-month-size-val">85</span></label><input type="range" id="cal-month-size" value="85" min="20" max="200" style="width:100%"></div>
+          <div><label>Grosor: <span id="cal-month-weight-val">560</span></label><input type="range" id="cal-month-weight" value="560" min="300" max="700" style="width:100%"></div>
           <div><label>Color:</label><input type="color" id="cal-month-color" value="#000000" style="width:100%;height:30px;padding:0;border:1px solid #ccc;border-radius:4px;cursor:pointer"></div>
         </div>
       </div>
@@ -1307,7 +1318,7 @@ cargar();
         <div style="display:flex;flex-direction:column;gap:6px;font-size:11px">
           <input type="hidden" id="cal-days-x" value="271"><input type="hidden" id="cal-days-y" value="399">
           <div><label>Tamaño: <span id="cal-day-size-val">28</span></label><input type="range" id="cal-day-size" value="28" min="10" max="60" style="width:100%"></div>
-          <div><label>Grosor: <span id="cal-day-weight-val">500</span></label><input type="range" id="cal-day-weight" value="500" min="300" max="700" style="width:100%"></div>
+          <div><label>Grosor: <span id="cal-day-weight-val">600</span></label><input type="range" id="cal-day-weight" value="600" min="300" max="700" style="width:100%"></div>
           <div><label>Espaciado H: <span id="cal-days-spacing-h-val">134</span></label><input type="range" id="cal-days-spacing-h" value="134" min="20" max="300" style="width:100%"></div>
           <div><label>Espaciado V: <span id="cal-days-spacing-v-val">93</span></label><input type="range" id="cal-days-spacing-v" value="93" min="20" max="300" style="width:100%"></div>
         </div>
@@ -1329,12 +1340,29 @@ cargar();
 </div>
 
 <script>
+// Vista rápida (lightbox) al tocar una miniatura de producto
+window.verImagenGrande = function(url) {
+  const lb = document.createElement('div');
+  lb.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:10001;display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out';
+  lb.innerHTML = '<img src="' + url + '" style="max-width:96%;max-height:96%;object-fit:contain;border-radius:8px;background:#fff;box-shadow:0 8px 40px rgba(0,0,0,.6)">';
+  const cerrar = () => { lb.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = (ev) => { if (ev.key === 'Escape') cerrar(); };
+  lb.onclick = cerrar;
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(lb);
+};
+
 document.addEventListener('click', (e) => {
+  const zi = e.target.closest && e.target.closest('.pn-zoom');
+  if (zi && zi.dataset.full) { window.verImagenGrande(zi.dataset.full); return; }
   if (e.target.id === 'cal-editor-btn') {
-    const modal = document.getElementById('cal-editor-modal');
-    if (modal && window.TEMA_ACTUAL) {
-      modal.showModal();
-    }
+    if (window.TEMA_ACTUAL) window.abrirEditorCal(0);
+    return;
+  }
+  const edb = e.target.closest && e.target.closest('.pn-cal-edit');
+  if (edb) {
+    e.preventDefault();
+    window.abrirEditorCal(parseInt(edb.dataset.mes) || 0, edb.dataset.tema);
   }
 });
 
@@ -1439,57 +1467,54 @@ function dibujarPreview() {
     ctx.restore();
   }
 
-  // Grosor simulado con trazo (faux-bold), proporcional al slider 300-700
-  ctx.lineJoin = 'round';
-
-  const grosorTrazo = (weight, fontPx) => Math.max(0, (weight - 300) / 400) * fontPx * 0.09;
   const DOMINGO_ROJO = '#d32f2f';
+  // Misma fuente que el motor (Fredoka) y mismo modelo de centrado (em / textBaseline
+  // middle == anchor "mm" de Pillow). El mes real y sus días (lunes primero, con las
+  // 6 filas cuando corresponde) para que el preview coincida con la imagen final.
+  const FF = 'Fredoka, sans-serif';
+  const mesPrev = window.calEditorMes || 1;
+  const anyoPrev = parseInt(anyoInput && anyoInput.value) || 2026;
 
-  ctx.font = Math.round(p.monthSize * scale) + 'px sans-serif';
-  let lw = grosorTrazo(p.monthWeight, p.monthSize * scale);
-  ctx.lineWidth = lw;
+  // Mes (capitalizado como el motor: "Enero"). Ancla por la LÍNEA BASE (alphabetic),
+  // igual que anchor="ms" del motor: coincide exacto sin depender de las métricas de la fuente.
+  ctx.font = p.monthWeight + ' ' + Math.round(p.monthSize * scale) + 'px ' + FF;
   ctx.fillStyle = p.monthColor;
-  ctx.strokeStyle = p.monthColor;
-  if (lw > 0.3) ctx.strokeText('ENERO', p.monthX * scale, p.monthY * scale);
-  ctx.fillText('ENERO', p.monthX * scale, p.monthY * scale);
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(_MESES_CAL[mesPrev - 1], p.monthX * scale, p.monthY * scale);
+  ctx.textBaseline = 'middle';
 
   const dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-  ctx.font = Math.round(p.weekdaySize * scale) + 'px sans-serif';
-  lw = grosorTrazo(p.weekdayWeight, p.weekdaySize * scale);
-  ctx.lineWidth = lw;
+  ctx.font = p.weekdayWeight + ' ' + Math.round(p.weekdaySize * scale) + 'px ' + FF;
   for (let i = 0; i < 7; i++) {
-    const esDomingo = p.domingoRojo && i === 6;
-    ctx.fillStyle = esDomingo ? DOMINGO_ROJO : '#000';
-    ctx.strokeStyle = ctx.fillStyle;
-    const wx = (p.weekdayX + i * p.weekdaySpacing) * scale, wy = p.weekdayY * scale;
-    if (lw > 0.3) ctx.strokeText(dias[i], wx, wy);
-    ctx.fillText(dias[i], wx, wy);
+    ctx.fillStyle = (p.domingoRojo && i === 6) ? DOMINGO_ROJO : '#000';
+    ctx.fillText(dias[i], (p.weekdayX + i * p.weekdaySpacing) * scale, p.weekdayY * scale);
   }
 
-  ctx.font = Math.round(p.daySize * scale) + 'px sans-serif';
-  lw = grosorTrazo(p.dayWeight, p.daySize * scale);
-  ctx.lineWidth = lw;
-  let dayNum = 1;
-  for (let row = 0; row < 6; row++) {
-    for (let col = 0; col < 7; col++) {
-      if (dayNum > 31) break;
-      const esDomingo = p.domingoRojo && col === 6;
-      ctx.fillStyle = esDomingo ? DOMINGO_ROJO : '#000';
-      ctx.strokeStyle = ctx.fillStyle;
-      const x = (p.daysX + col * p.daysSpacingH) * scale;
-      const y = (p.daysY + row * p.daysSpacingV) * scale;
-      if (lw > 0.3) ctx.strokeText(dayNum, x, y);
-      ctx.fillText(dayNum, x, y);
-      dayNum++;
+  // Números del mes real: día 1 arranca en su columna (lunes=0), como monthdayscalendar
+  ctx.font = p.dayWeight + ' ' + Math.round(p.daySize * scale) + 'px ' + FF;
+  const startCol = (new Date(anyoPrev, mesPrev - 1, 1).getDay() + 6) % 7;
+  const diasEnMes = new Date(anyoPrev, mesPrev, 0).getDate();
+  let dnum = 1, col = startCol;
+  for (let row = 0; row < 6 && dnum <= diasEnMes; row++) {
+    for (; col < 7 && dnum <= diasEnMes; col++) {
+      ctx.fillStyle = (p.domingoRojo && col === 6) ? DOMINGO_ROJO : '#000';
+      ctx.fillText(String(dnum), (p.daysX + col * p.daysSpacingH) * scale, (p.daysY + row * p.daysSpacingV) * scale);
+      dnum++;
     }
-    if (dayNum > 31) break;
+    col = 0;
+  }
+
+  // Si Fredoka todavía no cargó, redibujar cuando esté (para que coincida con el motor)
+  if (document.fonts && document.fonts.check && !document.fonts.check('700 40px Fredoka')) {
+    document.fonts.load('700 40px Fredoka').then(() => { if (imagenCargada) dibujarPreview(); }).catch(() => {});
   }
 }
 
 // Caja de colisión (en coords reales 1240x1754) para cada grupo arrastrable
 function hitBox(mode, p) {
   if (mode === 'month') {
-    return { x1: p.monthX - 220, y1: p.monthY - p.monthSize / 2 - 10, x2: p.monthX + 220, y2: p.monthY + p.monthSize / 2 + 10 };
+    // monthY es la línea base (el texto sube desde ahí): la caja cubre de monthY-alto a monthY
+    return { x1: p.monthX - 220, y1: p.monthY - p.monthSize - 10, x2: p.monthX + 220, y2: p.monthY + 12 };
   }
   if (mode === 'weekday') {
     return { x1: p.weekdayX - 40, y1: p.weekdayY - p.weekdaySize, x2: p.weekdayX + 6 * p.weekdaySpacing + 40, y2: p.weekdayY + p.weekdaySize };
@@ -1613,16 +1638,90 @@ if (anyoInput) anyoInput.addEventListener('input', dibujarPreview);
 if (monthColorInput) monthColorInput.addEventListener('input', dibujarPreview);
 if (domingoRojoInput) domingoRojoInput.addEventListener('change', dibujarPreview);
 
+// --- Memoria por tema: precargar coordenadas + fondo guardado ---
+const _MESES_CAL = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+window.calEditorMes = 0;
+window.calHuboCambios = false;
+
+function _setCal(id, val) {
+  if (val === null || val === undefined) return;
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = val;
+  const lab = document.getElementById(id + '-val');
+  if (lab) lab.textContent = val;
+}
+
+function aplicarLayout(cfg) {
+  if (!cfg) return;
+  const m = cfg.month || {}, w = cfg.weekday || {}, d = cfg.days || {}, c = cfg.colors || {};
+  _setCal('cal-month-x', m.x); _setCal('cal-month-y', m.y);
+  _setCal('cal-month-size', m.size); _setCal('cal-month-weight', m.weight);
+  if (c.month_text) _setCal('cal-month-color', c.month_text);
+  if (cfg.domingo_rojo !== undefined && domingoRojoInput) domingoRojoInput.checked = !!cfg.domingo_rojo;
+  _setCal('cal-weekday-x', w.x); _setCal('cal-weekday-y', w.y);
+  _setCal('cal-weekday-size', w.size); _setCal('cal-weekday-spacing', w.spacing); _setCal('cal-weekday-weight', w.weight);
+  _setCal('cal-days-x', d.x); _setCal('cal-days-y', d.y);
+  _setCal('cal-day-size', d.size); _setCal('cal-days-spacing-h', d.spacingH);
+  _setCal('cal-days-spacing-v', d.spacingV); _setCal('cal-day-weight', d.weight);
+}
+
+async function cargarFondoGuardado(tema) {
+  try {
+    const r = await fetch('/dash/calendario-fondo?tema=' + encodeURIComponent(tema), { headers: { 'X-API-Key': KEY } });
+    if (!r.ok) return false;
+    const blob = await r.blob();
+    plantillaFile = new File([blob], 'fondo.png', { type: 'image/png' });
+    await new Promise((res) => { const img = new Image(); img.onload = () => { imagenCargada = img; res(); }; img.onerror = () => res(); img.src = URL.createObjectURL(blob); });
+    if (genBtn) genBtn.disabled = false;
+    return true;
+  } catch (e) { return false; }
+}
+
+window.abrirEditorCal = async function(mes, tema) {
+  mes = mes || 0;
+  if (tema) window.TEMA_ACTUAL = tema;
+  if (!window.TEMA_ACTUAL) return;
+  window.calEditorMes = mes;
+  const modal = document.getElementById('cal-editor-modal');
+  if (!modal) return;
+  imagenCargada = null; plantillaFile = null;
+  if (genBtn) { genBtn.disabled = true; genBtn.textContent = mes ? ('🚀 Regenerar solo ' + _MESES_CAL[mes - 1]) : '🚀 Generar 12 meses'; }
+  if (statusDiv) statusDiv.textContent = 'Cargando…';
+  if (preview) preview.innerHTML = '<div style="padding:40px;color:#999">Cargando…</div>';
+  try { modal.showModal(); } catch (e) {}
+  try {
+    const r = await fetch('/dash/calendario-layout?tema=' + encodeURIComponent(window.TEMA_ACTUAL), { headers: { 'X-API-Key': KEY } });
+    const j = await r.json();
+    if (j && j.ok) {
+      const base = (j.layout && j.layout.base) || {};
+      const perMes = (mes && j.layout && j.layout.meses) ? j.layout.meses[String(mes)] : null;
+      aplicarLayout(perMes || base);
+      if (anyoInput && j.layout && j.layout.anyo) anyoInput.value = j.layout.anyo;
+      if (j.tiene_fondo) await cargarFondoGuardado(window.TEMA_ACTUAL);
+      let msg = '';
+      if (mes) msg = '✏️ Editás SOLO ' + _MESES_CAL[mes - 1] + '. Acomodá la grilla y regenerá ese mes.';
+      else if (j.origen === 'default') msg = 'ℹ️ Coordenadas heredadas de otra temática (ajustalas si hace falta).';
+      else if (j.origen === 'vacio') msg = 'ℹ️ Tema nuevo: posiciones por defecto.';
+      if (!j.tiene_fondo) msg += (msg ? '  ' : '') + '📤 Subí la plantilla de fondo.';
+      if (statusDiv) statusDiv.textContent = msg;
+    }
+  } catch (e) { if (statusDiv) statusDiv.textContent = ''; }
+  if (imagenCargada) dibujarPreview();
+  else if (preview) preview.innerHTML = '<div style="padding:40px;color:#999">Subí la plantilla (imagen de fondo)</div>';
+};
+
 // Generar meses
 if (genBtn) {
   genBtn.addEventListener('click', async () => {
-    if (!plantillaFile || !window.TEMA_ACTUAL) {
+    if ((!plantillaFile && !imagenCargada) || !window.TEMA_ACTUAL) {
       statusDiv.textContent = '❌ Falta imagen o tema';
       return;
     }
 
+    const mes = window.calEditorMes || 0;
     genBtn.disabled = true;
-    statusDiv.textContent = '⏳ Generando...';
+    statusDiv.textContent = mes ? ('⏳ Regenerando ' + _MESES_CAL[mes - 1] + '...') : '⏳ Generando...';
 
     const p = leerParams();
     const config = {
@@ -1637,6 +1736,7 @@ if (genBtn) {
       anyo: anyoInput.value,
       config: JSON.stringify(config)
     });
+    if (mes) qs.set('mes', String(mes));
 
     try {
       const res = await fetch('/dash/calendario-generar?' + qs.toString(), {
@@ -1646,11 +1746,15 @@ if (genBtn) {
       });
 
       if (res.ok) {
-        statusDiv.textContent = '✅ 12 meses generados';
+        // Mismo comportamiento en ambos casos: cerrar el editor y volver al popup
+        // de "Otros productos" refrescado (sin recargar toda la página).
+        window.calHuboCambios = false;
+        statusDiv.textContent = mes ? ('✅ ' + _MESES_CAL[mes - 1] + ' regenerado') : '✅ 12 meses generados';
         setTimeout(() => {
           document.getElementById('cal-editor-modal').close();
-          location.reload();
-        }, 1000);
+          if (window.__refrescarProductos) window.__refrescarProductos();
+          else location.reload();
+        }, 700);
       } else {
         const err = await res.text();
         statusDiv.textContent = '❌ Error: ' + err.substring(0, 50);
@@ -1663,10 +1767,11 @@ if (genBtn) {
   });
 }
 
-// Cerrar modal
+// Cerrar modal (si hubo cambios, refresca el panel para ver los meses actualizados)
 if (cerrarBtn) {
   cerrarBtn.addEventListener('click', () => {
     document.getElementById('cal-editor-modal').close();
+    if (window.calHuboCambios) { window.calHuboCambios = false; if (window.__refrescarProductos) window.__refrescarProductos(); }
   });
 }
 

@@ -61,59 +61,51 @@ def _paste_h(base, img, cx, cy, h):
 
 
 def gorro(data, tema="safari"):
-    """Gorro cónico de cumpleaños para armar. Ocupa media hoja A4."""
+    """Gorro cónico de cumpleaños para armar: un sector (abanico) que se recorta y
+    se enrolla en cono. El abanico abre HACIA ABAJO y todo el texto va centrado y
+    apilado sobre él (antes abría a la derecha y el texto caía sobre el fondo)."""
     acc = _accent(tema)
     nombre = (str(data.get("nombre") or "").strip()) or ""
-
-    im = Image.new("RGBA", (Wp, Hp), (255, 255, 255, 255))
-    dr = ImageDraw.Draw(im)
-    dr.rectangle([0, 0, Wp, Hp], fill=CREAM)
-
-    cx, cy = Wp / 2, 120
-    r = 520
-    ang = math.radians(60)
-    pts = []
-    for i in range(61):
-        a = -ang + i * 2 * ang / 60
-        pts.append((cx + r * math.cos(a), cy + r * math.sin(a)))
-    dr.polygon([(cx, cy)] + pts, outline=(180, 180, 180), width=3, fill=acc + (180,))
-
-    dr.arc([cx - r, cy - r, cx + r, cy + r], -60, 60, fill=acc, width=4)
-
-    solapas = []
-    for side in (-1, 1):
-        sx = cx + r * math.cos(side * ang)
-        sy = cy + r * math.sin(side * ang)
-        sl = 40
-        solapas.append((sx, sy, sx + side * sl, sy))
-    for x1, y1, x2, y2 in solapas:
-        dr.line([x1, y1, x2, y2], fill=acc, width=3)
-
-    if nombre:
-        nr = 220
-        n_ang = math.radians(45)
-        n_cx = cx + nr * math.cos(n_ang)
-        n_cy = cy + nr * math.sin(n_ang)
-        fs = 62
-        while _font(fs).getbbox(nombre)[2] > 400 and fs > 24:
-            fs -= 3
-        dr.text((n_cx, n_cy), nombre, font=_font(fs), fill=(255, 255, 255), anchor="mm")
-
-    dr.text((cx, cy + 100), "CUMPLEAÑOS", font=_font(50), fill=(255, 255, 255) if acc else acc, anchor="mm")
     edad = str(data.get("edad") or "").strip()
-    if edad:
-        efs = 130
-        while _font(efs).getbbox(edad)[2] > 300 and efs > 60:
-            efs -= 4
-        dr.text((cx + 110, cy - 40), edad, font=_font(efs), fill=(255, 255, 255) if acc else acc, anchor="mm")
 
-    _draw_instrucciones_en(im, dr, Wp / 2, 700, acc)
+    im = Image.new("RGBA", (Wp, Hp), CREAM + (255,))
+    dr = ImageDraw.Draw(im)
+
+    cx, apex_y = Wp / 2, 200
+    r = 620
+    half = math.radians(55)
+    base = math.radians(90)                      # el abanico apunta hacia abajo
+    pts = [(cx, apex_y)]
+    for i in range(81):
+        a = base - half + i * 2 * half / 80
+        pts.append((cx + r * math.cos(a), apex_y + r * math.sin(a)))
+    dr.polygon(pts, fill=acc + (255,))
+    dr.arc([cx - r, apex_y - r, cx + r, apex_y + r],
+           math.degrees(base - half), math.degrees(base + half), fill=acc, width=5)
+    for s in (-1, 1):                             # bordes = líneas de doblez suaves
+        ex = cx + r * math.cos(base + s * half)
+        ey = apex_y + r * math.sin(base + s * half)
+        dr.line([(cx, apex_y), (ex, ey)], fill=_tint(acc, 0.4), width=2)
+
+    if edad:
+        efs = 150
+        while _font(efs).getbbox(edad)[2] > 260 and efs > 70:
+            efs -= 4
+        dr.text((cx, apex_y + 130), edad, font=_font(efs), fill=(255, 255, 255), anchor="mm")
+    dr.text((cx, apex_y + 268), "CUMPLEAÑOS", font=_font(46), fill=(255, 255, 255), anchor="mm")
+    if nombre:
+        fs = 76
+        while _font(fs).getbbox(nombre)[2] > 520 and fs > 28:
+            fs -= 3
+        dr.text((cx, apex_y + 344), nombre, font=_font(fs), fill=(255, 255, 255), anchor="mm")
 
     personajes = _personajes(tema, 1)
     if personajes:
-        _paste_h(im, personajes[0], Wp / 2, Hp - 280, 320)
+        _paste_h(im, personajes[0], cx, apex_y + r - 90, 175)
 
-    dr.text((Wp / 2, Hp - 40), "casatridimensional.com.ar", font=_font(18, False), fill=(180, 180, 180), anchor="mm")
+    _draw_instrucciones(dr, cx, apex_y + r + 130, acc)
+
+    dr.text((cx, Hp - 40), "casatridimensional.com.ar", font=_font(18, False), fill=(180, 180, 180), anchor="mm")
     return im
 
 

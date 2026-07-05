@@ -116,13 +116,37 @@ def test_cuento_extendido_por_arco():
         assert sum("Mateo" in t for t in textos) >= 3
 
     # las 3 narrativas clásicas siguen andando igual en temas legado (7 páginas,
-    # texto de las primeras páginas IDÉNTICO al de antes de extenderlas)
+    # sin el catálogo; el texto sale con la mayúscula automática de inicio de frase)
     for historia in ("tesoro", "rescate", "gran-dia"):
         legado = libro.cuento(dict(data, historia=historia), "safari")
         assert len(legado) == 7
-        assert legado == [t.format(**dict(libro.HISTORIAS["safari"], nombre="Mateo",
-                                          conteo="contar hasta 6", conteo_num="6"))
-                          for t in libro.ARGUMENTOS[historia]]
+        assert legado == [libro._capitalizar_frases(
+            t.format(**dict(libro.HISTORIAS["safari"], nombre="Mateo",
+                            conteo="contar hasta 6", conteo_num="6")))
+            for t in libro.ARGUMENTOS[historia]]
+
+
+def test_catalogo_audiolibro_largo_por_edad():
+    """El audiolibro (catalogo=True) usa la versión rica con largo por edad:
+    9 páginas de historia hasta 3 años, 17 de 4 en adelante, desacoplado del tema."""
+    for historia in libro.ARGUMENTOS_LARGO:
+        chico = libro.cuento({"nombre": "Mia", "edad": "3", "historia": historia},
+                             "safari", catalogo=True)
+        grande = libro.cuento({"nombre": "Mia", "edad": "5", "historia": historia},
+                              "safari", catalogo=True)
+        assert len(chico) == 9 and len(grande) == 17
+        assert sum("Mia" in t for t in grande) >= 3
+        # el corto conserva el arranque y SIEMPRE el cierre para dormir
+        assert chico[0] == grande[0] and chico[-1] == grande[-1]
+        # el corto es exactamente el subconjunto CORTO_IDX del largo (misma edad)
+        largo3 = [libro.ARGUMENTOS_LARGO[historia][i] for i in libro.CORTO_IDX]
+        assert len(chico) == len(largo3)
+        # ninguna página arranca en minúscula (la mayúscula automática funciona)
+        assert not [t for t in grande if t[:1].islower()]
+
+    # sin catalogo (libro de kit), el mismo tema/historia NO cambia de largo
+    kit = libro.cuento({"nombre": "Mia", "edad": "5", "historia": "tesoro"}, "safari")
+    assert len(kit) == 7
 
 
 def test_campos_se_respetan_en_las_paginas():
