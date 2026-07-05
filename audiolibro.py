@@ -236,22 +236,33 @@ def html(token, base_url=""):
 * { margin:0; padding:0; box-sizing:border-box; }
 html,body { height:100%%; }
 body { background:#2a2438; font-family:system-ui,sans-serif; overflow:hidden;
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; }
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:6px 0; }
 #flip img { border-radius:6px; }
-.controles { display:flex; gap:14px; align-items:center; flex-shrink:0; }
-button { background:#6B5BD2; color:#fff; border:0; border-radius:50%%; width:54px; height:54px;
-  font-size:22px; cursor:pointer; } button.sec { background:#453a66; width:44px; height:44px; font-size:15px; }
+.controles { display:flex; gap:10px; align-items:center; justify-content:center;
+  flex-wrap:wrap; flex-shrink:0; max-width:96vw; }
+.velrow { gap:8px; }
+.velrow input[type=range] { width:140px; accent-color:#6B5BD2; }
+button { background:#6B5BD2; color:#fff; border:0; border-radius:50%%; width:52px; height:52px;
+  font-size:22px; cursor:pointer; flex:0 0 auto; line-height:1; }
+button.sec { background:#453a66; width:44px; height:44px; font-size:16px; }
 .pag { color:#b8aede; font-size:14px; min-width:52px; text-align:center; }
+@media (max-width:520px){
+  button { width:46px; height:46px; font-size:19px; }
+  button.sec { width:40px; height:40px; font-size:14px; }
+  .controles { gap:8px; } .velrow input[type=range] { width:130px; }
+}
 </style></head><body>
 <div id="flip"></div>
 <div class="controles">
+  <button class="sec" id="reinicio" title="Volver al principio">↺</button>
   <button class="sec" id="prev">⏮</button>
   <button id="play">▶</button>
   <button class="sec" id="next">⏭</button>
   <span class="pag" id="pag">1 / %(n)d</span>
+</div>
+<div class="controles velrow">
   <span style="color:#b8aede;font-size:16px">🐢</span>
-  <input type="range" id="vel" min="0.7" max="1.4" step="0.05" value="1"
-         style="width:110px;accent-color:#6B5BD2">
+  <input type="range" id="vel" min="0.7" max="1.4" step="0.05" value="1">
   <span style="color:#b8aede;font-size:16px">🐇</span>
   <span class="pag" id="velval" style="min-width:38px">1.0x</span>
 </div>
@@ -267,7 +278,7 @@ var narrando=false, actual=0;
 function pad(x){return ('0'+x).slice(-2);}
 function err(m){ diag.textContent=m; }
 audio.addEventListener('error', function(){ err('audio error: no se pudo cargar el clip'); });
-var availH = Math.max(300, window.innerHeight - 130);
+var availH = Math.max(280, window.innerHeight - 180);
 var h = availH, w = Math.round(h * 827 / 1169);
 if (w > window.innerWidth * 0.94) { w = Math.round(window.innerWidth * 0.94); h = Math.round(w * 1169 / 827); }
 var flip=null;
@@ -335,6 +346,12 @@ play.onclick = function(){
 };
 document.getElementById('prev').onclick = function(){ if(flip) flip.flipPrev(); };
 document.getElementById('next').onclick = function(){ if(flip) flip.flipNext(); };
+document.getElementById('reinicio').onclick = function(){
+  narrando=false; audio.pause(); play.textContent='▶'; err('');
+  actual=0;
+  if(flip){ try{ flip.turnToPage(0); }catch(ex){ } }
+  mostrarPag();
+};
 pag.textContent='1 / '+N;
 </script></body></html>""" % {"titulo": e(titulo), "token": e(token),
                               "base": e(base_url), "n": n,
