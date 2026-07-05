@@ -54,7 +54,26 @@ Esta página se actualiza sola — ¡no hace falta que hagas nada!</p>
 <div class="dots"><span></span><span></span><span></span></div>
 </body></html>"""
 
-OPENAI_API_KEY     = os.environ.get("OPENAI_API_KEY", "")
+def _leer_openai_key():
+    """Key de OpenAI: del entorno, o si falta (p.ej. tras una migración que perdió
+    la env del service) de config.json — el mismo archivo donde ya vive el secreto.
+    También la deja en os.environ para que el QA de libro_ia (que lee el env) funcione."""
+    k = (os.environ.get("OPENAI_API_KEY") or "").strip()
+    if not k:
+        for p in (os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json"),
+                  "/opt/ct3d/backend/config.json"):
+            try:
+                k = (json.load(open(p)).get("openai_api_key") or "").strip()
+                if k:
+                    break
+            except Exception:
+                pass
+    if k and not os.environ.get("OPENAI_API_KEY"):
+        os.environ["OPENAI_API_KEY"] = k
+    return k
+
+
+OPENAI_API_KEY     = _leer_openai_key()
 OPENAI_IMAGE_MODEL = os.environ.get("OPENAI_IMAGE_MODEL", "gpt-image-2")
 OPENAI_CALIDAD     = os.environ.get("OPENAI_CALIDAD", "low")  # low p/ depurar barato; medium/high p/ final
 
@@ -1984,18 +2003,24 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def _dash_libro_audio_demo(self):
-        """Audiolibro DEMO del tema (nombre genérico) para escuchar desde el panel.
-        Se genera una vez y se cachea (temas/<tema>/audiolibro_demo.txt guarda el
-        token). 1ª llamada: arranca el job; cuando está, devuelve {url}."""
+        """Audiolibro DEMO REAL del tema para revisar desde el panel ANTES de publicar:
+        genera el libro del catálogo (historia + edad → 12/20 páginas) con el MISMO
+        arte por pedido + QA + voz que ve el cliente, así se pueden chequear problemas
+        de imágenes. Se cachea por (tema, historia, edad). Params: tema, historia, edad.
+        Con ?regen=1 fuerza regenerar (descarta el cacheado)."""
         if not self._admin_ok():
             return self._deny()
         q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         tema = slug(q.get("tema", [""])[0])
+        historia = (q.get("historia", ["aventura"])[0] or "aventura").strip().lower()
+        edad = re.sub(r"\D", "", q.get("edad", ["5"])[0] or "5") or "5"
+        regen = q.get("regen", ["0"])[0] in ("1", "true", "yes")
         if not tema or not temas.existe(tema):
             return self._json(400, {"ok": False, "error": "tema inválido"})
-        import audiolibro
-        marca = os.path.join(temas.TEMAS_DIR, tema, "audiolibro_demo.txt")
-        if os.path.isfile(marca):
+        import audiolibro, libro_ia
+        marca = os.path.join(temas.TEMAS_DIR, tema,
+                             "audiolibro_demo_%s_%s.txt" % (historia, edad))
+        if os.path.isfile(marca) and not regen:
             tok = open(marca).read().strip()
             if audiolibro._cargar(tok):
                 return self._json(200, {"ok": True,
@@ -2004,8 +2029,27 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(503, {"ok": False, "error": "falta OPENAI_API_KEY"})
 
         def trabajo(emit):
-            emit("Narrando el cuento de muestra…")
-            tok = audiolibro.crear({"nombre": "Alex", "edad": "5"}, tema, OPENAI_API_KEY,
+            data = {"nombre": "Alex", "edad": edad, "historia": historia,
+                    "genero": "nene", "dedicatoria": "Un cuento de muestra"}
+            escenas = None
+            if historia in libro_ia._ESCENAS_POR_HISTORIA_LARGO:
+                client = _openai_client()
+                if client is not None:
+                    dest = os.path.join(DATA_DIR, "demo-%s-%s-%s" % (tema, historia, edad))
+                    escenas = os.path.join(dest, "escenas")
+                    os.makedirs(escenas, exist_ok=True)
+                    emit("Ilustrando el cuento a medida…")
+                    try:
+                        libro_ia.generar_ilustraciones(
+                            client, tema, dest_dir=escenas, genero="nene",
+                            historia=historia, catalogo=True, edad=edad,
+                            verificar=True, progress=emit,
+                            fallos_log=os.path.join(dest, "qa.txt"))
+                    except Exception as e:
+                        emit("Arte falló (%s) — uso arte del tema" % e)
+                        escenas = None
+            emit("Narrando el cuento…")
+            tok = audiolibro.crear(data, tema, OPENAI_API_KEY, escenas_dir=escenas,
                                    progress=emit)
             with open(marca, "w") as f:
                 f.write(tok)
