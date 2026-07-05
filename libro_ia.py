@@ -90,9 +90,9 @@ _ESCENAS_POR_HISTORIA = {
     "rescate": {
         2: "Una lucecita mágica golpeando la ventana de un cuarto infantil de noche, sensación de mensaje urgente.",
         3: "{protagonista} volando por el cielo llevado por el viento hacia {mundo}, estrellas y nubes.",
-        4: "Los personajes del tema preocupados buscando a un amiguito perdido en {mundo}, atardecer.",
+        4: "Los personajes del tema preocupados buscando a un nene pequeño perdido en {mundo}, atardecer.",
         5: "Huellas pequeñitas en el suelo de {mundo} que llevan hacia una cueva; los personajes del tema las siguen con linternas.",
-        6: "{protagonista} saliendo de una cueva de la mano de un personajito pequeño del tema, los demás celebrando aliviados y felices.",
+        6: "{protagonista} saliendo de una cueva de la mano de un nene pequeño del tema (un niño, NO un animal), los demás celebrando felices.",
         7: "Los personajes del tema entregando {tesoro} brillante y destacado en el centro, con destellos dorados, ceremonia de héroes.",
         8: "Un cuarto infantil de noche, un chico dormido con sonrisa... mejor: la casita de noche con ventana cálida y una lucecita mágica despidiéndose.",
     },
@@ -132,7 +132,7 @@ _ESCENAS_POR_HISTORIA_EXT = {
         2: _ESCENAS_POR_HISTORIA["rescate"][2], 3: _ESCENAS_POR_HISTORIA["rescate"][3],
         4: _ESCENAS_POR_HISTORIA["rescate"][4], 5: _ESCENAS_POR_HISTORIA["rescate"][5],
         6: _ESCENAS_POR_HISTORIA["rescate"][6], 7: _ESCENAS_POR_HISTORIA["rescate"][7],
-        8: "Un personajito pequeño del tema abrazando fuerte y agradecido a "
+        8: "Un nene pequeño del tema (un niño) abrazando fuerte y agradecido a "
            "{protagonista}, ambiente muy tierno.",
         9: "Los personajes del tema tomados de la mano en fila caminando juntos "
            "por {mundo}, explorando con confianza.",
@@ -339,18 +339,18 @@ _ESCENAS_POR_HISTORIA_LARGO = {
     "rescate": _tabla17([
         "Una lucecita mágica golpeando la ventana de un cuarto infantil de noche, mensaje urgente.",
         "{protagonista} volando por el cielo llevado por el viento hacia {mundo}, estrellas y nubes.",
-        "Los personajes del tema preocupados; un amiguito muy pequeño se perdió, atardecer.",
+        "Los personajes del tema preocupados; un nene pequeño del grupo se perdió, atardecer.",
         "Los personajes del tema hablando nerviosos, {protagonista} pidiendo calma con gesto tranquilo.",
         "Huellas pequeñitas en el suelo de {mundo}; los personajes del tema las siguen con atención.",
         "Un sendero de árboles altos de noche, el viento haciendo ruiditos como susurros.",
         "Una cueva oscura de la que sale un llantito bajito; los personajes se acercan con linternas.",
-        "{protagonista} saliendo de la cueva de la mano del amiguito pequeño, los demás festejando aliviados.",
-        "El amiguito pequeño abrazando fuerte y agradecido a {protagonista}, ambiente muy tierno.",
+        "{protagonista} saliendo de la cueva de la mano de un nene pequeño del grupo (un niño, NO un animal), los demás festejando aliviados.",
+        "El nene pequeño rescatado (un niño) abrazando fuerte y agradecido a {protagonista}, ambiente muy tierno.",
         "Los personajes del tema tomados de la mano en fila, explorando {mundo} juntos con confianza.",
         "Un rincón mágico escondido de {mundo} lleno de lucecitas como estrellas caídas, todos maravillados.",
         "Los personajes del tema eligiendo con cariño su nuevo rincón secreto favorito.",
         "Los personajes del tema entregando {tesoro} brillante en el centro, ceremonia de héroes.",
-        "El amiguito pequeño y {protagonista} prometiéndose volver a verse, gesto tierno.",
+        "El nene pequeño rescatado y {protagonista} prometiéndose volver a verse, gesto tierno.",
         "Los personajes del tema cantando en ronda de noche junto a las lucecitas mágicas.",
         "Los personajes del tema despidiéndose con abrazos cálidos.",
         "Una casita de noche con ventana cálida iluminada, cierre tranquilo y feliz.",
@@ -522,6 +522,11 @@ def prompt_pagina(tema, idx, genero=None, historia=None, catalogo=False, edad=No
         "diseño. NO agregues NINGÚN otro personaje, animal ni criatura que no esté en "
         "la referencia (por ejemplo, si el tema es de superhéroes NO metas animales de "
         "safari) — solo los personajes del tema y el escenario que pide la escena. "
+        "PROTAGONISTA: el protagonista es un NIÑO (nunca un animal ni una mascota), y "
+        "es el personaje PRINCIPAL y más prominente de la escena, en primer plano, para "
+        "que se entienda que la historia es sobre ÉL. Si en la escena hay un animal o "
+        "mascota, tiene que quedar CLARO que el protagonista es el niño y el animal es "
+        "secundario (más chico o atrás). Nunca confundir al niño con un animal. "
         "La escena llena TODA la imagen, sin marcos, bordes ni viñetas. "
         "IMPORTANTE (encuadre): plano ABIERTO/alejado. Los personajes ocupan como "
         "mucho el 60%% central de la imagen, SIEMPRE completos y bien adentro, con "
@@ -529,7 +534,8 @@ def prompt_pagina(tema, idx, genero=None, historia=None, catalogo=False, edad=No
         "izquierda y derecha— porque al encuadrar la página se recortan los bordes "
         "y no se les puede cortar la cara ni el cuerpo. Ningún personaje pegado al borde. "
         "REGLA CRÍTICA de patas: los animales de CUATRO patas (león, jirafa, cebra, "
-        "elefante, etc.) van SIEMPRE con las 4 patas apoyadas en el piso y NUNCA "
+        "elefante, PERRO, gato, etc.) van SIEMPRE con EXACTAMENTE 4 patas (contá: "
+        "cuatro, ni una más ni una menos) apoyadas en el piso y NUNCA "
         "saludan ni levantan una pata — al levantar una pata el dibujo casi siempre "
         "inventa una QUINTA pata, y eso está MAL. Un animal en 4 patas NO saluda. "
         "SOLO los personajes que están parados en DOS patas (como un mono erguido) "
