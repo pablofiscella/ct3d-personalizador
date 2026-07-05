@@ -34,8 +34,8 @@ _APAISADA = "1536x1024"
 _ESCENAS = [
     "Portada: una escena vistosa y alegre de {mundo}, con los personajes del tema "
     "celebrando. Composición con AIRE en el tercio superior (ahí va el título después).",
-    "Viñeta tierna y suave de un personaje del tema saludando, estilo página de "
-    "dedicatoria, fondo muy claro y despejado.",
+    "Viñeta tierna y suave de un personaje del tema sonriendo con dulzura, estilo "
+    "página de dedicatoria, fondo muy claro y despejado.",
     "Un dormitorio infantil de noche, acogedor: una cama con almohada y un sobre "
     "dorado brillante que asoma bajo la almohada, luz de luna por la ventana.",
     "Un remolino mágico de luces de colores llenando un dormitorio de noche, "
@@ -69,7 +69,7 @@ _ESCENAS_EXT = [
     "Los personajes del tema abrazados en ronda junto a {protagonista}, "
     "prometiendo guardar un secreto, ambiente cálido y tierno.",
     "Un cielo lleno de colores de atardecer sobre {mundo}, los personajes del "
-    "tema despidiéndose con la mano en alto, sensación de final feliz.",
+    "tema despidiéndose con una sonrisa cálida, sensación de final feliz.",
     _ESCENAS[8],   # cierre (misma escena que el legado, ahora más adelante)
     _ESCENAS[9],   # FIN
 ]
@@ -92,7 +92,7 @@ _ESCENAS_POR_HISTORIA = {
         3: "{protagonista} volando por el cielo llevado por el viento hacia {mundo}, estrellas y nubes.",
         4: "Los personajes del tema preocupados buscando a un amiguito perdido en {mundo}, atardecer.",
         5: "Huellas pequeñitas en el suelo de {mundo} que llevan hacia una cueva; los personajes del tema las siguen con linternas.",
-        6: "{protagonista} saliendo de una cueva de la mano de un personajito pequeño del tema, los demás celebrando aliviados con los brazos en alto.",
+        6: "{protagonista} saliendo de una cueva de la mano de un personajito pequeño del tema, los demás celebrando aliviados y felices.",
         7: "Los personajes del tema entregando {tesoro} brillante y destacado en el centro, con destellos dorados, ceremonia de héroes.",
         8: "Un cuarto infantil de noche, un chico dormido con sonrisa... mejor: la casita de noche con ventana cálida y una lucecita mágica despidiéndose.",
     },
@@ -103,7 +103,7 @@ _ESCENAS_POR_HISTORIA = {
         5: "Una tormenta con viento desarmando las decoraciones de la fiesta en {mundo}; los personajes del tema mirando sorprendidos.",
         6: "{protagonista} organizando a los personajes del tema para reconstruir la fiesta: todos ayudando juntos, decoraciones volviendo a su lugar, trabajo en equipo.",
         7: "La gran fiesta espléndida de noche en {mundo} con luces y {tesoro} siendo entregado en el centro con destellos dorados.",
-        8: "Cielo nocturno estrellado sereno sobre {mundo}, los personajes del tema despidiéndose a lo lejos con las manos en alto.",
+        8: "Cielo nocturno estrellado sereno sobre {mundo}, los personajes del tema despidiéndose a lo lejos con una sonrisa.",
     },
 }
 
@@ -525,12 +525,13 @@ def prompt_pagina(tema, idx, genero=None, historia=None, catalogo=False, edad=No
         "MUCHO aire (espacio vacío de fondo) en los CUATRO lados —arriba, abajo, "
         "izquierda y derecha— porque al encuadrar la página se recortan los bordes "
         "y no se les puede cortar la cara ni el cuerpo. Ningún personaje pegado al borde. "
-        "IMPORTANTE: cada animal con la cantidad EXACTA de patas de su especie "
-        "(4 patas: nunca una de más ni de menos, ni siquiera si está saludando o "
-        "en movimiento — la cola es la cola, no una pata extra). Si un personaje "
-        "saluda con una pata/mano levantada, dibujalo SIEMPRE de pie con las otras "
-        "3 patas apoyadas y bien separadas (nunca sentado saludando: sentado es más "
-        "difícil de dibujar bien y las patas quedan amontonadas o poco claras). "
+        "REGLA CRÍTICA de patas: los animales de CUATRO patas (león, jirafa, cebra, "
+        "elefante, etc.) van SIEMPRE con las 4 patas apoyadas en el piso y NUNCA "
+        "saludan ni levantan una pata — al levantar una pata el dibujo casi siempre "
+        "inventa una QUINTA pata, y eso está MAL. Un animal en 4 patas NO saluda. "
+        "SOLO los personajes que están parados en DOS patas (como un mono erguido) "
+        "pueden saludar con una mano. Cada animal con la cantidad EXACTA de patas de "
+        "su especie: ni una de más ni de menos, y la cola es la cola, NO una pata extra. "
         "Importante: NO escribas ningún texto, número ni letra (no text, no letters)."
         % (escena, pal["accent"], pal["ink"])
     )
