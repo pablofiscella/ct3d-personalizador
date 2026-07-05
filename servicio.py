@@ -625,8 +625,6 @@ class Handler(BaseHTTPRequestHandler):
                 q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
                 if q.get("wm") and ct.startswith("image"):
                     try:
-                        from PIL import Image
-                        import piezas
                         _im = Image.open(io.BytesIO(data_b)).convert("RGB")
                         _buf = io.BytesIO()
                         piezas.marca_agua(_im).save(_buf, "JPEG", quality=82)
