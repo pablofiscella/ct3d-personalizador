@@ -55,6 +55,24 @@ Esta página se actualiza sola — ¡no hace falta que hagas nada!</p>
 <div class="dots"><span></span><span></span><span></span></div>
 </body></html>"""
 
+# El audiolibro falló al generarse: en vez de dejar al cliente en 'grabándose'
+# eterno, un cartel amable. Se auto-refresca por si un reintento manual lo resuelve.
+_AUDIOLIBRO_ERROR_HTML = """<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><meta http-equiv="refresh" content="30">
+<title>Tu audiolibro está casi listo</title><style>
+*{margin:0;padding:0;box-sizing:border-box}html,body{height:100%}
+body{background:#2a2438;color:#efeaff;font-family:system-ui,sans-serif;text-align:center;padding:24px;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}
+.emoji{font-size:64px}h1{font-size:22px;font-weight:700}p{color:#b8aede;max-width:440px;line-height:1.5}
+</style></head><body>
+<div class="emoji">🎧✨</div>
+<h1>Tu audiolibro está casi listo</h1>
+<p>Está tardando un poquito más de lo normal — lo estamos terminando a mano para
+que quede perfecto. <b>Te lo enviamos por email apenas esté</b> (unos minutos).
+No hace falta que hagas nada; podés cerrar esta página tranquilo.</p>
+</body></html>"""
+
 def _leer_openai_key():
     """Key de OpenAI: del entorno, o si falta (p.ej. tras una migración que perdió
     la env del service) de config.json — el mismo archivo donde ya vive el secreto.
@@ -640,8 +658,10 @@ class Handler(BaseHTTPRequestHandler):
                 return
             page = audiolibro.html(token, base_url=self.base_url())
             if page is None:
-                if audiolibro.estado(token) == "generando":
-                    body = _AUDIOLIBRO_GENERANDO_HTML.encode("utf-8")
+                est = audiolibro.estado(token)
+                if est in ("generando", "error"):
+                    body = (_AUDIOLIBRO_ERROR_HTML if est == "error"
+                            else _AUDIOLIBRO_GENERANDO_HTML).encode("utf-8")
                     self.send_response(200)
                     self.send_header("Content-Type", "text/html; charset=utf-8")
                     self.send_header("Cache-Control", "no-store")
@@ -1033,43 +1053,67 @@ class Handler(BaseHTTPRequestHandler):
                            "nombre": data.get("nombre", ""), "al_token": tok_al},
                           f, ensure_ascii=False, indent=2)
 
-            def _audio_worker(data=data, dest=dest, tema=tema, tok_al=tok_al, base=base):
+            def _audio_una_vez(data, dest, tema, tok_al):
                 import audiolibro, zipfile, libro_ia
-                try:
-                    escenas = None
-                    hist = (data.get("historia") or "").strip().lower()
-                    if hist in libro_ia._ESCENAS_POR_HISTORIA_LARGO:
-                        # Catálogo de audiolibros: arte por combo con CACHE
-                        # (generar una vez -> revisar -> reusar). Si el combo ya
-                        # está cacheado la venta NO regenera nada (entrega en
-                        # segundos y sin costo de IA); si falta, se genera y
-                        # queda cacheado para la próxima.
-                        escenas = os.path.join(dest, "escenas")
-                        try:
-                            libro_ia.arte_catalogo(
-                                _openai_client(), tema, hist,
-                                data.get("genero"), data.get("edad"), escenas,
-                                progress=lambda m: print("[libro-audio]", m,
-                                                         flush=True),
-                                fallos_log=os.path.join(dest, "qa_fallos.txt"))
-                        except Exception as e:
-                            print("[libro-audio] arte falló (%s) — arte del tema" % e,
-                                  flush=True)
-                            escenas = None
-                    audiolibro.crear(data, tema, OPENAI_API_KEY,
-                                     escenas_dir=escenas, token=tok_al)
-                    with zipfile.ZipFile(os.path.join(dest, "kit.zip"), "w") as z:
-                        z.writestr("TU_AUDIOLIBRO.txt",
-                                   "Tu audiolibro narrado está en:\n%s/al/%s\n\n"
-                                   "Compartí ese link con la familia — dura 1 año." %
-                                   (base, tok_al))
-                except Exception as e:
-                    print("[libro-audio] falló: %s" % e, flush=True)
-                finally:
+                escenas = None
+                hist = (data.get("historia") or "").strip().lower()
+                if hist in libro_ia._ESCENAS_POR_HISTORIA_LARGO:
+                    # Catálogo de audiolibros: arte por combo con CACHE (generar
+                    # una vez -> revisar -> reusar). Si el combo ya está cacheado
+                    # la venta NO regenera nada; si falta, se genera y cachea.
+                    escenas = os.path.join(dest, "escenas")
                     try:
-                        os.remove(os.path.join(dest, "generando.flag"))
+                        libro_ia.arte_catalogo(
+                            _openai_client(), tema, hist,
+                            data.get("genero"), data.get("edad"), escenas,
+                            progress=lambda m: print("[libro-audio]", m, flush=True),
+                            fallos_log=os.path.join(dest, "qa_fallos.txt"))
+                    except Exception as e:
+                        print("[libro-audio] arte falló (%s) — arte del tema" % e,
+                              flush=True)
+                        escenas = None
+                audiolibro.crear(data, tema, OPENAI_API_KEY,
+                                 escenas_dir=escenas, token=tok_al)
+                with zipfile.ZipFile(os.path.join(dest, "kit.zip"), "w") as z:
+                    z.writestr("TU_AUDIOLIBRO.txt",
+                               "Tu audiolibro narrado está en:\n%s/al/%s\n\n"
+                               "Compartí ese link con la familia — dura 1 año." %
+                               (base, tok_al))
+
+            def _audio_worker(data=data, dest=dest, tema=tema, tok_al=tok_al,
+                              base=base, payload=payload):
+                import audiolibro
+                ok = False
+                # Reintento: la mayoría de las fallas son transitorias (red/timeout
+                # de la API). Dos intentos antes de darlo por fallido.
+                for intento in (1, 2):
+                    try:
+                        _audio_una_vez(data, dest, tema, tok_al)
+                        ok = True
+                        break
+                    except Exception as e:
+                        print("[libro-audio] intento %d falló: %s" % (intento, e),
+                              flush=True)
+                try:
+                    os.remove(os.path.join(dest, "generando.flag"))
+                except OSError:
+                    pass
+                if not ok:
+                    # NO dejar al cliente en 'grabándose' eterno: marca error (el
+                    # visor muestra un cartel amable) y deja registro para el
+                    # vendedor en pedidos/audiolibros_fallidos.log.
+                    audiolibro.marcar_error(tok_al, "generación falló tras 2 intentos")
+                    try:
+                        with open(os.path.join(DATA_DIR, "audiolibros_fallidos.log"),
+                                  "a", encoding="utf-8") as fl:
+                            fl.write("%d\torder=%s\ttok=%s\ttema=%s\thist=%s\n" % (
+                                int(time.time()), payload.get("order_id"), tok_al,
+                                tema, data.get("historia", "")))
                     except OSError:
                         pass
+                    print("[libro-audio] ⚠️ FALLÓ definitivamente order=%s tok=%s "
+                          "— regenerar a mano" % (payload.get("order_id"), tok_al),
+                          flush=True)
 
             threading.Thread(target=_audio_worker, daemon=True).start()
             return self._json(200, {"ok": True, "token": token, "generando": True,

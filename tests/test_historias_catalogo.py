@@ -63,6 +63,9 @@ def test_render_todos_los_combos():
         if "«" in texto or "»" in texto:
             errores.append(f"{combo}: comillas «» (usar “ ” — los padres las "
                            f"leen como '>>')")
+        # contracción: {mundo} trae su artículo → nunca "a el"/"de el" sin contraer
+        if re.search(r"\b[Aa] el\b|\b[Dd]e el\b", texto):
+            errores.append(f"{combo}: falta contraer 'a el'→'al' / 'de el'→'del'")
         if texto.count("Luna") < 3:
             errores.append(f"{combo}: el nombre casi no aparece")
         for i, p in enumerate(pags):

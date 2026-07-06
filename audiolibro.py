@@ -223,9 +223,28 @@ def _quitar_generando(token):
         pass
 
 
+def _marca_error(token):
+    return os.path.join(AUDIOLIBROS_DIR, token, ".error")
+
+
+def marcar_error(token, motivo=""):
+    """La generación falló definitivamente: saca el '.generando' (para que el
+    visor NO quede en 'grabándose' eterno) y deja un '.error' con el motivo, así
+    el visor muestra un cartel amable y queda registro para el vendedor."""
+    if not re.fullmatch(r"[A-Za-z0-9_-]{8,32}", token or ""):
+        return
+    os.makedirs(os.path.join(AUDIOLIBROS_DIR, token), exist_ok=True)
+    _quitar_generando(token)
+    try:
+        with open(_marca_error(token), "w", encoding="utf-8") as f:
+            f.write(str(motivo)[:500])
+    except OSError:
+        pass
+
+
 def estado(token):
     """'listo' si el audiolibro ya está generado, 'generando' si está en curso,
-    None si el token no existe."""
+    'error' si la generación falló, None si el token no existe."""
     if not re.fullmatch(r"[A-Za-z0-9_-]{8,32}", token or ""):
         return None
     d = os.path.join(AUDIOLIBROS_DIR, token)
@@ -233,6 +252,8 @@ def estado(token):
         return "listo"
     if os.path.isfile(_marca_gen(token)):
         return "generando"
+    if os.path.isfile(_marca_error(token)):
+        return "error"
     return None
 
 

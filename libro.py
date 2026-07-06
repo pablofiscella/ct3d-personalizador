@@ -454,15 +454,29 @@ ARGUMENTOS_EXT = {
 
 
 _RE_INICIO_FRASE = re.compile(r'(^|[.!?]\s+|[¡¿]\s*|»\s+)([a-záéíóúüñ])')
+# Contracción a+el→al, de+el→del: los placeholders {mundo} traen su artículo
+# ("el gran circo", "el reino encantado..."), y muchos arrancan con "el" → tras
+# "a"/"de" quedaba "a el reino"/"de el circo" (mal). Se contrae SOLO ante "el"
+# minúscula (el artículo del placeholder); nunca "él" con tilde (pronombre).
+_RE_CONTRAE = re.compile(r'\b([Aa]|[Dd]e)\s+el\b')
+
+
+def _contraer(m):
+    p = m.group(1)
+    return ("al" if p.lower() == "a" else "del")[:1].upper() + \
+           ("al" if p.lower() == "a" else "del")[1:] if p[0].isupper() else \
+           ("al" if p.lower() == "a" else "del")
 
 
 def _capitalizar_frases(texto):
-    """Pone mayúscula al inicio del texto y después de cada punto/signo, y cambia
-    las comillas españolas «» por inglesas “” (las « se leen como '>>' y los
-    padres las toman por un error — regla del catálogo). Necesario porque los
-    placeholders como {amigos} (\"los animales de la selva\") caen a veces al
-    comienzo de una oración y quedarían en minúscula."""
-    t = _RE_INICIO_FRASE.sub(lambda m: m.group(1) + m.group(2).upper(), texto)
+    """Pone mayúscula al inicio del texto y después de cada punto/signo, contrae
+    a+el→al y de+el→del (por el artículo de {mundo}), y cambia las comillas
+    españolas «» por inglesas “” (las « se leen como '>>' y los padres las toman
+    por un error). Necesario porque los placeholders como {amigos} (\"los
+    animales...\") o {mundo} (\"el reino...\") caen tras preposición o al inicio
+    de una oración."""
+    t = _RE_CONTRAE.sub(_contraer, texto)
+    t = _RE_INICIO_FRASE.sub(lambda m: m.group(1) + m.group(2).upper(), t)
     return t.replace("«", "“").replace("»", "”")
 
 

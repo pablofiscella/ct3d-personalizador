@@ -390,8 +390,11 @@ _ESCENAS_POR_HISTORIA_LARGO = {
         "saltos de alegría.",
         "El nene pequeño rescatado (un niño) envuelto en la manta, feliz junto "
         "a {protagonista}, ambiente de agradecimiento.",
-        "Los personajes del tema cantando en ronda de noche alrededor de las "
-        "lucecitas brillantes, felices.",
+        "Los personajes del tema de pie cantando de noche junto a las lucecitas "
+        "brillantes, con las manos a los costados; a UN COSTADO, separado, el "
+        "perro dálmata sentado tranquilo con sus CUATRO patas apoyadas en el "
+        "piso, mirando contento. NADIE toca ni sostiene al perro; el perro NO "
+        "levanta ni extiende las patas hacia nadie.",
         "Los personajes del tema entregando {tesoro} brillante y destacado en "
         "el centro a {protagonista}, ceremonia de héroes.",
         "Un cuarto infantil de noche; {protagonista} en la cama con las manos "
@@ -799,6 +802,12 @@ def prompt_pagina(tema, idx, genero=None, historia=None, catalogo=False, edad=No
         "crema vacío. Si la imagen de referencia tiene fondo blanco (hoja de "
         "stickers), usála SOLO para el diseño de los personajes: el fondo de la "
         "escena lo pintás COMPLETO igual. "
+        "PERSONAJES PARADOS SOBRE EL PISO (obligatorio): cada personaje se apoya "
+        "ENCIMA del suelo, con el cuerpo ENTERO visible y los pies sobre la "
+        "tierra. NUNCA medio enterrado, hundido, ni cortado por la línea del "
+        "piso o del horizonte (nada de personajes 'sepultados hasta la cintura' "
+        "porque el suelo les tapa las piernas). Si el piso sube (una lomita), los "
+        "personajes van ADELANTE, completos, no detrás de la loma. "
         "IMPORTANTE (encuadre): plano ABIERTO/alejado. Los personajes ocupan como "
         "mucho el 60%% central de la imagen, SIEMPRE completos y bien adentro, con "
         "MUCHO aire (espacio vacío de fondo) en los CUATRO lados —arriba, abajo, "
