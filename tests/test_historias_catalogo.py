@@ -20,7 +20,7 @@ import re
 import itertools
 
 import libro
-from libro_historias import ARGUMENTOS_LARGO, CORTO_IDX
+from libro_historias import ARGUMENTOS_LARGO, CORTO_IDX, TITULOS
 import libro_ia
 
 TEMAS_CATALOGO = ["safari", "circo", "superheroes", "construccion", "bomberos",
@@ -35,6 +35,9 @@ def test_estructura():
     for k, v in ARGUMENTOS_LARGO.items():
         assert len(v) == 17, k
     assert len(CORTO_IDX) == 9 and max(CORTO_IDX) < 17
+    # Cada historia con SU título de tapa (no todas "La gran aventura")
+    assert set(TITULOS) == set(ARGUMENTOS_LARGO)
+    assert len(set(TITULOS.values())) == len(TITULOS)
 
 
 # ── T2 · render de todos los combos ──────────────────────────────────────────

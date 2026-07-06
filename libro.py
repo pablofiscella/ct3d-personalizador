@@ -16,7 +16,7 @@ API: paginas_libro(data, tema) -> [PIL.Image] · pagina_libro(idx, data, tema) -
 """
 import contextlib
 import os, json, glob, math, random, threading, re
-from libro_historias import ARGUMENTOS_LARGO, CORTO_IDX
+from libro_historias import ARGUMENTOS_LARGO, CORTO_IDX, TITULOS
 from PIL import Image, ImageDraw, ImageFont
 
 KIT = os.path.dirname(os.path.abspath(__file__))
@@ -874,10 +874,18 @@ def portada(data, tema="safari"):
     _cielo(im, (0, 0, Wp, Hp), _tint(acc, 0.80), _tint(acc, 0.95))
     dr.rounded_rectangle([55, 55, Wp - 55, Hp - 55], 40, outline=acc, width=8)
     dr.rounded_rectangle([80, 80, Wp - 80, Hp - 80], 30, outline=_tint(acc, 0.55), width=3)
-    dr.text((Wp / 2, 330), "La gran aventura de", font=_font(66, False), fill=INK, anchor="mm")
+    # Tapa con el título de la HISTORIA elegida (cada libro con su título);
+    # sin historia del catálogo (libro de kit legado) queda el texto clásico.
+    titulo_h = TITULOS.get(str(data.get("historia") or "").strip().lower())
+    dr.text((Wp / 2, 330), "El cuento de" if titulo_h else "La gran aventura de",
+            font=_font(66, False), fill=INK, anchor="mm")
     fs = _fit_fs(nombre, 170, Wp - 320)
     dr.text((Wp / 2, 480), nombre, font=_font(fs), fill=acc, anchor="mm")
-    etiqueta = ("Un cuento personalizado · %s años" % edad) if edad else "Un cuento personalizado"
+    if titulo_h:
+        etiqueta = ("“%s” · %s años" % (titulo_h, edad)) if edad else "“%s”" % titulo_h
+    else:
+        etiqueta = ("Un cuento personalizado · %s años" % edad) if edad \
+            else "Un cuento personalizado"
     ew = max(520, _font(36).getlength(etiqueta) + 90)
     dr.rounded_rectangle([Wp / 2 - ew / 2, 585, Wp / 2 + ew / 2, 665], 40, fill=acc)
     dr.text((Wp / 2, 625), etiqueta, font=_font(36), fill="white", anchor="mm")

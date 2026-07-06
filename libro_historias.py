@@ -41,6 +41,22 @@ placeholder como {amigos} cae al comienzo de una oración).
 # gancho, misión, obstáculo, solución, clímax, regalo y SIEMPRE el cierre.
 CORTO_IDX = [0, 1, 3, 6, 8, 11, 14, 15, 16]
 
+# Título de tapa/visor/narración por historia (cada libro con SU título — no
+# todos "La gran aventura"). Tienen que coincidir con los labels de la tienda.
+TITULOS = {
+    "aventura": "La invitación mágica",
+    "tesoro": "El mapa del tesoro",
+    "rescate": "El gran rescate",
+    "gran-dia": "El gran día",
+    "noche-estrellas": "La noche de las estrellas",
+    "cumple-sorpresa": "El cumpleaños sorpresa",
+    "pequeno-maestro": "El pequeño maestro",
+    "ayudar-a-todos": "El día de ayudar a todos",
+    "gran-viaje": "La entrega importante",
+    "manos-a-la-obra": "El rincón soñado",
+    "gran-torneo": "Los Grandes Juegos",
+}
+
 ARGUMENTOS_LARGO = {
     # ------------------------------------------------- aventura (El Farol)
     "aventura": [

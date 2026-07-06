@@ -16,6 +16,7 @@ import re
 import secrets
 import time
 import urllib.request
+import zlib
 
 KIT = os.path.dirname(os.path.abspath(__file__))
 AUDIOLIBROS_DIR = os.environ.get(
@@ -23,25 +24,69 @@ AUDIOLIBROS_DIR = os.environ.get(
 VIGENCIA_DIAS = 7300   # "para siempre" en la práctica (~20 años) — respalda Mis compras
 
 _TTS_URL = "https://api.openai.com/v1/audio/speech"
-_VOZ = "fable"
+_VOZ = "sage"        # la voz del preset oficial "Bedtime Story" de openai.fm
 VOCES = {"fable": "Voz de cuentacuentos", "nova": "Voz femenina cálida",
          "onyx": "Voz masculina profunda"}
+# Estructura Affect/Tone/Pacing/... calcada de los presets oficiales "Bedtime
+# Story" + "Serene" de openai.fm (así recomienda OpenAI usar `instructions`;
+# en inglés siguen mejor). El acento rioplatense se ancla desde el TEXTO (voseo).
 _INSTRUCCIONES = (
-    "Sos una cuentacuentos humana y cariñosa narrando un cuento infantil para dormir, "
-    "en español rioplatense (argentino) neutro. Leé con muchísima calidez y expresión: "
-    "variá la entonación, hacé pausas naturales en las comas y los puntos, subí y bajá el "
-    "tono según la emoción de cada frase (ternura, sorpresa, alegría), y sonreí al hablar. "
-    "Ritmo pausado y dulce, NUNCA monótono ni robótico, como una maestra jardinera "
-    "leyéndole a un nene en la cama.")
+    "Affect: A warm, gentle female storyteller telling a bedtime story to a "
+    "small child (2 to 6 years old), in Latin American Spanish from Argentina "
+    "(Rioplatense accent).\n"
+    "Tone: Soft, magical, loving and reassuring, like a mother reading a "
+    "picture book at night; full of wonder, never loud or rushed.\n"
+    "Pacing: Slow and unhurried, around 120 to 130 words per minute. Brief "
+    "pause after every sentence; a longer, expectant pause before magical "
+    "moments.\n"
+    "Emotion: Tender warmth and quiet delight; gently playful in adventure "
+    "moments, hushed and sleepy toward the end.\n"
+    "Pronunciation: Clear, soft articulation with slightly elongated vowels. "
+    "Argentine Spanish: pronounce 'll' and 'y' with the soft 'sh' sound, and "
+    "read voseo forms ('mirá', 'tenés', 'dormite') naturally.\n"
+    "Pauses: Gentle pauses at commas and ellipses; let final sentences trail "
+    "off softly.")
 
 # ElevenLabs: voz por default del audiolibro (más natural que OpenAI). Lizy es una voz
 # nativa en español pensada para cuentos infantiles. La key se lee de config.json.
+# MODELO: eleven_v3 con etiquetas de emoción ([whispers]/[excited]/[soft]) — elegido
+# por Pablo en A/B contra multilingual_v2 (2026-07-06, muestra voz_v3_tags). Modo
+# Natural (stability 0.5). OJO: los clones profesionales (PVC) aún NO están
+# optimizados para v3 — si algún día clonamos locutora, evaluar volver a v2.
 _EL_URL = "https://api.elevenlabs.io/v1/text-to-speech"
 _EL_VOICE = "rrErIO88ehxTnspOjKvf"   # Lizy
-_EL_MODEL = "eleven_multilingual_v2"
-_EL_SETTINGS = {"stability": 0.30, "similarity_boost": 0.80,
-                "style": 0.48, "use_speaker_boost": True, "speed": 0.88}
+_EL_MODEL = "eleven_v3"
+_EL_SETTINGS = {"stability": 0.5}
 _EL_KEY_CACHE = {}
+
+# Etiquetas de emoción v3 automáticas y CONSERVADORAS (receta investigada:
+# 1 etiqueta por página máximo, whitelist dulce, al inicio del segmento; las
+# 2 páginas finales llevan el ritardando del cierre para dormir). Solo para la
+# narración: jamás se renderizan en el libro.
+_RE_SUSURRO = re.compile(r"susurr", re.IGNORECASE)
+
+
+def _etiqueta_pagina(texto, pos=None, total=None):
+    """Devuelve el texto con SU etiqueta v3 (una sola). pos/total permiten el
+    cierre para dormir: anteúltima página [slows down], última [whispers]."""
+    t = texto
+    low = t.lower()
+    if _RE_SUSURRO.search(low) and "“" in t:
+        return t.replace("“", "[whispers] “", 1)
+    if pos is not None and total:
+        if pos == total - 1:                      # última: casi un susurro
+            return "[whispers] " + t
+        if pos == total - 2:                      # anteúltima: bajar el ritmo
+            return "[slows down] " + t
+        if pos == 0:                              # tapa: bienvenida cálida
+            return "[warmly] " + t
+    if low.count("¡") >= 2 or "sorpresa!" in low:
+        return "[excited] " + t
+    if "se durmió" in low or "a dormir" in low or "buenas noches" in low:
+        return "[slows down] " + t
+    if t.lstrip().startswith("¿") or "¿y si" in low:
+        return "[curious] " + t
+    return t
 
 
 def _elevenlabs_key():
@@ -60,12 +105,15 @@ def _elevenlabs_key():
     return k
 
 
-def _tts_elevenlabs(texto, timeout=120):
+def _tts_elevenlabs(texto, timeout=120, seed=None):
     key = _elevenlabs_key()
     if not key:
         return None
-    body = json.dumps({"text": texto, "model_id": _EL_MODEL,
-                       "voice_settings": _EL_SETTINGS}).encode()
+    payload = {"text": texto, "model_id": _EL_MODEL,
+               "voice_settings": _EL_SETTINGS}
+    if seed is not None:
+        payload["seed"] = int(seed) % (2 ** 31)
+    body = json.dumps(payload).encode()
     req = urllib.request.Request(
         "%s/%s?output_format=mp3_44100_128" % (_EL_URL, _EL_VOICE),
         data=body, method="POST",
@@ -74,8 +122,24 @@ def _tts_elevenlabs(texto, timeout=120):
         return r.read()
 
 
+def _dur_mp3_128(b):
+    """Duración aprox (s) de un mp3 CBR 128 kbps: bytes * 8 / 128000."""
+    return len(b) / 16000.0
+
+
+def _duracion_ok(texto, mp3):
+    """QA de ritmo (receta: cuentos infantiles ~125 palabras/min). Una toma
+    apurada o cortada se detecta por duración fuera de rango — se reintenta."""
+    palabras = max(1, len(re.findall(r"\w+", texto)))
+    esperado = palabras / 125.0 * 60.0
+    dur = _dur_mp3_128(mp3)
+    return esperado * 0.55 <= dur <= esperado * 1.9
+
+
 def _tts_openai(api_key, texto, timeout=120, voz=None):
     v = voz if voz in VOCES else _VOZ
+    # las etiquetas v3 de ElevenLabs no existen acá: se leerían en voz alta
+    texto = re.sub(r"\[[a-z][a-z ]*\]\s*", "", texto)
     body = json.dumps({"model": "gpt-4o-mini-tts", "voice": v, "input": texto,
                        "response_format": "mp3",
                        "instructions": _INSTRUCCIONES}).encode()
@@ -85,33 +149,57 @@ def _tts_openai(api_key, texto, timeout=120, voz=None):
         return r.read()
 
 
-def tts_mp3(api_key, texto, timeout=120, voz=None):
-    """MP3 de la narración de `texto`. Por default usa ElevenLabs (voz Lizy, nativa
-    español para cuentos); si el cliente eligió una voz OpenAI (fable/nova/onyx) usa
-    esa; y si ElevenLabs falla, cae a OpenAI (fable) como respaldo automático."""
+def tts_mp3(api_key, texto, timeout=120, voz=None, seed=None):
+    """MP3 de la narración de `texto`. Por default usa ElevenLabs (Lizy sobre
+    eleven_v3); si el cliente eligió una voz OpenAI usa esa; y si ElevenLabs
+    falla, cae a OpenAI como respaldo automático. Con `seed` (fijo por libro)
+    mantiene la consistencia entre páginas (v3 no tiene request stitching) y
+    reintenta con seed+1 si la toma sale con ritmo raro (QA de duración)."""
     v = (str(voz or "").strip().lower())
     if v not in VOCES:                    # default o 'lizy' → ElevenLabs
-        try:
-            mp3 = _tts_elevenlabs(texto, timeout)
-            if mp3:
-                return mp3
-        except Exception as e:
-            print("[tts] ElevenLabs falló (%s) — respaldo OpenAI" % e, flush=True)
+        base = seed if seed is not None else 4242
+        for intento in range(3):
+            try:
+                mp3 = _tts_elevenlabs(texto, timeout, seed=base + intento)
+                if mp3 and _duracion_ok(texto, mp3):
+                    return mp3
+                if mp3 and intento == 2:  # 3 tomas raras: devolver la última
+                    return mp3
+            except Exception as e:
+                print("[tts] ElevenLabs falló (%s)" % e, flush=True)
+                break
         v = _VOZ
     return _tts_openai(api_key, texto, timeout, v)
+
+
+def _titulo_libro(data):
+    """Título del libro: el de la HISTORIA elegida (catálogo), con fallback al
+    clásico del libro de kit."""
+    from libro_historias import TITULOS
+    nombre = (str(data.get("nombre") or "").strip()) or "Alex"
+    t = TITULOS.get(str(data.get("historia") or "").strip().lower())
+    return ("%s — el cuento de %s" % (t, nombre)) if t \
+        else "La gran aventura de %s" % nombre
 
 
 def _textos_narracion(data, tema):
     """Texto a narrar por página (0..9): portada, dedicatoria, 7 de historia, fin."""
     import libro
+    from libro_historias import TITULOS
     nombre = (str(data.get("nombre") or "").strip()) or "Alex"
     dedic = (str(data.get("dedicatoria") or "").strip()) or \
         "Que nunca dejes de soñar, de jugar y de creer en vos."
+    t = TITULOS.get(str(data.get("historia") or "").strip().lower())
+    tapa = ("“%s”. Un cuento de %s." % (t, nombre)) if t \
+        else "La gran aventura de %s. Un cuento personalizado." % nombre
     cuerpo = libro.cuento(data, tema, catalogo=True)
-    return (["La gran aventura de %s. Un cuento personalizado." % nombre,
-             "Este cuento pertenece a %s. %s" % (nombre, dedic)]
-            + cuerpo
-            + ["Fin. ¡Hasta la próxima aventura, %s!" % nombre])
+    textos = ([tapa,
+               "Este cuento pertenece a %s. %s" % (nombre, dedic)]
+              + cuerpo
+              + ["Fin. ¡Hasta la próxima aventura, %s!" % nombre])
+    # etiquetas v3 por posición (tapa cálida, cierre para dormir en las últimas)
+    n = len(textos)
+    return [_etiqueta_pagina(tx, pos=i, total=n) for i, tx in enumerate(textos)]
 
 
 def _marca_gen(token):
@@ -173,12 +261,14 @@ def crear(data, tema, api_key, escenas_dir=None, progress=None, token=None):
             img.resize((img.width * 2 // 3, img.height * 2 // 3)).save(
                 os.path.join(d, "pag_%02d.jpg" % i), quality=86)
             with open(os.path.join(d, "pag_%02d.mp3" % i), "wb") as f:
-                f.write(tts_mp3(api_key, textos[i], voz=voz))
+                f.write(tts_mp3(api_key, textos[i], voz=voz,
+                                seed=zlib.crc32(token.encode())))
     finally:
         if ctx:
             ctx.__exit__(None, None, None)
     with open(os.path.join(d, "manifest.json"), "w", encoding="utf-8") as f:
         json.dump({"tema": tema, "nombre": data.get("nombre", ""),
+                   "titulo": _titulo_libro(data),
                    "paginas": total, "creado": int(time.time())},
                   f, ensure_ascii=False)
     _quitar_generando(token)
@@ -229,7 +319,8 @@ def html(token, base_url=""):
         return None
     e = html_mod.escape
     n = int(reg.get("paginas", 10))
-    titulo = "La gran aventura de %s — audiolibro" % (reg.get("nombre") or "")
+    titulo = (reg.get("titulo") or
+              "La gran aventura de %s" % (reg.get("nombre") or "")) + " — audiolibro"
     return """<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
 <title>%(titulo)s</title><style>

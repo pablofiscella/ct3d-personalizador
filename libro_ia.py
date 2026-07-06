@@ -791,10 +791,14 @@ def prompt_pagina(tema, idx, genero=None, historia=None, catalogo=False, edad=No
         "mascota, tiene que quedar CLARO que el protagonista es el niño y el animal es "
         "secundario (más chico o atrás). Nunca confundir al niño con un animal. "
         "La escena llena TODA la imagen, sin marcos, bordes ni viñetas. "
-        "SUELO: el piso de la escena va SIEMPRE dibujado con textura y color "
-        "acordes a la temática (pasto, arena, tierra, alfombra de circo, césped "
-        "de estadio, superficie lunar...) — NUNCA dejes el suelo blanco, vacío "
-        "o sin pintar. "
+        "ESCENARIO COMPLETO (obligatorio): la escena tiene SIEMPRE un fondo "
+        "completo que llena toda la imagen — piso con textura y color del tema "
+        "(pasto, arena, piso de madera del taller, alfombra de circo, césped...), "
+        "y detrás el lugar (paredes, cielo, árboles, edificios, el ambiente de la "
+        "temática). Los personajes NUNCA flotan sobre un fondo liso, blanco o "
+        "crema vacío. Si la imagen de referencia tiene fondo blanco (hoja de "
+        "stickers), usála SOLO para el diseño de los personajes: el fondo de la "
+        "escena lo pintás COMPLETO igual. "
         "IMPORTANTE (encuadre): plano ABIERTO/alejado. Los personajes ocupan como "
         "mucho el 60%% central de la imagen, SIEMPRE completos y bien adentro, con "
         "MUCHO aire (espacio vacío de fondo) en los CUATRO lados —arriba, abajo, "
@@ -1014,6 +1018,26 @@ def _escena_larga(tema, li, historia, genero="nene"):
     return esc.format(**h), ("{protagonista}" in esc)
 
 
+def _piso_blanco(path, umbral=0.45):
+    """True si la escena quedó 'flotando': gran parte de la imagen es un fondo
+    liso claro (blanco/crema) sin escenario — regla de Pablo: escenario completo
+    SIEMPRE (piso con textura + fondo del lugar). Detecta el color de fondo por
+    las esquinas y mide cuánta imagen es ese color casi uniforme. Gratis y
+    determinista. La dedicatoria (fondo claro a propósito) NO pasa por acá."""
+    try:
+        im = Image.open(path).convert("RGB").resize((80, 80))
+        px = im.load()
+        esquinas = [px[x, y] for x, y in ((2, 2), (77, 2), (2, 77), (77, 77))]
+        base = tuple(sum(c[i] for c in esquinas) // 4 for i in range(3))
+        if min(base) < 200:                 # fondo oscuro/colorido = hay escenario
+            return False
+        cerca = sum(1 for y in range(80) for x in range(80)
+                    if all(abs(px[x, y][i] - base[i]) <= 14 for i in range(3)))
+        return cerca / 6400 > umbral
+    except Exception:
+        return False
+
+
 def qa_vision_catalogo(api_key, png_bytes, tema, escena, espera_nino,
                        ref_bytes=None, timeout=90):
     """(ok, motivo) — QA de visión dirigido a los 3 errores históricos del
@@ -1107,6 +1131,11 @@ def arte_catalogo(client, tema, historia, genero, edad, dest_dir,
             for li in faltan:
                 p = os.path.join(cache, "%d.png" % li)
                 if not os.path.isfile(p):
+                    continue
+                if li != 1 and _piso_blanco(p):        # dedicatoria es clara a propósito
+                    malas.append(li)
+                    if progress:
+                        progress("QA pág %d: suelo blanco sin textura — se regenera" % li)
                     continue
                 escena, espera = _escena_larga(tema, li, hist, g)
                 ok, det = qa_vision_catalogo(qa_key, open(p, "rb").read(),
