@@ -35,3 +35,6 @@ catalogo_arte/
 # indicaciones del editor por tema (contenido operativo, no código)
 temas/*/libro_notas.txt
 temas/*/audiolibro_demo_*.txt
+# PDFs prearmados de libros genéricos (artefactos: se regeneran del cache con
+# prebuild_pdfs; ~120MB que no van al repo)
+libros_pdf/
