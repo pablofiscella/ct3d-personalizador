@@ -1017,6 +1017,20 @@ class Handler(BaseHTTPRequestHandler):
         order_id = slug(payload.get("order_id", "s"))
         token = f"{order_id}-{secrets.token_hex(16)}"   # A2: 128 bits, no brute-forceable
         dest = os.path.join(DATA_DIR, token)
+        if tipo == "libro-pdf":
+            # Libro imprimible GENÉRICO prearmado (historia y protagonista fijos,
+            # nada customizable): se copia el zip prearmado -> entrega inmediata.
+            import shutil
+            hist = (data.get("historia") or "").strip().lower()
+            pre = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               "libros_pdf", hist, "kit.zip")
+            if not os.path.isfile(pre):
+                return self._json(503, {"ok": False,
+                                        "error": "libro-pdf no prearmado: %s" % hist})
+            os.makedirs(dest, exist_ok=True)
+            shutil.copyfile(pre, os.path.join(dest, "kit.zip"))
+            return self._json(200, {"ok": True, "token": token,
+                                    "download_url": f"{self.base_url()}/descarga/{token}"})
         if tipo == "invitacion-web":
             # El producto ES un link (página viva), no un archivo: se crea el evento
             # y se devuelve su URL como download_url (la tienda ya sabe mostrar eso).

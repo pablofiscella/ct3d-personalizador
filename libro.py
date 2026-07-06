@@ -895,7 +895,9 @@ def portada(data, tema="safari"):
             font=_font(66, False), fill=INK, anchor="mm")
     fs = _fit_fs(nombre, 170, Wp - 320)
     dr.text((Wp / 2, 480), nombre, font=_font(fs), fill=acc, anchor="mm")
-    if titulo_h:
+    if titulo_h and data.get("generico"):
+        etiqueta = "“%s”" % titulo_h          # libro genérico: sin edad en la tapa
+    elif titulo_h:
         etiqueta = ("“%s” · %s años" % (titulo_h, edad)) if edad else "“%s”" % titulo_h
     else:
         etiqueta = ("Un cuento personalizado · %s años" % edad) if edad \
@@ -921,8 +923,12 @@ def dedicatoria(data, tema="safari"):
     dr = ImageDraw.Draw(im)
     dr.rounded_rectangle([90, 90, Wp - 90, Hp - 90], 40, outline=_tint(acc, 0.4), width=4)
     dr.text((Wp / 2, 420), "Este cuento pertenece a", font=_font(44, False), fill=INK, anchor="mm")
-    fs = _fit_fs(nombre, 120, Wp - 360)
-    dr.text((Wp / 2, 560), nombre, font=_font(fs), fill=acc, anchor="mm")
+    if data.get("generico"):
+        # libro genérico imprimible: línea en blanco para escribir el nombre a mano
+        dr.line([Wp * 0.25, 580, Wp * 0.75, 580], fill=_tint(acc, 0.55), width=4)
+    else:
+        fs = _fit_fs(nombre, 120, Wp - 360)
+        dr.text((Wp / 2, 560), nombre, font=_font(fs), fill=acc, anchor="mm")
     dr.line([Wp * 0.28, 650, Wp * 0.72, 650], fill=_tint(acc, 0.45), width=3)
     _estrella(dr, Wp * 0.24, 650, 18, GOLD); _estrella(dr, Wp * 0.76, 650, 18, GOLD)
     _parrafo(dr, "“" + dedic + "”", Wp / 2, 800, _font(40, False), INK, Wp - 420)

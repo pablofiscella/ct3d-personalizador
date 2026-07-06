@@ -621,6 +621,15 @@ TIPOS = {
         "preview": "libro",
         "piezas": _piezas_libro,
     },
+    "libro-pdf": {
+        "nombre": "Libro de cuento imprimible (PDF, edición genérica)",
+        "descripcion": "Libro de 20 páginas LISTO: historia fija con protagonista "
+                       "propio (nada customizable), con el arte del catálogo de "
+                       "audiolibros. PDF prearmado para imprimir — entrega inmediata.",
+        "campos": [],
+        "preview": "libro",
+        "piezas": _piezas_libro,
+    },
     "calendario": {
         "nombre": "Calendario personalizado",
         "descripcion": "12 meses con el nombre de la familia, decorado con la temática. Producto recurrente (cada año).",
