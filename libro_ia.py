@@ -79,7 +79,7 @@ _ESCENAS_EXT = [
 # por pedido (premium/audiolibro) ilustra la historia que el cliente eligió.
 _ESCENAS_POR_HISTORIA = {
     "tesoro": {
-        2: "Un chico dormido... no: {protagonista} descubriendo un mapa antiguo brillante que sale de una mochila, en un cuarto infantil cálido.",
+        2: "{protagonista} descubriendo un mapa antiguo brillante que sale de una mochila, en un cuarto infantil cálido.",
         3: "Un mapa del tesoro desplegado que brilla con destellos dorados, comienzo de aventura, en {mundo}.",
         4: "{protagonista} y los personajes del tema mirando juntos un mapa del tesoro en {mundo}, señalando pistas.",
         5: "Un río ancho cruzando {mundo}; los personajes del tema miran preocupados desde la orilla.",
@@ -98,7 +98,7 @@ _ESCENAS_POR_HISTORIA = {
     },
     "gran-dia": {
         2: "Una carta de invitación gigante y festiva llegando a un cuarto infantil, confetti saliendo del sobre.",
-        3: "{protagonista} con mochila caminando decidido hacia {mundo}, camino soleado con banderines a lo lejos.",
+        3: "{protagonista} con mochila caminando con paso decidido hacia {mundo}, camino soleado con banderines a lo lejos.",
         4: "Los personajes del tema preparando una gran fiesta en {mundo}: guirnaldas, música, juegos, mucha actividad alegre.",
         5: "Una tormenta con viento desarmando las decoraciones de la fiesta en {mundo}; los personajes del tema mirando sorprendidos.",
         6: "{protagonista} organizando a los personajes del tema para reconstruir la fiesta: todos ayudando juntos, decoraciones volviendo a su lugar, trabajo en equipo.",
@@ -124,8 +124,8 @@ _ESCENAS_POR_HISTORIA_EXT = {
             "esfuerzo y trabajo en equipo, polvo de aventura.",
         11: "Una merienda alegre bajo un árbol grande en {mundo}, los personajes "
             "del tema compartiendo comida y riendo.",
-        12: "{protagonista} y los personajes del tema dándose la mano en señal de "
-            "promesa, mirando juntos el mapa, atardecer cálido.",
+        12: "{protagonista} y los personajes del tema reunidos en círculo mirando "
+            "juntos el mapa en señal de promesa, atardecer cálido.",
         13: _ESCENAS_POR_HISTORIA["tesoro"][8],
     },
     "rescate": {
@@ -134,8 +134,8 @@ _ESCENAS_POR_HISTORIA_EXT = {
         6: _ESCENAS_POR_HISTORIA["rescate"][6], 7: _ESCENAS_POR_HISTORIA["rescate"][7],
         8: "Un nene pequeño del tema (un niño) abrazando fuerte y agradecido a "
            "{protagonista}, ambiente muy tierno.",
-        9: "Los personajes del tema tomados de la mano en fila caminando juntos "
-           "por {mundo}, explorando con confianza.",
+        9: "Los personajes del tema caminando juntos en fila por {mundo}, "
+           "explorando con confianza.",
         10: "Un rincón mágico escondido de {mundo} lleno de lucecitas como "
             "estrellas caídas, los personajes del tema maravillados.",
         11: "Los personajes del tema decorando con cariño su nuevo rincón "
@@ -231,10 +231,10 @@ _ESCENAS_POR_HISTORIA_EXT = {
            "lo aprendido, variedad y color.",
         10: "Una pequeña muestra o exhibición en {mundo}, los personajes del "
             "tema mostrando lo aprendido con orgullo.",
-        11: "Los personajes del tema aplaudiendo y entregando {tesoro} a "
+        11: "Los personajes del tema festejando y entregando {tesoro} a "
             "{protagonista} como agradecimiento.",
-        12: "{protagonista} pensativo y feliz, rodeado de los personajes del "
-            "tema, ambiente de cierre cálido.",
+        12: "{protagonista} con gesto pensativo y feliz, en medio de los personajes "
+            "del tema, ambiente de cierre cálido.",
         13: "Una casita de noche con ventana cálida, libros o herramientas de "
             "aprendizaje apoyados cerca de la cama.",
     },
@@ -259,7 +259,7 @@ _ESCENAS_POR_HISTORIA_EXT = {
             "sonrientes tras un día de buenas acciones.",
         11: "Los personajes del tema entregando {tesoro} a {protagonista} "
             "como agradecimiento por un día ayudando a todos.",
-        12: "{protagonista} rodeado de todos los personajes del tema en un "
+        12: "{protagonista} en medio de todos los personajes del tema en un "
             "abrazo grupal, ambiente muy cálido.",
         13: "Una casita de noche con ventana cálida iluminada, ambiente "
             "tranquilo tras un día de buenas acciones.",
@@ -279,31 +279,38 @@ _AVENTURA_LARGO = [
     "brillante asomando bajo la almohada, luz de luna por la ventana.",
     "Un remolino mágico de luces de colores llenando un dormitorio de noche, "
     "destellos y estrellas, sensación de comienzo de viaje.",
-    "{protagonista} llegando a {mundo}, un lugar enorme y mágico, mirando todo con asombro.",
-    "Una gran fiesta de bienvenida en {mundo}: banderines, globos, una torta y un "
-    "cartel, los personajes del tema festejando alrededor de {protagonista}.",
-    "{protagonista} recorriendo {mundo} con los personajes del tema, riéndose, "
-    "todo colorido y divertido.",
-    "Momento de preocupación en {mundo}: {desafio}. Los personajes del tema miran "
-    "preocupados, una gran nube gris.",
-    "{protagonista} pensativo con una idea, un foquito o destello sobre su cabeza, decidido.",
-    "Momento heroico: {protagonista} que {solucion}, mientras los personajes del "
-    "tema alientan felices.",
-    "Un gran juego grupal en {mundo}: los personajes del tema jugando y riendo a "
-    "carcajadas, muy alegre.",
-    "Un rincón secreto y mágico de {mundo} lleno de luciérnagas que parpadean, luz suave.",
-    "Los personajes del tema contando historias en ronda de noche, {protagonista} "
-    "escuchando con los ojos bien abiertos.",
-    "Los personajes del tema regalando {tesoro}, brillante y destacado en el centro, "
-    "con destellos dorados.",
-    "Los personajes del tema jugando a las escondidas entre sombras tibias, mucha diversión.",
-    "{protagonista} y los personajes del tema mirando juntos el cielo estrellado, "
-    "contando estrellas.",
-    "Los personajes del tema acompañando a {protagonista} por un camino de luces "
-    "cálidas de noche.",
-    "Un abrazo cálido de despedida entre {protagonista} y los personajes del tema.",
-    "Una casita de noche con ventana cálida iluminada, cielo estrellado, sensación "
-    "de volver a casa a dormir.",
+    "{protagonista} llegando a {mundo}, un lugar enorme y mágico, mirando todo "
+    "con asombro.",
+    "Una fiesta de bienvenida en {mundo} con banderines y globos, los personajes "
+    "del tema alrededor de {protagonista}; al fondo, en lo alto, un gran farol "
+    "apagado y gris.",
+    "Los personajes del tema explicando con gestos suaves a {protagonista}, "
+    "señal de noche que no termina; el gran farol apagado a lo lejos.",
+    "{protagonista} adelante con paso firme, guiando en fila a los personajes "
+    "del tema por un tramo de camino angosto y oscuro, con una lucecita.",
+    "Momento de preocupación a mitad del camino en {mundo}: {desafio}. Los "
+    "personajes del tema miran preocupados.",
+    "{protagonista} con gesto pensativo y un destello suave como una chispa de "
+    "idea sobre la cabeza.",
+    "Momento heroico: {protagonista} que {solucion}, mientras los personajes "
+    "del tema alientan felices; el camino queda libre.",
+    "Los personajes del tema formando una torre amistosa, uno sobre otro, bien "
+    "apoyados y estables, y {protagonista} subiendo con cuidado hacia el gran "
+    "farol en lo más alto de {mundo}.",
+    "{protagonista} arriba de todo junto al gran farol apagado pero intacto, "
+    "mirándolo con ternura, cielo estrellado.",
+    "{protagonista} soplando despacito una chispa hacia el gran farol, que se "
+    "enciende llenando {mundo} de una luz dorada y tibia.",
+    "{mundo} completamente iluminado de dorado; los personajes del tema "
+    "descubriendo felices un camino que estaba escondido en la oscuridad.",
+    "{protagonista} guardando en la mano una chispita de luz del farol, gesto "
+    "tierno, el farol brillando arriba.",
+    "Los personajes del tema acompañando a {protagonista} hasta una puerta de "
+    "luz brillante, con {tesoro} presentado brillante y destacado en el centro.",
+    "Un dormitorio infantil de noche; {protagonista} en la cama abriendo la "
+    "mano, con una chispita de luz que brilla bajito.",
+    "Una casita de noche con ventana cálida iluminada, cielo estrellado sereno "
+    "y un farol brillando lejano en el horizonte.",
 ]
 
 # Fallback largo (idx 0..19): portada, dedicatoria, 17 de historia (aventura), FIN.
@@ -318,137 +325,374 @@ def _tabla17(escenas17):
 _ESCENAS_POR_HISTORIA_LARGO = {
     "aventura": _tabla17(_AVENTURA_LARGO),
     "tesoro": _tabla17([
-        "{protagonista} descubriendo un mapa antiguo enrollado que sale de la mochila, cuarto infantil cálido.",
-        "Un mapa del tesoro que brilla con destellos dorados, comienzo de aventura en {mundo}.",
-        "{protagonista} y los personajes del tema mirando el mapa juntos, señalando pistas en {mundo}.",
-        "Un jardín de flores gigantes de colores; una flor tiene forma de estrella.",
-        "{protagonista} tocando la flor con forma de estrella, una pista escondida asoma entre los pétalos.",
-        "Un río ancho cruzando {mundo}; los personajes del tema miran preocupados desde la orilla.",
-        "{protagonista} cruzando un puente de troncos y sogas sobre el río, un cofre dorado del otro lado.",
-        "Un cofre del tesoro abierto irradiando luz dorada con {tesoro} adentro, los personajes celebrando.",
-        "Los personajes del tema en ronda alrededor de {protagonista}, admirando {tesoro} y contando su leyenda.",
-        "Un mapa antiguo que brilla y revela un segundo camino dorado, sorpresa y asombro.",
-        "Los personajes del tema empujando juntos una piedra enorme en {mundo}, trabajo en equipo.",
-        "Una cueva llena de cristales que brillan con los colores del arco iris.",
-        "Una merienda alegre bajo un árbol grande en {mundo}, compartiendo y riendo.",
-        "Los personajes del tema riendo mientras recuerdan las pistas y sustos del camino.",
-        "{protagonista} y los personajes del tema dándose la mano, prometiendo una próxima aventura.",
-        "{protagonista} guardando el mapa enrollado con muchísimo cuidado, con ilusión.",
-        "Una casita de noche con ventana cálida, un mapa enrollado apoyado junto a la cama.",
+        "{protagonista} descubriendo un mapa antiguo enrollado que sale de la "
+        "mochila, cuarto infantil cálido.",
+        "Un mapa del tesoro que brilla con destellos dorados entre las manos de "
+        "{protagonista}, comienzo de aventura.",
+        "{protagonista} llegando a {mundo} siguiendo un caminito brillante "
+        "marcado por el mapa, todo con aire de secreto.",
+        "Los personajes del tema alrededor de {protagonista} mirando el mapa "
+        "juntos con ojos brillantes, listos para la búsqueda.",
+        "Un rincón escondido de {mundo} lleno de brillitos; una única lucecita "
+        "con forma de estrella destaca y {protagonista} la señala con asombro.",
+        "Una llave dorada brillante junto a una puerta secreta enorme; los "
+        "personajes del tema empujándola todos juntos con esfuerzo.",
+        "Un pasillo oscuro y misterioso con ecos en {mundo}; momento de "
+        "preocupación: {desafio}.",
+        "{protagonista} con los ojos cerrados pensando, una idea iluminándose "
+        "como un destello suave sobre la cabeza.",
+        "Momento heroico: {protagonista} que {solucion}; al fondo del pasillo "
+        "aparece un cofre dorado.",
+        "Un cofre dorado con tres cerraduras brillantes; {protagonista} y los "
+        "personajes del tema observándolo con curiosidad.",
+        "{protagonista} girando las cerraduras del cofre mientras los "
+        "personajes del tema acompañan expectantes alrededor.",
+        "El cofre abierto de golpe irradiando luz dorada, con {tesoro} "
+        "brillando adentro; todos maravillados.",
+        "El mapa dado vuelta mostrando una segunda cara que brilla con un "
+        "camino dorado nuevo; sorpresa y asombro.",
+        "El más sabio de los personajes del tema contando una historia al "
+        "grupo en ronda, ambiente cálido de atardecer.",
+        "Los personajes del tema despidiendo a {protagonista} en la salida de "
+        "{mundo}; el cofre guardado brillando a lo lejos.",
+        "Un cuarto infantil de noche; {protagonista} guardando el mapa "
+        "enrollado debajo de la almohada.",
+        "Una casita de noche con ventana cálida, un mapa enrollado apoyado "
+        "junto a la cama, cielo estrellado.",
     ]),
     "rescate": _tabla17([
-        "Una lucecita mágica golpeando la ventana de un cuarto infantil de noche, mensaje urgente.",
-        "{protagonista} volando por el cielo llevado por el viento hacia {mundo}, estrellas y nubes.",
-        "Los personajes del tema preocupados; un nene pequeño del grupo se perdió, atardecer.",
-        "Los personajes del tema hablando nerviosos, {protagonista} pidiendo calma con gesto tranquilo.",
-        "Huellas pequeñitas en el suelo de {mundo}; los personajes del tema las siguen con atención.",
-        "Un sendero de árboles altos de noche, el viento haciendo ruiditos como susurros.",
-        "Una cueva oscura de la que sale un llantito bajito; los personajes se acercan con linternas.",
-        "{protagonista} saliendo de la cueva de la mano de un nene pequeño del grupo (un niño, NO un animal), los demás festejando aliviados.",
-        "El nene pequeño rescatado (un niño) abrazando fuerte y agradecido a {protagonista}, ambiente muy tierno.",
-        "Los personajes del tema tomados de la mano en fila, explorando {mundo} juntos con confianza.",
-        "Un rincón mágico escondido de {mundo} lleno de lucecitas como estrellas caídas, todos maravillados.",
-        "Los personajes del tema eligiendo con cariño su nuevo rincón secreto favorito.",
-        "Los personajes del tema entregando {tesoro} brillante en el centro, ceremonia de héroes.",
-        "El nene pequeño rescatado y {protagonista} prometiéndose volver a verse, gesto tierno.",
-        "Los personajes del tema cantando en ronda de noche junto a las lucecitas mágicas.",
-        "Los personajes del tema despidiéndose con abrazos cálidos.",
-        "Una casita de noche con ventana cálida iluminada, cierre tranquilo y feliz.",
+        "Una lucecita mágica golpeando la ventana de un cuarto infantil de "
+        "noche, mensaje urgente.",
+        "{protagonista} volando por el cielo hacia {mundo}, estrellas y nubes, "
+        "sensación de urgencia y valentía.",
+        "Atardecer en {mundo}: el sol escondiéndose y las primeras sombras "
+        "estirándose por el paisaje.",
+        "Los personajes del tema muy preocupados en {mundo} al atardecer, "
+        "mirando a lo lejos: falta el más pequeño del grupo.",
+        "{protagonista} pidiendo calma con gesto suave a los personajes del "
+        "tema, que hablan nerviosos.",
+        "Huellas chiquititas en el camino de {mundo}; {protagonista} "
+        "alumbrándolas con una linterna, con mucha atención.",
+        "{protagonista} pasando primero por un tramo de camino angosto y "
+        "tambaleante de noche, los personajes del tema cruzando detrás con "
+        "cuidado.",
+        "El grupo detenido donde las huellas desaparecen; {protagonista} "
+        "escuchando con atención, una mano junto a la oreja.",
+        "{protagonista} entrando con una linterna a una cuevita oscura donde "
+        "espera un nene humano chiquito (un niño, NO un animal), con frío y "
+        "carita de alivio.",
+        "{protagonista} saliendo de la cuevita de la mano del nene pequeño (un "
+        "niño humano, NO un animal), noche cerrada afuera.",
+        "{protagonista} con gesto de idea bajo la noche oscura, las primeras "
+        "lucecitas brillantes acercándose alrededor.",
+        "Un caminito de lucecitas brillantes en la noche; los personajes del "
+        "tema recibiendo al nene pequeño (un niño) con una manta calentita, "
+        "saltos de alegría.",
+        "El nene pequeño rescatado (un niño) envuelto en la manta, feliz junto "
+        "a {protagonista}, ambiente de agradecimiento.",
+        "Los personajes del tema cantando en ronda de noche alrededor de las "
+        "lucecitas brillantes, felices.",
+        "Los personajes del tema entregando {tesoro} brillante y destacado en "
+        "el centro a {protagonista}, ceremonia de héroes.",
+        "Un cuarto infantil de noche; {protagonista} en la cama con las manos "
+        "juntitas al pecho y expresión feliz.",
+        "Una casita de noche con ventana cálida iluminada, cierre tranquilo y "
+        "feliz.",
     ]),
     "gran-dia": _tabla17([
-        "Una carta de invitación gigante y festiva llegando a un cuarto infantil, confetti saliendo del sobre.",
-        "{protagonista} con mochila caminando decidido hacia {mundo}, camino soleado con banderines a lo lejos.",
-        "Los personajes del tema preparando una gran fiesta en {mundo}: guirnaldas, música y un desfile.",
-        "{protagonista} sosteniendo una linterna con forma de estrella, listo para guiar el desfile.",
-        "Los personajes del tema marchando y ensayando el desfile, mucha alegría.",
-        "Una tormenta con viento desarmando las decoraciones de la fiesta; los personajes miran sorprendidos.",
-        "Los personajes del tema desanimados; {protagonista} animándolos para no rendirse.",
-        "{protagonista} organizando a todos para reconstruir la fiesta, trabajo en equipo, decoraciones volviendo.",
-        "{protagonista} con {tesoro} puesto, dando la bienvenida a los invitados que llegan a {mundo}.",
-        "El desfile con {protagonista} al frente, su linterna de estrellas iluminando el camino.",
-        "Un equipo de música apagado en medio de la fiesta, los personajes del tema con cara de sorpresa.",
-        "{protagonista} organizando a los personajes para hacer música con las manos y los pies.",
-        "Los personajes del tema bailando felices al ritmo de la música improvisada, mucha energía.",
-        "Una gran torta y fuegos artificiales de colores en el cielo sobre {mundo} de noche.",
-        "Los personajes del tema en ronda al atardecer, agradeciendo a {protagonista} con cariño.",
-        "Entrega de una medalla de luciérnagas que brilla suavecito a {protagonista}.",
-        "Una casita de noche con ventana cálida iluminada, cierre feliz del gran día.",
+        "Una gran noticia llegando a un cuarto infantil: un sobre festivo con "
+        "confetti saliendo, emoción.",
+        "{protagonista} con mochila saliendo con paso decidido hacia {mundo}, "
+        "camino soleado con banderines a lo lejos.",
+        "{mundo} en plena preparación de fiesta: guirnaldas, instrumentos y un "
+        "desfile ensayando, mucho movimiento alegre.",
+        "Los personajes del tema mostrando a {protagonista} una gran torre de "
+        "luces apagada: la tarea más importante de la fiesta.",
+        "Ensayo alegre en {mundo}: los personajes del tema practicando el "
+        "desfile entre risas, {protagonista} participando.",
+        "El cielo poniéndose gris de golpe sobre la fiesta, nubes enormes "
+        "dando vueltas, todos mirando para arriba preocupados.",
+        "La tormenta desarmando las decoraciones: guirnaldas volando y la "
+        "torre de luces apagada; {protagonista} con gesto decidido animando a "
+        "los personajes del tema.",
+        "{protagonista} organizando equipos: unos atando guirnaldas, otros "
+        "secando el escenario, otros juntando luces caídas.",
+        "La fiesta rearmándose entre todos en {mundo}, más linda que antes, "
+        "trabajo en equipo alegre.",
+        "La torre de luces apagada y mojada, goteando; los personajes del "
+        "tema mirándola preocupados.",
+        "{protagonista} con una idea genial, llenando la torre de lucecitas "
+        "brillantes y velitas de colores junto a los personajes del tema.",
+        "Cielo despejado: {protagonista} encendiendo la torre de luces, que "
+        "brilla hermosa; la Gran Fiesta comenzando en {mundo}.",
+        "La fiesta en su esplendor: música, baile y una torta gigante, todos "
+        "los personajes del tema felices.",
+        "Los personajes del tema riéndose aliviados junto a {protagonista}, "
+        "la fiesta brillando alrededor.",
+        "Los personajes del tema entregando {tesoro} brillante y destacado a "
+        "{protagonista}, agradecimiento y cariño.",
+        "Un cuarto infantil de noche; {protagonista} en la cama con una "
+        "sonrisa, como recordando música y risas.",
+        "Una casita de noche con ventana cálida, banderines lejanos en el "
+        "horizonte, cielo estrellado.",
     ]),
     "noche-estrellas": _tabla17([
-        "Un cuarto infantil de noche; {protagonista} despierto en la cama mirando el techo, sin poder dormir.",
-        "Desde la ventana, una estrella fugaz larga y brillante cayendo detrás de {mundo}.",
-        "{protagonista} en pantuflas saliendo de casa de noche, contando sus pasitos bajo el cielo estrellado.",
-        "{protagonista} llegando a {mundo} bajo un cielo enorme repleto de estrellas que titilan.",
-        "Los personajes del tema esperando de noche en {mundo}, también vieron caer la estrella.",
-        "{protagonista} y los personajes del tema poniéndose en marcha, siguiendo un brillito lejano.",
-        "Un montón de luciérnagas iluminando el camino oscuro, los personajes del tema felices.",
-        "Cruzando puentes de nubes y colinas dormidas hacia un resplandor a lo lejos.",
-        "Una estrella fugaz chiquita y apagada en el suelo de {mundo}, con lágrimas de luz.",
-        "La estrellita triste y asustada; los personajes del tema acercándose con mucha ternura.",
-        "{protagonista} abrazando con cariño a la estrella fugaz para consolarla.",
-        "Los personajes del tema armando una camita de nubes suaves; {protagonista} cantándole bajito.",
-        "La estrella recuperando su luz, brillando cada vez más fuerte y cálida.",
-        "{protagonista} con los ojos cerrados pidiendo un deseo, la estrella brillando intensa.",
-        "La estrella elevándose al cielo como un globo de luz, radiante y agradecida.",
-        "La estrella allá arriba guiñándole un ojo a {protagonista} y a los personajes del tema.",
-        "Un cuarto infantil de noche, la cama junto a la ventana y una estrella titilando en el cielo.",
+        "Un cuarto infantil de noche; {protagonista} en la cama con los ojos bien "
+        "abiertos mirando el techo, sin poder dormir.",
+        "Desde la ventana, una estrella fugaz larga y brillante cayendo detrás "
+        "de {mundo}; {protagonista} mirando en pantuflas.",
+        "{protagonista} llegando a {mundo} bajo un cielo enorme repleto de "
+        "estrellas que titilan.",
+        "Los personajes del tema con carita triste bajo un cielo nocturno que "
+        "tiene un hueco oscuro sin estrellas sobre {mundo}.",
+        "Los personajes del tema y {protagonista} mirando preocupados el hueco "
+        "oscuro del cielo, que parece crecer.",
+        "El grupo poniéndose en marcha de noche por {mundo}, siguiendo un "
+        "resplandor suave y lejano.",
+        "{protagonista} en medio de un montón de lucecitas brillantes que se "
+        "encienden para alumbrar el camino oscuro.",
+        "El grupo cruzando colinas dormidas y rincones calladitos de {mundo}, "
+        "el resplandor cada vez más cerca.",
+        "Una estrellita chiquita y apagada en el suelo de {mundo}, con "
+        "lágrimas de luz; {protagonista} acercándose con ternura.",
+        "{protagonista} abrazando despacito a la estrellita caída para "
+        "consolarla, ambiente muy tierno.",
+        "{protagonista} con gesto de idea junto a la estrellita débil; los "
+        "personajes del tema alrededor, atentos.",
+        "Los personajes del tema y {protagonista} con los ojos cerrados "
+        "pidiendo deseos alrededor de la estrellita, que se enciende radiante.",
+        "La estrella elevándose al cielo como un globo dorado, volando hacia "
+        "el hueco oscuro; todos mirando desde abajo.",
+        "El cielo de {mundo} completito de estrellas otra vez; los personajes "
+        "del tema festejando mirando para arriba.",
+        "La estrella brillando en lo alto mandando un destello hacia "
+        "{protagonista}, con {tesoro} presentado brillante en el centro.",
+        "Un cuarto infantil de noche; {protagonista} en la cama mirando por "
+        "la ventana una estrella que titila.",
+        "Una casita de noche con ventana cálida, cielo estrellado completo y "
+        "sereno, una estrella brillando especialmente.",
     ]),
     "cumple-sorpresa": _tabla17([
-        "Los personajes del tema cuchicheando y tapándose la boca para no reírse; {protagonista} extrañado.",
-        "Los personajes del tema saliendo corriendo y escondiendo algo detrás de la espalda.",
-        "{protagonista} pensativo con la pancita apretada, saliendo a jugar igual.",
-        "{protagonista} tapándose los oídos junto a un arbusto para no escuchar un secreto.",
-        "Un globo de colores y una guirnalda perdidos, y huellas con brillos que llevan al claro.",
-        "{protagonista} jugando disimuladamente, haciéndose el distraído pero curioso.",
-        "{protagonista} recostado mirando las nubes pasar, imaginando la sorpresa.",
-        "{protagonista} siguiendo a una mariposa por {mundo} con el corazón emocionado.",
-        "{protagonista} ayudando a una tortuga a cargar unos frascos de dulce.",
-        "Atardecer naranja; los personajes del tema llamando a {protagonista} desde el claro.",
-        "Explosión de sorpresa: mil lucecitas encendiéndose, confetti y globos en la oscuridad.",
-        "Una fiesta con {tesoro} en el centro y los personajes del tema con gorritos, festejando a {protagonista}.",
-        "Los personajes del tema contándole el secreto entre risas, cómplices y felices.",
-        "Un abrazo grupal cálido alrededor de {protagonista}.",
-        "Baile y torta bajo la luna, todos los personajes del tema festejando.",
-        "Los personajes del tema entregando regalitos hechos a mano a {protagonista}.",
-        "Una casita de noche; {protagonista} durmiendo con un gorrito de fiesta todavía puesto.",
+        "{protagonista} con carita de sorpresa y gesto de secreto (un dedo "
+        "junto a la boca), cuarto infantil cálido, una idea brillando.",
+        "{protagonista} en marcha hacia {mundo} con paso apurado y sonrisa "
+        "cómplice, llevando globos desinflados y cintas de colores.",
+        "{protagonista} entrando en puntitas de pie a {mundo}, mirando para "
+        "todos lados con complicidad.",
+        "{protagonista} contando la misión en voz bajita a los personajes del "
+        "tema, todos en ronda cómplice con gestos de silencio.",
+        "Los personajes del tema repartiéndose tareas: globos por acá, una "
+        "torta por allá, movimiento secreto y divertido.",
+        "Los personajes del tema escondiendo decoraciones por los rincones de "
+        "{mundo}, aguantándose la risa.",
+        "Momento de susto en plena preparación: {desafio}. Los personajes del "
+        "tema con cara de preocupación entre globos y guirnaldas.",
+        "{protagonista} respirando hondo con gesto concentrado, decoraciones "
+        "a medio poner alrededor.",
+        "Momento heroico: {protagonista} que {solucion}, salvando los "
+        "preparativos; alivio y sonrisas.",
+        "Un personaje del tema con carita triste caminando cabizbajo, "
+        "creyendo que nadie se acordó de su día.",
+        "{protagonista} paseando junto al personaje triste para distraerlo, "
+        "mientras atrás los demás terminan de decorar a toda velocidad.",
+        "Explosión de sorpresa en {mundo}: mil lucecitas encendiéndose, "
+        "globos, y los personajes del tema saltando de sus escondites "
+        "alrededor del cumpleañero feliz.",
+        "El cumpleañero con los ojos brillantes de emoción, mimado por todos; "
+        "{protagonista} sonriendo cerca.",
+        "Baile y torta bajo la luna en {mundo}, el cumpleañero siempre "
+        "cerquita de {protagonista}.",
+        "El cumpleañero entregando a {protagonista} {tesoro} brillante y "
+        "destacado, gesto de gratitud.",
+        "Un cuarto infantil de noche; {protagonista} durmiéndose con un "
+        "gorrito de fiesta todavía puesto.",
+        "Una casita de noche con ventana cálida y un globo atado afuera, "
+        "cielo estrellado.",
     ]),
     "pequeno-maestro": _tabla17([
-        "Los personajes del tema haciendo algo increíble y {protagonista} mirándolos con ojos grandes de admiración.",
-        "{protagonista} pidiendo con ilusión que le enseñen; los personajes del tema entusiasmados.",
-        "{protagonista} en su primer intento, enredado y cayéndose de cola, pero riéndose.",
-        "Un personaje viejito del tema animando con cariño a {protagonista} a intentarlo de nuevo.",
-        "{protagonista} practicando con esfuerzo una y otra vez, los personajes alentando al costado.",
-        "{protagonista} contando con los deditos sus intentos, concentrado.",
-        "{protagonista} lográndolo por primera vez, dando un gran salto de alegría.",
-        "Un abrazo grupal festejando, todos cayéndose de risa.",
-        "{protagonista} haciéndolo con soltura e inventando sus propios truquitos nuevos.",
-        "Un personaje nuevo, chiquito y tímido, mirando todo desde lejos sin animarse.",
-        "El personaje nuevo cabizbajo, con las orejitas bajas, tristón.",
-        "{protagonista} acercándose con amabilidad al personaje nuevo para ayudarlo.",
-        "{protagonista} enseñándole al nuevo de a pasitos, con mucha paciencia.",
-        "Los dos practicando juntos; {protagonista} dándole ánimo.",
-        "El personaje nuevo lográndolo con un gritito de alegría; {protagonista} feliz por él.",
-        "Los personajes del tema entregando {tesoro} a {protagonista} en agradecimiento.",
-        "Una casita de noche con ventana cálida, cierre tierno y feliz.",
+        "Los personajes del tema haciendo algo increíble propio del tema; "
+        "{protagonista} mirando con ojos enormes de admiración.",
+        "{protagonista} pidiendo con ilusión que le enseñen; los personajes "
+        "del tema entusiasmados alrededor.",
+        "Los personajes del tema mostrando cómo se hace, despacito; "
+        "{protagonista} mirando sin pestañear.",
+        "{protagonista} de cola en el piso tras un intento fallido gracioso, "
+        "riéndose; los personajes del tema sonriendo con cariño.",
+        "El más viejito de los personajes del tema animando con gesto tierno "
+        "a {protagonista}.",
+        "{protagonista} practicando una y otra vez con esfuerzo; los "
+        "personajes del tema alentando desde el costado.",
+        "¡Primer logro! {protagonista} dando un gran salto de alegría; los "
+        "personajes del tema festejando amontonados de risa.",
+        "Preparativos de una gran muestra en {mundo}: un escenario armándose, "
+        "entusiasmo general.",
+        "Un personaje nuevo chiquito y tímido mirando todo desde lejos; "
+        "{protagonista} mirando hacia ese rincón con gesto amable.",
+        "{protagonista} acercándose despacito al personaje nuevo tímido, "
+        "gesto de invitación amable.",
+        "{protagonista} enseñando de a pasitos al personaje nuevo, con mucha "
+        "paciencia, ambiente cálido.",
+        "La gran muestra en {mundo}: {protagonista} en el escenario logrando "
+        "su número, el personaje nuevo lográndolo también al lado; el público "
+        "del tema festejando con sonrisas enormes.",
+        "El personaje nuevo saltando de alegría junto a {protagonista}, "
+        "gratitud y orgullo.",
+        "El más viejito de los personajes del tema hablando con cariño al "
+        "grupo en ronda; {protagonista} en el centro, ambiente emotivo.",
+        "Los personajes del tema entregando {tesoro} brillante y destacado a "
+        "{protagonista}, agradecimiento.",
+        "Un cuarto infantil de noche; {protagonista} en la cama con una "
+        "sonrisa soñadora.",
+        "Una casita de noche con ventana cálida iluminada, cierre tierno y "
+        "feliz.",
     ]),
     "ayudar-a-todos": _tabla17([
-        "Un problema grandote en {mundo}; los personajes del tema mirándolo sin saber qué hacer.",
-        "Los personajes del tema cabizbajos y desanimados, creyendo que no pueden.",
-        "{protagonista} con una idea y gesto de entusiasmo, proponiendo resolverlo entre todos.",
-        "El personaje más chiquito escondido detrás de una hojita, creyéndose muy pequeño.",
-        "{protagonista} sonriéndole con cariño al personaje más chiquito, dándole importancia.",
-        "El personaje más alto estirándose orgulloso para alcanzar algo de arriba.",
-        "Varios personajes del tema, cada uno en su tarea: empujar, llevar mensajes, pensar el plan.",
-        "El personaje más miedoso dando ánimo y aliento a los demás.",
-        "{protagonista} coordinando el arranque, todos poniéndose a trabajar juntos.",
-        "Trabajo en equipo: el chiquito por un huequito, el alto alcanzando, el fuerte empujando.",
-        "{protagonista} dirigiendo a los personajes del tema como si fueran una orquesta.",
-        "Un tropezón donde casi todo se viene abajo; se agarran entre todos y se ríen del susto.",
-        "El último empujón de todos juntos; el problema resuelto y {mundo} lindo y en paz.",
-        "Festejo; el personaje más chiquito en el centro de todos, hecho un héroe.",
-        "{protagonista} explicando que cada uno con su granito logró lo imposible, todos asintiendo.",
-        "Los personajes del tema entregando {tesoro} a {protagonista} en agradecimiento.",
-        "{protagonista} acurrucándose en la cama de noche, casita cálida, cierre feliz.",
+        "Un problema grandote y vistoso en {mundo} (un gran enredo o desorden "
+        "que bloquea el lugar); los personajes del tema mirándolo sin saber "
+        "qué hacer.",
+        "Los personajes del tema desanimados; {protagonista} respirando hondo "
+        "con un destello de idea sobre la cabeza.",
+        "Los personajes del tema sentados cabizbajos, desanimados.",
+        "{protagonista} proponiendo con entusiasmo resolverlo entre todos; "
+        "los personajes del tema levantando la cabeza con esperanza.",
+        "El personaje más chiquito escondiéndose en un rinconcito, "
+        "creyéndose demasiado pequeño.",
+        "{protagonista} sonriendo con cariño al personaje más chiquito, "
+        "dándole importancia.",
+        "{protagonista} repartiendo tareas: el más alto, el más fuerte y el "
+        "más rápido, cada uno listo; el más chiquito adelante con la misión "
+        "especial.",
+        "El grupo esforzándose con el problema grandote, que todavía no "
+        "cede; caras de esfuerzo.",
+        "El personaje más chiquito metiéndose por un huequito imposible y "
+        "destrabando la primera parte; todos gritando de alegría.",
+        "El más alto alcanzando lo inalcanzable y el más fuerte empujando "
+        "con todo; {protagonista} coordinando como director de orquesta.",
+        "Un tropezón grupal gracioso: todos sosteniéndose en grupo para no "
+        "caer, riéndose del susto.",
+        "¡Lo lograron! El problema resuelto, {mundo} en paz otra vez; "
+        "festejo grupal enorme.",
+        "El personaje más chiquito en el medio de la ronda, festejado como "
+        "un héroe.",
+        "{protagonista} hablando al grupo en ronda, todos asintiendo con "
+        "sonrisas.",
+        "Los personajes del tema entregando {tesoro} brillante y destacado a "
+        "{protagonista}, celebración.",
+        "Un cuarto infantil de noche; {protagonista} acurrucándose en la "
+        "cama, sonrisa tranquila.",
+        "Una casita de noche con ventana cálida iluminada, cielo estrellado "
+        "sereno.",
+    ]),
+    "gran-viaje": _tabla17([
+        "Un paquetito brillante con moño en la puerta de un dormitorio "
+        "infantil, luz de atardecer, sensación de misión por empezar.",
+        "{protagonista} con una mochila liviana saliendo al anochecer con "
+        "paso decidido, primer paso del gran viaje.",
+        "Los personajes del tema esperando a {protagonista} con un mapa de "
+        "recorrido desplegado: caminitos y tres banderitas (dibujo, sin letras).",
+        "Los personajes del tema contando la misión en ronda a "
+        "{protagonista}, gesto de urgencia dulce; la luna saliendo.",
+        "El grupo repartiéndose el viaje; {protagonista} sosteniendo con "
+        "cuidado el paquetito brillante.",
+        "El grupo de viaje cantando por un camino de {mundo} mientras el sol "
+        "se esconde, ambiente alegre.",
+        "Un viento travieso en forma de remolino tratando de llevarse el "
+        "paquetito; {protagonista} abrazándolo fuerte.",
+        "El viento despejando el cielo: las nubes yéndose y un cielo lleno "
+        "de estrellas apareciendo.",
+        "{protagonista} señalando un atajo iluminado por las estrellas; el "
+        "grupo avanzando con energía.",
+        "Una parada del viaje con chocolate calentito humeante; los "
+        "personajes del tema tomando fuerzas, tacitas y vapor.",
+        "El tramo más oscuro del camino de noche; el grupo avanzando bien "
+        "juntito, {protagonista} adelante con paso valiente.",
+        "La llegada al amanecer: el más viejito de los personajes del tema "
+        "abriendo el paquetito con ojos brillantes de emoción, primer rayito "
+        "de sol.",
+        "El más viejito del tema con el regalo bien cerquita, muy emocionado; "
+        "todos alrededor con ternura.",
+        "El festejo del viejito arrancando con el primer sol; {protagonista} "
+        "en el lugar de honor.",
+        "Los personajes del tema entregando {tesoro} brillante y destacado a "
+        "{protagonista}, premio de la misión cumplida.",
+        "Un cuarto infantil de mañana tempranito; {protagonista} en la cama "
+        "con cara de dulce cansancio feliz.",
+        "Una casita al amanecer con ventana cálida y un caminito largo "
+        "perdiéndose en el horizonte de {mundo}.",
+    ]),
+    "manos-a-la-obra": _tabla17([
+        "Un rincón vacío de {mundo}; los personajes del tema mirándolo con "
+        "carita soñadora, imaginando algo lindo.",
+        "{protagonista} dibujando un plano con una ramita en el piso; los "
+        "personajes del tema mirando con curiosidad.",
+        "El plano dibujado en el piso: un rinconcito con mesa, banquitos y "
+        "un techito con forma de sonrisa (dibujo simple, sin letras).",
+        "Los personajes del tema con ojos brillantes alrededor del plano; "
+        "{protagonista} con gesto de manos a la obra.",
+        "Cada personaje trayendo materiales: maderitas, sogas y telas de "
+        "colores, desfile alegre de cosas.",
+        "El grupo midiendo con pasos y marcando con piedritas; las primeras "
+        "columnas paradas derechitas.",
+        "El techito torcido y la estructura tambaleándose; los personajes "
+        "del tema con carita de susto.",
+        "{protagonista} comparando el plano con la obra y descubriendo la "
+        "pieza que falta, gesto de idea.",
+        "Entre todos enderezando el techito y colocando la pieza justa en el "
+        "medio; la estructura queda firme.",
+        "Los más chiquitos pintando banquitos, los más altos colgando "
+        "farolitos, los más fuertes ajustando rincones.",
+        "{protagonista} colgando el último farolito al atardecer; todos "
+        "dando un paso atrás para mirar.",
+        "El rincón terminado en {mundo}: firme, colorido, con farolitos "
+        "encendidos; todos mirándolo felices.",
+        "La primera merienda bajo el techito nuevo de noche: lluvia suave "
+        "afuera y todos secos y felices adentro.",
+        "Los personajes del tema en ronda en el rincón nuevo hablando con "
+        "cariño; {protagonista} en el medio.",
+        "Los personajes del tema entregando {tesoro} brillante y destacado a "
+        "{protagonista} en el rincón nuevo.",
+        "Un cuarto infantil de noche; {protagonista} mirando con una sonrisa "
+        "sus dedos con manchitas de pintura de colores.",
+        "Una casita de noche con ventana cálida; a lo lejos, el rinconcito "
+        "nuevo de {mundo} con farolitos brillando.",
+    ]),
+    "gran-torneo": _tabla17([
+        "Banderines y preparativos de los Grandes Juegos en {mundo}; los "
+        "personajes del tema desanimados a un costado.",
+        "{protagonista} animando al equipo con una sonrisa, gesto de "
+        "arranque de entrenamiento.",
+        "Entrenamiento desastroso y gracioso: los personajes del tema "
+        "corriendo para lados distintos, chocándose con suavidad y "
+        "terminando en el piso riéndose.",
+        "{protagonista} explicando el plan al equipo en ronda, todos atentos "
+        "y con ganas.",
+        "Cada personaje entrenando lo suyo: el más rápido corriendo, el más "
+        "fuerte saltando, el más chiquito ensayando una jugada secreta.",
+        "El equipo entrenando cada día mejor, pasándose y esperándose, "
+        "ambiente de progreso alegre.",
+        "El capitán del equipo a un costado con una venda simpática, carita "
+        "de no poder jugar; el equipo alrededor, preocupado.",
+        "{protagonista} juntando al equipo en ronda con gesto de ánimo; el "
+        "capitán sonriendo desde el costado.",
+        "La entrada a los Grandes Juegos: el equipo desfilando con el "
+        "capitán al frente alentando desde el costado; tribunas de {mundo} "
+        "llenas.",
+        "Las primeras pruebas de los juegos: el equipo mejorando prueba a "
+        "prueba, energía creciente.",
+        "La prueba final cabeza a cabeza con el otro equipo; expectativa "
+        "máxima en las tribunas de {mundo}.",
+        "La jugada secreta del más chiquito saliendo perfecta; el público de "
+        "{mundo} festejando con saltos y confetti.",
+        "Los dos equipos festejando juntos y mezclados, alegría deportiva "
+        "enorme.",
+        "El capitán muy emocionado junto al equipo, momento tierno de "
+        "orgullo.",
+        "Premiación: los personajes del tema entregando {tesoro} brillante y "
+        "destacado a {protagonista}.",
+        "Un cuarto infantil de noche; {protagonista} en la cama con una "
+        "sonrisa, una cintita de premio colgada cerca.",
+        "Una casita de noche con ventana cálida; banderines de los Grandes "
+        "Juegos a lo lejos en {mundo}.",
     ]),
 }
 
@@ -471,6 +715,24 @@ def tam_pagina(tema, idx, edad=None, historia=None, catalogo=False):
     if idx == 1:
         return _APAISADA
     return _CUADRADA
+
+
+# ── indicaciones del editor por tema (Pablo): se guardan en el tema y se
+# inyectan en TODOS los prompts de ilustración de esa temática — así un arreglo
+# pedido una vez impacta en cada regeneración futura de cualquier libro del tema.
+def nota_tema(tema):
+    p = os.path.join(TEMAS, tema, "libro_notas.txt")
+    try:
+        return open(p, encoding="utf-8").read().strip()
+    except OSError:
+        return ""
+
+
+def guardar_nota_tema(tema, texto):
+    p = os.path.join(TEMAS, tema, "libro_notas.txt")
+    os.makedirs(os.path.dirname(p), exist_ok=True)
+    with open(p, "w", encoding="utf-8") as f:
+        f.write((texto or "").strip())
 
 
 def _protagonista(genero):
@@ -529,6 +791,10 @@ def prompt_pagina(tema, idx, genero=None, historia=None, catalogo=False, edad=No
         "mascota, tiene que quedar CLARO que el protagonista es el niño y el animal es "
         "secundario (más chico o atrás). Nunca confundir al niño con un animal. "
         "La escena llena TODA la imagen, sin marcos, bordes ni viñetas. "
+        "SUELO: el piso de la escena va SIEMPRE dibujado con textura y color "
+        "acordes a la temática (pasto, arena, tierra, alfombra de circo, césped "
+        "de estadio, superficie lunar...) — NUNCA dejes el suelo blanco, vacío "
+        "o sin pintar. "
         "IMPORTANTE (encuadre): plano ABIERTO/alejado. Los personajes ocupan como "
         "mucho el 60%% central de la imagen, SIEMPRE completos y bien adentro, con "
         "MUCHO aire (espacio vacío de fondo) en los CUATRO lados —arriba, abajo, "
@@ -541,10 +807,14 @@ def prompt_pagina(tema, idx, genero=None, historia=None, catalogo=False, edad=No
         "inventa una QUINTA pata, y eso está MAL. Un animal en 4 patas NO saluda. "
         "SOLO los personajes que están parados en DOS patas (como un mono erguido) "
         "pueden saludar con una mano. Los animales NUNCA se dan la mano ni chocan los "
-        "cinco. Cada animal con la cantidad EXACTA de patas de "
+        "cinco, y un animal en cuatro patas TAMPOCO aplaude ni junta las patas "
+        "delanteras en el aire (para festejar alcanza con sonrisas, saltos con las "
+        "cuatro patas juntas o confetti). Cada animal con la cantidad EXACTA de patas de "
         "su especie: ni una de más ni de menos, y la cola es la cola, NO una pata extra. "
         "Importante: NO escribas ningún texto, número ni letra (no text, no letters)."
         % (escena, pal["accent"], pal["ink"])
+        + ((" INDICACIÓN DEL EDITOR (OBLIGATORIA, prioridad máxima): %s" % nota)
+           if (nota := nota_tema(tema)) else "")
     )
 
 
@@ -653,6 +923,13 @@ def generar_ilustraciones(client, tema, paginas=None, calidad="medium", progress
     paginas = list(paginas) if paginas is not None else \
         list(range(libro.total_paginas(tema, edad, historia, catalogo)))
     refs = referencias(tema)
+    if catalogo and not refs:
+        # Sin referencia el arte sale con personajes/estilo random (y el camino
+        # del boceto no soporta el catálogo). Regla: tema del catálogo => tiene
+        # que existir temas/<tema>/ia_maestra.png (o la hoja de stickers).
+        raise RuntimeError(
+            "el tema %r no tiene imagen de referencia (ia_maestra.png/stickers) "
+            "— agregala antes de generar el catálogo" % tema)
     out = []
     for n, idx in enumerate(paginas):
         if progress:
@@ -694,6 +971,166 @@ def generar_ilustraciones(client, tema, paginas=None, calidad="medium", progress
         img.save(dest)
         out.append(dest)
     return out
+
+
+# ---------------------------------------------------------------------------
+# CACHE de arte del catálogo: generar UNA vez por combo (tema, historia,
+# género) -> revisar -> REUSAR en cada venta. Clave = índice del libro LARGO
+# (20 págs); la versión corta (hasta 3 años) usa un SUBCONJUNTO de las mismas
+# escenas (CORTO_IDX), así el arte largo cubre las dos edades. La voz NO se
+# cachea (dice el nombre del nene) — se narra por pedido.
+# ---------------------------------------------------------------------------
+CATALOGO_ARTE = os.path.join(KIT, "catalogo_arte")
+
+
+def _genero_arte(genero):
+    g = (genero or "").strip().lower()
+    return "nena" if g in ("nena", "niña", "nina", "mujer", "girl", "f") else "nene"
+
+
+def indices_largo(tema, edad, historia):
+    """Índice de render del pedido -> índice del libro LARGO (clave del cache).
+    Libro largo: identidad. Libro corto (12 págs): portada y dedicatoria (0,1),
+    las 9 escenas de CORTO_IDX, y el FIN largo (19)."""
+    total = libro.total_paginas(tema, edad, historia, True)
+    if total - 3 >= libro.PAGINAS_HISTORIA_LARGO:
+        return list(range(total))
+    return [0, 1] + [2 + j for j in libro.CORTO_IDX] + \
+           [2 + libro.PAGINAS_HISTORIA_LARGO]
+
+
+def _escena_larga(tema, li, historia, genero="nene"):
+    """(texto de escena renderizado, ¿lleva protagonista?) del índice LARGO li."""
+    h = dict(libro.HISTORIAS.get(tema, libro.HISTORIA_DEFAULT))
+    h["protagonista"] = _protagonista(genero)
+    if li == 0:
+        esc = _ESCENAS_LARGO[0]
+    elif li == 1:
+        esc = _ESCENAS_LARGO[1]
+    elif li >= 19:
+        esc = _ESCENAS_LARGO[-1]
+    else:
+        esc = _ESCENAS_POR_HISTORIA_LARGO[historia][li]
+    return esc.format(**h), ("{protagonista}" in esc)
+
+
+def qa_vision_catalogo(api_key, png_bytes, tema, escena, espera_nino,
+                       ref_bytes=None, timeout=90):
+    """(ok, motivo) — QA de visión dirigido a los 3 errores históricos del
+    catálogo: patas de más / protagonista que no es un chico humano / personajes
+    de otra temática. Compara contra la REFERENCIA del tema (sus personajes
+    NUNCA son intrusos — p.ej. el elefante obrero de construcción). Best-effort:
+    si el QA falla (red, etc.) devuelve OK para no frenar la venta."""
+    import base64 as _b64
+    import urllib.request as _rq
+    nino = ("nino_falta=true si NO aparece un nene o nena HUMANO como figura "
+            "principal, o si el protagonista parece ser un animal o mascota "
+            "en vez de un chico humano; "
+            if espera_nino else
+            "nino_falta=false SIEMPRE (esta escena no lleva chico); ")
+    txt = ("Sos QA de ilustraciones de un libro de cuentos infantil. "
+           "Temática: %s. Escena esperada: %s "
+           "La PRIMERA imagen es la REFERENCIA oficial del tema: TODOS los "
+           "personajes que aparecen en ella son válidos (aunque sean "
+           "animales), NUNCA intrusos, aparezcan donde aparezcan. La SEGUNDA "
+           "imagen es la ilustración a evaluar. El protagonista humano (nene "
+           "o nena) NUNCA es un intruso. Respondé SOLO un JSON: "
+           '{"patas_mal": bool, "nino_falta": bool, "intrusos": bool, '
+           '"detalle": "texto corto"}. '
+           "patas_mal=true si ALGÚN animal de cuatro patas tiene una cantidad "
+           "de patas visiblemente incorrecta (5 o más, o 3 o menos), o si un "
+           "animal en cuatro patas da la mano, choca los cinco, aplaude o "
+           "saluda con una pata levantada; la cola NO es una pata. %s"
+           "intrusos=true SOLO si aparecen personajes que NO están en la "
+           "referencia y claramente pertenecen a OTRA temática. Ante la "
+           "MÍNIMA duda en un campo, poné false." % (tema, escena, nino))
+    contenido = [{"type": "text", "text": txt}]
+    if ref_bytes:
+        contenido.append({"type": "image_url", "image_url": {
+            "url": "data:image/png;base64," + _b64.b64encode(ref_bytes).decode(),
+            "detail": "low"}})
+    contenido.append({"type": "image_url", "image_url": {
+        "url": "data:image/png;base64," + _b64.b64encode(png_bytes).decode(),
+        "detail": "high"}})
+    try:
+        body = json.dumps({"model": os.environ.get("OPENAI_QA_MODEL", "gpt-4o-mini"),
+                           "max_tokens": 140,
+                           "messages": [{"role": "user", "content": contenido}]}
+                          ).encode()
+        req = urllib.request.Request(_QA_URL, data=body, method="POST", headers={
+            "Authorization": "Bearer " + api_key,
+            "Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            out = json.loads(r.read())
+        resp = out["choices"][0]["message"]["content"] or ""
+        v = json.loads(resp[resp.find("{"):resp.rfind("}") + 1])
+        if v.get("patas_mal") or v.get("nino_falta") or v.get("intrusos"):
+            return False, str(v.get("detalle") or "")[:160]
+        return True, ""
+    except Exception as e:
+        return True, "qa saltado: %s" % str(e)[:80]
+
+
+def arte_catalogo(client, tema, historia, genero, edad, dest_dir,
+                  progress=None, fallos_log=None):
+    """Arte de un pedido del catálogo usando el CACHE por combo. Si el combo ya
+    está generado (y revisado), copia en segundos y NO regenera nada; si faltan
+    escenas, genera SOLO esas (siempre en clave larga) y quedan cacheadas para
+    la próxima venta. Devuelve los índices de render con arte listo."""
+    import shutil
+    hist = (historia or "").strip().lower()
+    g = _genero_arte(genero)
+    cache = os.path.join(CATALOGO_ARTE, tema, hist, g)
+    os.makedirs(cache, exist_ok=True)
+    os.makedirs(dest_dir, exist_ok=True)
+    idxs = indices_largo(tema, edad, hist)
+    faltan = [li for li in idxs
+              if not os.path.isfile(os.path.join(cache, "%d.png" % li))]
+    if faltan:
+        if client is None:
+            raise RuntimeError("faltan escenas del combo y no hay cliente de imágenes")
+        if progress:
+            progress("cache %s/%s/%s: generando %d escenas nuevas…"
+                     % (tema, hist, g, len(faltan)))
+        generar_ilustraciones(client, tema, paginas=faltan, dest_dir=cache,
+                              genero=g, historia=hist, catalogo=True, edad="5",
+                              verificar=True, progress=progress,
+                              fallos_log=fallos_log)
+        # QA de visión dirigido sobre lo recién generado (la misma protección
+        # que el lote del catálogo, ahora también en la VENTA del customizable):
+        # patas / protagonista humano / intrusos vs. la referencia del tema.
+        qa_key = os.environ.get("OPENAI_API_KEY")
+        if qa_key:
+            refs = referencias(tema)
+            ref_b = refs[0] if refs else None
+            malas = []
+            for li in faltan:
+                p = os.path.join(cache, "%d.png" % li)
+                if not os.path.isfile(p):
+                    continue
+                escena, espera = _escena_larga(tema, li, hist, g)
+                ok, det = qa_vision_catalogo(qa_key, open(p, "rb").read(),
+                                             tema, escena, espera, ref_b)
+                if not ok:
+                    malas.append(li)
+                    if progress:
+                        progress("QA visión pág %d: %s — se regenera" % (li, det))
+            if malas:
+                generar_ilustraciones(client, tema, paginas=malas,
+                                      dest_dir=cache, genero=g, historia=hist,
+                                      catalogo=True, edad="5", verificar=True,
+                                      progress=progress, fallos_log=fallos_log)
+    elif progress:
+        progress("cache %s/%s/%s: combo completo, sin regenerar" % (tema, hist, g))
+    usados = []
+    for j, li in enumerate(idxs):
+        src = os.path.join(cache, "%d.png" % li)
+        if os.path.isfile(src):                    # el QA pudo descartar alguna
+            shutil.copyfile(src, os.path.join(dest_dir, "%d.png" % j))
+            usados.append(j)
+        elif progress:
+            progress("página %d sin arte cacheado (QA lo descartó) — arte del tema" % j)
+    return usados
 
 
 if __name__ == "__main__":

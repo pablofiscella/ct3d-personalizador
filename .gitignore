@@ -29,3 +29,9 @@ invitaciones/
 # audiolibros web (datos de pedidos en runtime, vigencia 365d)
 audiolibros/
 temas/*/audiolibro_demo.txt
+
+# cache de arte del catálogo de audiolibros (generar una vez -> revisar -> reusar)
+catalogo_arte/
+# indicaciones del editor por tema (contenido operativo, no código)
+temas/*/libro_notas.txt
+temas/*/audiolibro_demo_*.txt

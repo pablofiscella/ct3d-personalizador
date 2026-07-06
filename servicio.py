@@ -16,6 +16,7 @@ Config por variables de entorno:
   CT3D_BASE_URL  URL pública del servicio (para armar el link de descarga)
 """
 import os, io, json, re, secrets, threading, time, collections, urllib.parse, urllib.request, urllib.error, base64
+import html as html_lib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import piezas  # motor (generar_kit, preview_invitacion)
@@ -763,6 +764,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(body)))
             self.end_headers(); self.wfile.write(body)
             return
+        if path == "/dash/libro-admin":
+            return self._dash_libro_admin(u)
         if path == "/dash/temas":
             if not self._admin_ok(u):
                 return self._deny()
@@ -905,6 +908,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._dash_producto_upload()
         if path == "/dash/libro-audio-demo":
             return self._dash_libro_audio_demo()
+        if path == "/dash/libro-regen":
+            return self._dash_libro_regen()
+        if path == "/dash/libro-nota":
+            return self._dash_libro_nota()
         if path == "/dash/libro-ia":
             return self._dash_libro_ia()
         if path == "/dash/producto-borrar-override":
@@ -1032,23 +1039,23 @@ class Handler(BaseHTTPRequestHandler):
                     escenas = None
                     hist = (data.get("historia") or "").strip().lower()
                     if hist in libro_ia._ESCENAS_POR_HISTORIA_LARGO:
-                        # Catálogo de audiolibros: se pintan las 17 (o 9) escenas de
-                        # ESTE pedido, a medida de la historia elegida y la edad, para
-                        # que el arte matchee el cuento en todas las páginas.
-                        client = _openai_client()
-                        if client is not None:
-                            escenas = os.path.join(dest, "escenas")
-                            try:
-                                libro_ia.generar_ilustraciones(
-                                    client, tema, dest_dir=escenas,
-                                    genero=data.get("genero"), historia=hist,
-                                    catalogo=True, edad=data.get("edad"),
-                                    verificar=True,
-                                    fallos_log=os.path.join(dest, "qa_fallos.txt"))
-                            except Exception as e:
-                                print("[libro-audio] arte falló (%s) — arte del tema" % e,
-                                      flush=True)
-                                escenas = None
+                        # Catálogo de audiolibros: arte por combo con CACHE
+                        # (generar una vez -> revisar -> reusar). Si el combo ya
+                        # está cacheado la venta NO regenera nada (entrega en
+                        # segundos y sin costo de IA); si falta, se genera y
+                        # queda cacheado para la próxima.
+                        escenas = os.path.join(dest, "escenas")
+                        try:
+                            libro_ia.arte_catalogo(
+                                _openai_client(), tema, hist,
+                                data.get("genero"), data.get("edad"), escenas,
+                                progress=lambda m: print("[libro-audio]", m,
+                                                         flush=True),
+                                fallos_log=os.path.join(dest, "qa_fallos.txt"))
+                        except Exception as e:
+                            print("[libro-audio] arte falló (%s) — arte del tema" % e,
+                                  flush=True)
+                            escenas = None
                     audiolibro.crear(data, tema, OPENAI_API_KEY,
                                      escenas_dir=escenas, token=tok_al)
                     with zipfile.ZipFile(os.path.join(dest, "kit.zip"), "w") as z:
@@ -2065,6 +2072,171 @@ class Handler(BaseHTTPRequestHandler):
                 f.write(tok)
         jid = ia_jobs.iniciar(trabajo)
         return self._json(200, {"ok": True, "job": jid})
+
+    def _dash_libro_admin(self, u=None):
+        """Grilla de TODAS las páginas de un audiolibro generado, con la
+        indicación permanente del tema (se inyecta en cada prompt futuro de la
+        temática) y regeneración por página que actualiza el CACHE del combo —
+        así el arreglo llega a todas las ventas siguientes.
+        Params: token (preview-*), tema, historia."""
+        if not self._admin_ok(u):
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        token = (q.get("token", [""])[0] or "").strip()
+        import audiolibro, libro_ia
+        reg = audiolibro._cargar(token)
+        if not reg:
+            return self._json(404, {"ok": False, "error": "token inválido"})
+        tema = slug(q.get("tema", [reg.get("tema") or ""])[0])
+        historia = (q.get("historia", [""])[0] or "").strip().lower()
+        n = int(reg.get("paginas", 20))
+        v = int(reg.get("creado", 0))
+        nota = libro_ia.nota_tema(tema)
+        esc = html_lib.escape
+        cards = "".join(
+            '<figure><img src="/al/%s/pag_%02d.jpg?v=%d" loading="lazy" id="im%d">'
+            '<figcaption>pág %d'
+            '<button onclick="regen(%d)" id="b%d">🔄 Regenerar</button>'
+            '</figcaption></figure>' % (esc(token), i, v, i, i + 1, i, i)
+            for i in range(n))
+        body = ("""<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>Retocar %(titulo)s</title><style>
+*{box-sizing:border-box}body{font-family:system-ui,sans-serif;background:#f5f2fb;margin:0;padding:18px;color:#333}
+h1{font-size:1.15rem;margin:0 0 4px}.sub{color:#777;font-size:.85rem;margin:0 0 14px}
+textarea{width:100%%;min-height:74px;border:1px solid #cbc3e6;border-radius:10px;padding:10px;font:inherit}
+.nota{background:#fff;border-radius:14px;padding:14px;margin-bottom:18px;box-shadow:0 1px 4px #0001}
+.nota b{display:block;margin-bottom:6px}.nota .hint{color:#888;font-size:.8rem;margin:6px 0 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+figure{background:#fff;border-radius:12px;padding:8px;margin:0;box-shadow:0 1px 4px #0001}
+img{width:100%%;border-radius:8px;display:block}
+figcaption{display:flex;justify-content:space-between;align-items:center;padding-top:6px;font-size:.85rem;color:#666}
+button{background:#6B5BD2;color:#fff;border:0;border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:700}
+button:disabled{opacity:.45;cursor:wait}#msg{min-height:20px;color:#a33;font-size:.85rem;margin-top:8px}
+</style></head><body>
+<h1>🛠 %(titulo)s — %(n)d páginas</h1>
+<p class="sub">Tema <b>%(tema)s</b> · historia <b>%(historia)s</b>. Regenerar una página actualiza también el ARTE CACHEADO del combo: las próximas ventas ya salen con el arreglo.</p>
+<div class="nota"><b>📝 Indicación permanente del tema</b>
+<div class="hint">Se agrega al prompt de TODAS las ilustraciones futuras de esta temática (todos los libros, todas las historias). Ej.: «el león siempre con la melena prolija», «nunca dibujar sombreros».</div>
+<textarea id="nota" placeholder="Escribí acá el arreglo que quieras que se respete siempre…">%(nota)s</textarea>
+<div style="margin-top:8px"><button onclick="guardar()">💾 Guardar indicación</button></div>
+<div id="msg"></div></div>
+<div class="grid">%(cards)s</div>
+<script>
+var TOKEN=%(token_js)s, TEMA=%(tema_js)s, HIST=%(hist_js)s;
+function msg(t){document.getElementById('msg').textContent=t;}
+function post(url, params){
+  return fetch(url, {method:'POST', credentials:'same-origin',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:new URLSearchParams(params).toString()}).then(r=>r.json());
+}
+function guardar(){
+  msg('Guardando…');
+  post('/dash/libro-nota',{tema:TEMA,nota:document.getElementById('nota').value})
+    .then(j=>msg(j.ok?'✅ Indicación guardada — vale para todas las regeneraciones futuras.':('Error: '+j.error)))
+    .catch(e=>msg('Error: '+e));
+}
+function regen(i){
+  var b=document.getElementById('b'+i); b.disabled=true; b.textContent='⏳ Generando (~1 min)…';
+  msg('');
+  post('/dash/libro-regen',{token:TOKEN,tema:TEMA,historia:HIST,idx:i,
+        nota:document.getElementById('nota').value})
+    .then(function(j){
+      b.disabled=false; b.textContent='🔄 Regenerar';
+      if(j.ok){ document.getElementById('im'+i).src='/al/'+TOKEN+'/pag_'+String(i).padStart(2,'0')+'.jpg?r='+Date.now(); }
+      else msg('Página '+(i+1)+': '+(j.error||'no se pudo regenerar'));
+    })
+    .catch(function(e){ b.disabled=false; b.textContent='🔄 Regenerar'; msg('Error: '+e); });
+}
+</script></body></html>""" % {
+            "titulo": esc(reg.get("nombre") or token), "n": n, "tema": esc(tema),
+            "historia": esc(historia or "—"), "nota": esc(nota), "cards": cards,
+            "token_js": json.dumps(token), "tema_js": json.dumps(tema),
+            "hist_js": json.dumps(historia)}).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _leer_form(self):
+        """Body application/x-www-form-urlencoded -> dict de primer valor."""
+        try:
+            largo = int(self.headers.get("Content-Length") or 0)
+        except ValueError:
+            largo = 0
+        crudo = self.rfile.read(min(largo, 65536)).decode("utf-8", "replace")
+        return {k: v[0] for k, v in urllib.parse.parse_qs(crudo).items()}
+
+    def _dash_libro_nota(self):
+        """Guarda la indicación permanente del tema (ver libro_ia.nota_tema)."""
+        if not self._admin_ok():
+            return self._deny()
+        import libro_ia
+        f = self._leer_form()
+        tema = slug(f.get("tema", ""))
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        libro_ia.guardar_nota_tema(tema, f.get("nota", ""))
+        return self._json(200, {"ok": True})
+
+    def _dash_libro_regen(self):
+        """Regenera UNA página de un libro del catálogo: guarda la indicación
+        del tema, genera el arte de nuevo (prompt + indicación + QA), lo deja
+        en el CACHE del combo (las ventas siguientes lo reusan) y re-renderiza
+        el JPG del libro de muestra. El audio no se toca (el texto no cambió)."""
+        if not self._admin_ok():
+            return self._deny()
+        import audiolibro, libro_ia
+        f = self._leer_form()
+        token = (f.get("token") or "").strip()
+        tema = slug(f.get("tema", ""))
+        historia = (f.get("historia") or "").strip().lower()
+        reg = audiolibro._cargar(token)
+        if not reg or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "token/tema inválido"})
+        if historia not in libro_ia._ESCENAS_POR_HISTORIA_LARGO:
+            return self._json(400, {"ok": False, "error": "historia inválida"})
+        n = int(reg.get("paginas", 20))
+        try:
+            idx = int(f.get("idx", "-1"))
+        except ValueError:
+            idx = -1
+        if not 0 <= idx < n:
+            return self._json(400, {"ok": False, "error": "página inválida"})
+        if n < 20:
+            return self._json(400, {"ok": False,
+                                    "error": "retocá el libro largo (20 págs)"})
+        if "nota" in f:
+            libro_ia.guardar_nota_tema(tema, f.get("nota", ""))
+        client = _openai_client()
+        if client is None:
+            return self._json(503, {"ok": False, "error": "falta OPENAI_API_KEY"})
+        genero = (f.get("genero") or "nene").strip().lower()
+        g = libro_ia._genero_arte(genero)
+        cache = os.path.join(libro_ia.CATALOGO_ARTE, tema, historia, g)
+        os.makedirs(cache, exist_ok=True)
+        try:
+            hechos = libro_ia.generar_ilustraciones(
+                client, tema, paginas=[idx], dest_dir=cache, genero=g,
+                historia=historia, catalogo=True, edad="5", verificar=True)
+        except Exception as e:
+            return self._json(502, {"ok": False, "error": str(e)[:180]})
+        if not hechos:
+            return self._json(200, {"ok": False,
+                                    "error": "el QA rechazó el arte 2 veces — "
+                                             "probá de nuevo o ajustá la indicación"})
+        import libro as _libro
+        data = {"nombre": reg.get("nombre") or "Alex", "edad": "5",
+                "historia": historia, "genero": g,
+                "dedicatoria": "Un cuento de muestra"}
+        with _libro.usar_escenas_dir(cache):
+            img = _libro.pagina_libro(idx, data, tema, catalogo=True).convert("RGB")
+        img.resize((img.width * 2 // 3, img.height * 2 // 3)).save(
+            os.path.join(audiolibro.AUDIOLIBROS_DIR, token, "pag_%02d.jpg" % idx),
+            quality=86)
+        return self._json(200, {"ok": True})
 
     def _dash_libro_ia(self):
         """Genera con IA las ilustraciones del libro de cuento del tema y las guarda

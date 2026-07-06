@@ -62,6 +62,18 @@ def total_paginas(tema, edad=None, historia=None, catalogo=False):
     return paginas_historia(tema, edad, historia, catalogo) + 3
 
 # ── ambientación por temática (fallback genérico para temas nuevos) ─────────
+# REGLAS del diccionario (para que cualquier valor encaje en cualquier arco de
+# libro_historias sin romper la gramática — ver skill armar-audiolibros):
+#   mundo:    con artículo incluido ("la sabana...", "el gran circo..."). Los arcos
+#             solo lo usan tras preposición (en/a/de/hacia/por/sobre) o como sujeto
+#             sin adjetivos que concuerden — NUNCA "el {mundo}" ni "todo {mundo}".
+#   amigos:   SIEMPRE masculino plural con "los ..." (los arcos usan adjetivos en
+#             masculino plural: tristes, cabizbajos, preocupados).
+#   desafio:  cláusula simple en pasado, minúscula inicial, SIN ":", "¡" ni "!"
+#             (se inserta en «apareció un problema: {desafio}. Nadie sabía...»).
+#   solucion: acción en pasado, 3ª persona singular, empieza con verbo (se inserta
+#             en «{nombre} {solucion}» seguido de una consecuencia).
+#   tesoro:   objeto con artículo ("una .../un ..."), neutro para nene o nena.
 HISTORIAS = {
     "safari": {
         "mundo": "la sabana dorada del safari",
@@ -73,7 +85,7 @@ HISTORIAS = {
     "circo": {
         "mundo": "el gran circo de colores",
         "amigos": "los artistas del circo",
-        "desafio": "la función no podía empezar: ¡el mago había perdido su sombrero!",
+        "desafio": "el mago no encontraba su sombrero mágico por ningún lado",
         "solucion": "siguió las huellas de purpurina y encontró el sombrero detrás de la carpa",
         "tesoro": "una entrada mágica para volver al circo cuando quiera",
     },
@@ -86,8 +98,8 @@ HISTORIAS = {
     },
     "construccion": {
         "mundo": "la gran obra en construcción",
-        "amigos": "las máquinas de la obra",
-        "desafio": "al puente le faltaba la última pieza y nadie la encontraba",
+        "amigos": "los constructores y sus máquinas",
+        "desafio": "la grúa no encontraba la última pieza del puente",
         "solucion": "encontró la pieza perdida y guió a la grúa para colocarla",
         "tesoro": "un casco dorado de constructor",
     },
@@ -108,15 +120,15 @@ HISTORIAS = {
     "campamento": {
         "mundo": "el bosque del campamento",
         "amigos": "los amigos del campamento",
-        "desafio": "la fogata se apagó justo antes de contar historias",
+        "desafio": "la fogata que alumbraba el campamento se había apagado",
         "solucion": "juntó las ramitas más secas y la fogata volvió a brillar",
         "tesoro": "una linterna que guarda luz de estrellas",
     },
     "artistas": {
         "mundo": "el taller de los artistas",
-        "amigos": "los pinceles y los colores",
-        "desafio": "todos los colores se habían mezclado y el mundo quedó gris",
-        "solucion": "pintó un arcoíris enorme que devolvió los colores al mundo",
+        "amigos": "los pequeños artistas del taller",
+        "desafio": "los colores se habían mezclado y todo se había vuelto gris",
+        "solucion": "pintó un arcoíris enorme que devolvió cada color a su lugar",
         "tesoro": "un pincel mágico que nunca se queda sin color",
     },
     "monstruos": {
@@ -125,6 +137,20 @@ HISTORIAS = {
         "desafio": "el monstruo más chiquito tenía miedo de la oscuridad",
         "solucion": "le enseñó que en la oscuridad también viven las estrellas",
         "tesoro": "un frasquito con luciérnagas de luz",
+    },
+    "princesas": {
+        "mundo": "el reino encantado de las princesas",
+        "amigos": "los amigos del reino encantado",
+        "desafio": "la corona real se había perdido antes del gran baile",
+        "solucion": "siguió los destellos dorados y encontró la corona en el jardín del castillo",
+        "tesoro": "una coronita brillante del reino, hecha a su medida",
+    },
+    "futbol": {
+        "mundo": "el gran estadio de fútbol",
+        "amigos": "los jugadores del equipo",
+        "desafio": "la pelota dorada se había perdido antes del gran partido",
+        "solucion": "encontró la pelota escondida detrás del arco y la trajo de vuelta",
+        "tesoro": "una copa dorada de campeón",
     },
     "un-espacio-de-locura": {
         "mundo": "el espacio infinito",
@@ -431,10 +457,13 @@ _RE_INICIO_FRASE = re.compile(r'(^|[.!?]\s+|[¡¿]\s*|»\s+)([a-záéíóúüñ]
 
 
 def _capitalizar_frases(texto):
-    """Pone mayúscula al inicio del texto y después de cada punto/signo. Necesario
-    porque los placeholders como {amigos} (\"los animales de la selva\") caen a veces
-    al comienzo de una oración y quedarían en minúscula."""
-    return _RE_INICIO_FRASE.sub(lambda m: m.group(1) + m.group(2).upper(), texto)
+    """Pone mayúscula al inicio del texto y después de cada punto/signo, y cambia
+    las comillas españolas «» por inglesas “” (las « se leen como '>>' y los
+    padres las toman por un error — regla del catálogo). Necesario porque los
+    placeholders como {amigos} (\"los animales de la selva\") caen a veces al
+    comienzo de una oración y quedarían en minúscula."""
+    t = _RE_INICIO_FRASE.sub(lambda m: m.group(1) + m.group(2).upper(), texto)
+    return t.replace("«", "“").replace("»", "”")
 
 
 def cuento(data, tema="safari", catalogo=False):
@@ -481,8 +510,8 @@ def cuento(data, tema="safari", catalogo=False):
               "valiente y ayuda a los demás, siempre tiene una nueva aventura "
               "esperando." % nombre)
     if not extendido:
-        return base + [cierre]
-    return base + [
+        return [_capitalizar_frases(t) for t in base + [cierre]]
+    return [_capitalizar_frases(t) for t in base + [
         "Para festejar, %s propusieron un juego gigante en %s, y todos se "
         "turnaron para inventar la payasada más divertida."
         % (h["amigos"], h["mundo"]),
@@ -496,7 +525,7 @@ def cuento(data, tema="safari", catalogo=False):
         "sabiendo que el jardín de luces los esperaría en la próxima visita."
         % (nombre, h["amigos"]),
         cierre,
-    ]
+    ]]
 
 
 # ── escena ilustrada (base procedural; se reemplaza por arte IA vía override) ─

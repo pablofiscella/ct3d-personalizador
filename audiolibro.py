@@ -246,6 +246,7 @@ button { background:#6B5BD2; color:#fff; border:0; border-radius:50%%; width:52p
   font-size:22px; cursor:pointer; flex:0 0 auto; line-height:1; }
 button.sec { background:#453a66; width:44px; height:44px; font-size:16px; }
 .pag { color:#b8aede; font-size:14px; min-width:52px; text-align:center; }
+body.tv .controles, body.tv #diag { display:none; }
 @media (max-width:520px){
   button { width:46px; height:46px; font-size:19px; }
   button.sec { width:40px; height:40px; font-size:14px; }
@@ -259,6 +260,8 @@ button.sec { background:#453a66; width:44px; height:44px; font-size:16px; }
   <button id="play">▶</button>
   <button class="sec" id="next">⏭</button>
   <span class="pag" id="pag">1 / %(n)d</span>
+  <button class="sec" id="fs" title="Pantalla completa">⛶</button>
+  <button class="sec" id="cast" title="Ver en la tele (Chromecast)">📺</button>
 </div>
 <div class="controles velrow">
   <span style="color:#b8aede;font-size:16px">🐢</span>
@@ -324,7 +327,8 @@ function reproducir(i){
   audio.playbackRate = parseFloat(vel.value);
   var p = audio.play();
   if (p && p.catch) p.catch(function(e){
-    narrando=false; play.textContent='▶'; err('tocá ▶ de nuevo ('+e.name+')'); });
+    narrando=false; play.textContent='▶'; err('tocá ▶ de nuevo ('+e.name+')');
+    document.body.classList.remove('tv'); });   // modo TV sin autoplay: mostrar controles
 }
 audio.addEventListener('ended', function(){
   if (!narrando) return;
@@ -352,6 +356,37 @@ document.getElementById('reinicio').onclick = function(){
   if(flip){ try{ flip.turnToPage(0); }catch(ex){ } }
   mostrarPag();
 };
+// ── pantalla completa (⛶) — se oculta donde no existe (iPhone) ──
+var fsBtn=document.getElementById('fs');
+if (document.documentElement.requestFullscreen) {
+  fsBtn.onclick=function(){
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen().catch(function(){});
+  };
+} else { fsBtn.style.display='none'; }
+// ── transmitir a la tele (📺): mismo selector de Chromecast que el menú de
+// Chrome, vía Presentation API. En la tele el libro abre en modo TV (?tv=1):
+// sin controles y narrando solo. Se oculta donde no está soportado (iOS). ──
+var castBtn=document.getElementById('cast');
+var tvUrl=location.origin+location.pathname.replace(/\\/+$/,'')+'?tv=1';
+if (window.PresentationRequest) {
+  try {
+    var preq=new PresentationRequest([tvUrl]);
+    if (navigator.presentation) navigator.presentation.defaultRequest=preq;
+    castBtn.onclick=function(){
+      err('');
+      preq.start().catch(function(e2){
+        if (e2.name!=='NotAllowedError')
+          err('No se pudo transmitir — probá con Transmitir… del menú de Chrome');
+      });
+    };
+  } catch(ex3){ castBtn.style.display='none'; }
+} else { castBtn.style.display='none'; }
+// ── modo TV (receptor Chromecast / ?tv=1): narración automática ──
+if (/[?&]tv=1/.test(location.search)) {
+  document.body.classList.add('tv');
+  setTimeout(function(){ if (!narrando) play.onclick(); }, 1200);
+}
 pag.textContent='1 / '+N;
 </script></body></html>""" % {"titulo": e(titulo), "token": e(token),
                               "base": e(base_url), "n": n,
