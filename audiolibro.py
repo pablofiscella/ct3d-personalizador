@@ -486,10 +486,15 @@ if (window.PresentationRequest) {
     var preq=new PresentationRequest([tvUrl]);
     if (navigator.presentation) navigator.presentation.defaultRequest=preq;
     castBtn.onclick=function(){
-      err('');
-      preq.start().catch(function(e2){
-        if (e2.name!=='NotAllowedError')
-          err('No se pudo transmitir — probá con Transmitir… del menú de Chrome');
+      err('buscando Chromecast…');
+      preq.start().then(function(conn){
+        err('');
+        conn.addEventListener('close', function(){ err('se cerró la transmisión'); });
+        conn.addEventListener('terminate', function(){ err('se cerró la transmisión'); });
+      }).catch(function(e2){
+        if (e2.name==='NotAllowedError') { err(''); return; }   // el usuario cerró el selector
+        err('No se pudo transmitir (' + e2.name + ': ' + (e2.message || '') +
+            ') — probá con Transmitir… del menú de Chrome');
       });
     };
   } catch(ex3){ castBtn.style.display='none'; }
