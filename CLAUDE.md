@@ -76,6 +76,16 @@ pytest tests/ -v
    - Piezas procedurales se generan
    - Override reemplaza la pieza
    - Campos se respetan en el preview
+5. **GOTCHA DPI (real, encontrado 7-jul-2026 haciendo gorro/corona):** `piezas.generar_kit()`
+   exporta SIEMPRE el PDF con `resolution=300` (generador.DPI), sin mirar a qué escala
+   se dibujó el PNG. La mayoría de los "productos individuales" (certificado, antifaces,
+   menú, rompecabezas, cápsula, papertoys, memoria, rutina) usan `Wp,Hp = 1240,1754`
+   (pensado como ~150dpi de A4) — es decir que **sus PDF salen a la MITAD del tamaño
+   físico real** (A5 en vez de A4) desde que existen, no es algo que rompí ahora. Recién
+   se corrigió para `corona.py` (gorro/corona ahora dibujan a 1240·2=2480 base, A4
+   apaisado a 300dpi real — ver su docstring). Los otros 8 tipos siguen con el bug;
+   decidir con Pablo si vale la pena corregirlos (implica re-escalar constantes en
+   píxeles fijos de cada archivo, no solo cambiar Wp,Hp).
 
 ## Mi responsabilidad (Claude)
 

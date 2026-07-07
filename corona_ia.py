@@ -1,8 +1,13 @@
-"""Arte IA de gorro/corona: un fondo temático (patrón/personajes del tema) generado
-UNA vez por tema con OpenAI, igual que calendario (fondo.png) y libro (ilustración):
-la IA solo aporta el arte de fondo — el nombre/edad SIEMPRE los escribe el motor
-encima, nunca quedan "horneados" en la imagen (evita el bug que tuvo calendario,
-donde un override ya renderizado tapaba la personalización de cada cliente)."""
+"""Arte IA del gorro (fondo temático del abanico), generado UNA vez por tema con
+OpenAI, igual que calendario (fondo.png) y libro (ilustración): la IA solo aporta
+el arte de fondo — el nombre/edad SIEMPRE los escribe el motor encima, nunca
+quedan "horneados" en la imagen (evita el bug que tuvo calendario, donde un
+override ya renderizado tapaba la personalización de cada cliente).
+
+La corona NO usa esto (ver corona.py): sus picos son triángulos angostos y
+recortar una ilustración ahí queda ilegible en fragmentos — se queda con el
+color liso de siempre. `fondo_path`/`cargar_fondo` siguen aceptando "corona"
+por si en el futuro se rediseña con una forma que sí lo aproveche."""
 import io
 import os
 
@@ -37,12 +42,12 @@ def _prompt(tema, pieza):
         forma = ("una franja horizontal ancha, decorada de punta a punta, pensada para "
                  "recortar y armar como una corona de cumpleaños desplegada y aplanada")
     return (
-        "Ilustración infantil para imprimir y recortar, temática '%s'. Diseño de fondo/"
-        "patrón decorativo para un %s de cumpleaños: %s. Mismo estilo, colores y "
-        "personajes que la imagen de referencia. Que llene TODO el encuadre (sin "
-        "márgenes en blanco). SIN NINGÚN TEXTO, LETRA, NÚMERO NI PALABRA en la imagen — "
-        "el nombre del cumpleañero se agrega después, aparte. Que tenga zonas con buen "
-        "contraste (no todo claro) para que un texto blanco se lea bien encima."
+        "Ilustración infantil APAISADA (horizontal) para imprimir y recortar, temática "
+        "'%s'. Diseño de fondo/patrón decorativo para un %s de cumpleaños: %s. Mismo "
+        "estilo, colores y personajes que la imagen de referencia. Que llene TODO el "
+        "encuadre (sin márgenes en blanco). SIN NINGÚN TEXTO, LETRA, NÚMERO NI PALABRA "
+        "en la imagen — el nombre del cumpleañero va después, en una ventana circular "
+        "aparte que agrega el motor."
         % (nombre_tema, pieza, forma)
     )
 
@@ -56,7 +61,7 @@ def generar(client, tema, pieza, calidad="medium"):
         raise RuntimeError(
             "el tema %r no tiene imagen de referencia (ia_maestra.png/stickers) "
             "— agregala antes de generar el gorro/corona" % tema)
-    raw = client.editar(refs, _prompt(tema, pieza), "1024x1536", quality=calidad)
+    raw = client.editar(refs, _prompt(tema, pieza), "1536x1024", quality=calidad)
     img = Image.open(io.BytesIO(raw)).convert("RGBA")
     dest = fondo_path(tema, pieza)
     os.makedirs(os.path.dirname(dest), exist_ok=True)

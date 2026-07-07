@@ -2395,9 +2395,10 @@ function regen(i){
         return self._json(200, {"ok": True, "job": jid})
 
     def _corona_ia_generar(self):
-        """Genera (o regenera) el fondo IA de gorro + corona de un tema — arte de fondo
+        """Genera (o regenera) el fondo IA del gorro de un tema — arte de fondo
         únicamente; el nombre/edad los sigue escribiendo el motor encima (ver corona.py/
-        corona_ia.py). En background + polling, mismo patrón que ia-generar/ia-regenerar."""
+        corona_ia.py). La corona no usa esto (ver corona_ia.py). En background +
+        polling, mismo patrón que ia-generar/ia-regenerar."""
         if not self._admin_ok():
             return self._deny()
         q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
@@ -2410,7 +2411,7 @@ function regen(i){
         calidad = _calidad(q)
         import corona_ia
         def trabajo(emit):
-            for pieza in ("gorro", "corona"):
+            for pieza in ("gorro",):
                 emit("Generando %s…" % pieza)
                 corona_ia.generar(client, tema, pieza, calidad=calidad)
         jid = ia_jobs.iniciar(trabajo)
