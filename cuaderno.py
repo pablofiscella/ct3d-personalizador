@@ -50,14 +50,21 @@ def _extraer_monstruos(tema):
     """Recorta cada personaje del tema desde la hoja de stickers, por COMPONENTE DE ALPHA: los
     stickers nuevos vienen separados por un gap transparente, así que cada componente conexo del
     canal alpha = un personaje (con su bordecito). Mucho más simple/robusto que separar por color.
-    Lee ia_draft/ (nuevo) o extras/. Cachea en temas/<tema>/actividades_mon/c*.png."""
+    Lee ia_draft/ (nuevo) o extras/. Cachea en temas/<tema>/actividades_mon/c*.png — se
+    AUTOINVALIDA si la hoja de stickers es más nueva que el cache (si no, regenerar los
+    stickers con IA no cambiaba nada acá: corona/rompecabezas/cápsula/etc. seguían
+    mostrando los personajes viejos para siempre)."""
     cache = os.path.join(TEMAS, tema, "actividades_mon")
-    if os.path.isdir(cache):
-        ya = sorted(glob.glob(f"{cache}/c*.png"))
-        if ya: return ya
     sheet = next((p for p in (os.path.join(TEMAS, tema, "ia_draft", "stickers_1.png"),
                               os.path.join(TEMAS, tema, "extras", "stickers_1.png"))
                   if os.path.isfile(p)), None)
+    if os.path.isdir(cache):
+        ya = sorted(glob.glob(f"{cache}/c*.png"))
+        if ya and (not sheet or os.path.getmtime(sheet) <= os.path.getmtime(cache)):
+            return ya
+        if ya:   # sheet más nueva que el cache: descartarlo y re-extraer
+            import shutil
+            shutil.rmtree(cache, ignore_errors=True)
     if not sheet:
         return []
     im = Image.open(sheet).convert("RGBA"); W, H = im.size
