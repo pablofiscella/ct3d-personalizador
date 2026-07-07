@@ -262,8 +262,11 @@ def lentes_fiesta(data, tema="safari"):
         # unión con el aro/estrella queda sólida (antes apenas tocaban el borde
         # y en la estrella podían caer justo entre dos puntas).
         cd.rounded_rectangle([cx - _mm(9), cy - _mm(4), cx + _mm(9), cy + _mm(4)], _mm(2), fill=color)
+        # solape hacia adentro: 12mm en la estrella (tiene que atravesar el valle
+        # entre puntas), 6mm en el aro redondo (con 12 asomaba dentro del vidrio)
+        solape = _mm(12) if estrella else _mm(6)
         for side in (-1, 1):
-            e_in = cx + side * (sep / 2 + r_marco - _mm(12))
+            e_in = cx + side * (sep / 2 + r_marco - solape)
             e_out = cx + side * (sep / 2 + r_marco + _mm(18))
             cd.rounded_rectangle([min(e_in, e_out), cy - _mm(3.4),
                                   max(e_in, e_out), cy + _mm(3.4)], _mm(2), fill=color)
