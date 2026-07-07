@@ -127,6 +127,98 @@ _MESES_ES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
 _DIAS_ES = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
 
 
+# ── convención NUEVA del editor con arrastre: temas/<tema>/calendario/{fondo.png,
+#    layout.json}. UN fondo compartido por los 12 meses + layout.json con "base"
+#    (config default) y "meses" (ajustes puntuales por número de mes, 1-12). ──
+def _load_fondo_nuevo(tema):
+    p = os.path.join(TEMAS, tema, "calendario", "fondo.png")
+    if os.path.isfile(p):
+        try:
+            return Image.open(p).convert("RGBA")
+        except Exception:
+            return None
+    return None
+
+
+def _load_layout_nuevo(tema):
+    p = os.path.join(TEMAS, tema, "calendario", "layout.json")
+    if os.path.isfile(p):
+        try:
+            return json.load(open(p, encoding="utf-8"))
+        except Exception:
+            return None
+    return None
+
+
+def _config_del_mes(layout, mes):
+    """El layout.json tiene "base" (default) + "meses"."<N>" (config completa
+    que reemplaza a "base" para ese mes puntual, si el editor la tocó)."""
+    meses = layout.get("meses") or {}
+    return meses.get(str(mes)) or layout.get("base") or _DEFAULT_CAL_CONFIG
+
+
+def _bbox_contenido(im, umbral=250, margen=24):
+    """Recorta el margen en blanco alrededor de la tarjeta real de la hoja de
+    mes. Cada hoja se dibuja pensada para imprimirse sola (deja ~50% de
+    margen vertical en blanco arriba/abajo de la tarjeta) — al combinar 2
+    meses por hoja hay que recortar ese margen antes de escalar, si no la
+    tarjeta queda chica y con franjas en blanco en vez de ocupar todo el
+    espacio disponible."""
+    gris = im.convert("L").point(lambda p: 255 if p < umbral else 0)
+    caja = gris.getbbox()
+    if not caja:
+        return im
+    x0, y0, x1, y1 = caja
+    x0, y0 = max(0, x0 - margen), max(0, y0 - margen)
+    x1, y1 = min(im.width, x1 + margen), min(im.height, y1 + margen)
+    return im.crop((x0, y0, x1, y1))
+
+
+def dos_meses_por_hoja(im1, im2):
+    """Combina 2 hojas de mes en UNA sola hoja A4 (arriba/abajo). La tarjeta
+    de cada mes (grilla de 7 columnas + personajes) es de forma ANCHA, no
+    alta — por eso apilar arriba/abajo (no lado a lado) es lo que la hace
+    calzar bien. Cada hoja trae además ~50% de margen en blanco arriba/abajo
+    (pensada para imprimirse sola): se recorta ese margen (`_bbox_contenido`)
+    antes de escalar, así la tarjeta ocupa todo el ancho de la hoja
+    combinada en vez de quedar chica con una franja en blanco de sobra."""
+    pagina = Image.new("RGBA", (Wp, Hp), (255, 255, 255, 255))
+    mitad_h = Hp // 2
+    for im, y0 in ((im1, 0), (im2, mitad_h)):
+        im = _bbox_contenido(im.convert("RGB")).convert("RGBA")
+        r = min(Wp / im.width, mitad_h / im.height)
+        w, h = max(1, int(im.width * r)), max(1, int(im.height * r))
+        im_r = im.resize((w, h), Image.LANCZOS)
+        x, y = (Wp - w) // 2, y0 + (mitad_h - h) // 2
+        pagina.alpha_composite(im_r, (x, y))
+    dr = ImageDraw.Draw(pagina)
+    dr.line([(40, mitad_h), (Wp - 40, mitad_h)], fill=(220, 215, 205), width=2)
+    return pagina
+
+
+def mes_hoja(mes, anyo, acc, tema="safari"):
+    """Genera UN mes: calendario TEMÁTICO (sin personalizar) — usa el fondo+
+    layout de la temática (el que arma Pablo con el editor con arrastre) si
+    existen; si no, cae a la versión 100% procedural (sin plantilla). El año
+    lo fija el layout.json de cada tema (campo "anyo") si está definido — no lo
+    elige el cliente. Esta es la función que llama productos._piezas_calendario
+    — antes NO EXISTÍA (el código llamaba a un nombre viejo/inexistente) y el
+    override system además tapaba cualquier intento de generación real con una
+    imagen estática fija por tema (ver la excepción de 'calendario' en
+    productos.piezas_tipo)."""
+    fondo = _load_fondo_nuevo(tema)
+    layout = _load_layout_nuevo(tema)
+    if fondo is not None and layout:
+        anyo = int(layout.get("anyo") or anyo)
+        config = _config_del_mes(layout, mes)
+        return mes_hoja_desde_config(mes, anyo, "", config, fondo, tema)
+    config = _load_config(tema)
+    plantilla = _load_plantilla(tema)
+    if config and plantilla is not None:
+        return mes_hoja_desde_config(mes, anyo, "", config, plantilla, tema)
+    return mes_hoja_procedural(mes, anyo, "", acc, tema)
+
+
 def mes_hoja_procedural(mes, anyo, nombre, acc, tema="safari"):
     """Genera una hoja A4 procedural (sin plantilla)."""
     im = Image.new("RGBA", (Wp, Hp), (255, 255, 255, 255))
@@ -134,8 +226,7 @@ def mes_hoja_procedural(mes, anyo, nombre, acc, tema="safari"):
     dr.rectangle([0, 0, Wp, Hp], fill=CREAM)
 
     dr.rectangle([0, 0, Wp, 200], fill=acc)
-    dr.text((Wp / 2, 80), "%s %d" % (_MESES_ES[mes - 1], anyo), font=_font(64), fill="white", anchor="mm")
-    dr.text((Wp / 2, 148), nombre, font=_font(30, False), fill=_tint(acc, 0.7), anchor="mm")
+    dr.text((Wp / 2, 110), "%s %d" % (_MESES_ES[mes - 1], anyo), font=_font(64), fill="white", anchor="mm")
 
     cal = calendar.Calendar()
     days = cal.monthdayscalendar(anyo, mes)
@@ -158,11 +249,6 @@ def mes_hoja_procedural(mes, anyo, nombre, acc, tema="safari"):
             dr.text((cx, y + cell_h / 2), str(day), font=_font(26, False), fill=INK, anchor="mm")
             dr.line([cx - 14, y + cell_h + 2, cx + 14, y + cell_h + 2], fill=_tint(acc, 0.5), width=1)
         y += cell_h + 8
-
-    y_info = y + 40
-    dr.text((Wp / 2, y_info), "Días especiales:", font=_font(26, False), fill=INK, anchor="mm")
-    dr.text((Wp / 2, y_info + 40), "¡El cumpleaños de %s!" % nombre,
-            font=_font(28), fill=acc, anchor="mm")
 
     personajes = _personajes(tema, 1)
     if personajes:

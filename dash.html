@@ -478,7 +478,8 @@ async function openPiezas(tema, nombre){
 const PROD_NUEVOS_TIPOS=[['certificado','🎓 Certificado'],['corona','👑 Gorro y corona'],
   ['antifaces','🎭 Photo booth'],['menu','🍽️ Menú infantil'],['rompecabezas','🧩 Rompecabezas'],
   ['capsula','✉️ Cápsula del tiempo'],['libro','📖 Libro de cuento'],['calendario','📅 Calendario'],['papertoys','📦 Paper toy'],
-  ['memoria','🃏 Memoria']];
+  ['memoria','🃏 Memoria'],['actividades','🎨 Pack de actividades'],['milestone','🍼 Tarjetas mes a mes'],
+  ['rutina','🗓️ Rutina visual'],['babyshower','🎀 Baby shower']];
 async function openProductosNuevos(tema, nombre){
   window.TEMA_ACTUAL = tema;
   const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1123,13 +1124,13 @@ async function openCuaderno(tema, nombre){
 }
 const TIPO_LABEL={kit:'Kit completo',invitacion:'Solo invitación',cartel:'Solo afiche / cartel',actividades:'Pack de actividades',milestone:'Tarjetas mes a mes',
   certificado:'Certificado de cumpleañero',corona:'Gorro y corona',antifaces:'Photo booth props',menu:'Menú infantil',
-  rompecabezas:'Rompecabezas del nombre',capsula:'Cápsula del tiempo',calendario:'Calendario personalizado',
+  rompecabezas:'Rompecabezas del nombre',capsula:'Cápsula del tiempo',calendario:'Calendario temático',
   papertoys:'Paper toy — cubo 3D',memoria:'Juego de la memoria'};
 const TIPO_HINT={kit:'Todas las piezas: invitación + topper + stickers + afiche + separadores + …',invitacion:'Solo la invitación personalizable',cartel:'Solo el afiche / cartel de bienvenida',actividades:'Hojas para colorear + juegos',milestone:'Póster de los 12 meses del bebé',
   certificado:'Diploma con nombre y edad, para imprimir y enmarcar',corona:'Gorro cónico + corona de rey para armar',
   antifaces:'Antifaz, bigotes y lentes para photo booth',menu:'Menú del día para la mesa del salón, para colorear',
   rompecabezas:'Nombre partido en piezas para recortar y armar',capsula:'Sobre lacrado + hoja de preguntas para el futuro',
-  calendario:'12 meses con el nombre de la familia, producto recurrente',papertoys:'Cubo desplegable con las letras del nombre',
+  calendario:'12 meses ilustrados con la temática elegida. Listo, nada para completar.',papertoys:'Cubo desplegable con las letras del nombre',
   memoria:'24 cartas (12 pares) para recortar y jugar'};
 async function openPublicar(tema,nombre){
   let est; try{ est=await (await fetch('/dash/pub-estado?tema='+encodeURIComponent(tema)+'&cb='+Date.now(),{headers:{'X-API-Key':KEY}})).json(); }

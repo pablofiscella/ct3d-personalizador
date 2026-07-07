@@ -365,20 +365,20 @@ def _piezas_libro(tema):
     return [(n, (lambda i: (lambda d: libro.pagina_libro(i, d, tema)))(i), True)
             for i, n in enumerate(nombres)]
 
+_MESES_NOMBRE = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
+                 "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
+
+
 def _piezas_calendario(tema):
+    """Calendario TEMÁTICO (no personalizado): 12 meses con el fondo/arte que
+    arma Pablo por temática (temas/<tema>/calendario/{fondo.png,layout.json}) +
+    la grilla de días que dibuja el motor encima. Sin nombre ni año a elección
+    del cliente — el año lo fija el layout.json de cada tema."""
     import calendario
-    return [("01_enero", lambda d: calendario.mes_hoja(1, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
-            ("02_febrero", lambda d: calendario.mes_hoja(2, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
-            ("03_marzo", lambda d: calendario.mes_hoja(3, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
-            ("04_abril", lambda d: calendario.mes_hoja(4, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
-            ("05_mayo", lambda d: calendario.mes_hoja(5, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
-            ("06_junio", lambda d: calendario.mes_hoja(6, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
-            ("07_julio", lambda d: calendario.mes_hoja(7, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
-            ("08_agosto", lambda d: calendario.mes_hoja(8, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
-            ("09_septiembre", lambda d: calendario.mes_hoja(9, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
-            ("10_octubre", lambda d: calendario.mes_hoja(10, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
-            ("11_noviembre", lambda d: calendario.mes_hoja(11, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True),
-            ("12_diciembre", lambda d: calendario.mes_hoja(12, int(d.get("anyo") or "2026"), d.get("nombre") or "Mi familia", calendario._accent(tema), tema), True)]
+    acc = calendario._accent(tema)
+    return [("%02d_%s" % (m, _MESES_NOMBRE[m - 1]),
+             (lambda m: (lambda d: calendario.mes_hoja(m, 2026, acc, tema)))(m), True)
+            for m in range(1, 13)]
 
 def _piezas_papertoys(tema):
     import papertoys
@@ -631,9 +631,9 @@ TIPOS = {
         "piezas": _piezas_libro,
     },
     "calendario": {
-        "nombre": "Calendario personalizado",
-        "descripcion": "12 meses con el nombre de la familia, decorado con la temática. Producto recurrente (cada año).",
-        "campos": ["nombre", "anyo"],
+        "nombre": "Calendario temático",
+        "descripcion": "12 meses ilustrados con la temática elegida. Listo, nada para completar.",
+        "campos": [],
         "preview": "calendario",
         "piezas": _piezas_calendario,
     },
@@ -718,12 +718,15 @@ def _con_overrides(tema, tipo, items):
 def piezas_tipo(tema, tipo):
     """Lista [(nombre_archivo, fn(data)->Image, is_rgba)] del tipo sobre la temática.
     Aplica overrides subidos a mano (ver override_path) sobre el diseño procedural.
-    EXCEPCIÓN 'libro': ahí el override (mismo path) es solo la ILUSTRACIÓN de la
-    página y lo aplica libro.py adentro — el texto personalizado (nombre/dedicatoria)
-    siempre lo escribe el motor; si el override tapara la página entera, el nombre
-    del chico quedaría fijo dentro de la imagen subida."""
+    EXCEPCIÓN 'libro'/'calendario': el override (mismo path) es solo el ARTE/fondo
+    y lo aplica el propio motor (libro.py / calendario.py) adentro — el texto
+    personalizado (nombre/dedicatoria/año) siempre lo escribe el motor; si el
+    override tapara la pieza entera con una imagen ya renderizada, el nombre del
+    cliente quedaría fijo (el de la última vez que se generó) dentro de la imagen
+    subida, ignorando lo que cargue cada comprador. Bug real: pasó exactamente
+    esto con calendario (el 'nombre' del cliente nunca llegaba a verse)."""
     items = _spec(tipo)["piezas"](tema or "safari")
-    if tipo in ("libro", "libro-premium"):
+    if tipo in ("libro", "libro-premium", "calendario"):
         return items
     return _con_overrides(tema, tipo, items)
 
@@ -848,6 +851,20 @@ def generar(data, dest_dir, tema="safari", tipo=DEFAULT_TIPO):
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
             z.writestr(nombre_archivo, fn())
         return zip_path
+    if tipo == "calendario":
+        # Entrega final: 2 meses por hoja (ahorra papel al imprimir). La galería
+        # de administración sigue mostrando los 12 meses por separado (ver
+        # piezas_tipo/_piezas_calendario, sin tocar) — esto solo cambia el
+        # empaquetado del PDF/ZIP que recibe el cliente.
+        import calendario as _cal
+        piezas12 = piezas_tipo(tema, tipo)
+        combinadas = []
+        for i in range(0, 12, 2):
+            n1, fn1, _ = piezas12[i]
+            n2, fn2, _ = piezas12[i + 1]
+            hoja = (lambda fn1, fn2: (lambda d: _cal.dos_meses_por_hoja(fn1(d), fn2(d))))(fn1, fn2)
+            combinadas.append(("%02d_%s-%s" % (i // 2 + 1, n1[3:], n2[3:]), hoja, True))
+        return piezas.generar_kit(data, dest_dir, tema, piezas_list=combinadas)
     if tipo == "actividades":
         # Cuaderno de actividades por edad (cuaderno.py): páginas verificadas por
         # código + arte del tema. Cada página entra como una pieza pre-renderizada.
