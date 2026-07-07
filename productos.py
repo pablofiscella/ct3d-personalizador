@@ -410,7 +410,8 @@ def _piezas_menu(tema):
 
 def _piezas_rompecabezas(tema):
     import rompecabezas
-    return [("1_rompecabezas", lambda d: rompecabezas.rompecabezas_nombre(d, tema), True)]
+    return [("1_rompecabezas", lambda d: rompecabezas.rompecabezas_nombre(d, tema), True),
+            ("2_bandeja", lambda d: rompecabezas.bandeja(d, tema), True)]
 
 def _piezas_capsula(tema):
     import capsula_tiempo
@@ -822,11 +823,12 @@ _PIEZA_LABELS = {
     "1_certificado": "Certificado",
     "1_gorro": "Gorro para armar",
     "2_corona": "Corona para armar",
-    "1_antifaz": "Antifaz mariposa",
+    "1_antifaz": "Antifaz",
     "2_bigotes": "Bigotes divertidos",
     "3_lentes": "Lentes de fiesta",
     "1_menu": "Menú infantil",
     "1_rompecabezas": "Rompecabezas",
+    "2_bandeja": "Bandeja para armar",
     "1_sobre": "Sobre lacrado",
     "2_carta": "Carta del futuro",
     "01_enero": "Enero", "02_febrero": "Febrero", "03_marzo": "Marzo",

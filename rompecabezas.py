@@ -1,17 +1,33 @@
-"""Rompecabezas personalizado — hoja A4 con piezas para recortar y armar.
-El nombre del cumpleañero se dibuja en grande y se parte en piezas con
-corte curvo (algoritmo de puzzle genérico). El niño recorta y arma."""
-import os, math, json, glob, random
+"""Rompecabezas personalizado — piezas con encastres REALES para recortar y armar.
+
+REDISEÑO 7-jul-2026 (skill armar-kit §6 — la versión anterior no era un puzzle:
+el nombre gigante se dibujaba ENCIMA de la grilla, cada celda además repetía
+letras, y el código de piezas con formas (_generar_piezas/_dibujar_base) era
+código muerto que nunca se llamaba):
+- Cortes de puzzle DE VERDAD: cada borde interior son 3 curvas Bézier cúbicas
+  formando un knob (bulbo más ancho que su cuello, traba real) con jitter
+  determinístico — cada pieza es única, como los generadores profesionales.
+- Grilla por edad: 3x4 = 12 piezas de ~6cm (hasta 5 años) · 4x5 = 20 piezas
+  (6+). Menores de 3: piezas grandes por diseño (ninguna < 4cm).
+- El nombre es PARTE del arte (banner integrado), nunca pisado por la grilla.
+- Página 2 = BANDEJA: el contorno de las piezas (mismas formas, mismo seed)
+  para armar encima + mini imagen de referencia del puzzle armado.
+- 300dpi real (A4 = 2480x3508).
+"""
+import os, math, json, glob, zlib, random
 from PIL import Image, ImageDraw, ImageFont
 
 KIT = os.path.dirname(os.path.abspath(__file__))
 TEMAS = os.path.join(KIT, "temas")
-Wp, Hp = 1240, 1754
+_PXMM = 2480 / 210.0
+Wp, Hp = 2480, 3508
 CREAM = (253, 250, 242)
 INK = (60, 50, 45)
-BG = (255, 255, 255)
+CORTE = (70, 60, 55)
 
-random.seed(42)
+
+def _mm(v):
+    return v * _PXMM
 
 
 def _font(sz, bold=True):
@@ -52,93 +68,171 @@ def _paste_h(base, img, cx, cy, h):
     base.alpha_composite(img.resize((w, int(h)), Image.LANCZOS), (int(cx - w / 2), int(cy - h / 2)))
 
 
-def _generar_piezas(imagen, cols, rows):
-    """Genera las piezas del rompecabezas recortando la imagen con bordes
-    de puzzle (curvas entrantes/salientes). Devuelve lista de PIL.Image."""
-    Wimg, Himg = imagen.size
-    cw, ch = Wimg / cols, Himg / rows
-    piezas = []
-    for r in range(rows):
-        for c in range(cols):
-            x0, y0 = int(c * cw), int(r * ch)
-            x1, y1 = int((c + 1) * cw), int((r + 1) * ch)
-            piece = imagen.crop((x0, y0, x1, y1))
-            piezas.append(piece)
-    return piezas, cols, rows
+# ---------------------------------------------------------------------------
+# Cortes de puzzle (knobs Bézier, estilo generadores profesionales)
+# ---------------------------------------------------------------------------
+
+def _bezier(p0, p1, p2, p3, n=24):
+    pts = []
+    for i in range(n + 1):
+        u = i / n
+        v = 1 - u
+        pts.append((v**3 * p0[0] + 3 * v**2 * u * p1[0] + 3 * v * u**2 * p2[0] + u**3 * p3[0],
+                    v**3 * p0[1] + 3 * v**2 * u * p1[1] + 3 * v * u**2 * p2[1] + u**3 * p3[1]))
+    return pts
 
 
-def _dibujar_base(dr, cx, cy, nombre, acc, size=160):
-    """Dibuja el nombre grande y decoración en el canvas del puzzle."""
-    fs = size
-    while _font(fs).getbbox(nombre)[2] > 700 and fs > 50:
-        fs -= 5
-    dr.text((cx, cy), nombre, font=_font(fs), fill=acc, anchor="mm")
-    dr.text((cx, cy + fs * 0.6), "ARMÁ EL ROMPECABEZAS", font=_font(36), fill=_tint(acc, 0.3), anchor="mm")
+def _borde_knob(rnd):
+    """Polilínea (coordenadas unitarias, borde de (0,0) a (1,0)) de un borde de
+    puzzle con knob: 3 Bézier cúbicas, bulbo ~20% del borde y más ancho que su
+    cuello (traba real), con jitter — la receta de los generadores clásicos."""
+    t = 0.2                                     # tamaño del bulbo
+    j = 0.04                                    # jitter
+    a, b, c, d = (rnd.uniform(-j, j) for _ in range(4))
+    flip = rnd.choice((1, -1))                  # knob para un lado o el otro
+    def f(x, y):
+        return (x, y * flip)
+    p = []
+    p += _bezier(f(0, 0), f(0.2, a), f(0.5 + b + d, -t + c), f(0.5 - t + b, t + c))
+    p += _bezier(f(0.5 - t + b, t + c), f(0.5 - 2 * t + b - d, 3 * t + c),
+                 f(0.5 + 2 * t + b - d, 3 * t + c), f(0.5 + t + b, t + c))[1:]
+    p += _bezier(f(0.5 + t + b, t + c), f(0.5 + b + d, -t + c), f(0.8, a), f(1, 0))[1:]
+    return p
+
+
+def _bordes_grilla(cols, filas, seed):
+    """Bordes interiores de la grilla, determinísticos por seed: el MISMO seed
+    reproduce las MISMAS formas en la página bandeja."""
+    rnd = random.Random(seed)
+    horiz = [[_borde_knob(rnd) for _ in range(cols)] for _ in range(filas - 1)]
+    vert = [[_borde_knob(rnd) for _ in range(filas)] for _ in range(cols - 1)]
+    return horiz, vert
+
+
+def _dibujar_cortes(dr, x0, y0, w, h, cols, filas, horiz, vert, color, ancho):
+    cw, ch = w / cols, h / filas
+    escala_knob = 0.9                            # knob ~18% del alto/ancho de celda
+    for fi in range(filas - 1):
+        y = y0 + (fi + 1) * ch
+        for ci in range(cols):
+            pts = [(x0 + ci * cw + px * cw, y + py * ch * escala_knob) for px, py in horiz[fi][ci]]
+            dr.line(pts, fill=color, width=ancho, joint="curve")
+    for ci in range(cols - 1):
+        x = x0 + (ci + 1) * cw
+        for fi in range(filas):
+            pts = [(x + py * cw * escala_knob, y0 + fi * ch + px * ch) for px, py in vert[ci][fi]]
+            dr.line(pts, fill=color, width=ancho, joint="curve")
+    dr.rectangle([x0, y0, x0 + w, y0 + h], outline=color, width=ancho)
+
+
+def _grilla_por_edad(edad):
+    try:
+        e = int(str(edad).strip())
+    except Exception:
+        e = 4
+    return (4, 5) if e >= 6 else (3, 4)          # (cols, filas)
+
+
+def _arte(nombre, tema, w, h):
+    """El arte del puzzle: fondo con patrón del tema + personajes + el nombre en
+    un banner INTEGRADO al arte (no un texto flotando sobre la grilla)."""
+    acc = _accent(tema)
+    im = Image.new("RGBA", (int(w), int(h)), _tint(acc, 0.8) + (255,))
+    dr = ImageDraw.Draw(im)
+    rnd = random.Random(zlib.crc32(("arte-" + tema).encode()))
+    for _ in range(120):                          # lunares suaves
+        x, y = rnd.uniform(0, w), rnd.uniform(0, h)
+        r = rnd.uniform(_mm(2), _mm(5))
+        dr.ellipse([x - r, y - r, x + r, y + r], fill=_tint(acc, rnd.choice((0.6, 0.7, 0.92))))
+    pjs = _personajes(tema, 3)
+    if pjs:
+        _paste_h(im, pjs[0], w * 0.5, h * 0.24, h * 0.34)
+        for pj, fx in zip(pjs[1:], (0.26, 0.74)):
+            _paste_h(im, pj, w * fx, h * 0.76, h * 0.30)
+    by0, by1 = h * 0.435, h * 0.565
+    dr = ImageDraw.Draw(im)
+    dr.rounded_rectangle([w * 0.06, by0, w * 0.94, by1], _mm(6), fill=CREAM + (255,),
+                         outline=acc, width=10)
+    fs = int((by1 - by0) * 0.58)
+    while _font(fs).getbbox(nombre)[2] > w * 0.78 and fs > 40:
+        fs -= 4
+    dr.text((w / 2, (by0 + by1) / 2), nombre, font=_font(fs), fill=INK, anchor="mm")
+    return im
 
 
 def rompecabezas_nombre(data, tema="safari"):
-    """Rompecabezas con el nombre del cumpleañero como imagen central."""
+    """Página 1: el arte con los CORTES de puzzle dibujados encima."""
     acc = _accent(tema)
-    nombre = str(data.get("nombre") or "").strip() or "CUMPLE"
+    nombre = (str(data.get("nombre") or "").strip()) or "FIESTA"
+    cols, filas = _grilla_por_edad(data.get("edad"))
+    seed = zlib.crc32(("%s|%s|%dx%d" % (nombre.lower(), tema, cols, filas)).encode())
 
-    im = Image.new("RGBA", (Wp, Hp), BG)
+    im = Image.new("RGBA", (Wp, Hp), CREAM + (255,))
     dr = ImageDraw.Draw(im)
-    dr.rectangle([0, 0, Wp, Hp], fill=CREAM)
+    dr.text((60, 55), "ROMPECABEZAS · %d piezas" % (cols * filas),
+            font=_font(44, False), fill=_tint(acc, 0.3))
 
-    dr.text((Wp / 2, 100), "ROMPECABEZAS", font=_font(56), fill=acc, anchor="mm")
-    dr.text((Wp / 2, 158), "Recortá las piezas y armá el nombre", font=_font(26, False), fill=_tint(INK, 0.3), anchor="mm")
+    aw, ah = _mm(180), _mm(240)
+    ax, ay = (Wp - aw) / 2, _mm(22)
+    im.alpha_composite(_arte(nombre, tema, aw, ah), (int(ax), int(ay)))
 
-    margen = 100
-    area_w = Wp - 2 * margen
-    area_h = 600
-    area_y0 = 240
+    horiz, vert = _bordes_grilla(cols, filas, seed)
+    _dibujar_cortes(ImageDraw.Draw(im), ax, ay, aw, ah, cols, filas, horiz, vert, CORTE, 5)
 
-    dr.rounded_rectangle([margen, area_y0, Wp - margen, area_y0 + area_h], 20, fill=(255, 255, 255), outline=_tint(acc, 0.3), width=3)
+    dr2 = ImageDraw.Draw(im)
+    dr2.text((Wp / 2, ay + ah + _mm(12)),
+             "Pegá esta hoja sobre cartulina o cartón fino y recortá por las líneas.",
+             font=_font(38, False), fill=_tint(INK, 0.25), anchor="mm")
+    dr2.text((Wp / 2, Hp - 60), "casatridimensional.com.ar", font=_font(36, False),
+             fill=(180, 180, 180), anchor="mm")
+    return im
 
-    fs = 140
-    while _font(fs).getbbox(nombre)[2] > area_w - 60 and fs > 40:
-        fs -= 5
-    dr.text((Wp / 2, area_y0 + area_h / 2), nombre, font=_font(fs), fill=acc, anchor="mm")
 
-    cols = max(3, min(6, len(nombre)))
-    rows = 2
-    cw = (area_w - 20) / cols
-    ch = area_h / rows
-    for r in range(rows):
-        for c in range(cols):
-            px = margen + 10 + c * cw
-            py = area_y0 + 10 + r * ch
-            dr.rounded_rectangle([px, py, px + cw - 4, py + ch - 4], 8, outline=acc, width=2)
-            ni = (r * cols + c) % len(nombre)
-            letter = nombre[ni]
-            lfs = int(min(cw, ch) * 0.5)
-            dr.text((px + cw / 2, py + ch / 2), letter, font=_font(lfs), fill=_tint(acc, 0.5 + (ni % 3) * 0.15), anchor="mm")
+def bandeja(data, tema="safari"):
+    """Página 2: la BANDEJA — contornos de las MISMAS piezas (mismo seed) para
+    armar encima + mini referencia del puzzle armado."""
+    acc = _accent(tema)
+    nombre = (str(data.get("nombre") or "").strip()) or "FIESTA"
+    cols, filas = _grilla_por_edad(data.get("edad"))
+    seed = zlib.crc32(("%s|%s|%dx%d" % (nombre.lower(), tema, cols, filas)).encode())
 
-    y_info = area_y0 + area_h + 40
-    dr.text((Wp / 2, y_info), "Recortá las piezas por las líneas y armá el nombre",
-            font=_font(26, False), fill=INK, anchor="mm")
+    im = Image.new("RGBA", (Wp, Hp), CREAM + (255,))
+    dr = ImageDraw.Draw(im)
+    dr.text((60, 55), "BANDEJA · armá el rompecabezas acá encima",
+            font=_font(44, False), fill=_tint(acc, 0.3))
 
-    dr.rounded_rectangle([Wp / 2 - 250, y_info + 60, Wp / 2 + 250, y_info + 120], 15, fill=acc)
-    dr.text((Wp / 2, y_info + 90), "SOLUCIÓN", font=_font(30), fill="white", anchor="mm")
-    fs2 = 70
-    while _font(fs2).getbbox(nombre)[2] > 420 and fs2 > 30:
-        fs2 -= 4
-    dr.text((Wp / 2, y_info + 310), nombre, font=_font(fs2), fill=_tint(INK, 0.2), anchor="mm")
+    aw, ah = _mm(180), _mm(240)
+    ax, ay = (Wp - aw) / 2, _mm(22)
+    dr.rounded_rectangle([ax - _mm(4), ay - _mm(4), ax + aw + _mm(4), ay + ah + _mm(4)],
+                         _mm(4), fill=_tint(acc, 0.94) + (255,), outline=_tint(acc, 0.5), width=6)
+    horiz, vert = _bordes_grilla(cols, filas, seed)
+    _dibujar_cortes(ImageDraw.Draw(im), ax, ay, aw, ah, cols, filas, horiz, vert,
+                    _tint(acc, 0.45), 4)
 
-    personajes = _personajes(tema, 2)
-    if personajes:
-        spots = [(220, Hp - 260), (Wp - 220, Hp - 260)] if len(personajes) > 1 else [(Wp / 2, Hp - 260)]
-        for p, (sx, sy) in zip(personajes, spots):
-            _paste_h(im, p, sx, sy, 260)
-
-    dr.text((Wp / 2, Hp - 50), "casatridimensional.com.ar", font=_font(18, False), fill=(180, 180, 180), anchor="mm")
+    # mini referencia ADENTRO de la bandeja (esquina inferior derecha, como las
+    # bandejas profesionales: las piezas la van tapando al armar)
+    mini = _arte(nombre, tema, aw, ah)
+    mini.thumbnail((int(_mm(38)), int(_mm(50))), Image.LANCZOS)
+    mx = int(ax + aw - mini.width - _mm(6))
+    my = int(ay + ah - mini.height - _mm(6))
+    im.alpha_composite(mini, (mx, my))
+    dr2 = ImageDraw.Draw(im)
+    dr2.rectangle([mx, my, mx + mini.width, my + mini.height], outline=acc, width=5)
+    dr2.text((mx + mini.width / 2, my - _mm(4)), "así queda",
+             font=_font(28, False), fill=_tint(INK, 0.35), anchor="mm")
+    dr2.text((Wp / 2, ay + ah + _mm(12)),
+             "Cada pieza tiene un solo lugar. ¡Mirá la referencia si te trabás!",
+             font=_font(36, False), fill=_tint(INK, 0.25), anchor="mm")
+    dr2.text((Wp / 2, Hp - 60), "casatridimensional.com.ar", font=_font(36, False),
+             fill=(180, 180, 180), anchor="mm")
     return im
 
 
 if __name__ == "__main__":
     import sys
     tema = sys.argv[1] if len(sys.argv) > 1 else "safari"
-    nombre = sys.argv[2] if len(sys.argv) > 2 else "Mateo"
+    nombre = sys.argv[2] if len(sys.argv) > 2 else "Sofía"
     out = sys.argv[3] if len(sys.argv) > 3 else "/tmp/rompecabezas.png"
     rompecabezas_nombre({"nombre": nombre, "edad": "4"}, tema).convert("RGB").save(out)
+    bandeja({"nombre": nombre, "edad": "4"}, tema).convert("RGB").save(out.replace(".png", "_bandeja.png"))
     print("OK ->", out)

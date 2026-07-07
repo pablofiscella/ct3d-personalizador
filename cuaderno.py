@@ -131,18 +131,23 @@ def _es_personaje_vision(tema, paths):
     import io as _io
     import json as _json
     import urllib.request as _rq
-    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
-    if not api_key or not paths:
+    if not paths:
         return None
     cache_dir = os.path.dirname(paths[0])
     cache_p = os.path.join(cache_dir, "clasif.json")
     nombres = [os.path.basename(p) for p in paths]
+    # el CACHÉ va antes que la key: un tema ya clasificado filtra bien aunque el
+    # proceso actual no tenga OPENAI_API_KEY (tests, CLI, workers) — si no, esos
+    # procesos caían al modo sin filtro y volvían la mesa/las hojas de palmera.
     try:
         c = json.load(open(cache_p))
         if c.get("archivos") == nombres and isinstance(c.get("tipos"), dict):
             return c["tipos"]
     except Exception:
         pass
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        return None
     try:
         # grilla de contacto numerada (una sola imagen = una sola llamada). El
         # número va GRANDE adentro de la celda y cada celda lleva borde — con el
