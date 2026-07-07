@@ -219,7 +219,8 @@ def bigotes(data, tema="safari"):
         _bigote(cd, Wp / 2, cy, w, color)
         capa = _contorno_blanco(capa, 8)
         im.alpha_composite(capa)
-        _marca_palito(ImageDraw.Draw(im), Wp / 2 + w * 0.58, cy - _mm(2), cy + _mm(16), acc)
+        # bien separada del rulo de la punta (antes lo tocaba y arruinaba el corte)
+        _marca_palito(ImageDraw.Draw(im), Wp / 2 + w * 0.70, cy - _mm(2), cy + _mm(16), acc)
     _pie(dr, "Palito de brochette de ~25cm, pegado con cinta al costado.", acc, y=Hp - _mm(28))
     return im
 
@@ -245,12 +246,17 @@ def lentes_fiesta(data, tema="safari"):
                 pts = []
                 for k in range(10):
                     ang = -math.pi / 2 + k * math.pi / 5
-                    rr = r_marco * 1.28 if k % 2 == 0 else r_marco * 0.72
+                    rr = r_marco * 1.28 if k % 2 == 0 else r_marco * 0.78
                     pts.append((ox + rr * math.cos(ang), cy + rr * math.sin(ang)))
                 cd.polygon(pts, fill=color)
+                # vidrio más chico en la estrella: con el mismo radio del redondo
+                # llegaba hasta los vértices internos y las puntas quedaban casi
+                # separadas del aro (débil al recortar)
+                rv = _mm(16)
             else:
                 cd.ellipse([ox - r_marco, cy - r_marco, ox + r_marco, cy + r_marco], fill=color)
-            cd.ellipse([ox - r_vidrio, cy - r_vidrio, ox + r_vidrio, cy + r_vidrio],
+                rv = r_vidrio
+            cd.ellipse([ox - rv, cy - rv, ox + rv, cy + rv],
                        fill=(255, 255, 255, 255), outline=(90, 80, 70), width=5)
         # puente + patillas cortas decorativas
         cd.rounded_rectangle([cx - _mm(9), cy - _mm(4), cx + _mm(9), cy + _mm(4)], _mm(2), fill=color)
@@ -260,7 +266,8 @@ def lentes_fiesta(data, tema="safari"):
                                   max(ex, ex + side * _mm(14)), cy + _mm(3.4)], _mm(2), fill=color)
         capa = _contorno_blanco(capa, 8)
         im.alpha_composite(capa)
-        _marca_palito(ImageDraw.Draw(im), cx + sep / 2 + r_marco + _mm(18), cy - _mm(2), cy + _mm(16), acc)
+        # separada de la patilla (antes la tocaba): patilla termina en sep/2+r_marco+14mm
+        _marca_palito(ImageDraw.Draw(im), cx + sep / 2 + r_marco + _mm(29), cy - _mm(2), cy + _mm(16), acc)
 
     if nombre:
         # entre las dos filas de lentes (no sobre el puente de ninguno)
