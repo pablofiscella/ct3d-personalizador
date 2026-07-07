@@ -34,7 +34,8 @@ import temas
 from piezas import (A4, WHITE, CREAM, MUST, SAGE, make_sheet, txt, fit_into,
                     paste_center, accent, ink_c, font_disp, _band, animales,
                     load, has_recortes, _edad_any, lema, titulo)
-from generador import render, specs_de, draw_text, _effective_texts, BROWN, OLIVE, TERRA, _safe_edad
+from generador import (render, specs_de, draw_text, _effective_texts, BROWN, OLIVE,
+                       TERRA, _safe_edad, layout_file_path)
 
 INK = (74, 74, 74)  # gris oscuro para líneas de colorear
 
@@ -225,18 +226,17 @@ def _extras_dir(tema):
     return os.path.join(d, "extras") if d else ""
 
 # Piezas que llevan texto personalizado al CUSTOMIZAR (el arte IA deja un espacio
-# limpio; acá el motor escribe el texto, con la fuente/color del nombre de la invitación).
-# Por ahora SOLO el afiche lleva texto automático (la IA hace un recuadro abajo de forma
-# confiable y el nombre entra ahí). Las demás piezas con texto van por EDITOR (posición/
-# tamaño manual), pendiente. Texto del afiche chico para no tocar los bordes del recuadro.
-def _campo_texto_extra(tema, base):
-    """Campo de texto del extra desde su SPEC (con el layout que guardó el editor, vía
-    _effective_texts). Devuelve None si la pieza no lleva texto. Suma contorno contrastante
-    para que se lea sobre cualquier fondo."""
-    spec = specs_de(tema).get(base)
-    if not spec or not spec.get("text"):
-        return None
-    f = dict(_effective_texts(spec)[0])   # campo "nombre" con el layout aplicado
+# limpio; acá el motor escribe el texto). Reglas (bugs de la auditoría 7-jul-2026):
+# - afiche: la IA SIEMPRE deja un recuadro limpio ABAJO para el nombre (así lo pide
+#   su prompt en ia_kit/catalogo.py). Antes el overlay dibujaba el PRIMER campo del
+#   spec ("¡Bienvenidos!", fijo, arriba) → el recuadro del nombre quedaba VACÍO.
+#   Ahora dibuja los campos personalizados ({nombre}) DENTRO del recuadro real,
+#   detectado por píxeles.
+# - resto (banderín/cajita/tarjetas/sorbetes): las posiciones default (0.5/0.5)
+#   escribían el texto centrado ENCIMA del arte (el banderín tapado por «¡FELIZ
+#   CUMPLE ...!», la cajita con el texto cruzando los pliegues). Solo se escribe si
+#   Pablo posicionó el campo en el editor (existe layouts/<pieza>.json del tema).
+def _estilo_contraste(f):
     color = f.get("color", INK)
     c = tuple(color)[:3] if isinstance(color, (list, tuple)) and len(color) >= 3 else INK
     luma = 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
@@ -245,15 +245,76 @@ def _campo_texto_extra(tema, base):
     f["stroke_color"] = (40, 40, 40) if luma > 140 else (255, 255, 255)   # contorno contrastante
     return f
 
+def _zona_limpia_abajo(img):
+    """(cy, alto) relativos del INTERIOR del recuadro para el nombre que el prompt
+    del afiche siempre pide dejar abajo. Heurística por píxeles: entre las franjas
+    horizontales lisas del 40% inferior, el recuadro es la MÁS BAJA que NO toca el
+    borde de la hoja (la que toca el borde es el margen de fondo bajo el recuadro;
+    las de más arriba son fondo entre el arte y el recuadro — elegir «la más
+    uniforme» caía justo ahí y el nombre quedaba flotando ARRIBA del recuadro).
+    None si no hay franja utilizable (arte viejo sin recuadro)."""
+    try:
+        g = img.convert("L").resize((60, 84), Image.BILINEAR)
+        px = g.load()
+        filas = []
+        for y in range(int(84 * 0.60), 84):
+            vals = [px[x, y] for x in range(9, 51)]
+            prom = sum(vals) / len(vals)
+            var = sum((v - prom) ** 2 for v in vals) / len(vals)
+            filas.append((y, var < 180))
+        runs, actual = [], []
+        for y, lisa in filas:
+            if lisa:
+                actual.append(y)
+            else:
+                if actual:
+                    runs.append(actual)
+                actual = []
+        if actual:
+            runs.append(actual)
+        utiles = [r for r in runs if len(r) >= 5 and r[-1] < 83]  # ≥6% alto, sin tocar el borde
+        if not utiles:
+            return None
+        mejor = utiles[-1]                                        # la más baja
+        cy = (mejor[0] + mejor[-1] + 1) / 2 / 84
+        alto = len(mejor) / 84
+        return cy, alto
+    except Exception:
+        return None
+
+def _campos_texto_extra(tema, base, img=None):
+    """Campos de texto a escribir sobre el extra (con el layout del editor aplicado).
+    Lista vacía si la pieza no debe llevar texto automático."""
+    spec = specs_de(tema).get(base)
+    if not spec or not spec.get("text"):
+        return []
+    efs = [dict(f) for f in _effective_texts(spec)]
+    if base == "afiche":
+        campos = [f for f in efs if "{nombre}" in (f.get("tpl") or "")]
+        zona = _zona_limpia_abajo(img) if img is not None else None
+        for f in campos:
+            if zona:
+                cy, alto = zona
+                f["x"], f["y"], f["anchor"] = 0.5, cy, "mm"
+                # tamaño y ancho acotados al recuadro real (en px de la pieza)
+                f["size"] = min(int(f.get("size", 165)), max(48, int(alto * 0.62 * (img.height if img is not None else 2400))))
+                f["maxw"] = min(float(f.get("maxw", 0.9)), 0.62)
+            else:
+                f["x"], f["y"], f["anchor"] = 0.5, 0.92, "mm"
+                f["maxw"] = min(float(f.get("maxw", 0.9)), 0.62)
+        return [_estilo_contraste(f) for f in campos]
+    p = layout_file_path(base, tema)
+    if p and os.path.exists(p):          # Pablo posicionó el texto en el editor
+        return [_estilo_contraste(f) for f in efs]
+    return []
+
 def _overlay_texto(img, tema, base, d):
     """Escribe el texto personalizado sobre la pieza (si corresponde). Nunca rompe el kit."""
-    campo = _campo_texto_extra(tema, base)
-    if not campo:
-        return img
-    try:
-        draw_text(ImageDraw.Draw(img), campo, d, img.width, img.height)
-    except Exception as e:
-        print("[kit] overlay de texto falló en %s: %s" % (base, e))
+    for campo in _campos_texto_extra(tema, base, img):
+        try:
+            draw_text(ImageDraw.Draw(img), campo, d, img.width, img.height)
+        except Exception as e:
+            print("[kit] overlay de texto falló en %s: %s" % (base, e))
     return img
 
 def _mk_extra_edad(exdir, base, tema):
@@ -261,7 +322,25 @@ def _mk_extra_edad(exdir, base, tema):
         edad = _safe_edad(d.get("edad", "1"))   # C2: sin path traversal
         p = os.path.join(exdir, f"{base}_{edad}.png")
         if not os.path.exists(p):
-            p = os.path.join(exdir, f"{base}_1.png")
+            # Fallback a la edad MÁS CERCANA disponible (no siempre _1): el afiche
+            # lleva el número de edad ilustrado en el arte — para edad 4 sin arte
+            # propio, mostrar el 3 es menos absurdo que un 1 gigante (bug real).
+            # La solución de fondo es generar el arte de esa edad (dash → ↺ afiche).
+            import re as _re
+            disp = []
+            for f in os.listdir(exdir):
+                m = _re.fullmatch(_re.escape(base) + r"_(\d+)\.png", f)
+                if m:
+                    disp.append(int(m.group(1)))
+            try:
+                e = int(edad)
+            except ValueError:
+                e = 1
+            if disp:
+                elegida = max((x for x in disp if x <= e), default=min(disp))
+                p = os.path.join(exdir, f"{base}_{elegida}.png")
+            else:
+                p = os.path.join(exdir, f"{base}_1.png")
         return _overlay_texto(Image.open(p).convert("RGBA"), tema, base, d)
     return fn
 

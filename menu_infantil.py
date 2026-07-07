@@ -107,7 +107,7 @@ def generar_menu(data, tema="safari"):
             dr.text((280, y + 85 + i * 32), line, font=_font(26, False), fill=INK, anchor="lm")
         y += 190
 
-    dr.text((Wp / 2, Hp - 120), "Coloreá el menú mientras esperás 🎨", font=_font(24, False), fill=_tint(INK, 0.3), anchor="mm")
+    dr.text((Wp / 2, Hp - 120), "Coloreá el menú mientras esperás", font=_font(24, False), fill=_tint(INK, 0.3), anchor="mm")
     dr.text((Wp / 2, Hp - 60), "casatridimensional.com.ar", font=_font(20, False), fill=(180, 180, 180), anchor="mm")
     return im
 

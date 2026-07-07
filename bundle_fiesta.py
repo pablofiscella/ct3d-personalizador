@@ -51,7 +51,12 @@ def portada_invitacion_pdf(url, nombre):
     dr = ImageDraw.Draw(im)
     acc = (107, 91, 210)
     dr.rounded_rectangle([70, 70, Wp - 70, Hp - 70], 40, outline=acc, width=6)
-    dr.text((Wp / 2, 220), "🎈", font=_font(90), fill=acc, anchor="mm")
+    # globo dibujado (el emoji 🎈 no tiene glifo en Fredoka → imprimía un tofu)
+    gx, gy = Wp / 2, 195
+    dr.ellipse([gx - 45, gy - 60, gx + 45, gy + 50], fill=acc)
+    dr.polygon([(gx - 8, gy + 48), (gx + 8, gy + 48), (gx, gy + 64)], fill=acc)
+    dr.arc([gx - 25, gy + 60, gx + 25, gy + 110], 200, 340, fill=acc, width=4)
+    dr.ellipse([gx - 26, gy - 42, gx - 6, gy - 16], fill=(255, 255, 255, 90))
     dr.text((Wp / 2, 320), "Tu invitación web está lista", font=_font(56),
             fill=(60, 50, 45), anchor="mm")
     dr.text((Wp / 2, 400), "Compartila por WhatsApp con este link:",
@@ -95,7 +100,8 @@ def generar_bundle(data, dest_dir, tema, invitacion_url):
     with zipfile.ZipFile(final, "w", zipfile.ZIP_DEFLATED) as z:
         # 1) portada con el link + QR de la invitación web
         buf = io.BytesIO()
-        portada_invitacion_pdf(invitacion_url, data.get("nombre", "")).save(buf, "PDF")
+        # resolution=150: lienzo 1240x1754 = "A4 a 150dpi" (ver CLAUDE.md regla #5)
+        portada_invitacion_pdf(invitacion_url, data.get("nombre", "")).save(buf, "PDF", resolution=150)
         z.writestr("1_INVITACION_WEB_link_y_QR.pdf", buf.getvalue())
 
         # 2..4) cada producto en su carpeta (re-empaquetando su propio ZIP)

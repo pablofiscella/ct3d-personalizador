@@ -306,8 +306,8 @@ def corona(data, tema="safari"):
     for x in range(int(x0 - 20), int(x0 + w_corona + 20), 30):
         dr.line([x, y0 + h_banda + 110, x + 14, y0 + h_banda + 110], fill=(180, 180, 180), width=4)
 
-    dr.text((x0 - 20, y0 + h_banda + 136), "← Doblar", font=_font(36, False), fill=(150, 150, 150))
-    dr.text((x0 + w_corona + 20, y0 + h_banda + 136), "Doblar →", font=_font(36, False), fill=(150, 150, 150), anchor="ra")
+    dr.text((x0 - 20, y0 + h_banda + 136), "Doblar", font=_font(36, False), fill=(150, 150, 150))
+    dr.text((x0 + w_corona + 20, y0 + h_banda + 136), "Doblar", font=_font(36, False), fill=(150, 150, 150), anchor="ra")
 
     cx = WpH / 2
     _draw_instrucciones_en(im, dr, cx, y0 + h_banda + 320, acc)

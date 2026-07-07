@@ -55,8 +55,11 @@ def _extraer_monstruos(tema):
     stickers con IA no cambiaba nada acá: corona/rompecabezas/cápsula/etc. seguían
     mostrando los personajes viejos para siempre)."""
     cache = os.path.join(TEMAS, tema, "actividades_mon")
-    sheet = next((p for p in (os.path.join(TEMAS, tema, "ia_draft", "stickers_1.png"),
-                              os.path.join(TEMAS, tema, "extras", "stickers_1.png"))
+    # extras/ (APROBADO por Pablo) antes que ia_draft/ (borrador sin revisar) —
+    # el orden inverso hacía que las piezas usaran arte no aprobado aunque
+    # existiera la versión aprobada.
+    sheet = next((p for p in (os.path.join(TEMAS, tema, "extras", "stickers_1.png"),
+                              os.path.join(TEMAS, tema, "ia_draft", "stickers_1.png"))
                   if os.path.isfile(p)), None)
     if os.path.isdir(cache):
         ya = sorted(glob.glob(f"{cache}/c*.png"))
@@ -101,13 +104,116 @@ def _extraer_monstruos(tema):
         p = f"{cache}/c{i:03d}.png"; im.crop(bb).save(p); out.append(p)
     return out
 
+def _ahash(im, lado=8):
+    """Hash perceptual promedio (aHash) de un recorte, para detectar figuras
+    repetidas: el mismo monito aparece varias veces en la hoja de stickers y
+    elegir por tamaño sacaba 2-3 copias casi idénticas en la misma pieza."""
+    g = im.convert("L").resize((lado, lado), Image.LANCZOS)
+    px = list(g.getdata())
+    prom = sum(px) / len(px)
+    return sum(1 << i for i, v in enumerate(px) if v >= prom)
+
+
+def _hamming(a, b):
+    return bin(a ^ b).count("1")
+
+
+def _es_personaje_vision(tema, paths):
+    """Clasifica los recortes del tema con UNA llamada de visión (grilla numerada)
+    y devuelve {basename: tipo} SOLO para los que son personajes ('nena', 'mono',
+    'león'...), cacheado en actividades_mon/clasif.json. Bugs reales que motiva:
+    (1) elegir por tamaño pegaba una MESA y un FRASCO como 'personajes' en
+    certificado/cápsula/rompecabezas/corona de artistas; (2) salían 2-3 monitos
+    casi idénticos en la misma pieza (el tipo permite elegir personajes DISTINTOS).
+    Best-effort: sin API key o ante cualquier error devuelve None (el caller no
+    filtra, comportamiento histórico)."""
+    import base64 as _b64
+    import io as _io
+    import json as _json
+    import urllib.request as _rq
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if not api_key or not paths:
+        return None
+    cache_dir = os.path.dirname(paths[0])
+    cache_p = os.path.join(cache_dir, "clasif.json")
+    nombres = [os.path.basename(p) for p in paths]
+    try:
+        c = json.load(open(cache_p))
+        if c.get("archivos") == nombres and isinstance(c.get("tipos"), dict):
+            return c["tipos"]
+    except Exception:
+        pass
+    try:
+        # grilla de contacto numerada (una sola imagen = una sola llamada). El
+        # número va GRANDE adentro de la celda y cada celda lleva borde — con el
+        # número chiquito abajo el modelo atribuía etiquetas a la celda vecina
+        # (etiquetó un frasco como "nene" en artistas).
+        cols = 6
+        filas = (len(paths) + cols - 1) // cols
+        celda = 200
+        grid = Image.new("RGB", (cols * celda, filas * celda), (255, 255, 255))
+        from PIL import ImageDraw as _ID
+        gdr = _ID.Draw(grid)
+        fnt = _font(34)
+        for i, p in enumerate(paths):
+            im = Image.open(p).convert("RGBA")
+            im.thumbnail((celda - 46, celda - 46))
+            x = (i % cols) * celda
+            y = (i // cols) * celda
+            gdr.rectangle([x, y, x + celda - 1, y + celda - 1], outline=(190, 190, 190), width=2)
+            grid.paste(im, (x + 40, y + 40), im)
+            gdr.text((x + 6, y + 4), str(i), fill=(200, 30, 30), font=fnt,
+                     stroke_width=2, stroke_fill=(255, 255, 255))
+        buf = _io.BytesIO()
+        grid.save(buf, "PNG")
+        body = _json.dumps({
+            "model": os.environ.get("OPENAI_QA_MODEL", "gpt-4o-mini"),
+            "max_tokens": 500,
+            "messages": [{"role": "user", "content": [
+                {"type": "text", "text":
+                 "Cada celda numerada es un sticker recortado de un kit infantil. "
+                 "Respondé UNA línea por CADA celda, en el formato 'numero: tipo'. "
+                 "Si la celda muestra UN SOLO personaje (una persona, animal o "
+                 "criatura CON CARA, entera y sola), tipo = una palabra corta en "
+                 "minúscula que lo identifique (ej. 'nena', 'nene', 'mono', "
+                 "'león', 'monstruo verde'). Si muestra un objeto sin cara "
+                 "(mueble, frasco, herramienta, manguera, planta, flor, comida, "
+                 "pelota, globo, estrella) o 2+ personajes juntos, tipo = "
+                 "exactamente 'no'. Respondé TODAS las celdas, sin texto extra."},
+                {"type": "image_url", "image_url": {"url":
+                 "data:image/png;base64," + _b64.b64encode(buf.getvalue()).decode(),
+                 "detail": "high"}}]}]}).encode()
+        req = _rq.Request("https://api.openai.com/v1/chat/completions", data=body,
+                          method="POST", headers={"Authorization": "Bearer " + api_key,
+                                                  "Content-Type": "application/json"})
+        with _rq.urlopen(req, timeout=45) as r:
+            out = _json.loads(r.read())
+        resp = out["choices"][0]["message"]["content"] or ""
+        import re as _re
+        tipos = {}
+        for m in _re.finditer(r"(\d+)\s*[:\-]\s*([^\n,;]+)", resp):
+            i = int(m.group(1))
+            t = m.group(2).strip().lower()[:40]
+            if i < len(paths) and t and t != "no":
+                tipos[nombres[i]] = t
+        if not tipos:
+            return None
+        with open(cache_p, "w") as f:
+            json.dump({"archivos": nombres, "tipos": tipos}, f, ensure_ascii=False)
+        return tipos
+    except Exception:
+        return None
+
+
 def personajes_decorativos(tema, n=2):
     """n personajes reales del tema (recortados de la hoja de stickers) para decorar otros
     productos (rompecabezas, calendario, corona, cápsula, certificado, papertoys…). Reusa
     _extraer_monstruos; SIN fallback genérico — si el tema no tiene stickers, lista vacía
-    (nunca mezcla personajes de un tema con otro). Prioriza las figuras MÁS GRANDES (más
-    probable que sean personajes/animales protagonistas, no íconos u objetos chicos) y las
-    reparte a lo largo de esa lista para variedad (evitar sacar 2 veces el mismo tipo)."""
+    (nunca mezcla personajes de un tema con otro). Selección: figuras grandes y densas,
+    filtradas por un clasificador de visión personaje-vs-objeto (cacheado — sin él, la
+    mesa y el frasco de artistas salían de 'personajes'), y DEDUPLICADAS por hash
+    perceptual (la misma figura aparece varias veces en la hoja y salían 2-3 monitos
+    idénticos en una pieza)."""
     try:
         paths = _extraer_monstruos(tema) or []
     except Exception:
@@ -133,20 +239,47 @@ def personajes_decorativos(tema, n=2):
             # ni una tira horizontal — esos son recortes mezclados que se ven mal).
             if max(w, h) / max(1, min(w, h)) > 1.9:
                 continue
-            cand.append((area, p))
+            cand.append((area, p, _ahash(im)))
         except Exception:
             pass
     if not cand:
         return []
+    tipos = _es_personaje_vision(tema, paths)
+    if tipos:
+        # el modelo a veces lista objetos igual (con tipo "objeto"/"globo"/"flor"…)
+        # aunque el prompt se lo prohíbe — lista negra sobre la etiqueta.
+        no_pers = {"objeto", "objetos", "globo", "globos", "flor", "flores",
+                   "estrella", "pelota", "planta", "mesa", "frasco", "nube",
+                   "hoja", "corazon", "corazón", "torta", "regalo", "arbol",
+                   "árbol", "pincel", "paleta", "casa", "auto", "bandera"}
+        tipos = {k: v for k, v in tipos.items() if v not in no_pers}
+        con_cara = [c for c in cand if os.path.basename(c[1]) in tipos]
+        if con_cara:                     # si el filtro dejó algo, usarlo; si no, no filtrar
+            cand = con_cara
     cand.sort(key=lambda t: -t[0])
-    top = [p for _, p in cand[:max(n, len(cand) // 2)]]
-    paso = max(1, len(top) // n)
-    out = []
-    for p in top[::paso][:n]:
-        try:
-            out.append(Image.open(p).convert("RGBA"))
-        except Exception:
-            pass
+    # Variedad: primero un personaje de cada TIPO distinto (nena, mono, león...);
+    # si hacen falta más, recién ahí repite tipo (el más grande no usado). El hash
+    # perceptual queda de red de seguridad para copias casi idénticas sin visión.
+    out, tipos_usados, hashes, usados = [], set(), [], set()
+    def _pasada(exigir_tipo_nuevo):
+        for _area, p, h in cand:
+            if len(out) >= n:
+                return
+            if p in usados or any(_hamming(h, hu) <= 5 for hu in hashes):
+                continue
+            t = tipos.get(os.path.basename(p)) if tipos else None
+            if exigir_tipo_nuevo and t is not None and t in tipos_usados:
+                continue
+            try:
+                out.append(Image.open(p).convert("RGBA"))
+            except Exception:
+                continue
+            usados.add(p)
+            hashes.append(h)
+            if t is not None:
+                tipos_usados.add(t)
+    _pasada(exigir_tipo_nuevo=True)
+    _pasada(exigir_tipo_nuevo=False)
     return out
 
 def _lineart(path):
@@ -1012,7 +1145,9 @@ def generar_cuaderno(tema, edad, out_dir, seed=1):
     out = paths
     try:
         pdf = os.path.join(out_dir, "cuaderno_%s_%s.pdf" % (tema, edad))
-        rgb[0].save(pdf, save_all=True, append_images=rgb[1:]); out = pdf
+        # resolution=150: páginas 1240x1754 = "A4 a 150dpi"; sin declararla el
+        # PDF multipágina sale a otro tamaño físico (CLAUDE.md regla #5).
+        rgb[0].save(pdf, save_all=True, append_images=rgb[1:], resolution=150); out = pdf
     except Exception:
         out = paths
     return out, len(rgb)

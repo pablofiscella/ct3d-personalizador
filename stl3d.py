@@ -284,6 +284,8 @@ def generar_pack_cumple(tema, nombre, edad=""):
         z.writestr("03_trofeo.stl", trofeo_stl)
         z.writestr("04_cortante.stl", cortante_stl)
         pdf_buf = io.BytesIO()
-        instrucciones.save(pdf_buf, "PDF")
+        # resolution=150: el lienzo es 1240x1754 ("A4 a 150dpi") — sin declararla
+        # el PDF sale a otro tamaño físico (ver CLAUDE.md regla #5 y piezas._dpi_de).
+        instrucciones.save(pdf_buf, "PDF", resolution=150)
         z.writestr("00_instrucciones.pdf", pdf_buf.getvalue())
     return buf.getvalue()

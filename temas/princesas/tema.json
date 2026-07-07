@@ -127,5 +127,12 @@
       ]
     }
   },
-  "libro_paginas_historia": 7
+  "libro_paginas_historia": 7,
+  "kit": {
+    "accent": "#D9636B",
+    "ink": "#5A3A44",
+    "font": "Fredoka-VF.ttf",
+    "lema": "¡Cumplo {edad}!",
+    "titulo": "El cumple de"
+  }
 }

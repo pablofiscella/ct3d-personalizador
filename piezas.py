@@ -346,8 +346,25 @@ def to_rgb(img):
     bg.alpha_composite(img)
     return bg.convert("RGB")
 
+def _dpi_de(img):
+    """DPI correcto para que el PDF salga al tamaño FÍSICO pensado.
+
+    GOTCHA real (CLAUDE.md regla #5): exportar SIEMPRE a resolution=300 hacía
+    que toda pieza dibujada a 1240x1754 (la convención vieja "A4 a ~150dpi" de
+    los productos individuales: menú, memoria, antifaces, cápsula, etc.)
+    imprimiera a la MITAD del tamaño (A5) — un antifaz de 9cm no entra en una
+    cara. Hasta que cada módulo migre a 300dpi real (corona.py ya migró), el
+    export respeta la escala del lienzo: si la pieza es "A4 a 150dpi" (o media
+    A4, como las hojas del cuaderno legado) se declara resolution=150 y el
+    papel vuelve a medir A4. Mismos píxeles, tamaño físico correcto."""
+    tam_150 = {(1240, 1754), (1754, 1240)}
+    return 150 if img.size in tam_150 else DPI
+
+
 def generar_kit(data, dest_dir, tema="safari", piezas_list=None):
-    """Genera las piezas de la temática en PDF (300 DPI) y las empaqueta en un ZIP.
+    """Genera las piezas de la temática en PDF y las empaqueta en un ZIP.
+    El DPI declarado se elige por pieza para que el tamaño físico sea el
+    correcto (ver _dpi_de).
 
     `piezas_list` permite generar un set de piezas distinto al kit completo
     (usado por productos.generar para los demás tipos de producto). Si no se
@@ -357,7 +374,8 @@ def generar_kit(data, dest_dir, tema="safari", piezas_list=None):
     pdfs = []
     for name, fn, _ in (piezas_list if piezas_list is not None else piezas_de(tema)):
         p = os.path.join(dest_dir, name + ".pdf")
-        to_rgb(fn(data)).save(p, "PDF", resolution=DPI)
+        rgb = to_rgb(fn(data))
+        rgb.save(p, "PDF", resolution=_dpi_de(rgb))
         pdfs.append(p)
     zip_path = os.path.join(dest_dir, "kit.zip")
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:

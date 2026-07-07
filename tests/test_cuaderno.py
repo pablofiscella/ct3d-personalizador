@@ -3,16 +3,24 @@ from PIL import Image, ImageDraw
 import cuaderno
 
 
-def _mk_tema(tmp_path):
+def _mk_tema(tmp_path, identicas=False):
     base = tmp_path / "circo"; (base / "ia_draft").mkdir(parents=True)
     (base / "tema.json").write_text('{"nombre":"Circo — Gran Función","edades":[1,2,3]}',
                                     encoding="utf-8")
-    # hoja de stickers: 6 figuras separadas (cada una = un componente de alpha)
+    # hoja de stickers: 6 figuras separadas (cada una = un componente de alpha),
+    # DISTINTAS entre sí por default — el dedup perceptual de personajes_decorativos
+    # colapsa las idénticas a una sola (comportamiento deseado, con test propio).
     im = Image.new("RGBA", (1024, 1024), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    colores = [(200, 80, 80), (80, 160, 200), (90, 190, 90),
+               (220, 170, 60), (160, 90, 200), (240, 240, 240)]
     for i in range(6):
         x = 120 + (i % 3) * 300; y = 150 + (i // 3) * 360
-        d.ellipse([x, y, x + 150, y + 230], fill=(200, 80, 80, 255))
-        d.ellipse([x + 45, y + 50, x + 95, y + 100], fill=(30, 30, 30, 255))   # detalle interno
+        c = colores[0] if identicas else colores[i]
+        d.ellipse([x, y, x + 150, y + 230], fill=c + (255,))
+        if identicas or i % 2 == 0:
+            d.ellipse([x + 45, y + 50, x + 95, y + 100], fill=(30, 30, 30, 255))
+        else:
+            d.rectangle([x + 30, y + 140, x + 120, y + 200], fill=(20, 20, 60, 255))
     im.save(base / "ia_draft" / "stickers_1.png")
     return base
 
@@ -25,11 +33,36 @@ def test_tema_nombre_corto(tmp_path, monkeypatch):
 
 def test_personajes_decorativos_devuelve_n_imagenes(tmp_path, monkeypatch):
     monkeypatch.setattr(cuaderno, "TEMAS", str(tmp_path))
+    monkeypatch.setattr(cuaderno, "_es_personaje_vision", lambda *a: None)  # sin red en tests
     _mk_tema(tmp_path)
     imgs = cuaderno.personajes_decorativos("circo", n=2)
     assert len(imgs) == 2
     for im in imgs:
         assert im.mode == "RGBA" and im.size[0] > 0
+
+
+def test_personajes_decorativos_dedup_figuras_identicas(tmp_path, monkeypatch):
+    """La misma figura repetida en la hoja NO puede salir 2 veces en una pieza
+    (bug real: 2-3 monitos idénticos en la corona de safari)."""
+    monkeypatch.setattr(cuaderno, "TEMAS", str(tmp_path))
+    monkeypatch.setattr(cuaderno, "_es_personaje_vision", lambda *a: None)
+    _mk_tema(tmp_path, identicas=True)
+    imgs = cuaderno.personajes_decorativos("circo", n=3)
+    assert len(imgs) == 1                                     # 6 copias idénticas → 1
+
+
+def test_personajes_decorativos_filtra_objetos_por_vision(tmp_path, monkeypatch):
+    """Con el clasificador de visión disponible, los recortes etiquetados como
+    objeto quedan afuera (bug real: una MESA y un FRASCO de 'personajes')."""
+    monkeypatch.setattr(cuaderno, "TEMAS", str(tmp_path))
+    _mk_tema(tmp_path)
+    paths = cuaderno._extraer_monstruos("circo")
+    nombres = [os.path.basename(p) for p in paths]
+    # el primero es "objeto" (no aparece en el dict); el resto personajes distintos
+    tipos = {nm: "payaso%d" % i for i, nm in enumerate(nombres[1:])}
+    monkeypatch.setattr(cuaderno, "_es_personaje_vision", lambda *a: tipos)
+    imgs = cuaderno.personajes_decorativos("circo", n=6)
+    assert 0 < len(imgs) <= len(tipos)                        # el "objeto" no entra
 
 
 def test_personajes_decorativos_sin_stickers_lista_vacia(tmp_path, monkeypatch):

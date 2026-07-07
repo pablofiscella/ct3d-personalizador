@@ -156,7 +156,7 @@ def generar_memoria(data, tema="safari"):
             carta(im, dr, cx, cy, cw, ch, img, par_idx, acc, volteada=False)
 
     y_info = y0 + rows * (ch + gap_y) - gap_y / 2 + 40
-    dr.text((Wp / 2, y_info), "✂ Recortá las cartas, dales vuelta y encontrá los pares",
+    dr.text((Wp / 2, y_info), "Recortá las cartas, dales vuelta y encontrá los pares",
             font=_font(24, False), fill=INK, anchor="mm")
     dr.text((Wp / 2, Hp - 40), "casatridimensional.com.ar", font=_font(18, False), fill=(180, 180, 180), anchor="mm")
     return im
