@@ -258,16 +258,19 @@ def lentes_fiesta(data, tema="safari"):
                 rv = r_vidrio
             cd.ellipse([ox - rv, cy - rv, ox + rv, cy + rv],
                        fill=(255, 255, 255, 255), outline=(90, 80, 70), width=5)
-        # puente + patillas cortas decorativas
+        # puente + patillas: más largas y METIDAS 12mm adentro del marco — la
+        # unión con el aro/estrella queda sólida (antes apenas tocaban el borde
+        # y en la estrella podían caer justo entre dos puntas).
         cd.rounded_rectangle([cx - _mm(9), cy - _mm(4), cx + _mm(9), cy + _mm(4)], _mm(2), fill=color)
         for side in (-1, 1):
-            ex = cx + side * (sep / 2 + r_marco)
-            cd.rounded_rectangle([min(ex, ex + side * _mm(14)), cy - _mm(3.4),
-                                  max(ex, ex + side * _mm(14)), cy + _mm(3.4)], _mm(2), fill=color)
+            e_in = cx + side * (sep / 2 + r_marco - _mm(12))
+            e_out = cx + side * (sep / 2 + r_marco + _mm(18))
+            cd.rounded_rectangle([min(e_in, e_out), cy - _mm(3.4),
+                                  max(e_in, e_out), cy + _mm(3.4)], _mm(2), fill=color)
         capa = _contorno_blanco(capa, 8)
         im.alpha_composite(capa)
-        # separada de la patilla (antes la tocaba): patilla termina en sep/2+r_marco+14mm
-        _marca_palito(ImageDraw.Draw(im), cx + sep / 2 + r_marco + _mm(29), cy - _mm(2), cy + _mm(16), acc)
+        # separada de la patilla (que ahora termina en sep/2 + r_marco + 18mm)
+        _marca_palito(ImageDraw.Draw(im), cx + sep / 2 + r_marco + _mm(27), cy - _mm(2), cy + _mm(16), acc)
 
     if nombre:
         # entre las dos filas de lentes (no sobre el puente de ninguno)
