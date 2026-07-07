@@ -920,6 +920,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._ia_generar()
         if path == "/dash/ia-regenerar":
             return self._ia_regenerar()
+        if path == "/dash/corona-ia-generar":
+            return self._corona_ia_generar()
         if path == "/dash/agregar-edades":
             return self._dash_agregar_edades()
         if path == "/dash/ia-colorear-variantes":
@@ -2389,6 +2391,28 @@ function regen(i){
         def trabajo(emit):
             ia_orq.generar_tema(client, temas.TEMAS_DIR, tema, edades, progress=emit,
                                 solo={pieza}, calidad=calidad, reusar_maestra=True)
+        jid = ia_jobs.iniciar(trabajo)
+        return self._json(200, {"ok": True, "job": jid})
+
+    def _corona_ia_generar(self):
+        """Genera (o regenera) el fondo IA de gorro + corona de un tema — arte de fondo
+        únicamente; el nombre/edad los sigue escribiendo el motor encima (ver corona.py/
+        corona_ia.py). En background + polling, mismo patrón que ia-generar/ia-regenerar."""
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        client = _openai_client()
+        if client is None:
+            return self._json(503, {"ok": False, "error": "falta OPENAI_API_KEY"})
+        calidad = _calidad(q)
+        import corona_ia
+        def trabajo(emit):
+            for pieza in ("gorro", "corona"):
+                emit("Generando %s…" % pieza)
+                corona_ia.generar(client, tema, pieza, calidad=calidad)
         jid = ia_jobs.iniciar(trabajo)
         return self._json(200, {"ok": True, "job": jid})
 

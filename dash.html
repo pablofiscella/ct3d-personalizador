@@ -516,6 +516,7 @@ async function openProductosNuevos(tema, nombre){
     // querés otros, antes había que ir a "✨ Generar con IA" del tema y buscar la
     // pieza "stickers" ahí. Este botón hace lo mismo sin salir de acá.
     const usaPersonajes = ['certificado','corona','rompecabezas','capsula','papertoys','memoria','rutina'].includes(tipoActual);
+    const esCorona = tipoActual === 'corona';
     body.innerHTML=
       (esLibro ? `
       <div style="background:var(--accent-tint,rgba(107,91,210,.08));border:1px dashed var(--accent);border-radius:10px;padding:14px;margin-bottom:14px">
@@ -576,6 +577,17 @@ async function openProductosNuevos(tema, nombre){
           <button id="pj-generar-btn" class="btn-primary" style="padding:8px 14px;font-size:12px">🎨 Generar personajes con IA</button>
         </div>
         <div id="pj-status" style="font-size:12px;margin-top:8px;min-height:18px"></div>
+      </div>` : '') +
+      (esCorona ? `
+      <div style="background:var(--accent-tint,rgba(107,91,210,.08));border:1px dashed var(--accent);border-radius:10px;padding:14px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div style="flex:1;min-width:160px">
+            <div style="font-weight:600;font-size:13px;margin-bottom:4px">✨ Diseño del gorro y la corona</div>
+            <div style="font-size:11.5px;opacity:.7">Por defecto salen de color liso. Generá un fondo ilustrado a la temática con IA (el nombre y la edad se siguen escribiendo encima, siempre — esto solo cambia el arte de fondo). Tarda ~1 minuto.</div>
+          </div>
+          <button id="cor-generar-btn" class="btn-primary" style="padding:8px 14px;font-size:12px">✨ Generar con IA</button>
+        </div>
+        <div id="cor-status" style="font-size:12px;margin-top:8px;min-height:18px"></div>
       </div>` : '') +
     `<div style="margin-bottom:10px;display:flex;gap:8px;align-items:center"><a class="btn-ghost" style="font-size:12px;text-decoration:none;display:inline-block"
         href="/dash/producto-zip?tema=${encodeURIComponent(tema)}&tipo=${encodeURIComponent(tipoActual)}&key=${encodeURIComponent(KEY)}">⬇ Descargar todas (ZIP)</a>
@@ -671,6 +683,30 @@ async function openProductosNuevos(tema, nombre){
             }catch(_){}
           },2500);
         }catch(e){ st.textContent='✕ '+e; pjBtn.disabled=false; }
+      };
+    }
+    // Gorro + corona: generar el arte de fondo con IA (una vez por tema). Mismo
+    // patrón de job en background + polling; al terminar refresca la vista para
+    // ver el diseño nuevo (el nombre/edad los sigue escribiendo el motor encima).
+    const corBtn=document.getElementById('cor-generar-btn');
+    if(corBtn){
+      const st=document.getElementById('cor-status');
+      corBtn.onclick=async()=>{
+        if(!await confirmModal('¿Generar el diseño de gorro + corona de esta temática con IA? Reemplaza el fondo actual (si ya habías generado uno).'))return;
+        corBtn.disabled=true; st.textContent='Arrancando…';
+        try{
+          const r=await fetch('/dash/corona-ia-generar?tema='+encodeURIComponent(tema),{method:'POST',headers:{'X-API-Key':KEY}});
+          const jr=await r.json();
+          if(!jr.ok||!jr.job){ st.textContent='✕ '+(jr.error||'error'); corBtn.disabled=false; return; }
+          const poll=setInterval(async()=>{
+            try{
+              const e=await (await fetch('/dash/ia-estado?job='+jr.job+'&key='+encodeURIComponent(KEY))).json();
+              const ev=(e.eventos||[]); st.textContent=ev.length?ev[ev.length-1]:'Generando…';
+              if(e.estado==='listo'){ clearInterval(poll); st.textContent='✓ Diseño listo.'; corBtn.disabled=false; await cargarPiezas(); }
+              if(e.estado==='error'){ clearInterval(poll); st.textContent='✕ '+(e.error||'falló'); corBtn.disabled=false; }
+            }catch(_){}
+          },2500);
+        }catch(e){ st.textContent='✕ '+e; corBtn.disabled=false; }
       };
     }
     // Libro: escuchar el audiolibro demo del tema (se genera una vez)

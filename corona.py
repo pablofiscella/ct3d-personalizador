@@ -60,10 +60,20 @@ def _paste_h(base, img, cx, cy, h):
     base.alpha_composite(img.resize((w, int(h)), Image.LANCZOS), (int(cx - w / 2), int(cy - h / 2)))
 
 
+def _fondo_ia(tema, pieza):
+    try:
+        import corona_ia
+        return corona_ia.cargar_fondo(tema, pieza)
+    except Exception:
+        return None
+
+
 def gorro(data, tema="safari"):
     """Gorro cónico de cumpleaños para armar: un sector (abanico) que se recorta y
     se enrolla en cono. El abanico abre HACIA ABAJO y todo el texto va centrado y
-    apilado sobre él (antes abría a la derecha y el texto caía sobre el fondo)."""
+    apilado sobre él (antes abría a la derecha y el texto caía sobre el fondo).
+    Si el tema tiene un fondo generado con IA (corona_ia), se usa como arte del
+    abanico en vez del color liso; si no, cae al relleno procedural de siempre."""
     acc = _accent(tema)
     nombre = (str(data.get("nombre") or "").strip()) or ""
     edad = str(data.get("edad") or "").strip()
@@ -79,7 +89,15 @@ def gorro(data, tema="safari"):
     for i in range(81):
         a = base - half + i * 2 * half / 80
         pts.append((cx + r * math.cos(a), apex_y + r * math.sin(a)))
-    dr.polygon(pts, fill=acc + (255,))
+
+    fondo = _fondo_ia(tema, "gorro")
+    if fondo is not None:
+        mask = Image.new("L", (Wp, Hp), 0)
+        ImageDraw.Draw(mask).polygon(pts, fill=255)
+        art = fondo.resize((Wp, Hp), Image.LANCZOS)
+        im.paste(art, (0, 0), mask)
+    else:
+        dr.polygon(pts, fill=acc + (255,))
     dr.arc([cx - r, apex_y - r, cx + r, apex_y + r],
            math.degrees(base - half), math.degrees(base + half), fill=acc, width=5)
     for s in (-1, 1):                             # bordes = líneas de doblez suaves
@@ -87,17 +105,20 @@ def gorro(data, tema="safari"):
         ey = apex_y + r * math.sin(base + s * half)
         dr.line([(cx, apex_y), (ex, ey)], fill=_tint(acc, 0.4), width=2)
 
+    # stroke oscuro en el texto: con fondo IA (no siempre uniforme como el color
+    # liso de antes) el blanco solo puede perder legibilidad en zonas claras.
+    _tx = dict(stroke_width=4, stroke_fill=(0, 0, 0, 190))
     if edad:
         efs = 150
         while _font(efs).getbbox(edad)[2] > 260 and efs > 70:
             efs -= 4
-        dr.text((cx, apex_y + 130), edad, font=_font(efs), fill=(255, 255, 255), anchor="mm")
-    dr.text((cx, apex_y + 268), "CUMPLEAÑOS", font=_font(46), fill=(255, 255, 255), anchor="mm")
+        dr.text((cx, apex_y + 130), edad, font=_font(efs), fill=(255, 255, 255), anchor="mm", **_tx)
+    dr.text((cx, apex_y + 268), "CUMPLEAÑOS", font=_font(46), fill=(255, 255, 255), anchor="mm", **_tx)
     if nombre:
         fs = 76
         while _font(fs).getbbox(nombre)[2] > 520 and fs > 28:
             fs -= 3
-        dr.text((cx, apex_y + 344), nombre, font=_font(fs), fill=(255, 255, 255), anchor="mm")
+        dr.text((cx, apex_y + 344), nombre, font=_font(fs), fill=(255, 255, 255), anchor="mm", **_tx)
 
     personajes = _personajes(tema, 1)
     if personajes:
@@ -110,7 +131,9 @@ def gorro(data, tema="safari"):
 
 
 def corona(data, tema="safari"):
-    """Corona de rey/reina para armar. Tira con picos, solapas para pegar."""
+    """Corona de rey/reina para armar. Tira con picos, solapas para pegar.
+    Si el tema tiene un fondo generado con IA (corona_ia), se usa como arte de
+    los picos + la banda en vez del color liso; si no, cae al color de siempre."""
     acc = _accent(tema)
     nombre = (str(data.get("nombre") or "").strip()) or ""
 
@@ -122,23 +145,41 @@ def corona(data, tema="safari"):
     h_banda = 220
     w_corona = Wp - 200
     x0 = (Wp - w_corona) / 2
+    banda_box = [x0 - 10, y0 + h_banda - 30, Wp - x0 + 10, y0 + h_banda + 30]
 
+    picos = []
     for i in range(7):
         px = x0 + w_corona * (i / 6)
         pico_h = 160 + ((i * 37) % 3) * 30
-        pts = [(px - 40, y0 + h_banda), (px, y0 - pico_h + h_banda), (px + 40, y0 + h_banda)]
-        dr.polygon(pts, fill=acc, outline=_tint(acc, 0.2), width=3)
+        picos.append((px, pico_h,
+                      [(px - 40, y0 + h_banda), (px, y0 - pico_h + h_banda), (px + 40, y0 + h_banda)]))
+
+    fondo = _fondo_ia(tema, "corona")
+    if fondo is not None:
+        mask = Image.new("L", (Wp, Hp), 0)
+        mdr = ImageDraw.Draw(mask)
+        for _px, _ph, pts in picos:
+            mdr.polygon(pts, fill=255)
+        mdr.rounded_rectangle(banda_box, 20, fill=255)
+        art = fondo.resize((Wp, Hp), Image.LANCZOS)
+        im.paste(art, (0, 0), mask)
+        for _px, _ph, pts in picos:
+            dr.polygon(pts, outline=_tint(acc, 0.2), width=3)
+    else:
+        for _px, _ph, pts in picos:
+            dr.polygon(pts, fill=acc, outline=_tint(acc, 0.2), width=3)
+        dr.rounded_rectangle(banda_box, 20, fill=_tint(acc, 0.6))
+
+    for px, pico_h, _pts in picos:
         dr.ellipse([px - 18, y0 - pico_h + h_banda - 15, px + 18, y0 - pico_h + h_banda + 15],
                    fill=(255, 255, 255), outline=acc, width=2)
-
-    dr.rounded_rectangle([x0 - 10, y0 + h_banda - 30, Wp - x0 + 10, y0 + h_banda + 30],
-                         20, fill=_tint(acc, 0.6))
 
     if nombre:
         fs = 56
         while _font(fs).getbbox(nombre)[2] > w_corona - 80 and fs > 24:
             fs -= 3
-        dr.text((Wp / 2, y0 + h_banda), nombre, font=_font(fs), fill=(255, 255, 255), anchor="mm")
+        dr.text((Wp / 2, y0 + h_banda), nombre, font=_font(fs), fill=(255, 255, 255),
+                 stroke_width=4, stroke_fill=(0, 0, 0, 190), anchor="mm")
 
     for side in (-1, 1):
         sx = Wp / 2 + side * (w_corona / 2 + 30)
