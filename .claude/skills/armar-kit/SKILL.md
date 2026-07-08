@@ -150,15 +150,16 @@ cachear → reusar. Solo se vende lo revisado. Toda pieza conserva su fallback p
 
 ## 5. MENÚ INFANTIL — `menu_infantil.py`
 
-- Formato objetivo: **5x7" vertical, 2-up por hoja** (hoy es A4 entero — rediseñar), o
-  variante placemat A4 apaisada con actividades alrededor.
-- Encabezado ≈20-25% de la altura ("Menú" + nombre); **3-5 ítems máximo por sección**;
-  nombres de platos 14-18pt.
-- **Nombres de comida tematizados** con el nombre real debajo en chico («Huesos de
-  dino» — grisines con queso). Los 4 campos del cliente (entrada/plato/postre/bebida)
-  ya existen y son opcionales — mantener defaults tematizados POR TEMA (no "pizza"
-  genérica: safari = "brochetas de la selva", etc.).
-- Un ícono temático de 1-1.5cm por ítem (de la biblioteca de stickers, no emoji).
+- Formato: A4 vertical con fondo IA (marco del tema + centro claro) o fallback
+  procedural. Encabezado ≈20% de la altura ("Menú del día" + nombre).
+- **Tarjetas SEMITRANSPARENTES (regla de Pablo, 8-jul-2026)**: el arte IA suele poner
+  a los personajes ABAJO de la hoja y las tarjetas opacas los tapaban — alpha ~190
+  deja ver el arte a través sin perder legibilidad de lo escrito.
+- **El menú se entrega INCOMPLETO a propósito (regla de Pablo, 8-jul-2026)**: si el
+  comprador no cargó la comida, cada sección lleva RENGLONES en blanco para escribir
+  a mano — NUNCA inventar el menú de la fiesta de otro con defaults. Los 4 campos del
+  cliente (entrada/plato/postre/bebida) siguen siendo opcionales en la tienda.
+- Un ícono por ítem dibujado por código (no emoji).
 
 ## 6. ROMPECABEZAS — `rompecabezas.py`
 

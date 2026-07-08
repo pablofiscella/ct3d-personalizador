@@ -74,46 +74,6 @@ def _icono(tipo, size, color):
     return im
 
 
-# Defaults TEMATIZADOS por tema (skill §5: «Huesos de dino» — grisines con queso).
-# Fallback genérico para temas sin entrada propia.
-_DEFAULTS_TEMA = {
-    "safari": {
-        "menu_entrada": "Picada de la selva\nPalitos y snacks para explorar",
-        "menu_plato": "Pizza rugido de león\no hamburguesa con papas",
-        "menu_postre": "Torta de la manada\n¡con velitas!",
-        "menu_bebida": "Jugo de la jungla",
-    },
-    "artistas": {
-        "menu_entrada": "Paleta de colores\nPicada de snacks de colores",
-        "menu_plato": "Pizza obra maestra\no hamburguesa con papas",
-        "menu_postre": "Torta pincelada dulce\n¡con velitas!",
-        "menu_bebida": "Jugo multicolor",
-    },
-    "monstruos": {
-        "menu_entrada": "Garras crocantes\nPalitos y snacks monstruosos",
-        "menu_plato": "Pizza monstruosa\no hamburguesa con papas",
-        "menu_postre": "Torta de un ojo\n¡con velitas!",
-        "menu_bebida": "Baba de monstruo (jugo)",
-    },
-    "bomberos": {
-        "menu_entrada": "Mangueras crocantes\nPalitos y snacks",
-        "menu_plato": "Pizza al rescate\no hamburguesa con papas",
-        "menu_postre": "Torta sirena y luces\n¡con velitas!",
-        "menu_bebida": "Agua del hidrante (jugo)",
-    },
-    "_generico": {
-        "menu_entrada": "Picada divertida\nPapas fritas y palitos",
-        "menu_plato": "Pizza o hamburguesa\ncon papas",
-        "menu_postre": "Torta de cumpleaños\n¡con velitas!",
-        "menu_bebida": "Jugo o gaseosa",
-    },
-}
-
-
-def _defaults(tema):
-    return _DEFAULTS_TEMA.get(tema, _DEFAULTS_TEMA["_generico"])
-
-
 def _desc_lineas(texto, max_chars=30):
     import textwrap
     lineas = textwrap.wrap(texto, max_chars) or [texto]
@@ -170,20 +130,36 @@ def generar_menu(data, tema="safari"):
         ("postre", "Postre", "menu_postre"),
         ("bebida", "Bebida", "menu_bebida"),
     ]
-    defaults = _defaults(tema)
     y = _mm(70)
     alto = _mm(38)
+    # Tarjetas SEMITRANSPARENTES (regla de Pablo, 8-jul-2026): el arte IA suele
+    # poner a los personajes ABAJO y las tarjetas opacas los tapaban — con
+    # transparencia el arte se ve a través y la hoja respira.
+    tarjetas = Image.new("RGBA", (Wp, Hp), (0, 0, 0, 0))
+    td = ImageDraw.Draw(tarjetas)
+    yy = y
+    for _ in items:
+        td.rounded_rectangle([_mm(32), yy, Wp - _mm(32), yy + alto], _mm(5),
+                             fill=(255, 255, 255, 190), outline=_tint(acc, 0.45) + (255,), width=6)
+        yy += alto + _mm(9)
+    im.alpha_composite(tarjetas)
+    dr = ImageDraw.Draw(im)
     for tipo, titulo, campo in items:
-        dr.rounded_rectangle([_mm(32), y, Wp - _mm(32), y + alto], _mm(5),
-                             fill=(255, 255, 255, 235), outline=_tint(acc, 0.45), width=6)
         ic = _icono(tipo, int(_mm(24)), acc)
         im.alpha_composite(ic, (int(_mm(38)), int(y + (alto - _mm(24)) / 2)))
         tx = _mm(70)
         dr.text((tx, y + _mm(10)), titulo, font=_font(66), fill=acc, anchor="lm")
         custom = str(data.get(campo) or "").strip()
-        dl = _desc_lineas(custom) if custom else defaults[campo].split("\n")
-        for i, line in enumerate(dl):
-            dr.text((tx, y + _mm(20) + i * _mm(8.5)), line, font=_font(52, False), fill=INK, anchor="lm")
+        if custom:
+            for i, line in enumerate(_desc_lineas(custom)):
+                dr.text((tx, y + _mm(20) + i * _mm(8.5)), line, font=_font(52, False), fill=INK, anchor="lm")
+        else:
+            # SIN comida cargada el menú queda INCOMPLETO a propósito (regla de
+            # Pablo): renglones para que el comprador escriba lo suyo — nunca
+            # inventar el menú de la fiesta de otro.
+            for i in range(2):
+                ly = y + _mm(24) + i * _mm(8.5)
+                dr.line([tx, ly, Wp - _mm(42), ly], fill=_tint(INK, 0.6), width=3)
         y += alto + _mm(9)
 
     # con fondo IA el pie cae sobre el arte → contorno claro para que se lea
