@@ -578,14 +578,44 @@ def _heart_pts(cx, cy, R, n):
 def _figura_pts(figura, cx, cy, R, n):
     return _heart_pts(cx, cy, R, n) if figura == "corazon" else _star_pts(cx, cy, R)[:n]
 
-def _portada(mons, edad, nombre="Cumpleaños"):
+def _portada(mons, edad, nombre="Cumpleaños", tema=None):
+    """Tapa del cuaderno. Con arte IA del tema (la escena de portada del libro,
+    que ya viene compuesta con AIRE arriba para el título) queda como la tapa de
+    un libro de verdad — feedback Pablo 9-jul-2026. Fallback: la tapa procedural
+    de siempre (crema + personajes)."""
+    art = None
+    if tema:
+        try:
+            import libro as _libro
+            p = _libro.override_escena_path(tema, 0)
+            if os.path.isfile(p):
+                art = Image.open(p).convert("RGBA")
+        except Exception:
+            art = None
+    etiqueta = "%s · %s" % (nombre, _edad_label(edad))
+    if art is not None:
+        import fondos_ia
+        im = fondos_ia.cover(art, Wp, Hp)
+        dr = ImageDraw.Draw(im)
+        # panel translúcido arriba para que el título se lea sobre cualquier arte
+        velo = Image.new("RGBA", (Wp, Hp), (0, 0, 0, 0))
+        ImageDraw.Draw(velo).rounded_rectangle([100, 130, Wp - 100, 600], 42,
+                                               fill=(255, 255, 255, 216))
+        im.alpha_composite(velo)
+        dr.text((Wp / 2, 260), "Cuaderno de", font=_font(70), fill=NAVY, anchor="mm")
+        dr.text((Wp / 2, 360), "Actividades", font=_font(92), fill=VIOLET, anchor="mm")
+        ew = max(460, _font(40).getlength(etiqueta) + 80)
+        dr.rounded_rectangle([Wp / 2 - ew / 2, 440, Wp / 2 + ew / 2, 530], 45, fill=COLS[1])
+        dr.text((Wp / 2, 485), etiqueta, font=_font(40), fill="white", anchor="mm")
+        dr.text((Wp / 2, Hp - 40), "casatridimensional.com.ar", font=_font(20, False),
+                fill=(150, 150, 160), anchor="mm", stroke_width=4, stroke_fill=(255, 255, 255))
+        return im
     # Fondo crema (cálido). Los personajes se pegan SIN el aro blanco del die-cut (_sin_halo),
     # así no se ve contorno en crema y tampoco desaparecen sus partes blancas internas.
     im, dr = _page(); dr.rectangle([0, 0, Wp, Hp], fill=CREAM)
     dr.rounded_rectangle([55, 55, Wp - 55, Hp - 55], 40, outline=VIOLET, width=8)
     dr.text((Wp / 2, 290), "Cuaderno de", font=_font(70), fill=NAVY, anchor="mm")
     dr.text((Wp / 2, 390), "Actividades", font=_font(92), fill=VIOLET, anchor="mm")
-    etiqueta = "%s · %s" % (nombre, _edad_label(edad))
     ew = max(460, _font(40).getlength(etiqueta) + 80)
     dr.rounded_rectangle([Wp / 2 - ew / 2, 470, Wp / 2 + ew / 2, 560], 45, fill=COLS[1])
     dr.text((Wp / 2, 515), etiqueta, font=_font(40), fill="white", anchor="mm")
@@ -854,37 +884,71 @@ def _a_patron(b, rows):
     if not b.mons or len(b.mons) < 3: return
     b.sec("Continuá el patrón", "Rodeá con un círculo el que sigue en cada fila.")
     pool = list(range(min(len(b.mons), 7)))
-    sz = min(118, int((BOT - b.y) / rows * 0.45)); res = []
+    sz0 = min(112, int((BOT - b.y) / rows * 0.45)); res = []
+    n_seq = 5; gap = 16; MARG = 80
     for r in range(rows):
         pat = b.rnd.sample(pool, b.rnd.choice([2, 2, 3]))
         yy, _ = _slot(b.y, rows, r)
-        n_seq = 5; x = 105
-        for c in range(n_seq):
-            _paste_h(b.im, _IM(b.mons[pat[c % len(pat)]]), x, yy, sz); x += sz + 12
-        box = sz // 2 + 8
-        b.dr.rounded_rectangle([x - box, yy - box, x + box, yy + box], 12, outline=NAVY, width=3)
-        b.dr.text((x, yy), "?", font=_font(46), fill=(185, 180, 200), anchor="mm")
-        x += box + 58
-        b.dr.line([x - 26, yy - sz * 0.62, x - 26, yy + sz * 0.62], fill=(210, 205, 220), width=3)
         correcto = pat[n_seq % len(pat)]
         otros = [p for p in pool if p != correcto]; b.rnd.shuffle(otros)
         ops = [correcto] + otros[:2]; b.rnd.shuffle(ops)
-        for o in ops:
-            _paste_h(b.im, _IM(b.mons[o]), x + sz // 2, yy, int(sz * 0.92)); x += sz + 14
+        seq_im = [_IM(b.mons[pat[c % len(pat)]]) for c in range(n_seq)]
+        ops_im = [_IM(b.mons[o]) for o in ops]
+        # dos pasadas: si con sz0 la fila no entra, se escala TODO para que entre
+        def ancho_total(sz):
+            box = sz // 2 + 8
+            return (sum(_ancho_a(m, sz) + gap for m in seq_im) - gap + gap + 2 * box +
+                    46 + 34 + sum(_ancho_a(m, int(sz * 0.92)) + gap for m in ops_im) - gap)
+        sz = sz0
+        # colchón extra: los redondeos de _paste_h acumulan algunos px por ítem
+        while ancho_total(sz) > Wp - 2 * MARG - 56 and sz > 56:
+            sz -= 2
+        box = sz // 2 + 8
+        x = MARG
+        for m in seq_im:                             # espaciado por ANCHO real
+            w = _ancho_a(m, sz)
+            _paste_h(b.im, m, x + w / 2, yy, sz); x += w + gap
+        b.dr.rounded_rectangle([x, yy - box, x + 2 * box, yy + box], 12, outline=NAVY, width=3)
+        b.dr.text((x + box, yy), "?", font=_font(46), fill=(185, 180, 200), anchor="mm")
+        x += 2 * box + 46
+        b.dr.line([x, yy - sz * 0.62, x, yy + sz * 0.62], fill=(210, 205, 220), width=3)
+        x += 34
+        for m in ops_im:
+            w = _ancho_a(m, int(sz * 0.92))
+            _paste_h(b.im, m, x + w / 2, yy, int(sz * 0.92)); x += w + gap
         res.append(ops.index(correcto) + 1)
     b.y = BOT; b.soladd("patron", res)
+
+def _ancho_a(img, sz):
+    """Ancho REAL con el que _paste_h dibuja la imagen a altura sz (la corona es
+    ancha y el corazón angosto: espaciar por centros fijos los pegaba/separaba
+    desparejo — feedback Pablo)."""
+    return max(1, int(img.width * sz / img.height))
+
+
+def _fila_items(b, img, n, x, yy, sz, gap=14):
+    """Pega n copias de img desde el borde izquierdo x, con gap FIJO entre
+    bordes. Devuelve el borde derecho de la fila."""
+    w = _ancho_a(img, sz)
+    for _ in range(n):
+        _paste_h(b.im, img, x + w / 2, yy, sz)
+        x += w + gap
+    return x - gap
+
 
 def _a_sumas(b, rows):
     if not b.mons: return
     b.sec("Sumas con personajes", "Contá y escribí el resultado.")
-    res = []; sz = min(84, int((BOT - b.y) / rows * 0.4))
+    res = []; sz = min(84, int((BOT - b.y) / rows * 0.4)); G = 46
     for r in range(rows):
-        a = b.rnd.randint(1, 4); bb = b.rnd.randint(1, 4); yy, _ = _slot(b.y, rows, r); x = 120
-        for _ in range(a): _paste_h(b.im, _IM(b.mon(1)), x, yy, sz); x += sz + 8
-        b.dr.text((x + 6, yy), "+", font=_font(54), fill=INK, anchor="lm"); x += 72
-        for _ in range(bb): _paste_h(b.im, _IM(b.mon(5)), x, yy, sz); x += sz + 8
-        b.dr.text((x + 6, yy), "=", font=_font(54), fill=INK, anchor="lm"); x += 74
-        b.dr.rounded_rectangle([x, yy - 52, x + 100, yy + 52], 10, outline=NAVY, width=3)
+        a = b.rnd.randint(1, 4); bb = b.rnd.randint(1, 4); yy, _ = _slot(b.y, rows, r)
+        mA, mB = _IM(b.mon(1)), _IM(b.mon(5))
+        x = _fila_items(b, mA, a, 120, yy, sz)
+        b.dr.text((x + G, yy), "+", font=_font(54), fill=INK, anchor="lm")
+        x = _fila_items(b, mB, bb, x + G + 40 + G, yy, sz)
+        b.dr.text((x + G, yy), "=", font=_font(54), fill=INK, anchor="lm")
+        bx = x + G + 44 + G
+        b.dr.rounded_rectangle([bx, yy - 52, bx + 100, yy + 52], 10, outline=NAVY, width=3)
         res.append(a + bb)
     b.y = BOT; b.soladd("sumas", res)
 
@@ -978,16 +1042,22 @@ def _a_colorear(b, k=0):
 def _a_restas(b, rows):
     if not b.mons: return
     b.sec("Restas con personajes", "Tachá los que se van y escribí cuántos quedan.")
-    m = _IM(b.mon(2)); res = []; sz = min(100, int((BOT - b.y) / rows * 0.4))
+    m = _IM(b.mon(2)); res = []; sz = min(100, int((BOT - b.y) / rows * 0.4)); G = 46
+    w = _ancho_a(m, sz)
     for r in range(rows):
-        a = b.rnd.randint(2, 5); c = b.rnd.randint(1, a - 1); yy, _ = _slot(b.y, rows, r); x = 130
+        a = b.rnd.randint(2, 5); c = b.rnd.randint(1, a - 1); yy, _ = _slot(b.y, rows, r)
+        x = 130
         for i in range(a):
-            _paste_h(b.im, m, x, yy, sz)
+            _paste_h(b.im, m, x + w / 2, yy, sz)
             if i >= a - c:
-                b.dr.line([x - sz * 0.4, yy - sz * 0.4, x + sz * 0.4, yy + sz * 0.4], fill=COLS[0], width=7)
-            x += sz + 10
-        b.dr.text((x + 6, yy), "=", font=_font(54), fill=INK, anchor="lm"); x += 76
-        b.dr.rounded_rectangle([x, yy - 52, x + 100, yy + 52], 10, outline=NAVY, width=3)
+                cxx = x + w / 2
+                b.dr.line([cxx - w * 0.5, yy - sz * 0.45, cxx + w * 0.5, yy + sz * 0.45],
+                          fill=COLS[0], width=7)
+            x += w + 14
+        x -= 14
+        b.dr.text((x + G, yy), "=", font=_font(54), fill=INK, anchor="lm")
+        bx = x + G + 44 + G
+        b.dr.rounded_rectangle([bx, yy - 52, bx + 100, yy + 52], 10, outline=NAVY, width=3)
         res.append(a - c)
     b.y = BOT; b.soladd("restas", res)
 
@@ -1201,7 +1271,7 @@ def _build(tema, edad, seed):
         mons = _extraer_monstruos(tema)
     nombre = _tema_nombre(tema)
     b = _Book(edad, mons, seed, nombre); b._colorear = _colorear_imgs(tema)
-    portada = _portada(_cover_mons(tema, mons), edad, nombre)
+    portada = _portada(_cover_mons(tema, mons), edad, nombre, tema=tema)
     e = int(edad) if str(edad).isdigit() else 6
     _construir(b, e); b.finish()
     acts = [portada] + list(b.pages)
