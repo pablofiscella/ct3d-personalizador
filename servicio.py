@@ -1424,7 +1424,8 @@ class Handler(BaseHTTPRequestHandler):
         if not tema or not temas.existe(tema):
             return self._json(400, {"ok": False, "error": "tema inválido"})
         try:
-            meta = productos.piezas_meta(tipo, tema)
+            # vista ADMIN: incluye el solucionario (en la tienda queda oculto)
+            meta = productos.piezas_meta(tipo, tema, incluir_soluciones=True)
         except Exception as e:
             return self._json(400, {"ok": False, "error": str(e)})
         for p in meta:

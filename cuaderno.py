@@ -1773,14 +1773,15 @@ def estado(tema, edad, seed=1):
             items.append({"idx": idx, "removed": False, "override": True, "extra": True})
     return {"tema": tema, "edad": str(edad), "n": len(base), "paginas": items}
 
-def galeria_indices(tema, edad="6"):
+def galeria_indices(tema, edad="6", incluir_soluciones=False):
     """Índices de página a mostrar en la galería de la ficha: el cuaderno curado
-    (canónico + overrides) SIN la hoja de solucionario (no spoilea respuestas)."""
+    (canónico + overrides) SIN la hoja de solucionario (no spoilea respuestas
+    en la TIENDA). Con incluir_soluciones=True (dash admin) se ve todo."""
     base = base_paginas(tema, edad); od = _override_dir(tema, edad)
     cut = len(base) - _n_sol(tema, edad)               # las últimas páginas son el solucionario
     out = []
     for i in range(len(base)):
-        if i >= cut:                                   # solucionario → no mostrar en la galería
+        if i >= cut and not incluir_soluciones:        # solucionario → oculto en la tienda
             continue
         if os.path.exists(os.path.join(od, "pg%02d.removed" % i)):
             continue

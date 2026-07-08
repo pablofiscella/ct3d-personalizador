@@ -940,15 +940,17 @@ def campos_de_pieza(tipo, nombre_pieza=None):
     return list(m.get("*", []))
 
 
-def piezas_meta(tipo, tema="safari"):
+def piezas_meta(tipo, tema="safari", incluir_soluciones=False):
     """Lista [{idx, nombre, label}] de las piezas de un tipo/tema (para la galería de la ficha).
     El tema importa: los kits con arte estática (extras/) tienen piezas distintas por tema."""
     if tipo == "actividades":
         try:
             import cuaderno
-            idxs = cuaderno.galeria_indices(tema, "6")
+            idxs = cuaderno.galeria_indices(tema, "6", incluir_soluciones=incluir_soluciones)
             if idxs:
-                return [{"idx": ci, "nombre": "p%02d" % ci, "label": "Página %d" % (n + 1),
+                cut = len(cuaderno.base_paginas(tema, "6")) - cuaderno._n_sol(tema, "6")
+                return [{"idx": ci, "nombre": "p%02d" % ci,
+                         "label": ("Soluciones" if ci >= cut else "Página %d" % (n + 1)),
                          "personaliza": campos_de_pieza(tipo)}
                         for n, ci in enumerate(idxs)]
         except Exception:
