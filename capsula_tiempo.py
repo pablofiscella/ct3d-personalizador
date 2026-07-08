@@ -110,7 +110,8 @@ def portada_sobre(data, tema="safari"):
     sh = sw * 11 / 16.5
     fondo = _fondo(tema)
     if fondo is not None:
-        zona = fondo.resize((int(sw), int(sh)), Image.LANCZOS)
+        import fondos_ia
+        zona = fondos_ia.cover(fondo, sw, sh)
         im.alpha_composite(zona, (int(sx0), int(sy0)))
         dr = ImageDraw.Draw(im)
         dr.rounded_rectangle([sx0, sy0, sx0 + sw, sy0 + sh], _mm(4), outline=acc, width=8)

@@ -175,7 +175,8 @@ def gorro(data, tema="safari"):
     if fondo is not None:
         mask = Image.new("L", (WpH, HpH), 0)
         ImageDraw.Draw(mask).polygon(pts, fill=255)
-        art = fondo.resize((WpH, HpH), Image.LANCZOS)
+        import fondos_ia
+        art = fondos_ia.cover(fondo, WpH, HpH)
         im.paste(art, (0, 0), mask)
     else:
         dr.polygon(pts, fill=acc + (255,))

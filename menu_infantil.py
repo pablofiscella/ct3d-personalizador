@@ -94,7 +94,8 @@ def generar_menu(data, tema="safari"):
 
     fondo = _fondo(tema)
     if fondo is not None:
-        im = fondo.resize((Wp, Hp), Image.LANCZOS)
+        import fondos_ia
+        im = fondos_ia.cover(fondo, Wp, Hp)
     else:
         im = Image.new("RGBA", (Wp, Hp), CREAM + (255,))
         dr0 = ImageDraw.Draw(im)

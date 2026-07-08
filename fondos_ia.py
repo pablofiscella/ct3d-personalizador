@@ -16,6 +16,19 @@ import libro_ia
 KIT = os.path.dirname(os.path.abspath(__file__))
 TEMAS = os.path.join(KIT, "temas")
 
+
+def cover(img, w, h):
+    """Escala el fondo a (w,h) PRESERVANDO la proporción: agranda hasta cubrir
+    y recorta el excedente centrado. Nunca estira — si el arte (1536x1024,
+    ratio 1.5) no coincide con el destino (A4 apaisado, 1.415) se pierde un
+    poco de borde en vez de deformar a los personajes."""
+    w, h = int(w), int(h)
+    esc = max(w / img.width, h / img.height)
+    im2 = img.resize((max(w, round(img.width * esc)), max(h, round(img.height * esc))),
+                     Image.LANCZOS)
+    x0, y0 = (im2.width - w) // 2, (im2.height - h) // 2
+    return im2.crop((x0, y0, x0 + w, y0 + h))
+
 # Registro de piezas: tamaño de generación + prompt específico (la referencia de
 # estilo del tema —ia_maestra— va SIEMPRE primera; skill §0.1).
 PIEZAS = {

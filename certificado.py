@@ -104,7 +104,8 @@ def generar_certificado(data, tema="safari"):
 
     fondo = _fondo(tema)
     if fondo is not None:
-        im = fondo.resize((WpH, HpH), Image.LANCZOS)
+        import fondos_ia
+        im = fondos_ia.cover(fondo, WpH, HpH)
         dr = ImageDraw.Draw(im)
     else:
         im = Image.new("RGBA", (WpH, HpH), CREAM + (255,))

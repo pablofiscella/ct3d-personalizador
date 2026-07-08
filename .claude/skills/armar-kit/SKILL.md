@@ -59,6 +59,11 @@ cachear → reusar. Solo se vende lo revisado. Toda pieza conserva su fallback p
   imprimen en las dos).
 - **Sangrado 3mm** solo para fondos/patrones; **texto y elementos clave a ≥5mm del
   corte**. Línea de corte = sólida; doblez = guiones; nunca esquinas agudas en troqueles.
+- **Fondos IA: NUNCA `resize()` directo al destino — usar `fondos_ia.cover()`**
+  (escala preservando proporción + recorte centrado). La IA genera a 1536x1024
+  (ratio 1.5) pero A4 apaisado es 1.415: el resize directo estiraba los personajes
+  ~6% (visible — feedback de Pablo 8-jul-2026, "quedó estirada para los costados").
+  Perder un poco de borde siempre es mejor que deformar.
 - **Tipografía mínima 12pt** en piezas infantiles (scripts ≥14pt); texto calado (claro
   sobre color) ≥10pt sin serifas finas. Máximo 2 tipografías por pieza, roles fijos
   (display SOLO títulos/nombres — Fredoka ya es la display de la casa).

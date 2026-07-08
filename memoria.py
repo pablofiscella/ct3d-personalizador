@@ -196,7 +196,8 @@ def dorso_memoria(data, tema="safari"):
 
     fondo = _fondo_dorso(tema)
     if fondo is not None:
-        patron = fondo.resize((int(lado), int(lado)), Image.LANCZOS)
+        import fondos_ia
+        patron = fondos_ia.cover(fondo, lado, lado)
     else:
         patron = Image.new("RGBA", (int(lado), int(lado)), _tint(acc, 0.25) + (255,))
         pd = ImageDraw.Draw(patron)
