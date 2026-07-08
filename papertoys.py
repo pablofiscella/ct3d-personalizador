@@ -155,7 +155,7 @@ def cubo_personalizado(data, tema="safari"):
         except Exception:
             pass
     orden = ["F", "L", "R", "T", "B", "K"]        # las caras más visibles primero
-    rot = {"L": -90, "R": 90}
+    rot = {"L": 90, "R": -90}    # +180° vs la 1ª versión (Pablo probó el plegado)
     for i, k in enumerate(orden):
         x, y = caras[k]
         if pjs:

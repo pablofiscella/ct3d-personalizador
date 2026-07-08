@@ -218,19 +218,26 @@ def gorro(data, tema="safari"):
                    fill=CREAM, outline=(90, 80, 70), width=6)
 
     # -- lengüeta (borde derecho) + ranura (borde izquierdo): encastre sin pegamento --
-    r_tab0, r_tab1, tab_w = 0.62 * r, 0.62 * r + 300, 190
+    # Lengüeta en T: CUELLO más angosto que la ranura (pasa fácil) y CABEZA más
+    # ANCHA que la ranura (se dobla para entrar y después TRABA, no se sale —
+    # feedback Pablo 9-jul-2026: si es del mismo ancho que el corte, se zafa).
+    r_tab0, tab_len, tab_w = 0.62 * r, 300, 210
     perp_r = (math.sin(ang_r), -math.cos(ang_r))   # tangencial, hacia AFUERA del abanico
-    p_in_a  = (cx + r_tab0 * dir_r[0], apex_y + r_tab0 * dir_r[1])
-    p_out_a = (cx + r_tab1 * dir_r[0], apex_y + r_tab1 * dir_r[1])
-    tab_poly = [p_in_a,
-                (p_in_a[0] + perp_r[0] * tab_w, p_in_a[1] + perp_r[1] * tab_w),
-                (p_out_a[0] + perp_r[0] * tab_w, p_out_a[1] + perp_r[1] * tab_w),
-                p_out_a]
+
+    def _pt_r(u, v):
+        rr = r_tab0 + u
+        return (cx + rr * dir_r[0] + perp_r[0] * v, apex_y + rr * dir_r[1] + perp_r[1] * v)
+
+    cuello0, cuello1 = 40, tab_len - 40            # cuello: 220 (ranura: 240)
+    v_cuello, ch = 80, 55                          # cabeza: 300 (> ranura) chanfle 45°
+    tab_poly = [_pt_r(cuello0, 0), _pt_r(cuello0, v_cuello), _pt_r(0, v_cuello),
+                _pt_r(0, tab_w - ch), _pt_r(ch, tab_w), _pt_r(tab_len - ch, tab_w),
+                _pt_r(tab_len, tab_w - ch), _pt_r(tab_len, v_cuello),
+                _pt_r(cuello1, v_cuello), _pt_r(cuello1, 0)]
     dr.polygon(tab_poly, fill=CREAM, outline=(90, 80, 70), width=6)
-    tab_mid = ((p_in_a[0] + p_out_a[0]) / 2 + perp_r[0] * tab_w * 0.55,
-               (p_in_a[1] + p_out_a[1]) / 2 + perp_r[1] * tab_w * 0.55)
     tab_ang = math.degrees(math.atan2(perp_r[1], perp_r[0]))
-    _texto_rotado(im, "LENGÜETA", tab_mid, _font(40), (90, 80, 70), tab_ang)
+    _texto_rotado(im, "LENGÜETA", _pt_r(tab_len / 2, tab_w * 0.62),
+                  _font(40), (90, 80, 70), tab_ang)
 
     # RANURA: corte PARALELO al borde izquierdo, PEGADO al borde (5mm hacia
     # adentro) y con el MISMO rango radial que la lengüeta — al enrollar el cono
@@ -238,15 +245,17 @@ def gorro(data, tema="safari"):
     # (a 9mm flotaba en medio del arte y parecía torcida — feedback Pablo).
     perp_l = (math.sin(ang_l), -math.cos(ang_l))
     centroide = (cx, apex_y + 0.6 * r)
-    p_edge = (cx + ((r_tab0 + r_tab1) / 2) * dir_l[0],
-              apex_y + ((r_tab0 + r_tab1) / 2) * dir_l[1])
+    p_edge = (cx + (r_tab0 + tab_len / 2) * dir_l[0],
+              apex_y + (r_tab0 + tab_len / 2) * dir_l[1])
     if (centroide[0] - p_edge[0]) * perp_l[0] + (centroide[1] - p_edge[1]) * perp_l[1] < 0:
         perp_l = (-perp_l[0], -perp_l[1])          # que apunte hacia ADENTRO
     inset = 5 * _PXMM
-    s0 = (cx + r_tab0 * dir_l[0] + perp_l[0] * inset,
-          apex_y + r_tab0 * dir_l[1] + perp_l[1] * inset)
-    s1 = (cx + r_tab1 * dir_l[0] + perp_l[0] * inset,
-          apex_y + r_tab1 * dir_l[1] + perp_l[1] * inset)
+    # ranura 240: el CUELLO (220) pasa con juego, la CABEZA (300) no se sale
+    r_s0, r_s1 = r_tab0 + 30, r_tab0 + tab_len - 30
+    s0 = (cx + r_s0 * dir_l[0] + perp_l[0] * inset,
+          apex_y + r_s0 * dir_l[1] + perp_l[1] * inset)
+    s1 = (cx + r_s1 * dir_l[0] + perp_l[0] * inset,
+          apex_y + r_s1 * dir_l[1] + perp_l[1] * inset)
     dr.line([s0, s1], fill=(90, 80, 70), width=12)
     slot_ang = math.degrees(math.atan2(s1[1] - s0[1], s1[0] - s0[0]))
     if slot_ang > 90:                              # que el texto no quede cabeza abajo
@@ -322,17 +331,21 @@ def _tira_corona(im, dr, tema, acc, fondo, x0, x1, y_base, h_banda, h_pico, n_pi
     # lengüeta que sale del extremo derecho de la banda + 3 RANURAS verticales en
     # el extremo izquierdo: la lengüeta de una tira entra en una ranura de la
     # otra, y la ranura elegida AJUSTA el talle (más adentro = más chica).
-    # lengüeta TRAPEZOIDAL integrada a la banda (chanfles a 45°, como la del
-    # gorro y las pestañas del cubo — no un rectángulo flotante)
-    tab_len, tab_h = _mm(20), h_banda * 0.58
+    # lengüeta en T integrada a la banda: CUELLO más angosto que la ranura y
+    # CABEZA más ANCHA (se dobla para entrar y traba — feedback Pablo: del
+    # mismo ancho que el corte, se sale). Chanfles a 45° como el cubo.
     ty = y_base - h_banda / 2
-    ch = tab_h * 0.28                              # chanfle 45°
-    tab_pts = [(x1, ty - tab_h / 2), (x1 + tab_len - ch, ty - tab_h / 2 + 0),
-               (x1 + tab_len, ty - tab_h / 2 + ch), (x1 + tab_len, ty + tab_h / 2 - ch),
-               (x1 + tab_len - ch, ty + tab_h / 2), (x1, ty + tab_h / 2)]
+    cuello_h, cabeza_h = h_banda * 0.40, h_banda * 0.72
+    cuello_len, cabeza_len = _mm(7), _mm(13)
+    ch = cabeza_h * 0.22
+    xa, xb = x1 + cuello_len, x1 + cuello_len + cabeza_len
+    tab_pts = [(x1, ty - cuello_h / 2), (xa, ty - cuello_h / 2), (xa, ty - cabeza_h / 2),
+               (xb - ch, ty - cabeza_h / 2), (xb, ty - cabeza_h / 2 + ch),
+               (xb, ty + cabeza_h / 2 - ch), (xb - ch, ty + cabeza_h / 2),
+               (xa, ty + cabeza_h / 2), (xa, ty + cuello_h / 2), (x1, ty + cuello_h / 2)]
     dr.polygon(tab_pts, fill=CREAM, outline=(90, 80, 70), width=6)
-    _texto_rotado(im, "LENGÜETA", (x1 + tab_len * 0.48, ty), _font(30), (90, 80, 70), 90)
-    slot_h = tab_h + _mm(3)
+    _texto_rotado(im, "LENGÜETA", ((xa + xb) / 2, ty), _font(28), (90, 80, 70), 90)
+    slot_h = cuello_h + _mm(2)                     # cuello pasa, cabeza traba
     for k in range(3):
         sx = x0 + _mm(15 + 15 * k)
         dr.line([sx, ty - slot_h / 2, sx, ty + slot_h / 2], fill=(90, 80, 70), width=10)
