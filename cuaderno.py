@@ -844,8 +844,9 @@ def _a_laberinto(b, n):
         w = _maze(n, n, s)
         if _maze_path(w, n, n): break
     assert _maze_path(w, n, n)
-    quien = b.nom or "el personaje"
-    b.sec("El laberinto del cumple", "¡Ayudá a %s a llegar a la meta!" % quien)
+    consigna = ("¡Ayudá a %s a llegar a la meta!" % b.nom) if b.nom \
+        else "¡Ayudá al personaje a llegar a la meta!"
+    b.sec("El laberinto del cumple", consigna)
     avail = BOT - b.y
     cell = min(90, (Wp - 470) // n, (avail - 40) // n)        # grande, deja lugar al personaje/torta
     y0 = b.y + max(0, (avail - n * cell) // 2)                # centrado vertical
