@@ -92,7 +92,29 @@ def _leer_openai_key():
     return k
 
 
+def _leer_openrouter_key():
+    """Key de OpenRouter para el failover de imágenes: del entorno, o (como la de
+    OpenAI) de config.json → 'openrouter_api_key', así sobrevive una migración que
+    pierda la env del service. OpenRouter es el RESPALDO cuando OpenAI toca su tope
+    mensual: con la key cargada, _openai_client arma el cliente con failover
+    automático y el pipeline sigue solo. Sin key, no hay respaldo (como antes)."""
+    k = (os.environ.get("OPENROUTER_API_KEY") or "").strip()
+    if not k:
+        for p in (os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json"),
+                  "/opt/ct3d/backend/config.json"):
+            try:
+                k = (json.load(open(p)).get("openrouter_api_key") or "").strip()
+                if k:
+                    break
+            except Exception:
+                pass
+    if k and not os.environ.get("OPENROUTER_API_KEY"):
+        os.environ["OPENROUTER_API_KEY"] = k
+    return k
+
+
 OPENAI_API_KEY     = _leer_openai_key()
+OPENROUTER_API_KEY = _leer_openrouter_key()
 OPENAI_IMAGE_MODEL = os.environ.get("OPENAI_IMAGE_MODEL", "gpt-image-2")
 OPENAI_CALIDAD     = os.environ.get("OPENAI_CALIDAD", "low")  # low p/ depurar barato; medium/high p/ final
 
@@ -180,8 +202,9 @@ def _tienda_admin(method, path, body=None):
 def _openai_client():
     """Cliente de imágenes: OpenAI directo, con failover automático a OpenRouter
     si OPENROUTER_API_KEY está configurada (el tope mensual de OpenAI nos frenó
-    generaciones 2 veces el 03-jul; con respaldo, el pipeline sigue solo)."""
-    or_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
+    generaciones 2 veces el 03-jul; con respaldo, el pipeline sigue solo).
+    La key sale de _leer_openrouter_key (env o config.json)."""
+    or_key = (OPENROUTER_API_KEY or "").strip()
     if not OPENAI_API_KEY:
         if or_key:
             from ia_kit.client_openrouter import OpenRouterImageClient
