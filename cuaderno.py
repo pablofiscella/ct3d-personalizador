@@ -21,7 +21,18 @@ Wp, Hp = 1240, 1754
 NAVY = (29, 25, 79); VIOLET = (107, 91, 210); INK = (40, 38, 55); CREAM = (246, 242, 236)
 COLS = [(224, 85, 107), (63, 167, 214), (232, 155, 44), (95, 184, 122), (139, 91, 210), (38, 140, 90)]
 PALABRAS = ["CUMPLE", "FIESTA", "GLOBO", "TORTA", "REGALO", "JUGAR", "DULCE", "AMIGOS"]
-PALABRAS2 = ["SORPRESA", "CORONA", "CANCION", "BAILAR", "FELIZ", "JUEGOS", "PINATA", "RISA"]
+# La lista visible se muestra con Ñ y tildes; en la GRILLA la Ñ se conserva
+# (sopa en castellano) y las tildes se quitan (convención de las sopas de letras).
+PALABRAS2 = ["SORPRESA", "CORONA", "CANCIÓN", "BAILAR", "FELIZ", "JUEGOS", "PIÑATA", "RISA"]
+
+
+def _sin_tilde(w):
+    return w.translate(str.maketrans("ÁÉÍÓÚÜ", "AEIOUU"))
+
+
+def _edad_label(edad):
+    e = str(edad).strip()
+    return "1 añito" if e == "1" else "%s años" % e
 BRAND = "CASATRIDIMENSIONAL"
 
 def _tema_nombre(tema):
@@ -210,7 +221,25 @@ def _es_personaje_vision(tema, paths):
         return None
 
 
+def _seleccionar_recortes(tema, n=2, variedad_estricta=False, incluir_objetos=False):
+    """PATHS de los mejores recortes del tema (misma selección que
+    personajes_decorativos). La usa también el CUADERNO: usar los recortes
+    crudos rompía la matemática de contar/sumas (columnas de stickers apiladas
+    contadas como UN personaje — skill §19, bug 1)."""
+    return _personajes_paths(tema, n, variedad_estricta, incluir_objetos)
+
+
 def personajes_decorativos(tema, n=2, variedad_estricta=False, incluir_objetos=False):
+    out = []
+    for p in _personajes_paths(tema, n, variedad_estricta, incluir_objetos):
+        try:
+            out.append(Image.open(p).convert("RGBA"))
+        except Exception:
+            pass
+    return out
+
+
+def _personajes_paths(tema, n=2, variedad_estricta=False, incluir_objetos=False):
     """n personajes reales del tema (recortados de la hoja de stickers) para decorar otros
     productos (rompecabezas, calendario, corona, cápsula, certificado, papertoys…). Reusa
     _extraer_monstruos; SIN fallback genérico — si el tema no tiene stickers, lista vacía
@@ -292,10 +321,7 @@ def personajes_decorativos(tema, n=2, variedad_estricta=False, incluir_objetos=F
             t = tipos.get(os.path.basename(p)) if tipos else None
             if exigir_tipo_nuevo and t is not None and t in tipos_usados:
                 continue
-            try:
-                out.append(Image.open(p).convert("RGBA"))
-            except Exception:
-                continue
+            out.append(p)
             usados.add(p)
             hashes.append(h)
             if t is not None:
@@ -313,10 +339,7 @@ def personajes_decorativos(tema, n=2, variedad_estricta=False, incluir_objetos=F
                 break
             if p in usados or any(_hamming(h, hu) <= 5 for hu in hashes):
                 continue
-            try:
-                out.append(Image.open(p).convert("RGBA"))
-            except Exception:
-                continue
+            out.append(p)
             usados.add(p)
             hashes.append(h)
     return out
@@ -562,7 +585,7 @@ def _portada(mons, edad, nombre="Cumpleaños"):
     dr.rounded_rectangle([55, 55, Wp - 55, Hp - 55], 40, outline=VIOLET, width=8)
     dr.text((Wp / 2, 290), "Cuaderno de", font=_font(70), fill=NAVY, anchor="mm")
     dr.text((Wp / 2, 390), "Actividades", font=_font(92), fill=VIOLET, anchor="mm")
-    etiqueta = "%s · %s años" % (nombre, edad)
+    etiqueta = "%s · %s" % (nombre, _edad_label(edad))
     ew = max(460, _font(40).getlength(etiqueta) + 80)
     dr.rounded_rectangle([Wp / 2 - ew / 2, 470, Wp / 2 + ew / 2, 560], 45, fill=COLS[1])
     dr.text((Wp / 2, 515), etiqueta, font=_font(40), fill="white", anchor="mm")
@@ -676,7 +699,13 @@ class _Book:
         self.pages = []; self.im = None; self.dr = None; self.y = 0; self.act = 0; self.sol = {}
         self._etq = ""
     def _flush(self):
-        if self.im is not None: _foot(self.dr); self.pages.append(self.im)
+        if self.im is not None:
+            _foot(self.dr)
+            # número de página fijo (skill §19: numeración siempre)
+            n = len(self.pages) + 1
+            self.dr.ellipse([Wp - 96, Hp - 72, Wp - 32, Hp - 8], fill=VIOLET)
+            self.dr.text((Wp - 64, Hp - 40), str(n), font=_font(30), fill="white", anchor="mm")
+            self.pages.append(self.im)
     def _newpage(self, etiqueta=None):
         self._flush(); self.im, self.dr = _page()
         _banner(self.dr, etiqueta if etiqueta is not None else self._etq); self.y = TOP
@@ -685,7 +714,7 @@ class _Book:
     def sec(self, titulo, instr, h=0):
         # cada actividad = su propia página, numerada en el banner.
         self.act += 1
-        self._etq = "Actividad %d · %s años" % (self.act, self.edad)
+        self._etq = "Actividad %d · %s" % (self.act, _edad_label(self.edad))
         self._newpage()
         self.y = _sec(self.dr, self.y, titulo, instr)
     def mon(self, i):
@@ -735,11 +764,12 @@ def _a_laberinto_circular(b, rings=4):
 
 def _a_sopa(b, words=None):
     words = words or PALABRAS
+    grid_words = [_sin_tilde(w) for w in words]    # la grilla sin tildes, la lista con
     base = b.rnd.randrange(1000)
     for s in range(base, base + 120):
-        g, sol = _wordsearch(words, 12, s)
-        if g and all(_ws_has(g, x) for x in words): break
-    assert g and all(_ws_has(g, x) for x in words)
+        g, sol = _wordsearch(grid_words, 12, s)
+        if g and all(_ws_has(g, x) for x in grid_words): break
+    assert g and all(_ws_has(g, x) for x in grid_words)
     b.sec("Sopa de letras", "Encontrá las %d palabras escondidas." % len(words))
     N = len(g); gs = 66; blockH = N * gs + 64 + ((len(words) + 3) // 4) * 40 + 30
     top = b.y + max(0, (BOT - b.y - blockH) // 2)             # bloque centrado verticalmente
@@ -748,8 +778,8 @@ def _a_sopa(b, words=None):
     b.soladd("ws", (g, sol, words))
 
 def _a_puntos(b, nd, figura="estrella"):
-    nombre = "el corazón" if figura == "corazon" else "la figura"
-    b.sec("Uní los puntos", "Uní los puntos en orden, del 1 al %d, y descubrí %s." % (nd, nombre))
+    # sin spoiler: la gracia es DESCUBRIR qué figura aparece (skill §19 bug 3)
+    b.sec("Uní los puntos", "Uní los puntos en orden, del 1 al %d. ¿Qué figura aparece?" % nd)
     top = b.y; R = min(360, int((BOT - top) * 0.4)); cx, cy = Wp / 2, top + (BOT - top) / 2
     pts = _figura_pts(figura, cx, cy, R, nd); fg = _font(34)
     for i, (px, py) in enumerate(pts):
@@ -764,7 +794,11 @@ def _a_puntos(b, nd, figura="estrella"):
     b.y = BOT
 
 def _a_contar(b, na, nb):
-    b.sec("Contá", "¿Cuántos hay de cada uno? Escribí el número.")
+    # a los 2-3 no escriben: la consigna la lee el adulto y el nene señala
+    chico = str(b.edad).isdigit() and int(b.edad) <= 3
+    consigna = ("¿Cuántos hay? Contalos señalando con el dedo." if chico
+                else "¿Cuántos hay de cada uno? Escribí el número.")
+    b.sec("Contá", consigna)
     y = b.y; avail = BOT - y; boxh = int(avail * 0.62)
     b.dr.rounded_rectangle([60, y, Wp - 60, y + boxh], 20, outline=(220, 215, 225), width=3)
     spots = []
@@ -815,18 +849,30 @@ def _a_diferente(b, rows):
     b.y = BOT
 
 def _a_patron(b, rows):
-    if not b.mons: return
-    b.sec("Continuá el patrón", "Pintá o dibujá el que sigue en cada fila.")
-    pool = list(range(min(len(b.mons), 7))); sz = min(140, int((BOT - b.y) / rows * 0.55)); box = sz // 2 + 6
+    # Respuesta por OPCIONES (rodear), no "dibujá el que sigue": pedirle a un
+    # chico que dibuje una princesa en un casillero era imposible (skill §19).
+    if not b.mons or len(b.mons) < 3: return
+    b.sec("Continuá el patrón", "Rodeá con un círculo el que sigue en cada fila.")
+    pool = list(range(min(len(b.mons), 7)))
+    sz = min(118, int((BOT - b.y) / rows * 0.45)); res = []
     for r in range(rows):
-        pat = b.rnd.sample(pool, b.rnd.choice([2, 2, 3])); yy, _ = _slot(b.y, rows, r); total = 6
-        for c in range(total):
-            x = 160 + c * 165
-            if c < total - 2:
-                _paste_h(b.im, _IM(b.mons[pat[c % len(pat)]]), x, yy, sz)
-            else:
-                b.dr.rounded_rectangle([x - box, yy - box, x + box, yy + box], 12, outline=NAVY, width=3)
-    b.y = BOT
+        pat = b.rnd.sample(pool, b.rnd.choice([2, 2, 3]))
+        yy, _ = _slot(b.y, rows, r)
+        n_seq = 5; x = 105
+        for c in range(n_seq):
+            _paste_h(b.im, _IM(b.mons[pat[c % len(pat)]]), x, yy, sz); x += sz + 12
+        box = sz // 2 + 8
+        b.dr.rounded_rectangle([x - box, yy - box, x + box, yy + box], 12, outline=NAVY, width=3)
+        b.dr.text((x, yy), "?", font=_font(46), fill=(185, 180, 200), anchor="mm")
+        x += box + 58
+        b.dr.line([x - 26, yy - sz * 0.62, x - 26, yy + sz * 0.62], fill=(210, 205, 220), width=3)
+        correcto = pat[n_seq % len(pat)]
+        otros = [p for p in pool if p != correcto]; b.rnd.shuffle(otros)
+        ops = [correcto] + otros[:2]; b.rnd.shuffle(ops)
+        for o in ops:
+            _paste_h(b.im, _IM(b.mons[o]), x + sz // 2, yy, int(sz * 0.92)); x += sz + 14
+        res.append(ops.index(correcto) + 1)
+    b.y = BOT; b.soladd("patron", res)
 
 def _a_sumas(b, rows):
     if not b.mons: return
@@ -913,17 +959,19 @@ def _colorear_imgs(tema):
     return out
 
 def _a_colorear(b, k=0):
-    b.sec("Pintá el dibujo", "Coloreá como más te guste.")
     imgs = getattr(b, "_colorear", [])
-    la = imgs[k] if k < len(imgs) else None    # no repetir la misma: si no alcanza, fallback
-    if la is None and b.mons:                 # fallback: line art de un personaje (varía por página)
-        la = _lineart(b.mons[(k + 1) % len(b.mons)]).convert("RGBA")
-    if la is not None:
-        h = 980; w = int(la.width * h / la.height)
-        if w > Wp - 160:
-            w = Wp - 160; h = int(la.height * w / la.width)
-        la = la.resize((w, h), Image.LANCZOS)
-        b.im.alpha_composite(la, (int(Wp / 2 - w / 2), b.y + 10))
+    if k >= len(imgs):
+        # SIN arte IA la página NO va (skill §19 bug 2): el viejo fallback
+        # ampliaba un sticker de 300px a página entera → masa negra pixelada.
+        # El botón ⚡ genera las 3 variantes de colorear de cada tema.
+        return
+    b.sec("Pintá el dibujo", "Coloreá como más te guste.")
+    la = imgs[k]
+    h = 980; w = int(la.width * h / la.height)
+    if w > Wp - 160:
+        w = Wp - 160; h = int(la.height * w / la.width)
+    la = la.resize((w, h), Image.LANCZOS)
+    b.im.alpha_composite(la, (int(Wp / 2 - w / 2), b.y + 10))
     b.y = BOT
 
 # ── actividades nuevas (todas por código, reusan los recortes del tema) ──
@@ -1099,7 +1147,9 @@ def _solucionario(b):
         lines.append("¿Cuál tiene más?: " + ", ".join("izquierda" if v == 0 else "derecha" for v in res))
     for res in b.sol.get("tamano", []):
         lines.append("El más grande: posición " + ", ".join(str(v + 1) for v in res))
-    lines.append("(Sombra, intruso, patrón, iguales, trazos, otra mitad y colorear se revisan a simple vista.)")
+    for res in b.sol.get("patron", []):
+        lines.append("Patrón — opción correcta: " + ", ".join(str(v) for v in res))
+    lines.append("(Sombra, intruso, iguales, trazos, otra mitad y colorear se revisan a simple vista.)")
     for ln in lines:
         need(40); dr.text((60, y), ln, font=_font(23), fill=INK); y += 36
     _foot(dr); pages.append(im); b.pages.extend(pages)
@@ -1144,7 +1194,12 @@ def _cover_mons(tema, mons):
 def _build(tema, edad, seed):
     """Devuelve (paginas_actividades, paginas_solucionario) por separado, para que la galería
     de la tienda pueda excluir el solucionario sin regenerar."""
-    mons = _extraer_monstruos(tema); nombre = _tema_nombre(tema)
+    # recortes FILTRADOS (skill §19 bug 1): dedup + sin columnas apiladas + visión.
+    # Con menos de 4 utilizables se cae a los crudos (mejor algo que nada).
+    mons = _seleccionar_recortes(tema, 8, incluir_objetos=True)
+    if len(mons) < 4:
+        mons = _extraer_monstruos(tema)
+    nombre = _tema_nombre(tema)
     b = _Book(edad, mons, seed, nombre); b._colorear = _colorear_imgs(tema)
     portada = _portada(_cover_mons(tema, mons), edad, nombre)
     e = int(edad) if str(edad).isdigit() else 6
