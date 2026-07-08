@@ -379,7 +379,7 @@ async function armarTodoTema(tema, nombre){
   try{ pre=await (await fetch('/dash/armar-tema?tema='+encodeURIComponent(tema)+'&dry=1',{method:'POST',headers:{'X-API-Key':KEY}})).json(); }
   catch(e){ alert('No se pudo consultar el estado del tema'); return; }
   if(!pre.ok){ alert('Error: '+(pre.error||'?')); return; }
-  if(pre.total===0){ alert('«'+nombre+'» ya está completo: piezas del kit, colorear, fondos, gorro y libro generados. Usá los botones de cada sección para rehacer algo puntual.'); return; }
+  if(pre.total===0){ await infoModal('«'+nombre+'» ya está completo: piezas del kit, colorear, fondos, gorro y libro generados. Usá los botones de cada sección para rehacer algo puntual.'); return; }
   const detalle=[
     pre.kit?`${pre.kit} piezas del kit`:null,
     pre.colorear?`${pre.colorear} variantes de colorear`:null,
@@ -430,6 +430,22 @@ function confirmModal(mensaje){
     ov.addEventListener('click',e=>{ if(e.target===ov) cerrar(false); });
     ov.querySelector('#cm-no').onclick=()=>cerrar(false);
     ov.querySelector('#cm-si').onclick=()=>cerrar(true);
+  });
+}
+function infoModal(mensaje){
+  // popup informativo en la página (un solo botón), en vez del alert() nativo del navegador
+  return new Promise(resolve=>{
+    const ov=document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:24px';
+    ov.innerHTML=`<div style="background:var(--bg-elevated,#1A1530);color:var(--ink-1,#fff);border-radius:14px;padding:22px;max-width:430px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.5);white-space:pre-line">
+      <p style="margin:0 0 18px;line-height:1.5">${String(mensaje)}</p>
+      <div style="display:flex;justify-content:flex-end">
+        <button id="im-ok" class="btn-primary">Entendido</button>
+      </div></div>`;
+    document.body.appendChild(ov);
+    const cerrar=()=>{ ov.remove(); resolve(); };
+    ov.addEventListener('click',e=>{ if(e.target===ov) cerrar(); });
+    ov.querySelector('#im-ok').onclick=cerrar;
   });
 }
 async function editarEdades(tema, nombre, actuales){
