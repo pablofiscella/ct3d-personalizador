@@ -19,6 +19,7 @@ KIT = os.path.dirname(os.path.abspath(__file__))
 TEMAS = os.path.join(KIT, "temas")
 Wp, Hp = 1240, 1754
 NAVY = (29, 25, 79); VIOLET = (107, 91, 210); INK = (40, 38, 55); CREAM = (246, 242, 236)
+GOLD = (212, 175, 55)
 COLS = [(224, 85, 107), (63, 167, 214), (232, 155, 44), (95, 184, 122), (139, 91, 210), (38, 140, 90)]
 PALABRAS = ["CUMPLE", "FIESTA", "GLOBO", "TORTA", "REGALO", "JUGAR", "DULCE", "AMIGOS"]
 # La lista visible se muestra con Ñ y tildes; en la GRILLA la Ñ se conserva
@@ -604,7 +605,7 @@ def _heart_pts(cx, cy, R, n):
 def _figura_pts(figura, cx, cy, R, n):
     return _heart_pts(cx, cy, R, n) if figura == "corazon" else _star_pts(cx, cy, R)[:n]
 
-def _portada(mons, edad, nombre="Cumpleaños", tema=None):
+def _portada(mons, edad, nombre="Cumpleaños", tema=None, nombre_nene=""):
     """Tapa del cuaderno. Con arte IA del tema (la escena de portada del libro,
     que ya viene compuesta con AIRE arriba para el título) queda como la tapa de
     un libro de verdad — feedback Pablo 9-jul-2026. Fallback: la tapa procedural
@@ -618,7 +619,9 @@ def _portada(mons, edad, nombre="Cumpleaños", tema=None):
                 art = Image.open(p).convert("RGBA")
         except Exception:
             art = None
-    etiqueta = "%s · %s" % (nombre, _edad_label(edad))
+    nom = (nombre_nene or "").strip()
+    etiqueta = ("%s · %s · %s" % (nom, nombre, _edad_label(edad))) if nom \
+        else "%s · %s" % (nombre, _edad_label(edad))
     if art is not None:
         import fondos_ia
         im = fondos_ia.cover(art, Wp, Hp)
@@ -696,7 +699,7 @@ def _draw_maze(im, dr, w, MW, MH, y, mons, sol=False, cell=60):
         pts = [(mx + px * cell + cell / 2, y + py * cell + cell / 2) for px, py in path]
         dr.line(pts, fill=COLS[0], width=8, joint="curve")
     if mons:                                                          # personaje en la entrada + flecha
-        pj = Image.open(mons[3 % len(mons)]).convert("RGBA")
+        pj = Image.open(mons[0]).convert("RGBA")   # el 1º es personaje (selección filtrada)
         h = 165
         w = max(1, int(pj.width * h / pj.height))
         if w > 190:                                   # figura ancha: achicar para
@@ -704,9 +707,18 @@ def _draw_maze(im, dr, w, MW, MH, y, mons, sol=False, cell=60):
             w = max(1, int(pj.width * h / pj.height))
         _paste_h(im, pj, max(30 + w // 2, mx - 135), y + 150, h)
         _arrow(dr, mx - 64, y + 115, mx - 6, y + cell / 2 + 4)
-    gx = mx + MW * cell + 120; gy = y + (MH - 1) * cell + cell / 2    # meta (torta) en la salida + flecha
+    gx = mx + MW * cell + 120; gy = y + (MH - 1) * cell + cell / 2    # meta en la salida + flecha
     _arrow(dr, mx + MW * cell + 8, gy, gx - 64, gy)
-    _goal_torta(dr, gx, gy, 64)
+    if mons and len(mons) > 2:
+        # meta TEMÁTICA: un objeto/personaje real del tema (la "torta" de blobs
+        # abstractos no se leía como torta — skill §19, fase 3)
+        gm = Image.open(mons[2 % len(mons)]).convert("RGBA")
+        gh = 150
+        if gm.width * gh / gm.height > 200:
+            gh = max(70, int(200 * gm.height / gm.width))
+        _paste_h(im, gm, min(gx, Wp - 30 - int(gm.width * gh / gm.height) // 2), gy, gh)
+    else:
+        _goal_torta(dr, gx, gy, 64)
     return y + MH * cell
 
 def _draw_theta(im, dr, RAD, CIRC, HUB, rings, S, se, cx, cy, R0, dt, mons, sol=False, path=None):
@@ -768,8 +780,9 @@ def _shadow(path):
 TOP = BANNER_H + 78; BOT = Hp - 90
 
 class _Book:
-    def __init__(self, edad, mons, seed, nombre="Cumpleaños"):
+    def __init__(self, edad, mons, seed, nombre="Cumpleaños", nombre_nene=""):
         self.edad = edad; self.mons = mons; self.rnd = random.Random(seed); self.nombre = nombre
+        self.nom = (nombre_nene or "").strip()    # personalización por venta (fase 3)
         self.pages = []; self.im = None; self.dr = None; self.y = 0; self.act = 0; self.sol = {}
         self._etq = ""
     def _flush(self):
@@ -814,7 +827,8 @@ def _a_laberinto(b, n):
         w = _maze(n, n, s)
         if _maze_path(w, n, n): break
     assert _maze_path(w, n, n)
-    b.sec("El laberinto del cumple", "¡Ayudá al personaje a llegar a la torta de cumpleaños!")
+    quien = b.nom or "el personaje"
+    b.sec("El laberinto del cumple", "¡Ayudá a %s a llegar a la meta!" % quien)
     avail = BOT - b.y
     cell = min(90, (Wp - 470) // n, (avail - 40) // n)        # grande, deja lugar al personaje/torta
     y0 = b.y + max(0, (avail - n * cell) // 2)                # centrado vertical
@@ -875,6 +889,7 @@ def _a_contar(b, na, nb):
     b.sec("Contá", consigna)
     y = b.y; avail = BOT - y; boxh = int(avail * 0.62)
     b.dr.rounded_rectangle([60, y, Wp - 60, y + boxh], 20, outline=(220, 215, 225), width=3)
+    _pegar_escena(b, (60, y, Wp - 60, y + boxh), aclarar=0.42)     # bien claro: hay que CONTAR
     spots = []
     def free():
         for _ in range(600):
@@ -1049,10 +1064,13 @@ def _a_buscar(b, n):
     """Encontrá los escondidos (iSpy): escena con muchos personajes; buscar X de cada
     tipo. Aprovecha los stickers recortados del tema. Verificable: contamos lo puesto."""
     if not b.mons: return
-    b.sec("Encontrá los escondidos", "Buscá en el dibujo y marcá con un círculo:")
+    consigna = ("Ayudá a %s a encontrar y marcá con un círculo:" % b.nom) if b.nom \
+        else "Buscá en el dibujo y marcá con un círculo:"
+    b.sec("Encontrá los escondidos", consigna)
     pool = list(range(min(len(b.mons), 7))); imgs = [_IM(b.mons[i]) for i in pool]
     y0 = b.y; boxh = int((BOT - b.y) * 0.78)           # escena grande que llena la página
     b.dr.rounded_rectangle([60, y0, Wp - 60, y0 + boxh], 18, fill=(255, 255, 255), outline=(220, 215, 225), width=3)
+    _pegar_escena(b, (60, y0, Wp - 60, y0 + boxh), aclarar=0.22)   # el mundo del tema de fondo
     placed = {}; spots = []
     for _ in range(n):
         ti = b.rnd.randrange(len(pool)); sz = b.rnd.randint(95, 132)
@@ -1218,6 +1236,35 @@ def _a_trazos(b, rows):
         _goal_torta(b.dr, x1 + 70, yy, 54)
     b.y = BOT
 
+def _escena_tema(tema):
+    """Fondo de ESCENA del tema (fondos_ia 'escena') para que las actividades
+    sucedan DENTRO del mundo del tema y no en una caja blanca (skill §19,
+    fase 3 — patrón Highlights). None si el tema aún no lo generó."""
+    try:
+        import fondos_ia
+        return fondos_ia.cargar_fondo(tema, "escena")
+    except Exception:
+        return None
+
+
+def _pegar_escena(b, box, aclarar=0.30):
+    """Pega la escena del tema dentro de box (esquinas redondeadas), aclarada
+    para que las figuras pegadas encima sigan siendo protagonistas."""
+    esc = getattr(b, "_escena", None)
+    if esc is None:
+        return False
+    import fondos_ia
+    x0, y0, x1, y1 = (int(v) for v in box)
+    w, h = x1 - x0, y1 - y0
+    art = fondos_ia.cover(esc, w, h).convert("RGBA")
+    velo = Image.new("RGBA", (w, h), (255, 255, 255, int(255 * aclarar)))
+    art.alpha_composite(velo)
+    mask = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, w - 1, h - 1], 18, fill=255)
+    b.im.paste(art, (x0, y0), mask)
+    return True
+
+
 def _tema_palabras(tema):
     """Palabras TEMÁTICAS para la sopa/código (tema.json::palabras) — la sopa con
     vocabulario genérico de cumpleaños violaba la regla 'el tema es estructural'
@@ -1330,6 +1377,53 @@ def _a_tateti(b):
             b.dr.line([ox, oy + k * g / 3, ox + g, oy + k * g / 3], fill=NAVY, width=6)
     b.y = BOT
 
+def _a_diploma(b):
+    """Última página: diploma de finalización (patrón School Zone) — con el
+    nombre impreso si la venta lo trae; si no, línea para escribirlo."""
+    b.act += 1
+    b._etq = "¡Lo lograste! · %s" % _edad_label(b.edad)
+    b._newpage()
+    dr = b.dr
+    dr.rounded_rectangle([70, TOP, Wp - 70, BOT], 34, outline=GOLD, width=8)
+    dr.rounded_rectangle([88, TOP + 18, Wp - 88, BOT - 18], 26, outline=VIOLET, width=3)
+    cy = TOP + 150
+    _estrella_d(dr, Wp / 2, cy, 64, GOLD)
+    dr.text((Wp / 2, cy + 150), "¡DIPLOMA!", font=_font(88), fill=VIOLET, anchor="mm")
+    dr.text((Wp / 2, cy + 240), "Este cuaderno fue completado por", font=_font(34, False),
+            fill=INK, anchor="mm")
+    if b.nom:
+        fs = 96
+        while _font(fs).getlength(b.nom) > Wp - 420 and fs > 44:
+            fs -= 4
+        dr.text((Wp / 2, cy + 350), b.nom, font=_font(fs), fill=COLS[1], anchor="mm")
+    else:
+        dr.line([Wp * 0.28, cy + 380, Wp * 0.72, cy + 380], fill=(150, 145, 165), width=4)
+    dr.text((Wp / 2, cy + 470), "jugando, pensando y divirtiéndose un montón.",
+            font=_font(30, False), fill=_tint2(INK, 0.2), anchor="mm")
+    if b.mons:
+        xs = (0.3, 0.5, 0.7) if len(b.mons) >= 3 else (0.5,)
+        for fx, mp in zip(xs, b.mons):
+            m = _IM(mp); h = 210
+            if m.width * h / m.height > 260:
+                h = int(260 * m.height / m.width)
+            _paste_h(b.im, m, Wp * fx, BOT - 320, h)
+    dr.line([Wp * 0.32, BOT - 120, Wp * 0.68, BOT - 120], fill=INK, width=3)
+    dr.text((Wp / 2, BOT - 85), "Firma del adulto más orgulloso", font=_font(26, False),
+            fill=(150, 150, 160), anchor="mm")
+    b.y = BOT
+
+
+def _estrella_d(dr, cx, cy, R, color):
+    pts = [(cx + (R if i % 2 == 0 else R * .45) * math.cos(-math.pi / 2 + i * math.pi / 5),
+            cy + (R if i % 2 == 0 else R * .45) * math.sin(-math.pi / 2 + i * math.pi / 5))
+           for i in range(10)]
+    dr.polygon(pts, fill=color)
+
+
+def _tint2(rgb, p):
+    return tuple(int(c + (255 - c) * p) for c in rgb[:3])
+
+
 def _solucionario(b):
     keys = ("maze", "cmaze", "ws", "sudoku", "sumas", "restas", "serie", "count",
             "masmenos", "tamano", "patron", "codigo", "difs")
@@ -1420,6 +1514,7 @@ def _construir(b, e, palabras=None):
         _a_codigo(b, pal_codigo); _a_sudoku(b); _a_serie(b, 4)
         _a_buscar(b, 18); _a_diferente(b, 3); _a_laberinto(b, 11)
         _a_tateti(b); _a_colorear(b, 2)
+    _a_diploma(b)
 
 # ───────────────────────── armado ─────────────────────────
 def _cover_mons(tema, mons):
@@ -1436,7 +1531,7 @@ def _cover_mons(tema, mons):
         return (sel + resto)[:6]
     return mons[:6]
 
-def _build(tema, edad, seed):
+def _build(tema, edad, seed, nombre_nene=""):
     """Devuelve (paginas_actividades, paginas_solucionario) por separado, para que la galería
     de la tienda pueda excluir el solucionario sin regenerar."""
     # recortes FILTRADOS (skill §19 bug 1): dedup + sin columnas apiladas + visión.
@@ -1445,18 +1540,20 @@ def _build(tema, edad, seed):
     if len(mons) < 4:
         mons = _extraer_monstruos(tema)
     nombre = _tema_nombre(tema)
-    b = _Book(edad, mons, seed, nombre); b._colorear = _colorear_imgs(tema)
-    portada = _portada(_cover_mons(tema, mons), edad, nombre, tema=tema)
+    b = _Book(edad, mons, seed, nombre, nombre_nene=nombre_nene)
+    b._colorear = _colorear_imgs(tema); b._escena = _escena_tema(tema)
+    portada = _portada(_cover_mons(tema, mons), edad, nombre, tema=tema, nombre_nene=nombre_nene)
     e = int(edad) if str(edad).isdigit() else 6
     _construir(b, e, palabras=_tema_palabras(tema)); b.finish()
     acts = [portada] + list(b.pages)
     b.pages = []; _solucionario(b)
     return acts, list(b.pages)
 
-def paginas(tema, edad, seed=1, con_solucionario=True):
+def paginas(tema, edad, seed=1, con_solucionario=True, nombre=""):
     """Lista de páginas (PIL.Image) del cuaderno, ya verificadas. Es lo que consume el motor
-    del kit para empaquetar el ZIP del producto."""
-    acts, sols = _build(tema, edad, seed)
+    del kit para empaquetar el ZIP del producto. `nombre`: personaliza consignas,
+    portada y diploma (por venta)."""
+    acts, sols = _build(tema, edad, seed, nombre_nene=nombre)
     return acts + sols if con_solucionario else acts
 
 def preview_paths(tema, edad="6"):
@@ -1548,9 +1645,17 @@ def pagina_efectiva(tema, edad, idx, base=None):
     base = base if base is not None else base_paginas(tema, edad)
     return base[idx] if idx < len(base) else None
 
-def paginas_finales(tema, edad, seed=1):
-    """Cuaderno a entregar: canónico + overrides (reemplazos, quitadas, extras)."""
-    base = base_paginas(tema, edad, seed); od = _override_dir(tema, edad); out = []
+def paginas_finales(tema, edad, seed=1, nombre=""):
+    """Cuaderno a entregar: canónico + overrides (reemplazos, quitadas, extras).
+    Con `nombre` (venta personalizada) se rearma FRESCO con las consignas, la
+    portada y el diploma del nene — mismo seed que el canónico, así los
+    overrides por índice de Pablo siguen aplicando igual."""
+    if (nombre or "").strip():
+        acts, sols = _build(tema, edad, seed, nombre_nene=nombre.strip())
+        base = [p.convert("RGB") for p in (acts + sols)]
+    else:
+        base = base_paginas(tema, edad, seed)
+    od = _override_dir(tema, edad); out = []
     for i in range(len(base)):
         if os.path.exists(os.path.join(od, "pg%02d.removed" % i)):
             continue

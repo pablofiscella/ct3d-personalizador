@@ -70,6 +70,15 @@ PIEZAS = {
             "vacías ni cielos lisos enormes (cada pieza del puzzle debe tener "
             "algo que mirar)."),
     },
+    "escena": {
+        "size": "1536x1024",
+        "prompt": (
+            "Paisaje APAISADO del mundo de la temática '{tema}' en tonos SUAVES y "
+            "claros (pastel), SIN personajes — es el FONDO de una página de "
+            "actividades infantil donde después se pegan figuras encima: cielo, "
+            "piso y el lugar del tema bien difuminados de fondo, sin ningún "
+            "elemento protagonista que compita con las figuras."),
+    },
     "memoria_dorso": {
         "size": "1024x1024",
         "prompt": (

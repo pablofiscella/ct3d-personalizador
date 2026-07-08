@@ -956,7 +956,8 @@ def generar(data, dest_dir, tema="safari", tipo=DEFAULT_TIPO):
         try:
             import cuaderno
             edad = str(data.get("edad") or "6")
-            pgs = cuaderno.paginas_finales(tema, edad)
+            pgs = cuaderno.paginas_finales(tema, edad,
+                                           nombre=str(data.get("nombre") or "").strip())
             if pgs:
                 pl = [("%02d_cuaderno" % (i + 1), (lambda im: (lambda d: im))(p), False)
                       for i, p in enumerate(pgs)]
