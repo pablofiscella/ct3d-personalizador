@@ -832,6 +832,7 @@ def _a_laberinto(b, n):
     avail = BOT - b.y
     cell = min(90, (Wp - 470) // n, (avail - 40) // n)        # grande, deja lugar al personaje/torta
     y0 = b.y + max(0, (avail - n * cell) // 2)                # centrado vertical
+    _pegar_escena(b, (60, y0 - 24, Wp - 60, y0 + n * cell + 24), aclarar=0.62)
     _draw_maze(b.im, b.dr, w, n, n, y0, b.mons, cell=cell)
     b.y = BOT
     b.soladd("maze", (w, n, n))
@@ -846,6 +847,9 @@ def _a_laberinto_circular(b, rings=4):
     rmax_t = min((Wp - 240) / 2, (avail - 60) / 2)
     dt = max(60, (rmax_t - R0) / (rings + 1))         # +1 deja aire para la flecha/torta de salida
     cx = Wp / 2; cy = b.y + avail / 2
+    Rt = R0 + (rings + 1) * dt
+    _pegar_escena(b, (max(60, cx - Rt), max(b.y, cy - Rt), min(Wp - 60, cx + Rt), min(BOT, cy + Rt)),
+                  aclarar=0.62)
     _draw_theta(b.im, b.dr, RAD, CIRC, HUB, rings, S, se, cx, cy, R0, dt, b.mons)
     b.y = BOT
     b.soladd("cmaze", (RAD, CIRC, HUB, rings, S, se, path))
@@ -1378,8 +1382,21 @@ def _a_tateti(b):
     b.y = BOT
 
 def _a_diploma(b):
-    """Última página: diploma de finalización (patrón School Zone) — con el
-    nombre impreso si la venta lo trae; si no, línea para escribirlo."""
+    """Última página: el CERTIFICADO oficial de cumpleañero (certificado.py, el
+    de 'otros productos', con la orla IA del tema) rotado a la hoja vertical —
+    con el nombre de la compra impreso; sin nombre queda la línea (feedback
+    Pablo 10-jul-2026). Fallback: el diploma simple procedural."""
+    try:
+        import certificado as _cert
+        img = _cert.generar_certificado({"nombre": b.nom, "edad": str(b.edad)},
+                                        getattr(b, "tema", None) or "safari")
+        img = img.rotate(90, expand=True).resize((Wp, Hp), Image.LANCZOS)
+        b._flush()                          # cierra la página anterior
+        b.pages.append(img.convert("RGBA"))  # el certificado entra tal cual (sin pie)
+        b.im = None
+        return
+    except Exception:
+        pass
     b.act += 1
     b._etq = "¡Lo lograste! · %s" % _edad_label(b.edad)
     b._newpage()
@@ -1541,6 +1558,7 @@ def _build(tema, edad, seed, nombre_nene=""):
         mons = _extraer_monstruos(tema)
     nombre = _tema_nombre(tema)
     b = _Book(edad, mons, seed, nombre, nombre_nene=nombre_nene)
+    b.tema = tema
     b._colorear = _colorear_imgs(tema); b._escena = _escena_tema(tema)
     portada = _portada(_cover_mons(tema, mons), edad, nombre, tema=tema, nombre_nene=nombre_nene)
     e = int(edad) if str(edad).isdigit() else 6

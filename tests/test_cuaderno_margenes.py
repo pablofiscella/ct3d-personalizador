@@ -35,7 +35,7 @@ def test_ninguna_actividad_se_va_del_ancho(tmp_path, monkeypatch, edad):
     _mk_tema_ancho(tmp_path)
     for seed in (1, 7, 42):
         acts, _sols = cuaderno._build("circo", edad, seed)
-        for n, pg in enumerate(acts[1:], start=1):     # sin portada (arte a sangre)
+        for n, pg in enumerate(acts[1:-1], start=1):   # sin portada ni diploma (arte a sangre)
             a = np.array(pg.convert("L"))
             # zona de contenido: debajo del banner, arriba del pie/nº de página
             zona = a[cuaderno.BANNER_H + 8:cuaderno.Hp - 110]
