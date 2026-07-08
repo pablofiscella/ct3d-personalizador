@@ -363,3 +363,34 @@ Botón **«⚡ Armar TODO el tema»** en la tarjeta de cada temática del dash �
   duda OK), 1 reintento con motivo, fallback procedural siempre.
 - Generar → QA → revisar → cachear → reusar. Solo se vende lo revisado.
 - Commit/push SOLO cuando Pablo lo pide.
+
+## 18. Reglas del feedback de Pablo 8-jul-2026 (revisión de princesas)
+
+- **SIN nombre en las piezas "de todos"**: gorro, corona, rompecabezas y cubo se
+  imprimen para los invitados / se usan en el momento — NO llevan nombre ni edad
+  (la edad del gorro/corona solo elige el TALLE). El nombre queda en las piezas
+  intrínsecamente personales: certificado, libro, banderín, rutina, mes-a-mes,
+  baby shower, memoria (título).
+- **Rompecabezas = FULL IMAGEN**: una escena completa del tema cortada en piezas
+  (fondo IA dedicado `fondos_ia «rompecabezas»` > portada del libro > maestra >
+  procedural). Nada de banners sobre el arte.
+- **Corona rediseñada**: 2 tiras por hoja A4 apaisada con picos CONECTADOS
+  (silueta continua) que se unen entre sí → circunferencia real (~50cm). Relleno
+  arte IA (prompt friso denso y parejo: se recorta en banda horizontal). Los
+  picos sueltos con banda corta NO son una corona.
+- **Gorro**: el arte cubre TODO el abanico (cover al bbox del arco + base tint);
+  el prompt NO pide zona limpia (sin insignia ya no hace falta y queda un hueco);
+  la ranura va PARALELA al borde, metida tab_w*0.55 hacia adentro, mismo rango
+  radial que la lengüeta (si no, no encastra).
+- **Recortes de stickers**: la visión etiqueta como personaje también a COLUMNAS
+  de stickers apilados — se filtran por aspecto vertical >2.6 o (>1.9 y densidad
+  <0.55). Un personaje alto legítimo (princesa de vestido largo, ~1.7-2.2 denso)
+  pasa. Nunca volver al corte simétrico 1.9 (borraba a las princesas).
+- **Temas con UN solo tipo de personaje** (princesas): memoria/cubo/rutina
+  completan con OBJETOS del tema (`personajes_decorativos(..., incluir_objetos=
+  True)`) — coronas, castillos, varitas son mejores cartas que el relleno
+  genérico de corazones.
+- **Actividades**: el botón único precalienta `actividades_cache` al final del
+  job (la primera apertura tardaba minutos). La CALIDAD de las actividades es un
+  tema aparte pendiente (Pablo, 8-jul-2026: "tienen que mejorar mucho").
+- **Calendario: NO TOCAR** — lo arma Pablo a mano.

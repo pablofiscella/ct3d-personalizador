@@ -1,4 +1,4 @@
-"""Paper Toys / Figuras 3D para armar — cubo del nombre con la temática.
+"""Paper Toys / Figuras 3D para armar — cubo temático (dado de la fiesta).
 
 REDISEÑO 7-jul-2026 (skill armar-kit §11 — la versión anterior NO ARMABA: la
 "red" era una fila de 4 caras + 2 caras contiguas abajo que se superponían al
@@ -10,9 +10,9 @@ tenía <6 letras):
   NUMERADAS en orden de pegado (skill: la base se pega última para poder meter
   los dedos).
 - Líneas: corte = sólida gris; doblez = guiones.
-- El arte CONTINÚA a través de las aristas (mismo fondo de color corrido) y
-  las letras del nombre se reparten repitiendo si hace falta (nunca caras
-  vacías ni "?").
+- El arte CONTINÚA a través de las aristas (mismo fondo de color corrido).
+  SIN letras ni nombre (Pablo 8-jul-2026): las 6 caras llevan personajes del
+  tema — full imagen.
 - 300dpi real (A4 = 2480x3508): caras de 6cm — cubo terminado de 6cm.
 """
 import os, math, json, glob
@@ -95,13 +95,13 @@ def _doblez(dr, x0, y0, x1, y1):
 
 
 def cubo_personalizado(data, tema="safari"):
-    """Cubo del nombre: red en cruz válida + pestañas numeradas + arte del tema."""
+    """Cubo temático: red en cruz válida + pestañas numeradas + arte del tema.
+    SIN nombre (decisión de Pablo 8-jul-2026: full imagen, sin letras)."""
     acc = _accent(tema)
-    nombre = str(data.get("nombre") or "").strip().upper() or "FIESTA"
 
     im = Image.new("RGBA", (Wp, Hp), CREAM + (255,))
     dr = ImageDraw.Draw(im)
-    dr.text((60, 55), "CUBO PARA ARMAR · el dado de %s" % nombre.title(),
+    dr.text((60, 55), "CUBO PARA ARMAR · el dado del tema",
             font=_font(44, False), fill=_tint(acc, 0.3))
 
     lado = _mm(52)                                  # cubo terminado de 5.2cm
@@ -144,22 +144,20 @@ def cubo_personalizado(data, tema="safari"):
     fondo.alpha_composite(Image.composite(lunares, Image.new("RGBA", lunares.size, (0, 0, 0, 0)), mask))
     im.alpha_composite(fondo)
 
-    # ---- contenido por cara ----
-    letras = [nombre[i % len(nombre)] for i in range(4)]     # repite, nunca vacía
-    pjs = _personajes(tema, 2)
-    orden = ["T", "F", "B", "K"]
+    # ---- contenido por cara: personajes + objetos del tema en las 6 (sin letras) ----
+    pjs = _personajes(tema, 6)
+    if len(pjs) < 3:
+        try:
+            import cuaderno
+            pjs = cuaderno.personajes_decorativos(tema, 6, incluir_objetos=True)
+        except Exception:
+            pass
+    orden = ["F", "L", "R", "T", "B", "K"]        # las caras más visibles primero
     for i, k in enumerate(orden):
         x, y = caras[k]
-        ccx, ccy = x + lado / 2, y + lado / 2
-        dr.ellipse([ccx - lado * 0.33, ccy - lado * 0.33, ccx + lado * 0.33, ccy + lado * 0.33],
-                   fill=CREAM + (255,), outline=acc, width=6)
-        dr.text((ccx, ccy), letras[i], font=_font(int(lado * 0.42)), fill=INK, anchor="mm")
-    for k, pj in zip(("L", "R"), pjs or []):
-        x, y = caras[k]
-        _paste_h(im, pj, x + lado / 2, y + lado / 2, lado * 0.78)
-    if not pjs:
-        for k in ("L", "R"):
-            x, y = caras[k]
+        if pjs:
+            _paste_h(im, pjs[i % len(pjs)], x + lado / 2, y + lado / 2, lado * 0.78)
+        else:
             dr.ellipse([x + lado * 0.30, y + lado * 0.30, x + lado * 0.70, y + lado * 0.70],
                        fill=_tint(acc, 0.4))
 
@@ -206,7 +204,7 @@ def cubo_personalizado(data, tema="safari"):
     pasos = ["1. Recortá TODO el contorno (con las pestañas).",
              "2. Doblá por las líneas punteadas (marcalas antes con una regla).",
              "3. Pegá las pestañas EN ORDEN (1 a 7) — la 6 y 7 al final, son la base.",
-             "4. ¡Listo! Un dado con el nombre para jugar en la fiesta."]
+             "4. ¡Listo! Un dado del tema para jugar en la fiesta."]
     for t in pasos:
         dr2.text((Wp / 2, y), t, font=_font(38, False), fill=_tint(INK, 0.2), anchor="mm")
         y += _mm(9)

@@ -1,13 +1,11 @@
-"""Arte IA del gorro (fondo temático del abanico), generado UNA vez por tema con
-OpenAI, igual que calendario (fondo.png) y libro (ilustración): la IA solo aporta
-el arte de fondo — el nombre/edad SIEMPRE los escribe el motor encima, nunca
-quedan "horneados" en la imagen (evita el bug que tuvo calendario, donde un
-override ya renderizado tapaba la personalización de cada cliente).
+"""Arte IA del gorro y la corona (fondos temáticos), generado UNA vez por tema
+con OpenAI, igual que calendario (fondo.png) y libro (ilustración): la IA solo
+aporta el arte — el motor dibuja encima lo suyo (troqueles, gemas, marcas).
 
-La corona NO usa esto (ver corona.py): sus picos son triángulos angostos y
-recortar una ilustración ahí queda ilegible en fragmentos — se queda con el
-color liso de siempre. `fondo_path`/`cargar_fondo` siguen aceptando "corona"
-por si en el futuro se rediseña con una forma que sí lo aproveche."""
+Desde el 8-jul-2026 (feedback Pablo) NINGUNA de las dos piezas lleva nombre
+("se pone en el momento"): el gorro va sin insignia (su prompt ya no pide zona
+limpia) y la corona rediseñada (2 tiras con picos unidos) SÍ usa arte IA — su
+prompt pide un friso denso y parejo porque el recorte es una banda horizontal."""
 import io
 import os
 
@@ -35,19 +33,29 @@ def cargar_fondo(tema, pieza):
 def _prompt(tema, pieza):
     nombre_tema = tema.replace("-", " ")
     if pieza == "gorro":
+        # OJO: sin "zona limpia para la insignia" — desde el 8-jul-2026 el gorro va
+        # SIN nombre (se pone en el momento, feedback Pablo) y un claro circular en
+        # el arte queda como un agujero vacío.
         forma = ("un sector circular (como una porción de torta vista desde arriba, "
                  "con el vértice angosto arriba y el borde curvo ancho abajo) que al "
-                 "enrollarse forma un gorro cónico de cumpleaños para armar")
+                 "enrollarse forma un gorro cónico de cumpleaños para armar. Personajes "
+                 "del tema abajo (en el borde curvo ancho) y motivos chicos repartidos "
+                 "por TODA la superficie hasta las puntas y esquinas, SIN ninguna zona "
+                 "vacía, clara ni despejada en el centro")
     else:
-        forma = ("una franja horizontal ancha, decorada de punta a punta, pensada para "
-                 "recortar y armar como una corona de cumpleaños desplegada y aplanada")
+        # La corona recorta una BANDA horizontal del centro de la imagen (cover):
+        # patrón parejo tipo friso, sin escena con protagonistas que queden cortados.
+        forma = ("un friso/guarda horizontal DENSO y PAREJO con motivos chicos del "
+                 "tema repartidos uniformemente (como papel de regalo), tonos medios, "
+                 "sin personajes grandes protagonistas y sin zonas vacías — se recorta "
+                 "en franjas horizontales para armar una corona de cumpleaños, así que "
+                 "debe verse bien en CUALQUIER franja horizontal de la imagen")
     return (
         "Ilustración infantil APAISADA (horizontal) para imprimir y recortar, temática "
         "'%s'. Diseño de fondo/patrón decorativo para un %s de cumpleaños: %s. Mismo "
         "estilo, colores y personajes que la imagen de referencia. Que llene TODO el "
         "encuadre (sin márgenes en blanco). SIN NINGÚN TEXTO, LETRA, NÚMERO NI PALABRA "
-        "en la imagen — el nombre del cumpleañero va después, en una ventana circular "
-        "aparte que agrega el motor."
+        "en la imagen."
         % (nombre_tema, pieza, forma)
     )
 

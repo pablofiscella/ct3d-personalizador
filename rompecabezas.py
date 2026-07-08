@@ -9,7 +9,8 @@ código muerto que nunca se llamaba):
   determinístico — cada pieza es única, como los generadores profesionales.
 - Grilla por edad: 3x4 = 12 piezas de ~6cm (hasta 5 años) · 4x5 = 20 piezas
   (6+). Menores de 3: piezas grandes por diseño (ninguna < 4cm).
-- El nombre es PARTE del arte (banner integrado), nunca pisado por la grilla.
+- FULL IMAGEN, SIN nombre (decisión de Pablo 8-jul-2026): la imagen completa
+  del tema hecha rompecabezas — fondo IA dedicado o portada del libro.
 - Página 2 = BANDEJA: el contorno de las piezas (mismas formas, mismo seed)
   para armar encima + mini imagen de referencia del puzzle armado.
 - 300dpi real (A4 = 2480x3508).
@@ -133,9 +134,38 @@ def _grilla_por_edad(edad):
     return (4, 5) if e >= 6 else (3, 4)          # (cols, filas)
 
 
-def _arte(nombre, tema, w, h):
-    """El arte del puzzle: fondo con patrón del tema + personajes + el nombre en
-    un banner INTEGRADO al arte (no un texto flotando sobre la grilla)."""
+def _imagen_puzzle(tema):
+    """La imagen COMPLETA del puzzle (decisión de Pablo 8-jul-2026: full imagen,
+    SIN nombre — «como si fuera una imagen completa pero hecha rompecabezas»).
+    Prioridad: fondo IA dedicado (fondos_ia «rompecabezas») > la portada del
+    libro del tema (una escena rica ya generada) > ia_maestra > None."""
+    try:
+        import fondos_ia
+        f = fondos_ia.cargar_fondo(tema, "rompecabezas")
+        if f is not None:
+            return f
+    except Exception:
+        pass
+    try:
+        import libro
+        p = libro.override_escena_path(tema, 0)
+        if os.path.isfile(p):
+            return Image.open(p).convert("RGBA")
+    except Exception:
+        pass
+    p = os.path.join(TEMAS, tema, "ia_maestra.png")
+    if os.path.isfile(p):
+        return Image.open(p).convert("RGBA")
+    return None
+
+
+def _arte(tema, w, h):
+    """Arte a página completa. Con imagen del tema: cover (nunca estirar). Sin
+    imagen: fallback procedural (patrón + personajes), también sin nombre."""
+    img = _imagen_puzzle(tema)
+    if img is not None:
+        import fondos_ia
+        return fondos_ia.cover(img, int(w), int(h))
     acc = _accent(tema)
     im = Image.new("RGBA", (int(w), int(h)), _tint(acc, 0.8) + (255,))
     dr = ImageDraw.Draw(im)
@@ -146,26 +176,18 @@ def _arte(nombre, tema, w, h):
         dr.ellipse([x - r, y - r, x + r, y + r], fill=_tint(acc, rnd.choice((0.6, 0.7, 0.92))))
     pjs = _personajes(tema, 3)
     if pjs:
-        _paste_h(im, pjs[0], w * 0.5, h * 0.24, h * 0.34)
+        _paste_h(im, pjs[0], w * 0.5, h * 0.32, h * 0.40)
         for pj, fx in zip(pjs[1:], (0.26, 0.74)):
-            _paste_h(im, pj, w * fx, h * 0.76, h * 0.30)
-    by0, by1 = h * 0.435, h * 0.565
-    dr = ImageDraw.Draw(im)
-    dr.rounded_rectangle([w * 0.06, by0, w * 0.94, by1], _mm(6), fill=CREAM + (255,),
-                         outline=acc, width=10)
-    fs = int((by1 - by0) * 0.58)
-    while _font(fs).getbbox(nombre)[2] > w * 0.78 and fs > 40:
-        fs -= 4
-    dr.text((w / 2, (by0 + by1) / 2), nombre, font=_font(fs), fill=INK, anchor="mm")
+            _paste_h(im, pj, w * fx, h * 0.74, h * 0.32)
     return im
 
 
 def rompecabezas_nombre(data, tema="safari"):
-    """Página 1: el arte con los CORTES de puzzle dibujados encima."""
+    """Página 1: la imagen completa del tema con los CORTES de puzzle encima
+    (sin nombre — el seed de las formas sale de tema+grilla)."""
     acc = _accent(tema)
-    nombre = (str(data.get("nombre") or "").strip()) or "FIESTA"
     cols, filas = _grilla_por_edad(data.get("edad"))
-    seed = zlib.crc32(("%s|%s|%dx%d" % (nombre.lower(), tema, cols, filas)).encode())
+    seed = zlib.crc32(("%s|%dx%d" % (tema, cols, filas)).encode())
 
     im = Image.new("RGBA", (Wp, Hp), CREAM + (255,))
     dr = ImageDraw.Draw(im)
@@ -174,7 +196,7 @@ def rompecabezas_nombre(data, tema="safari"):
 
     aw, ah = _mm(180), _mm(240)
     ax, ay = (Wp - aw) / 2, _mm(22)
-    im.alpha_composite(_arte(nombre, tema, aw, ah), (int(ax), int(ay)))
+    im.alpha_composite(_arte(tema, aw, ah), (int(ax), int(ay)))
 
     horiz, vert = _bordes_grilla(cols, filas, seed)
     _dibujar_cortes(ImageDraw.Draw(im), ax, ay, aw, ah, cols, filas, horiz, vert, CORTE, 5)
@@ -192,9 +214,8 @@ def bandeja(data, tema="safari"):
     """Página 2: la BANDEJA — contornos de las MISMAS piezas (mismo seed) para
     armar encima + mini referencia del puzzle armado."""
     acc = _accent(tema)
-    nombre = (str(data.get("nombre") or "").strip()) or "FIESTA"
     cols, filas = _grilla_por_edad(data.get("edad"))
-    seed = zlib.crc32(("%s|%s|%dx%d" % (nombre.lower(), tema, cols, filas)).encode())
+    seed = zlib.crc32(("%s|%dx%d" % (tema, cols, filas)).encode())
 
     im = Image.new("RGBA", (Wp, Hp), CREAM + (255,))
     dr = ImageDraw.Draw(im)
@@ -211,7 +232,7 @@ def bandeja(data, tema="safari"):
 
     # mini referencia ADENTRO de la bandeja (esquina inferior derecha, como las
     # bandejas profesionales: las piezas la van tapando al armar)
-    mini = _arte(nombre, tema, aw, ah)
+    mini = _arte(tema, aw, ah)
     mini.thumbnail((int(_mm(38)), int(_mm(50))), Image.LANCZOS)
     mx = int(ax + aw - mini.width - _mm(6))
     my = int(ay + ah - mini.height - _mm(6))

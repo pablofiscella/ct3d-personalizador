@@ -223,7 +223,10 @@ def _decorar_header(im, tema):
     chars = []
     try:
         import cuaderno
-        chars = (cuaderno._extraer_monstruos(tema) or [])[:2]
+        # personajes FILTRADOS y deduplicados (los primeros 2 recortes crudos
+        # metían figuritas repetidas y chiquitas — feedback Pablo, princesas);
+        # completa con objetos del tema si hay un solo personaje
+        chars = cuaderno.personajes_decorativos(tema, 2, incluir_objetos=True)
     except Exception:
         chars = []
     if not chars:
@@ -258,18 +261,30 @@ def generar_rutina(data, tema="monstruos"):
     dr = ImageDraw.Draw(im)
     dr.rectangle([0, 0, Wp, Hp], fill=CREAM)
 
-    # ── encabezado (con un tono oscuro del ACENTO del tema — el navy fijo
-    # ignoraba la paleta de la temática, auditoría 7-jul-2026)
-    header = tuple(int(v * 0.45) for v in acc)
-    dr.rectangle([0, 0, Wp, 185], fill=header)
+    # ── encabezado con DEGRADÉ del acento + guirnalda de banderines (el
+    # rectángulo chato se veía pobre — feedback Pablo 8-jul-2026)
+    header_h = 185
+    oscuro = tuple(int(v * 0.42) for v in acc)
+    medio = tuple(int(v * 0.75) for v in acc)
+    col = Image.new("RGB", (1, header_h))
+    for i in range(header_h):
+        t = i / (header_h - 1)
+        col.putpixel((0, i), tuple(int(a + (b - a) * t) for a, b in zip(oscuro, medio)))
+    im.paste(col.resize((Wp, header_h)), (0, 0))
+    # banderines colgando del borde inferior del banner
+    for i in range(14):
+        bx = 40 + i * (Wp - 80) / 13
+        c = [_tint(acc, 0.15), (255, 214, 98), _tint(acc, 0.55)][i % 3]
+        dr.polygon([(bx - 22, header_h), (bx + 22, header_h), (bx, header_h + 40)], fill=c)
     nombre = (str(data.get("nombre") or "").strip() or "mi peque")
     titulo = "La rutina de %s" % nombre
-    fs = 70
-    while _font(fs).getbbox(titulo)[2] > Wp - 360 and fs > 40:
+    fs = 74
+    while _font(fs).getbbox(titulo)[2] > Wp - 420 and fs > 40:
         fs -= 3
+    dr.text((Wp / 2 + 3, 79), titulo, font=_font(fs), fill=tuple(int(v * 0.55) for v in oscuro), anchor="mm")
     dr.text((Wp / 2, 76), titulo, font=_font(fs), fill="white", anchor="mm")
     dr.text((Wp / 2, 140), "Mi día, paso a paso", font=_font(30, False),
-            fill=tuple(int(v + (255 - v) * 0.72) for v in acc), anchor="mm")
+            fill=tuple(int(v + (255 - v) * 0.78) for v in acc), anchor="mm")
     _decorar_header(im, tema)
 
     # ── dos columnas

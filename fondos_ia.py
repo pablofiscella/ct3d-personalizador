@@ -60,6 +60,16 @@ PIEZAS = {
             "etiqueta que se agrega después. Un toque mágico/nostálgico (estrellitas, "
             "destellos suaves)."),
     },
+    "rompecabezas": {
+        "size": "1024x1536",
+        "prompt": (
+            "Escena VERTICAL completa y vistosa de la temática '{tema}' para un "
+            "rompecabezas infantil: los personajes de la referencia GRANDES, "
+            "completos y bien centrados (lejos de los bordes) en una escena alegre "
+            "de su mundo, colores vivos y detalle de borde a borde, SIN zonas "
+            "vacías ni cielos lisos enormes (cada pieza del puzzle debe tener "
+            "algo que mirar)."),
+    },
     "memoria_dorso": {
         "size": "1024x1024",
         "prompt": (

@@ -173,11 +173,21 @@ def gorro(data, tema="safari"):
 
     fondo = _fondo_ia(tema, "gorro")
     if fondo is not None:
+        # base de color debajo del arte: si la IA dejó esquinas pálidas/blancas,
+        # que no se lean como "dibujo sin terminar" (feedback Pablo, princesas)
+        dr.polygon(pts, fill=_tint(acc, 0.75) + (255,))
         mask = Image.new("L", (WpH, HpH), 0)
         ImageDraw.Draw(mask).polygon(pts, fill=255)
         import fondos_ia
-        art = fondos_ia.cover(fondo, WpH, HpH)
-        im.paste(art, (0, 0), mask)
+        # cover al BBOX del abanico (no a la hoja entera): usa la franja central
+        # y densa del arte — cubrir la hoja dejaba los extremos del arco en el
+        # borde ralo de la imagen
+        bx0 = int(min(p[0] for p in pts)); by0 = int(min(p[1] for p in pts))
+        bx1 = int(max(p[0] for p in pts)); by1 = int(max(p[1] for p in pts))
+        art = fondos_ia.cover(fondo, bx1 - bx0, by1 - by0)
+        capa = Image.new("RGBA", (WpH, HpH), (0, 0, 0, 0))
+        capa.paste(art, (bx0, by0))
+        im.paste(capa, (0, 0), mask)
     else:
         dr.polygon(pts, fill=acc + (255,))
     dr.arc([cx - r, apex_y - r, cx + r, apex_y + r],
@@ -211,36 +221,34 @@ def gorro(data, tema="safari"):
     tab_ang = math.degrees(math.atan2(perp_r[1], perp_r[0]))
     _texto_rotado(im, "LENGÜETA", tab_mid, _font(40), (90, 80, 70), tab_ang)
 
-    r_slot = (r_tab0 + r_tab1) / 2 - 150            # misma distancia radial que la lengüeta
-    slot_c = (cx + r_slot * dir_l[0], apex_y + r_slot * dir_l[1])
+    # RANURA: corte PARALELO al borde izquierdo (dirección radial), metido hacia
+    # adentro del abanico y con el MISMO rango radial que la lengüeta — al enrollar
+    # el cono la lengüeta atraviesa la ranura de canto y encastra. (Antes el corte
+    # era tangencial y flotaba lejos del borde: no encastraba nada — feedback Pablo.)
     perp_l = (math.sin(ang_l), -math.cos(ang_l))
-    slot_len = 120
-    dr.line([(slot_c[0] - perp_l[0] * slot_len / 2, slot_c[1] - perp_l[1] * slot_len / 2),
-             (slot_c[0] + perp_l[0] * slot_len / 2, slot_c[1] + perp_l[1] * slot_len / 2)],
-            fill=(90, 80, 70), width=12)
-    dr.text((slot_c[0] - dir_l[0] * 110, slot_c[1] - dir_l[1] * 110), "RANURA",
-            font=_font(40), fill=(90, 80, 70), anchor="mm")
+    centroide = (cx, apex_y + 0.6 * r)
+    p_edge = (cx + ((r_tab0 + r_tab1) / 2) * dir_l[0],
+              apex_y + ((r_tab0 + r_tab1) / 2) * dir_l[1])
+    if (centroide[0] - p_edge[0]) * perp_l[0] + (centroide[1] - p_edge[1]) * perp_l[1] < 0:
+        perp_l = (-perp_l[0], -perp_l[1])          # que apunte hacia ADENTRO
+    inset = tab_w * 0.55
+    s0 = (cx + r_tab0 * dir_l[0] + perp_l[0] * inset,
+          apex_y + r_tab0 * dir_l[1] + perp_l[1] * inset)
+    s1 = (cx + r_tab1 * dir_l[0] + perp_l[0] * inset,
+          apex_y + r_tab1 * dir_l[1] + perp_l[1] * inset)
+    dr.line([s0, s1], fill=(90, 80, 70), width=12)
+    slot_ang = math.degrees(math.atan2(s1[1] - s0[1], s1[0] - s0[0]))
+    if slot_ang > 90:                              # que el texto no quede cabeza abajo
+        slot_ang -= 180
+    elif slot_ang < -90:
+        slot_ang += 180
+    _texto_rotado(im, "RANURA", ((s0[0] + s1[0]) / 2 + perp_l[0] * 70,
+                                 (s0[1] + s1[1]) / 2 + perp_l[1] * 70),
+                  _font(40), (90, 80, 70), slot_ang)
 
-    # -- insignia circular con nombre + edad: nunca texto directo sobre el arte --
-    badge_c = (cx, apex_y + 0.56 * r)
-    badge_r = 0.34 * r
-    dr.ellipse([badge_c[0] - badge_r, badge_c[1] - badge_r,
-                badge_c[0] + badge_r, badge_c[1] + badge_r],
-               fill=CREAM + (255,), outline=acc, width=10)
-    if nombre:
-        fs = int(badge_r * 0.62)
-        while _font(fs).getbbox(nombre)[2] > badge_r * 1.7 and fs > 48:
-            fs -= 3
-        dr.text((badge_c[0], badge_c[1] - badge_r * 0.16), nombre,
-                font=_font(fs), fill=(60, 45, 35), anchor="mm")
-    if edad_raw:
-        etxt = "%s años" % edad_raw if edad_raw != "1" else "1 añito"
-        dr.text((badge_c[0], badge_c[1] + badge_r * 0.42), etxt,
-                font=_font(int(badge_r * 0.3), False), fill=acc, anchor="mm")
-
-    personajes = _personajes(tema, 1)
-    if personajes:
-        _paste_h(im, personajes[0], cx, apex_y + r * 0.92, 300)
+    # SIN nombre ni edad (decisión de Pablo, 8-jul-2026: el gorro se imprime para
+    # todos los invitados y se pone en el momento — la edad solo elige el TALLE).
+    # Tampoco personajes sueltos pegados encima: el arte IA ya es la decoración.
 
     y_pie = apex_y + r + 140
     dr.text((cx, y_pie), "SIN pegamento: encastrá la lengüeta en la ranura. "
@@ -251,76 +259,89 @@ def gorro(data, tema="safari"):
     return im
 
 
-def corona(data, tema="safari"):
-    """Corona de rey/reina para armar. Tira con picos, solapas para pegar.
-    A4 apaisado (igual que gorro, mismo producto). El ancho de la tira escala
-    por talle (misma tabla de edades que el gorro — no hay una tercer medida
-    "de circunferencia" propia; usa el máximo de hoja disponible por talle).
-    Si el tema tiene un fondo generado con IA (corona_ia), se usa como arte de
-    los picos + la banda; el nombre va SIEMPRE en la banda color crema, tinta
-    oscura — nunca texto claro directo sobre el arte."""
-    acc = _accent(tema)
-    nombre = (str(data.get("nombre") or "").strip()) or ""
-    talla = _talla_de_edad(data.get("edad"))
-    escala = {"S": 0.80, "M": 0.90, "L": 1.0}[talla]
+def _silueta_corona(x0, x1, y_base, h_banda, h_pico, n):
+    """Contorno CONTINUO de media corona: banda + picos triangulares unidos
+    (un solo recorte, sin triángulos sueltos)."""
+    seg = (x1 - x0) / n
+    pts = [(x0, y_base), (x0, y_base - h_banda)]
+    for i in range(n):
+        vx = x0 + i * seg
+        pts.append((vx + seg / 2, y_base - h_banda - h_pico))
+        pts.append((vx + seg, y_base - h_banda))
+    pts.append((x1, y_base))
+    return pts
 
-    im = Image.new("RGBA", (WpH, HpH), (255, 255, 255, 255))
-    dr = ImageDraw.Draw(im)
-    dr.rectangle([0, 0, WpH, HpH], fill=CREAM)
 
-    y0 = 180
-    h_banda = 340
-    w_corona = (WpH - 360) * escala
-    x0 = (WpH - w_corona) / 2
-    banda_box = [x0 - 20, y0 + h_banda - 52, x0 + w_corona + 20, y0 + h_banda + 52]
-
-    picos = []
-    n_picos = 9
+def _tira_corona(im, dr, tema, acc, fondo, x0, x1, y_base, h_banda, h_pico, n_picos):
+    pts = _silueta_corona(x0, x1, y_base, h_banda, h_pico, n_picos)
+    borde = tuple(int(v * 0.55) for v in acc)
+    if fondo is not None:
+        dr.polygon(pts, fill=_tint(acc, 0.7) + (255,))     # base por si el arte trae claros
+        mask = Image.new("L", im.size, 0)
+        ImageDraw.Draw(mask).polygon(pts, fill=255)
+        import fondos_ia
+        bx0 = int(min(p[0] for p in pts)); by0 = int(min(p[1] for p in pts))
+        bx1 = int(max(p[0] for p in pts)); by1 = int(max(p[1] for p in pts))
+        art = fondos_ia.cover(fondo, bx1 - bx0, by1 - by0)
+        capa = Image.new("RGBA", im.size, (0, 0, 0, 0))
+        capa.paste(art, (bx0, by0))
+        im.paste(capa, (0, 0), mask)
+    else:
+        dr.polygon(pts, fill=acc + (255,))
+    dr.line(pts + [pts[0]], fill=borde, width=10, joint="curve")
+    # gema redonda en cada punta + gemas rombo en la banda (mitad de cada pico)
+    seg = (x1 - x0) / n_picos
+    gr = h_pico * 0.16
     for i in range(n_picos):
-        px = x0 + w_corona * (i / (n_picos - 1))
-        pico_h = (260 + ((i * 37) % 3) * 52) * escala
-        pico_w = 68 * escala
-        picos.append((px, pico_h,
-                      [(px - pico_w, y0 + h_banda), (px, y0 - pico_h + h_banda), (px + pico_w, y0 + h_banda)]))
+        gx, gy = x0 + i * seg + seg / 2, y_base - h_banda - h_pico
+        dr.ellipse([gx - gr, gy - gr, gx + gr, gy + gr],
+                   fill=(255, 214, 98), outline=borde, width=6)
+        if fondo is None:
+            # gemas rombo SOLO en el fallback liso — sobre el arte IA tapaban
+            # justo las caras de los personajes (feedback princesas)
+            ry, rw = y_base - h_banda / 2, h_banda * 0.20
+            dr.polygon([(gx, ry - rw), (gx + rw * 0.75, ry), (gx, ry + rw), (gx - rw * 0.75, ry)],
+                       fill=CREAM, outline=borde, width=5)
+    # zona de unión: línea punteada vertical cerca del extremo derecho
+    ux = x1 - (x1 - x0) * 0.055
+    for y in range(int(y_base - h_banda) + 12, int(y_base) - 12, 34):
+        dr.line([ux, y, ux, y + 17], fill=borde, width=5)
 
-    # Nota: la corona NO usa el fondo IA (a diferencia del gorro) — cada pico es
-    # un triángulo angosto y recortar la ilustración ahí la hace ilegible en
-    # fragmentos. Se queda con el color liso de siempre, que se ve prolijo.
-    for _px, _ph, pts in picos:
-        dr.polygon(pts, fill=acc, outline=_tint(acc, 0.2), width=6)
 
-    dr.rounded_rectangle(banda_box, 36, fill=CREAM, outline=acc, width=8)
+def corona(data, tema="safari"):
+    """Corona para armar — REDISEÑO 8-jul-2026 (feedback Pablo: los picos sueltos
+    no parecían corona, la tira no daba la vuelta a una cabeza real y el nombre
+    sobra porque se pone en el momento, igual que el gorro).
+    - DOS tiras en la misma hoja A4 apaisada que se UNEN entre sí (cinta o
+      pegamento por las líneas punteadas) → da la circunferencia real de una
+      cabeza (~50cm), ajustable por cuánto se solapan.
+    - Silueta CONTINUA: banda + picos triangulares unidos, un solo recorte por
+      tira, con gema dorada en cada punta y gemas rombo en la banda.
+    - Relleno con el arte IA del tema (corona_ia «corona» o, si no hay, el del
+      gorro); fallback color del tema. SIN nombre."""
+    acc = _accent(tema)
+    talla = _talla_de_edad(data.get("edad"))
+    esc = {"S": 0.85, "M": 0.95, "L": 1.0}[talla]
 
-    for px, pico_h, _pts in picos:
-        dr.ellipse([px - 30, y0 - pico_h + h_banda - 26, px + 30, y0 - pico_h + h_banda + 26],
-                   fill=(255, 255, 255), outline=acc, width=4)
+    im = Image.new("RGBA", (WpH, HpH), CREAM + (255,))
+    dr = ImageDraw.Draw(im)
+    fondo = _fondo_ia(tema, "corona")
+    if fondo is None:
+        fondo = _fondo_ia(tema, "gorro")
 
-    if nombre:
-        fs = 104
-        while _font(fs).getbbox(nombre)[2] > w_corona - 160 and fs > 48:
-            fs -= 3
-        dr.text(((x0 + x0 + w_corona) / 2, y0 + h_banda), nombre, font=_font(fs),
-                 fill=(60, 45, 35), anchor="mm")
+    x0, x1 = 70, WpH - 70                      # 2 tiras de ~283mm → ~50cm unidas
+    h_banda = 38 * _PXMM * esc
+    h_pico = 45 * _PXMM * esc
+    n_picos = 5
+    for y_base in (1180, 2280):
+        _tira_corona(im, dr, tema, acc, fondo, x0, x1, y_base, h_banda, h_pico, n_picos)
 
-    dr.line([x0 - 20, y0 + h_banda + 110, x0 + w_corona + 20, y0 + h_banda + 110],
-            fill=(180, 180, 180), width=4)
-    for x in range(int(x0 - 20), int(x0 + w_corona + 20), 30):
-        dr.line([x, y0 + h_banda + 110, x + 14, y0 + h_banda + 110], fill=(180, 180, 180), width=4)
-
-    dr.text((x0 - 20, y0 + h_banda + 136), "Doblar", font=_font(36, False), fill=(150, 150, 150))
-    dr.text((x0 + w_corona + 20, y0 + h_banda + 136), "Doblar", font=_font(36, False), fill=(150, 150, 150), anchor="ra")
-
-    cx = WpH / 2
-    _draw_instrucciones_en(im, dr, cx, y0 + h_banda + 320, acc)
-
-    personajes = _personajes(tema, 2)
-    if personajes:
-        spots = [(cx - 280, HpH - 380), (cx + 280, HpH - 380)] if len(personajes) > 1 else [(cx, HpH - 380)]
-        for p, (sx, sy) in zip(personajes, spots):
-            _paste_h(im, p, sx, sy, 440)
-
-    dr.text((60, 60), "%s" % _TALLES_GORRO[talla]["label"], font=_font(44, False), fill=_tint(acc, 0.3))
-    dr.text((cx, HpH - 60), "casatridimensional.com.ar", font=_font(36, False), fill=(180, 180, 180), anchor="mm")
+    dr.text((60, 52), "CORONA · %s" % _TALLES_GORRO[talla]["label"],
+            font=_font(44, False), fill=_tint(acc, 0.3))
+    dr.text((WpH / 2, 140), "Recortá las 2 tiras y unilas por las líneas punteadas "
+            "a la medida de la cabeza.", font=_font(42, False), fill=_tint(acc, 0.2), anchor="mm")
+    dr.text((WpH / 2, HpH - 55), "casatridimensional.com.ar",
+            font=_font(36, False), fill=(180, 180, 180), anchor="mm")
     return im
 
 

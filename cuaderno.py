@@ -210,7 +210,7 @@ def _es_personaje_vision(tema, paths):
         return None
 
 
-def personajes_decorativos(tema, n=2, variedad_estricta=False):
+def personajes_decorativos(tema, n=2, variedad_estricta=False, incluir_objetos=False):
     """n personajes reales del tema (recortados de la hoja de stickers) para decorar otros
     productos (rompecabezas, calendario, corona, cápsula, certificado, papertoys…). Reusa
     _extraer_monstruos; SIN fallback genérico — si el tema no tiene stickers, lista vacía
@@ -222,7 +222,13 @@ def personajes_decorativos(tema, n=2, variedad_estricta=False):
 
     variedad_estricta=True: SOLO un personaje por tipo (puede devolver menos de n).
     Lo usa el juego de la memoria — con la segunda pasada, dos leones apenas
-    distintos salían como pares DIFERENTES y el juego era injugable."""
+    distintos salían como pares DIFERENTES y el juego era injugable.
+
+    incluir_objetos=True: si con los personajes no alcanza, completa con los
+    OBJETOS del tema (coronas, castillos, varitas… los recortes que la visión
+    NO etiquetó como personaje pero pasan los filtros de calidad). Lo usa la
+    memoria: en temas de un solo tipo de personaje (princesas) las cartas
+    quedaban en 1 princesa + relleno genérico — feedback Pablo 8-jul-2026."""
     try:
         paths = _extraer_monstruos(tema) or []
     except Exception:
@@ -244,15 +250,22 @@ def personajes_decorativos(tema, n=2, variedad_estricta=False):
             opacos = sum(im.getchannel("A").histogram()[41:])
             if opacos / area < 0.35:
                 continue
-            # aspecto cercano a un personaje único (no una "torre" de stickers apilados
-            # ni una tira horizontal — esos son recortes mezclados que se ven mal).
-            if max(w, h) / max(1, min(w, h)) > 1.9:
+            # aspecto: descartar tiras HORIZONTALES (stickers pegados lado a lado)
+            # y COLUMNAS apiladas — pero un personaje parado es legítimamente ALTO
+            # (una princesa de vestido largo da ~1.7-2.2; el corte simétrico en 1.9
+            # las borraba). La columna apilada se delata por DENSIDAD baja (huecos
+            # transparentes entre sticker y sticker): alto + ralo = apilado.
+            asp_v = h / max(1, w)
+            if w >= h and w / max(1, h) > 1.9:
+                continue
+            if asp_v > 2.6 or (asp_v > 1.9 and opacos / area < 0.55):
                 continue
             cand.append((area, p, _ahash(im)))
         except Exception:
             pass
     if not cand:
         return []
+    cand_todos = list(cand)              # con objetos incluidos (para incluir_objetos)
     tipos = _es_personaje_vision(tema, paths)
     if tipos:
         # el modelo a veces lista objetos igual (con tipo "objeto"/"globo"/"flor"…)
@@ -290,6 +303,22 @@ def personajes_decorativos(tema, n=2, variedad_estricta=False):
     _pasada(exigir_tipo_nuevo=True)
     if not variedad_estricta:
         _pasada(exigir_tipo_nuevo=False)
+    if incluir_objetos and len(out) < n and tipos:
+        # completar con objetos del tema (recortes de calidad sin etiqueta de
+        # personaje), deduplicados contra lo ya elegido
+        objetos = sorted((c for c in cand_todos
+                          if os.path.basename(c[1]) not in tipos), key=lambda t: -t[0])
+        for _area, p, h in objetos:
+            if len(out) >= n:
+                break
+            if p in usados or any(_hamming(h, hu) <= 5 for hu in hashes):
+                continue
+            try:
+                out.append(Image.open(p).convert("RGBA"))
+            except Exception:
+                continue
+            usados.add(p)
+            hashes.append(h)
     return out
 
 def _lineart(path):

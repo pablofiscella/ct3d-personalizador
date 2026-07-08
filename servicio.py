@@ -2476,7 +2476,8 @@ function regen(i){
                 colorear.append(nombre)
         fondos = [p for p in fondos_ia.PIEZAS
                   if not os.path.isfile(fondos_ia.fondo_path(tema, p))]
-        gorro = 0 if os.path.isfile(corona_ia.fondo_path(tema, "gorro")) else 1
+        gorro = sum(1 for p in ("gorro", "corona")
+                    if not os.path.isfile(corona_ia.fondo_path(tema, p)))
         total_lib = libro.total_paginas(tema)          # 10 legado / 15 temas nuevos
         libro_pags = [i for i in range(total_lib)
                       if not os.path.isfile(libro.override_escena_path(tema, i))]
@@ -2554,8 +2555,10 @@ function regen(i){
                 emit("— Fondo de %s —" % pieza)
                 fondos_ia.generar(client, tema, pieza, calidad=calidad)
             if pend["gorro"]:
-                emit("— Fondo del gorro —")
-                corona_ia.generar(client, tema, "gorro", calidad=calidad)
+                for p in ("gorro", "corona"):
+                    if not os.path.isfile(corona_ia.fondo_path(tema, p)):
+                        emit("— Fondo del %s —" % p)
+                        corona_ia.generar(client, tema, p, calidad=calidad)
             if pend["libro"]:
                 if pend["historia_nueva"]:
                     import libro as _libro
@@ -2569,6 +2572,18 @@ function regen(i){
                 emit("✋ Libro NO generado: se agotó la reserva de historias nuevas — "
                      "hay que escribir argumentos nuevos antes de armar más libros "
                      "(así ningún tema repite historia).")
+            # precalentar el cuaderno de actividades: la primera apertura después
+            # de generar tardaba MUCHO armando el caché en vivo (feedback Pablo)
+            try:
+                import glob as _glob
+                import cuaderno as _cuad
+                for ed in pend["edades"]:
+                    if not _glob.glob(os.path.join(temas.TEMAS_DIR, tema,
+                                                   "actividades_cache", str(ed), "b*.png")):
+                        emit("— Precalentando actividades (edad %s) —" % ed)
+                        _cuad.base_paginas(tema, ed)
+            except Exception as e:
+                emit("(precalentado de actividades falló: %s)" % e)
             emit("✓ Tema completo. Revisá las piezas en la galería y aprobá el draft.")
         jid = ia_jobs.iniciar(trabajo)
         return self._json(200, {"ok": True, "job": jid, "total": total,

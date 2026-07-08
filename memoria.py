@@ -99,7 +99,8 @@ def _imagenes_pares(tema, n=6):
     imgs = []
     try:
         import cuaderno
-        imgs = cuaderno.personajes_decorativos(tema, n, variedad_estricta=True)
+        imgs = cuaderno.personajes_decorativos(tema, n, variedad_estricta=True,
+                                               incluir_objetos=True)
     except Exception:
         imgs = []
     if len(imgs) < n:
