@@ -867,6 +867,44 @@ def pieza_label(name):
 def piezas_nombres(tipo, tema="safari"):
     return [n for (n, _, _) in piezas_tipo(tema, tipo)]
 
+# ─────────────────────────────────────────────────────────────────────────────
+# BASE DE PERSONALIZACIÓN (Pablo, 10-jul-2026): qué imágenes CAMBIAN cuando el
+# cliente configura el editor de compra. "*" = todas las piezas del tipo; los
+# valores son los CAMPOS que las afectan. Todo lo que figura acá se GRABA en el
+# momento de la compra (el motor lo renderiza con los datos del comprador) — y
+# el dash avisa antes de pisar una de estas piezas con un override fijo (eso
+# congelaría el texto para todos los compradores, bug real del calendario).
+PERSONALIZADAS = {
+    "kit":            {"*": ["nombre", "edad", "fecha", "hora", "lugar", "direccion", "telefono"]},
+    "invitacion":     {"*": ["nombre", "edad", "fecha", "hora", "lugar", "direccion", "telefono"]},
+    "cartel":         {"*": ["nombre", "edad"]},
+    "fiesta-completa": {"*": ["nombre", "edad", "fecha", "hora", "lugar", "direccion", "telefono"]},
+    "actividades":    {"*": ["nombre", "edad"]},          # portada, consignas y diploma
+    "certificado":    {"*": ["nombre", "edad"]},
+    "corona":         {"*": ["edad"]},                    # la edad elige el TALLE
+    "menu":           {"*": ["menu_entrada", "menu_plato", "menu_postre", "menu_bebida"]},
+    "rompecabezas":   {"*": ["edad"]},                    # la edad elige la grilla
+    "capsula":        {"*": ["edad"]},                    # destino "tus 18 años"
+    "libro":          {"*": ["nombre", "edad", "dedicatoria"]},
+    "libro-premium":  {"*": ["nombre", "edad", "genero", "historia", "dedicatoria"]},
+    # libro-pdf y calendario: el editor no captura campos propios (se entregan
+    # ya armados / el calendario lo cura Pablo a mano)
+    "rutina":         {"*": ["nombre", "edad"]},
+    "milestone":      {"*": ["nombre"]},
+    "video-invitacion": {"*": ["nombre", "edad", "fecha", "hora", "lugar"]},
+    "invitacion-web": {"*": ["nombre", "edad", "fecha", "hora", "lugar", "direccion"]},
+    # FIJAS (sin datos del comprador): antifaces, memoria, papertoys, babyshower
+}
+
+
+def campos_de_pieza(tipo, nombre_pieza=None):
+    """Campos del editor que afectan a una pieza (lista vacía = pieza FIJA)."""
+    m = PERSONALIZADAS.get(tipo) or {}
+    if nombre_pieza and nombre_pieza in m:
+        return list(m[nombre_pieza])
+    return list(m.get("*", []))
+
+
 def piezas_meta(tipo, tema="safari"):
     """Lista [{idx, nombre, label}] de las piezas de un tipo/tema (para la galería de la ficha).
     El tema importa: los kits con arte estática (extras/) tienen piezas distintas por tema."""
@@ -875,11 +913,13 @@ def piezas_meta(tipo, tema="safari"):
             import cuaderno
             idxs = cuaderno.galeria_indices(tema, "6")
             if idxs:
-                return [{"idx": ci, "nombre": "p%02d" % ci, "label": "Página %d" % (n + 1)}
+                return [{"idx": ci, "nombre": "p%02d" % ci, "label": "Página %d" % (n + 1),
+                         "personaliza": campos_de_pieza(tipo)}
                         for n, ci in enumerate(idxs)]
         except Exception:
             pass
-    return [{"idx": i, "nombre": n, "label": pieza_label(n)}
+    return [{"idx": i, "nombre": n, "label": pieza_label(n),
+             "personaliza": campos_de_pieza(tipo, n)}
             for i, n in enumerate(piezas_nombres(tipo, tema))]
 
 def tipos_publicos():
