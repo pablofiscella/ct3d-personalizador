@@ -210,12 +210,25 @@ def gorro(data, tema="safari"):
     for d in (dir_r, dir_l):                       # bordes del abanico bien visibles
         dr.line([(cx, apex_y), (cx + r * d[0], apex_y + r * d[1])], fill=_tint(acc, 0.15), width=7)
 
-    # -- 2 agujeros para el elástico, cerca de las puntas del arco --
-    hole_r = 28
-    for d in (dir_r, dir_l):
-        hx, hy = cx + (r - 80) * d[0], apex_y + (r - 80) * d[1]
-        dr.ellipse([hx - hole_r, hy - hole_r, hx + hole_r, hy + hole_r],
-                   fill=CREAM, outline=(90, 80, 70), width=6)
+    # SIN círculos de elástico impresos (Pablo 9-jul-2026: quedaban flotando en
+    # la punta como algo sin dibujar — si quieren elástico, agujerean la punta).
+    # Cuñas de color en las PUNTAS: los extremos del arte IA son pálidos y esa
+    # última esquina quedaba como un triángulo blanco "sin pintar" — se tapa con
+    # una cuña del acento que lee como terminación del diseño.
+    for d, ang_borde, sgn in ((dir_r, ang_r, 1), (dir_l, ang_l, -1)):
+        perp = (math.sin(ang_borde), -math.cos(ang_borde))
+        p_mid = (cx + (r - 175) * d[0], apex_y + (r - 175) * d[1])
+        hacia_dentro = (cx - p_mid[0], (apex_y + 0.6 * r) - p_mid[1])
+        if perp[0] * hacia_dentro[0] + perp[1] * hacia_dentro[1] < 0:
+            perp = (-perp[0], -perp[1])
+        punta = (cx + r * d[0], apex_y + r * d[1])
+        a_arc = ang_borde + sgn * (110.0 / r)      # 110px sobre el arco, hacia adentro
+        q_arc = (cx + r * math.cos(a_arc), apex_y + r * math.sin(a_arc))
+        dr.polygon([p_mid, punta, q_arc,
+                    (p_mid[0] + perp[0] * 95, p_mid[1] + perp[1] * 95)],
+                   fill=_tint(acc, 0.3) + (255,))
+    dr.arc([cx - r, apex_y - r, cx + r, apex_y + r],
+           math.degrees(base - half), math.degrees(base + half), fill=acc, width=10)
 
     # -- lengüeta (borde derecho) + ranura (borde izquierdo): encastre sin pegamento --
     # Lengüeta en T: CUELLO más angosto que la ranura (pasa fácil) y CABEZA más
@@ -229,7 +242,9 @@ def gorro(data, tema="safari"):
         return (cx + rr * dir_r[0] + perp_r[0] * v, apex_y + rr * dir_r[1] + perp_r[1] * v)
 
     cuello0, cuello1 = 40, tab_len - 40            # cuello: 220 (ranura: 240)
-    v_cuello, ch = 80, 55                          # cabeza: 300 (> ranura) chanfle 45°
+    # cuello CORTO (2.5mm): la cabeza queda casi tocando el borde del gorro
+    # (feedback Pablo 9-jul-2026) — solo el juego justo para trabar en la ranura
+    v_cuello, ch = 30, 55                          # cabeza: 300 (> ranura) chanfle 45°
     tab_poly = [_pt_r(cuello0, 0), _pt_r(cuello0, v_cuello), _pt_r(0, v_cuello),
                 _pt_r(0, tab_w - ch), _pt_r(ch, tab_w), _pt_r(tab_len - ch, tab_w),
                 _pt_r(tab_len, tab_w - ch), _pt_r(tab_len, v_cuello),
@@ -272,7 +287,8 @@ def gorro(data, tema="safari"):
 
     y_pie = apex_y + r + 140
     dr.text((cx, y_pie), "SIN pegamento: encastrá la lengüeta en la ranura. "
-             "Elástico por los 2 agujeros.", font=_font(40, False), fill=_tint(acc, 0.25), anchor="mm")
+             "¿Elástico? Hacé un agujerito en cada punta.",
+            font=_font(40, False), fill=_tint(acc, 0.25), anchor="mm")
     dr.text((60, 60), "%s · arco %scm · alto %scm" % (cfg["label"], cfg["base_mm"] // 10, cfg["alto_mm"] // 10),
              font=_font(44, False), fill=_tint(acc, 0.3))
     dr.text((cx, HpH - 60), "casatridimensional.com.ar", font=_font(36, False), fill=(180, 180, 180), anchor="mm")
