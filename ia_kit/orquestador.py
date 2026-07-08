@@ -413,6 +413,16 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
     return {"generadas": generadas, "errores": errores}
 
 
+def _demasiado_blanco(im, umbral=0.5):
+    """True si más del `umbral` de la imagen es casi-blanco (el afiche debe llenar
+    la hoja con el dibujo del tema; si es mayormente blanco, gpt-image aplanó el
+    fondo — bug al replicar el afiche de campamento, Pablo 11-jul-2026)."""
+    g = im.convert("RGB").resize((80, 106), Image.LANCZOS)
+    px = list(g.getdata())
+    blancos = sum(1 for r, gg, b in px if r > 240 and gg > 240 and b > 240)
+    return blancos / len(px) > umbral
+
+
 def replicar_pieza(client, temas_dir, tema, pieza_key, edades, progress=None, calidad="medium"):
     """Replica <pieza>_<edades[0]> a las demás edades cambiando SOLO el número, usando esa
     imagen como referencia (mantiene composición/colores/estilo). Para piezas con número
@@ -427,29 +437,47 @@ def replicar_pieza(client, temas_dir, tema, pieza_key, edades, progress=None, ca
         raise RuntimeError("Generá primero el %s de %d año antes de replicar." % (pieza_key, base_edad))
     with open(base_path, "rb") as f:
         base = f.read()
+    # la maestra del tema ancla el estilo/FONDO ilustrado: sin ella, gpt-image al
+    # 'editar' tiende a aplanar el fondo a BLANCO (bug de Pablo con campamento).
+    refs = [base]
+    maestra = os.path.join(temas_dir, tema, "ia_maestra.png")
+    if os.path.exists(maestra):
+        with open(maestra, "rb") as f:
+            refs.append(f.read())
     size_t = tuple(int(x) for x in p.size.split("x"))
     generadas, errores = [], []
     for edad in edades:
         if int(edad) == base_edad:
             continue
         nombre = "%s_%d.png" % (pieza_key, int(edad))
-        try:
-            prompt = ("Reproducí esta lámina EXACTAMENTE IGUAL —misma composición, personajes, "
-                      "colores, fondo, recuadro y estilo, sin mover ni cambiar nada— EXCEPTO el "
-                      "número grande de edad: poné el número %d en lugar del %d. El número nuevo "
-                      "con EXACTAMENTE el mismo estilo, tamaño, grosor, color y RELLENO que el "
-                      "original: si el número original es de CONTORNO hueco (relleno claro), el "
-                      "nuevo también hueco de contorno; NO lo dibujes macizo/relleno de color."
-                      % (int(edad), base_edad))
-            raw = client.editar([base], prompt, p.size, quality=calidad)
-            im = validar_png(raw, size_esperado=size_t).convert("RGBA")
-            _guardar(im, draft, nombre)
-            ev = {"pieza": pieza_key, "edad": edad, "ok": True, "error": "", "archivo": nombre}
-        except Exception as e:
-            ev = {"pieza": pieza_key, "edad": edad, "ok": False, "error": str(e), "archivo": ""}
+        prompt = ("Reproducí esta lámina EXACTAMENTE IGUAL —misma composición, personajes, "
+                  "colores, FONDO ILUSTRADO, recuadro y estilo, sin mover ni cambiar nada— "
+                  "EXCEPTO el número grande de edad: poné el número %d en lugar del %d. El "
+                  "número nuevo con EXACTAMENTE el mismo estilo, tamaño, grosor, color y "
+                  "RELLENO que el original (si es de contorno hueco, dejalo hueco; no lo hagas "
+                  "macizo). CRÍTICO: CONSERVÁ el fondo ilustrado del tema de borde a borde; "
+                  "NUNCA dejes fondo BLANCO, liso ni vacío — la lámina llena TODA la hoja con "
+                  "el mismo dibujo de fondo que el original." % (int(edad), base_edad))
+        ok, ultimo = False, ""
+        for intento in range(3):     # si sale con fondo blanco, se rechaza y reintenta
+            try:
+                raw = client.editar(refs, prompt, p.size, quality=calidad)
+                im = validar_png(raw, size_esperado=size_t).convert("RGBA")
+                if _demasiado_blanco(im):
+                    ultimo = "salió con fondo blanco (se perdió el dibujo del tema)"
+                    continue
+                _guardar(im, draft, nombre)
+                ok = True
+                break
+            except Exception as e:
+                ultimo = str(e)
+                if "fondo blanco" not in ultimo:
+                    break
+        ev = ({"pieza": pieza_key, "edad": edad, "ok": True, "error": "", "archivo": nombre}
+              if ok else {"pieza": pieza_key, "edad": edad, "ok": False, "error": ultimo, "archivo": ""})
         if progress:
             progress(ev)
-        (generadas if ev["ok"] else errores).append(ev)
+        (generadas if ok else errores).append(ev)
     return {"generadas": generadas, "errores": errores}
 
 

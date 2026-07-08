@@ -301,11 +301,19 @@ def test_afiche_incremental_solo_edades_nuevas(tmp_path):
     assert faltan == [4, 5]
 
 
+class _ClienteColor:
+    """Genera láminas LLENAS de color (no blancas) — pasan el QA anti-fondo-blanco."""
+    def editar(self, refs, prompt, size, **kw):
+        w, h = (int(x) for x in size.split("x"))
+        b = io.BytesIO(); Image.new("RGB", (w, h), (30, 120, 30)).save(b, "PNG")
+        return b.getvalue()
+
+
 def test_replicar_pieza_genera_otras_edades(tmp_path):
     td = _tema_dir(tmp_path)
-    orquestador.generar_tema(_FakeClient(), td, "safari", edades=[1, 2, 3],
+    orquestador.generar_tema(_ClienteColor(), td, "safari", edades=[1, 2, 3],
                              quitar=lambda im, protect=True: im)   # crea afiche_1
-    res = orquestador.replicar_pieza(_FakeClient(), td, "safari", "afiche", [1, 2, 3])
+    res = orquestador.replicar_pieza(_ClienteColor(), td, "safari", "afiche", [1, 2, 3])
     draft = os.path.join(td, "safari", "ia_draft")
     assert os.path.exists(os.path.join(draft, "afiche_2.png"))
     assert os.path.exists(os.path.join(draft, "afiche_3.png"))
@@ -381,3 +389,31 @@ def test_aprobar_afiche_va_a_extras_y_raiz(tmp_path):
     assert (base / "afiche_2.png").exists()                 # arte base (raíz)
     assert (base / "extras" / "stickers_1.png").exists()    # el resto solo a extras
     assert not (base / "stickers_1.png").exists()
+
+
+def test_replicar_rechaza_fondo_blanco_y_reintenta(tmp_path):
+    """Replicar el afiche: si gpt-image devuelve fondo blanco (aplanó el dibujo),
+    se rechaza y reintenta; con maestra como ref. (bug de campamento, Pablo)."""
+    from PIL import ImageDraw
+    base = tmp_path / "safari"; (base / "ia_draft").mkdir(parents=True)
+    (base / "tema.json").write_text('{"edades":[1,2,3]}')
+    # afiche base LLENO de color (no blanco)
+    a = Image.new("RGBA", (32, 42), (30, 120, 30, 255))
+    a.save(base / "ia_draft" / "afiche_1.png")
+    Image.new("RGBA", (32, 42), (30, 120, 30, 255)).save(base / "ia_maestra.png")
+
+    class _ClienteBlancoUnaVez:
+        """1ª respuesta blanca (rechazada), 2ª con color (aceptada)."""
+        def __init__(self): self.n = 0
+        def editar(self, refs, prompt, size, **kw):
+            self.n += 1
+            w, h = (int(x) for x in size.split("x"))
+            col = (255, 255, 255) if self.n == 1 else (30, 120, 30)
+            im = Image.new("RGB", (w, h), col)
+            b = io.BytesIO(); im.save(b, "PNG"); return b.getvalue()
+
+    c = _ClienteBlancoUnaVez()
+    res = orquestador.replicar_pieza(c, str(tmp_path), "safari", "afiche", [1, 2])
+    assert res["generadas"] and not res["errores"]     # terminó OK tras reintentar
+    assert c.n == 2                                     # 1 blanca rechazada + 1 buena
+    assert (base / "ia_draft" / "afiche_2.png").exists()
