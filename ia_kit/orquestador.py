@@ -452,12 +452,14 @@ def replicar_pieza(client, temas_dir, tema, pieza_key, edades, progress=None, ca
         nombre = "%s_%d.png" % (pieza_key, int(edad))
         prompt = ("Reproducí esta lámina EXACTAMENTE IGUAL —misma composición, personajes, "
                   "colores, FONDO ILUSTRADO, recuadro y estilo, sin mover ni cambiar nada— "
-                  "EXCEPTO el número grande de edad: poné el número %d en lugar del %d. El "
-                  "número nuevo con EXACTAMENTE el mismo estilo, tamaño, grosor, color y "
-                  "RELLENO que el original (si es de contorno hueco, dejalo hueco; no lo hagas "
-                  "macizo). CRÍTICO: CONSERVÁ el fondo ilustrado del tema de borde a borde; "
-                  "NUNCA dejes fondo BLANCO, liso ni vacío — la lámina llena TODA la hoja con "
-                  "el mismo dibujo de fondo que el original." % (int(edad), base_edad))
+                  "EXCEPTO el número grande de edad: poné el número %d en lugar del %d. "
+                  "COPIÁ EL NÚMERO TAL CUAL EL ORIGINAL: mismo tamaño, grosor, tipografía y "
+                  "sobre todo el MISMO RELLENO Y COLOR. Si el número original está RELLENO/"
+                  "pintado de un color (p. ej. verde macizo), el nuevo también RELLENO del "
+                  "MISMO color macizo — NO lo dejes hueco ni con el interior blanco/claro. Si "
+                  "el original es de contorno hueco, dejalo hueco. No inventes, copiá su "
+                  "relleno exacto. CRÍTICO: CONSERVÁ el fondo ilustrado del tema de borde a "
+                  "borde; NUNCA dejes fondo BLANCO, liso ni vacío." % (int(edad), base_edad))
         ok, ultimo = False, ""
         for intento in range(3):     # si sale con fondo blanco, se rechaza y reintenta
             try:
