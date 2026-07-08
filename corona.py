@@ -212,23 +212,36 @@ def gorro(data, tema="safari"):
 
     # SIN círculos de elástico impresos (Pablo 9-jul-2026: quedaban flotando en
     # la punta como algo sin dibujar — si quieren elástico, agujerean la punta).
-    # Cuñas de color en las PUNTAS: los extremos del arte IA son pálidos y esa
-    # última esquina quedaba como un triángulo blanco "sin pintar" — se tapa con
-    # una cuña del acento que lee como terminación del diseño.
-    for d, ang_borde, sgn in ((dir_r, ang_r, 1), (dir_l, ang_l, -1)):
-        perp = (math.sin(ang_borde), -math.cos(ang_borde))
-        p_mid = (cx + (r - 175) * d[0], apex_y + (r - 175) * d[1])
-        hacia_dentro = (cx - p_mid[0], (apex_y + 0.6 * r) - p_mid[1])
-        if perp[0] * hacia_dentro[0] + perp[1] * hacia_dentro[1] < 0:
-            perp = (-perp[0], -perp[1])
-        punta = (cx + r * d[0], apex_y + r * d[1])
-        a_arc = ang_borde + sgn * (110.0 / r)      # 110px sobre el arco, hacia adentro
-        q_arc = (cx + r * math.cos(a_arc), apex_y + r * math.sin(a_arc))
-        dr.polygon([p_mid, punta, q_arc,
-                    (p_mid[0] + perp[0] * 95, p_mid[1] + perp[1] * 95)],
-                   fill=_tint(acc, 0.3) + (255,))
+    # PUNTAS con el propio patrón: los extremos del arte IA son pálidos y la
+    # esquina quedaba blanca; una cuña de color liso tampoco convenció ("rosa
+    # pero sin la gráfica") — se rellena con la franja vecina del MISMO arte,
+    # espejada, así el dibujo continúa hasta la punta.
+    if fondo is not None:
+        for d, ang_borde, sgn in ((dir_r, ang_r, 1), (dir_l, ang_l, -1)):
+            perp = (math.sin(ang_borde), -math.cos(ang_borde))
+            p_mid = (cx + (r - 195) * d[0], apex_y + (r - 195) * d[1])
+            hacia_dentro = (cx - p_mid[0], (apex_y + 0.6 * r) - p_mid[1])
+            if perp[0] * hacia_dentro[0] + perp[1] * hacia_dentro[1] < 0:
+                perp = (-perp[0], -perp[1])
+            punta = (cx + r * d[0], apex_y + r * d[1])
+            a_arc = ang_borde + sgn * (120.0 / r)  # 120px sobre el arco, hacia adentro
+            q_arc = (cx + r * math.cos(a_arc), apex_y + r * math.sin(a_arc))
+            poly = [p_mid, punta, q_arc,
+                    (p_mid[0] + perp[0] * 105, p_mid[1] + perp[1] * 105)]
+            xs = [p[0] for p in poly]; ys = [p[1] for p in poly]
+            wx0, wy0 = int(min(xs)), int(min(ys))
+            wx1, wy1 = int(max(xs)) + 1, int(max(ys)) + 1
+            sx, sy = int(-340 * d[0]), int(-340 * d[1])    # franja vecina, hacia adentro
+            src = im.crop((wx0 + sx, wy0 + sy, wx1 + sx, wy1 + sy))
+            src = src.transpose(Image.FLIP_LEFT_RIGHT)     # espejo: continúa el patrón
+            mk = Image.new("L", (wx1 - wx0, wy1 - wy0), 0)
+            ImageDraw.Draw(mk).polygon([(p[0] - wx0, p[1] - wy0) for p in poly], fill=255)
+            im.paste(src, (wx0, wy0), mk)
     dr.arc([cx - r, apex_y - r, cx + r, apex_y + r],
            math.degrees(base - half), math.degrees(base + half), fill=acc, width=10)
+    for d in (dir_r, dir_l):                       # bordes por encima del parche
+        dr.line([(cx, apex_y), (cx + r * d[0], apex_y + r * d[1])],
+                fill=_tint(acc, 0.15), width=7)
 
     # -- lengüeta (borde derecho) + ranura (borde izquierdo): encastre sin pegamento --
     # Lengüeta en T: CUELLO más angosto que la ranura (pasa fácil) y CABEZA más
