@@ -371,9 +371,13 @@ Botón **«⚡ Armar TODO el tema»** en la tarjeta de cada temática del dash �
   CÁPSULA del tiempo (línea en blanco para escribir a mano), MEMORIA (título) y
   BABY SHOWER (todas las hojas) — se imprimen para los invitados / se usan en el
   momento. La edad solo elige talles/grillas (y el texto del certificado).
-  Ronda 2 (9-jul): también SIN nombre certificado (línea para escribir a mano),
-  mes-a-mes y rutina. El nombre impreso queda únicamente en: LIBRO y BANDERÍN.
-  La corona lleva UNA sola ranura cerca del extremo (no 3) + lengüeta como el gorro.
+  REGLA FINAL (Pablo 9-jul-2026): las piezas PERSONALES (certificado, libro,
+  banderín, rutina, mes-a-mes, cápsula) llevan el nombre impreso AUTOMÁTICO
+  desde el editor de compra — el cliente lo tipea UNA vez al personalizar y
+  NUNCA escribe nada a mano (nada de líneas en blanco). Las piezas "de todos"
+  (gorro, corona, puzzle, cubo, menú, photo booth, memoria, baby shower) van
+  SIN nombre. La corona lleva UNA sola ranura cerca del extremo (no 3) +
+  lengüeta como el gorro.
 - **Cubo: caras L y R giradas 90°** (una a la derecha, otra a la izquierda): al
   plegar la caja quedan de costado y con el giro el dibujo se ve derecho.
 - **Gorro: la ranura va PEGADA al borde** (5mm adentro, paralela, mismo rango

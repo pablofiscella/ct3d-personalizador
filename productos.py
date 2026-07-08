@@ -176,11 +176,13 @@ def milestone(data, tema=None):
     import math
     W, H = A4
     acc = accent(tema); fnt = font_disp(tema); ink = ink_c(tema)
+    # nombre AUTOMÁTICO desde el editor de compra (el cliente no escribe a mano)
+    nombre = (data.get("nombre") or "").strip()
     base = Image.new("RGBA", (W, H), WHITE + (255,))
     d = ImageDraw.Draw(base)
     _frame(d, W, H, acc)
-    # SIN nombre (Pablo 9-jul-2026) — título genérico
-    txt(d, "El primer año del bebé", W / 2, 248, fnt, 116, acc, W * 0.80, wght=700)
+    titulo = ("El primer año de " + nombre) if nombre else "El primer año del bebé"
+    txt(d, titulo, W / 2, 248, fnt, 116, acc, W * 0.80, wght=700)
     txt(d, "Pegá la foto de cada mes", W / 2, 384, "Fredoka-VF.ttf", 48, _tint(ink, 0.12), W * 0.7, wght=600)
 
     cx, cy = W / 2, H * 0.595
