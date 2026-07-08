@@ -210,7 +210,7 @@ def _es_personaje_vision(tema, paths):
         return None
 
 
-def personajes_decorativos(tema, n=2):
+def personajes_decorativos(tema, n=2, variedad_estricta=False):
     """n personajes reales del tema (recortados de la hoja de stickers) para decorar otros
     productos (rompecabezas, calendario, corona, cápsula, certificado, papertoys…). Reusa
     _extraer_monstruos; SIN fallback genérico — si el tema no tiene stickers, lista vacía
@@ -218,7 +218,11 @@ def personajes_decorativos(tema, n=2):
     filtradas por un clasificador de visión personaje-vs-objeto (cacheado — sin él, la
     mesa y el frasco de artistas salían de 'personajes'), y DEDUPLICADAS por hash
     perceptual (la misma figura aparece varias veces en la hoja y salían 2-3 monitos
-    idénticos en una pieza)."""
+    idénticos en una pieza).
+
+    variedad_estricta=True: SOLO un personaje por tipo (puede devolver menos de n).
+    Lo usa el juego de la memoria — con la segunda pasada, dos leones apenas
+    distintos salían como pares DIFERENTES y el juego era injugable."""
     try:
         paths = _extraer_monstruos(tema) or []
     except Exception:
@@ -284,7 +288,8 @@ def personajes_decorativos(tema, n=2):
             if t is not None:
                 tipos_usados.add(t)
     _pasada(exigir_tipo_nuevo=True)
-    _pasada(exigir_tipo_nuevo=False)
+    if not variedad_estricta:
+        _pasada(exigir_tipo_nuevo=False)
     return out
 
 def _lineart(path):

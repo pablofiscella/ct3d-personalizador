@@ -258,15 +258,18 @@ def generar_rutina(data, tema="monstruos"):
     dr = ImageDraw.Draw(im)
     dr.rectangle([0, 0, Wp, Hp], fill=CREAM)
 
-    # ── encabezado
-    dr.rectangle([0, 0, Wp, 185], fill=NAVY)
+    # ── encabezado (con un tono oscuro del ACENTO del tema — el navy fijo
+    # ignoraba la paleta de la temática, auditoría 7-jul-2026)
+    header = tuple(int(v * 0.45) for v in acc)
+    dr.rectangle([0, 0, Wp, 185], fill=header)
     nombre = (str(data.get("nombre") or "").strip() or "mi peque")
     titulo = "La rutina de %s" % nombre
     fs = 70
     while _font(fs).getbbox(titulo)[2] > Wp - 360 and fs > 40:
         fs -= 3
     dr.text((Wp / 2, 76), titulo, font=_font(fs), fill="white", anchor="mm")
-    dr.text((Wp / 2, 140), "Mi día, paso a paso", font=_font(30, False), fill=(200, 195, 225), anchor="mm")
+    dr.text((Wp / 2, 140), "Mi día, paso a paso", font=_font(30, False),
+            fill=tuple(int(v + (255 - v) * 0.72) for v in acc), anchor="mm")
     _decorar_header(im, tema)
 
     # ── dos columnas

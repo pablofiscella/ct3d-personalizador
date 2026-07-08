@@ -517,6 +517,9 @@ async function openProductosNuevos(tema, nombre){
     // pieza "stickers" ahí. Este botón hace lo mismo sin salir de acá.
     const usaPersonajes = ['certificado','corona','rompecabezas','capsula','papertoys','memoria','rutina'].includes(tipoActual);
     const esCorona = tipoActual === 'corona';
+    // tipos con FONDO IA propio (fondos_ia.py): marco del menú, orla del
+    // certificado, sobre de la cápsula, patrón del dorso del memoria
+    const usaFondoIA = ['menu','certificado','capsula','memoria'].includes(tipoActual);
     body.innerHTML=
       (esLibro ? `
       <div style="background:var(--accent-tint,rgba(107,91,210,.08));border:1px dashed var(--accent);border-radius:10px;padding:14px;margin-bottom:14px">
@@ -588,6 +591,17 @@ async function openProductosNuevos(tema, nombre){
           <button id="cor-generar-btn" class="btn-primary" style="padding:8px 14px;font-size:12px">✨ Generar con IA</button>
         </div>
         <div id="cor-status" style="font-size:12px;margin-top:8px;min-height:18px"></div>
+      </div>` : '') +
+      (usaFondoIA ? `
+      <div style="background:var(--accent-tint,rgba(107,91,210,.08));border:1px dashed var(--accent);border-radius:10px;padding:14px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div style="flex:1;min-width:160px">
+            <div style="font-weight:600;font-size:13px;margin-bottom:4px">✨ Fondos ilustrados del tema</div>
+            <div style="font-size:11.5px;opacity:.7">Genera con IA los fondos de TODOS los productos individuales que faltan (marco del menú, orla del certificado, sobre de la cápsula, dorso del memoria y gorro) con la impronta del tema. El texto lo sigue escribiendo el motor. Sin fondo, cada pieza usa su diseño de color liso. Tarda ~1 min por fondo.</div>
+          </div>
+          <button id="fon-generar-btn" class="btn-primary" style="padding:8px 14px;font-size:12px">✨ Generar los que faltan</button>
+        </div>
+        <div id="fon-status" style="font-size:12px;margin-top:8px;min-height:18px"></div>
       </div>` : '') +
     `<div style="margin-bottom:10px;display:flex;gap:8px;align-items:center"><a class="btn-ghost" style="font-size:12px;text-decoration:none;display:inline-block"
         href="/dash/producto-zip?tema=${encodeURIComponent(tema)}&tipo=${encodeURIComponent(tipoActual)}&key=${encodeURIComponent(KEY)}">⬇ Descargar todas (ZIP)</a>
@@ -707,6 +721,29 @@ async function openProductosNuevos(tema, nombre){
             }catch(_){}
           },2500);
         }catch(e){ st.textContent='✕ '+e; corBtn.disabled=false; }
+      };
+    }
+    // Fondos IA de los productos individuales (menú/certificado/cápsula/memoria):
+    // genera los que faltan del tema, incremental — mismo patrón job+polling.
+    const fonBtn=document.getElementById('fon-generar-btn');
+    if(fonBtn){
+      const st=document.getElementById('fon-status');
+      fonBtn.onclick=async()=>{
+        fonBtn.disabled=true; st.textContent='Arrancando…';
+        try{
+          const r=await fetch('/dash/fondos-ia-generar?tema='+encodeURIComponent(tema),{method:'POST',headers:{'X-API-Key':KEY}});
+          const jr=await r.json();
+          if(!jr.ok){ st.textContent='✕ '+(jr.error||'error'); fonBtn.disabled=false; return; }
+          if(!jr.job){ st.textContent=jr.mensaje||'Ya está todo generado.'; fonBtn.disabled=false; return; }
+          const poll=setInterval(async()=>{
+            try{
+              const e=await (await fetch('/dash/ia-estado?job='+jr.job+'&key='+encodeURIComponent(KEY))).json();
+              const ev=(e.eventos||[]); st.textContent=ev.length?ev[ev.length-1]:'Generando…';
+              if(e.estado==='listo'){ clearInterval(poll); st.textContent='✓ Fondos listos.'; fonBtn.disabled=false; await cargarPiezas(); }
+              if(e.estado==='error'){ clearInterval(poll); st.textContent='✕ '+(e.error||'falló'); fonBtn.disabled=false; }
+            }catch(_){}
+          },2500);
+        }catch(e){ st.textContent='✕ '+e; fonBtn.disabled=false; }
       };
     }
     // Libro: escuchar el audiolibro demo del tema (se genera una vez)

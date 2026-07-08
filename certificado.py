@@ -1,14 +1,28 @@
-"""Certificado oficial de cumpleañero — diploma A4 imprimible.
-Personalizado con nombre + edad + temática. Marco decorativo, medalla, sello."""
+"""Certificado oficial de cumpleañero — diploma imprimible para enmarcar.
+
+REDISEÑO 8-jul-2026 (skill armar-kit §10 — antes: la medalla pisaba el título,
+el sello era un círculo vacío, muebles sobre la línea de firma, 150dpi → A5):
+- A4 APAISADO a 300dpi (el formato clásico de diploma, entra en marco 8x10/A4).
+- Fondo IA del tema (fondos_ia.py, pieza "certificado": orla decorada + centro
+  claro) si existe; fallback procedural con doble orla.
+- Jerarquía clásica: título → "otorgado a" → NOMBRE (lo más grande) → motivo →
+  fecha + firma → sello/roseta dibujado con cintas, sin superposiciones.
+- El texto SIEMPRE lo escribe el motor (nunca horneado en el arte)."""
 import os, math, json, glob
 from PIL import Image, ImageDraw, ImageFont
 
 KIT = os.path.dirname(os.path.abspath(__file__))
 TEMAS = os.path.join(KIT, "temas")
-Wp, Hp = 1240, 1754
+_PXMM = 2480 / 210.0
+WpH, HpH = 3508, 2480                # A4 APAISADO @300dpi
+Wp, Hp = 2480, 3508                  # (referencia vertical, no se usa acá)
 CREAM = (253, 250, 242)
 GOLD = (212, 175, 55)
 INK = (60, 50, 45)
+
+
+def _mm(v):
+    return v * _PXMM
 
 
 def _font(sz, bold=True):
@@ -21,6 +35,7 @@ def _font(sz, bold=True):
         except Exception: pass
     return ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", sz)
 
+
 def _accent(tema):
     try:
         d = json.load(open(os.path.join(TEMAS, tema, "tema.json")))
@@ -31,25 +46,34 @@ def _accent(tema):
         return (107, 91, 210)
 
 
-def _medalla(dr, cx, cy, r, col, gold):
-    dr.ellipse([cx - r, cy - r, cx + r, cy + r], fill=gold, outline=col, width=max(3, r//12))
-    dr.ellipse([cx - r*0.78, cy - r*0.78, cx + r*0.78, cy + r*0.78], fill=col, outline=gold, width=max(2, r//15))
-    pts = [(cx - r*1.2, cy + r*0.7), (cx, cy + r*2.2), (cx + r*1.2, cy + r*0.7)]
-    dr.polygon(pts, fill=col, outline=gold, width=max(2, r//14))
-    dr.polygon([(cx - r*0.5, cy + r*0.9), (cx, cy + r*1.6), (cx + r*0.5, cy + r*0.9)], fill=gold)
+def _tint(c, p):
+    return tuple(int(v + (255 - v) * p) for v in c[:3])
 
 
-def _sello(dr, cx, cy, r, col):
-    dr.ellipse([cx - r, cy - r, cx + r, cy + r], outline=col, width=max(3, r//12))
-    dr.ellipse([cx - r*0.85, cy - r*0.85, cx + r*0.85, cy + r*0.85], outline=col, width=max(2, r//18))
-    for i in range(20):
-        a = i * math.pi / 10
-        inner_r = r if i % 2 == 0 else r * 0.88
-        x1 = cx + r * 0.95 * math.cos(a)
-        y1 = cy + r * 0.95 * math.sin(a)
-        x2 = cx + inner_r * math.cos(a)
-        y2 = cy + inner_r * math.sin(a)
-        dr.line([x1, y1, x2, y2], fill=col, width=max(2, r//16))
+def _roseta(dr, cx, cy, r, col, gold):
+    """Sello/roseta con cintas — abajo a la derecha, sin pisar nada."""
+    # cintas
+    for s in (-1, 1):
+        dr.polygon([(cx + s * r * 0.25, cy + r * 0.5),
+                    (cx + s * r * 0.9, cy + r * 2.1),
+                    (cx + s * r * 0.35, cy + r * 1.75),
+                    (cx + s * r * 0.05, cy + r * 2.25)], fill=col)
+    # roseta dentada
+    pts = []
+    for i in range(24):
+        a = i * math.pi / 12
+        rr = r if i % 2 == 0 else r * 0.86
+        pts.append((cx + rr * math.cos(a), cy + rr * math.sin(a)))
+    dr.polygon(pts, fill=gold)
+    dr.ellipse([cx - r * 0.72, cy - r * 0.72, cx + r * 0.72, cy + r * 0.72],
+               fill=CREAM, outline=col, width=6)
+    # estrella central
+    est = []
+    for i in range(10):
+        a = -math.pi / 2 + i * math.pi / 5
+        rr = r * 0.5 if i % 2 == 0 else r * 0.22
+        est.append((cx + rr * math.cos(a), cy + rr * math.sin(a)))
+    dr.polygon(est, fill=col)
 
 
 def _personajes(tema, n=1):
@@ -65,50 +89,75 @@ def _paste_h(base, img, cx, cy, h):
     base.alpha_composite(img.resize((w, int(h)), Image.LANCZOS), (int(cx - w / 2), int(cy - h / 2)))
 
 
+def _fondo(tema):
+    try:
+        import fondos_ia
+        return fondos_ia.cargar_fondo(tema, "certificado")
+    except Exception:
+        return None
+
+
 def generar_certificado(data, tema="safari"):
     acc = _accent(tema)
     nombre = (str(data.get("nombre") or "").strip()) or "______________"
     edad = str(data.get("edad") or "").strip() or "_____"
-    anyo = str(data.get("anyo") or data.get("fecha", ""))[:4] or "_____"
 
-    im = Image.new("RGBA", (Wp, Hp), (255, 255, 255, 255))
-    dr = ImageDraw.Draw(im)
-    dr.rectangle([0, 0, Wp, Hp], fill=CREAM)
+    fondo = _fondo(tema)
+    if fondo is not None:
+        im = fondo.resize((WpH, HpH), Image.LANCZOS)
+        dr = ImageDraw.Draw(im)
+    else:
+        im = Image.new("RGBA", (WpH, HpH), CREAM + (255,))
+        dr = ImageDraw.Draw(im)
+        dr.rounded_rectangle([_mm(8), _mm(8), WpH - _mm(8), HpH - _mm(8)], _mm(8),
+                             outline=GOLD, width=12)
+        dr.rounded_rectangle([_mm(13), _mm(13), WpH - _mm(13), HpH - _mm(13)], _mm(6),
+                             outline=acc, width=6)
+        pjs = _personajes(tema, 2)
+        if pjs:
+            spots = [(WpH * 0.11, HpH - _mm(42)), (WpH * 0.89, HpH - _mm(42))][:len(pjs)]
+            for p, (sx, sy) in zip(pjs, spots):
+                _paste_h(im, p, sx, sy, _mm(46))
+            dr = ImageDraw.Draw(im)
 
-    bx, by = 120, 100
-    dr.rounded_rectangle([bx, by, Wp - bx, Hp - by], 60, outline=GOLD, width=6)
-    dr.rounded_rectangle([bx + 20, by + 20, Wp - bx - 20, Hp - by - 20], 45, outline=acc, width=3)
+    cx = WpH / 2
+    dr.text((cx, _mm(34)), "CERTIFICADO", font=_font(150), fill=GOLD, anchor="mm")
+    dr.text((cx, _mm(50)), "OFICIAL DE CUMPLEAÑERO", font=_font(70, False), fill=INK, anchor="mm")
+    dr.text((cx, _mm(68)), "Se otorga el presente certificado a", font=_font(56, False),
+            fill=_tint(INK, 0.2), anchor="mm")
 
-    _medalla(dr, Wp/2, 340, 90, acc, GOLD)
+    # NOMBRE: el elemento más grande de la pieza (skill §10)
+    nom_fs = 230
+    while _font(nom_fs).getbbox(nombre)[2] > WpH * 0.62 and nom_fs > 80:
+        nom_fs -= 6
+    dr.text((cx, _mm(92)), nombre, font=_font(nom_fs), fill=acc, anchor="mm")
+    # subrayado suave bajo el nombre
+    nw = _font(nom_fs).getbbox(nombre)[2]
+    dr.line([cx - nw / 2, _mm(107), cx + nw / 2, _mm(107)], fill=_tint(acc, 0.55), width=6)
 
-    dr.text((Wp/2, 480), "CERTIFICADO", font=_font(80), fill=GOLD, anchor="mm")
-    dr.text((Wp/2, 555), "OFICIAL DE CUMPLEAÑOS", font=_font(44, False), fill=INK, anchor="mm")
+    dr.text((cx, _mm(122)), "por cumplir %s años con alegría, juegos y mucha diversión" % edad,
+            font=_font(58, False), fill=_tint(INK, 0.15), anchor="mm")
 
-    dr.text((Wp/2, 680), "Se otorga el presente certificado a", font=_font(32, False), fill=INK, anchor="mm")
-
-    nom_fs = 120
-    while _font(nom_fs).getbbox(nombre)[2] > Wp - 300 and nom_fs > 40:
-        nom_fs -= 4
-    dr.text((Wp/2, 820), nombre, font=_font(nom_fs), fill=acc, anchor="mm")
-
-    dr.text((Wp/2, 940), "por haber cumplido", font=_font(30, False), fill=INK, anchor="mm")
-
-    edad_fs = 90
-    while _font(edad_fs).getbbox(edad + " años")[2] > Wp - 350 and edad_fs > 40:
-        edad_fs -= 4
-    dr.text((Wp/2, 1060), edad + " años", font=_font(edad_fs), fill=acc, anchor="mm")
-
-    dr.text((Wp/2, 1160), "con alegría, amor y mucha diversión.", font=_font(28, False), fill=INK, anchor="mm")
-
-    _sello(dr, Wp*0.75, Hp - 250, 80, GOLD)
-    personajes = _personajes(tema, 1)
-    if personajes:
-        _paste_h(im, personajes[0], Wp * 0.25, Hp - 260, 190)
-
-    dr.line([Wp*0.2, Hp - 180, Wp*0.45, Hp - 180], fill=INK, width=2)
-    dr.text((Wp*0.325, Hp - 165), "Firma", font=_font(24, False), fill=(150, 150, 160), anchor="mm")
-
-    dr.text((Wp/2, Hp - 60), "casatridimensional.com.ar", font=_font(20, False), fill=(180, 180, 180), anchor="mm")
+    if fondo is not None:
+        # el arte IA trae personajes en las esquinas inferiores → la firma y la
+        # roseta van DENTRO del centro limpio, no encima de los personajes
+        yb = _mm(148)
+        dr.line([WpH * 0.30, yb, WpH * 0.52, yb], fill=INK, width=4)
+        dr.text((WpH * 0.41, yb + _mm(7)), "Firma del adulto a cargo de los abrazos",
+                font=_font(40, False), fill=(140, 140, 150), anchor="mm")
+        _roseta(dr, WpH * 0.63, yb - _mm(4), _mm(13), acc, GOLD)
+        dr.text((cx, HpH - _mm(9)), "casatridimensional.com.ar", font=_font(36, False),
+                fill=(150, 148, 145), anchor="mm",
+                stroke_width=5, stroke_fill=(255, 253, 246))
+    else:
+        # zona inferior: fecha + firma a la izquierda · roseta a la derecha
+        yb = HpH - _mm(42)
+        dr.line([WpH * 0.16, yb, WpH * 0.38, yb], fill=INK, width=4)
+        dr.text((WpH * 0.27, yb + _mm(8)), "Firma del adulto a cargo de los abrazos",
+                font=_font(40, False), fill=(150, 150, 160), anchor="mm")
+        _roseta(dr, WpH * 0.72, yb - _mm(10), _mm(17), acc, GOLD)
+        dr.text((cx, HpH - _mm(12)), "casatridimensional.com.ar", font=_font(36, False),
+                fill=(180, 180, 180), anchor="mm")
     return im
 
 

@@ -922,6 +922,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._ia_regenerar()
         if path == "/dash/corona-ia-generar":
             return self._corona_ia_generar()
+        if path == "/dash/fondos-ia-generar":
+            return self._fondos_ia_generar()
         if path == "/dash/agregar-edades":
             return self._dash_agregar_edades()
         if path == "/dash/ia-colorear-variantes":
@@ -2416,6 +2418,41 @@ function regen(i){
                 corona_ia.generar(client, tema, pieza, calidad=calidad)
         jid = ia_jobs.iniciar(trabajo)
         return self._json(200, {"ok": True, "job": jid})
+
+    def _fondos_ia_generar(self):
+        """Genera los fondos IA de los productos individuales de un tema (menú,
+        certificado, cápsula, dorso del memoria — ver fondos_ia.PIEZAS) + el del
+        gorro. INCREMENTAL por default (solo los que faltan); ?todo=1 regenera
+        todos. Arte de fondo únicamente: la personalización la escribe siempre
+        el motor encima. Background + polling, mismo patrón que ia-generar."""
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        client = _openai_client()
+        if client is None:
+            return self._json(503, {"ok": False, "error": "falta OPENAI_API_KEY"})
+        calidad = _calidad(q)
+        todo = q.get("todo", ["0"])[0] == "1"
+        import fondos_ia, corona_ia
+        pend = [p for p in fondos_ia.PIEZAS
+                if todo or not os.path.isfile(fondos_ia.fondo_path(tema, p))]
+        gorro_falta = todo or not os.path.isfile(corona_ia.fondo_path(tema, "gorro"))
+        if not pend and not gorro_falta:
+            return self._json(200, {"ok": True, "job": None, "total": 0,
+                                    "mensaje": "Ya están todos los fondos. Usá ?todo=1 para rehacerlos."})
+        def trabajo(emit):
+            for pieza in pend:
+                emit("Generando fondo de %s…" % pieza)
+                fondos_ia.generar(client, tema, pieza, calidad=calidad)
+            if gorro_falta:
+                emit("Generando fondo del gorro…")
+                corona_ia.generar(client, tema, "gorro", calidad=calidad)
+        jid = ia_jobs.iniciar(trabajo)
+        return self._json(200, {"ok": True, "job": jid,
+                                "total": len(pend) + (1 if gorro_falta else 0)})
 
     def _ia_colorear_variantes(self):
         """Genera las 3 variantes de 'colorear' que necesita el cuaderno de actividades

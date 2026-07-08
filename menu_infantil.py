@@ -1,14 +1,26 @@
 """Menú infantil personalizado — para la mesa del cumple.
-Hoja A4 con espacio para colorear + menú + nombre del cumpleañero.
-Ideal para restaurantes / salones de fiesta."""
+
+REDISEÑO 8-jul-2026 (skill armar-kit §5 — antes: media hoja vacía, "coloreá el
+menú" sin nada para colorear, íconos crudos, 150dpi → imprimía A5):
+- 300dpi real (A4 = 2480x3508).
+- Fondo IA del tema (fondos_ia.py, pieza "menu": marco decorado + centro claro)
+  si existe; fallback procedural con marco de lunares.
+- Tarjetas por sección con ícono dibujado + nombres de platos tematizados por
+  defecto (el cliente puede personalizar entrada/plato/postre/bebida).
+- El texto SIEMPRE lo escribe el motor (nunca horneado en el arte)."""
 import os, json, glob
 from PIL import Image, ImageDraw, ImageFont
 
 KIT = os.path.dirname(os.path.abspath(__file__))
 TEMAS = os.path.join(KIT, "temas")
-Wp, Hp = 1240, 1754
+_PXMM = 2480 / 210.0
+Wp, Hp = 2480, 3508
 CREAM = (253, 250, 242)
 INK = (60, 50, 45)
+
+
+def _mm(v):
+    return v * _PXMM
 
 
 def _font(sz, bold=True):
@@ -37,11 +49,11 @@ def _tint(c, p):
 
 
 def _icono(tipo, size, color):
-    """Ícono simple dibujado por código (los emoji no siempre tienen glifo en la fuente)."""
+    """Ícono dibujado por código (nunca emoji: tofu en Fredeka — skill §2)."""
     im = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     dr = ImageDraw.Draw(im)
     s = size
-    if tipo == "entrada":       # bowl de picada
+    if tipo == "entrada":       # bowl con palitos
         dr.pieslice([s * 0.12, s * 0.35, s * 0.88, s * 0.95], 0, 180, fill=color)
         for i in range(4):
             x = s * 0.28 + i * s * 0.13
@@ -62,32 +74,95 @@ def _icono(tipo, size, color):
     return im
 
 
-_DEFAULT_ITEMS = {
-    "menu_entrada": "Picada divertida\nPapas fritas y palitos",
-    "menu_plato": "Pizza o hamburguesa\ncon papas",
-    "menu_postre": "Torta de cumpleaños\n¡con velitas!",
-    "menu_bebida": "Jugo o gaseosa",
+# Defaults TEMATIZADOS por tema (skill §5: «Huesos de dino» — grisines con queso).
+# Fallback genérico para temas sin entrada propia.
+_DEFAULTS_TEMA = {
+    "safari": {
+        "menu_entrada": "Picada de la selva\nPalitos y snacks para explorar",
+        "menu_plato": "Pizza rugido de león\no hamburguesa con papas",
+        "menu_postre": "Torta de la manada\n¡con velitas!",
+        "menu_bebida": "Jugo de la jungla",
+    },
+    "artistas": {
+        "menu_entrada": "Paleta de colores\nPicada de snacks de colores",
+        "menu_plato": "Pizza obra maestra\no hamburguesa con papas",
+        "menu_postre": "Torta pincelada dulce\n¡con velitas!",
+        "menu_bebida": "Jugo multicolor",
+    },
+    "monstruos": {
+        "menu_entrada": "Garras crocantes\nPalitos y snacks monstruosos",
+        "menu_plato": "Pizza monstruosa\no hamburguesa con papas",
+        "menu_postre": "Torta de un ojo\n¡con velitas!",
+        "menu_bebida": "Baba de monstruo (jugo)",
+    },
+    "bomberos": {
+        "menu_entrada": "Mangueras crocantes\nPalitos y snacks",
+        "menu_plato": "Pizza al rescate\no hamburguesa con papas",
+        "menu_postre": "Torta sirena y luces\n¡con velitas!",
+        "menu_bebida": "Agua del hidrante (jugo)",
+    },
+    "_generico": {
+        "menu_entrada": "Picada divertida\nPapas fritas y palitos",
+        "menu_plato": "Pizza o hamburguesa\ncon papas",
+        "menu_postre": "Torta de cumpleaños\n¡con velitas!",
+        "menu_bebida": "Jugo o gaseosa",
+    },
 }
 
 
+def _defaults(tema):
+    return _DEFAULTS_TEMA.get(tema, _DEFAULTS_TEMA["_generico"])
+
+
 def _desc_lineas(texto, max_chars=30):
-    """Texto del cliente (una línea, sin \\n) -> hasta 2 líneas que entran en la tarjeta."""
     import textwrap
     lineas = textwrap.wrap(texto, max_chars) or [texto]
     return lineas[:2]
+
+
+def _fondo(tema):
+    try:
+        import fondos_ia
+        return fondos_ia.cargar_fondo(tema, "menu")
+    except Exception:
+        return None
 
 
 def generar_menu(data, tema="safari"):
     acc = _accent(tema)
     nombre = str(data.get("nombre") or "").strip() or "______________"
 
-    im = Image.new("RGBA", (Wp, Hp), (255, 255, 255, 255))
-    dr = ImageDraw.Draw(im)
-    dr.rectangle([0, 0, Wp, Hp], fill=CREAM)
+    fondo = _fondo(tema)
+    if fondo is not None:
+        im = fondo.resize((Wp, Hp), Image.LANCZOS)
+    else:
+        im = Image.new("RGBA", (Wp, Hp), CREAM + (255,))
+        dr0 = ImageDraw.Draw(im)
+        # marco procedural: doble borde + lunares en el perímetro
+        dr0.rounded_rectangle([_mm(6), _mm(6), Wp - _mm(6), Hp - _mm(6)], _mm(6),
+                              outline=acc, width=10)
+        dr0.rounded_rectangle([_mm(10), _mm(10), Wp - _mm(10), Hp - _mm(10)], _mm(5),
+                              outline=_tint(acc, 0.6), width=6)
+        import random
+        rnd = random.Random(42)
+        for _ in range(60):
+            lado = rnd.choice("NSEO")
+            if lado in "NS":
+                x = rnd.uniform(_mm(14), Wp - _mm(14))
+                y = rnd.uniform(_mm(12), _mm(22)) if lado == "N" else rnd.uniform(Hp - _mm(22), Hp - _mm(12))
+            else:
+                y = rnd.uniform(_mm(14), Hp - _mm(14))
+                x = rnd.uniform(_mm(12), _mm(22)) if lado == "O" else rnd.uniform(Wp - _mm(22), Wp - _mm(12))
+            r = rnd.uniform(_mm(1.2), _mm(3))
+            dr0.ellipse([x - r, y - r, x + r, y + r], fill=_tint(acc, rnd.choice((0.3, 0.55, 0.8))))
 
-    dr.rounded_rectangle([80, 60, Wp - 80, 250], 30, fill=acc)
-    dr.text((Wp / 2, 130), "MENÚ DEL DÍA", font=_font(56), fill="white", anchor="mm")
-    dr.text((Wp / 2, 198), "Hoy cumple %s" % nombre, font=_font(32, False), fill=_tint(acc, 0.75), anchor="mm")
+    dr = ImageDraw.Draw(im)
+
+    # encabezado (~20% de la altura, skill §5)
+    dr.rounded_rectangle([_mm(28), _mm(20), Wp - _mm(28), _mm(58)], _mm(7), fill=acc)
+    dr.text((Wp / 2, _mm(34)), "MENÚ DEL DÍA", font=_font(110), fill="white", anchor="mm")
+    dr.text((Wp / 2, _mm(48)), "Hoy cumple %s" % nombre, font=_font(64, False),
+            fill=_tint(acc, 0.8), anchor="mm")
 
     items = [
         ("entrada", "Entrada", "menu_entrada"),
@@ -95,20 +170,28 @@ def generar_menu(data, tema="safari"):
         ("postre", "Postre", "menu_postre"),
         ("bebida", "Bebida", "menu_bebida"),
     ]
-    y = 310
+    defaults = _defaults(tema)
+    y = _mm(70)
+    alto = _mm(38)
     for tipo, titulo, campo in items:
-        dr.rounded_rectangle([100, y, Wp - 100, y + 170], 25, fill=(255, 255, 255), outline=_tint(acc, 0.5), width=3)
-        ic = _icono(tipo, 90, acc)
-        im.alpha_composite(ic, (115, int(y + 40)))
-        dr.text((280, y + 40), titulo, font=_font(36), fill=acc, anchor="lm")
+        dr.rounded_rectangle([_mm(32), y, Wp - _mm(32), y + alto], _mm(5),
+                             fill=(255, 255, 255, 235), outline=_tint(acc, 0.45), width=6)
+        ic = _icono(tipo, int(_mm(24)), acc)
+        im.alpha_composite(ic, (int(_mm(38)), int(y + (alto - _mm(24)) / 2)))
+        tx = _mm(70)
+        dr.text((tx, y + _mm(10)), titulo, font=_font(66), fill=acc, anchor="lm")
         custom = str(data.get(campo) or "").strip()
-        dl = _desc_lineas(custom) if custom else _DEFAULT_ITEMS[campo].split("\n")
+        dl = _desc_lineas(custom) if custom else defaults[campo].split("\n")
         for i, line in enumerate(dl):
-            dr.text((280, y + 85 + i * 32), line, font=_font(26, False), fill=INK, anchor="lm")
-        y += 190
+            dr.text((tx, y + _mm(20) + i * _mm(8.5)), line, font=_font(52, False), fill=INK, anchor="lm")
+        y += alto + _mm(9)
 
-    dr.text((Wp / 2, Hp - 120), "Coloreá el menú mientras esperás", font=_font(24, False), fill=_tint(INK, 0.3), anchor="mm")
-    dr.text((Wp / 2, Hp - 60), "casatridimensional.com.ar", font=_font(20, False), fill=(180, 180, 180), anchor="mm")
+    # con fondo IA el pie cae sobre el arte → contorno claro para que se lea
+    _tx = dict(stroke_width=5, stroke_fill=(255, 253, 246)) if fondo is not None else {}
+    dr.text((Wp / 2, Hp - _mm(20)), "¡Buen provecho!", font=_font(56, False),
+            fill=_tint(INK, 0.25), anchor="mm", **_tx)
+    dr.text((Wp / 2, Hp - _mm(11)), "casatridimensional.com.ar", font=_font(36, False),
+            fill=(150, 148, 145), anchor="mm", **_tx)
     return im
 
 

@@ -1,20 +1,34 @@
-"""Juego de la memoria personalizado — cartas con el personaje del tema + nombre.
-12 pares (24 cartas) para imprimir, recortar y jugar.
+"""Juego de la memoria personalizado — cartas con los personajes del tema.
 
-Las imágenes de las cartas son los personajes REALES del tema (mismo mecanismo que
-el cuaderno de actividades: recorte por componente de alpha de la hoja de stickers).
-Si el tema no tiene stickers generados todavía, cae a íconos geométricos por código
-(nunca mezcla temas: no hay fallback a animalitos genéricos en un tema que no lo es)."""
+REDISEÑO 8-jul-2026 (skill armar-kit §8 — antes: dorso desalineado ~15mm del
+frente (la impresión doble faz no coincidía), pares casi idénticos entre sí
+(injugable a los 4 años), cartas de 3cm por el bug de DPI):
+- 300dpi real: cartas CUADRADAS de 63x63mm (el estándar de la industria),
+  grilla 3x4 = 12 cartas (6 pares) por hoja, esquinas redondeadas.
+- El DORSO usa EXACTAMENTE la misma grilla que el frente, ESPEJADA en X —
+  al imprimir doble faz (voltear por el borde largo) cada dorso cae justo
+  detrás de su carta. Una sola función de grilla para ambas caras = imposible
+  que se desalineen de nuevo.
+- Pares IDÉNTICOS (misma imagen) y pares bien DISTINTOS entre sí: personajes
+  del tema vía personajes_decorativos (filtro visión + dedup); si el tema no
+  llega a 6 figuras distintas, completa con íconos geométricos.
+- Dorso: fondo IA del tema (fondos_ia.py "memoria_dorso": patrón denso, no se
+  transparenta) si existe; fallback patrón procedural denso.
+- Marcas de corte finas fuera de las cartas (skill §1)."""
 import os, json, glob, math, random
 from PIL import Image, ImageDraw, ImageFont
 
 KIT = os.path.dirname(os.path.abspath(__file__))
 TEMAS = os.path.join(KIT, "temas")
-Wp, Hp = 1240, 1754
+_PXMM = 2480 / 210.0
+Wp, Hp = 2480, 3508
 CREAM = (253, 250, 242)
 INK = (60, 50, 45)
+CORTE = (150, 150, 150)
 
-random.seed(42)
+
+def _mm(v):
+    return v * _PXMM
 
 
 def _font(sz, bold=True):
@@ -48,7 +62,7 @@ def _fit_into(img, mw, mh):
 
 
 def _dibujar_forma(forma, size, color):
-    """Ícono geométrico simple (fallback cuando el tema no tiene stickers extraíbles)."""
+    """Ícono geométrico (relleno cuando el tema no tiene 6 figuras distintas)."""
     im = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     dr = ImageDraw.Draw(im)
     m = size * 0.14
@@ -77,113 +91,131 @@ def _dibujar_forma(forma, size, color):
     return im
 
 
-def _personajes(tema, n=12):
-    """n imágenes RGBA distintas para las cartas: personajes reales del tema si hay
-    (extraídos de la hoja de stickers), completando con íconos geométricos si faltan."""
+def _imagenes_pares(tema, n=6):
+    """n imágenes bien DISTINTAS para los pares: personajes del tema con
+    variedad ESTRICTA (un solo personaje por tipo — dos leones apenas distintos
+    como pares diferentes hacían el juego injugable), completando con íconos
+    geométricos si no alcanzan."""
     imgs = []
     try:
         import cuaderno
-        paths = cuaderno._extraer_monstruos(tema) or []
-        paso = max(1, len(paths) // n)
-        for p in paths[::paso][:n]:
-            try:
-                imgs.append(Image.open(p).convert("RGBA"))
-            except Exception:
-                pass
+        imgs = cuaderno.personajes_decorativos(tema, n, variedad_estricta=True)
     except Exception:
-        pass
+        imgs = []
     if len(imgs) < n:
         acc = _accent(tema)
-        formas = ["circulo", "cuadrado", "triangulo", "estrella", "diamante", "corazon"]
+        formas = ["estrella", "corazon", "circulo", "triangulo", "diamante", "cuadrado"]
         combos = [(f, c) for c in (acc, _tint(acc, 0.45)) for f in formas]
         for f, c in combos[:max(0, n - len(imgs))]:
-            imgs.append(_dibujar_forma(f, 300, c))
+            imgs.append(_dibujar_forma(f, 600, c))
     return imgs[:n]
 
 
-def carta(im, dr, cx, cy, w, h, img, idx, acc, volteada=True):
-    """Dibuja una carta del memory. volteada=True -> dorso oculto; False -> cara con imagen."""
-    if volteada:
-        dr.rounded_rectangle([cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2],
-                             14, fill=acc, outline=_tint(acc, 0.2), width=4)
-        dr.rounded_rectangle([cx - w / 2 + 10, cy - h / 2 + 10, cx + w / 2 - 10, cy + h / 2 - 10],
-                             10, fill=_tint(acc, 0.7))
-        dr.text((cx, cy - 10), "?", font=_font(60), fill="white", anchor="mm")
-    else:
-        dr.rounded_rectangle([cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2],
-                             14, fill=(255, 255, 255), outline=_tint(acc, 0.3), width=3)
-        if img is not None:
-            fit = _fit_into(img, w - 26, h - 46)
-            im.alpha_composite(fit, (int(cx - fit.width / 2), int(cy - h / 2 + 10)))
-        dr.text((cx, cy + h / 2 - 16), str(idx + 1), font=_font(16, False), fill=_tint(INK, 0.35), anchor="mm")
+# ---- grilla ÚNICA para frente y dorso (espejada en X para doble faz) ----
+_COLS, _FILAS = 3, 4
+_LADO = None            # se calcula: 63mm
+
+
+def _celdas(espejo=False):
+    """Centros (cx, cy) de las 12 cartas. espejo=True invierte las columnas —
+    es lo que hace coincidir el dorso con el frente al imprimir doble faz
+    (voltear por el borde largo). MISMA función para ambas caras: no pueden
+    volver a desalinearse (bug real: 15mm de corrimiento).
+    Carta de 60mm (el estándar es 63, pero 4 filas de 63 + título no entran
+    en A4 — 60mm sigue siendo talle toddler-friendly)."""
+    lado = _mm(60)
+    gap = _mm(6)
+    total_w = _COLS * lado + (_COLS - 1) * gap
+    total_h = _FILAS * lado + (_FILAS - 1) * gap
+    x0 = (Wp - total_w) / 2 + lado / 2
+    y0 = _mm(27) + lado / 2
+    out = []
+    for f in range(_FILAS):
+        for c in range(_COLS):
+            cc = (_COLS - 1 - c) if espejo else c
+            out.append((x0 + cc * (lado + gap), y0 + f * (lado + gap)))
+    return out, lado
+
+
+def _fondo_dorso(tema):
+    try:
+        import fondos_ia
+        return fondos_ia.cargar_fondo(tema, "memoria_dorso")
+    except Exception:
+        return None
 
 
 def generar_memoria(data, tema="safari"):
-    """Hoja A4 con 24 cartas (12 pares) para recortar y jugar."""
+    """Frente: 12 cartas (6 pares idénticos) de 63mm, con personajes del tema."""
     acc = _accent(tema)
     nombre = str(data.get("nombre") or "").strip() or "MI MEMORIA"
 
-    im = Image.new("RGBA", (Wp, Hp), (255, 255, 255, 255))
+    im = Image.new("RGBA", (Wp, Hp), CREAM + (255,))
     dr = ImageDraw.Draw(im)
-    dr.rectangle([0, 0, Wp, Hp], fill=CREAM)
+    dr.text((60, 55), "JUEGO DE LA MEMORIA · el memo de %s" % nombre,
+            font=_font(44, False), fill=_tint(acc, 0.3))
 
-    dr.text((Wp / 2, 70), "JUEGO DE LA MEMORIA", font=_font(44), fill=acc, anchor="mm")
-    dr.text((Wp / 2, 120), nombre, font=_font(28, False), fill=_tint(INK, 0.3), anchor="mm")
+    # instrucciones ARRIBA (entre título y grilla): abajo quedaban cortadas por
+    # el borde de la hoja con la grilla de 4 filas
+    dr.text((Wp / 2, _mm(14)), "Recortá las cartas, dalas vuelta y encontrá los pares.",
+            font=_font(44, False), fill=_tint(INK, 0.25), anchor="mm")
+    dr.text((Wp / 2, _mm(21)),
+            "Para 2-4 años: jueguen con 3-4 pares primero y vayan sumando.",
+            font=_font(38, False), fill=_tint(INK, 0.4), anchor="mm")
 
-    cols, rows = 6, 4
-    n_pares = (cols * rows) // 2   # 12 pares = 24 cartas: llena la grilla exacto
-    base_imgs = _personajes(tema, n_pares)
-    cartas_data = []
-    for i, img in enumerate(base_imgs):
-        cartas_data.append((i, img))
-        cartas_data.append((i, img))
-    random.shuffle(cartas_data)
+    celdas, lado = _celdas(espejo=False)
+    base = _imagenes_pares(tema, len(celdas) // 2)
+    cartas = []
+    for i, img in enumerate(base):
+        cartas.append((i, img))
+        cartas.append((i, img))
+    rnd = random.Random(42)          # determinístico: mismas posiciones siempre
+    rnd.shuffle(cartas)
 
-    cw, ch = 170, 210
-    gap_x, gap_y = 30, 30
-    total_w = cols * cw + (cols - 1) * gap_x
-    x0 = (Wp - total_w) / 2 + cw / 2
-    y0 = 190 + ch / 2
+    for (cx, cy), (par_idx, img) in zip(celdas, cartas):
+        dr.rounded_rectangle([cx - lado / 2, cy - lado / 2, cx + lado / 2, cy + lado / 2],
+                             _mm(5), fill=(255, 255, 255, 255), outline=_tint(acc, 0.35), width=5)
+        fit = _fit_into(img, lado - _mm(12), lado - _mm(12))
+        im.alpha_composite(fit, (int(cx - fit.width / 2), int(cy - fit.height / 2)))
 
-    for r in range(rows):
-        for c in range(cols):
-            idx = r * cols + c
-            if idx >= len(cartas_data):
-                break
-            par_idx, img = cartas_data[idx]
-            cx = x0 + c * (cw + gap_x)
-            cy = y0 + r * (ch + gap_y)
-            carta(im, dr, cx, cy, cw, ch, img, par_idx, acc, volteada=False)
-
-    y_info = y0 + rows * (ch + gap_y) - gap_y / 2 + 40
-    dr.text((Wp / 2, y_info), "Recortá las cartas, dales vuelta y encontrá los pares",
-            font=_font(24, False), fill=INK, anchor="mm")
-    dr.text((Wp / 2, Hp - 40), "casatridimensional.com.ar", font=_font(18, False), fill=(180, 180, 180), anchor="mm")
+    dr.text((Wp / 2, Hp - _mm(6)), "casatridimensional.com.ar", font=_font(36, False),
+            fill=(180, 180, 180), anchor="mm")
     return im
 
 
 def dorso_memoria(data, tema="safari"):
-    """Hoja A4 con los dorsos de las cartas (para imprimir al dorso)."""
+    """Dorso: la MISMA grilla espejada en X + patrón denso (IA del tema si hay;
+    procedural si no) — idéntico en las 12 cartas, no se transparenta."""
     acc = _accent(tema)
-    im = Image.new("RGBA", (Wp, Hp), (255, 255, 255, 255))
+    im = Image.new("RGBA", (Wp, Hp), CREAM + (255,))
     dr = ImageDraw.Draw(im)
-    dr.rectangle([0, 0, Wp, Hp], fill=CREAM)
+    dr.text((60, 55), "DORSO · imprimir del otro lado (doble faz, borde largo)",
+            font=_font(44, False), fill=_tint(acc, 0.3))
 
-    cols, rows = 6, 4
-    cw, ch = 170, 210
-    gap_x, gap_y = 30, 30
-    total_w = cols * cw + (cols - 1) * gap_x
-    x0 = (Wp - total_w) / 2 + cw / 2
-    y0 = 100 + ch / 2
+    celdas, lado = _celdas(espejo=True)
 
-    for r in range(rows):
-        for c in range(cols):
-            cx = x0 + c * (cw + gap_x)
-            cy = y0 + r * (ch + gap_y)
-            carta(im, dr, cx, cy, cw, ch, None, 0, acc, volteada=True)
+    fondo = _fondo_dorso(tema)
+    if fondo is not None:
+        patron = fondo.resize((int(lado), int(lado)), Image.LANCZOS)
+    else:
+        patron = Image.new("RGBA", (int(lado), int(lado)), _tint(acc, 0.25) + (255,))
+        pd = ImageDraw.Draw(patron)
+        rnd = random.Random(7)
+        for _ in range(70):                      # patrón denso (anti-transparencia)
+            x, y = rnd.uniform(0, lado), rnd.uniform(0, lado)
+            r = rnd.uniform(_mm(1.2), _mm(3))
+            pd.ellipse([x - r, y - r, x + r, y + r],
+                       fill=_tint(acc, rnd.choice((0.45, 0.6))))
 
-    dr.text((Wp / 2, Hp - 40), "Dorso — %s" % str(data.get("nombre") or ""),
-            font=_font(18, False), fill=_tint(INK, 0.3), anchor="mm")
+    mask = Image.new("L", (int(lado), int(lado)), 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, lado - 1, lado - 1], _mm(5), fill=255)
+    for cx, cy in celdas:
+        im.paste(patron, (int(cx - lado / 2), int(cy - lado / 2)), mask)
+        dr.rounded_rectangle([cx - lado / 2, cy - lado / 2, cx + lado / 2, cy + lado / 2],
+                             _mm(5), outline=_tint(acc, 0.2), width=5)
+
+    dr.text((Wp / 2, Hp - _mm(11)), "casatridimensional.com.ar", font=_font(36, False),
+            fill=(180, 180, 180), anchor="mm")
     return im
 
 
