@@ -407,3 +407,83 @@ Botón **«⚡ Armar TODO el tema»** en la tarjeta de cada temática del dash �
   job (la primera apertura tardaba minutos). La CALIDAD de las actividades es un
   tema aparte pendiente (Pablo, 8-jul-2026: "tienen que mejorar mucho").
 - **Calendario: NO TOCAR** — lo arma Pablo a mano.
+
+## 19. CUADERNO DE ACTIVIDADES PRO (investigación 9-jul-2026: CDC, Kumon, Highlights, Usborne + auditoría propia)
+
+**Principio rector**: profesional = calibrado al desarrollo + testeado + progresivo.
+Amateur = páginas sueltas con clip-art pegado. Highlights arma cada puzzle con 4
+roles y un corrector que lo RESUELVE antes de publicar; Kumon hace cada página
+apenas más difícil que la anterior, arrancando DEBAJO del nivel del chico.
+
+### Catálogo por banda de edad (hitos CDC/terapistas ocupacionales)
+- **1-2**: garabateo sobre escena, colorear UN objeto gigante (60-80% de página),
+  matching idéntico de 2-3 opciones, señalar-y-nombrar. NUNCA laberintos con
+  lápiz, números ni letras. Trazado recién a los 2 (líneas verticales).
+- **3-5**: trazado en orden fijo (verticales→horizontales→curvas→zigzag→
+  diagonales→formas círculo/cruz/cuadrado/triángulo→letras del nombre a los 5);
+  laberinto camino 12-19mm con 0-3 dead-ends cortos; unir puntos 1-10 (3-4) /
+  1-20 (4-5) con números grandes; contar 1-5→1-10; buscar escondidos en escena
+  A COLOR con clave de SILUETAS (no texto); diferencias 2-4; sombras 4-6 pares;
+  sudoku 4x4 de figuras desde 4-5; sopa SOLO desde 4-5 (≤6x6, horizontales,
+  palabras de 3-4 letras con imagen al lado).
+- **6-9**: laberinto camino 8-10mm con 5-12 dead-ends y FORMA temática; puntos
+  1-50/1-100 (variantes de 2 en 2); sopa 8x8→12x12 con diagonales; diferencias
+  5-10; crucigrama con pistas de imagen; código secreto; sudoku 6x6; dibujo por
+  cuadrícula; buscar escondidos en B/N (Highlights reserva B/N para 6+: obliga
+  a buscar por forma). NUNCA tareas de sala de 2 (aparear idénticos, "cuál es
+  más grande", 4-vs-2) en esta banda.
+- **Volumen**: 24-32 páginas de actividad por banda; <16 se percibe ralo. La
+  cantidad se logra con VARIEDAD, nunca repitiendo la misma página dos veces.
+
+### Diseño de página (aplicable por código, 300dpi)
+- UNA actividad por página. Jerarquía fija: nº+título · consigna de UNA línea
+  (≤10 palabras, verbo primero) · ícono del tipo (lápiz=trazar, lupa=buscar,
+  tijera=recortar) · EJEMPLO RESUELTO (primer ítem hecho en gris — patrón
+  Kumon) · área de trabajo ≥60-70%. Blanco ≥30%.
+- Márgenes 15mm uniformes; nada crítico afuera. Fondo BLANCO en el área de
+  trabajo (fondos entintados traslucen y gastan tinta del cliente); acentos de
+  color solo en header/pie.
+- Tipografía infantil (a/g de un piso): 18-24pt (3-5), 16-18pt (6-8);
+  interlineado cuerpo+4-6pt; nunca todo-mayúsculas en consignas.
+- Grosor de línea: colorear 4-6pt (2-3 años) → 3-4pt (3-5) → 2-3pt (6-7);
+  contorno exterior siempre más grueso que el interior; piso 2pt infantil.
+  Renglones de escritura: 19mm con línea media punteada (kinder), 16mm (1º).
+- Nº de página fijo + clave de respuestas AL FINAL en miniaturas, generada
+  desde la MISMA estructura de datos de la actividad (desfase imposible).
+
+### Gráfica premium
+- La actividad SUCEDE dentro de una escena temática (el laberinto ES el camino
+  al castillo; se cuenta DENTRO de la selva) — nunca ítems flotando en caja
+  blanca (marcador nº1 de amateur).
+- Reglas de ocultado Highlights: objeto JUSTO (parece lo que la clave dice),
+  completamente visible, mezcla de fáciles y difíciles.
+- Color = dificultad: actividades a COLOR para 2-5; B/N solo colorear y
+  búsquedas 6+. Nunca una página "para colorear" que ya viene coloreada.
+- Elenco fijo del tema con anclas de identidad (mismos personajes en todo el
+  cuaderno — pipeline personajes_decorativos FILTRADO, jamás recortes crudos).
+- Dificultad progresiva ~30% fácil / 40% media / 30% difícil; la primera de
+  cada tipo sale "al 100%".
+- PERSONALIZACIÓN en las consignas ("Ayudá a {nombre} a llegar a la torta") —
+  ventaja diferencial de CT3D, nombre automático del editor de compra.
+
+### QA automatizable (cada regla → check)
+- Laberinto: BFS → exactamente una solución, dead-ends y ancho en rango de la
+  banda. Sopa: palabras presentes + sin palabras accidentales inapropiadas.
+- Puntos: secuencia completa, distancia mínima 8mm entre puntos.
+- Line-art: flood-fill desde afuera (path abierto → rechazar); grosor mínimo.
+- Página: consigna ≤10 palabras, cuerpo ≥mínimo por banda, área ≥60%, hash
+  perceptual anti-duplicados. Ojos frescos: QA visión + pasada humana.
+
+### Bugs propios auditados (9-jul-2026) — NO repetir
+1. `_Book.mons` usaba recortes CRUDOS (columnas de 3 princesas apiladas como
+   "un personaje") → rompía LA MATEMÁTICA de contar/sumas/restas (respuesta
+   contable ≠ solucionario) y el sudoku (león=1, león=2, león=3 injugable).
+   SIEMPRE pasar por el pipeline filtrado.
+2. Fallback de colorear = sticker de 300px ampliado a página → masa negra
+   pixelada impresa 3 veces. Un fallback que imprime basura es peor que
+   omitir la página: exigir arte IA (armar-tema lo genera).
+3. Tapa "1 años"; sopa con "Pinata"/"Cancion" sin ñ/tilde y vocabulario
+   genérico; consignas "escribí"/"dibujá" a los 2-3; "descubrí el corazón"
+   spoileando la respuesta.
+4. Volumen por duplicación (2 laberintos idénticos, 2 sopas) y 50-70% de
+   blanco por página sin marco ni tema.
