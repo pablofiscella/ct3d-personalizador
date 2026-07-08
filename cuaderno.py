@@ -1240,22 +1240,21 @@ def _a_codigo(b, palabra):
     if not b.mons or len(b.mons) < len(letras): return
     b.sec("Código secreto", "Cada figura es una letra. Descubrí la palabra escondida.")
     figs = {ch: _IM(b.mons[i]) for i, ch in enumerate(letras)}
-    # leyenda figura=letra en 2 filas
+    # leyenda figura=letra en 2 filas con la MISMA grilla de columnas (cada fila
+    # con su propio paso quedaba desalineada — feedback Pablo) y el "= X" en una
+    # posición FIJA de cada columna, sin depender del ancho de la figura
     per = (len(letras) + 1) // 2
-    ly = b.y + 30
-    for fila in range(2):
-        grupo = letras[fila * per:(fila + 1) * per]
-        if not grupo: break
-        paso = (Wp - 200) // max(1, len(grupo))
-        for i, ch in enumerate(grupo):
-            cx = 140 + i * paso
-            h = 96
-            if _ancho_a(figs[ch], h) > paso - 90:
-                h = max(40, int((paso - 90) * figs[ch].height / figs[ch].width))
-            _paste_h(b.im, figs[ch], cx, ly + 50, h)
-            b.dr.text((cx + _ancho_a(figs[ch], h) / 2 + 12, ly + 50), "= " + ch,
-                      font=_font(40), fill=INK, anchor="lm")
-        ly += 150
+    col_w = (Wp - 160) / per
+    for idx, ch in enumerate(letras):
+        fila, col = divmod(idx, per)
+        x0 = 80 + col * col_w
+        cy = b.y + 80 + fila * 150
+        h = 96
+        if _ancho_a(figs[ch], h) > col_w * 0.44:
+            h = max(40, int(col_w * 0.44 * figs[ch].height / figs[ch].width))
+        _paste_h(b.im, figs[ch], x0 + col_w * 0.26, cy, h)
+        b.dr.text((x0 + col_w * 0.54, cy), "= " + ch, font=_font(40), fill=INK, anchor="lm")
+    ly = b.y + 80 + 150
     # la palabra codificada: figuras con un casillero debajo de cada una
     seq = [figs[ch] for ch in _sin_tilde(palabra)]
     yy = ly + (BOT - ly) / 2
