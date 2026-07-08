@@ -11,7 +11,12 @@ class _FakeClient:
     def editar(self, refs, prompt, size, **kw):
         self.prompts.append((prompt, size))
         w, h = (int(x) for x in size.split("x"))
-        buf = io.BytesIO(); Image.new("RGB", (w, h), "white").save(buf, "PNG")
+        # line-art VÁLIDO (con un área cerrada): el QA de fase 4 rechaza una
+        # hoja en blanco ("sin áreas cerradas para pintar")
+        im = Image.new("RGB", (w, h), "white")
+        from PIL import ImageDraw as _D
+        _D.Draw(im).ellipse([w*0.2, h*0.2, w*0.8, h*0.8], outline="black", width=max(6, w//80))
+        buf = io.BytesIO(); im.save(buf, "PNG")
         return buf.getvalue()
 
 
@@ -312,7 +317,10 @@ class _ClienteModeracion:
             raise RuntimeError(
                 'OpenAI HTTP 400: Bad Request — {"error": {"code": "moderation_blocked"}}')
         w, h = (int(x) for x in size.split("x"))
-        buf = io.BytesIO(); Image.new("RGB", (w, h), (self.llamadas * 10, 0, 0)).save(buf, "PNG")
+        im = Image.new("RGB", (w, h), "white")
+        from PIL import ImageDraw as _D
+        _D.Draw(im).ellipse([w*0.2, h*0.2, w*0.8, h*0.8], outline="black", width=max(6, w//80))
+        buf = io.BytesIO(); im.save(buf, "PNG")
         return buf.getvalue()
 
 

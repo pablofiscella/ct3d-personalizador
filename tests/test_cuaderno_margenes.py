@@ -46,3 +46,41 @@ def test_ninguna_actividad_se_va_del_ancho(tmp_path, monkeypatch, edad):
                 "página %d (edad %s, seed %d): contenido hasta x=%d" % (n, edad, seed, cols.max())
             assert cols.min() >= MARGEN_MIN, \
                 "página %d (edad %s, seed %d): contenido desde x=%d" % (n, edad, seed, cols.min())
+
+
+def test_consignas_cortas_y_sin_duplicados(tmp_path, monkeypatch):
+    """QA fase 4 (skill §19): consignas ≤12 palabras (las lee un adulto a un
+    chico, no un párrafo) y NINGUNA página duplicada exacta (el relleno por
+    duplicación era el bug 4 de la auditoría)."""
+    monkeypatch.setattr(cuaderno, "TEMAS", str(tmp_path))
+    monkeypatch.setattr(cuaderno, "_es_personaje_vision", lambda *a: None)
+    _mk_tema_ancho(tmp_path)
+    consignas = []
+    orig = cuaderno._sec
+    def _sec_spy(dr, y, titulo, instr):
+        consignas.append(instr)
+        return orig(dr, y, titulo, instr)
+    monkeypatch.setattr(cuaderno, "_sec", _sec_spy)
+    for edad in ("2", "5", "6"):
+        consignas.clear()
+        acts, _ = cuaderno._build("circo", edad, 1)
+        for c in consignas:
+            assert len(c.split()) <= 12, "consigna larga (edad %s): %r" % (edad, c)
+        hashes = [cuaderno._ahash(p.convert("RGBA"), lado=16) for p in acts]
+        assert len(hashes) == len(set(hashes)), "página duplicada exacta (edad %s)" % edad
+
+
+def test_lineart_valido_detecta_paths_rotos():
+    """QA fase 4: el flood-fill acepta un dibujo con áreas cerradas y rechaza
+    uno con las líneas rotas (nada para pintar)."""
+    from PIL import ImageDraw
+    ok = Image.new("RGB", (512, 682), "white")
+    d = ImageDraw.Draw(ok)
+    d.ellipse([100, 150, 400, 500], outline="black", width=8)     # área cerrada
+    d.ellipse([180, 250, 240, 310], outline="black", width=6)
+    assert cuaderno.lineart_valido(ok)
+    roto = Image.new("RGB", (512, 682), "white")
+    d = ImageDraw.Draw(roto)
+    d.arc([100, 150, 400, 500], 20, 340, fill="black", width=8)   # círculo ABIERTO
+    d.line([50, 600, 460, 620], fill="black", width=6)
+    assert not cuaderno.lineart_valido(roto)

@@ -171,44 +171,79 @@ def juegos(data, tema=None):
 
 
 def milestone(data, tema=None):
-    """Póster A4 del PRIMER AÑO: número grande al centro + 12 marcos de foto REDONDOS
-    (1..12 meses) en anillo. El cliente pega su foto de cada mes. Decoración por temática."""
+    """Póster A4 del PRIMER AÑO — REDISEÑO 10-jul-2026 (a Pablo no le gustaba el
+    anillo monocromático): grilla de 12 POLAROIDS inclinadas con tira de mes,
+    globito de número en el acento del tema y personajes del tema decorando.
+    El cliente pega una foto por mes. Nombre automático del editor de compra."""
     import math
     W, H = A4
     acc = accent(tema); fnt = font_disp(tema); ink = ink_c(tema)
-    # nombre AUTOMÁTICO desde el editor de compra (el cliente no escribe a mano)
     nombre = (data.get("nombre") or "").strip()
-    base = Image.new("RGBA", (W, H), WHITE + (255,))
+    base = Image.new("RGBA", (W, H), (253, 250, 244, 255))
     d = ImageDraw.Draw(base)
-    _frame(d, W, H, acc)
+
+    # confeti suave de fondo (nunca detrás de las fotos: solo en los bordes)
+    import random as _r
+    rnd = _r.Random(11)
+    for _ in range(46):
+        x = rnd.uniform(40, W - 40)
+        y = rnd.choice([rnd.uniform(40, 120), rnd.uniform(H - 150, H - 60)])
+        r = rnd.uniform(8, 22)
+        d.ellipse([x - r, y - r, x + r, y + r], fill=_tint(acc, rnd.choice((0.55, 0.72, 0.86))) + (255,))
+
     titulo = ("El primer año de " + nombre) if nombre else "El primer año del bebé"
-    txt(d, titulo, W / 2, 248, fnt, 116, acc, W * 0.80, wght=700)
-    txt(d, "Pegá la foto de cada mes", W / 2, 384, "Fredoka-VF.ttf", 48, _tint(ink, 0.12), W * 0.7, wght=600)
+    txt(d, titulo, W / 2, 200, fnt, 120, acc, W * 0.84, wght=700)
+    txt(d, "Pegá una foto de cada mes y mirá cuánto creció", W / 2, 330,
+        "Fredoka-VF.ttf", 46, _tint(ink, 0.12), W * 0.76, wght=600)
 
-    cx, cy = W / 2, H * 0.595
-    R_ring = W * 0.345          # radio del anillo
-    r_f = int(W * 0.085)        # radio de cada marco de foto
+    # personajes del tema en las esquinas superiores
+    try:
+        import cuaderno
+        pjs = cuaderno.personajes_decorativos(tema or "safari", 2, incluir_objetos=True)
+    except Exception:
+        pjs = []
+    for pj, (fx, fy) in zip(pjs, ((0.085, 0.055), (0.915, 0.055))):
+        h2 = 250
+        if pj.width * h2 / pj.height > 300:
+            h2 = int(300 * pj.height / pj.width)
+        w2 = max(1, int(pj.width * h2 / pj.height))
+        base.alpha_composite(pj.resize((w2, h2), Image.LANCZOS),
+                             (int(W * fx - w2 / 2), int(H * fy - h2 / 2)))
+    d = ImageDraw.Draw(base)
 
-    def marco(fx, fy, r, badge):
-        # marco redondo: aro de acento + interior blanco (para pegar la foto) + filete fino
-        d.ellipse([fx - r, fy - r, fx + r, fy + r], fill=(255, 255, 255, 255),
-                  outline=acc + (255,), width=max(6, int(r * 0.06)))
-        ri = r - max(9, int(r * 0.085))
-        d.ellipse([fx - ri, fy - ri, fx + ri, fy + ri], outline=_tint(acc, 0.5) + (255,), width=2)
-        # badge del mes (círculo de acento en el borde inferior)
-        bs = int(r * 0.5)
-        by = fy + r
-        d.ellipse([fx - bs, by - bs, fx + bs, by + bs], fill=acc + (255,))
-        _num(d, badge, fx, by, fnt, bs * 1.25, _tint(acc, 0.92), bs * 1.7, wght=700)
-
-    # 12 marcos en anillo (mes 1 arriba, en sentido horario)
+    # ── grilla 3x4 de polaroids inclinadas ──
+    cols, rows = 3, 4
+    cw, ch = 640, 660                          # tarjeta (foto + tira del mes)
+    gx = (W - cols * cw - (cols - 1) * 60) / 2
+    gy = 440
+    rowg = (H - gy - 180 - rows * ch) / (rows - 1) + ch
+    tilts = [-2.4, 1.8, -1.6, 2.2, -2.0, 1.5, -2.2, 2.4, -1.5, 2.0, -2.5, 1.7]
     for i in range(12):
-        ang = -math.pi / 2 + i * (2 * math.pi / 12)
-        marco(cx + R_ring * math.cos(ang), cy + R_ring * math.sin(ang), r_f, str(i + 1))
-
-    # centro: número grande del añito (decorativo, no es marco de foto)
-    _num(d, "1", cx, cy - H * 0.012, fnt, int(W * 0.27), acc, W * 0.34, wght=700)
-    txt(d, "AÑITO", cx, cy + H * 0.085, "Fredoka-VF.ttf", int(W * 0.05), ink, W * 0.34, wght=700)
+        r, c = divmod(i, cols)
+        cx = gx + c * (cw + 60) + cw / 2
+        cy = gy + r * rowg + ch / 2
+        # tarjeta polaroid (dibujada aparte y rotada)
+        card = Image.new("RGBA", (cw + 80, ch + 80), (0, 0, 0, 0))
+        cd = ImageDraw.Draw(card)
+        cd.rounded_rectangle([48, 52, 40 + cw + 8, 44 + ch + 8], 26,
+                             fill=(0, 0, 0, 26))                       # sombra suave
+        cd.rounded_rectangle([40, 40, 40 + cw, 40 + ch], 24,
+                             fill=(255, 255, 255, 255), outline=_tint(acc, 0.45) + (255,), width=5)
+        cd.rounded_rectangle([70, 70, 40 + cw - 30, 40 + ch - 150], 14,
+                             fill=(244, 241, 235, 255), outline=_tint(acc, 0.75) + (255,), width=3)
+        # esquinitas de álbum en la zona de la foto
+        for ex, ey in ((92, 92), (40 + cw - 52, 92), (92, 40 + ch - 172), (40 + cw - 52, 40 + ch - 172)):
+            cd.line([ex - 16, ey + 8, ex + 8, ey - 16], fill=_tint(acc, 0.5) + (255,), width=4)
+        et = "1 mes" if i == 0 else "%d meses" % (i + 1)
+        txt(cd, et, 40 + cw / 2, 40 + ch - 82, "Fredoka-VF.ttf", 52, ink, cw * 0.7, wght=700)
+        card = card.rotate(tilts[i], expand=True, resample=Image.BICUBIC)
+        base.alpha_composite(card, (int(cx - card.width / 2), int(cy - card.height / 2)))
+        # globito con el número del mes (sin rotar: siempre legible)
+        d = ImageDraw.Draw(base)
+        bx, by = cx - cw / 2 + 26, cy - ch / 2 + 26
+        d.ellipse([bx - 52, by - 52, bx + 52, by + 52], fill=acc + (255,),
+                  outline=(255, 255, 255, 255), width=6)
+        _num(d, str(i + 1), bx, by, fnt, 56, _tint(acc, 0.94), 72, wght=700)
 
     _pie_marca(d, W, H, ink)
     return base

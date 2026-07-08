@@ -492,6 +492,9 @@ def generar_variantes_colorear(client, temas_dir, tema, n=3, calidad="low",
                 raw = client.editar(refs, prompt_i, p.size, quality=calidad)
                 im = validar_png(raw, size_esperado=size_t).convert("RGBA")
                 im = _limpiar_colorear(im)
+                import cuaderno as _cuad
+                if not _cuad.lineart_valido(im):
+                    raise RuntimeError("line-art sin áreas cerradas para pintar (QA fase 4)")
                 _guardar(im, draft, nombre)
                 ok = True
                 break
@@ -502,7 +505,8 @@ def generar_variantes_colorear(client, temas_dir, tema, n=3, calidad="low",
                     progress({"pieza": "colorear", "variante": i + 1, "intento": intento,
                               "ok": False, "reintentando": True,
                               "error": ultimo_error, "archivo": ""})
-                if not bloqueada:   # error real (no moderación) -> no insistir de más
+                reintentable = bloqueada or "áreas cerradas" in ultimo_error
+                if not reintentable:   # error real -> no insistir de más
                     break
         ev = {"pieza": "colorear", "variante": i + 1, "ok": ok,
               "archivo": nombre if ok else "", "error": "" if ok else ultimo_error}

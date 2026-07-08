@@ -345,6 +345,23 @@ def _personajes_paths(tema, n=2, variedad_estricta=False, incluir_objetos=False)
             hashes.append(h)
     return out
 
+def lineart_valido(img, min_cerrado=0.04):
+    """QA de line-art (skill §19, fase 4): un dibujo para colorear válido tiene
+    ÁREAS CERRADAS (caras, vestidos, pétalos). Flood-fill desde los bordes: si
+    casi todo el blanco es alcanzable desde afuera, las líneas están rotas y no
+    hay nada para pintar (o vino una maraña). True = sirve."""
+    from PIL import ImageDraw as _ID
+    g = img.convert("L").resize((256, 341), Image.LANCZOS)
+    m = g.point(lambda v: 255 if v > 165 else 0)
+    for seed in ((1, 1), (254, 1), (1, 339), (254, 339),
+                 (128, 1), (1, 170), (254, 170), (128, 339)):
+        if m.getpixel(seed) == 255:
+            _ID.floodfill(m, seed, 128)
+    px = m.getdata()
+    cerrado = sum(1 for v in px if v == 255)
+    return cerrado / (256 * 341) >= min_cerrado
+
+
 def _lineart(path):
     """Personaje → line-art (contorno negro sobre blanco) para colorear, por DETECCIÓN DE
     BORDES en vez de umbral de luminancia: el umbral rellenaba de negro a los personajes de
@@ -1039,7 +1056,7 @@ def _a_sudoku(b):
             h = max(30, int(w_tope * img.height / img.width))
         return h
 
-    b.sec("Sudoku de personajes", "Cada figura es un número. Completá los casilleros vacíos: en cada fila, columna y cuadro va uno de cada.")
+    b.sec("Sudoku de personajes", "Completá: uno de cada figura por fila, columna y cuadro.")
     cell = 196; gw = 4 * cell; avail = BOT - b.y
     ly = b.y + max(0, (avail - (gw + 150)) // 2)      # bloque (leyenda + grilla) centrado
     lx = (Wp - 4 * 250) // 2 + 40
@@ -1219,7 +1236,7 @@ def _a_iguales(b, k):
     b.y = BOT
 
 def _a_trazos(b, rows):
-    b.sec("Repasá las líneas", "Seguí la línea punteada con el lápiz, de izquierda a derecha.")
+    b.sec("Repasá las líneas", "Repasá cada línea punteada, de izquierda a derecha.")
     estilos = ["recta", "zigzag", "curva", "onda", "lazo"]; b.rnd.shuffle(estilos)
     for r in range(rows):
         yy, pitch = _slot(b.y, rows, r); amp = min(70, pitch * 0.28)
@@ -1330,7 +1347,7 @@ def _a_diferencias(b, n_dif=5):
     CONTROLADOS (se sabe exactamente qué cambió → solucionario verificable)."""
     if not b.mons or len(b.mons) < 3: return
     n_dif = min(n_dif, 4)          # 5 de 10 era "buscá los iguales": pocas y sutiles
-    b.sec("Buscá las diferencias", "Hay %d diferencias entre los dos dibujos. Marcalas en el de abajo." % n_dif)
+    b.sec("Buscá las diferencias", "Marcá las %d diferencias en el dibujo de abajo." % n_dif)
     pool = list(range(min(len(b.mons), 7)))
     cols_n, rows_n = 6, 2
     slots = [(c, r) for r in range(rows_n) for c in range(cols_n)]
@@ -1358,7 +1375,7 @@ def _a_diferencias(b, n_dif=5):
 
 def _a_otra_mitad(b):
     if not b.mons: return
-    b.sec("Dibujá la otra mitad", "Mirá la mitad del dibujo y dibujá la que falta.")
+    b.sec("Dibujá la otra mitad", "Dibujá la mitad que falta.")
     src = _contorno(max(b.mons, key=lambda p: Image.open(p).size[1])).convert("RGBA")
     h = 760; w = int(src.width * h / src.height); src = src.resize((w, h), Image.LANCZOS)
     half = src.crop((0, 0, w // 2, h)); axis = Wp // 2; top = b.y + 40
@@ -1368,7 +1385,7 @@ def _a_otra_mitad(b):
     b.y = BOT
 
 def _a_tateti(b):
-    b.sec("Ta-te-ti", "Jugá con un amigo. Cada uno elige un personaje; gana quien hace tres en línea.")
+    b.sec("Ta-te-ti", "Tres en línea gana. ¡Jugá con un amigo!")
     if b.mons:
         _paste_h(b.im, _IM(b.mon(0)), 250, b.y + 40, 95)
         b.dr.text((320, b.y + 40), "vs", font=_font(38), fill=INK, anchor="lm")
@@ -1441,62 +1458,111 @@ def _tint2(rgb, p):
     return tuple(int(c + (255 - c) * p) for c in rgb[:3])
 
 
+def _recorte_tile(im2, y0, y1, ancho=548):
+    """Recorta el bloque dibujado y lo achica a miniatura de columna."""
+    crop = im2.crop((30, max(0, y0), Wp - 30, min(Hp, y1)))
+    crop.thumbnail((ancho, 900), Image.LANCZOS)
+    return crop
+
+
 def _solucionario(b):
+    """Clave de respuestas en MINIATURAS a dos columnas (skill §19: al final,
+    compacta, generada desde los MISMOS datos de cada actividad)."""
     keys = ("maze", "cmaze", "ws", "sudoku", "sumas", "restas", "serie", "count",
             "masmenos", "tamano", "patron", "codigo", "difs")
     if not any(k in b.sol for k in keys): return
-    pages = []; im, dr = _page(); _banner(dr, "Soluciones"); y = TOP
-    dr.text((60, y), "Soluciones", font=_font(44), fill=COLS[0]); y += 76
-    def newpage():
-        nonlocal im, dr, y
-        _foot(dr); pages.append(im); im, dr = _page(); _banner(dr, "Soluciones"); y = TOP
-    def need(h):
-        if y + h > BOT: newpage()
+    tiles = []
     for (w, MW, MH) in b.sol.get("maze", []):
-        need(MH * 60 + 80); dr.text((60, y), "Laberinto:", font=_font(28), fill=VIOLET); y += 44
-        y = _draw_maze(im, dr, w, MW, MH, y, b.mons, sol=True) + 36
+        im2, dr2 = _page()
+        yend = _draw_maze(im2, dr2, w, MW, MH, 40, b.mons, sol=True, cell=56)
+        tiles.append(("Laberinto", _recorte_tile(im2, 20, yend + 20)))
     for (RAD, CIRC, HUB, rings, S, se, path) in b.sol.get("cmaze", []):
-        R0 = 40; dt = 46; Rmax = R0 + rings * dt; need(2 * Rmax + 90)
-        dr.text((60, y), "Laberinto circular:", font=_font(28), fill=VIOLET); y += 54
-        cx = Wp / 2; cy = y + Rmax
-        _draw_theta(im, dr, RAD, CIRC, HUB, rings, S, se, cx, cy, R0, dt, b.mons, sol=True, path=path)
-        y = cy + Rmax + 36
+        R0 = 40; dt = 46; Rmax = R0 + rings * dt
+        im2, dr2 = _page()
+        _draw_theta(im2, dr2, RAD, CIRC, HUB, rings, S, se, Wp / 2, 40 + Rmax, R0, dt,
+                    b.mons, sol=True, path=path)
+        tiles.append(("Laberinto circular", _recorte_tile(im2, 20, 40 + 2 * Rmax + 30)))
     for (g, sol, words) in b.sol.get("ws", []):
-        need(len(g) * 50 + 130); dr.text((60, y), "Sopa de letras:", font=_font(28), fill=VIOLET); y += 44
-        y = _draw_ws(dr, g, sol, y, words, mostrar_sol=True) + 24
+        im2, dr2 = _page()
+        yend = _draw_ws(dr2, g, sol, 40, words, mostrar_sol=True, gs=48)
+        tiles.append(("Sopa de letras", _recorte_tile(im2, 20, yend + 10)))
     for sgrid in b.sol.get("sudoku", []):
-        cell = 76; need(4 * cell + 90); dr.text((60, y), "Sudoku (números):", font=_font(28), fill=VIOLET); y += 50
-        gx = (Wp - 4 * cell) // 2
+        im2, dr2 = _page()
+        cell = 90; gx = (Wp - 4 * cell) // 2; gy = 40
         for r in range(4):
             for c in range(4):
-                x0, y0 = gx + c * cell, y + r * cell
-                dr.rectangle([x0, y0, x0 + cell, y0 + cell], outline=(150, 145, 160), width=2)
-                dr.text((x0 + cell / 2, y0 + cell / 2), str(sgrid[r][c] + 1), font=_font(38), fill=NAVY, anchor="mm")
+                x0, y0 = gx + c * cell, gy + r * cell
+                dr2.rectangle([x0, y0, x0 + cell, y0 + cell], outline=(150, 145, 160), width=2)
+                dr2.text((x0 + cell / 2, y0 + cell / 2), str(sgrid[r][c] + 1),
+                         font=_font(44), fill=NAVY, anchor="mm")
         for k in range(0, 5, 2):
-            dr.line([gx + k * cell, y, gx + k * cell, y + 4 * cell], fill=NAVY, width=5)
-            dr.line([gx, y + k * cell, gx + 4 * cell, y + k * cell], fill=NAVY, width=5)
-        y += 4 * cell + 30
-    lines = []
-    for res in b.sol.get("sumas", []): lines.append("Sumas: " + ", ".join(map(str, res)))
-    for res in b.sol.get("restas", []): lines.append("Restas: " + ", ".join(map(str, res)))
+            dr2.line([gx + k * cell, gy, gx + k * cell, gy + 4 * cell], fill=NAVY, width=6)
+            dr2.line([gx, gy + k * cell, gx + 4 * cell, gy + k * cell], fill=NAVY, width=6)
+        tiles.append(("Sudoku (números)", _recorte_tile(im2, 20, gy + 4 * cell + 20)))
+    # respuestas de texto: un tile compacto por tipo
+    txt_items = []
+    for res in b.sol.get("sumas", []): txt_items.append("Sumas: " + ", ".join(map(str, res)))
+    for res in b.sol.get("restas", []): txt_items.append("Restas: " + ", ".join(map(str, res)))
     for res in b.sol.get("serie", []):
-        lines.append("Serie — faltan: " + "  ".join("/".join(map(str, blk)) for blk in res))
-    for (na, nb) in b.sol.get("count", []): lines.append("Contar — Grupo 1: %d · Grupo 2: %d" % (na, nb))
+        txt_items.append("Serie — faltan: " + "  ".join("/".join(map(str, blk)) for blk in res))
+    for (na, nb) in b.sol.get("count", []):
+        txt_items.append("Contar — Grupo 1: %d · Grupo 2: %d" % (na, nb))
     for res in b.sol.get("masmenos", []):
-        lines.append("¿Cuál tiene más?: " + ", ".join("izquierda" if v == 0 else "derecha" for v in res))
+        txt_items.append("¿Cuál tiene más?: " + ", ".join("izq." if v == 0 else "der." for v in res))
     for res in b.sol.get("tamano", []):
-        lines.append("El más grande: posición " + ", ".join(str(v + 1) for v in res))
+        txt_items.append("El más grande: posición " + ", ".join(str(v + 1) for v in res))
     for res in b.sol.get("patron", []):
-        lines.append("Patrón — opción correcta: " + ", ".join(str(v) for v in res))
+        txt_items.append("Patrón — opción: " + ", ".join(str(v) for v in res))
     for palabra in b.sol.get("codigo", []):
-        lines.append("Código secreto: %s" % palabra)
+        txt_items.append("Código secreto: %s" % palabra)
     for pos in b.sol.get("difs", []):
-        lines.append("Diferencias — casilleros (1-12, de izq. a der. y de arriba abajo): "
-                     + ", ".join(str(v) for v in pos))
-    lines.append("(Sombra, intruso, iguales, trazos, otra mitad y colorear se revisan a simple vista.)")
-    for ln in lines:
-        need(40); dr.text((60, y), ln, font=_font(23), fill=INK); y += 36
-    _foot(dr); pages.append(im); b.pages.extend(pages)
+        txt_items.append("Diferencias — casilleros: " + ", ".join(str(v) for v in pos))
+    txt_items.append("Sombra, intruso, iguales, trazos y colorear: a simple vista.")
+    if txt_items:
+        im2, dr2 = _page()
+        yy = 40
+        f = _font(30, False)
+        for ln in txt_items:
+            # wrap simple dentro del ancho del tile escalado
+            linea = ""
+            for wpal in ln.split():
+                t = (linea + " " + wpal).strip()
+                if dr2.textlength(t, font=f) <= Wp - 140 or not linea:
+                    linea = t
+                else:
+                    dr2.text((60, yy), linea, font=f, fill=INK); yy += 44; linea = wpal
+            dr2.text((60, yy), linea, font=f, fill=INK); yy += 54
+        tiles.append(("Respuestas", _recorte_tile(im2, 20, yy + 10)))
+
+    # ── layout: 2 columnas, se llena la más corta; página nueva al desbordar ──
+    pages = []
+    COL_X = (66, 66 + 560); COL_W = 548
+    im = dr = None; ys = [0, 0]
+
+    def newpage():
+        nonlocal im, dr, ys
+        if im is not None:
+            _foot(dr); pages.append(im)
+        im, dr = _page(); _banner(dr, "Soluciones")
+        dr.text((60, TOP), "Soluciones", font=_font(44), fill=COLS[0])
+        ys = [TOP + 80, TOP + 80]
+
+    newpage()
+    for titulo, tile in tiles:
+        col = 0 if ys[0] <= ys[1] else 1
+        alto = tile.height + 64
+        if ys[col] + alto > BOT:
+            otro = 1 - col
+            if ys[otro] + alto <= BOT:
+                col = otro
+            else:
+                newpage(); col = 0
+        x = COL_X[col]
+        dr.text((x, ys[col]), titulo + ":", font=_font(27), fill=VIOLET)
+        im.alpha_composite(tile.convert("RGBA"), (x, ys[col] + 40))
+        ys[col] += alto
+    _foot(dr); pages.append(im)
+    b.pages.extend(pages)
 
 # ───────────────────── armado por banda de edad ─────────────────────
 def _construir(b, e, palabras=None):
