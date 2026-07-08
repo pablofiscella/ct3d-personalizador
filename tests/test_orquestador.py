@@ -38,9 +38,10 @@ def test_genera_slots_por_edad_y_universales(tmp_path):
     assert os.path.exists(os.path.join(draft, "invitacion_1.png"))
     assert not os.path.exists(os.path.join(draft, "invitacion_2.png"))
     assert not os.path.exists(os.path.join(draft, "invitacion_3.png"))
-    # afiche es replicable -> en el batch solo la 1ª edad (el resto se replica aparte)
+    # afiche: UN arte por edad (el número de edad va ILUSTRADO — cada edad el suyo)
     assert os.path.exists(os.path.join(draft, "afiche_1.png"))
-    assert not os.path.exists(os.path.join(draft, "afiche_2.png"))
+    assert os.path.exists(os.path.join(draft, "afiche_2.png"))
+    assert os.path.exists(os.path.join(draft, "afiche_3.png"))
     # universal x1
     assert os.path.exists(os.path.join(draft, "banderin.png"))
     # por_edad False pero FILENAME por-edad (topper) -> arte único como "topper_1.png"
@@ -236,10 +237,11 @@ def test_prompt_colorear_es_line_art():
 
 
 def test_contar_piezas():
-    # invitacion ×1 (UNA_SOLA: se genera 1 vez y se copia) + afiche ×1 (replicable)
-    # + 12 extras + colorear ×1 = 15
-    assert orquestador.contar_piezas([1, 2, 3]) == 15   # 1 + 1 + 12 + 1
+    # invitacion ×1 (UNA_SOLA) + afiche ×N (uno por edad, número ilustrado)
+    # + 12 extras + colorear ×1
+    assert orquestador.contar_piezas([1, 2, 3]) == 17   # 1 + 3 + 12 + 1
     assert orquestador.contar_piezas([1]) == 15         # 1 + 1 + 12 + 1
+    assert orquestador.contar_piezas([1, 2, 3, 4, 5]) == 19  # 1 + 5 + 12 + 1
     assert orquestador.contar_piezas([1, 2, 3], solo={"banderin"}) == 1
 
 
@@ -273,14 +275,30 @@ def test_solo_faltantes_saltea_lo_existente(tmp_path):
     assert orquestador.contar_faltantes(td, "safari", [1]) == 0   # ahora están todas
 
 
-def test_afiche_solo_primera_edad_en_batch(tmp_path):
+def test_afiche_uno_por_edad_en_batch(tmp_path):
+    # el afiche lleva el número de edad ILUSTRADO → uno por edad (bug: antes solo
+    # la 1ª, y al agregar edades sus afiches nunca se generaban)
     td = _tema_dir(tmp_path)
     orquestador.generar_tema(_FakeClient(), td, "safari", edades=[1, 2, 3],
                              quitar=lambda im, protect=True: im)
     draft = os.path.join(td, "safari", "ia_draft")
     assert os.path.exists(os.path.join(draft, "afiche_1.png"))
-    assert not os.path.exists(os.path.join(draft, "afiche_2.png"))   # 2 y 3 se replican aparte
-    assert not os.path.exists(os.path.join(draft, "afiche_3.png"))
+    assert os.path.exists(os.path.join(draft, "afiche_2.png"))
+    assert os.path.exists(os.path.join(draft, "afiche_3.png"))
+
+
+def test_afiche_incremental_solo_edades_nuevas(tmp_path):
+    # el caso de Pablo: con afiche_1/2/3 aprobados, agregar edades 4-5 debe contar
+    # SOLO los afiches nuevos como faltantes (no regenerar los aprobados)
+    td = _tema_dir(tmp_path)
+    ex = os.path.join(td, "safari", "extras"); os.makedirs(ex, exist_ok=True)
+    for e in (1, 2, 3):
+        Image.new("RGBA", (32, 32)).save(os.path.join(ex, "afiche_%d.png" % e))
+    p = next(x for x in orquestador.catalogo.PIEZAS if x.key == "afiche")
+    faltan = [e for e in [1, 2, 3, 4, 5]
+              if not orquestador._pieza_existe(os.path.join(td, "safari"),
+                                               orquestador._nombre_pieza(p, e))]
+    assert faltan == [4, 5]
 
 
 def test_replicar_pieza_genera_otras_edades(tmp_path):
