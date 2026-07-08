@@ -365,3 +365,19 @@ def test_genera_variantes_colorear_error_real_no_insiste(tmp_path):
     res = orquestador.generar_variantes_colorear(cliente, td, "safari", n=1, intentos_por_variante=4)
     assert len(res["errores"]) == 1 and not res["generadas"]
     assert cliente.llamadas == 1   # no reintenta un error que no es de moderación
+
+
+def test_aprobar_afiche_va_a_extras_y_raiz(tmp_path):
+    """El afiche aprobado debe quedar en extras/ (venta del kit) Y en la raíz
+    (arte base de 'Invitación y afiche' / cartel) — antes solo iba a extras y
+    las dos galerías mostraban afiches distintos (bug de Pablo 11-jul-2026)."""
+    from ia_kit import aprobar as ia_aprobar
+    base = tmp_path / "safari"; (base / "ia_draft").mkdir(parents=True)
+    (base / "tema.json").write_text('{"edades":[1,2,3]}')
+    Image.new("RGBA", (32, 32)).save(base / "ia_draft" / "afiche_2.png")
+    Image.new("RGBA", (32, 32)).save(base / "ia_draft" / "stickers_1.png")
+    ia_aprobar.aprobar(str(tmp_path), "safari")
+    assert (base / "extras" / "afiche_2.png").exists()      # venta del kit
+    assert (base / "afiche_2.png").exists()                 # arte base (raíz)
+    assert (base / "extras" / "stickers_1.png").exists()    # el resto solo a extras
+    assert not (base / "stickers_1.png").exists()

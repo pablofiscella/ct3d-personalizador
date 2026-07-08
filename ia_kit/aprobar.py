@@ -35,6 +35,15 @@ def aprobar(temas_dir, tema):
                 shutil.copy(origen, os.path.join(base, "invitacion_%d.png" % e))
                 movidas.append("invitacion_%d.png" % e)
             os.remove(origen)
+        elif nombre.startswith("afiche_"):
+            # el afiche lleva el número de edad ILUSTRADO (uno por edad) y vive en
+            # DOS lugares: extras/ (lo usa la venta del kit) y la RAÍZ (el arte base
+            # que muestra 'Invitación y afiche' y usa el cartel suelto). Antes solo
+            # iba a extras/ → la raíz quedaba con el afiche viejo sin número y las
+            # dos galerías mostraban cosas distintas (bug real, Pablo 11-jul-2026).
+            shutil.copy(origen, os.path.join(extras, nombre))
+            shutil.move(origen, os.path.join(base, nombre))
+            movidas.append(nombre)
         else:
             shutil.move(origen, os.path.join(extras, nombre))
             movidas.append(nombre)
