@@ -375,8 +375,10 @@ def asignar_historia_tema(tema):
 # y el cierre (idéntico al original) pasa al final.
 ARGUMENTOS_EXT = {
     "tesoro": ARGUMENTOS["tesoro"][:6] + [
-        "Todos se sentaron en ronda para admirar {tesoro} de cerca. {amigos} le "
-        "contaron a {nombre} la leyenda de quién lo había escondido hace tantos años.",
+        # OJO gramática de arcos ({tesoro} puede ser fem/masc y largo): nunca
+        # referirlo con pronombres (lo/la) ni colgarle adverbios detrás
+        "Todos se sentaron en ronda para mirar de cerca {tesoro}. {amigos} le "
+        "contaron a {nombre} la leyenda del tesoro, escondido hace tantos años.",
         "De pronto, el mapa volvió a brillar: ¡tenía una segunda cara! Mostraba un "
         "camino nuevo, más corto, de vuelta a casa a través de {mundo}.",
         "En el camino encontraron una piedra enorme bloqueando el paso. Entre "
@@ -517,7 +519,10 @@ ARGUMENTOS_EXT = {
 }
 
 
-_RE_INICIO_FRASE = re.compile(r'(^|[.!?]\s+|[¡¿]\s*|»\s+)([a-záéíóúüñ])')
+# El «¡»/«¿» solo capitaliza si ABRE oración (tras ./!/? o al inicio): en medio
+# de la frase («..., ¡el mapa brilló!») el castellano sigue en minúscula — el
+# regex viejo capitalizaba después de cualquier ¡ y quedaba «, ¡El mapa...»
+_RE_INICIO_FRASE = re.compile(r'(^[¡¿]?\s*|[.!?]\s+[¡¿]?\s*|»\s+[¡¿]?\s*)([a-záéíóúüñ])')
 # Contracción a+el→al, de+el→del: los placeholders {mundo} traen su artículo
 # ("el gran circo", "el reino encantado..."), y muchos arrancan con "el" → tras
 # "a"/"de" quedaba "a el reino"/"de el circo" (mal). Se contrae SOLO ante "el"
