@@ -924,6 +924,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._corona_ia_generar()
         if path == "/dash/fondos-ia-generar":
             return self._fondos_ia_generar()
+        if path == "/dash/armar-tema":
+            return self._armar_tema()
         if path == "/dash/agregar-edades":
             return self._dash_agregar_edades()
         if path == "/dash/ia-colorear-variantes":
@@ -2453,6 +2455,95 @@ function regen(i){
         jid = ia_jobs.iniciar(trabajo)
         return self._json(200, {"ok": True, "job": jid,
                                 "total": len(pend) + (1 if gorro_falta else 0)})
+
+    def _armar_tema_pendientes(self, tema):
+        """Qué le falta generar a un tema para estar COMPLETO (todo incremental).
+        Devuelve dict de etapas con sus conteos — el botón único genera solo esto."""
+        import fondos_ia, corona_ia, libro
+        edades = temas.cargar_tema(tema).get("edades", [1, 2, 3])
+        kit = ia_orq.contar_faltantes(temas.TEMAS_DIR, tema, edades)
+        tdir = os.path.join(temas.TEMAS_DIR, tema)
+        colorear = []
+        for i in range(3):
+            nombre = "colorear.png" if i == 0 else "colorear_%d.png" % (i + 1)
+            if not any(os.path.isfile(os.path.join(tdir, d, nombre))
+                       for d in ("ia_draft", "extras")):
+                colorear.append(nombre)
+        fondos = [p for p in fondos_ia.PIEZAS
+                  if not os.path.isfile(fondos_ia.fondo_path(tema, p))]
+        gorro = 0 if os.path.isfile(corona_ia.fondo_path(tema, "gorro")) else 1
+        libro_pags = [i for i in range(10)
+                      if not os.path.isfile(libro.override_escena_path(tema, i))]
+        return {"kit": kit, "colorear": len(colorear), "fondos": len(fondos),
+                "gorro": gorro, "libro": len(libro_pags),
+                "_fondos_list": fondos, "_libro_list": libro_pags,
+                "edades": edades}
+
+    def _armar_tema(self):
+        """BOTÓN ÚNICO (skill armar-kit §17): genera TODO lo que le falte al tema
+        con la impronta de su ia_maestra — piezas IA del kit (incremental, crea la
+        maestra si no existe), variantes de colorear del cuaderno, fondos IA de los
+        productos individuales + gorro, e ilustraciones del libro. Todo lo
+        procedural (menú, memoria, puzzle, cubo...) hereda automáticamente los
+        personajes/fondos nuevos. ?dry=1 devuelve solo el conteo (para confirmar
+        antes de gastar). ?libro=0 saltea el libro (lo más caro)."""
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        client = _openai_client()
+        if client is None:
+            return self._json(503, {"ok": False, "error": "falta OPENAI_API_KEY"})
+        calidad = _calidad(q)
+        con_libro = q.get("libro", ["1"])[0] != "0"
+        pend = self._armar_tema_pendientes(tema)
+        if not con_libro:
+            pend["libro"] = 0
+        total = pend["kit"] + pend["colorear"] + pend["fondos"] + pend["gorro"] + pend["libro"]
+        if q.get("dry", ["0"])[0] == "1":
+            return self._json(200, {"ok": True, "dry": True, "total": total, **{
+                k: v for k, v in pend.items() if not k.startswith("_")}})
+        if total == 0:
+            return self._json(200, {"ok": True, "job": None, "total": 0,
+                                    "mensaje": "El tema ya está completo."})
+
+        def trabajo(emit):
+            import fondos_ia, corona_ia, libro_ia, shutil
+            def txt(ev):     # generar_tema emite dicts; el modal genérico quiere texto
+                if isinstance(ev, dict):
+                    emit("%s%s %s" % (ev.get("pieza", "?"),
+                                      (" (edad %s)" % ev["edad"]) if ev.get("edad") not in (None, "") else "",
+                                      "✓" if ev.get("ok") else ("reintento…" if ev.get("reintentando") else "✕")))
+                else:
+                    emit(str(ev))
+            if pend["kit"]:
+                emit("— Piezas del kit (%d) —" % pend["kit"])
+                ia_orq.generar_tema(client, temas.TEMAS_DIR, tema, pend["edades"],
+                                    progress=txt, calidad=calidad,
+                                    solo_faltantes=True, reusar_maestra=True)
+            if pend["colorear"]:
+                emit("— Variantes de colorear (%d) —" % pend["colorear"])
+                ia_orq.generar_variantes_colorear(client, temas.TEMAS_DIR, tema, n=3,
+                                                  calidad=calidad, progress=txt)
+                cache = os.path.join(temas.TEMAS_DIR, tema, "actividades_cache")
+                if os.path.isdir(cache):
+                    shutil.rmtree(cache, ignore_errors=True)
+            for pieza in pend["_fondos_list"]:
+                emit("— Fondo de %s —" % pieza)
+                fondos_ia.generar(client, tema, pieza, calidad=calidad)
+            if pend["gorro"]:
+                emit("— Fondo del gorro —")
+                corona_ia.generar(client, tema, "gorro", calidad=calidad)
+            if pend["libro"]:
+                emit("— Ilustraciones del libro (%d) —" % pend["libro"])
+                libro_ia.generar_ilustraciones(client, tema, pend["_libro_list"],
+                                               calidad=calidad, progress=emit)
+            emit("✓ Tema completo. Revisá las piezas en la galería y aprobá el draft.")
+        jid = ia_jobs.iniciar(trabajo)
+        return self._json(200, {"ok": True, "job": jid, "total": total,
+                                "calidad": calidad})
 
     def _ia_colorear_variantes(self):
         """Genera las 3 variantes de 'colorear' que necesita el cuaderno de actividades

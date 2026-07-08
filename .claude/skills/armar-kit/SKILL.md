@@ -308,16 +308,28 @@ con `render_audit.py`):
 13. **gorro con fondo IA (artistas/princesas): casi profesional** — falta generar el
     fondo para los otros 11 temas y filtrar muebles del selector de personajes.
 
-## 17. FLUJO del botón único (cuando se implemente)
+## 17. FLUJO del botón único — IMPLEMENTADO 8-jul-2026
 
-1. ¿Existe `ia_maestra.png` del tema? NO → generarla desde recortes → **frenar para
-   aprobación humana de la maestra** (todo hereda su look).
-2. Piezas IA del kit en paralelo (orquestador, incremental) con QA por perfil.
-3. Piezas procedurales se regeneran gratis (heredan personajes de la hoja de stickers
-   nueva vía cache autoinvalidante).
-4. Libro/gorro al final (los más caros).
-5. Draft → revisión humana UNA vez → aprobar (upscale + mover) → cacheado y en venta.
-6. Cada defecto que aparezca: regla acá + cláusula de prompt + test guardián.
+Botón **«⚡ Armar TODO el tema»** en la tarjeta de cada temática del dash →
+`POST /dash/armar-tema?tema=X` (`servicio._armar_tema`). Flujo:
+
+1. **Dry-run primero** (`?dry=1`): devuelve el desglose de lo que FALTA (kit /
+   colorear / fondos / gorro / libro) — el dash lo muestra y pide confirmación
+   antes de gastar. Todo es INCREMENTAL: lo generado no se toca.
+2. **Piezas del kit** vía `ia_orq.generar_tema(solo_faltantes=True,
+   reusar_maestra=True)` — crea la ia_maestra si no existe. REGLA: una pieza
+   cuenta como generada si está en `ia_draft/` **o aprobada en `extras/`**
+   (`_pieza_existe`) — mirar solo el draft hacía que un tema con todo aprobado
+   figurara como "faltan todas" y se regenerara entero (bug real, artistas).
+3. **Variantes de colorear** (3) + limpieza del `actividades_cache`.
+4. **Fondos IA de productos individuales** (`fondos_ia.PIEZAS`) + **gorro**
+   (`corona_ia`).
+5. **Ilustraciones del libro** (las 10, lo más caro — `?libro=0` lo saltea).
+6. Los procedurales (menú, memoria, puzzle, cubo, certificado...) heredan
+   automáticamente los personajes/fondos nuevos (caches autoinvalidantes).
+7. Al terminar: revisión humana en la galería + aprobar el draft. Solo se vende
+   lo revisado.
+8. Cada defecto que aparezca: regla acá + cláusula de prompt + test guardián.
 
 ## Reglas de oro
 

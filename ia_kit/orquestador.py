@@ -307,12 +307,21 @@ def _nombre_pieza(p, edad):
     return "%s.png" % p.key                                 # universal -> extras/
 
 
+def _pieza_existe(tema_dir, nombre):
+    """Una pieza cuenta como generada si está en el DRAFT o ya APROBADA en
+    extras/ — mirar solo el draft hacía que un tema con todo el arte aprobado
+    (draft vacío tras aprobar) figurara como 'faltan todas' y el incremental
+    regenerara el kit entero al pedo (bug real, detectado con artistas)."""
+    return (os.path.exists(os.path.join(tema_dir, "ia_draft", nombre)) or
+            os.path.exists(os.path.join(tema_dir, "extras", nombre)))
+
+
 def contar_faltantes(temas_dir, tema, edades, solo=None):
-    """Cuántas piezas FALTAN en el draft (las que ya están no se vuelven a generar)."""
-    draft = os.path.join(temas_dir, tema, "ia_draft")
+    """Cuántas piezas FALTAN (ni en draft ni aprobadas en extras)."""
+    tema_dir = os.path.join(temas_dir, tema)
     return sum(1 for p in catalogo.PIEZAS if not (solo and p.key not in solo)
                for edad in _edades_de(p, edades, solo)
-               if not os.path.exists(os.path.join(draft, _nombre_pieza(p, edad))))
+               if not _pieza_existe(tema_dir, _nombre_pieza(p, edad)))
 
 
 def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
@@ -341,12 +350,12 @@ def generar_tema(client, temas_dir, tema, edades, progress=None, solo=None,
     refs_full = refs + [maestra]
     os.makedirs(draft, exist_ok=True)
 
-    # solo_faltantes: saltea las piezas que YA están en el draft (para completar una tanda
-    # que falló a mitad, sin rehacer ni gastar de más).
+    # solo_faltantes: saltea las piezas que YA están (en el draft o aprobadas en
+    # extras/ — ver _pieza_existe), para completar una tanda sin gastar de más.
     work = [(p, edad) for p in catalogo.PIEZAS
             if not (solo and p.key not in solo)
             for edad in _edades_de(p, edades, solo)
-            if not (solo_faltantes and os.path.exists(os.path.join(draft, _nombre_pieza(p, edad))))]
+            if not (solo_faltantes and _pieza_existe(tema_dir, _nombre_pieza(p, edad)))]
 
     def _trabajo(p, edad):
         # corre en un thread; captura sus propios errores y devuelve el evento.

@@ -352,6 +352,7 @@ async function cargar(){
         <button class="btn-ghost cuad">📓 Cuaderno actividades</button>
         <button class="btn-ghost ia-kit">✨ Generar con IA</button>
         <button class="btn-ghost prod-nuevos">🖼️ Otros productos</button>
+        <button class="btn-ghost armar-todo" style="border-color:var(--accent);font-weight:700">⚡ Armar TODO el tema</button>
         ${pubRow}
         ${t.base
           ? `<button class="tema__del-tema" disabled title="Es la temática base; no se puede eliminar">Eliminar temática</button>`
@@ -363,12 +364,54 @@ async function cargar(){
     d.querySelector('.cuad').onclick=()=>openCuaderno(t.id,t.nombre);
     d.querySelector('.ia-kit').onclick=()=>openIA(t.id,t.nombre);
     d.querySelector('.prod-nuevos').onclick=()=>openProductosNuevos(t.id,t.nombre);
+    d.querySelector('.armar-todo').onclick=()=>armarTodoTema(t.id,t.nombre);
     const bPubM=d.querySelector('.pubmodal'); if(bPubM)bPubM.onclick=()=>openPublicar(t.id,t.nombre);
     const bDelT=d.querySelector('.delt'); if(bDelT)bDelT.onclick=()=>eliminarTema(t.id,t.nombre);
     d.querySelector('.ed-edades').onclick=()=>editarEdades(t.id,t.nombre,t.edades||[]);
     cont.appendChild(d);
   });
   updateCarNav();
+}
+async function armarTodoTema(tema, nombre){
+  // BOTÓN ÚNICO: primero un dry-run para mostrar qué falta y cuánto va a
+  // generar (control de gasto), después el job con progreso en vivo.
+  let pre;
+  try{ pre=await (await fetch('/dash/armar-tema?tema='+encodeURIComponent(tema)+'&dry=1',{method:'POST',headers:{'X-API-Key':KEY}})).json(); }
+  catch(e){ alert('No se pudo consultar el estado del tema'); return; }
+  if(!pre.ok){ alert('Error: '+(pre.error||'?')); return; }
+  if(pre.total===0){ alert('«'+nombre+'» ya está completo: piezas del kit, colorear, fondos, gorro y libro generados. Usá los botones de cada sección para rehacer algo puntual.'); return; }
+  const detalle=[
+    pre.kit?`${pre.kit} piezas del kit`:null,
+    pre.colorear?`${pre.colorear} variantes de colorear`:null,
+    pre.fondos?`${pre.fondos} fondos de productos`:null,
+    pre.gorro?`el fondo del gorro`:null,
+    pre.libro?`${pre.libro} ilustraciones del libro`:null,
+  ].filter(Boolean).join(', ');
+  if(!await confirmModal(`Armar TODO «${nombre}» con IA: falta generar ${detalle} (${pre.total} imágenes en total, puede tardar varios minutos). Lo ya generado no se toca. ¿Dale?`))return;
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px';
+  ov.innerHTML=`<div style="background:var(--bg-elevated,#1A1530);color:var(--ink-1,#fff);border-radius:14px;padding:22px;max-width:520px;width:100%">
+    <h2 style="margin:0 0 4px;font-size:17px">⚡ Armando «${nombre}»…</h2>
+    <p style="opacity:.65;font-size:12.5px;margin:0 0 12px">${pre.total} imágenes por generar. Podés cerrar esto: sigue solo en el servidor.</p>
+    <div id="at-log" style="font-size:12.5px;min-height:120px;max-height:300px;overflow-y:auto;background:rgba(0,0,0,.25);border-radius:8px;padding:10px;white-space:pre-wrap"></div>
+    <div style="margin-top:12px;text-align:right"><button id="at-close" class="btn-ghost" style="padding:6px 14px">Cerrar</button></div></div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('#at-close').onclick=()=>ov.remove();
+  const log=ov.querySelector('#at-log');
+  try{
+    const r=await fetch('/dash/armar-tema?tema='+encodeURIComponent(tema),{method:'POST',headers:{'X-API-Key':KEY}});
+    const jr=await r.json();
+    if(!jr.ok||!jr.job){ log.textContent='✕ '+(jr.error||jr.mensaje||'no arrancó'); return; }
+    const poll=setInterval(async()=>{
+      try{
+        const e=await (await fetch('/dash/ia-estado?job='+jr.job+'&key='+encodeURIComponent(KEY))).json();
+        log.textContent=(e.eventos||[]).join('\n');
+        log.scrollTop=log.scrollHeight;
+        if(e.estado==='listo'){ clearInterval(poll); }
+        if(e.estado==='error'){ clearInterval(poll); log.textContent+='\n✕ '+(e.error||'falló'); }
+      }catch(_){}
+    },2500);
+  }catch(e){ log.textContent='✕ '+e; }
 }
 function confirmModal(mensaje){
   return new Promise(resolve=>{
