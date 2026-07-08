@@ -2360,7 +2360,12 @@ function regen(i){
         if not self._admin_ok():
             return self._deny()
         q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
-        st = ia_jobs.estado(q.get("job", [""])[0])
+        jid = q.get("job", [""])[0]
+        if not jid:
+            # sin job: cuántos hay corriendo — chequear ANTES de reiniciar el
+            # servicio (un restart mata los jobs en memoria sin dejar rastro)
+            return self._json(200, {"ok": True, "activos": ia_jobs.activos()})
+        st = ia_jobs.estado(jid)
         return self._json(200, {"ok": True, **st})
 
     def _ia_listado(self, q):
@@ -2472,10 +2477,23 @@ function regen(i){
         fondos = [p for p in fondos_ia.PIEZAS
                   if not os.path.isfile(fondos_ia.fondo_path(tema, p))]
         gorro = 0 if os.path.isfile(corona_ia.fondo_path(tema, "gorro")) else 1
-        libro_pags = [i for i in range(10)
+        total_lib = libro.total_paginas(tema)          # 10 legado / 15 temas nuevos
+        libro_pags = [i for i in range(total_lib)
                       if not os.path.isfile(libro.override_escena_path(tema, i))]
+        # libro desde cero en un tema de formato nuevo → estrena una historia
+        # única de la reserva (regla de Pablo: la Nº12, Nº13... sin repetir)
+        hist_nueva, hist_agotada = None, False
+        if (len(libro_pags) == total_lib and not libro.historia_de_tema(tema)
+                and libro.paginas_historia(tema) > libro.PAGINAS_HISTORIA):
+            prox = libro.proxima_historia_libre()
+            if prox:
+                hist_nueva = "%s (la Nº%d)" % (libro.ARGUMENTO_LABELS.get(prox, prox),
+                                               libro.numero_historia(prox))
+            else:
+                hist_agotada = True
         return {"kit": kit, "colorear": len(colorear), "fondos": len(fondos),
                 "gorro": gorro, "libro": len(libro_pags),
+                "historia_nueva": hist_nueva, "historia_agotada": hist_agotada,
                 "_fondos_list": fondos, "_libro_list": libro_pags,
                 "edades": edades}
 
@@ -2499,7 +2517,9 @@ function regen(i){
         calidad = _calidad(q)
         con_libro = q.get("libro", ["1"])[0] != "0"
         pend = self._armar_tema_pendientes(tema)
-        if not con_libro:
+        if not con_libro or pend["historia_agotada"]:
+            # reserva de historias agotada: NO se genera el libro con una repetida
+            # — hay que escribir argumentos nuevos primero (skill armar-kit)
             pend["libro"] = 0
         total = pend["kit"] + pend["colorear"] + pend["fondos"] + pend["gorro"] + pend["libro"]
         if q.get("dry", ["0"])[0] == "1":
@@ -2537,9 +2557,18 @@ function regen(i){
                 emit("— Fondo del gorro —")
                 corona_ia.generar(client, tema, "gorro", calidad=calidad)
             if pend["libro"]:
+                if pend["historia_nueva"]:
+                    import libro as _libro
+                    asig = _libro.asignar_historia_tema(tema)
+                    if asig:
+                        emit("— Historia nueva del libro: “%s” (la Nº%d) —" % (asig[1], asig[2]))
                 emit("— Ilustraciones del libro (%d) —" % pend["libro"])
                 libro_ia.generar_ilustraciones(client, tema, pend["_libro_list"],
                                                calidad=calidad, progress=emit)
+            if pend["historia_agotada"]:
+                emit("✋ Libro NO generado: se agotó la reserva de historias nuevas — "
+                     "hay que escribir argumentos nuevos antes de armar más libros "
+                     "(así ningún tema repite historia).")
             emit("✓ Tema completo. Revisá las piezas en la galería y aprobá el draft.")
         jid = ia_jobs.iniciar(trabajo)
         return self._json(200, {"ok": True, "job": jid, "total": total,

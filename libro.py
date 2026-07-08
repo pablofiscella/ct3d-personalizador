@@ -305,6 +305,70 @@ ARGUMENTO_LABELS = {"aventura": "La invitación mágica (clásico)",
                     "pequeno-maestro": "El pequeño maestro",
                     "ayudar-a-todos": "El día de ayudar a todos"}
 
+# ── historia propia POR TEMA (regla de Pablo, 8-jul-2026) ────────────────────
+# Los 11 temas con libro ya generado usan todos el clásico ("aventura") con su
+# ambientación. Cada tema que estrena libro se casa con un argumento NUEVO de la
+# reserva, en orden y sin repetir: el 12º tema usa la historia 12, etc. La
+# asignación queda en tema.json («libro_historia») y desde ahí la usan el texto
+# (cuento) y las ilustraciones (libro_ia) por igual.
+_HISTORIAS_LEGADO = 11     # libros ya generados con el clásico (numeración de Pablo)
+ORDEN_HISTORIAS_NUEVAS = ["tesoro", "rescate", "gran-dia", "noche-estrellas",
+                          "cumple-sorpresa", "pequeno-maestro", "ayudar-a-todos"]
+
+
+def historia_de_tema(tema):
+    """Argumento asignado al tema en tema.json («libro_historia»), o None."""
+    try:
+        d = json.load(open(os.path.join(TEMAS, tema, "tema.json")))
+        return str(d.get("libro_historia") or "").strip().lower() or None
+    except Exception:
+        return None
+
+
+def historias_asignadas():
+    """{tema: historia} de todos los temas que ya tienen argumento propio."""
+    out = {}
+    for p in glob.glob(os.path.join(TEMAS, "*", "tema.json")):
+        try:
+            h = str(json.load(open(p)).get("libro_historia") or "").strip().lower()
+        except Exception:
+            continue
+        if h:
+            out[os.path.basename(os.path.dirname(p))] = h
+    return out
+
+
+def numero_historia(historia):
+    """Número 'humano' de la historia (los 11 libros clásicos van primero)."""
+    if historia in ORDEN_HISTORIAS_NUEVAS:
+        return _HISTORIAS_LEGADO + 1 + ORDEN_HISTORIAS_NUEVAS.index(historia)
+    return None
+
+
+def proxima_historia_libre():
+    """El primer argumento de la reserva que ningún tema usa, o None (agotada)."""
+    usadas = set(historias_asignadas().values())
+    return next((h for h in ORDEN_HISTORIAS_NUEVAS if h not in usadas), None)
+
+
+def asignar_historia_tema(tema):
+    """Casa al tema con una historia nueva única y la persiste en tema.json.
+    Idempotente (si ya tiene, devuelve la suya). Devuelve (slug, label, numero)
+    o None si la reserva se agotó — en ese caso NO hay que repetir: se escriben
+    argumentos nuevos (skill armar-kit)."""
+    ya = historia_de_tema(tema)
+    if ya:
+        return ya, ARGUMENTO_LABELS.get(ya, ya), numero_historia(ya)
+    libre = proxima_historia_libre()
+    if libre is None:
+        return None
+    p = os.path.join(TEMAS, tema, "tema.json")
+    d = json.load(open(p))
+    d["libro_historia"] = libre
+    with open(p, "w", encoding="utf-8") as f:
+        json.dump(d, f, ensure_ascii=False, indent=2)
+    return libre, ARGUMENTO_LABELS.get(libre, libre), numero_historia(libre)
+
 # Versión extendida (12 páginas) de las 4 narrativas clásicas: para los temas NUEVOS
 # (15 páginas en total). Los primeros 6 textos son IDÉNTICOS a ARGUMENTOS (arriba) —
 # no se toca el contenido ya vendido — se le suman 5 páginas de historia en el medio
@@ -490,7 +554,9 @@ def cuento(data, tema="safari", catalogo=False):
     edad = str(data.get("edad") or "").strip()
     conteo = ("contar hasta %s" % edad) if edad.isdigit() else "contar hasta tres"
     historia_raw = str(data.get("historia") or "").strip().lower()
-    historia = historia_raw or "aventura"
+    # sin historia en el pedido, vale la del TEMA (asignada al armar el libro) —
+    # así cada tema nuevo cuenta SU historia, no el clásico repetido
+    historia = historia_raw or historia_de_tema(tema) or "aventura"
     ctx = dict(h)
     ctx.update({"nombre": nombre, "conteo": conteo,
                 "conteo_num": edad if edad.isdigit() else "tres"})

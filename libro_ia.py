@@ -761,6 +761,10 @@ def prompt_pagina(tema, idx, genero=None, historia=None, catalogo=False, edad=No
     h["protagonista"] = _protagonista(genero)
     pal = _paleta(tema)
     hlow = (historia or "").strip().lower()
+    if not catalogo and not hlow:
+        # sin historia explícita, el arte sigue la historia DEL TEMA (tema.json
+        # «libro_historia») — la misma que usa el texto en libro.cuento()
+        hlow = libro.historia_de_tema(tema) or ""
     if catalogo and hlow in _ESCENAS_POR_HISTORIA_LARGO:
         n_hist = libro.paginas_historia(tema, edad, historia, catalogo=True)
         total = n_hist + 3

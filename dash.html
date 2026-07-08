@@ -387,7 +387,9 @@ async function armarTodoTema(tema, nombre){
     pre.gorro?`el fondo del gorro`:null,
     pre.libro?`${pre.libro} ilustraciones del libro`:null,
   ].filter(Boolean).join(', ');
-  if(!await confirmModal(`Armar TODO «${nombre}» con IA: falta generar ${detalle} (${pre.total} imágenes en total, puede tardar varios minutos). Lo ya generado no se toca. ¿Dale?`))return;
+  const extraLibro = pre.historia_nueva ? ` El libro estrena una historia nueva: “${pre.historia_nueva}”.`
+    : (pre.historia_agotada ? ' ⚠️ El libro NO se va a generar: se agotó la reserva de historias nuevas (hay que escribir argumentos nuevos para no repetir).' : '');
+  if(!await confirmModal(`Armar TODO «${nombre}» con IA: falta generar ${detalle} (${pre.total} imágenes en total, puede tardar varios minutos).${extraLibro} Lo ya generado no se toca. ¿Dale?`))return;
   const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px';
   ov.innerHTML=`<div style="background:var(--bg-elevated,#1A1530);color:var(--ink-1,#fff);border-radius:14px;padding:22px;max-width:520px;width:100%">

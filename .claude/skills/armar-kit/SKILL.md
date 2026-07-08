@@ -329,7 +329,20 @@ Botón **«⚡ Armar TODO el tema»** en la tarjeta de cada temática del dash �
 3. **Variantes de colorear** (3) + limpieza del `actividades_cache`.
 4. **Fondos IA de productos individuales** (`fondos_ia.PIEZAS`) + **gorro**
    (`corona_ia`).
-5. **Ilustraciones del libro** (las 10, lo más caro — `?libro=0` lo saltea).
+5. **Ilustraciones del libro** (lo más caro — `?libro=0` lo saltea; 10 páginas en
+   temas legado, 15 en formato nuevo). **HISTORIA ÚNICA POR TEMA** (regla de Pablo,
+   8-jul-2026): los 11 libros ya generados usan el clásico («La invitación mágica»)
+   ambientado; cada tema que ESTRENA libro con el botón se casa automáticamente con
+   un argumento NUEVO de la reserva (`libro.ORDEN_HISTORIAS_NUEVAS`, 7 escritos con
+   texto + escenas IA), en orden y sin repetir — princesas = historia Nº12 («El mapa
+   del tesoro»), el próximo la Nº13... La asignación persiste en tema.json
+   (`libro_historia`) y la usan texto (`libro.cuento`) e ilustraciones
+   (`libro_ia.prompt_pagina`) por igual. **Reserva agotada → el libro NO se genera**
+   (el botón avisa): escribir argumentos nuevos (ARGUMENTOS_EXT + _ESCENAS_POR_
+   HISTORIA_EXT + label + ORDEN), nunca repetir.
+6. **NUNCA reiniciar el servicio con jobs de IA corriendo** (los jobs viven en
+   memoria y un restart los mata sin rastro — pasó con el armar-tema de princesas):
+   chequear `GET /dash/ia-estado` sin job → `{activos: N}` antes de reiniciar.
 6. Los procedurales (menú, memoria, puzzle, cubo, certificado...) heredan
    automáticamente los personajes/fondos nuevos (caches autoinvalidantes).
 7. Al terminar: revisión humana en la galería + aprobar el draft. Solo se vende

@@ -87,6 +87,12 @@ pytest tests/ -v
    decidir con Pablo si vale la pena corregirlos (implica re-escalar constantes en
    píxeles fijos de cada archivo, no solo cambiar Wp,Hp).
 
+6. **NUNCA reiniciar `ct3d-kit.service` sin chequear jobs activos** (real, 7-jul-2026:
+   un restart mío mató el armar-tema de Pablo justo antes de la etapa del libro — los
+   jobs viven en memoria y mueren sin rastro). Antes de cualquier restart:
+   `curl -s "http://127.0.0.1:8787/dash/ia-estado" -H "X-API-Key: $(cat .api_key)"`
+   → si `activos > 0`, esperar a que termine.
+
 ## Mi responsabilidad (Claude)
 
 Cada sesión termino reportándote el estado de GIT en ambos repos (este y `/opt/ct3d/`).

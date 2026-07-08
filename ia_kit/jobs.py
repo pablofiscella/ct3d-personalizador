@@ -35,3 +35,11 @@ def estado(job_id):
         if not st:
             return {"estado": "desconocido", "eventos": [], "error": None}
         return {"estado": st["estado"], "eventos": list(st["eventos"]), "error": st["error"]}
+
+
+def activos():
+    """Cantidad de jobs corriendo AHORA. Los jobs viven en memoria: un restart del
+    servicio los mata sin dejar rastro (pasó el 7-jul-2026: un restart en medio de
+    un armar-tema se comió la etapa del libro). Chequear esto ANTES de reiniciar."""
+    with _LOCK:
+        return sum(1 for st in _JOBS.values() if st["estado"] == "corriendo")
