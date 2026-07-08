@@ -469,13 +469,27 @@ def generar_variantes_colorear(client, temas_dir, tema, n=3, calidad="low",
         raise RuntimeError("el tema no tiene recortes/arte base para usar de referencia")
     size_t = tuple(int(x) for x in p.size.split("x"))
     prompt = catalogo.prompt_de(pal, p)
+    # Cada variante con una COMPOSICIÓN distinta obligatoria: con el mismo prompt
+    # las 3 salían casi idénticas (mismos personajes, mismo encuadre — feedback
+    # Pablo 8-jul-2026, princesas) y el cuaderno repetía el dibujo.
+    composiciones = [
+        " COMPOSICIÓN de esta variante: UN solo personaje del tema bien GRANDE "
+        "en primer plano, simple, con 2-3 objetos icónicos del tema alrededor.",
+        " COMPOSICIÓN de esta variante: DOS personajes del tema haciendo una "
+        "actividad juntos (jugando, bailando, explorando), encuadre medio — "
+        "escena DIFERENTE a un retrato grupal estático.",
+        " COMPOSICIÓN de esta variante: el LUGAR del tema en plano general "
+        "(el escenario completo, bien detallado para colorear) con un personaje "
+        "chiquito integrado en la escena.",
+    ]
     generadas, errores = [], []
     for i in range(n):
         nombre = "colorear.png" if i == 0 else "colorear_%d.png" % (i + 1)
+        prompt_i = prompt + composiciones[i % len(composiciones)]
         ok, ultimo_error, bloqueada = False, "", False
         for intento in range(1, intentos_por_variante + 1):
             try:
-                raw = client.editar(refs, prompt, p.size, quality=calidad)
+                raw = client.editar(refs, prompt_i, p.size, quality=calidad)
                 im = validar_png(raw, size_esperado=size_t).convert("RGBA")
                 im = _limpiar_colorear(im)
                 _guardar(im, draft, nombre)
