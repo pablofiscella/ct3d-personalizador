@@ -926,6 +926,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._fondos_ia_generar()
         if path == "/dash/armar-tema":
             return self._armar_tema()
+        if path == "/dash/pieza-regenerar":
+            return self._pieza_regenerar()
         if path == "/dash/agregar-edades":
             return self._dash_agregar_edades()
         if path == "/dash/ia-colorear-variantes":
@@ -2355,6 +2357,66 @@ function regen(i){
                                 calidad=calidad, solo_faltantes=True, reusar_maestra=True)
         jid = ia_jobs.iniciar(trabajo)
         return self._json(200, {"ok": True, "job": jid, "calidad": calidad, "total": total})
+
+    # Qué arte IA hay detrás de cada pieza de la galería de productos:
+    # (tipo, idx) → (módulo, pieza-del-generador). Lo usa el botón ♻ por pieza
+    # (pedido de Pablo 8-jul-2026: bajar/subir/regenerar en CADA cosa del tema).
+    _FONDO_DE_PIEZA = {
+        ("menu", 0): ("fondos", "menu"),
+        ("certificado", 0): ("fondos", "certificado"),
+        ("capsula", 0): ("fondos", "capsula"),
+        ("memoria", 1): ("fondos", "memoria_dorso"),
+        ("rompecabezas", 0): ("fondos", "rompecabezas"),
+        ("rompecabezas", 1): ("fondos", "rompecabezas"),
+        ("corona", 0): ("corona", "gorro"),
+        ("corona", 1): ("corona", "corona"),
+    }
+
+    def _pieza_regenerar(self):
+        """Regenera el arte IA que hay DETRÁS de una pieza puntual de la galería
+        (fondo del menú, arte del gorro, imagen del puzzle, página del libro...).
+        Job en background + polling /dash/ia-estado, como todo lo demás."""
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        tipo = q.get("tipo", [""])[0]
+        try:
+            idx = int(q.get("pieza", ["0"])[0])
+        except ValueError:
+            idx = 0
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        client = _openai_client()
+        if client is None:
+            return self._json(503, {"ok": False, "error": "falta OPENAI_API_KEY"})
+        calidad = _calidad(q)
+
+        if tipo == "libro":
+            def trabajo(emit):
+                import libro_ia
+                emit("Regenerando la ilustración de la página %d…" % (idx + 1))
+                libro_ia.generar_ilustraciones(client, tema, [idx], calidad=calidad,
+                                               progress=emit)
+                emit("✓ Página lista.")
+            return self._json(200, {"ok": True, "job": ia_jobs.iniciar(trabajo)})
+
+        destino = self._FONDO_DE_PIEZA.get((tipo, idx))
+        if destino is None:
+            return self._json(400, {"ok": False, "error":
+                "esta pieza es procedural (no tiene arte IA propio para regenerar)"})
+        modulo, pieza_gen = destino
+
+        def trabajo(emit):
+            emit("Regenerando el arte de %s…" % pieza_gen)
+            if modulo == "fondos":
+                import fondos_ia
+                fondos_ia.generar(client, tema, pieza_gen, calidad=calidad)
+            else:
+                import corona_ia
+                corona_ia.generar(client, tema, pieza_gen, calidad=calidad)
+            emit("✓ Arte nuevo listo.")
+        return self._json(200, {"ok": True, "job": ia_jobs.iniciar(trabajo)})
 
     def _ia_estado(self):
         if not self._admin_ok():

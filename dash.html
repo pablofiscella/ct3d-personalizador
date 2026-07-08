@@ -350,7 +350,7 @@ async function cargar(){
         <button class="btn-ghost arte">🎨 Invitación y afiche</button>
         <button class="btn-ghost piezas">🧩 Piezas del kit</button>
         <button class="btn-ghost cuad">📓 Cuaderno actividades</button>
-        <button class="btn-ghost ia-kit" title="Genera SOLO las piezas del kit (stickers, toppers, afiche...). El botón ⚡ hace esto y además colorear, fondos, gorro/corona y libro.">✨ Solo el kit (IA)</button>
+        <button class="btn-ghost ia-kit" title="Ver, aprobar o regenerar pieza por pieza el arte IA del kit. Para CREAR todo usá ⚡ Armar TODO el tema.">🖼 Revisar arte IA</button>
         <button class="btn-ghost prod-nuevos">🖼️ Otros productos</button>
         <button class="btn-ghost armar-todo" style="border-color:var(--accent);font-weight:700">⚡ Armar TODO el tema</button>
         ${pubRow}
@@ -525,6 +525,21 @@ const PROD_NUEVOS_TIPOS=[['certificado','🎓 Certificado'],['corona','👑 Gorr
   ['capsula','✉️ Cápsula del tiempo'],['libro','📖 Libro de cuento'],['calendario','📅 Calendario'],['papertoys','📦 Paper toy'],
   ['memoria','🃏 Memoria'],['actividades','🎨 Pack de actividades'],['milestone','🍼 Tarjetas mes a mes'],
   ['rutina','🗓️ Rutina visual'],['babyshower','🎀 Baby shower']];
+// Qué arte IA hay detrás de cada pieza (espejo de servicio._FONDO_DE_PIEZA):
+// el botón ♻ regenera ESE arte y la pieza se rearma sola al recargar. Las piezas
+// 100% procedurales (antifaces, cubo, rutina...) no llevan ♻: se rehacen solas.
+const PN_REGEN={
+  menu:{0:'el fondo del menú'},
+  certificado:{0:'la orla del certificado'},
+  capsula:{0:'el arte del sobre'},
+  memoria:{1:'el patrón del dorso'},
+  rompecabezas:{0:'la imagen del rompecabezas',1:'la imagen del rompecabezas'},
+  corona:{0:'el arte del gorro',1:'el arte de la corona'},
+};
+function pnRegenLabel(tipo,idx){
+  if(tipo==='libro')return 'la ilustración de esta página';
+  return (PN_REGEN[tipo]||{})[idx]||null;
+}
 async function openProductosNuevos(tema, nombre){
   window.TEMA_ACTUAL = tema;
   const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -669,8 +684,9 @@ async function openProductosNuevos(tema, nombre){
              onload="this.style.background='#fff'" onerror="this.style.background='#402626'">
         <div style="font-size:11.5px;font-weight:600;margin:6px 0 2px">${esc(p.label)}${p.override?' <span style="color:#39d98a">✓ personalizada</span>':''}</div>
         <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:5px">
-          <a class="btn-ghost pn-dl" style="font-size:10.5px;padding:4px 8px;text-decoration:none" href="/dash/producto-descargar?tema=${encodeURIComponent(tema)}&tipo=${encodeURIComponent(tipoActual)}&pieza=${p.idx}&key=${encodeURIComponent(KEY)}">⬇</a>
-          <label class="btn-ghost" style="font-size:10.5px;padding:4px 8px;cursor:pointer">📤<input type="file" accept="image/*" data-idx="${p.idx}" class="pn-up" style="display:none"></label>
+          <a class="btn-ghost pn-dl" title="Descargar esta pieza" style="font-size:10.5px;padding:4px 8px;text-decoration:none" href="/dash/producto-descargar?tema=${encodeURIComponent(tema)}&tipo=${encodeURIComponent(tipoActual)}&pieza=${p.idx}&key=${encodeURIComponent(KEY)}">⬇</a>
+          <label class="btn-ghost" title="Subir tu propia versión" style="font-size:10.5px;padding:4px 8px;cursor:pointer">📤<input type="file" accept="image/*" data-idx="${p.idx}" class="pn-up" style="display:none"></label>
+          ${pnRegenLabel(tipoActual,p.idx)?`<button class="btn-ghost pn-regen" data-idx="${p.idx}" title="Regenerar con IA: ${pnRegenLabel(tipoActual,p.idx)}" style="font-size:10.5px;padding:4px 8px">♻</button>`:''}
           ${esCalendario?`<button class="btn-ghost pn-cal-edit" data-mes="${p.idx+1}" data-tema="${esc(tema)}" title="Acomodar y regenerar solo este mes" style="font-size:10.5px;padding:4px 8px">✏️ ajustar</button>`:''}
           ${p.override?`<button class="btn-ghost pn-revert" data-idx="${p.idx}" style="font-size:10.5px;padding:4px 8px">↺ original</button>`:''}
         </div>
@@ -685,6 +701,24 @@ async function openProductosNuevos(tema, nombre){
         if(jr.ok){ pmsg.textContent='✓ Reemplazo subido.'; await cargarPiezas(); }
         else pmsg.textContent='✕ '+(jr.error||'error');
       }catch(e){ pmsg.textContent='✕ '+e; }
+    });
+    grid.querySelectorAll('.pn-regen').forEach(b=>b.onclick=async()=>{
+      const et=pnRegenLabel(tipoActual,parseInt(b.dataset.idx));
+      if(!await confirmModal(`¿Regenerar con IA ${et}? La versión actual se pisa (podés volver a regenerar o subir la tuya con 📤).`))return;
+      b.disabled=true; pmsg.textContent='♻ Regenerando '+et+'…';
+      try{
+        const r=await fetch('/dash/pieza-regenerar?tema='+encodeURIComponent(tema)+'&tipo='+encodeURIComponent(tipoActual)+'&pieza='+b.dataset.idx,{method:'POST',headers:{'X-API-Key':KEY}});
+        const jr=await r.json();
+        if(!jr.ok){ pmsg.textContent='✕ '+(jr.error||'error'); b.disabled=false; return; }
+        const poll=setInterval(async()=>{
+          try{
+            const e=await (await fetch('/dash/ia-estado?job='+jr.job+'&key='+encodeURIComponent(KEY))).json();
+            const ev=(e.eventos||[]); pmsg.textContent=ev.length?ev[ev.length-1]:'Generando…';
+            if(e.estado==='listo'){ clearInterval(poll); pmsg.textContent='✓ Regenerada.'; await cargarPiezas(); }
+            if(e.estado==='error'){ clearInterval(poll); pmsg.textContent='✕ '+(e.error||'falló'); b.disabled=false; }
+          }catch(_){}
+        },2500);
+      }catch(e){ pmsg.textContent='✕ '+e; b.disabled=false; }
     });
     grid.querySelectorAll('.pn-revert').forEach(b=>b.onclick=async()=>{
       if(!confirm('¿Volver al diseño original de esta pieza?'))return;
