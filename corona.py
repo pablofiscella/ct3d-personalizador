@@ -376,9 +376,9 @@ def _tira_corona(im, dr, tema, acc, fondo, x0, x1, y_base, h_banda, h_pico, n_pi
     dr.polygon(tab_pts, fill=CREAM, outline=(90, 80, 70), width=6)
     _texto_rotado(im, "LENGÜETA", ((xa + xb) / 2, ty), _font(28), (90, 80, 70), 90)
     slot_h = cuello_h + _mm(2)                     # cuello pasa, cabeza traba
-    sx = x0 + _mm(15)
+    sx = x0 + _mm(5)                               # a 5mm del extremo, como el gorro
     dr.line([sx, ty - slot_h / 2, sx, ty + slot_h / 2], fill=(90, 80, 70), width=10)
-    dr.text((sx, y_base + _mm(4)), "ranura", font=_font(30, False),
+    dr.text((sx + _mm(4), y_base + _mm(4)), "ranura", font=_font(30, False),
             fill=(120, 110, 100), anchor="ma")
 
 

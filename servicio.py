@@ -467,10 +467,15 @@ class Handler(BaseHTTPRequestHandler):
             for k, vals in q.items():
                 if k not in CAMPOS and k not in ("tema", "tipo", "max", "fmt", "over", "pieza", "cb"):
                     data[k] = vals[0] if vals else ""
-            if not data["nombre"]:
-                data["nombre"] = "Tomás"
             tema = q.get("tema", ["safari"])[0]
             tipo = q.get("tipo", ["kit"])[0]
+            # nombre de muestra SOLO donde el nombre ES el producto (libro,
+            # invitación, banderín del kit...) — en el resto de los productos el
+            # preview va limpio (Pablo 9-jul-2026: "sigo viendo Tomás")
+            if not data["nombre"] and (tipo.startswith("libro") or tipo in
+                    ("kit", "invitacion", "cartel", "fiesta-completa",
+                     "video-invitacion", "invitacion-web")):
+                data["nombre"] = "Tomás"
             # tamaño + formato configurables → miniaturas del catálogo livianas
             try: max_px = max(200, min(1200, int(q.get("max", ["900"])[0])))
             except Exception: max_px = 900
@@ -1443,7 +1448,8 @@ class Handler(BaseHTTPRequestHandler):
             nombre, fn, _ = items[idx]
         except Exception:
             return self._json(404, {"ok": False, "error": "pieza no encontrada"})
-        muestra = {"nombre": "Tomás", "edad": "5", "anyo": "2026"}
+        muestra = {"nombre": ("Tomás" if tipo.startswith("libro") else ""),
+                   "edad": "5", "anyo": "2026"}
         img = piezas.to_rgb(fn(muestra))
         buf = io.BytesIO(); img.save(buf, "PNG"); data = buf.getvalue()
         self.send_response(200)
@@ -1465,7 +1471,8 @@ class Handler(BaseHTTPRequestHandler):
             items = productos.piezas_tipo(tema, tipo)
         except Exception as e:
             return self._json(400, {"ok": False, "error": str(e)})
-        muestra = {"nombre": "Tomás", "edad": "5", "anyo": "2026"}
+        muestra = {"nombre": ("Tomás" if tipo.startswith("libro") else ""),
+                   "edad": "5", "anyo": "2026"}
         buf = io.BytesIO()
         with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
             for nombre, fn, _ in items:
