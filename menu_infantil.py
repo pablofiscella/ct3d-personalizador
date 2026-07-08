@@ -119,10 +119,11 @@ def generar_menu(data, tema="safari"):
 
     dr = ImageDraw.Draw(im)
 
-    # encabezado (~20% de la altura, skill §5)
+    # encabezado (~20% de la altura, skill §5) — SIN nombre (Pablo 9-jul-2026:
+    # el menú va en la mesa para todos los invitados)
     dr.rounded_rectangle([_mm(28), _mm(20), Wp - _mm(28), _mm(58)], _mm(7), fill=acc)
-    dr.text((Wp / 2, _mm(34)), "MENÚ DEL DÍA", font=_font(110), fill="white", anchor="mm")
-    dr.text((Wp / 2, _mm(48)), "Hoy cumple %s" % nombre, font=_font(64, False),
+    dr.text((Wp / 2, _mm(35)), "MENÚ DEL DÍA", font=_font(110), fill="white", anchor="mm")
+    dr.text((Wp / 2, _mm(49)), "¡A disfrutar de la fiesta!", font=_font(60, False),
             fill=_tint(acc, 0.8), anchor="mm")
 
     items = [

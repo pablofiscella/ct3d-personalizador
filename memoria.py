@@ -153,7 +153,8 @@ def generar_memoria(data, tema="safari"):
 
     im = Image.new("RGBA", (Wp, Hp), CREAM + (255,))
     dr = ImageDraw.Draw(im)
-    dr.text((60, 55), "JUEGO DE LA MEMORIA · el memo de %s" % nombre,
+    # SIN nombre (Pablo 9-jul-2026): es un juego de mesa para todos
+    dr.text((60, 55), "JUEGO DE LA MEMORIA · encontrá los pares",
             font=_font(44, False), fill=_tint(acc, 0.3))
 
     # instrucciones ARRIBA (entre título y grilla): abajo quedaban cortadas por

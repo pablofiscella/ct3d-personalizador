@@ -386,7 +386,10 @@ def _piezas_rutina(tema):
 
 def _piezas_babyshower(tema):
     import baby_shower as bs
-    return [("%d_%s" % (i + 1, key), (lambda k: (lambda d: bs.pieza(k, d, tema)))(key), True)
+    # SIN nombre en ninguna hoja (Pablo 9-jul-2026): cada pieza usa su texto
+    # genérico ("el bebé", "estamos esperando a nuestro bebé"...)
+    return [("%d_%s" % (i + 1, key),
+             (lambda k: (lambda d: bs.pieza(k, {**d, "nombre": ""}, tema)))(key), True)
             for i, (key, _l) in enumerate(bs.PIEZAS)]
 
 def _piezas_certificado(tema):

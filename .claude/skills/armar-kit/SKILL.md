@@ -366,11 +366,18 @@ Botón **«⚡ Armar TODO el tema»** en la tarjeta de cada temática del dash �
 
 ## 18. Reglas del feedback de Pablo 8-jul-2026 (revisión de princesas)
 
-- **SIN nombre en las piezas "de todos"**: gorro, corona, rompecabezas y cubo se
-  imprimen para los invitados / se usan en el momento — NO llevan nombre ni edad
-  (la edad del gorro/corona solo elige el TALLE). El nombre queda en las piezas
-  intrínsecamente personales: certificado, libro, banderín, rutina, mes-a-mes,
-  baby shower, memoria (título).
+- **SIN nombre en las piezas "de todos"** (lista ampliada por Pablo 9-jul-2026):
+  gorro, corona, rompecabezas, cubo, MENÚ, photo booth (lentes/antifaces/props),
+  CÁPSULA del tiempo (línea en blanco para escribir a mano), MEMORIA (título) y
+  BABY SHOWER (todas las hojas) — se imprimen para los invitados / se usan en el
+  momento. La edad solo elige talles/grillas. El nombre queda únicamente en:
+  certificado, libro, banderín, rutina y mes-a-mes.
+- **Cubo: caras L y R giradas 90°** (una a la derecha, otra a la izquierda): al
+  plegar la caja quedan de costado y con el giro el dibujo se ve derecho.
+- **Gorro: la ranura va PEGADA al borde** (5mm adentro, paralela, mismo rango
+  radial que la lengüeta). A 9mm flotaba en el arte y parecía torcida.
+- **Corona: lengüeta TRAPEZOIDAL con chanfles 45°** integrada a la banda (como
+  la del gorro/cubo) — nunca un rectángulo flotante.
 - **Rompecabezas = FULL IMAGEN**: una escena completa del tema cortada en piezas
   (fondo IA dedicado `fondos_ia «rompecabezas»` > portada del libro > maestra >
   procedural). Nada de banners sobre el arte.

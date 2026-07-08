@@ -142,11 +142,12 @@ def portada_sobre(data, tema="safari"):
         dr.text((cx, ey0 + et_h * 0.82), "(en el año %d)" % anyo,
                 font=_font(56, False), fill=_tint(INK, 0.25), anchor="mm")
 
-    # de/para + fecha de sellado
+    # de/para + fecha de sellado — SIN nombre impreso (Pablo 9-jul-2026): línea
+    # en blanco para que lo escriba el chico con su letra (más cápsula del tiempo)
     y = sy0 + sh + _mm(16)
-    dr.text((cx, y), "Guardado por %s, a sus %s años, en %d" %
-            (nombre, str(data.get("edad") or "—"), _anyo_actual()),
-            font=_font(54, False), fill=INK, anchor="mm")
+    dr.text((cx - _mm(52), y), "Guardado por", font=_font(54, False), fill=INK, anchor="mm")
+    dr.line([cx - _mm(24), y + _mm(4), cx + _mm(28), y + _mm(4)], fill=_tint(INK, 0.5), width=4)
+    dr.text((cx + _mm(44), y), "en %d" % _anyo_actual(), font=_font(54, False), fill=INK, anchor="mm")
 
     # checklist de qué guardar (skill §12: los kits comerciales lo traen)
     y += _mm(18)

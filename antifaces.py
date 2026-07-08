@@ -275,9 +275,8 @@ def lentes_fiesta(data, tema="safari"):
         # separada de la patilla (que ahora termina en sep/2 + r_marco + 18mm)
         _marca_palito(ImageDraw.Draw(im), cx + sep / 2 + r_marco + _mm(27), cy - _mm(2), cy + _mm(16), acc)
 
-    if nombre:
-        # entre las dos filas de lentes (no sobre el puente de ninguno)
-        dr.text((Wp / 2, _mm(137)), nombre, font=_font(58), fill=acc, anchor="mm")
+    # SIN nombre (Pablo 9-jul-2026: los props del photo booth son para todos
+    # los invitados — nada personalizado en la hoja)
     pj = _personaje(tema)
     if pj:
         _paste_h(im, pj, Wp * 0.5, Hp - _mm(62), _mm(50))

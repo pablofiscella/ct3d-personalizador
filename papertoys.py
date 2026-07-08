@@ -144,7 +144,9 @@ def cubo_personalizado(data, tema="safari"):
     fondo.alpha_composite(Image.composite(lunares, Image.new("RGBA", lunares.size, (0, 0, 0, 0)), mask))
     im.alpha_composite(fondo)
 
-    # ---- contenido por cara: personajes + objetos del tema en las 6 (sin letras) ----
+    # ---- contenido por cara: personajes + objetos del tema en las 6 (sin letras).
+    # L y R van GIRADAS 90° (una a cada lado): al plegar la caja quedan de
+    # costado, y con el giro el dibujo se ve derecho (feedback Pablo 9-jul-2026).
     pjs = _personajes(tema, 6)
     if len(pjs) < 3:
         try:
@@ -153,10 +155,14 @@ def cubo_personalizado(data, tema="safari"):
         except Exception:
             pass
     orden = ["F", "L", "R", "T", "B", "K"]        # las caras más visibles primero
+    rot = {"L": -90, "R": 90}
     for i, k in enumerate(orden):
         x, y = caras[k]
         if pjs:
-            _paste_h(im, pjs[i % len(pjs)], x + lado / 2, y + lado / 2, lado * 0.78)
+            pj = pjs[i % len(pjs)]
+            if rot.get(k):
+                pj = pj.rotate(rot[k], expand=True, resample=Image.BICUBIC)
+            _paste_h(im, pj, x + lado / 2, y + lado / 2, lado * 0.78)
         else:
             dr.ellipse([x + lado * 0.30, y + lado * 0.30, x + lado * 0.70, y + lado * 0.70],
                        fill=_tint(acc, 0.4))

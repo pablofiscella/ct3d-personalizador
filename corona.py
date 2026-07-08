@@ -192,7 +192,7 @@ def gorro(data, tema="safari"):
         bw, bh = bx1 - bx0, by1 - by0
         # más agresivo a lo ANCHO (las puntas del arco están a los costados) y
         # anclado abajo (ahí están los personajes: no recortarles la cabeza)
-        big = fondos_ia.cover(fondo, int(bw * 1.4), int(bh * 1.18))
+        big = fondos_ia.cover(fondo, int(bw * 1.55), int(bh * 1.18))
         ox = (big.width - bw) // 2
         oy = int((big.height - bh) * 0.62)
         art = big.crop((ox, oy, ox + bw, oy + bh))
@@ -207,8 +207,8 @@ def gorro(data, tema="safari"):
     ang_r, ang_l = base - half, base + half        # ángulo del borde derecho / izquierdo
     dir_r = (math.cos(ang_r), math.sin(ang_r))
     dir_l = (math.cos(ang_l), math.sin(ang_l))
-    for d in (dir_r, dir_l):                       # bordes = líneas de doblez suaves
-        dr.line([(cx, apex_y), (cx + r * d[0], apex_y + r * d[1])], fill=_tint(acc, 0.4), width=4)
+    for d in (dir_r, dir_l):                       # bordes del abanico bien visibles
+        dr.line([(cx, apex_y), (cx + r * d[0], apex_y + r * d[1])], fill=_tint(acc, 0.15), width=7)
 
     # -- 2 agujeros para el elástico, cerca de las puntas del arco --
     hole_r = 28
@@ -232,17 +232,17 @@ def gorro(data, tema="safari"):
     tab_ang = math.degrees(math.atan2(perp_r[1], perp_r[0]))
     _texto_rotado(im, "LENGÜETA", tab_mid, _font(40), (90, 80, 70), tab_ang)
 
-    # RANURA: corte PARALELO al borde izquierdo (dirección radial), metido hacia
-    # adentro del abanico y con el MISMO rango radial que la lengüeta — al enrollar
-    # el cono la lengüeta atraviesa la ranura de canto y encastra. (Antes el corte
-    # era tangencial y flotaba lejos del borde: no encastraba nada — feedback Pablo.)
+    # RANURA: corte PARALELO al borde izquierdo, PEGADO al borde (5mm hacia
+    # adentro) y con el MISMO rango radial que la lengüeta — al enrollar el cono
+    # la lengüeta atraviesa la ranura y encastra. Pegada al borde se VE paralela
+    # (a 9mm flotaba en medio del arte y parecía torcida — feedback Pablo).
     perp_l = (math.sin(ang_l), -math.cos(ang_l))
     centroide = (cx, apex_y + 0.6 * r)
     p_edge = (cx + ((r_tab0 + r_tab1) / 2) * dir_l[0],
               apex_y + ((r_tab0 + r_tab1) / 2) * dir_l[1])
     if (centroide[0] - p_edge[0]) * perp_l[0] + (centroide[1] - p_edge[1]) * perp_l[1] < 0:
         perp_l = (-perp_l[0], -perp_l[1])          # que apunte hacia ADENTRO
-    inset = tab_w * 0.55
+    inset = 5 * _PXMM
     s0 = (cx + r_tab0 * dir_l[0] + perp_l[0] * inset,
           apex_y + r_tab0 * dir_l[1] + perp_l[1] * inset)
     s1 = (cx + r_tab1 * dir_l[0] + perp_l[0] * inset,
@@ -253,8 +253,8 @@ def gorro(data, tema="safari"):
         slot_ang -= 180
     elif slot_ang < -90:
         slot_ang += 180
-    _texto_rotado(im, "RANURA", ((s0[0] + s1[0]) / 2 + perp_l[0] * 70,
-                                 (s0[1] + s1[1]) / 2 + perp_l[1] * 70),
+    _texto_rotado(im, "RANURA", ((s0[0] + s1[0]) / 2 + perp_l[0] * 62,
+                                 (s0[1] + s1[1]) / 2 + perp_l[1] * 62),
                   _font(40), (90, 80, 70), slot_ang)
 
     # SIN nombre ni edad (decisión de Pablo, 8-jul-2026: el gorro se imprime para
@@ -322,11 +322,16 @@ def _tira_corona(im, dr, tema, acc, fondo, x0, x1, y_base, h_banda, h_pico, n_pi
     # lengüeta que sale del extremo derecho de la banda + 3 RANURAS verticales en
     # el extremo izquierdo: la lengüeta de una tira entra en una ranura de la
     # otra, y la ranura elegida AJUSTA el talle (más adentro = más chica).
-    tab_len, tab_h = _mm(20), h_banda * 0.52
+    # lengüeta TRAPEZOIDAL integrada a la banda (chanfles a 45°, como la del
+    # gorro y las pestañas del cubo — no un rectángulo flotante)
+    tab_len, tab_h = _mm(20), h_banda * 0.58
     ty = y_base - h_banda / 2
-    dr.rounded_rectangle([x1 - 6, ty - tab_h / 2, x1 + tab_len, ty + tab_h / 2],
-                         _mm(3), fill=CREAM, outline=(90, 80, 70), width=6)
-    _texto_rotado(im, "LENGÜETA", (x1 + tab_len / 2, ty), _font(34), (90, 80, 70), 0)
+    ch = tab_h * 0.28                              # chanfle 45°
+    tab_pts = [(x1, ty - tab_h / 2), (x1 + tab_len - ch, ty - tab_h / 2 + 0),
+               (x1 + tab_len, ty - tab_h / 2 + ch), (x1 + tab_len, ty + tab_h / 2 - ch),
+               (x1 + tab_len - ch, ty + tab_h / 2), (x1, ty + tab_h / 2)]
+    dr.polygon(tab_pts, fill=CREAM, outline=(90, 80, 70), width=6)
+    _texto_rotado(im, "LENGÜETA", (x1 + tab_len * 0.48, ty), _font(30), (90, 80, 70), 90)
     slot_h = tab_h + _mm(3)
     for k in range(3):
         sx = x0 + _mm(15 + 15 * k)
