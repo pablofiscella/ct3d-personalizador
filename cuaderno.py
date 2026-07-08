@@ -626,7 +626,19 @@ def _portada(mons, edad, nombre="Cumpleaños", tema=None):
 
 def _sec(dr, y, titulo, instr):
     dr.text((60, y), titulo, font=_font(38), fill=VIOLET); y += 52
-    dr.text((60, y), instr, font=_font(25, False), fill=INK); return y + 48
+    # la consigna se envuelve para NUNCA salirse del ancho (una consigna larga
+    # llegaba hasta el borde de la hoja — guardián tests/test_cuaderno_margenes)
+    f = _font(25, False)
+    linea = ""
+    for w in instr.split():
+        t = (linea + " " + w).strip()
+        if dr.textlength(t, font=f) <= Wp - 130 or not linea:
+            linea = t
+        else:
+            dr.text((60, y), linea, font=f, fill=INK); y += 34; linea = w
+    if linea:
+        dr.text((60, y), linea, font=f, fill=INK)
+    return y + 48
 
 def _arrow(dr, x0, y0, x1, y1, color=NAVY, w=5):
     # flecha chica y prolija: línea fina + cabeza triangular rellena.
@@ -658,7 +670,13 @@ def _draw_maze(im, dr, w, MW, MH, y, mons, sol=False, cell=60):
         pts = [(mx + px * cell + cell / 2, y + py * cell + cell / 2) for px, py in path]
         dr.line(pts, fill=COLS[0], width=8, joint="curve")
     if mons:                                                          # personaje en la entrada + flecha
-        _paste_h(im, Image.open(mons[3 % len(mons)]).convert("RGBA"), max(95, mx - 135), y + 150, 165)
+        pj = Image.open(mons[3 % len(mons)]).convert("RGBA")
+        h = 165
+        w = max(1, int(pj.width * h / pj.height))
+        if w > 190:                                   # figura ancha: achicar para
+            h = max(60, int(190 * pj.height / pj.width))  # que no se salga de la hoja
+            w = max(1, int(pj.width * h / pj.height))
+        _paste_h(im, pj, max(30 + w // 2, mx - 135), y + 150, h)
         _arrow(dr, mx - 64, y + 115, mx - 6, y + cell / 2 + 4)
     gx = mx + MW * cell + 120; gy = y + (MH - 1) * cell + cell / 2    # meta (torta) en la salida + flecha
     _arrow(dr, mx + MW * cell + 8, gy, gx - 64, gy)
@@ -939,11 +957,19 @@ def _fila_items(b, img, n, x, yy, sz, gap=14):
 def _a_sumas(b, rows):
     if not b.mons: return
     b.sec("Sumas con personajes", "Contá y escribí el resultado.")
-    res = []; sz = min(84, int((BOT - b.y) / rows * 0.4)); G = 46
+    res = []; sz0 = min(84, int((BOT - b.y) / rows * 0.4)); G = 46; MARG = 80
     for r in range(rows):
         a = b.rnd.randint(1, 4); bb = b.rnd.randint(1, 4); yy, _ = _slot(b.y, rows, r)
         mA, mB = _IM(b.mon(1)), _IM(b.mon(5))
-        x = _fila_items(b, mA, a, 120, yy, sz)
+        # NUNCA pasarse del ancho (regla de Pablo): se calcula el ancho total de
+        # la fila con los anchos REALES y se achica sz hasta que entre
+        def ancho(sz):
+            return (a * _ancho_a(mA, sz) + (a - 1) * 14 + G + 40 + G +
+                    bb * _ancho_a(mB, sz) + (bb - 1) * 14 + G + 44 + G + 100)
+        sz = sz0
+        while ancho(sz) > Wp - 2 * MARG and sz > 50:
+            sz -= 2
+        x = _fila_items(b, mA, a, MARG, yy, sz)
         b.dr.text((x + G, yy), "+", font=_font(54), fill=INK, anchor="lm")
         x = _fila_items(b, mB, bb, x + G + 40 + G, yy, sz)
         b.dr.text((x + G, yy), "=", font=_font(54), fill=INK, anchor="lm")
@@ -958,13 +984,24 @@ def _a_sudoku(b):
     if not b.mons or len(b.mons) < 4: return
     sol, puz = _sudoku_make(b.rnd)
     imgs = [_IM(b.mons[i]) for i in range(4)]
+
+    def _h_max(img, h_tope, w_tope):
+        """Altura que respeta AMBOS topes: las figuras anchas (aspecto ~1.9,
+        una corona) desbordaban la celda y pisaban los '=' de la leyenda."""
+        h = h_tope
+        if _ancho_a(img, h) > w_tope:
+            h = max(30, int(w_tope * img.height / img.width))
+        return h
+
     b.sec("Sudoku de personajes", "Cada figura es un número. Completá los casilleros vacíos: en cada fila, columna y cuadro va uno de cada.")
     cell = 196; gw = 4 * cell; avail = BOT - b.y
     ly = b.y + max(0, (avail - (gw + 150)) // 2)      # bloque (leyenda + grilla) centrado
     lx = (Wp - 4 * 250) // 2 + 40
     for i in range(4):                                 # leyenda figura = número
-        _paste_h(b.im, imgs[i], lx, ly + 44, 88)
-        b.dr.text((lx + 58, ly + 44), "= %d" % (i + 1), font=_font(38), fill=INK, anchor="lm")
+        h = _h_max(imgs[i], 88, 150)
+        w = _ancho_a(imgs[i], h)
+        _paste_h(b.im, imgs[i], lx, ly + 44, h)
+        b.dr.text((lx + w / 2 + 14, ly + 44), "= %d" % (i + 1), font=_font(38), fill=INK, anchor="lm")
         lx += 250
     gx = (Wp - gw) // 2; gy = ly + 130
     for r in range(4):
@@ -972,7 +1009,9 @@ def _a_sudoku(b):
             x0, y0 = gx + c * cell, gy + r * cell
             b.dr.rectangle([x0, y0, x0 + cell, y0 + cell], outline=(150, 145, 160), width=2)
             if puz[r][c] is not None:
-                _paste_h(b.im, imgs[puz[r][c]], x0 + cell / 2, y0 + cell / 2, cell - 46)
+                img = imgs[puz[r][c]]
+                _paste_h(b.im, img, x0 + cell / 2, y0 + cell / 2,
+                         _h_max(img, cell - 46, cell - 26))
     for k in range(0, 5, 2):                          # líneas gruesas de los cuadros 2×2
         b.dr.line([gx + k * cell, gy, gx + k * cell, gy + 4 * cell], fill=NAVY, width=7)
         b.dr.line([gx, gy + k * cell, gx + 4 * cell, gy + k * cell], fill=NAVY, width=7)
@@ -1042,11 +1081,15 @@ def _a_colorear(b, k=0):
 def _a_restas(b, rows):
     if not b.mons: return
     b.sec("Restas con personajes", "Tachá los que se van y escribí cuántos quedan.")
-    m = _IM(b.mon(2)); res = []; sz = min(100, int((BOT - b.y) / rows * 0.4)); G = 46
-    w = _ancho_a(m, sz)
+    m = _IM(b.mon(2)); res = []; sz0 = min(100, int((BOT - b.y) / rows * 0.4)); G = 46
+    MARG = 80
     for r in range(rows):
         a = b.rnd.randint(2, 5); c = b.rnd.randint(1, a - 1); yy, _ = _slot(b.y, rows, r)
-        x = 130
+        sz = sz0
+        while a * _ancho_a(m, sz) + (a - 1) * 14 + G + 44 + G + 100 > Wp - 2 * MARG and sz > 50:
+            sz -= 2
+        w = _ancho_a(m, sz)
+        x = MARG
         for i in range(a):
             _paste_h(b.im, m, x + w / 2, yy, sz)
             if i >= a - c:
