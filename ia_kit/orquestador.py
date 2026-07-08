@@ -282,11 +282,14 @@ def _guardar(im, draft_dir, nombre):
 
 
 def _edades_de(p, edades, solo):
-    """Qué edades genera una pieza en el batch (1 sola fuente de verdad para generar/contar).
-    invitación (UNA_SOLA) y afiche (REPLICABLE) generan solo la 1ª edad; el resto, todas."""
+    """Qué edades genera/cuenta una pieza en el batch (1 sola fuente de verdad).
+    invitación (UNA_SOLA): 1 sola, el motor le escribe el texto por edad al vender.
+    afiche (REPLICABLE): el número de edad va ILUSTRADO en el arte → hace falta UNO
+    por edad. Antes generaba solo la 1ª (ahorro): al agregar edades nuevas, sus
+    afiches nunca se generaban y salían con el número de otra edad (bug real,
+    Pablo 11-jul-2026). Como todo es incremental, generar 'todas' solo crea las
+    que faltan; las aprobadas no se tocan."""
     if p.por_edad and p.key in catalogo.UNA_SOLA:
-        return [edades[0]]
-    if p.por_edad and p.key in catalogo.REPLICABLE and not solo:
         return [edades[0]]
     return edades if p.por_edad else [None]
 
