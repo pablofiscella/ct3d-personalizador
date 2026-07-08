@@ -276,8 +276,8 @@ def generar_rutina(data, tema="monstruos"):
         bx = 40 + i * (Wp - 80) / 13
         c = [_tint(acc, 0.15), (255, 214, 98), _tint(acc, 0.55)][i % 3]
         dr.polygon([(bx - 22, header_h), (bx + 22, header_h), (bx, header_h + 40)], fill=c)
-    nombre = (str(data.get("nombre") or "").strip() or "mi peque")
-    titulo = "La rutina de %s" % nombre
+    # SIN nombre (Pablo 9-jul-2026) — título genérico
+    titulo = "Mi rutina"
     fs = 74
     while _font(fs).getbbox(titulo)[2] > Wp - 420 and fs > 40:
         fs -= 3

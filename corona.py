@@ -360,12 +360,13 @@ def _tira_corona(im, dr, tema, acc, fondo, x0, x1, y_base, h_banda, h_pico, n_pi
     # lengüeta que sale del extremo derecho de la banda + 3 RANURAS verticales en
     # el extremo izquierdo: la lengüeta de una tira entra en una ranura de la
     # otra, y la ranura elegida AJUSTA el talle (más adentro = más chica).
-    # lengüeta en T integrada a la banda: CUELLO más angosto que la ranura y
-    # CABEZA más ANCHA (se dobla para entrar y traba — feedback Pablo: del
-    # mismo ancho que el corte, se sale). Chanfles a 45° como el cubo.
+    # lengüeta en T IGUAL a la del gorro (cuello mínimo ~1mm pegado a la banda,
+    # cabeza más ANCHA que la ranura con chanfles 45°: se dobla para entrar y
+    # traba) + UNA sola ranura cerca del extremo contrario (feedback Pablo
+    # 9-jul-2026: con 3 cortes no — un corte, como el gorro).
     ty = y_base - h_banda / 2
-    cuello_h, cabeza_h = h_banda * 0.40, h_banda * 0.72
-    cuello_len, cabeza_len = _mm(7), _mm(13)
+    cuello_h, cabeza_h = h_banda * 0.42, h_banda * 0.74
+    cuello_len, cabeza_len = _mm(1.2), _mm(13)
     ch = cabeza_h * 0.22
     xa, xb = x1 + cuello_len, x1 + cuello_len + cabeza_len
     tab_pts = [(x1, ty - cuello_h / 2), (xa, ty - cuello_h / 2), (xa, ty - cabeza_h / 2),
@@ -375,11 +376,9 @@ def _tira_corona(im, dr, tema, acc, fondo, x0, x1, y_base, h_banda, h_pico, n_pi
     dr.polygon(tab_pts, fill=CREAM, outline=(90, 80, 70), width=6)
     _texto_rotado(im, "LENGÜETA", ((xa + xb) / 2, ty), _font(28), (90, 80, 70), 90)
     slot_h = cuello_h + _mm(2)                     # cuello pasa, cabeza traba
-    for k in range(3):
-        sx = x0 + _mm(15 + 15 * k)
-        dr.line([sx, ty - slot_h / 2, sx, ty + slot_h / 2], fill=(90, 80, 70), width=10)
-    dr.text((x0 + _mm(30), y_base + _mm(4)),
-            "ranuras: elegí la que ajuste mejor", font=_font(30, False),
+    sx = x0 + _mm(15)
+    dr.line([sx, ty - slot_h / 2, sx, ty + slot_h / 2], fill=(90, 80, 70), width=10)
+    dr.text((sx, y_base + _mm(4)), "ranura", font=_font(30, False),
             fill=(120, 110, 100), anchor="ma")
 
 
@@ -415,8 +414,8 @@ def corona(data, tema="safari"):
 
     dr.text((60, 52), "CORONA · %s" % _TALLES_GORRO[talla]["label"],
             font=_font(44, False), fill=_tint(acc, 0.3))
-    dr.text((WpH / 2, 140), "SIN pegamento: recortá las 2 tiras y encastrá la lengüeta "
-            "de cada una en una ranura de la otra (la ranura elegida ajusta el talle).",
+    dr.text((WpH / 2, 140), "SIN pegamento: recortá las 2 tiras y encastrá la "
+            "lengüeta de cada una en la ranura de la otra.",
             font=_font(40, False), fill=_tint(acc, 0.2), anchor="mm")
     dr.text((WpH / 2, HpH - 55), "casatridimensional.com.ar",
             font=_font(36, False), fill=(180, 180, 180), anchor="mm")

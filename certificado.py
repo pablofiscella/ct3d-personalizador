@@ -127,15 +127,10 @@ def generar_certificado(data, tema="safari"):
     dr.text((cx, _mm(68)), "Se otorga el presente certificado a", font=_font(56, False),
             fill=_tint(INK, 0.2), anchor="mm")
 
-    # NOMBRE: el elemento más grande de la pieza (skill §10)
-    nom_fs = 230
-    while _font(nom_fs).getbbox(nombre)[2] > WpH * 0.62 and nom_fs > 80:
-        nom_fs -= 6
-    dr.text((cx, _mm(92)), nombre, font=_font(nom_fs), fill=acc, anchor="mm")
-    # subrayado suave bajo el nombre
-    nw = _font(nom_fs).getbbox(nombre)[2]
-    dr.line([cx - nw / 2, _mm(107), cx + nw / 2, _mm(107)], fill=_tint(acc, 0.55), width=6)
-
+    # SIN nombre impreso (Pablo 9-jul-2026): LÍNEA grande para escribirlo a mano
+    # en la fiesta — así el mismo certificado sirve para cualquier chico
+    dr.line([cx - WpH * 0.26, _mm(100), cx + WpH * 0.26, _mm(100)],
+            fill=_tint(acc, 0.35), width=8)
     dr.text((cx, _mm(122)), "por cumplir %s años con alegría, juegos y mucha diversión" % edad,
             font=_font(58, False), fill=_tint(INK, 0.15), anchor="mm")
 
