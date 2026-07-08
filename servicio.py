@@ -1326,9 +1326,10 @@ class Handler(BaseHTTPRequestHandler):
         return self._json(200, {"ok": True, "slot": sslot, "tema": tema, "size": list(im.size)})
 
     # ---- Kit nuevo (extras/<pieza>_<edad>.png): subir cada pieza por edad, self-service ----
-    _PIEZAS_EDAD = ["afiche", "topper", "stickers", "separadores", "etiqueta_botella",
-                    "cajita_sorpresa", "decoracion_sorbetes"]
-    _PIEZAS_UNIV = ["banderin", "etiquetas_multiuso", "wrappers_cupcakes", "tarjetas_agradecimiento"]
+    # FUENTE ÚNICA = productos (antes esta lista fija se desincronizó y la galería
+    # 'Piezas del kit' no mostraba base_torta ni topper_palito — bug de Pablo 11-jul).
+    _PIEZAS_EDAD = list(productos._EXTRAS_POR_EDAD)
+    _PIEZAS_UNIV = list(productos._EXTRAS_UNIVERSAL)
 
     def _dash_upload_pieza(self):
         if not self._admin_ok():

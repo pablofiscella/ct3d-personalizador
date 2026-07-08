@@ -30,3 +30,12 @@ def test_tipos_con_nombre_estan_declarados():
     for tipo, spec in productos.TIPOS.items():
         if "nombre" in (spec.get("campos") or []):
             assert tipo in productos.PERSONALIZADAS or tipo in sin_nombre_a_proposito, tipo
+
+
+def test_galeria_piezas_espeja_las_reales():
+    """La galería 'Piezas del kit' (servicio._PIEZAS_EDAD/_UNIV) debe mostrar
+    TODAS las piezas reales del kit — antes una lista fija se desincronizó y
+    ocultaba base_torta/topper_palito (bug de Pablo 11-jul-2026)."""
+    import servicio
+    assert servicio.Handler._PIEZAS_EDAD == list(productos._EXTRAS_POR_EDAD)
+    assert servicio.Handler._PIEZAS_UNIV == list(productos._EXTRAS_UNIVERSAL)
