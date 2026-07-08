@@ -247,7 +247,7 @@ def gorro(data, tema="safari"):
     # Lengüeta en T: CUELLO más angosto que la ranura (pasa fácil) y CABEZA más
     # ANCHA que la ranura (se dobla para entrar y después TRABA, no se sale —
     # feedback Pablo 9-jul-2026: si es del mismo ancho que el corte, se zafa).
-    r_tab0, tab_len, tab_w = 0.62 * r, 300, 210
+    r_tab0, tab_len, tab_w = 0.70 * r, 300, 165
     perp_r = (math.sin(ang_r), -math.cos(ang_r))   # tangencial, hacia AFUERA del abanico
 
     def _pt_r(u, v):
@@ -255,9 +255,9 @@ def gorro(data, tema="safari"):
         return (cx + rr * dir_r[0] + perp_r[0] * v, apex_y + rr * dir_r[1] + perp_r[1] * v)
 
     cuello0, cuello1 = 40, tab_len - 40            # cuello: 220 (ranura: 240)
-    # cuello CORTO (2.5mm): la cabeza queda casi tocando el borde del gorro
-    # (feedback Pablo 9-jul-2026) — solo el juego justo para trabar en la ranura
-    v_cuello, ch = 30, 55                          # cabeza: 300 (> ranura) chanfle 45°
+    # cuello MÍNIMO (~1mm): la cabeza pegada al borde del gorro, solo el juego
+    # justo para trabar en la ranura (feedback Pablo 9-jul-2026, iterado 2 veces)
+    v_cuello, ch = 15, 45                          # cabeza: 300 (> ranura) chanfle 45°
     tab_poly = [_pt_r(cuello0, 0), _pt_r(cuello0, v_cuello), _pt_r(0, v_cuello),
                 _pt_r(0, tab_w - ch), _pt_r(ch, tab_w), _pt_r(tab_len - ch, tab_w),
                 _pt_r(tab_len, tab_w - ch), _pt_r(tab_len, v_cuello),
