@@ -134,5 +134,15 @@
     "font": "Fredoka-VF.ttf",
     "lema": "¡Cumplo {edad}!",
     "titulo": "El cumple de"
-  }
+  },
+  "palabras": [
+    "PELOTA",
+    "GOLAZO",
+    "EQUIPO",
+    "CANCHA",
+    "ARQUERO",
+    "HINCHADA",
+    "COPA",
+    "PENAL"
+  ]
 }

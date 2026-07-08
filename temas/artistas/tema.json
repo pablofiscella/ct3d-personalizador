@@ -219,5 +219,15 @@
       ]
     }
   },
-  "libro_paginas_historia": 7
+  "libro_paginas_historia": 7,
+  "palabras": [
+    "PINCEL",
+    "COLORES",
+    "TALLER",
+    "ARTE",
+    "CUADRO",
+    "PINTURA",
+    "MÚSICA",
+    "OBRA"
+  ]
 }

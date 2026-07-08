@@ -566,14 +566,40 @@ def _star_pts(cx, cy, R):
              cy + (R if i % 2 == 0 else R * .45) * math.sin(-math.pi / 2 + i * math.pi / 5)) for i in range(10)]
 
 def _heart_pts(cx, cy, R, n):
-    """n puntos en ORDEN sobre el contorno de un corazón (para unir del 1 al n)."""
-    pts = []
-    for i in range(n):
-        t = math.pi / 2 + 2 * math.pi * i / n          # arranca arriba, sentido horario
+    """n puntos en ORDEN sobre el contorno de un corazón, repartidos por LONGITUD
+    DE ARCO (muestrear el parámetro directo amontonaba puntos en el pico y la
+    punta — con 30 puntos quedaban pegados y los números ilegibles)."""
+    denso = []
+    for i in range(720):
+        t = math.pi / 2 + 2 * math.pi * i / 720
         x = 16 * math.sin(t) ** 3
         y = -(13 * math.cos(t) - 5 * math.cos(2 * t) - 2 * math.cos(3 * t) - math.cos(4 * t))
-        pts.append((cx + x * R / 16, cy + y * R / 16))
-    return pts
+        denso.append((cx + x * R / 16, cy + y * R / 16))
+    largos = [0.0]
+    for a, b2 in zip(denso, denso[1:] + denso[:1]):
+        largos.append(largos[-1] + math.hypot(b2[0] - a[0], b2[1] - a[1]))
+    total = largos[-1]
+    idxs, j = [], 0
+    for i in range(n):
+        objetivo = total * i / n
+        while j < 719 and largos[j + 1] < objetivo:
+            j += 1
+        idxs.append(j)
+    # separación EUCLIDIANA mínima: en el pico del corazón la curva se pliega y
+    # dos puntos con igual arco quedan pegados (los números se encimaban)
+    # d_min SIEMPRE menor que el espaciado natural (total/n): si lo supera, el
+    # ajuste empuja todos los puntos en cascada y el final se apila (bug real)
+    d_min = max(36, min(R * 0.22, 0.8 * total / n))
+    def _d(a, b3):
+        return math.hypot(denso[a][0] - denso[b3][0], denso[a][1] - denso[b3][1])
+    for k in range(1, n):
+        while idxs[k] < 715 and _d(idxs[k], idxs[k - 1]) < d_min:
+            idxs[k] += 4
+    # el par que CIERRA el lazo (último ↔ primero) también necesita aire: el
+    # ajuste de arriba empujaba al último justo encima del 1
+    while len(idxs) > 2 and idxs[-1] > idxs[-2] + 8 and _d(idxs[-1], idxs[0]) < d_min:
+        idxs[-1] -= 4
+    return [denso[j] for j in idxs]
 
 def _figura_pts(figura, cx, cy, R, n):
     return _heart_pts(cx, cy, R, n) if figura == "corazon" else _star_pts(cx, cy, R)[:n]
@@ -831,14 +857,14 @@ def _a_puntos(b, nd, figura="estrella"):
     top = b.y; R = min(360, int((BOT - top) * 0.4)); cx, cy = Wp / 2, top + (BOT - top) / 2
     pts = _figura_pts(figura, cx, cy, R, nd); fg = _font(34)
     for i, (px, py) in enumerate(pts):
-        # el número va al COSTADO del círculo (no encima); del lado OPUESTO al vecino más
-        # cercano, así dos círculos juntos no se tapan los números (uno a izq, otro a der).
-        nb = min((q for j, q in enumerate(pts) if j != i),
-                 key=lambda q: (q[0] - px) ** 2 + (q[1] - py) ** 2, default=(px - 1, py))
-        side = -1 if nb[0] > px else 1
+        # el número va hacia AFUERA de la figura (normal desde el centro): con el
+        # criterio del vecino más cercano, en el pliegue del corazón dos rótulos
+        # caían en el mismo hueco y se encimaban.
+        ux, uy = px - cx, py - cy
+        L = math.hypot(ux, uy) or 1.0
         b.dr.ellipse([px - 11, py - 11, px + 11, py + 11], fill=NAVY)
-        b.dr.text((px + side * 24, py), str(i + 1), font=fg,
-                  fill=COLS[i % len(COLS)], anchor=("lm" if side > 0 else "rm"))
+        b.dr.text((px + 40 * ux / L, py + 40 * uy / L), str(i + 1), font=fg,
+                  fill=COLS[i % len(COLS)], anchor="mm")
     b.y = BOT
 
 def _a_contar(b, na, nb):
@@ -960,6 +986,7 @@ def _a_sumas(b, rows):
     res = []; sz0 = min(84, int((BOT - b.y) / rows * 0.4)); G = 46; MARG = 80
     for r in range(rows):
         a = b.rnd.randint(1, 4); bb = b.rnd.randint(1, 4); yy, _ = _slot(b.y, rows, r)
+        bb = max(1, min(bb, 7 - a))    # 4+4 figuras ANCHAS no entran ni escalando
         mA, mB = _IM(b.mon(1)), _IM(b.mon(5))
         # NUNCA pasarse del ancho (regla de Pablo): se calcula el ancho total de
         # la fila con los anchos REALES y se achica sz hasta que entre
@@ -967,7 +994,7 @@ def _a_sumas(b, rows):
             return (a * _ancho_a(mA, sz) + (a - 1) * 14 + G + 40 + G +
                     bb * _ancho_a(mB, sz) + (bb - 1) * 14 + G + 44 + G + 100)
         sz = sz0
-        while ancho(sz) > Wp - 2 * MARG and sz > 50:
+        while ancho(sz) > Wp - 2 * MARG and sz > 40:
             sz -= 2
         x = _fila_items(b, mA, a, MARG, yy, sz)
         b.dr.text((x + G, yy), "+", font=_font(54), fill=INK, anchor="lm")
@@ -1191,6 +1218,94 @@ def _a_trazos(b, rows):
         _goal_torta(b.dr, x1 + 70, yy, 54)
     b.y = BOT
 
+def _tema_palabras(tema):
+    """Palabras TEMÁTICAS para la sopa/código (tema.json::palabras) — la sopa con
+    vocabulario genérico de cumpleaños violaba la regla 'el tema es estructural'
+    (skill §19). Fallback: las genéricas de siempre."""
+    try:
+        ws = json.load(open(os.path.join(TEMAS, tema, "tema.json"), encoding="utf-8")).get("palabras")
+        ws = [str(w).strip().upper() for w in (ws or []) if str(w).strip()]
+        return ws[:8] if len(ws) >= 4 else None
+    except Exception:
+        return None
+
+
+def _a_codigo(b, palabra):
+    """Código secreto: cada figura es una letra — decodificá la palabra del tema.
+    Actividad 6+ de los libros pro (Highlights); verificable: la clave ES la palabra."""
+    letras = []
+    for ch in _sin_tilde(palabra):
+        if ch not in letras:
+            letras.append(ch)
+    if not b.mons or len(b.mons) < len(letras): return
+    b.sec("Código secreto", "Cada figura es una letra. Descubrí la palabra escondida.")
+    figs = {ch: _IM(b.mons[i]) for i, ch in enumerate(letras)}
+    # leyenda figura=letra en 2 filas
+    per = (len(letras) + 1) // 2
+    ly = b.y + 30
+    for fila in range(2):
+        grupo = letras[fila * per:(fila + 1) * per]
+        if not grupo: break
+        paso = (Wp - 200) // max(1, len(grupo))
+        for i, ch in enumerate(grupo):
+            cx = 140 + i * paso
+            h = 96
+            if _ancho_a(figs[ch], h) > paso - 90:
+                h = max(40, int((paso - 90) * figs[ch].height / figs[ch].width))
+            _paste_h(b.im, figs[ch], cx, ly + 50, h)
+            b.dr.text((cx + _ancho_a(figs[ch], h) / 2 + 12, ly + 50), "= " + ch,
+                      font=_font(40), fill=INK, anchor="lm")
+        ly += 150
+    # la palabra codificada: figuras con un casillero debajo de cada una
+    seq = [figs[ch] for ch in _sin_tilde(palabra)]
+    yy = ly + (BOT - ly) / 2
+    sz = 120; gap = 26; MARG = 90
+    def ancho(s):
+        return sum(max(_ancho_a(m, s), 96) + gap for m in seq) - gap
+    while ancho(sz) > Wp - 2 * MARG and sz > 56:
+        sz -= 2
+    x = (Wp - ancho(sz)) / 2
+    for m in seq:
+        w = max(_ancho_a(m, sz), 96)
+        _paste_h(b.im, m, x + w / 2, yy - 60, sz)
+        b.dr.rounded_rectangle([x + w / 2 - 44, yy + 40, x + w / 2 + 44, yy + 128], 10,
+                               outline=NAVY, width=3)
+        x += w + gap
+    b.y = BOT
+    b.soladd("codigo", palabra)
+
+
+def _a_diferencias(b, n_dif=5):
+    """Buscá las diferencias: dos escenas iguales, la de abajo con n_dif cambios
+    CONTROLADOS (se sabe exactamente qué cambió → solucionario verificable)."""
+    if not b.mons or len(b.mons) < 3: return
+    n_dif = min(n_dif, 4)          # 5 de 10 era "buscá los iguales": pocas y sutiles
+    b.sec("Buscá las diferencias", "Hay %d diferencias entre los dos dibujos. Marcalas en el de abajo." % n_dif)
+    pool = list(range(min(len(b.mons), 7)))
+    cols_n, rows_n = 6, 2
+    slots = [(c, r) for r in range(rows_n) for c in range(cols_n)]
+    base = [b.rnd.choice(pool) for _ in slots]
+    cambios = b.rnd.sample(range(len(slots)), n_dif)
+    alt = list(base)
+    for i in cambios:
+        alt[i] = b.rnd.choice([p for p in pool if p != base[i]])
+    boxh = int((BOT - b.y - 60) / 2)
+    for bi, contenido in ((0, base), (1, alt)):
+        y0 = b.y + bi * (boxh + 40)
+        b.dr.rounded_rectangle([60, y0, Wp - 60, y0 + boxh], 16,
+                               outline=(215, 210, 225), width=3)
+        for (c, r), ti in zip(slots, contenido):
+            cx = 60 + (c + 0.5) * (Wp - 120) / cols_n
+            cy = y0 + (r + 0.5) * boxh / rows_n
+            img = _IM(b.mons[ti])
+            h = min(130, int(boxh / rows_n * 0.62))
+            if _ancho_a(img, h) > (Wp - 120) / cols_n - 24:
+                h = max(40, int(((Wp - 120) / cols_n - 24) * img.height / img.width))
+            _paste_h(b.im, img, cx, cy, h)
+    b.y = BOT
+    b.soladd("difs", sorted((i % cols_n) + 1 + (i // cols_n) * cols_n for i in cambios))
+
+
 def _a_otra_mitad(b):
     if not b.mons: return
     b.sec("Dibujá la otra mitad", "Mirá la mitad del dibujo y dibujá la que falta.")
@@ -1217,7 +1332,8 @@ def _a_tateti(b):
     b.y = BOT
 
 def _solucionario(b):
-    keys = ("maze", "cmaze", "ws", "sudoku", "sumas", "restas", "serie", "count", "masmenos", "tamano")
+    keys = ("maze", "cmaze", "ws", "sudoku", "sumas", "restas", "serie", "count",
+            "masmenos", "tamano", "patron", "codigo", "difs")
     if not any(k in b.sol for k in keys): return
     pages = []; im, dr = _page(); _banner(dr, "Soluciones"); y = TOP
     dr.text((60, y), "Soluciones", font=_font(44), fill=COLS[0]); y += 76
@@ -1262,32 +1378,49 @@ def _solucionario(b):
         lines.append("El más grande: posición " + ", ".join(str(v + 1) for v in res))
     for res in b.sol.get("patron", []):
         lines.append("Patrón — opción correcta: " + ", ".join(str(v) for v in res))
+    for palabra in b.sol.get("codigo", []):
+        lines.append("Código secreto: %s" % palabra)
+    for pos in b.sol.get("difs", []):
+        lines.append("Diferencias — casilleros (1-12, de izq. a der. y de arriba abajo): "
+                     + ", ".join(str(v) for v in pos))
     lines.append("(Sombra, intruso, iguales, trazos, otra mitad y colorear se revisan a simple vista.)")
     for ln in lines:
         need(40); dr.text((60, y), ln, font=_font(23), fill=INK); y += 36
     _foot(dr); pages.append(im); b.pages.extend(pages)
 
 # ───────────────────── armado por banda de edad ─────────────────────
-def _construir(b, e):
-    """Secuencia de actividades por banda de edad (2-3 / 4-5 / 6-7). Algunos tipos se
-    repiten con contenido nuevo (otra figura/lista/números) para sumar variedad. ~13/18/24."""
+def _construir(b, e, palabras=None):
+    """Secuencia por banda de edad, RECALIBRADA con los hitos del CDC/Kumon (skill
+    §19, fase 2): dificultad progresiva dentro de cada banda, sin páginas
+    duplicadas como relleno, sin tareas de sala de 2 a los 6 años ni consignas de
+    lectoescritura a los 2-3. `palabras`: vocabulario temático (sopa/código)."""
+    ws = palabras or PALABRAS
     if e <= 3:
+        # 2-3 años: motricidad + discriminación visual. SIN números escritos,
+        # SIN letras, SIN 'unir puntos' con secuencia numérica (CDC).
         _a_colorear(b, 0); _a_trazos(b, 4); _a_sombra(b, 3); _a_iguales(b, 3)
-        _a_contar(b, 3, 2); _a_tamano(b, 3); _a_patron(b, 3); _a_mas_menos(b, 3)
-        _a_puntos(b, 8, "corazon"); _a_trazos(b, 4); _a_buscar(b, 8); _a_colorear(b, 1)
+        _a_tamano(b, 3); _a_contar(b, 3, 2); _a_patron(b, 3); _a_mas_menos(b, 3)
+        _a_trazos(b, 4); _a_buscar(b, 8); _a_colorear(b, 1); _a_colorear(b, 2)
     elif e <= 5:
-        _a_trazos(b, 4); _a_puntos(b, 10, "estrella"); _a_laberinto(b, 7); _a_contar(b, 5, 3)
-        _a_patron(b, 3); _a_diferente(b, 3); _a_sombra(b, 4); _a_sudoku(b)
-        _a_mas_menos(b, 3); _a_iguales(b, 4); _a_tamano(b, 3); _a_buscar(b, 14)
-        _a_laberinto(b, 7); _a_puntos(b, 10, "corazon"); _a_tateti(b)
-        _a_colorear(b, 0); _a_colorear(b, 1)
+        # 4-5 años: fácil → difícil; puntos 1-10 primero y 1-20 al final
+        _a_trazos(b, 4); _a_colorear(b, 0); _a_sombra(b, 4); _a_iguales(b, 4)
+        _a_puntos(b, 10, "estrella"); _a_contar(b, 5, 3); _a_patron(b, 3)
+        _a_tamano(b, 3); _a_mas_menos(b, 3); _a_diferente(b, 3)
+        _a_laberinto(b, 7); _a_sudoku(b); _a_buscar(b, 14)
+        _a_laberinto(b, 8); _a_puntos(b, 20, "corazon"); _a_tateti(b)
+        _a_colorear(b, 1); _a_colorear(b, 2)
     else:
-        _a_laberinto(b, 9); _a_sopa(b); _a_puntos(b, 10, "estrella"); _a_contar(b, 5, 3)
-        _a_sombra(b, 4); _a_colorear(b, 0); _a_sumas(b, 4); _a_diferente(b, 3)
-        _a_laberinto_circular(b, 4); _a_patron(b, 3); _a_buscar(b, 18); _a_restas(b, 4)
-        _a_colorear(b, 1); _a_sudoku(b); _a_mas_menos(b, 3); _a_serie(b, 4)
-        _a_iguales(b, 5); _a_laberinto(b, 9); _a_sopa(b, PALABRAS2); _a_puntos(b, 10, "corazon")
-        _a_contar(b, 6, 4); _a_tamano(b, 3); _a_tateti(b); _a_colorear(b, 2)
+        # 6-7 años: AFUERA las tareas de sala de 2 (iguales, más grande, cuál
+        # tiene más); sopa TEMÁTICA; código secreto y diferencias en vez de
+        # páginas repetidas; puntos 1-30; segundo laberinto MÁS difícil (11x11).
+        _a_colorear(b, 0); _a_laberinto(b, 9); _a_contar(b, 6, 4)
+        _a_sombra(b, 4); _a_sopa(b, ws); _a_puntos(b, 30, "corazon")
+        _a_sumas(b, 4); _a_patron(b, 3); _a_diferencias(b, 4)
+        _a_laberinto_circular(b, 4); _a_colorear(b, 1); _a_restas(b, 4)
+        pal_codigo = min([w for w in ws if 5 <= len(w) <= 8] or ws, key=len)
+        _a_codigo(b, pal_codigo); _a_sudoku(b); _a_serie(b, 4)
+        _a_buscar(b, 18); _a_diferente(b, 3); _a_laberinto(b, 11)
+        _a_tateti(b); _a_colorear(b, 2)
 
 # ───────────────────────── armado ─────────────────────────
 def _cover_mons(tema, mons):
@@ -1316,7 +1449,7 @@ def _build(tema, edad, seed):
     b = _Book(edad, mons, seed, nombre); b._colorear = _colorear_imgs(tema)
     portada = _portada(_cover_mons(tema, mons), edad, nombre, tema=tema)
     e = int(edad) if str(edad).isdigit() else 6
-    _construir(b, e); b.finish()
+    _construir(b, e, palabras=_tema_palabras(tema)); b.finish()
     acts = [portada] + list(b.pages)
     b.pages = []; _solucionario(b)
     return acts, list(b.pages)

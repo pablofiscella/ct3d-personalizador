@@ -201,5 +201,15 @@
       ]
     }
   },
-  "libro_paginas_historia": 7
+  "libro_paginas_historia": 7,
+  "palabras": [
+    "AVIÓN",
+    "PILOTO",
+    "CIELO",
+    "NUBES",
+    "VUELO",
+    "HÉLICE",
+    "ALAS",
+    "TORRE"
+  ]
 }

@@ -213,5 +213,15 @@
       ]
     }
   },
-  "libro_paginas_historia": 7
+  "libro_paginas_historia": 7,
+  "palabras": [
+    "PAYASO",
+    "CARPA",
+    "MAGIA",
+    "MALABAR",
+    "TRAPECIO",
+    "FUNCIÓN",
+    "RISAS",
+    "GLOBO"
+  ]
 }

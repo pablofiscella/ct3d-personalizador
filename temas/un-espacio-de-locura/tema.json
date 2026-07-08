@@ -138,5 +138,15 @@
     "font": "Fredoka-VF.ttf",
     "lema": "¡Cumplo {edad}!",
     "titulo": "El cumple de"
-  }
+  },
+  "palabras": [
+    "COHETE",
+    "PLANETA",
+    "ESTRELLA",
+    "LUNA",
+    "NAVE",
+    "ASTRONAUTA",
+    "GALAXIA",
+    "SOL"
+  ]
 }

@@ -203,5 +203,15 @@
       ]
     }
   },
-  "libro_paginas_historia": 7
+  "libro_paginas_historia": 7,
+  "palabras": [
+    "CARPA",
+    "FOGATA",
+    "BOSQUE",
+    "LINTERNA",
+    "ESTRELLA",
+    "SENDERO",
+    "MOCHILA",
+    "RÍO"
+  ]
 }

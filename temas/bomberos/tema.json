@@ -206,5 +206,15 @@
       ]
     }
   },
-  "libro_paginas_historia": 7
+  "libro_paginas_historia": 7,
+  "palabras": [
+    "BOMBERO",
+    "SIRENA",
+    "ESCALERA",
+    "AGUA",
+    "RESCATE",
+    "CASCO",
+    "VALIENTE",
+    "FUEGO"
+  ]
 }

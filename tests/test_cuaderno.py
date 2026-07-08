@@ -100,7 +100,9 @@ def test_build_separa_actividades_y_solucionario(tmp_path, monkeypatch):
     monkeypatch.setattr(cuaderno, "TEMAS", str(tmp_path))
     _mk_tema(tmp_path)
     acts, sols = cuaderno._build("circo", "6", 1)             # banda 6-7
-    assert len(acts) >= 20                                    # portada + ~25 actividades (1 por página)
+    # portada + ~17 actividades (el fixture NO tiene arte de colorear y esas
+    # páginas se saltean a propósito — skill §19 bug 2: nunca imprimir fallback)
+    assert len(acts) >= 18
     assert len(sols) >= 1                                     # al menos una hoja de soluciones
     assert all(p.size == (cuaderno.Wp, cuaderno.Hp) for p in acts + sols)
     solo = cuaderno.paginas("circo", "6", con_solucionario=False)

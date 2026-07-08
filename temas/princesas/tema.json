@@ -141,5 +141,15 @@
     "lema": "¡Cumplo {edad}!",
     "titulo": "El cumple de"
   },
-  "libro_historia": "tesoro"
+  "libro_historia": "tesoro",
+  "palabras": [
+    "PRINCESA",
+    "CASTILLO",
+    "CORONA",
+    "VARITA",
+    "REINO",
+    "BAILE",
+    "MAGIA",
+    "ROSA"
+  ]
 }

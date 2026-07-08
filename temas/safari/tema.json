@@ -136,5 +136,15 @@
     "font": "Fredoka-VF.ttf",
     "lema": "¡Cumplo {edad}!",
     "titulo": "El cumple de"
-  }
+  },
+  "palabras": [
+    "LEÓN",
+    "JIRAFA",
+    "CEBRA",
+    "SELVA",
+    "MONO",
+    "SAFARI",
+    "HUELLA",
+    "RÍO"
+  ]
 }

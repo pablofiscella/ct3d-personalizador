@@ -203,5 +203,15 @@
       ]
     }
   },
-  "libro_paginas_historia": 7
+  "libro_paginas_historia": 7,
+  "palabras": [
+    "OBRA",
+    "CASCO",
+    "GRÚA",
+    "LADRILLO",
+    "MARTILLO",
+    "PALA",
+    "CAMIÓN",
+    "PUENTE"
+  ]
 }
