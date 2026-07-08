@@ -60,6 +60,10 @@ _TALLES_GORRO = {
 }
 
 
+def _mm(v):
+    return v * _PXMM
+
+
 def _talla_de_edad(edad):
     try:
         e = int(str(edad).strip())
@@ -179,12 +183,19 @@ def gorro(data, tema="safari"):
         mask = Image.new("L", (WpH, HpH), 0)
         ImageDraw.Draw(mask).polygon(pts, fill=255)
         import fondos_ia
-        # cover al BBOX del abanico (no a la hoja entera): usa la franja central
-        # y densa del arte — cubrir la hoja dejaba los extremos del arco en el
-        # borde ralo de la imagen
+        # cover al BBOX del abanico con SOBRE-ESCANEO del 22%: la IA deja los
+        # bordes de la imagen pálidos/ralos y eso caía justo en las PUNTAS del
+        # arco (sector blanco donde van ranura y lengüeta — feedback Pablo).
+        # Se recorta ese borde y se usa la zona densa del arte.
         bx0 = int(min(p[0] for p in pts)); by0 = int(min(p[1] for p in pts))
         bx1 = int(max(p[0] for p in pts)); by1 = int(max(p[1] for p in pts))
-        art = fondos_ia.cover(fondo, bx1 - bx0, by1 - by0)
+        bw, bh = bx1 - bx0, by1 - by0
+        # más agresivo a lo ANCHO (las puntas del arco están a los costados) y
+        # anclado abajo (ahí están los personajes: no recortarles la cabeza)
+        big = fondos_ia.cover(fondo, int(bw * 1.4), int(bh * 1.18))
+        ox = (big.width - bw) // 2
+        oy = int((big.height - bh) * 0.62)
+        art = big.crop((ox, oy, ox + bw, oy + bh))
         capa = Image.new("RGBA", (WpH, HpH), (0, 0, 0, 0))
         capa.paste(art, (bx0, by0))
         im.paste(capa, (0, 0), mask)
@@ -280,9 +291,14 @@ def _tira_corona(im, dr, tema, acc, fondo, x0, x1, y_base, h_banda, h_pico, n_pi
         mask = Image.new("L", im.size, 0)
         ImageDraw.Draw(mask).polygon(pts, fill=255)
         import fondos_ia
+        # sobre-escaneo 15%: los bordes de la imagen IA son pálidos y caían en
+        # los extremos de la tira (mismo fix que el gorro)
         bx0 = int(min(p[0] for p in pts)); by0 = int(min(p[1] for p in pts))
         bx1 = int(max(p[0] for p in pts)); by1 = int(max(p[1] for p in pts))
-        art = fondos_ia.cover(fondo, bx1 - bx0, by1 - by0)
+        bw, bh = bx1 - bx0, by1 - by0
+        big = fondos_ia.cover(fondo, int(bw * 1.15), int(bh * 1.15))
+        ox, oy = (big.width - bw) // 2, (big.height - bh) // 2
+        art = big.crop((ox, oy, ox + bw, oy + bh))
         capa = Image.new("RGBA", im.size, (0, 0, 0, 0))
         capa.paste(art, (bx0, by0))
         im.paste(capa, (0, 0), mask)
@@ -302,10 +318,22 @@ def _tira_corona(im, dr, tema, acc, fondo, x0, x1, y_base, h_banda, h_pico, n_pi
             ry, rw = y_base - h_banda / 2, h_banda * 0.20
             dr.polygon([(gx, ry - rw), (gx + rw * 0.75, ry), (gx, ry + rw), (gx - rw * 0.75, ry)],
                        fill=CREAM, outline=borde, width=5)
-    # zona de unión: línea punteada vertical cerca del extremo derecho
-    ux = x1 - (x1 - x0) * 0.055
-    for y in range(int(y_base - h_banda) + 12, int(y_base) - 12, 34):
-        dr.line([ux, y, ux, y + 17], fill=borde, width=5)
+    # ── encastre SIN pegamento (igual que el gorro — feedback Pablo 9-jul-2026):
+    # lengüeta que sale del extremo derecho de la banda + 3 RANURAS verticales en
+    # el extremo izquierdo: la lengüeta de una tira entra en una ranura de la
+    # otra, y la ranura elegida AJUSTA el talle (más adentro = más chica).
+    tab_len, tab_h = _mm(20), h_banda * 0.52
+    ty = y_base - h_banda / 2
+    dr.rounded_rectangle([x1 - 6, ty - tab_h / 2, x1 + tab_len, ty + tab_h / 2],
+                         _mm(3), fill=CREAM, outline=(90, 80, 70), width=6)
+    _texto_rotado(im, "LENGÜETA", (x1 + tab_len / 2, ty), _font(34), (90, 80, 70), 0)
+    slot_h = tab_h + _mm(3)
+    for k in range(3):
+        sx = x0 + _mm(15 + 15 * k)
+        dr.line([sx, ty - slot_h / 2, sx, ty + slot_h / 2], fill=(90, 80, 70), width=10)
+    dr.text((x0 + _mm(30), y_base + _mm(4)),
+            "ranuras: elegí la que ajuste mejor", font=_font(30, False),
+            fill=(120, 110, 100), anchor="ma")
 
 
 def corona(data, tema="safari"):
@@ -329,7 +357,9 @@ def corona(data, tema="safari"):
     if fondo is None:
         fondo = _fondo_ia(tema, "gorro")
 
-    x0, x1 = 70, WpH - 70                      # 2 tiras de ~283mm → ~50cm unidas
+    # 2 tiras que se ENCASTRAN entre sí (lengüeta de una en ranura de la otra):
+    # el extremo derecho deja lugar para la lengüeta que sobresale de la banda
+    x0, x1 = 70, WpH - 70 - int(20 * _PXMM)
     h_banda = 38 * _PXMM * esc
     h_pico = 45 * _PXMM * esc
     n_picos = 5
@@ -338,8 +368,9 @@ def corona(data, tema="safari"):
 
     dr.text((60, 52), "CORONA · %s" % _TALLES_GORRO[talla]["label"],
             font=_font(44, False), fill=_tint(acc, 0.3))
-    dr.text((WpH / 2, 140), "Recortá las 2 tiras y unilas por las líneas punteadas "
-            "a la medida de la cabeza.", font=_font(42, False), fill=_tint(acc, 0.2), anchor="mm")
+    dr.text((WpH / 2, 140), "SIN pegamento: recortá las 2 tiras y encastrá la lengüeta "
+            "de cada una en una ranura de la otra (la ranura elegida ajusta el talle).",
+            font=_font(40, False), fill=_tint(acc, 0.2), anchor="mm")
     dr.text((WpH / 2, HpH - 55), "casatridimensional.com.ar",
             font=_font(36, False), fill=(180, 180, 180), anchor="mm")
     return im
