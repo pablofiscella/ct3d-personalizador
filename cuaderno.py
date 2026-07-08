@@ -1754,8 +1754,16 @@ def paginas_finales(tema, edad, seed=1, nombre=""):
 def estado(tema, edad, seed=1):
     """Estado de cada página para el panel: idx, si está reemplazada o quitada."""
     base = base_paginas(tema, edad, seed); od = _override_dir(tema, edad); items = []
+    nsol = _n_sol(tema, edad)
     for i in range(len(base)):
-        items.append({"idx": i,
+        # etiquetar las páginas especiales del final (el diploma parecía "un
+        # certificado en lugar de las soluciones" — feedback Pablo 11-jul-2026)
+        label = ""
+        if i >= len(base) - nsol:
+            label = "Soluciones"
+        elif i == len(base) - nsol - 1:
+            label = "Diploma"
+        items.append({"idx": i, "label": label,
                       "removed": os.path.exists(os.path.join(od, "pg%02d.removed" % i)),
                       "override": os.path.isfile(os.path.join(od, "pg%02d.png" % i)), "extra": False})
     for ep in sorted(glob.glob(os.path.join(od, "pg*.png"))):
