@@ -77,10 +77,30 @@ class OpenRouterImageClient:
         raise OpenRouterError("falló tras %d intentos: %s" % (self.max_retries, last))
 
 
+def _es_falla_por_disponibilidad(e):
+    """True SOLO si OpenAI falló por algo que OpenRouter PUEDE cubrir: crédito/cuota
+    agotada, tope de facturación, rate-limit (429) o caída del servicio (5xx/red).
+    Un rechazo de contenido/seguridad (HTTP 400) u otro 4xx inmediato devuelve
+    False: ese error se re-lanza tal cual, porque OpenRouter no lo arregla y
+    enmascararlo como '402 sin crédito' esconde la causa real (pasó con el fondo
+    memoria_dorso — OpenAI lo rechazó por 'safety system' y el failover lo tapó,
+    Pablo 8-jul-2026)."""
+    m = str(e).lower()
+    if "safety system" in m or "moderation" in m or "content_policy" in m:
+        return False
+    if any(s in m for s in ("insufficient_quota", "billing", "hard_limit",
+                            "exceeded your current quota")):
+        return True
+    # ia_kit.client sólo agota reintentos ("falló tras N intentos") en 429/5xx/red;
+    # los 4xx de contenido cortan de una, sin ese prefijo.
+    return "falló tras" in m
+
+
 class ClienteImagenesFailover:
-    """Intenta con el cliente primario (OpenAI directo); si falla por billing o
-    cualquier error NO transitorio, reintenta con el respaldo (OpenRouter). Los
-    dos exponen .editar() — el resto del pipeline no se entera cuál respondió."""
+    """Intenta con el primario (OpenAI directo). Cae al respaldo (OpenRouter) SÓLO
+    si el fallo es por crédito/cuota/límite o caída de OpenAI —lo que OpenRouter
+    puede cubrir—; ante un rechazo de contenido/seguridad u otro error real,
+    re-lanza el error del primario sin tocar el respaldo. Los dos exponen .editar()."""
 
     def __init__(self, primario, respaldo):
         self.primario = primario
@@ -90,6 +110,8 @@ class ClienteImagenesFailover:
         try:
             return self.primario.editar(refs, prompt, size, quality=quality, **kw)
         except Exception as e:
-            print("[ia] primario falló (%s) — probando respaldo OpenRouter"
+            if not _es_falla_por_disponibilidad(e):
+                raise   # error real (p.ej. rechazo de seguridad 400): que se vea
+            print("[ia] OpenAI sin disponibilidad (%s) — probando respaldo OpenRouter"
                   % str(e)[:120], flush=True)
             return self.respaldo.editar(refs, prompt, size, quality=quality)

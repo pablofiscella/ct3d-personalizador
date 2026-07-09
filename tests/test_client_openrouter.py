@@ -5,6 +5,8 @@ import json
 import os
 import sys
 
+import pytest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from ia_kit.client_openrouter import (OpenRouterImageClient, OpenRouterError,
@@ -57,3 +59,32 @@ def test_failover_no_toca_respaldo_si_primario_anda():
             raise AssertionError("no debería llamarse")
     fo = ClienteImagenesFailover(_Primario(), _Respaldo())
     assert fo.editar([], "p", "1024x1024") == b"desde-openai"
+
+
+def test_failover_no_tapa_rechazo_de_seguridad():
+    """Un rechazo de contenido/seguridad de OpenAI (HTTP 400) NO debe caer a
+    OpenRouter: eso enmascaraba la causa real como '402 sin crédito' (bug de Pablo
+    8-jul-2026). Se re-lanza el error real del primario."""
+    class _Primario:
+        def editar(self, *a, **k):
+            raise RuntimeError("OpenAI HTTP 400: Bad Request — "
+                               "Your request was rejected by the safety system.")
+    class _Respaldo:
+        def editar(self, *a, **k):
+            raise AssertionError("no debería tocar OpenRouter en un rechazo de seguridad")
+    fo = ClienteImagenesFailover(_Primario(), _Respaldo())
+    with pytest.raises(RuntimeError, match="safety system"):
+        fo.editar([], "p", "1024x1024")
+
+
+def test_failover_cae_si_se_agotan_los_reintentos():
+    """429/5xx/red agotan reintentos en ia_kit.client ('falló tras N intentos'):
+    ESO sí lo cubre OpenRouter, así que cae al respaldo."""
+    class _Primario:
+        def editar(self, *a, **k):
+            raise RuntimeError("falló tras 3 intentos: HTTP 429: Too Many Requests")
+    class _Respaldo:
+        def editar(self, *a, **k):
+            return b"desde-openrouter"
+    fo = ClienteImagenesFailover(_Primario(), _Respaldo())
+    assert fo.editar([], "p", "1024x1024") == b"desde-openrouter"
