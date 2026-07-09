@@ -1186,7 +1186,7 @@ async function openIA(tema, nombre){
           const listas=finales.filter(e=>e.ok).length;
           const reintentos=evs.filter(e=>e.reintentando).length;
           prog.textContent = s.estado==='corriendo'
-            ? 'Generando variantes de colorear… '+listas+'/3 listas'+(reintentos?' ('+reintentos+' reintento(s) por moderación de OpenAI)':'')
+            ? 'Generando variantes de colorear… '+Math.min(listas+1,3)+'/3'+(reintentos?' ('+reintentos+' reintento(s) por moderación de OpenAI)':'')
             : (s.estado==='listo'
                 ? (listas===3 ? '✓ 3 variantes de colorear generadas' : '⚠ '+listas+'/3 generadas — reintentá para completar las que fallaron')
                 : '✕ '+(s.error||'error'));
