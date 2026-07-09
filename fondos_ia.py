@@ -118,7 +118,20 @@ def generar(client, tema, pieza, calidad="medium"):
     prompt = (cfg["prompt"].format(tema=tema.replace("-", " ")) +
               " Mismo estilo, colores y personajes que la imagen de referencia. "
               "SIN NINGÚN TEXTO, LETRA, NÚMERO NI PALABRA en la imagen.")
-    raw = client.editar(refs, prompt, cfg["size"], quality=calidad)
+    raw = None
+    for intento in range(1, 5):
+        try:
+            raw = client.editar(refs, prompt, cfg["size"], quality=calidad)
+            break
+        except Exception as e:
+            # Moderación de salida de OpenAI (moderation_blocked): es probabilística,
+            # regenerar suele pasar. Reintentamos hasta 4 veces antes de fallar.
+            m = str(e).lower()
+            if intento < 4 and ("moderation" in m or "safety system" in m):
+                print("[fondos-ia] %s/%s rechazado por moderación (intento %d/4) — regenerando"
+                      % (tema, pieza, intento), flush=True)
+                continue
+            raise
     img = Image.open(io.BytesIO(raw)).convert("RGBA")
     dest = fondo_path(tema, pieza)
     os.makedirs(os.path.dirname(dest), exist_ok=True)

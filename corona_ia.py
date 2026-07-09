@@ -69,7 +69,23 @@ def generar(client, tema, pieza, calidad="medium"):
         raise RuntimeError(
             "el tema %r no tiene imagen de referencia (ia_maestra.png/stickers) "
             "— agregala antes de generar el gorro/corona" % tema)
-    raw = client.editar(refs, _prompt(tema, pieza), "1536x1024", quality=calidad)
+    prompt = _prompt(tema, pieza)
+    raw = None
+    for intento in range(1, 5):
+        try:
+            raw = client.editar(refs, prompt, "1536x1024", quality=calidad)
+            break
+        except Exception as e:
+            # La moderación de SALIDA de OpenAI (moderation_blocked, categoría 'other')
+            # es PROBABILÍSTICA: la misma imagen del gorro/corona a veces sale marcada
+            # y a veces no (pasó con superhéroes, 9-jul-2026). Regenerar suele pasar, así
+            # que reintentamos hasta 4 veces antes de darlo por fallido.
+            m = str(e).lower()
+            if intento < 4 and ("moderation" in m or "safety system" in m):
+                print("[corona-ia] %s/%s rechazado por moderación (intento %d/4) — regenerando"
+                      % (tema, pieza, intento), flush=True)
+                continue
+            raise
     img = Image.open(io.BytesIO(raw)).convert("RGBA")
     dest = fondo_path(tema, pieza)
     os.makedirs(os.path.dirname(dest), exist_ok=True)
