@@ -504,23 +504,33 @@ def hoja_stickers(tema, lado=2400):
         paths = cuaderno._extraer_monstruos(tema) or []
     except Exception:
         paths = []
-    crops = []
+    brutos = []
     for p in paths:
         try:
             im = Image.open(p).convert("RGBA")
         except Exception:
             continue
         bb = im.getbbox()
-        if not bb:
-            continue
-        im = im.crop(bb)
-        if im.width * im.height < 18000 or min(im.size) < 85:
-            continue                          # fragmentos ínfimos (<~8mm impresos)
+        if bb:
+            brutos.append(im.crop(bb))
+    if not brutos:
+        return None
+    # Umbral de tamaño RELATIVO a la propia hoja: la de fútbol trae 37 mini
+    # stickers (30-150px) y los umbrales absolutos la vaciaban; la de safari
+    # los trae de 200-420px. La mediana de cada hoja define qué es "fragmento".
+    areas = sorted(i.width * i.height for i in brutos)
+    mediana = max(1, areas[len(areas) // 2])
+    min_area = max(2500, int(mediana * 0.30))
+    min_dim = max(28, int(mediana ** 0.5 * 0.45))
+    crops = []
+    for im in brutos:
+        if im.width * im.height < min_area or min(im.size) < min_dim:
+            continue                          # fragmento para ESTA hoja
         opacos = sum(im.getchannel("A").point(lambda v: v > 40 and 255)
                      .histogram()[255:])
         if opacos / (im.width * im.height) < 0.30:
             continue                          # ralos (piolines de globos, virutas)
-        if not un_solo_blob(im):             # racimos pegados
+        if not un_solo_blob(im):              # racimos pegados
             continue
         crops.append(quitar_halo(im))
     if len(crops) < 6:
@@ -536,6 +546,7 @@ def hoja_stickers(tema, lado=2400):
         sts = []
         for i, im in enumerate(crops):
             alto = int((380 if i < n // 3 else (260 if i < 2 * n // 3 else 175)) * escala)
+            alto = min(alto, int(im.height * 1.8))   # no agrandar >1.8x (nitidez)
             w = max(1, int(im.width * alto / im.height))
             sts.append(agregar_halo(im.resize((w, alto), Image.LANCZOS),
                                     grosor=max(8, int(14 * escala)),
@@ -551,9 +562,16 @@ def hoja_stickers(tema, lado=2400):
             fs.append(f)
         return fs, sum(max(s2.height for s2 in ff) for ff in fs) + GAP * (len(fs) - 1)
 
-    # si no entra a tamaño pleno, achicar hasta que TODO quepa (sin recortes)
     escala = 1.0
     filas, alto_total = _armar(escala)
+    # hoja RALA (mini-stickers, ej. fútbol): repetir los motivos hasta llenar,
+    # como las hojas de stickers reales — más stickers, no más aire
+    while alto_total < util * 0.62 and len(crops) <= 100:
+        crops = crops + crops
+        crops.sort(key=lambda i: -(i.width * i.height))
+        n = len(crops)
+        filas, alto_total = _armar(escala)
+    # si no entra a tamaño pleno, achicar hasta que TODO quepa (sin recortes)
     while alto_total > util and escala > 0.5:
         escala *= 0.92
         filas, alto_total = _armar(escala)
@@ -563,11 +581,19 @@ def hoja_stickers(tema, lado=2400):
     y = MARG
     for f in filas:
         hf = max(s2.height for s2 in f)
-        wf = sum(s2.width for s2 in f) + GAP * (len(f) - 1)
-        x = (lado - wf) // 2
+        # JUSTIFICADO horizontal: los stickers se reparten a lo ancho de la
+        # hoja (con pocas filas de stickers chicos, centrarlos apiñaba todo
+        # al medio con bandas vacías — hoja de fútbol)
+        wf = sum(s2.width for s2 in f)
+        if len(f) >= 4:      # fila llena: justificada a lo ancho
+            paso = (lado - 2 * MARG - wf) / (len(f) - 1)
+            x = MARG
+        else:                # fila corta (el resto final): centrada y junta
+            paso = GAP * 3
+            x = (lado - wf - paso * (len(f) - 1)) // 2
         for s2 in f:
-            hoja.paste(s2, (x, y + (hf - s2.height) // 2), s2)
-            x += s2.width + GAP
+            hoja.paste(s2, (int(x), y + (hf - s2.height) // 2), s2)
+            x += s2.width + paso
         y += hf + esp
     try:
         hoja.save(cache)
