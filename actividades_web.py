@@ -536,6 +536,14 @@ def crear(data, tema, token=None):
         token = secrets.token_urlsafe(12)
     d = os.path.join(ACT_DIR, token)
     os.makedirs(d, exist_ok=True)
+    # limpiar assets de una generación anterior (regenerar un token dejaba
+    # huérfanos: p07.png viejo junto a los p00-p06 nuevos)
+    for fn in os.listdir(d):
+        if re.fullmatch(r"(?:[ps]\d{2}|colorear_\d)\.png", fn):
+            try:
+                os.remove(os.path.join(d, fn))
+            except OSError:
+                pass
     nombre = (data.get("nombre") or "").strip()
     edad = (str(data.get("edad") or "")).strip()
     seed = zlib.crc32(token.encode())
