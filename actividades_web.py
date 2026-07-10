@@ -281,15 +281,99 @@ def _miniatura_cmp(im):
     return m, ImageOps.mirror(m)
 
 
-def _parecidos(m1, m2par):
-    """Diferencia media RGB entre miniaturas (considera el espejo: hojas
-    volteadas). < 24 = misma figura para un chico → confunde el memotest."""
+def _dif_pixel(m1, m2par):
+    """Diferencia media RGB entre miniaturas (considera el espejo)."""
     m2, m2esp = m2par
     def dif(a, b):
         pa, pb = list(a.getdata()), list(b.getdata())
         return sum(abs(x[0] - y[0]) + abs(x[1] - y[1]) + abs(x[2] - y[2])
                    for x, y in zip(pa, pb)) / (len(pa) * 3)
-    return min(dif(m1, m2), dif(m1, m2esp)) < 24
+    return min(dif(m1, m2), dif(m1, m2esp))
+
+
+def _matiz_sat(im):
+    """(matiz circular medio en grados, saturación media) de los píxeles
+    opacos y no-blancos. Para distinguir 'flor amarilla vs flor roja' (misma
+    etiqueta, matiz lejos) de 'león vs león' (matiz igual)."""
+    import colorsys
+    m = im.copy()
+    m.thumbnail((64, 64))
+    hx = hy = n = 0.0
+    sats = []
+    for r, g, b, a in m.getdata():
+        if a < 60 or (r > 225 and g > 225 and b > 225):
+            continue
+        h, sat, v = colorsys.rgb_to_hsv(r / 255.0, g / 255.0, b / 255.0)
+        if sat > 0.12 and v > 0.15:
+            hx += math.cos(h * 2 * math.pi)
+            hy += math.sin(h * 2 * math.pi)
+            sats.append(sat)
+            n += 1
+    if not n:
+        return None, 0.0
+    return math.degrees(math.atan2(hy, hx)) % 360, sum(sats) / len(sats)
+
+
+def _dist_matiz(a, b):
+    if a is None or b is None:
+        return 0.0           # sin color confiable → no separa (decide el resto)
+    d = abs(a - b) % 360
+    return min(d, 360 - d)
+
+
+def _etiquetas_tema(tema):
+    """Etiquetas del clasificador de visión (clasif.json, cacheado por el
+    cuaderno): {'c001.png': 'león', …}. Vacío si el tema no tiene."""
+    try:
+        t = json.load(open(os.path.join(BASEDIR, "temas", tema,
+                                        "actividades_mon", "clasif.json"),
+                           encoding="utf-8")).get("tipos") or {}
+        return {str(k).lower(): str(v).strip().lower() for k, v in t.items()}
+    except Exception:
+        return {}
+
+
+def _silueta_cmp(im, S=28):
+    """Silueta binaria S×S (+espejo) para comparar formas."""
+    from PIL import ImageOps
+    a = im.getchannel("A").point(lambda v: 255 if v > 40 else 0).resize((S, S))
+    return a, ImageOps.mirror(a)
+
+
+def _iou_silueta(a, bpar):
+    """IoU de siluetas (máx con el espejo): 'león vs león' da ~0.81; figuras
+    de forma distinta (hoja vs flor) quedan por debajo de ~0.75."""
+    def iou(x, y):
+        px, py = list(x.getdata()), list(y.getdata())
+        inter = sum(1 for u, v in zip(px, py) if u and v)
+        union = sum(1 for u, v in zip(px, py) if u or v)
+        return inter / max(1, union)
+    return max(iou(a, bpar[0]), iou(a, bpar[1]))
+
+
+def _es_duplicado(cand, elegidos):
+    """¿`cand` se confunde con alguno ya elegido? Calibrado 10-jul-2026 con los
+    dups REALES del memotest (2 leones diff-píxel 38, 2 monsteras 31 — la
+    métrica de píxeles sola NO alcanza; feedback Pablo). El clasif.json
+    etiqueta solo una parte de los recortes, así que hay tres casos:
+    - ambos ETIQUETADOS: misma etiqueta y matiz cerca (<40°) → dup (león vs
+      león); matiz lejos → se quedan (flor amarilla vs flor roja)
+    - alguno SIN etiqueta: matiz cerca (<25°) + píxel <40 + MISMA FORMA
+      (IoU silueta >0.75) → dup (atrapa al león sin etiquetar y a las dos
+      monsteras; deja pasar hoja-vs-flor, que difieren en forma)
+    - píxel <24 → dup siempre (casi-idénticos)"""
+    for e in elegidos:
+        dp = _dif_pixel(cand["mini"][0], e["mini"])
+        if dp < 24:
+            return True
+        dm = _dist_matiz(cand["matiz"], e["matiz"])
+        if cand["etiqueta"] and e["etiqueta"]:
+            if cand["etiqueta"] == e["etiqueta"] and dm < 40:
+                return True
+        elif dm < 25 and dp < 40 \
+                and _iou_silueta(cand["sil"][0], e["sil"]) > 0.75:
+            return True
+    return False
 
 
 def _personajes(tema, d):
@@ -304,7 +388,8 @@ def _personajes(tema, d):
     paths = _seleccionar_recortes(tema, 16, variedad_estricta=True, incluir_objetos=True)
     if len(paths) < 4:
         paths = _seleccionar_recortes(tema, 16, incluir_objetos=True)
-    buenos, minis = [], []
+    etiquetas = _etiquetas_tema(tema)
+    buenos, elegidos = [], []
     for p in paths:
         try:
             im = _recorte_limpio(p)
@@ -313,10 +398,13 @@ def _personajes(tema, d):
         im = im.crop(im.getbbox() or (0, 0, im.width, im.height))
         if not _un_solo_blob(im):
             continue
-        mini, mini_esp = _miniatura_cmp(im)
-        if any(_parecidos(mini, m) for m in minis):      # casi-duplicado
+        matiz, _sat = _matiz_sat(im)
+        cand = {"mini": _miniatura_cmp(im), "matiz": matiz,
+                "sil": _silueta_cmp(im),
+                "etiqueta": etiquetas.get(os.path.basename(p).lower(), "")}
+        if _es_duplicado(cand, elegidos):
             continue
-        minis.append((mini, mini_esp))
+        elegidos.append(cand)
         buenos.append(im)
         if len(buenos) >= 8:
             break

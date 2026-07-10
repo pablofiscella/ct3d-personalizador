@@ -8,6 +8,16 @@
 "use strict";
 
 const $ = (s) => document.querySelector(s);
+/* Alto disponible para el tablero (viewport - header - consigna - progreso):
+   los juegos DEBEN entrar sin scroll — feedback Pablo 10-jul: en el celu había
+   que scrollear y la consigna quedaba arriba. */
+function ajustarAlto() {
+  const j = $("#juego");
+  document.documentElement.style.setProperty("--hdrH", ($("#hdr").offsetHeight || 74) + "px");
+  if (!j) return;
+  const alto = Math.max(280, innerHeight - j.getBoundingClientRect().top - 12);
+  document.documentElement.style.setProperty("--altoJuego", alto + "px");
+}
 const el = (tag, cls, html) => {
   const e = document.createElement(tag);
   if (cls) e.className = cls;
@@ -144,8 +154,9 @@ const Shell = {
       <div id="consigna"><img class="pista" id="consignaPista" alt="" style="display:none">
         <div class="texto" id="consignaTexto"></div></div>
       <div id="progreso"></div><div id="juego"></div>`));
-    GAMES[id].crear(this.ctx(item));
     scrollTo(0, 0);
+    GAMES[id].crear(this.ctx(item));
+    requestAnimationFrame(ajustarAlto);
   },
   ctx(item) {
     const self = this;
@@ -276,6 +287,8 @@ async function boot() {
     cerrarFestejo();
     if (id) Shell.abrir(id);
   });
+  addEventListener("resize", () => requestAnimationFrame(ajustarAlto));
+  ajustarAlto();
   // iOS: desbloquear el audio en el primer toque
   addEventListener("pointerdown", function una() {
     Sfx._ctx(); removeEventListener("pointerdown", una);
@@ -299,6 +312,13 @@ GAMES.memotest = {
     grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
     ctx.juego.appendChild(el("div", "tablero")).appendChild(grid);
     let abiertas = [], bloqueado = false, halladas = 0;
+    requestAnimationFrame(() => {
+      const disp = innerHeight - grid.getBoundingClientRect().top - 18;
+      const filas = Math.ceil(mazo.length / cols);
+      const maxW = Math.min(660, (disp - (filas - 1) * 10) * cols / (filas * 4 / 3));
+      if (maxW > 220) grid.style.maxWidth = maxW + "px";
+      grid.style.margin = "0 auto";
+    });
     mazo.forEach((carta) => {
       const c = el("button", "cartaMemo", `
         <div class="cara dorso">★</div>
@@ -358,6 +378,12 @@ GAMES.sopa = {
     });
     wrap.appendChild(lista);
     ctx.juego.appendChild(wrap);
+    requestAnimationFrame(() => {
+      const disp = innerHeight - grid.getBoundingClientRect().top - 14;
+      const lado = Math.min(620, Math.max(260, disp - 118));   // 118 ≈ lista de palabras
+      wrap.style.maxWidth = lado + "px";
+      wrap.style.margin = "0 auto";
+    });
 
     const at = (x, y) => celdas[y * n + x];
     const halladas = new Set();
@@ -688,11 +714,17 @@ GAMES.colorear = {
         const esc = Math.min(1, maxW / im.width);
         cv.width = Math.round(im.width * esc);
         cv.height = Math.round(im.height * esc);
-        cv.style.width = cv.width + "px";
         cx.fillStyle = "#fff";
         cx.fillRect(0, 0, cv.width, cv.height);
         cx.drawImage(im, 0, 0, cv.width, cv.height);
         historia = [];
+        // que canvas + paleta + botones entren juntos en la pantalla (el CSS
+        // escala el canvas; acá el tope exacto midiendo la botonera real)
+        requestAnimationFrame(() => {
+          const libre = innerHeight - wrap.getBoundingClientRect().top
+            - paleta.offsetHeight - botones.offsetHeight - 42;
+          cv.style.maxHeight = Math.max(210, libre) + "px";
+        });
       };
       im.src = D.colorear[idx];
     };
@@ -1038,7 +1070,9 @@ GAMES.sombra = {
       wrap.append(izq, der);
       tab.appendChild(wrap);
       ctx.juego.appendChild(tab);
-      const TAM = Math.min(130, Math.floor((innerWidth - 140) / Math.max(3, pares)) + 40);
+      let TAM = Math.min(130, Math.floor((innerWidth - 140) / Math.max(3, pares)) + 40);
+      const dispS = innerHeight - tab.getBoundingClientRect().top - 24;
+      TAM = Math.max(64, Math.min(TAM, Math.floor((dispS - (pares - 1) * 18 - 16) / pares)));
       const siluetas = shuffle(idxs).map((ix) => {
         const d = el("div", "silueta", `<img src="${(D.sombras || P)[ix]}" alt="">`);
         d.style.cssText = `width:${TAM}px;height:${TAM}px`;
