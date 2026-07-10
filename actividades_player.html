@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>{{TITULO}} · Casatridimensional</title>
+<meta property="og:title" content="{{TITULO}}">
+<meta property="og:description" content="Cuaderno de actividades interactivo — jugá, aprendé y ganá estrellas.">
+<meta property="og:image" content="portada.jpg">
+<style>
+/* ══ Cuaderno de actividades interactivo — Casatridimensional ══
+   Diseño táctil para chicos: targets ≥76px, tap primero, cero fail states.
+   Todos los colores salen de las CSS vars (el player las setea con la paleta
+   del tema desde data.json) — NO hardcodear colores acá abajo. */
+@font-face { font-family: "Baloo";  src: url("f1.ttf?v={{V}}"); font-display: swap; }
+@font-face { font-family: "Nunito"; src: url("f2.ttf?v={{V}}"); font-display: swap; }
+
+:root {
+  --bg: #FBF4EA; --card: #FFFFFF; --ink: #44372E; --ac: #E0713C;
+  --ac2: #4E9C7E; --soft: #F5E4CE; --star: #F2A93B;
+  --ok: #3FA65C; --radio: 26px;
+  --sombra: 0 4px 14px rgba(0,0,0,.07), 0 1px 3px rgba(0,0,0,.05);
+  --sombra-hi: 0 10px 28px rgba(0,0,0,.13), 0 2px 6px rgba(0,0,0,.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { height: 100%; }
+body {
+  min-height: 100%; background: var(--bg); color: var(--ink);
+  font-family: "Nunito", system-ui, sans-serif; font-size: 19px;
+  touch-action: manipulation; user-select: none; -webkit-user-select: none;
+  overscroll-behavior-y: contain;
+}
+img { -webkit-user-drag: none; user-select: none; }
+h1, h2, h3, .fx { font-family: "Baloo", "Nunito", sans-serif; font-weight: 600; }
+
+/* ── splash de carga ── */
+#cargando {
+  position: fixed; inset: 0; background: var(--bg); z-index: 90;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+}
+#cargando .aro {
+  width: 64px; height: 64px; border-radius: 50%;
+  border: 7px solid var(--soft); border-top-color: var(--ac);
+  animation: girar 0.9s linear infinite;
+}
+@keyframes girar { to { transform: rotate(360deg); } }
+
+/* ── header ── */
+#hdr {
+  position: sticky; top: 0; z-index: 40;
+  display: flex; align-items: center; gap: 12px;
+  padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+#hdr .avatar {
+  width: 54px; height: 54px; border-radius: 50%; background: var(--soft);
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+  flex: none; box-shadow: var(--sombra);
+}
+#hdr .avatar img { width: 44px; height: 44px; object-fit: contain; }
+#hdrTitulo { flex: 1; min-width: 0; }
+#hdrTitulo b { display: block; font-family: "Baloo", sans-serif; font-size: 23px; line-height: 1.05;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hdrTitulo span { font-size: 14px; opacity: .65; }
+.pill {
+  display: flex; align-items: center; gap: 6px; height: 48px; padding: 0 16px;
+  background: var(--card); border-radius: 999px; box-shadow: var(--sombra);
+  font-family: "Baloo", sans-serif; font-size: 21px; border: none; color: var(--ink);
+}
+button.pill:active { transform: scale(.94); }
+#btnAtras { display: none; }
+#btnAtras.ver { display: flex; }
+
+/* ── escenario ── */
+#stage { max-width: 1020px; margin: 0 auto; padding: 10px 16px 48px; }
+
+/* menú de juegos */
+#menu { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 16px; }
+.carta {
+  background: var(--card); border: none; border-radius: var(--radio);
+  box-shadow: var(--sombra); padding: 16px 12px 14px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  color: var(--ink); transition: transform .12s ease, box-shadow .12s ease;
+  position: relative; min-height: 176px;
+}
+.carta:active { transform: scale(.95); }
+@media (hover:hover) { .carta:hover { transform: translateY(-4px); box-shadow: var(--sombra-hi); } }
+.carta .icono {
+  width: 84px; height: 84px; border-radius: 24px; background: var(--soft);
+  display: flex; align-items: center; justify-content: center; font-size: 44px;
+}
+.carta .icono img { width: 70px; height: 70px; object-fit: contain; }
+.carta .nombre { font-family: "Baloo", sans-serif; font-size: 19px; line-height: 1.1; text-align: center; }
+.carta .mini-est { font-size: 15px; letter-spacing: 2px; min-height: 20px; }
+.carta .chip {
+  position: absolute; top: -8px; right: -6px; font-size: 24px;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,.18));
+}
+
+/* portada del menú */
+#bienvenida { text-align: center; padding: 14px 8px 22px; }
+#bienvenida h1 { font-size: clamp(30px, 6vw, 44px); line-height: 1.06; }
+#bienvenida p { opacity: .7; margin-top: 4px; font-size: 17px; }
+
+/* ── shell de juego ── */
+#consigna {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--card); border-radius: var(--radio); box-shadow: var(--sombra);
+  padding: 14px 18px; margin-bottom: 14px; border-left: 8px solid var(--ac);
+}
+#consigna .texto { font-family: "Baloo", sans-serif; font-size: clamp(21px, 4vw, 27px); line-height: 1.15; flex: 1; }
+#consigna img.pista { width: 56px; height: 56px; object-fit: contain; flex: none; }
+#progreso { display: flex; gap: 8px; justify-content: center; margin: 2px 0 14px; }
+#progreso i {
+  width: 14px; height: 14px; border-radius: 50%; background: var(--soft);
+  transition: background .2s, transform .2s;
+}
+#progreso i.hecho { background: var(--ac); }
+#progreso i.actual { background: var(--ac2); transform: scale(1.35); }
+#juego { position: relative; }
+
+/* superficies de juego */
+.tablero {
+  background: var(--card); border-radius: var(--radio); box-shadow: var(--sombra);
+  padding: clamp(10px, 2.5vw, 22px); position: relative; overflow: hidden;
+}
+.lienzo { touch-action: none; }        /* superficies con drag propio */
+
+/* botones */
+.btn {
+  border: none; cursor: pointer; color: #fff; background: var(--ac);
+  font-family: "Baloo", sans-serif; font-size: 24px; min-height: 66px;
+  padding: 8px 30px; border-radius: 999px; box-shadow: var(--sombra);
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+}
+.btn:active { transform: scale(.95); }
+.btn.suave { background: var(--soft); color: var(--ink); }
+.btn.verde { background: var(--ok); }
+
+/* fila de opciones (respuestas grandes) */
+.ops { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-top: 16px; }
+.op {
+  min-width: 92px; min-height: 84px; font-size: 38px; border: none; cursor: pointer;
+  background: var(--card); color: var(--ink); border-radius: 22px; box-shadow: var(--sombra);
+  font-family: "Baloo", sans-serif; display: flex; align-items: center; justify-content: center;
+  transition: transform .12s ease;
+}
+.op:active { transform: scale(.92); }
+.op img { width: 64px; height: 64px; object-fit: contain; }
+.op.bien { background: var(--ok); color: #fff; }
+.op.casi { animation: sacudir .4s ease; }
+
+/* ── animaciones ── */
+@keyframes pop     { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes brinco  { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-16%); } }
+@keyframes sacudir { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-7px); } 65% { transform: translateX(7px); } }
+@keyframes latido  { 0%,100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+@keyframes flotar  { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-9px) rotate(2deg); } }
+.anim-pop { animation: pop .35s ease both; }
+.anim-brinco { animation: brinco .55s ease; }
+.anim-latido { animation: latido 1.6s ease infinite; }
+
+/* ── festejo ── */
+#festejo {
+  position: fixed; inset: 0; z-index: 60; display: none;
+  align-items: center; justify-content: center; padding: 22px;
+  background: color-mix(in srgb, var(--ink) 32%, transparent);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+}
+#festejo.ver { display: flex; }
+#festejo .caja {
+  background: var(--card); border-radius: 34px; box-shadow: var(--sombra-hi);
+  padding: 30px 26px 26px; text-align: center; max-width: 430px; width: 100%;
+}
+#festejo img.masco { width: 130px; height: 130px; object-fit: contain; animation: brinco .8s ease infinite; }
+#festejo h2 { font-size: 34px; margin: 6px 0 2px; }
+#festejo .frase { opacity: .75; font-size: 18px; margin-bottom: 10px; }
+#festejo .estrellas { font-size: 52px; letter-spacing: 6px; min-height: 64px; }
+#festejo .estrellas span { display: inline-block; opacity: 0; }
+#festejo .estrellas span.gana { animation: pop .5s ease both; }
+#festejo .botones { display: flex; gap: 12px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+
+/* confeti */
+#confeti { position: fixed; inset: 0; z-index: 55; pointer-events: none; }
+
+/* feedback flotante ("¡muy bien!") */
+#toast {
+  position: fixed; left: 50%; bottom: 12vh; transform: translateX(-50%);
+  z-index: 50; pointer-events: none; opacity: 0;
+  font-family: "Baloo", sans-serif; font-size: 34px; color: #fff;
+  background: var(--ok); padding: 10px 30px; border-radius: 999px; box-shadow: var(--sombra-hi);
+}
+#toast.ver { animation: toastAnim 1.1s ease both; }
+@keyframes toastAnim {
+  0% { opacity: 0; transform: translateX(-50%) translateY(18px) scale(.8); }
+  18% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.04); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-14px); }
+}
+
+/* ── por juego ── */
+/* memotest */
+#memo { display: grid; gap: 10px; max-width: 660px; margin: 0 auto; }
+.cartaMemo { position: relative; aspect-ratio: 3/4; cursor: pointer; perspective: 700px; border: none; background: none; }
+.cartaMemo .cara {
+  position: absolute; inset: 0; border-radius: 18px; backface-visibility: hidden;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--sombra); transition: transform .4s ease;
+}
+.cartaMemo .dorso { background: var(--ac); color: #fff; font-size: 34px; font-family: "Baloo", sans-serif; }
+.cartaMemo .frente { background: var(--card); transform: rotateY(180deg); padding: 8%; }
+.cartaMemo .frente img { width: 100%; height: 100%; object-fit: contain; }
+.cartaMemo.abierta .dorso { transform: rotateY(180deg); }
+.cartaMemo.abierta .frente { transform: rotateY(0); }
+.cartaMemo.lista { pointer-events: none; }
+.cartaMemo.lista .frente { outline: 4px solid var(--ok); animation: latido .6s ease 1; }
+
+/* sopa de letras */
+#sopaWrap { max-width: 620px; margin: 0 auto; }
+#sopa { display: grid; gap: 3px; touch-action: none; position: relative; }
+#sopa .celda {
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  background: var(--soft); border-radius: 8px; font-family: "Baloo", sans-serif;
+  font-size: clamp(15px, 3.4vw, 24px); position: relative; z-index: 2;
+}
+#sopa .celda.marca { background: color-mix(in srgb, var(--ac2) 30%, var(--card)); }
+#sopa .celda.hallada { background: var(--ac2); color: #fff; }
+#sopaPalabras { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 16px; }
+#sopaPalabras .palabra {
+  background: var(--card); border-radius: 999px; padding: 8px 18px; font-family: "Baloo", sans-serif;
+  font-size: 19px; box-shadow: var(--sombra);
+}
+#sopaPalabras .palabra.hallada { background: var(--ac2); color: #fff; text-decoration: line-through; }
+
+/* laberinto / puntos: svg responsivo */
+.svgJuego { display: block; width: 100%; height: auto; touch-action: none; }
+
+/* sudoku */
+#sudoku { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; max-width: 440px; margin: 0 auto; }
+#sudoku .celda {
+  aspect-ratio: 1; border-radius: 14px; background: var(--soft); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; padding: 7%;
+}
+#sudoku .celda img { width: 100%; height: 100%; object-fit: contain; }
+#sudoku .celda.fija { background: var(--card); box-shadow: inset 0 0 0 2px var(--soft); cursor: default; }
+#sudoku .celda.eligiendo { outline: 4px solid var(--ac); }
+#sudoku .celda.choca { animation: sacudir .4s ease; outline: 3px solid #E25555; }
+#sudoku .celda:nth-child(4n+2), #sudoku .celda:nth-child(4n+1) { }
+#sudokuLegend { display: flex; gap: 14px; justify-content: center; margin: 0 0 14px; flex-wrap: wrap; }
+#sudokuLegend .leg { display: flex; flex-direction: column; align-items: center; font-family: "Baloo", sans-serif; }
+#sudokuLegend img { width: 52px; height: 52px; object-fit: contain; }
+#sudokuPick { display: flex; gap: 12px; justify-content: center; margin-top: 16px; }
+#sudokuPick .op { min-width: 76px; min-height: 76px; }
+
+/* colorear */
+#colWrap { display: flex; flex-direction: column; gap: 14px; align-items: center; }
+#colLienzo { border-radius: 18px; box-shadow: var(--sombra); max-width: 100%; background: #fff;
+  touch-action: none; cursor: pointer; }
+#colPaleta { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+#colPaleta .gota {
+  width: 56px; height: 56px; border-radius: 50%; border: 4px solid var(--card); cursor: pointer;
+  box-shadow: var(--sombra); transition: transform .12s;
+}
+#colPaleta .gota.activa { transform: scale(1.22); border-color: var(--ink); }
+#colBotones { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+/* escena de contar / buscar */
+.escena {
+  position: relative; border-radius: var(--radio); overflow: hidden; box-shadow: var(--sombra);
+  background: var(--soft);
+}
+.escena img.fondo { display: block; width: 100%; height: auto; opacity: .45; }
+.escena .bicho {
+  position: absolute; cursor: pointer; transition: transform .15s ease; border: none; background: none; padding: 0;
+}
+.escena .bicho img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 3px 4px rgba(0,0,0,.2)); }
+.escena .bicho.contado { pointer-events: none; }
+.escena .bicho .num {
+  position: absolute; top: -12px; right: -12px; width: 34px; height: 34px; border-radius: 50%;
+  background: var(--ac); color: #fff; font-family: "Baloo", sans-serif; font-size: 20px;
+  display: flex; align-items: center; justify-content: center; box-shadow: var(--sombra);
+}
+
+/* sombras (drag) */
+#sombraJuego { display: flex; flex-direction: column; gap: 18px; }
+#sombraJuego .fila { display: flex; justify-content: space-around; gap: 12px; }
+.arrastrable { touch-action: none; cursor: grab; position: relative; z-index: 5; }
+.arrastrable img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.silueta { position: relative; }
+.silueta img { width: 100%; height: 100%; object-fit: contain; filter: brightness(0); opacity: .28; pointer-events: none; }
+.silueta.llena img { filter: none; opacity: 1; }
+.silueta.llena::after { content: "✓"; position: absolute; top: -6px; right: -6px; background: var(--ok);
+  color: #fff; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 19px; font-family: "Baloo", sans-serif; }
+
+/* filas de sprites genéricas (patrón, distinto, tamaño, más/menos, sumas) */
+.filaSprites { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.spriteBtn { border: none; background: var(--card); border-radius: 18px; box-shadow: var(--sombra);
+  cursor: pointer; padding: 10px; transition: transform .12s; }
+.spriteBtn:active { transform: scale(.92); }
+.spriteBtn img { object-fit: contain; display: block; pointer-events: none; }
+.spriteQuieto { padding: 10px; }
+.spriteQuieto img { object-fit: contain; display: block; }
+.hueco {
+  border: 4px dashed color-mix(in srgb, var(--ink) 30%, transparent); border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 34px; font-family: "Baloo", sans-serif; opacity: .8; background: var(--soft);
+  animation: latido 1.8s ease infinite;
+}
+
+/* dos grupos (¿dónde hay más?) */
+#dosGrupos { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+#dosGrupos .grupo { min-height: 220px; border-radius: var(--radio); background: var(--card);
+  box-shadow: var(--sombra); border: none; cursor: pointer; position: relative; padding: 14px;
+  display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 8px;
+  transition: transform .12s; }
+#dosGrupos .grupo:active { transform: scale(.96); }
+#dosGrupos .grupo img { width: 52px; height: 52px; object-fit: contain; }
+
+/* números grandes (sumas / restas / serie) */
+.cuentaGrande { display: flex; align-items: center; justify-content: center; gap: 14px;
+  font-family: "Baloo", sans-serif; font-size: clamp(38px, 8vw, 64px); flex-wrap: wrap; }
+.grupoSprites { display: inline-flex; flex-wrap: wrap; gap: 6px; max-width: 240px; justify-content: center;
+  background: var(--soft); border-radius: 18px; padding: 12px; }
+.grupoSprites img { width: 44px; height: 44px; object-fit: contain; }
+.grupoSprites img.ida { opacity: .25; filter: grayscale(1); }
+.serieFila { display: flex; gap: 10px; justify-content: center; font-family: "Baloo", sans-serif;
+  font-size: clamp(30px, 7vw, 52px); flex-wrap: wrap; }
+.serieFila .num, .serieFila .hueco2 {
+  min-width: 84px; min-height: 84px; border-radius: 18px; background: var(--card); box-shadow: var(--sombra);
+  display: flex; align-items: center; justify-content: center; padding: 4px 10px; }
+.serieFila .hueco2 { background: var(--soft); border: 4px dashed color-mix(in srgb, var(--ink) 30%, transparent);
+  animation: latido 1.8s ease infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important; }
+}
+@media (max-width: 560px) {
+  #menu { grid-template-columns: repeat(auto-fill, minmax(136px, 1fr)); gap: 12px; }
+  #stage { padding: 8px 10px 40px; }
+  body { font-size: 17px; }
+}
+</style>
+</head>
+<body>
+<div id="cargando"><div class="aro"></div><div class="fx" style="font-size:22px">Preparando tus juegos…</div></div>
+
+<header id="hdr">
+  <button id="btnAtras" class="pill" aria-label="Volver al menú">←</button>
+  <div class="avatar"><img id="mascoHdr" alt="" src=""></div>
+  <div id="hdrTitulo"><b id="hdrNombre">¡Hola!</b><span id="hdrSub"></span></div>
+  <div class="pill" id="hdrEstrellas" aria-label="Estrellas ganadas">⭐ <span id="totalEstrellas">0</span></div>
+  <button id="btnSonido" class="pill" aria-label="Sonido">🔊</button>
+</header>
+
+<main id="stage"></main>
+
+<div id="toast"></div>
+<canvas id="confeti"></canvas>
+
+<div id="festejo" role="dialog" aria-modal="true">
+  <div class="caja">
+    <img class="masco" id="mascoFestejo" alt="" src="">
+    <h2 id="festejoTitulo">¡Muy bien!</h2>
+    <div class="frase" id="festejoFrase"></div>
+    <div class="estrellas" id="festejoEstrellas"></div>
+    <div class="botones">
+      <button class="btn suave" id="btnOtraVez">🔁 Otra vez</button>
+      <button class="btn verde" id="btnSeguir">¡Seguir jugando!</button>
+    </div>
+  </div>
+</div>
+
+<script src="player.js?v={{V}}"></script>
+</body>
+</html>

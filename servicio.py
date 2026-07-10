@@ -821,6 +821,39 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
             return
+        # ---- actividades web (cuaderno interactivo; link con token) ----
+        # OJO: el visor usa rutas RELATIVAS -> siempre servirlo bajo /act/<tok>/
+        # (con barra final); /act/<tok> sin barra redirige.
+        m = re.match(r"^/act/([A-Za-z0-9_-]+)(?:/([a-z_0-9.]*))?$", path)
+        if m:
+            import actividades_web as aw
+            token, arch = m.group(1), m.group(2)
+            if arch is None:
+                self.send_response(301)
+                self.send_header("Location", "/act/%s/" % token)
+                self.end_headers()
+                return
+            if arch:
+                r = aw.archivo(token, arch)
+                if r is None:
+                    return self._json(404, {"ok": False, "error": "no existe"})
+                data_b, ct = r
+                self.send_response(200)
+                self.send_header("Content-Type", ct)
+                self.send_header("Cache-Control", "public, max-age=86400")
+                self.send_header("Content-Length", str(len(data_b)))
+                self.end_headers(); self.wfile.write(data_b)
+                return
+            page = aw.html(token)
+            if page is None:
+                return self._json(404, {"ok": False, "error": "actividades no encontradas"})
+            body = page.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers(); self.wfile.write(body)
+            return
         m = re.match(r"^/descarga/([A-Za-z0-9_-]+)$", path)
         if m:
             token = m.group(1)
@@ -1104,12 +1137,20 @@ class Handler(BaseHTTPRequestHandler):
             import audiolibro
             tok = str(payload.get("token", "")).strip()
             est = audiolibro.estado(tok)
+            if est is not None:
+                reg = audiolibro._cargar(tok) or {}
+                return self._json(200, {"ok": True, "tipo": "libro-audio", "estado": est,
+                                        "nombre": reg.get("nombre", ""), "tema": reg.get("tema", ""),
+                                        "url": f"{self.base_url()}/al/{tok}"})
+            # ¿es un cuaderno de actividades? (mismo canje: pegar el link /act/<tok>)
+            import actividades_web as aw
+            est = aw.estado(tok)
             if est is None:
                 return self._json(404, {"ok": False, "error": "token no encontrado"})
-            reg = audiolibro._cargar(tok) or {}
-            return self._json(200, {"ok": True, "tipo": "libro-audio", "estado": est,
+            reg = aw._cargar(tok) or {}
+            return self._json(200, {"ok": True, "tipo": "actividades-web", "estado": est,
                                     "nombre": reg.get("nombre", ""), "tema": reg.get("tema", ""),
-                                    "url": f"{self.base_url()}/al/{tok}"})
+                                    "url": f"{self.base_url()}/act/{tok}/"})
         if path != "/api/generar":
             return self._json(404, {"ok": False, "error": "ruta no encontrada"})
         if not secrets.compare_digest(self.headers.get("X-API-Key", "") or "", API_KEY):
@@ -1178,6 +1219,17 @@ class Handler(BaseHTTPRequestHandler):
                     threading.Thread(target=_hero_worker, daemon=True).start()
             return self._json(200, {"ok": True, "token": tok,
                                     "download_url": f"{self.base_url()}/i/{tok}"})
+        if tipo == "actividades-web":
+            # El producto ES un link (cuaderno de actividades interactivo, app viva).
+            # Generación SÍNCRONA y rápida — sin llamadas IA: puzzles procedurales
+            # verificados + arte ya existente del tema (recortes/colorear/escena).
+            import actividades_web as aw
+            try:
+                tok_act = aw.crear(data, tema)
+            except Exception as e:
+                return self._json(500, {"ok": False, "error": str(e)[:200]})
+            return self._json(200, {"ok": True, "token": token, "act_token": tok_act,
+                                    "download_url": f"{self.base_url()}/act/{tok_act}/"})
         if tipo == "libro-audio":
             # Genera páginas + narración TTS (~1-2 min) EN BACKGROUND, pero devuelve
             # YA el link estable del visor /al/<tok_al>. Así la tienda lo guarda en la

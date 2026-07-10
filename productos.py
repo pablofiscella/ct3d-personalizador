@@ -499,6 +499,10 @@ def _piezas_invitacion_web(tema):
     import invitacion_web
     return [("1_invitacion_web", lambda d: invitacion_web.preview_mock(d, tema), False)]
 
+def _piezas_actividades_web(tema):
+    import actividades_web
+    return [("1_actividades_web", lambda d: actividades_web.preview_mock(d, tema), False)]
+
 def _piezas_libro(tema):
     import libro
     n_hist = libro.paginas_historia(tema)
@@ -747,6 +751,13 @@ TIPOS = {
         "preview": "invitacion-web",
         "piezas": _piezas_invitacion_web,
     },
+    "actividades-web": {
+        "nombre": "Cuaderno de actividades interactivo (web)",
+        "descripcion": "Las actividades del cuaderno, pero JUGABLES: una web con el nombre del peque donde pinta, juega al memotest, resuelve laberintos, sopas de letras, sumas y más — con corrección automática, estrellas y festejos. Los juegos se adaptan a la edad y se pueden jugar mil veces. Para celu, tablet o compu; link que dura años.",
+        "campos": ["nombre", "edad"],
+        "preview": "actividades-web",
+        "piezas": _piezas_actividades_web,
+    },
     "libro": {
         "nombre": "Libro de cuento personalizado",
         "descripcion": "Cuento de 10 páginas donde el chico es el protagonista: portada, dedicatoria, 7 páginas de aventura con la temática y final. Listo para imprimir como libro. Cada página puede llevar ilustración IA (override).",
@@ -952,6 +963,7 @@ PERSONALIZADAS = {
     "milestone":      {"*": ["nombre"]},
     "video-invitacion": {"*": ["nombre", "edad", "fecha", "hora", "lugar"]},
     "invitacion-web": {"*": ["nombre", "edad", "fecha", "hora", "lugar", "direccion"]},
+    "actividades-web": {"*": ["nombre", "edad"]},
     # FIJAS (sin datos del comprador): antifaces, memoria, papertoys, babyshower
 }
 
@@ -1115,7 +1127,7 @@ def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):
         img = bs.pieza("invitacion", data, tema)
     elif pieza in ("certificado", "corona", "antifaces", "menu", "rompecabezas",
                   "capsula", "libro", "calendario", "papertoys", "memoria",
-                  "invitacion-web", "fiesta-completa", "video-invitacion",
+                  "invitacion-web", "actividades-web", "fiesta-completa", "video-invitacion",
                   "stl-medalla", "stl-topper", "stl-trofeo", "stl-cortante", "stl-pack"):
         # 100% procedurales: pasan por piezas_tipo() para que un override subido a mano
         # (ver override_path) se refleje también en la miniatura del producto.
