@@ -53,7 +53,13 @@ def paleta_de(temas_dir, tema):
     except Exception:
         cfg = {}
     kit = cfg.get("kit", {})
-    return {k: kit.get(k, _DEF[k]) for k in _DEF}
+    pal = {k: kit.get(k, _DEF[k]) for k in _DEF}
+    # pedido de contenido para la hoja de stickers (tema.json::stickers_pedido):
+    # qué motivos dibujar — p.ej. fútbol pide pelotas/botines/copas/banderas
+    # argentinas, no genéricos (feedback Pablo 10-jul-2026)
+    if cfg.get("stickers_pedido"):
+        pal["stickers_pedido"] = str(cfg["stickers_pedido"])
+    return pal
 
 
 def bloque_estilo(paleta):
@@ -94,7 +100,12 @@ _EXTRA_FORMA = {
                         "arma el sistema): personajes del tema repartidos, coloridos, sobre un "
                         "fondo temático que LLENE TODO el cuadro (sin bordes blancos). NO dibujes "
                         "la caja, ni el molde, ni líneas de doblez: SOLO la decoración."),
-    "stickers": ("La MAYOR cantidad posible de stickers del tema (personajes y objetos), "
+    "stickers": ("Stickers del tema: SOLO los personajes del tema y objetos DISTINTIVOS "
+                 "e inconfundibles de la temática (los que un chico reconoce al instante como "
+                 "del tema). PROHIBIDO el relleno genérico: NADA de nubes, pasto o follaje "
+                 "suelto, confeti, cuadraditos/rombos/círculos de colores, serpentinas, "
+                 "estrellitas sueltas ni formas abstractas — cada sticker tiene que dar ganas "
+                 "de pegarlo. La MAYOR variedad posible de motivos temáticos distintos, "
                  "ordenados en una GRILLA o filas parejas que LLENE bien la lámina. Cada sticker "
                  "SEPARADO del de al lado por un espacio en blanco claro (un margen entre cada "
                  "uno): que NO se toquen ni se superpongan, porque al recortarlos con borde se "
@@ -153,6 +164,9 @@ def prompt_de(paleta, pieza, edad=None):
     elif pieza.key in _EXTRA_FORMA:
         # piezas con forma/encuadre específico (circulares, stickers, etc.)
         partes.append(_EXTRA_FORMA[pieza.key])
+        if pieza.key == "stickers" and paleta.get("stickers_pedido"):
+            partes.append("Motivos pedidos para esta lámina: %s."
+                          % paleta["stickers_pedido"])
     else:
         # piezas decorativas sin texto -> composición centrada y llena.
         partes.append("Composición CENTRADA y equilibrada que aproveche bien el espacio, "
