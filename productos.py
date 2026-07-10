@@ -379,6 +379,17 @@ def _overlay_texto(img, tema, base, d):
 
 def _mk_extra_edad(exdir, base, tema):
     def fn(d):
+        # stickers: se vende la hoja RECOMPUESTA con troquel uniforme y línea
+        # de corte (piezas.hoja_stickers, cacheada) — la hoja cruda de la IA
+        # (contornos dispares) queda solo como fuente de recortes. Fallback a
+        # la cruda si el tema no tiene recortes suficientes.
+        if base == "stickers":
+            try:
+                h = piezas.hoja_stickers(tema)
+                if h is not None:
+                    return h
+            except Exception:
+                pass
         edad = _safe_edad(d.get("edad", "1"))   # C2: sin path traversal
         p = os.path.join(exdir, f"{base}_{edad}.png")
         if not os.path.exists(p):

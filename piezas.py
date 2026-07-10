@@ -415,11 +415,14 @@ def _quitar_bolsones(a, mn, quitar, umbral, max_frac=0.06, umbral_dist=9):
     return ImageChops.lighter(quitar, extra)
 
 
-def agregar_halo(im, grosor=None, color=(255, 255, 255)):
+def agregar_halo(im, grosor=None, color=(255, 255, 255), borde=None):
     """Contorno de sticker UNIFORME a partir de la silueta (alpha): dilata la
     silueta `grosor` px con esquinas redondeadas y pone el color detrás. Para
     un die-cut consistente, aplicar sobre arte YA limpio (quitar_halo antes).
-    grosor default: ~4.5% del lado mayor (mínimo 6px)."""
+    grosor default: ~4.5% del lado mayor (mínimo 6px).
+    `borde`: color de la LÍNEA DE CORTE al filo del troquel (ej. (208,208,208))
+    — sin ella, halo blanco sobre hoja blanca no se ve, y además marca por
+    dónde recortar con tijera."""
     im = im.convert("RGBA")
     g = int(grosor) if grosor else max(6, int(max(im.size) * 0.045))
     pad = g + 3
@@ -430,11 +433,147 @@ def agregar_halo(im, grosor=None, color=(255, 255, 255)):
         m = m.filter(ImageFilter.MaxFilter(3))
     m = m.filter(ImageFilter.GaussianBlur(max(1.2, g * 0.25)))
     m = m.point(lambda v: 255 if v > 100 else 0)   # re-solidificar el borde suavizado
+    canto = None
+    if borde:
+        canto = ImageChops.subtract(m, m.filter(ImageFilter.MinFilter(5)))
     m = m.filter(ImageFilter.GaussianBlur(0.8))    # anti-alias final
     halo = Image.new("RGBA", base.size, tuple(color) + (255,))
     halo.putalpha(m)
+    if canto is not None:
+        linea = Image.new("RGBA", base.size, tuple(borde) + (255,))
+        linea.putalpha(canto.filter(ImageFilter.GaussianBlur(0.6)))
+        halo.alpha_composite(linea)
     halo.alpha_composite(base)
     return halo
+
+
+def un_solo_blob(im, min_frac=0.18):
+    """True si el recorte es UNA figura (no una tira compuesta). Componentes
+    conexas del CONTENIDO COLOREADO a 64×64: si hay una segunda mancha grande
+    (> min_frac de la mayor), es un compuesto tipo 'jirafa + hojas + flores' y
+    se descarta — la misma clase de bug que las columnas apiladas del cuaderno
+    (skill §19). OJO: el halo blanco troquelado del sticker puentea las figuras
+    si se mira solo el alpha — por eso se excluyen los píxeles casi blancos."""
+    im64 = im.resize((64, 64))
+    a64, rgb = im64.split()[3].load(), im64.convert("RGB").load()
+    a = Image.new("L", (64, 64), 0)
+    px = a.load()
+    for y in range(64):
+        for x in range(64):
+            r, g, b2 = rgb[x, y]
+            if a64[x, y] > 40 and not (r > 225 and g > 225 and b2 > 225):
+                px[x, y] = 255
+    visto = bytearray(64 * 64)
+    areas = []
+    for y0 in range(64):
+        for x0 in range(64):
+            if px[x0, y0] and not visto[y0 * 64 + x0]:
+                area, pila = 0, [(x0, y0)]
+                visto[y0 * 64 + x0] = 1
+                while pila:
+                    x, y = pila.pop()
+                    area += 1
+                    for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                        if 0 <= nx < 64 and 0 <= ny < 64 and px[nx, ny] \
+                                and not visto[ny * 64 + nx]:
+                            visto[ny * 64 + nx] = 1
+                            pila.append((nx, ny))
+                areas.append(area)
+    areas.sort(reverse=True)
+    return len(areas) < 2 or areas[1] < areas[0] * min_frac
+
+
+def hoja_stickers(tema, lado=2400):
+    """Hoja de stickers RECOMPUESTA con troquel uniforme: recortes de la hoja
+    IA (cuaderno._extraer_monstruos) → quitar_halo → agregar_halo parejo con
+    línea de corte. Reemplaza a la hoja cruda de la IA como pieza vendida
+    (contornos dispares / aros fusionados entre vecinos — feedback Pablo
+    10-jul-2026). Cache en extras/.stickers_uniforme.png (se invalida si
+    cambia la hoja fuente). Devuelve RGB; None si el tema no tiene recortes."""
+    import cuaderno
+    tdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "temas", tema)
+    fuente = os.path.join(tdir, "extras", "stickers_1.png")
+    cache = os.path.join(tdir, "extras", ".stickers_uniforme.png")
+    try:
+        if os.path.isfile(cache) and os.path.isfile(fuente) \
+                and os.path.getmtime(cache) >= os.path.getmtime(fuente):
+            return Image.open(cache).convert("RGB")
+    except OSError:
+        pass
+    try:
+        paths = cuaderno._extraer_monstruos(tema) or []
+    except Exception:
+        paths = []
+    crops = []
+    for p in paths:
+        try:
+            im = Image.open(p).convert("RGBA")
+        except Exception:
+            continue
+        bb = im.getbbox()
+        if not bb:
+            continue
+        im = im.crop(bb)
+        if im.width * im.height < 18000 or min(im.size) < 85:
+            continue                          # fragmentos ínfimos (<~8mm impresos)
+        opacos = sum(im.getchannel("A").point(lambda v: v > 40 and 255)
+                     .histogram()[255:])
+        if opacos / (im.width * im.height) < 0.30:
+            continue                          # ralos (piolines de globos, virutas)
+        if not un_solo_blob(im):             # racimos pegados
+            continue
+        crops.append(quitar_halo(im))
+    if len(crops) < 6:
+        return None                          # hoja pobre → mejor la cruda
+    # clases de tamaño por área original (grandes arriba, chicos abajo)
+    crops.sort(key=lambda i: -(i.width * i.height))
+    n = len(crops)
+    MARG, GAP = 100, 30
+    util = lado - 2 * MARG
+
+    def _armar(escala):
+        """Redimensiona + troquela + arma filas. Devuelve (filas, alto_total)."""
+        sts = []
+        for i, im in enumerate(crops):
+            alto = int((380 if i < n // 3 else (260 if i < 2 * n // 3 else 175)) * escala)
+            w = max(1, int(im.width * alto / im.height))
+            sts.append(agregar_halo(im.resize((w, alto), Image.LANCZOS),
+                                    grosor=max(8, int(14 * escala)),
+                                    borde=(206, 206, 206)))
+        fs, f, wf = [], [], 0
+        for st in sts:
+            if f and wf + st.width > util:
+                fs.append(f)
+                f, wf = [], 0
+            f.append(st)
+            wf += st.width + GAP
+        if f:
+            fs.append(f)
+        return fs, sum(max(s2.height for s2 in ff) for ff in fs) + GAP * (len(fs) - 1)
+
+    # si no entra a tamaño pleno, achicar hasta que TODO quepa (sin recortes)
+    escala = 1.0
+    filas, alto_total = _armar(escala)
+    while alto_total > util and escala > 0.5:
+        escala *= 0.92
+        filas, alto_total = _armar(escala)
+    esp = max(GAP, (lado - 2 * MARG - (alto_total - GAP * (len(filas) - 1)))
+              // max(1, len(filas) - 1)) if len(filas) > 1 else 0
+    hoja = Image.new("RGB", (lado, lado), (255, 255, 255))
+    y = MARG
+    for f in filas:
+        hf = max(s2.height for s2 in f)
+        wf = sum(s2.width for s2 in f) + GAP * (len(f) - 1)
+        x = (lado - wf) // 2
+        for s2 in f:
+            hoja.paste(s2, (x, y + (hf - s2.height) // 2), s2)
+            x += s2.width + GAP
+        y += hf + esp
+    try:
+        hoja.save(cache)
+    except OSError:
+        pass
+    return hoja
 
 
 def marca_agua(img, texto="CASATRIDIMENSIONAL · VISTA PREVIA", op=70):
