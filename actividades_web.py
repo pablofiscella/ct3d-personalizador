@@ -293,18 +293,21 @@ def _parecidos(m1, m2par):
 
 
 def _personajes(tema, d):
-    """Copia al token los mejores recortes del tema: variedad estricta (sin
+    """Copia al token los mejores recortes del tema, LIMPIOS (sin el aro
+    blanco del die-cut — acá no son stickers; feedback Pablo 10-jul-2026, vía
+    cuaderno._recorte_limpio/piezas.quitar_halo): variedad estricta (sin
     casi-duplicados — la regla que salvó al memotest del papel), sin tiras
     compuestas, dedup extra por contenido (dos hojas casi iguales confunden).
-    Devuelve filenames (hasta 8)."""
-    from cuaderno import _seleccionar_recortes
+    Devuelve filenames (hasta 8); como van sin aro, la silueta de sombras se
+    hace en el player con el mismo archivo (brightness 0)."""
+    from cuaderno import _seleccionar_recortes, _recorte_limpio
     paths = _seleccionar_recortes(tema, 16, variedad_estricta=True, incluir_objetos=True)
     if len(paths) < 4:
         paths = _seleccionar_recortes(tema, 16, incluir_objetos=True)
     buenos, minis = [], []
     for p in paths:
         try:
-            im = Image.open(p).convert("RGBA")
+            im = _recorte_limpio(p)
         except Exception:
             continue
         im = im.crop(im.getbbox() or (0, 0, im.width, im.height))
@@ -319,23 +322,13 @@ def _personajes(tema, d):
             break
     if len(buenos) < 2:
         raise RuntimeError("el tema %r no tiene stickers para las actividades" % tema)
-    out, sombras = [], []
+    out = []
     for i, im in enumerate(buenos):
         im.thumbnail((420, 420), Image.LANCZOS)
         fn = "p%02d.png" % i
         im.save(os.path.join(d, fn), optimize=True)
         out.append(fn)
-        # variante SIN el aro blanco del die-cut: la silueta del juego de sombras
-        # con halo era una mancha amorfa (brightness(0) pinta el aro también)
-        try:
-            from cuaderno import _sin_halo
-            sh = _sin_halo(im)
-            fns = "s%02d.png" % i
-            sh.save(os.path.join(d, fns), optimize=True)
-            sombras.append(fns)
-        except Exception:
-            sombras.append(fn)          # fallback: con halo (mejor que romper)
-    return out, sombras
+    return out, list(out)      # sombras = los mismos archivos (ya sin aro)
 
 
 def _colorear(tema, d):

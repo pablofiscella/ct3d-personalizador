@@ -6,7 +6,7 @@
 Genera PNG + PDF (300 DPI) de cada pieza y una grilla de revision.
 """
 import os, json
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageChops, ImageFilter
 from generador import (ASSETS, OUT, DPI, CREAM, BROWN, TERRA, OLIVE,
                        fit_font, get_font, crop_alpha, render, SPECS, specs_de, _hex_rgb)
 
@@ -314,6 +314,128 @@ def piezas_de(tema="safari"):
         ("7_banderines", lambda d: banderin(d, tema),       True),
     ]
 PIEZAS = piezas_de("safari")   # compat
+
+# ── Halo blanco (aro troquelado de sticker): quitar y agregar BIEN ──
+# Los recortes de las hojas de stickers IA traen un aro blanco die-cut
+# irregular. Error recurrente (Pablo 10-jul-2026): donde el personaje NO es un
+# sticker el aro no va (y el quitado a medias deja flecos), y donde SÍ va
+# sticker el contorno de la IA sale dispar. Estas dos funciones son LA fuente
+# de verdad para ambos casos — usarlas en vez de reinventarlo por pieza.
+
+def quitar_halo(im, umbral=205, defringe=1):
+    """Saca el aro blanco del die-cut conservando los blancos DEL personaje
+    (nubes, guantes, dientes). Reglas:
+    - el aro es el casi-blanco alcanzable desde AFUERA sin cruzar el contorno
+      oscuro del personaje (floodfill por blanco/transparente);
+    - se siembra desde TODO el borde de la imagen, no solo las esquinas — si
+      una antena/oreja toca el borde parte el aro en dos y la mitad quedaba
+      atrapada (visto en monstruos);
+    - defringe: tras quitar el aro se come ~1px del borde mezclado por el
+      anti-alias (el "fleco" blanco que se veía sobre fondos de color) y se
+      suaviza el corte. Con arte sin halo es no-op (no hay blanco alcanzable).
+    Medido 10-jul-2026 sobre 6 temas: umbral 205 captura los aros reales sin
+    tocar blancos internos."""
+    im = im.convert("RGBA")
+    W, H = im.size
+    a = im.getchannel("A")
+    r, g, bl = im.convert("RGB").split()
+    mn = ImageChops.darker(ImageChops.darker(r, g), bl)      # canal mínimo
+    near_white = mn.point(lambda v: 255 if v > umbral else 0)
+    transp = a.point(lambda v: 255 if v < 40 else 0)
+    passable = ImageChops.lighter(near_white, transp)        # exterior o aro
+    work = passable.copy()
+    px = work.load()
+    for x in range(W):                                       # borde superior/inferior
+        for y in (0, H - 1):
+            if px[x, y] == 255:
+                ImageDraw.floodfill(work, (x, y), 128)
+    for y in range(H):                                       # borde izq/der
+        for x in (0, W - 1):
+            if px[x, y] == 255:
+                ImageDraw.floodfill(work, (x, y), 128)
+    reached = work.point(lambda v: 255 if v == 128 else 0)
+    quitar = ImageChops.multiply(reached, near_white)        # aro alcanzable
+    if quitar.getbbox():                                     # hay aro (si no: no-op)
+        # DEFRINGE SELECTIVO: el anti-alias deja un fleco blancuzco de 1-2px
+        # pegado a lo quitado. Se come SOLO píxeles claros adyacentes a lo ya
+        # quitado (mn>165) — nunca contornos oscuros ni patas finas.
+        claro = mn.point(lambda v: 255 if v > 165 else 0)
+        for _ in range(max(0, int(defringe)) * 2):
+            quitar = ImageChops.lighter(
+                quitar, ImageChops.multiply(quitar.filter(ImageFilter.MaxFilter(3)), claro))
+        # BOLSONES ATRAPADOS: aro encerrado por el trazo del troquelado (ej.
+        # entre la antena y la cabeza). Un casi-blanco chico que vive TODO a
+        # <=umbral_dist px del exterior es aro, no personaje (los dientes/nubes
+        # quedan lejos del borde o son grandes).
+        quitar = _quitar_bolsones(a, mn, quitar, umbral)
+    out = im.copy()
+    out.putalpha(ImageChops.subtract(a, quitar))
+    bb = out.getbbox()
+    return out.crop(bb) if bb else out
+
+
+def _quitar_bolsones(a, mn, quitar, umbral, max_frac=0.06, umbral_dist=9):
+    """Suma a `quitar` los bolsones de casi-blanco encerrados: componentes
+    chicos (<max_frac del área opaca) cuyos píxeles quedan TODOS a
+    <=umbral_dist px del exterior (transparente o ya quitado). Regla a
+    propósito CONSERVADORA: atrapa los huecos angostos del die-cut (≲2×
+    umbral_dist px de ancho, lo normal — el corte abraza la figura) sin
+    riesgo de comerse blancos legítimos grandes (nubes, vestidos)."""
+    W, H = a.size
+    afuera = ImageChops.lighter(a.point(lambda v: 255 if v < 40 else 0), quitar)
+    cerca = afuera.filter(ImageFilter.MaxFilter(umbral_dist * 2 + 1))
+    resto = ImageChops.multiply(                              # casi-blanco vivo
+        ImageChops.multiply(a.point(lambda v: 255 if v > 40 else 0),
+                            mn.point(lambda v: 255 if v > umbral else 0)),
+        ImageChops.invert(quitar.point(lambda v: 255 if v > 128 else 0)))
+    px_r, px_c = resto.load(), cerca.load()
+    opacos = sum(a.point(lambda v: 255 if v > 40 else 0).histogram()[255:]) or 1
+    visto = bytearray(W * H)
+    extra = Image.new("L", (W, H), 0)
+    px_e = extra.load()
+    for y0 in range(H):
+        for x0 in range(W):
+            if px_r[x0, y0] != 255 or visto[y0 * W + x0]:
+                continue
+            comp, pila, ok = [], [(x0, y0)], True
+            visto[y0 * W + x0] = 1
+            while pila:
+                x, y = pila.pop()
+                comp.append((x, y))
+                if px_c[x, y] != 255:
+                    ok = False                                # lejos del borde: personaje
+                for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                    if 0 <= nx < W and 0 <= ny < H and not visto[ny * W + nx] \
+                            and px_r[nx, ny] == 255:
+                        visto[ny * W + nx] = 1
+                        pila.append((nx, ny))
+            if ok and len(comp) < max_frac * opacos:
+                for x, y in comp:
+                    px_e[x, y] = 255
+    return ImageChops.lighter(quitar, extra)
+
+
+def agregar_halo(im, grosor=None, color=(255, 255, 255)):
+    """Contorno de sticker UNIFORME a partir de la silueta (alpha): dilata la
+    silueta `grosor` px con esquinas redondeadas y pone el color detrás. Para
+    un die-cut consistente, aplicar sobre arte YA limpio (quitar_halo antes).
+    grosor default: ~4.5% del lado mayor (mínimo 6px)."""
+    im = im.convert("RGBA")
+    g = int(grosor) if grosor else max(6, int(max(im.size) * 0.045))
+    pad = g + 3
+    base = Image.new("RGBA", (im.width + pad * 2, im.height + pad * 2), (0, 0, 0, 0))
+    base.alpha_composite(im, (pad, pad))
+    m = base.getchannel("A").point(lambda v: 255 if v > 40 else 0)
+    for _ in range(g):                       # dilatación iterada ≈ disco (redondeado)
+        m = m.filter(ImageFilter.MaxFilter(3))
+    m = m.filter(ImageFilter.GaussianBlur(max(1.2, g * 0.25)))
+    m = m.point(lambda v: 255 if v > 100 else 0)   # re-solidificar el borde suavizado
+    m = m.filter(ImageFilter.GaussianBlur(0.8))    # anti-alias final
+    halo = Image.new("RGBA", base.size, tuple(color) + (255,))
+    halo.putalpha(m)
+    halo.alpha_composite(base)
+    return halo
+
 
 def marca_agua(img, texto="CASATRIDIMENSIONAL · VISTA PREVIA", op=70):
     """Estampa una marca de agua diagonal repetida (solo para el preview)."""

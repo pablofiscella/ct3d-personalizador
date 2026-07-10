@@ -231,13 +231,38 @@ def _seleccionar_recortes(tema, n=2, variedad_estricta=False, incluir_objetos=Fa
 
 
 def personajes_decorativos(tema, n=2, variedad_estricta=False, incluir_objetos=False):
+    """Recortes SIN el aro blanco del die-cut (piezas.quitar_halo, cacheado en
+    actividades_mon/limpios/): el personaje decorativo NO es un sticker — el
+    aro irregular de la IA era el error recurrente en las 15 piezas que pegan
+    personajes (Pablo 10-jul-2026). Si una pieza quiere look sticker, que use
+    piezas.agregar_halo(im) sobre este recorte limpio (contorno uniforme)."""
     out = []
     for p in _personajes_paths(tema, n, variedad_estricta, incluir_objetos):
         try:
-            out.append(Image.open(p).convert("RGBA"))
+            out.append(_recorte_limpio(p))
         except Exception:
             pass
     return out
+
+
+def _recorte_limpio(path):
+    """quitar_halo con caché en disco (limpios/<archivo> junto al original);
+    se invalida si el original es más nuevo."""
+    import piezas
+    d = os.path.join(os.path.dirname(path), "limpios")
+    cp = os.path.join(d, os.path.basename(path))
+    try:
+        if os.path.isfile(cp) and os.path.getmtime(cp) >= os.path.getmtime(path):
+            return Image.open(cp).convert("RGBA")
+    except OSError:
+        pass
+    im = piezas.quitar_halo(Image.open(path).convert("RGBA"))
+    try:
+        os.makedirs(d, exist_ok=True)
+        im.save(cp, optimize=True)
+    except OSError:
+        pass
+    return im
 
 
 def _personajes_paths(tema, n=2, variedad_estricta=False, incluir_objetos=False):
@@ -389,26 +414,11 @@ def _paste_h(base, img, cx, cy, h):
     base.alpha_composite(img.resize((w, int(h)), Image.LANCZOS), (int(cx - w / 2), int(cy - h / 2)))
 
 def _sin_halo(im):
-    """Saca el aro blanco del die-cut conservando las partes blancas del personaje (guantes).
-    Los personajes tienen CONTORNO OSCURO; el aro es el blanco que queda POR FUERA de ese
-    contorno. Floodfill desde las esquinas (exterior) avanzando por blanco/transparente hasta
-    chocar el contorno oscuro: lo alcanzado = aro -> se quita del alpha. Los guantes, que están
-    DENTRO del contorno oscuro, no se alcanzan y quedan intactos. Para la portada (crema)."""
-    im = im.convert("RGBA"); W, H = im.size
-    a = im.getchannel("A")
-    r, g, bl = im.convert("RGB").split()
-    mn = ImageChops.darker(ImageChops.darker(r, g), bl)        # canal mínimo = qué tan blanco
-    near_white = mn.point(lambda v: 255 if v > 205 else 0)
-    transp = a.point(lambda v: 255 if v < 40 else 0)
-    passable = ImageChops.lighter(near_white, transp)          # 255 = exterior o aro blanco
-    work = passable.copy()
-    for seed in ((0, 0), (W - 1, 0), (0, H - 1), (W - 1, H - 1)):
-        if work.getpixel(seed) == 255:
-            ImageDraw.floodfill(work, seed, 128)               # marca lo alcanzable desde afuera
-    reached = work.point(lambda v: 255 if v == 128 else 0)
-    quitar = ImageChops.multiply(reached, near_white)          # aro blanco alcanzable (no los guantes)
-    out = im.copy(); out.putalpha(ImageChops.subtract(a, quitar)); bb = out.getbbox()
-    return out.crop(bb) if bb else out
+    """Delegado a piezas.quitar_halo — la fuente de verdad del quitado del aro
+    die-cut (siembra desde todo el borde + defringe selectivo + bolsones
+    atrapados). Se mantiene el nombre viejo por compatibilidad."""
+    import piezas
+    return piezas.quitar_halo(im)
 
 # ───────────────────────── generadores verificados ─────────────────────────
 def _maze(W, H, seed):
