@@ -1,0 +1,36 @@
+{
+  "texto1": {
+    "x": 0.4938,
+    "y": 0.3778,
+    "size": 84.0,
+    "maxw": 0.82,
+    "wght": 800.0,
+    "font": "Baloo2-VF.ttf",
+    "color": "#5ca9b5",
+    "anchor": "mm",
+    "tpl": "¡Gracias por venir!"
+  },
+  "texto2": {
+    "x": 0.5144,
+    "y": 0.436,
+    "size": 88.0,
+    "maxw": 0.82,
+    "wght": 800.0,
+    "font": "Baloo2-VF.ttf",
+    "color": "#5ca9b5",
+    "anchor": "mm",
+    "tpl": "al cumple de"
+  },
+  "texto3": {
+    "x": 0.5041,
+    "y": 0.4918,
+    "size": 156.0,
+    "maxw": 0.82,
+    "wght": 800.0,
+    "font": "Baloo2-VF.ttf",
+    "color": "#5ca9b5",
+    "anchor": "mm",
+    "tpl": "Tomy"
+  },
+  "_oculto": []
+}

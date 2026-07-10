@@ -4,48 +4,70 @@
     "y": 0.1705,
     "size": 195.0,
     "maxw": 0.64,
-    "wght": 700.0
+    "wght": 700.0,
+    "font": "DancingScript-VF.ttf",
+    "color": "#c8674e",
+    "anchor": "mm"
   },
   "fecha": {
-    "x": 0.3553,
-    "y": 0.2394,
+    "x": 0.3716,
+    "y": 0.36,
     "size": 44.0,
     "maxw": 0.5,
-    "wght": 500.0
+    "wght": 500.0,
+    "font": "Poppins-Medium.ttf",
+    "color": "#6f4e37",
+    "anchor": "lm"
   },
   "hora": {
-    "x": 0.4893,
-    "y": 0.2783,
+    "x": 0.3754,
+    "y": 0.3801,
     "size": 44.0,
     "maxw": 0.5,
-    "wght": 500.0
+    "wght": 500.0,
+    "font": "Poppins-Medium.ttf",
+    "color": "#6f4e37",
+    "anchor": "lm"
   },
   "lugar": {
-    "x": 0.3806,
-    "y": 0.3194,
+    "x": 0.3745,
+    "y": 0.4066,
     "size": 44.0,
     "maxw": 0.5,
-    "wght": 500.0
+    "wght": 500.0,
+    "font": "Poppins-Medium.ttf",
+    "color": "#6f4e37",
+    "anchor": "lm"
   },
   "direccion": {
-    "x": 0.4136,
-    "y": 0.3522,
+    "x": 0.377,
+    "y": 0.4336,
     "size": 30.0,
     "maxw": 0.5,
-    "wght": 500.0
+    "wght": 500.0,
+    "font": "Poppins-Medium.ttf",
+    "color": "#6f4e37",
+    "anchor": "lm"
   },
   "confirma": {
-    "x": 0.307,
-    "y": 0.981,
+    "x": 0.3009,
+    "y": 0.9855,
     "size": 41.0,
     "maxw": 0.22,
-    "wght": 500.0
+    "wght": 500.0,
+    "font": "Poppins-Medium.ttf",
+    "color": "#6f4e37",
+    "anchor": "lm"
   },
   "rsvp": {
-    "x": 0.5033,
-    "y": 0.981,
+    "x": 0.4972,
+    "y": 0.9855,
     "size": 41.0,
     "maxw": 0.44,
-    "wght": 500.0
-  }
+    "wght": 500.0,
+    "font": "Poppins-Medium.ttf",
+    "color": "#6f4e37",
+    "anchor": "lm"
+  },
+  "_oculto": []
 }

@@ -1,17 +1,17 @@
 {
   "titulo": {
     "x": 0.5034,
-    "y": 0.165,
+    "y": 0.2188,
     "size": 44.0,
     "maxw": 0.86,
     "wght": 800.0,
     "font": "Nunito-VF.ttf",
-    "color": "#4e7ba8",
+    "color": "#ffffff",
     "anchor": "mm"
   },
   "nombre": {
-    "x": 0.5051,
-    "y": 0.2719,
+    "x": 0.497,
+    "y": 0.2792,
     "size": 174.0,
     "maxw": 0.48,
     "wght": 500.0,
@@ -20,13 +20,13 @@
     "anchor": "mm"
   },
   "edad": {
-    "x": 0.4882,
-    "y": 0.3802,
+    "x": 0.5024,
+    "y": 0.3337,
     "size": 50.0,
     "maxw": 0.66,
     "wght": 800.0,
     "font": "Nunito-VF.ttf",
-    "color": "#d9624c",
+    "color": "#ffffff",
     "anchor": "mm"
   },
   "fecha": {
@@ -88,5 +88,6 @@
     "font": "Quicksand-VF.ttf",
     "color": "#4e7ba8",
     "anchor": "mm"
-  }
+  },
+  "_oculto": []
 }

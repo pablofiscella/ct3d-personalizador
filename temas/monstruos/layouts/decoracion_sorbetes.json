@@ -1,0 +1,21 @@
+{
+  "nombre": {
+    "x": 0.5015,
+    "y": 0.0625,
+    "size": 51.0,
+    "maxw": 0.55,
+    "wght": 700.0,
+    "font": "Fredoka-VF.ttf",
+    "color": "#66c63a",
+    "anchor": "mm",
+    "repeat": {
+      "count": 10,
+      "cols": 1,
+      "dx": 0.0,
+      "dy": 0.105
+    }
+  },
+  "_oculto": [
+    "nombre"
+  ]
+}

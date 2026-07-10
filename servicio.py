@@ -15,7 +15,7 @@ Config por variables de entorno:
   CT3D_DATA_DIR  dónde guardar los kits generados (default ./pedidos)
   CT3D_BASE_URL  URL pública del servicio (para armar el link de descarga)
 """
-import os, io, json, re, secrets, threading, time, collections, urllib.parse, urllib.request, urllib.error, base64
+import os, io, json, re, secrets, threading, time, collections, hashlib, urllib.parse, urllib.request, urllib.error, base64
 import html as html_lib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -33,6 +33,31 @@ API_KEY  = os.environ.get("CT3D_API_KEY", "cambiame-ya")
 PORT     = int(os.environ.get("CT3D_PORT", "8787"))
 DATA_DIR = os.environ.get("CT3D_DATA_DIR", os.path.join(os.path.dirname(__file__), "pedidos"))
 BASE_URL = os.environ.get("CT3D_BASE_URL", f"http://localhost:{PORT}")
+# Cache en disco de las miniaturas del catálogo: /preview NO personalizado (sin `over`)
+# se re-renderiza en cada carga de la tienda (cientos de productos) → se guarda el
+# resultado y se sirve del disco por PREVIEW_CACHE_TTL. TTL corto (10 min) para que al
+# regenerar el arte de un tema la tienda lo refleje enseguida (igual que el Cache-Control).
+PREVIEW_CACHE_DIR = os.path.join(os.path.dirname(__file__), ".cache", "preview")
+PREVIEW_CACHE_TTL = 21600        # 6h: cache estable (no re-render cada 10 min). Se invalida
+                                 # por tema al editar un layout / regenerar arte (ver _preview_cache_clear).
+os.makedirs(PREVIEW_CACHE_DIR, exist_ok=True)
+# Límite de renders Pillow CONCURRENTES: aunque la tienda pida cientos de miniaturas a la
+# vez (cache frío), nunca corren más de N a la vez → la CPU no se satura ni la memoria explota.
+_RENDER_SEM = threading.Semaphore(max(2, (os.cpu_count() or 4) // 2))
+
+def _cache_tema_dir(tema):
+    safe = re.sub(r"[^a-zA-Z0-9_-]", "", str(tema or ""))[:40] or "default"
+    return os.path.join(PREVIEW_CACHE_DIR, safe)
+
+def _preview_cache_clear(tema=None):
+    """Borra el cache de previews de un tema (o todo). Se llama al guardar un layout o
+    regenerar el arte, para que la tienda refleje el cambio sin esperar el TTL."""
+    import shutil
+    try:
+        shutil.rmtree(_cache_tema_dir(tema) if tema else PREVIEW_CACHE_DIR, ignore_errors=True)
+        os.makedirs(PREVIEW_CACHE_DIR, exist_ok=True)
+    except Exception:
+        pass
 
 # Página que ve el cliente si abre su audiolibro mientras aún se está generando
 # (~1-2 min tras la compra). Se auto-refresca hasta que el visor esté listo.
@@ -504,24 +529,52 @@ class Handler(BaseHTTPRequestHandler):
             except Exception: max_px = 900
             fmt = (q.get("fmt", ["png"])[0] or "png").lower()
             ov = q.get("over", [""])[0]              # personalización del cliente (JSON)
+            pieza = q.get("pieza", [""])[0]          # índice de pieza (galería: todas las del ZIP)
+            ctype = "image/jpeg" if fmt in ("jpg", "jpeg") else "image/png"
+            # Cache en disco SOLO para miniaturas del catálogo (sin personalización `over`):
+            # son deterministas y se piden cientos de veces al cargar la tienda. Las
+            # previews personalizadas (con over) se rinden siempre en vivo.
+            cpath = None
+            if not ov:
+                key_parts = sorted((k, v[0]) for k, v in q.items() if k != "cb")
+                ckey = hashlib.md5(repr(key_parts).encode("utf-8")).hexdigest()
+                cpath = os.path.join(_cache_tema_dir(tema), ckey + ("." + fmt))
+                try:
+                    if os.path.exists(cpath) and (time.time() - os.path.getmtime(cpath) < PREVIEW_CACHE_TTL):
+                        with open(cpath, "rb") as fh:
+                            body = fh.read()
+                        self.send_response(200)
+                        self.send_header("Content-Type", ctype)
+                        self.send_header("Cache-Control", "public, max-age=600")
+                        self.send_header("Content-Length", str(len(body)))
+                        self.end_headers(); self.wfile.write(body)
+                        return
+                except Exception:
+                    pass
             if ov:
                 try: data["_over"] = json.loads(ov)
                 except Exception: pass
-            pieza = q.get("pieza", [""])[0]          # índice de pieza (galería: todas las del ZIP)
-            img = None
-            if pieza != "":
-                try: img = productos.preview_pieza(data, tema, tipo, int(pieza), max_px=max_px)
-                except Exception: img = None
-            if img is None:
-                img = productos.preview(data, tema=tema, tipo=tipo, max_px=max_px)
-            img = piezas.marca_agua(img)   # marca de agua SOLO en el preview (el kit comprado sale limpio)
-            buf = io.BytesIO()
-            if fmt in ("jpg", "jpeg"):
-                img.convert("RGB").save(buf, "JPEG", quality=80, optimize=True)
-                ctype = "image/jpeg"
-            else:
-                img.save(buf, "PNG"); ctype = "image/png"
-            body = buf.getvalue()
+            with _RENDER_SEM:                # throttle: nunca más de N renders Pillow a la vez
+                img = None
+                if pieza != "":
+                    try: img = productos.preview_pieza(data, tema, tipo, int(pieza), max_px=max_px)
+                    except Exception: img = None
+                if img is None:
+                    img = productos.preview(data, tema=tema, tipo=tipo, max_px=max_px)
+                img = piezas.marca_agua(img)   # marca de agua SOLO en el preview (el comprado sale limpio)
+                buf = io.BytesIO()
+                if fmt in ("jpg", "jpeg"):
+                    img.convert("RGB").save(buf, "JPEG", quality=80, optimize=True)
+                else:
+                    img.save(buf, "PNG")
+                body = buf.getvalue()
+            if cpath:                        # guardar en cache para las próximas cargas
+                try:
+                    os.makedirs(os.path.dirname(cpath), exist_ok=True)
+                    tmp = cpath + ".tmp"
+                    with open(tmp, "wb") as fh: fh.write(body)
+                    os.replace(tmp, cpath)
+                except Exception: pass
             self.send_response(200)
             self.send_header("Content-Type", ctype)
             # 10 min, no 24h: si se regenera el arte de un tema, la tienda lo refleja
@@ -618,7 +671,44 @@ class Handler(BaseHTTPRequestHandler):
             q = urllib.parse.parse_qs(u.query)
             pieza = q.get("pieza", ["invitacion"])[0]
             tema = q.get("tema", ["safari"])[0]
-            return self._json(200, generador.layout_para_editor(pieza, tema))
+            # en modo admin (con auth) incluye los campos marcados 'no corresponde'
+            # para poder re-activarlos; el cliente normal no los ve.
+            es_admin = q.get("admin", ["0"])[0] == "1" and self._admin_ok(u)
+            lay = generador.layout_para_editor(pieza, tema, admin=es_admin)
+            # edades que ofrece el tema (las que tienen invitación): el editor del
+            # cliente limita el selector a estas, no deja poner cualquier número.
+            try:
+                eds = [int(x) for x in (temas.cargar_tema(tema).get("edades") or []) if 1 <= int(x) <= 7]
+            except Exception:
+                eds = []
+            lay["edades"] = sorted(set(eds)) or [1, 2, 3]
+            return self._json(200, lay)
+        if path == "/cliente/piezas-texto":
+            # piezas del kit que tienen texto editable (para las pestañas del editor
+            # multi-pieza del cliente). Excluye las que quedaron sin campos que 'corresponden'.
+            q = urllib.parse.parse_qs(u.query)
+            tema = q.get("tema", ["safari"])[0]
+            specs = generador.specs_de(tema)
+            _LBL = {"invitacion": "✉️ Invitación", "afiche": "🎈 Afiche", "banderin": "🎉 Banderín",
+                    "tarjetas_agradecimiento": "💌 Tarjeta", "cajita_sorpresa": "🎁 Cajita",
+                    "decoracion_sorbetes": "🥤 Sorbetes"}
+            # Se incluye toda pieza que tenga texto que "corresponde" (no oculto). Por
+            # default banderín/cajita/sorbetes vienen en "no corresponde" y quedan afuera;
+            # si el admin destilda alguna en un tema, pasa a tener campos y aparece acá.
+            _ORDEN = ["invitacion", "afiche", "tarjetas_agradecimiento",
+                      "banderin", "cajita_sorpresa", "decoracion_sorbetes"]
+            lista_pz = []
+            for pz in _ORDEN:
+                s = specs.get(pz)
+                if not s:
+                    continue
+                try:
+                    campos = generador._effective_texts(s)   # excluye los 'no corresponde'
+                except Exception:
+                    campos = s.get("text") or []
+                if campos:
+                    lista_pz.append({"pieza": pz, "label": _LBL.get(pz, pz)})
+            return self._json(200, {"ok": True, "piezas": lista_pz})
         if path == "/cliente-bg.png":
             q = urllib.parse.parse_qs(u.query)
             pieza = q.get("pieza", ["invitacion"])[0]
@@ -1046,6 +1136,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(400, {"ok": False, "error": "falta 'nombre'"})
         if isinstance(payload.get("over"), dict):    # personalización del cliente (mini-editor)
             data["_over"] = payload["over"]
+        if isinstance(payload.get("porPieza"), dict):   # kit multi-pieza: over por cada pieza
+            data["_porPieza"] = payload["porPieza"]
         tema = str(payload.get("tema", "safari")).strip() or "safari"
         tipo = str(payload.get("tipo", "kit")).strip() or "kit"
         if not productos.existe_tipo(tipo):
@@ -1300,14 +1392,61 @@ class Handler(BaseHTTPRequestHandler):
                 o["color"] = v["color"]
             if isinstance(v.get("anchor"), str) and len(v["anchor"]) == 2:
                 o["anchor"] = v["anchor"]
+            if isinstance(v.get("tpl"), str):        # texto default de un campo fijo (texto2/texto3)
+                o["tpl"] = v["tpl"][:200]
+            if "default_hidden" in v:                # estado del toggle "incluir" (apagado por default)
+                o["default_hidden"] = bool(v["default_hidden"])
+            r = v.get("repeat")                      # multiplicador: repetir el texto N veces
+            if isinstance(r, dict):
+                try: n = int(r.get("count", 1))
+                except Exception: n = 1
+                if n > 1:
+                    rc = {"count": min(n, 60)}
+                    try: rc["cols"] = max(1, min(int(r.get("cols", 1)), 12))
+                    except Exception: rc["cols"] = 1
+                    for kk in ("dx", "dy"):
+                        try: rc[kk] = round(float(r.get(kk, 0)), 4)
+                        except Exception: rc[kk] = 0.0
+                    o["repeat"] = rc
             if o:
                 clean[k] = o
+        # "no corresponde": campos que el admin oculta para el cliente (no los ve).
+        # Se escribe SIEMPRE (aunque vacío) para dejar registrada la decisión: algunas
+        # piezas ocultan su texto por default (banderín/cajita/sorbetes) y la clave
+        # presente —aunque sea []— le dice al motor "Pablo ya decidió, respetá esto".
+        oc = [str(x) for x in (payload.get("oculto") or []) if isinstance(x, str) and x][:40]
+        clean["_oculto"] = oc
+        # campos de texto que el admin AGREGÓ a la pieza (ej: 3er texto en la tarjeta)
+        nuevos = []
+        for nf in (payload.get("nuevos") or [])[:20]:
+            if not isinstance(nf, dict):
+                continue
+            fid = re.sub(r"[^a-z0-9_]", "", str(nf.get("id") or "").lower())[:24]
+            if not fid:
+                continue
+            c = {"id": fid, "tpl": str(nf.get("tpl") or "")[:120]}
+            for kk in ("x", "y", "size", "maxw", "wght"):
+                if kk in nf:
+                    try: c[kk] = round(float(nf[kk]), 4)
+                    except Exception: pass
+            if isinstance(nf.get("font"), str) and nf["font"]:
+                c["font"] = nf["font"]
+            if isinstance(nf.get("color"), str) and nf["color"].startswith("#"):
+                c["color"] = nf["color"]
+            if isinstance(nf.get("anchor"), str) and len(nf["anchor"]) == 2:
+                c["anchor"] = nf["anchor"]
+            c["toggleable"] = bool(nf.get("toggleable", True))
+            nuevos.append(c)
+        if nuevos:
+            clean["_nuevos"] = nuevos
         pieza = payload.get("pieza", "invitacion")
         tema = payload.get("tema", "safari")
         p = generador.layout_file_path(pieza, tema)
         with open(p, "w", encoding="utf-8") as f:
             json.dump(clean, f, ensure_ascii=False, indent=2)
-        return self._json(200, {"ok": True, "guardado": len(clean), "pieza": pieza})
+        _preview_cache_clear(tema)   # el cambio de layout se ve en la tienda enseguida
+        return self._json(200, {"ok": True, "guardado": len(clean),
+                                "ocultos": len(oc), "nuevos": len(nuevos), "pieza": pieza})
 
     # ---------------- Dashboard: alta de temáticas ----------------
     def _dash_upload(self):
@@ -1328,7 +1467,7 @@ class Handler(BaseHTTPRequestHandler):
             if sslot.startswith("invitacion") or sslot.startswith("afiche"):
                 os.makedirs(tdir, exist_ok=True)
                 im.save(os.path.join(tdir, sslot + ".png"))
-                generador._specs_cache.pop(tema, None)
+                generador._specs_cache.pop(tema, None); _preview_cache_clear(tema)
                 _pieza_thumb(tdir, sslot + ".png")   # thumb listo para el modal de arte base
                 if sslot.startswith("invitacion"):
                     _sync_edades(tema)               # nueva edad con invitación → la tienda la ofrece
@@ -1372,7 +1511,7 @@ class Handler(BaseHTTPRequestHandler):
             os.makedirs(exdir, exist_ok=True)
             name = f"{pieza}_{edad}.png" if edad else f"{pieza}.png"
             im.save(os.path.join(exdir, name))
-            generador._specs_cache.pop(tema, None)
+            generador._specs_cache.pop(tema, None); _preview_cache_clear(tema)
             _pieza_thumb(exdir, name)   # deja el thumb listo para el modal
         except Exception as e:
             return self._json(500, {"ok": False, "error": "upload falló: %s" % e})
@@ -1426,7 +1565,7 @@ class Handler(BaseHTTPRequestHandler):
         path = os.path.join(exdir, name)
         try:
             if os.path.isfile(path):
-                os.remove(path); generador._specs_cache.pop(tema, None)
+                os.remove(path); generador._specs_cache.pop(tema, None); _preview_cache_clear(tema)
                 thumb = os.path.join(exdir, ".thumbs", name)
                 if os.path.isfile(thumb):
                     os.remove(thumb)
@@ -1795,7 +1934,7 @@ class Handler(BaseHTTPRequestHandler):
         path = os.path.join(tdir, slot + ".png")
         try:
             if os.path.isfile(path):
-                os.remove(path); generador._specs_cache.pop(tema, None)
+                os.remove(path); generador._specs_cache.pop(tema, None); _preview_cache_clear(tema)
                 thumb = os.path.join(tdir, ".thumbs", slot + ".png")
                 if os.path.isfile(thumb):
                     os.remove(thumb)
@@ -1946,7 +2085,7 @@ class Handler(BaseHTTPRequestHandler):
         os.makedirs(os.path.join(tdir, "layouts"), exist_ok=True)
         with open(os.path.join(tdir, "tema.json"), "w", encoding="utf-8") as f:
             json.dump(base, f, ensure_ascii=False, indent=2)
-        generador._specs_cache.pop(tema, None)   # por si estaba cacheada
+        generador._specs_cache.pop(tema, None); _preview_cache_clear(tema)   # por si estaba cacheada
         return self._json(200, {"ok": True, "tema": tema, "nombre": base["nombre"]})
 
     def _dash_agregar_edades(self):
@@ -1976,7 +2115,7 @@ class Handler(BaseHTTPRequestHandler):
                 shutil.copyfile(fuente, dst)
                 copiadas.append(e)
         _sync_edades(tema)
-        generador._specs_cache.pop(tema, None)
+        generador._specs_cache.pop(tema, None); _preview_cache_clear(tema)
         edades = temas.cargar_tema(tema).get("edades", [])
         return self._json(200, {"ok": True, "edades": edades, "copiadas": copiadas})
 
@@ -2089,7 +2228,7 @@ class Handler(BaseHTTPRequestHandler):
             shutil.rmtree(tdir)
         except Exception as e:
             return self._json(500, {"ok": False, "error": "no se pudo borrar: %s" % e})
-        generador._specs_cache.pop(tema, None)
+        generador._specs_cache.pop(tema, None); _preview_cache_clear(tema)
         return self._json(200, {"ok": True, "warn": warn})
 
     def _ia_draft(self, q):
@@ -2517,6 +2656,7 @@ function regen(i){
             for pieza in ("gorro",):
                 emit("Generando %s…" % pieza)
                 corona_ia.generar(client, tema, pieza, calidad=calidad)
+            generador._specs_cache.pop(tema, None); _preview_cache_clear(tema)  # tienda refleja el arte nuevo
         jid = ia_jobs.iniciar(trabajo)
         return self._json(200, {"ok": True, "job": jid})
 
@@ -2551,6 +2691,7 @@ function regen(i){
             if gorro_falta:
                 emit("Generando fondo del gorro…")
                 corona_ia.generar(client, tema, "gorro", calidad=calidad)
+            generador._specs_cache.pop(tema, None); _preview_cache_clear(tema)  # tienda refleja los fondos nuevos
         jid = ia_jobs.iniciar(trabajo)
         return self._json(200, {"ok": True, "job": jid,
                                 "total": len(pend) + (1 if gorro_falta else 0)})
@@ -2748,7 +2889,7 @@ function regen(i){
             except Exception as e:
                 print("[ia] upscale falló (sigo igual):", e)
             res = ia_aprobar.aprobar(temas.TEMAS_DIR, tema)
-            generador._specs_cache.pop(tema, None)
+            generador._specs_cache.pop(tema, None); _preview_cache_clear(tema)
             # refrescar thumbs de los archivos movidos (el modal de arte base no debe
             # mostrar el thumb viejo del slot invitacion_* sobrescrito)
             tdir = os.path.join(temas.TEMAS_DIR, tema)

@@ -36,12 +36,13 @@ def _prompt(tema, pieza):
         # OJO: sin "zona limpia para la insignia" — desde el 8-jul-2026 el gorro va
         # SIN nombre (se pone en el momento, feedback Pablo) y un claro circular en
         # el arte queda como un agujero vacío.
-        forma = ("un sector circular (como una porción de torta vista desde arriba, "
-                 "con el vértice angosto arriba y el borde curvo ancho abajo) que al "
-                 "enrollarse forma un gorro cónico de cumpleaños para armar. Personajes "
-                 "del tema abajo (en el borde curvo ancho) y motivos chicos repartidos "
-                 "por TODA la superficie hasta las puntas y esquinas, SIN ninguna zona "
-                 "vacía, clara ni despejada en el centro")
+        forma = ("un PATRÓN decorativo que llena TODO el rectángulo de borde a borde y "
+                 "esquina a esquina (a sangre completa): personajes del tema en una "
+                 "franja abajo y motivos chicos repartidos parejos por el resto, "
+                 "llegando hasta los 4 bordes y las 4 esquinas. NO dibujes ninguna "
+                 "silueta ni forma recortada (nada de abanico, cono, gorro ni porción "
+                 "de torta) y NO dejes esquinas ni márgenes blancos: es un fondo "
+                 "rectangular lleno que después se recorta con la forma del gorro")
     else:
         # La corona recorta una BANDA horizontal del centro de la imagen (cover):
         # patrón parejo tipo friso, sin escena con protagonistas que queden cortados.

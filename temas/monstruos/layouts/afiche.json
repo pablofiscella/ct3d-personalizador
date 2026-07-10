@@ -1,0 +1,23 @@
+{
+  "titulo": {
+    "x": 0.5041,
+    "y": 0.8663,
+    "size": 120.0,
+    "maxw": 0.82,
+    "wght": 700.0,
+    "font": "Baloo2-VF.ttf",
+    "color": "#4fa23c",
+    "anchor": "mm"
+  },
+  "nombre": {
+    "x": 0.5186,
+    "y": 0.9191,
+    "size": 165.0,
+    "maxw": 0.74,
+    "wght": 700.0,
+    "font": "Baloo2-VF.ttf",
+    "color": "#4fa23c",
+    "anchor": "mm"
+  },
+  "_oculto": []
+}

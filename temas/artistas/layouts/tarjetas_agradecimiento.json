@@ -1,0 +1,36 @@
+{
+  "texto1": {
+    "x": 0.4959,
+    "y": 0.5479,
+    "size": 100.0,
+    "maxw": 0.82,
+    "wght": 700.0,
+    "font": "Fredoka-VF.ttf",
+    "color": "#4a4a4a",
+    "anchor": "mm",
+    "tpl": "¡Gracias por venir!"
+  },
+  "texto2": {
+    "x": 0.4979,
+    "y": 0.6061,
+    "size": 88.0,
+    "maxw": 0.82,
+    "wght": 700.0,
+    "font": "Fredoka-VF.ttf",
+    "color": "#4a4a4a",
+    "anchor": "mm",
+    "tpl": "al cumple de"
+  },
+  "texto3": {
+    "x": 0.5062,
+    "y": 0.688,
+    "size": 157.0,
+    "maxw": 0.82,
+    "wght": 700.0,
+    "font": "Fredoka-VF.ttf",
+    "color": "#4a4a4a",
+    "anchor": "mm",
+    "tpl": "Carlitos"
+  },
+  "_oculto": []
+}

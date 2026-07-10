@@ -1,0 +1,25 @@
+{
+  "titulo": {
+    "x": 0.5041,
+    "y": 0.8576,
+    "size": 120.0,
+    "maxw": 0.82,
+    "wght": 700.0,
+    "font": "Fredoka-VF.ttf",
+    "color": "#d23a34",
+    "anchor": "mm",
+    "tpl": "¡Bienvenidos al cumple de!",
+    "default_hidden": false
+  },
+  "nombre": {
+    "x": 0.5041,
+    "y": 0.9104,
+    "size": 165.0,
+    "maxw": 0.74,
+    "wght": 700.0,
+    "font": "Fredoka-VF.ttf",
+    "color": "#d23a34",
+    "anchor": "mm"
+  },
+  "_oculto": []
+}

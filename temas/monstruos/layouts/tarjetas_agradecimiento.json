@@ -1,0 +1,39 @@
+{
+  "texto1": {
+    "x": 0.4979,
+    "y": 0.2673,
+    "size": 110.0,
+    "maxw": 0.82,
+    "wght": 700.0,
+    "font": "Fredoka-VF.ttf",
+    "color": "#66c63a",
+    "anchor": "mm",
+    "tpl": "¡Gracias por venir!",
+    "default_hidden": false
+  },
+  "texto2": {
+    "x": 0.4959,
+    "y": 0.3256,
+    "size": 88.0,
+    "maxw": 0.82,
+    "wght": 700.0,
+    "font": "Fredoka-VF.ttf",
+    "color": "#66c63a",
+    "anchor": "mm",
+    "tpl": "al cumple de ",
+    "default_hidden": false
+  },
+  "texto3": {
+    "x": 0.5165,
+    "y": 0.4917,
+    "size": 217.0,
+    "maxw": 0.82,
+    "wght": 700.0,
+    "font": "Fredoka-VF.ttf",
+    "color": "#66c63a",
+    "anchor": "mm",
+    "tpl": "Alejo",
+    "default_hidden": false
+  },
+  "_oculto": []
+}

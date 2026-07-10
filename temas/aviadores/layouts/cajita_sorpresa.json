@@ -1,0 +1,15 @@
+{
+  "nombre": {
+    "x": 0.5,
+    "y": 0.5,
+    "size": 130.0,
+    "maxw": 0.7,
+    "wght": 800.0,
+    "font": "Baloo2-VF.ttf",
+    "color": "#5ca9b5",
+    "anchor": "mm"
+  },
+  "_oculto": [
+    "nombre"
+  ]
+}

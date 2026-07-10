@@ -1,0 +1,23 @@
+{
+  "titulo": {
+    "x": 0.5021,
+    "y": 0.8023,
+    "size": 120.0,
+    "maxw": 0.82,
+    "wght": 700.0,
+    "font": "Fredoka-VF.ttf",
+    "color": "#e07b1e",
+    "anchor": "mm"
+  },
+  "nombre": {
+    "x": 0.4979,
+    "y": 0.8683,
+    "size": 165.0,
+    "maxw": 0.74,
+    "wght": 700.0,
+    "font": "Fredoka-VF.ttf",
+    "color": "#e07b1e",
+    "anchor": "mm"
+  },
+  "_oculto": []
+}

@@ -1,0 +1,36 @@
+{
+  "texto1": {
+    "x": 0.4835,
+    "y": 0.3022,
+    "size": 86.0,
+    "maxw": 0.82,
+    "wght": 500.0,
+    "font": "BreeSerif-Regular.ttf",
+    "color": "#4e7d43",
+    "anchor": "mm",
+    "tpl": "¡Gracias por venir!"
+  },
+  "texto2": {
+    "x": 0.5,
+    "y": 0.5,
+    "size": 88.0,
+    "maxw": 0.82,
+    "wght": 500.0,
+    "font": "BreeSerif-Regular.ttf",
+    "color": "#4e7d43",
+    "anchor": "mm",
+    "tpl": ""
+  },
+  "texto3": {
+    "x": 0.5,
+    "y": 0.64,
+    "size": 88.0,
+    "maxw": 0.82,
+    "wght": 500.0,
+    "font": "BreeSerif-Regular.ttf",
+    "color": "#4e7d43",
+    "anchor": "mm",
+    "tpl": ""
+  },
+  "_oculto": []
+}

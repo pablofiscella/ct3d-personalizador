@@ -1,0 +1,98 @@
+{
+  "nombre": {
+    "x": 0.5,
+    "y": 0.34,
+    "size": 195.0,
+    "maxw": 0.64,
+    "wght": 700.0,
+    "font": "DancingScript-VF.ttf",
+    "color": "#c8674e",
+    "anchor": "mm"
+  },
+  "fecha": {
+    "x": 0.4,
+    "y": 0.52,
+    "size": 44.0,
+    "maxw": 0.5,
+    "wght": 500.0,
+    "font": "Poppins-Medium.ttf",
+    "color": "#6f4e37",
+    "anchor": "lm"
+  },
+  "hora": {
+    "x": 0.4,
+    "y": 0.57,
+    "size": 44.0,
+    "maxw": 0.5,
+    "wght": 500.0,
+    "font": "Poppins-Medium.ttf",
+    "color": "#6f4e37",
+    "anchor": "lm"
+  },
+  "lugar": {
+    "x": 0.4,
+    "y": 0.618,
+    "size": 44.0,
+    "maxw": 0.5,
+    "wght": 500.0,
+    "font": "Poppins-Medium.ttf",
+    "color": "#6f4e37",
+    "anchor": "lm"
+  },
+  "direccion": {
+    "x": 0.4,
+    "y": 0.655,
+    "size": 30.0,
+    "maxw": 0.5,
+    "wght": 500.0,
+    "font": "Poppins-Medium.ttf",
+    "color": "#6f4e37",
+    "anchor": "lm"
+  },
+  "confirma": {
+    "x": 0.307,
+    "y": 0.981,
+    "size": 41.0,
+    "maxw": 0.22,
+    "wght": 500.0,
+    "font": "Poppins-Medium.ttf",
+    "color": "#6f4e37",
+    "anchor": "lm"
+  },
+  "rsvp": {
+    "x": 0.5033,
+    "y": 0.981,
+    "size": 41.0,
+    "maxw": 0.44,
+    "wght": 500.0,
+    "font": "Poppins-Medium.ttf",
+    "color": "#6f4e37",
+    "anchor": "lm"
+  },
+  "texto2": {
+    "x": 0.5183,
+    "y": 0.2689,
+    "size": 89.0,
+    "maxw": 0.9,
+    "wght": 500.0,
+    "font": "DancingScript-VF.ttf",
+    "color": "#333333",
+    "anchor": "mm"
+  },
+  "_oculto": [],
+  "_nuevos": [
+    {
+      "id": "texto2",
+      "tpl": "Te invitamos al cumple de",
+      "x": 0.5183,
+      "y": 0.2689,
+      "size": 89.0,
+      "maxw": 0.9,
+      "wght": 500.0,
+      "font": "DancingScript-VF.ttf",
+      "color": "#333333",
+      "anchor": "mm",
+      "toggleable": true
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "texto1": {
+    "x": 0.4938,
+    "y": 0.3429,
+    "size": 88.0,
+    "maxw": 0.82,
+    "wght": 700.0,
+    "font": "DancingScript-VF.ttf",
+    "color": "#c8674e",
+    "anchor": "mm",
+    "tpl": "¡Gracias por venir!"
+  },
+  "texto2": {
+    "x": 0.5185,
+    "y": 0.391,
+    "size": 88.0,
+    "maxw": 0.82,
+    "wght": 700.0,
+    "font": "DancingScript-VF.ttf",
+    "color": "#c8674e",
+    "anchor": "mm",
+    "tpl": "al cumple de"
+  },
+  "texto3": {
+    "x": 0.5062,
+    "y": 0.4394,
+    "size": 88.0,
+    "maxw": 0.82,
+    "wght": 700.0,
+    "font": "DancingScript-VF.ttf",
+    "color": "#c8674e",
+    "anchor": "mm",
+    "tpl": "Valentin"
+  },
+  "_oculto": []
+}

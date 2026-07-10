@@ -47,6 +47,10 @@
   .field input.sel{border-color:var(--accent);background:var(--accent-tint)}
   .edad-sel{width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;font-size:13.5px;color:var(--ink-1);font-family:var(--font-body);cursor:pointer}
   .edad-sel:focus{outline:0;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  #piezaTabs{flex-wrap:wrap;gap:6px;margin-bottom:14px}
+  .pztab{border:1px solid var(--border);background:var(--bg-warm);border-radius:var(--radius-pill);padding:6px 12px;font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer;transition:all var(--dur-fast)}
+  .pztab:hover{border-color:var(--accent)}
+  .pztab.sel{background:var(--accent);color:#fff;border-color:var(--accent)}
 
   .style-box{border-top:1px solid var(--border);margin-top:14px;padding-top:12px}
   .style-box.off{opacity:.45;pointer-events:none}
@@ -116,8 +120,10 @@
       <h1 id="ed-titulo">Personalizá tu diseño 🎨</h1>
       <div class="sub" id="ed-sub">Completá tus datos y, si querés, movelos o cambiá la tipografía. Tocá un texto en la tarjeta para ajustarlo.</div>
 
+      <div id="piezaTabs" style="display:none"></div>
+
       <div class="lbl">Edad que cumple</div>
-      <input id="edad" class="edad-sel" type="number" min="1" max="99" step="1" value="1">
+      <select id="edad" class="edad-sel"></select>
 
       <div class="lbl">Tus datos</div>
       <div id="datos"></div>
@@ -144,6 +150,11 @@
             <input type="range" id="wght" min="400" max="700" step="100">
           </div>
         </div>
+        <div class="ctrl" id="mwbox" style="display:none">
+          <label>Ancho de la caja <span id="mwv"></span></label>
+          <input type="range" id="maxw" min="20" max="100" step="1">
+          <p class="hint" style="margin:3px 0 0">Si el texto no se agranda más, subí el ancho: el tamaño se topa cuando llena la caja.</p>
+        </div>
         <div class="ctrl">
           <label>Tipografía</label>
           <div class="fonts" id="fonts"></div>
@@ -165,6 +176,18 @@
         <div class="nudge">
           <span class="sp"></span><button data-d="u">▲</button><span class="sp"></span>
           <button data-d="l">◀</button><button data-d="d">▼</button><button data-d="r">▶</button>
+        </div>
+        <div class="ctrl" id="repbox" style="display:none;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)">
+          <label style="display:flex;align-items:center;gap:6px">🔁 Repetir este texto</label>
+          <p class="hint" style="margin:2px 0 6px">Mismo estilo, varias veces (ej: el nombre en cada tira de los sorbetes).</p>
+          <div class="ctrls2">
+            <div class="ctrl"><label>Cantidad <span id="repcountv"></span></label><input type="range" id="repcount" min="1" max="30" step="1"></div>
+            <div class="ctrl"><label>Columnas <span id="repcolsv"></span></label><input type="range" id="repcols" min="1" max="8" step="1"></div>
+          </div>
+          <div class="ctrls2">
+            <div class="ctrl"><label>Separación ↕ <span id="repdyv"></span></label><input type="range" id="repdy" min="0" max="60" step="0.5"></div>
+            <div class="ctrl"><label>Separación ↔ <span id="repdxv"></span></label><input type="range" id="repdx" min="-60" max="60" step="0.5"></div>
+          </div>
         </div>
       </div>
 
@@ -279,37 +302,52 @@ function drawMarcoJS(g,kind,color,cx,cy,tw,th){
 }
 
 function setFont(f,size){ctx.font=`${f.wght||500} ${size}px "${f.family}"`;}
-function fitSize(f){let s=f.size;const mw=f.maxw*SIZE[0];for(;s>10;s-=2){setFont(f,s);if(ctx.measureText(f.text||' ').width<=mw)return s;}return s;}
-function box(f){const s=fitSize(f);setFont(f,s);const w=ctx.measureText(f.text||' ').width;const px=f.x*SIZE[0],py=f.y*SIZE[1];
+// texto-guía tenue para un renglón editable que el cliente todavía no completó (así ve
+// TODOS los lugares editables, no solo el que ya trae texto de ejemplo). Solo para campos
+// sin plantilla propia (texto1 ya muestra su ejemplo; texto2/texto3 arrancan vacíos).
+function phText(f){ if(f.text||f.hidden||f.no_corresponde||f.nuevo||f.editable===false)return null;
+  if((f.tpl||'').trim())return null;
+  return LBL[f.id]||(/^texto\d+$/.test(f.id)?('Texto '+f.id.slice(5)):'Escribí acá'); }
+function fitSize(f,txt){const t=(txt==null?f.text:txt)||' ';let s=f.size;const mw=f.maxw*SIZE[0];for(;s>10;s-=2){setFont(f,s);if(ctx.measureText(t).width<=mw)return s;}return s;}
+function box(f,txt){const t=(txt==null?f.text:txt)||' ';const s=fitSize(f,t);setFont(f,s);const w=ctx.measureText(t).width;const px=f.x*SIZE[0],py=f.y*SIZE[1];
   const h=f.anchor[0];const left=h==='l'?px:h==='r'?px-w:px-w/2;return{l:left,t:py-s*0.62,r:left+w,b:py+s*0.62,s,w};}
+// multiplicador: mismo texto/estilo repetido N veces en grilla (dx/dy en fracción del lienzo).
+// Devuelve las posiciones (x,y) fraccionales; null si el campo no se repite.
+function repeatPts(f){const r=f.repeat; if(!r||!(+r.count>1))return null;
+  const n=Math.min(+r.count|0,60), cols=Math.max(1,(+r.cols|0)||1), dx=+r.dx||0, dy=+r.dy||0, out=[];
+  for(let i=0;i<n;i++)out.push({x:f.x+(i%cols)*dx, y:f.y+Math.floor(i/cols)*dy}); return out;}
 
 function draw(){
   cv.width=SIZE[0];cv.height=SIZE[1];
   ctx.clearRect(0,0,SIZE[0],SIZE[1]);
   if(bg.complete&&bg.naturalWidth)ctx.drawImage(bg,0,0,SIZE[0],SIZE[1]);
   for(const f of fields){                       // 1ª pasada: marcos, detrás de TODO el texto
-    if(!f.text||f.hidden||!f.marco||f.marcoOff)continue;
+    if(!f.text||f.hidden||f.no_corresponde||!f.marco||f.marcoOff)continue;
     const bb=box(f);drawMarcoJS(ctx,f.marco,f.marco_color,(bb.l+bb.r)/2,(bb.t+bb.b)/2,bb.r-bb.l,bb.s);
   }
   for(const f of fields){                       // 2ª pasada: textos, siempre arriba
-    if(!f.text||f.hidden)continue;
-    const s=fitSize(f);setFont(f,s);ctx.fillStyle=f.color;
-    const x0=f.x*SIZE[0], y0=f.y*SIZE[1];
-    const vmid=()=>{const m=ctx.measureText(f.text);return y0+(m.actualBoundingBoxAscent-m.actualBoundingBoxDescent)/2;};
+    if(f.hidden||f.no_corresponde)continue;
+    const txt=f.text||phText(f); if(!txt)continue;   // renglón vacío editable → guía tenue
+    const s=fitSize(f,txt);setFont(f,s);ctx.fillStyle=f.color;ctx.globalAlpha=f.text?1:0.3;
     const h=f.anchor[0];
-    if(f.icon){                                // icono + texto, según alineación (l/m/r)
-      const tw=ctx.measureText(f.text).width, isz=s*0.95, gap=isz*0.42, block=isz+gap+tw;
-      const start=h==='m'?x0-block/2:(h==='l'?x0:x0-block);
-      drawIconJS(ctx,f.icon,start+isz/2,y0,isz,f.color);
-      ctx.textAlign='left';
-      if(f.anchor[1]==='m'){ctx.textBaseline='alphabetic';ctx.fillText(f.text,start+isz+gap,vmid());}
-      else{ctx.textBaseline=f.anchor[1]==='t'?'top':'alphabetic';ctx.fillText(f.text,start+isz+gap,y0);}
-    }else{
-      ctx.textAlign=h==='l'?'left':h==='r'?'right':'center';
-      if(f.anchor[1]==='m'){ctx.textBaseline='alphabetic';ctx.fillText(f.text,x0,vmid());}
-      else{ctx.textBaseline=f.anchor[1]==='t'?'top':'alphabetic';ctx.fillText(f.text,x0,y0);}
+    for(const P of (repeatPts(f)||[{x:f.x,y:f.y}])){   // 1 vez, o N veces si tiene multiplicador
+      const x0=P.x*SIZE[0], y0=P.y*SIZE[1];
+      const vmid=()=>{const m=ctx.measureText(txt);return y0+(m.actualBoundingBoxAscent-m.actualBoundingBoxDescent)/2;};
+      if(f.icon){                                // icono + texto, según alineación (l/m/r)
+        const tw=ctx.measureText(txt).width, isz=s*0.95, gap=isz*0.42, block=isz+gap+tw;
+        const start=h==='m'?x0-block/2:(h==='l'?x0:x0-block);
+        drawIconJS(ctx,f.icon,start+isz/2,y0,isz,f.color);
+        ctx.textAlign='left';
+        if(f.anchor[1]==='m'){ctx.textBaseline='alphabetic';ctx.fillText(txt,start+isz+gap,vmid());}
+        else{ctx.textBaseline=f.anchor[1]==='t'?'top':'alphabetic';ctx.fillText(txt,start+isz+gap,y0);}
+      }else{
+        ctx.textAlign=h==='l'?'left':h==='r'?'right':'center';
+        if(f.anchor[1]==='m'){ctx.textBaseline='alphabetic';ctx.fillText(txt,x0,vmid());}
+        else{ctx.textBaseline=f.anchor[1]==='t'?'top':'alphabetic';ctx.fillText(txt,x0,y0);}
+      }
     }
-    if(sel&&sel.id===f.id){const b=box(f);ctx.strokeStyle='rgba(107,91,210,.9)';ctx.lineWidth=3;ctx.setLineDash([10,7]);
+    ctx.globalAlpha=1;
+    if(sel&&sel.id===f.id){const b=box(f,txt);ctx.strokeStyle='rgba(107,91,210,.9)';ctx.lineWidth=3;ctx.setLineDash([10,7]);
       ctx.strokeRect(b.l-8,b.t-4,(b.r-b.l)+16,(b.b-b.t)+8);ctx.setLineDash([]);}
   }
 }
@@ -322,28 +360,46 @@ function buildDatos(){
   const c=document.getElementById('datos');c.innerHTML='';
   fields.forEach(f=>{
     const k=fkind(f);
-    const full=(f.id==='nombre'||f.id==='titulo'||f.id==='edad');
+    const full=(f.id==='nombre'||f.id==='titulo'||f.id==='edad'||f.nuevo);
     const d=document.createElement('div');
-    d.className='field'+(full?' field--full':'')+((f.toggleable&&f.hidden)?' off':'');
+    d.className='field'+(full?' field--full':'')+(((f.toggleable&&f.hidden)||f.no_corresponde)?' off':'');
     d.dataset.fid=f.id;
-    let html=`<div class="row1"><label>${LBL[f.id]||f.id}</label>`;
-    if(f.toggleable) html+=`<label class="chk"><input type="checkbox" class="tg" ${f.hidden?'':'checked'}>incluir</label>`;
+    let html=`<div class="row1"><label>${f.nuevo?'Texto extra':(LBL[f.id]||(/^texto\d+$/.test(f.id)?('Texto '+f.id.slice(5)):f.id))}</label>`;
+    if(f.toggleable&&!f.nuevo) html+=`<label class="chk"><input type="checkbox" class="tg" ${f.hidden?'':'checked'}>incluir</label>`;
     if(f.marco) html+=`<label class="chk" title="Decoración temática detrás del nombre"><input type="checkbox" class="mc" ${f.marcoOff?'':'checked'}>marco</label>`;
+    if(IS_ADMIN&&f.nuevo) html+=`<button class="delc" title="Eliminar este texto" style="border:0;background:0;color:#d66;cursor:pointer;font-size:15px">🗑️</button>`;
+    else if(IS_ADMIN) html+=`<label class="chk" title="No mostrar este texto al cliente en esta pieza" style="opacity:.85"><input type="checkbox" class="nc" ${f.no_corresponde?'checked':''}>no corresponde</label>`;
     html+=`</div>`;
     html+=`<input type="text" class="tx" value="${(f.text||'').replace(/"/g,'&quot;')}" placeholder="${(k==='static'||k==='edad')?'Texto':'(opcional)'}">`;
     if(k==='edad') html+=`<div class="hint" style="margin:4px 0 0">Se completa con la edad de arriba; podés editarlo o destildarlo.</div>`;
     if(f.iconable) html+=`<select class="icsel">${iconOptionsFor(f.id)}</select>`;
     d.innerHTML=html;
     const tx=d.querySelector('.tx');
-    if(tx){tx.oninput=()=>{f.text=tx.value;draw();emit();};tx.onfocus=()=>select(f.id);}
+    if(tx){tx.oninput=()=>{f.text=tx.value;if(f.nuevo)f.tpl=tx.value;draw();emit();};tx.onfocus=()=>select(f.id);}
     const tg=d.querySelector('.tg');
     if(tg) tg.onchange=()=>{f.hidden=!tg.checked;d.classList.toggle('off',f.hidden);draw();emit();};
     const mc=d.querySelector('.mc');
     if(mc) mc.onchange=()=>{f.marcoOff=!mc.checked;draw();emit();};
+    const nc=d.querySelector('.nc');
+    if(nc) nc.onchange=()=>{f.no_corresponde=nc.checked;d.classList.toggle('off',nc.checked);draw();};
+    const del=d.querySelector('.delc');
+    if(del) del.onclick=()=>{fields=fields.filter(x=>x!==f);buildDatos();draw();};
     const ic=d.querySelector('.icsel');
     if(ic){ic.value=f.icon||'';ic.onchange=()=>{f.icon=ic.value||null;draw();emit();};}
     c.appendChild(d);
   });
+  if(IS_ADMIN){
+    const b=document.createElement('button');
+    b.textContent='+ Agregar texto';
+    b.style.cssText='margin-top:10px;padding:9px 12px;border:1px dashed var(--accent,#7C5CFC);background:transparent;color:var(--accent-deep,#7C5CFC);border-radius:8px;cursor:pointer;font-size:13px;width:100%;font-weight:600';
+    b.onclick=()=>{
+      const df=(CAT[0]&&CAT[0].file)||'Poppins-Medium.ttf', dfam=(CAT[0]&&CAT[0].family)||'Poppins';
+      const id='texto'+(fields.filter(x=>x.nuevo).length+2);
+      fields.push({id,text:'Texto nuevo',tpl:'Texto nuevo',x:0.5,y:0.5,size:48,maxw:0.9,anchor:'mm',wght:500,font:df,_font:df,family:dfam,color:'#333333',editable:true,toggleable:true,nuevo:true});
+      buildDatos();draw();select(id);
+    };
+    c.appendChild(b);
+  }
 }
 function buildFonts(){
   const c=document.getElementById('fonts');c.innerHTML='';
@@ -368,16 +424,39 @@ function select(id){
     document.getElementById('wgv').textContent=sel.wght||500;
     document.getElementById('color').value=sel.color;
     document.getElementById('colorv').textContent=sel.color;
-    markFont();markAlign();
+    const mwb=document.getElementById('mwbox');
+    if(mwb){ mwb.style.display=IS_ADMIN?'block':'none';
+      const mw=Math.round((sel.maxw||0.9)*100);
+      document.getElementById('maxw').value=mw; document.getElementById('mwv').textContent=mw+'%'; }
+    markFont();markAlign();syncRep();
   }
   draw();
+}
+// Multiplicador (solo admin): refleja sel.repeat en los sliders y muestra/oculta el bloque.
+function syncRep(){
+  const b=document.getElementById('repbox'); if(!b)return;
+  if(!IS_ADMIN||!sel){b.style.display='none';return;}
+  b.style.display='block';
+  const r=sel.repeat||{}, c=+r.count||1, co=+r.cols||1, dy=+r.dy||0, dx=+r.dx||0;
+  const put=(id,val,txt)=>{const el=document.getElementById(id);if(el)el.value=val;const s=document.getElementById(id+'v');if(s)s.textContent=txt;};
+  put('repcount',c,c);  put('repcols',co,co);
+  put('repdy',+(dy*100).toFixed(1),Math.round(dy*100)+'%');
+  put('repdx',+(dx*100).toFixed(1),Math.round(dx*100)+'%');
+}
+function repSet(k,val){
+  if(!sel)return;
+  const r=Object.assign({count:1,cols:1,dx:0,dy:0}, sel.repeat||{});
+  r[k]=val;
+  if(k==='count' && +val>1 && !r.dy && !r.dx) r.dy=0.19;   // al activar: separación vertical por default
+  sel.repeat = (+r.count>1) ? {count:+r.count,cols:+r.cols||1,dx:+r.dx||0,dy:+r.dy||0} : null;
+  syncRep();draw();emit();
 }
 
 // click / drag en el lienzo
 function toCanvas(e){const r=cv.getBoundingClientRect();const cx=(e.touches?e.touches[0].clientX:e.clientX),cy=(e.touches?e.touches[0].clientY:e.clientY);
   return{x:(cx-r.left)*(SIZE[0]/r.width),y:(cy-r.top)*(SIZE[1]/r.height)};}
 function down(e){const p=toCanvas(e);
-  for(let i=fields.length-1;i>=0;i--){const f=fields[i];if(!f.text||f.hidden)continue;const b=box(f);
+  for(let i=fields.length-1;i>=0;i--){const f=fields[i];if(f.hidden||f.no_corresponde)continue;const txt=f.text||phText(f);if(!txt)continue;const b=box(f,txt);
     if(p.x>=b.l-12&&p.x<=b.r+12&&p.y>=b.t-8&&p.y<=b.b+8){select(f.id);drag={ox:p.x-sel.x*SIZE[0],oy:p.y-sel.y*SIZE[1]};cv.classList.add('drag');e.preventDefault();return;}}}
 function move(e){if(!drag||!sel)return;const p=toCanvas(e);
   const nx=Math.min(1,Math.max(0,(p.x-drag.ox)/SIZE[0])),ny=Math.min(1,Math.max(0,(p.y-drag.oy)/SIZE[1]));
@@ -392,6 +471,11 @@ cv.addEventListener('touchstart',down,{passive:false});window.addEventListener('
 document.getElementById('size').oninput=e=>{if(!sel)return;sel.size=+e.target.value;document.getElementById('szv').textContent=sel.size+'px';draw();emit();};
 document.getElementById('wght').oninput=e=>{if(!sel)return;sel.wght=+e.target.value;document.getElementById('wgv').textContent=e.target.value;draw();emit();};
 document.getElementById('color').oninput=e=>{if(!sel)return;sel.color=e.target.value;document.getElementById('colorv').textContent=e.target.value;draw();emit();};
+document.getElementById('maxw').oninput=e=>{if(!sel)return;sel.maxw=(+e.target.value)/100;document.getElementById('mwv').textContent=e.target.value+'%';draw();emit();};
+document.getElementById('repcount').oninput=e=>repSet('count',+e.target.value);
+document.getElementById('repcols').oninput=e=>repSet('cols',+e.target.value);
+document.getElementById('repdy').oninput=e=>repSet('dy',(+e.target.value)/100);
+document.getElementById('repdx').oninput=e=>repSet('dx',(+e.target.value)/100);
 document.querySelectorAll('.nudge button').forEach(b=>b.onclick=()=>{if(!sel)return;const d=b.dataset.d,sx=1/1500,sy=1/2100;
   sel.x=Math.min(1,Math.max(0,sel.x+(d==='l'?-sx:d==='r'?sx:0)));sel.y=Math.min(1,Math.max(0,sel.y+(d==='u'?-sy:d==='d'?sy:0)));draw();emit();});
 // alineación: cambia el anchor horizontal y reubica x al margen correspondiente
@@ -427,13 +511,22 @@ function buildOver(){
 }
 // avisa al contenedor (WordPress) la personalización actual, con debounce
 let _emitT=null;
+// payload al carrito: en el KIT incluye TODAS las piezas editadas (porPieza); si no, la pieza actual
+function payloadFinal(){
+  const b=buildOver();
+  if(!IS_KIT) return b;
+  porPieza[PIEZA]=b.over;
+  if(PIEZA==='invitacion') dataInv=b.data;
+  return {tema:TEMA, edad:EDAD, data:(Object.keys(dataInv).length?dataInv:b.data),
+          over:(porPieza['invitacion']||b.over), porPieza};
+}
 function emit(){
   if(window.parent===window)return;
   clearTimeout(_emitT);
-  _emitT=setTimeout(()=>window.parent.postMessage({type:'ct3d-kit',payload:buildOver()},PARENT_ORIGIN),250);
+  _emitT=setTimeout(()=>window.parent.postMessage({type:'ct3d-kit',payload:payloadFinal()},PARENT_ORIGIN),250);
 }
 document.getElementById('confirmar').onclick=()=>{
-  if(window.parent!==window)window.parent.postMessage({type:'ct3d-kit',payload:buildOver(),confirm:true},PARENT_ORIGIN);
+  if(window.parent!==window)window.parent.postMessage({type:'ct3d-kit',payload:payloadFinal(),confirm:true},PARENT_ORIGIN);
   const b=document.getElementById('confirmar');b.textContent='✓ Diseño confirmado';
   setTimeout(()=>{b.textContent='Confirmar diseño';},1800);
 };
@@ -441,17 +534,27 @@ document.getElementById('confirmar').onclick=()=>{
 // ── Modo admin: "Guardar como predeterminado" (no lo ven los clientes) ──
 // Se activa con ?admin=1 (o ?key=). Guarda posiciones/tamaños como default de la pieza.
 const ADMINKEY = qs.get('key') || '';
-if (qs.get('admin') === '1' || ADMINKEY) {
+const IS_ADMIN = qs.get('admin') === '1' || !!ADMINKEY;
+if (IS_ADMIN) {
   document.getElementById('adminbox').style.display = 'block';
   document.getElementById('guardar-default').onclick = async () => {
     const msg = document.getElementById('admin-msg');
     msg.textContent = 'Guardando…';
-    const out = {};
-    for (const f of fields) out[f.id] = { x:+f.x.toFixed(4), y:+f.y.toFixed(4), size:Math.round(f.size), maxw:f.maxw, wght:f.wght||500, font:f._font, color:f.color, anchor:f.anchor };
+    const out = {}, oculto = [], nuevos = [];
+    for (const f of fields) {
+      out[f.id] = { x:+f.x.toFixed(4), y:+f.y.toFixed(4), size:Math.round(f.size), maxw:f.maxw, wght:f.wght||500, font:f._font, color:f.color, anchor:f.anchor };
+      if (f.repeat && +f.repeat.count>1) out[f.id].repeat = { count:+f.repeat.count, cols:+f.repeat.cols||1, dx:+(+f.repeat.dx||0).toFixed(4), dy:+(+f.repeat.dy||0).toFixed(4) };
+      // texto FIJO (sin {campo}, ej: texto2/texto3 de la tarjeta): el admin fija el default
+      // acá, así no se pierde al grabar. Los campos con {nombre}/{edad} son por-cliente: no se tocan.
+      if (!f.nuevo && !/\{/.test(f.tpl||'')) out[f.id].tpl = (f.text||'');
+      if (f.toggleable && !f.nuevo) out[f.id].default_hidden = !!f.hidden;   // "incluir" destildado → apagado por default
+      if (f.no_corresponde) oculto.push(f.id);
+      if (f.nuevo) nuevos.push({ id:f.id, tpl:f.tpl||f.text||'', x:+f.x.toFixed(4), y:+f.y.toFixed(4), size:Math.round(f.size), maxw:f.maxw, wght:f.wght||500, font:f._font, color:f.color, anchor:f.anchor, toggleable:f.toggleable!==false });
+    }
     try {
       const headers = { 'Content-Type':'application/json' };
       if (ADMINKEY) headers['X-API-Key'] = ADMINKEY;
-      const r = await fetch('/editor/save', { method:'POST', credentials:'include', headers, body: JSON.stringify({ pieza:PIEZA, tema:TEMA, fields:out }) });
+      const r = await fetch('/editor/save', { method:'POST', credentials:'include', headers, body: JSON.stringify({ pieza:PIEZA, tema:TEMA, fields:out, oculto, nuevos }) });
       if (r.status === 403) { msg.textContent = '✕ Sin permiso admin. Abrí el editor con tu token (…&key=TU_TOKEN).'; return; }
       const j = await r.json();
       msg.textContent = j.ok ? '✓ Guardado como predeterminado para esta pieza. Refrescá la ficha para verlo.' : ('✕ ' + (j.error||'error'));
@@ -465,20 +568,57 @@ document.getElementById('verfinal').onclick=(e)=>{
   window.open('/preview?'+q.toString(),'_blank');
 };
 
-// init
-(async function(){
-  const lay=await (await fetch(`/cliente/layout?pieza=${PIEZA}&tema=${TEMA}&cb=${Date.now()}`)).json();
-  SIZE=lay.size; CAT=lay.fonts||[]; ICONS=lay.icons||[];
-  CAT.forEach(f=>FILE2FAM[f.file]=f.family);
-  // cargar las fuentes del catálogo desde /fonts
-  await Promise.all(CAT.map(f=>new FontFace(f.family,`url(/fonts/${f.file})`).load().then(ff=>document.fonts.add(ff)).catch(()=>{})));
-  // armar fields con texto inicial = sample, fuente y estado de ocultar/icono
-  fields=lay.fields.map(f=>({...f, text:f.sample||'', _font:f.font, hidden:!!f.default_hidden, marcoOff:false, icon:f.icon||null}));
-  syncEdad();
+// init + navegación multi-pieza (kit): el cliente edita cada pieza del kit
+let porPieza={}, dataInv={};
+const IS_KIT=(qs.get('tipo')||qs.get('pieza')||'').toLowerCase()==='kit';
+
+async function cargarPieza(pz){
+  PIEZA=pz;
+  const lay=await (await fetch(`/cliente/layout?pieza=${PIEZA}&tema=${TEMA}${IS_ADMIN?'&admin=1'+(ADMINKEY?'&key='+encodeURIComponent(ADMINKEY):''):''}&cb=${Date.now()}`,{credentials:'include'})).json();
+  SIZE=lay.size;
+  const EDS=(lay.edades&&lay.edades.length)?lay.edades.slice():[1,2,3];
+  if(EDS.indexOf(+EDAD)<0) EDAD=String(EDS[0]);
+  const sv=porPieza[pz]||{};   // lo que el cliente ya editó en esta pieza (por id)
+  fields=lay.fields.map(f=>{
+    const nf={...f, text:f.sample||'', _font:f.font, hidden:!!f.default_hidden, marcoOff:false, icon:f.icon||null};
+    const o=sv[f.id];
+    if(o){ if('x'in o)nf.x=o.x; if('y'in o)nf.y=o.y; if('size'in o)nf.size=o.size; if('wght'in o)nf.wght=o.wght;
+      if('maxw'in o)nf.maxw=o.maxw; if(o.font)nf._font=o.font; if(o.color)nf.color=o.color; if(o.anchor)nf.anchor=o.anchor;
+      if('icon'in o)nf.icon=o.icon; if('text'in o)nf.text=o.text; if(o.hidden)nf.hidden=true; if(o.marco===false)nf.marcoOff=true; }
+    return nf;
+  });
+  sel=null; syncEdad();
   await new Promise(res=>{bg.onload=res;bg.onerror=res;bg.src=`/cliente-bg.png?pieza=${PIEZA}&edad=${EDAD}&tema=${TEMA}&cb=${Date.now()}`;});
-  const edadSel=document.getElementById('edad'); edadSel.value=EDAD;
-  edadSel.oninput=()=>{EDAD=edadSel.value||'1';syncEdad();const nb=new Image();nb.onload=draw;nb.onerror=draw;nb.src=`/cliente-bg.png?pieza=${PIEZA}&edad=${EDAD}&tema=${TEMA}&cb=${Date.now()}`;bg=nb;draw();emit();};
-  buildDatos(); buildFonts(); markGroupAlign(); draw(); emit();
+  const edadSel=document.getElementById('edad');
+  edadSel.innerHTML=EDS.map(e=>`<option value="${e}">${e} año${e>1?'s':''}</option>`).join('');
+  edadSel.value=EDAD;
+  edadSel.onchange=()=>{EDAD=edadSel.value||String(EDS[0]);syncEdad();const nb=new Image();nb.onload=draw;nb.onerror=draw;nb.src=`/cliente-bg.png?pieza=${PIEZA}&edad=${EDAD}&tema=${TEMA}&cb=${Date.now()}`;bg=nb;draw();emit();};
+  buildDatos(); markGroupAlign(); draw();
+  document.querySelectorAll('#piezaTabs .pztab').forEach(b=>b.classList.toggle('sel',b.dataset.pz===PIEZA));
+}
+async function irAPieza(pz){ if(pz===PIEZA)return; porPieza[PIEZA]=buildOver().over; if(PIEZA==='invitacion')dataInv=buildOver().data; await cargarPieza(pz); emit(); }
+
+(async function(){
+  // catálogo de fuentes (una sola vez para todas las piezas)
+  const lay0=await (await fetch(`/cliente/layout?pieza=${PIEZA}&tema=${TEMA}&cb=${Date.now()}`,{credentials:'include'})).json();
+  CAT=lay0.fonts||[]; ICONS=lay0.icons||[];
+  CAT.forEach(f=>FILE2FAM[f.file]=f.family);
+  await Promise.all(CAT.map(f=>new FontFace(f.family,`url(/fonts/${f.file})`).load().then(ff=>document.fonts.add(ff)).catch(()=>{})));
+  buildFonts();
+  if(IS_KIT){                 // pestañas: el cliente edita cada pieza del kit
+    try{
+      const pj=await (await fetch(`/cliente/piezas-texto?tema=${TEMA}&cb=${Date.now()}`,{credentials:'include'})).json();
+      const tabs=pj.piezas||[];
+      if(tabs.length>1){
+        const c=document.getElementById('piezaTabs');
+        if(c){ c.style.display='flex'; c.innerHTML=tabs.map(t=>`<button class="pztab" data-pz="${t.pieza}">${t.label}</button>`).join('');
+          c.querySelectorAll('.pztab').forEach(b=>b.onclick=()=>irAPieza(b.dataset.pz)); }
+        PIEZA=tabs[0].pieza;
+      }
+    }catch(e){}
+  }
+  await cargarPieza(PIEZA);
+  emit();
 })();
 </script>
 </body>

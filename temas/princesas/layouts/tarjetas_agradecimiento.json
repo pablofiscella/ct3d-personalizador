@@ -1,0 +1,39 @@
+{
+  "texto1": {
+    "x": 0.5,
+    "y": 0.3051,
+    "size": 110.0,
+    "maxw": 0.82,
+    "wght": 700.0,
+    "font": "DancingScript-VF.ttf",
+    "color": "#c8674e",
+    "anchor": "mm",
+    "tpl": "¡Gracias por venir!",
+    "default_hidden": false
+  },
+  "texto2": {
+    "x": 0.5041,
+    "y": 0.3561,
+    "size": 88.0,
+    "maxw": 0.82,
+    "wght": 700.0,
+    "font": "DancingScript-VF.ttf",
+    "color": "#c8674e",
+    "anchor": "mm",
+    "tpl": "al cumple de",
+    "default_hidden": false
+  },
+  "texto3": {
+    "x": 0.5144,
+    "y": 0.3958,
+    "size": 88.0,
+    "maxw": 0.82,
+    "wght": 700.0,
+    "font": "DancingScript-VF.ttf",
+    "color": "#c8674e",
+    "anchor": "mm",
+    "tpl": "Federica",
+    "default_hidden": false
+  },
+  "_oculto": []
+}

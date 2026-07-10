@@ -37,7 +37,7 @@ que no vuelva a pasar: esta es la fuente de verdad.)
   ver gotcha #5 en CLAUDE.md.
 """
 import os, math, json, glob
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageChops
 
 KIT = os.path.dirname(os.path.abspath(__file__))
 TEMAS = os.path.join(KIT, "temas")
@@ -145,6 +145,37 @@ def _fondo_ia(tema, pieza):
         return None
 
 
+def _color_fondo_arte(art):
+    """Color de 'cielo/campo' dominante del arte, para rellenar debajo donde el arte
+    IA venía blanco. Muestrea la banda superior (sin los personajes de abajo) y toma
+    la mediana de los píxeles que NO son casi-blancos."""
+    small = art.convert("RGB").resize((80, 54))
+    px = small.load()
+    cols = []
+    for y in range(4, 27):
+        for x in range(80):
+            r, g, b = px[x, y]
+            if not (r > 232 and g > 232 and b > 225):
+                cols.append((r, g, b))
+    if not cols:
+        return (185, 209, 229)
+    cols.sort(key=lambda c: c[0] + c[1] + c[2])
+    return cols[len(cols) // 2]
+
+
+def _outline_from_art(bgcol):
+    """Color de contorno 'a tono del dibujo' (feedback Pablo 10-jul-2026): toma el
+    color de fondo del arte y lo hace más oscuro y saturado, como la línea de tinta
+    que combina con el patrón (azul en superhéroes, rosa en princesas, etc.)."""
+    import colorsys
+    r, g, b = [c / 255.0 for c in bgcol]
+    h, s, v = colorsys.rgb_to_hsv(r, g, b)
+    s = min(1.0, s * 1.7 + 0.34)
+    v = max(0.0, v * 0.46)
+    r, g, b = colorsys.hsv_to_rgb(h, s, v)
+    return (int(r * 255), int(g * 255), int(b * 255))
+
+
 def gorro(data, tema="safari"):
     """Gorro cónico de cumpleaños para armar — ver especificación completa en el
     docstring del módulo. A4 apaisado, 3 talles por edad, sin pegamento (lengüeta+
@@ -152,6 +183,7 @@ def gorro(data, tema="safari"):
     Si el tema tiene un fondo generado con IA (corona_ia) se usa como arte del
     abanico (recortado a su forma); si no, cae al color liso de siempre."""
     acc = _accent(tema)
+    linea = acc                                    # contorno: por default el acento del tema
     nombre = (str(data.get("nombre") or "").strip()) or ""
     edad_raw = str(data.get("edad") or "").strip()
     talla = _talla_de_edad(edad_raw)
@@ -177,9 +209,28 @@ def gorro(data, tema="safari"):
 
     fondo = _fondo_ia(tema, "gorro")
     if fondo is not None:
-        # base de color debajo del arte: si la IA dejó esquinas pálidas/blancas,
-        # que no se lean como "dibujo sin terminar" (feedback Pablo, princesas)
-        dr.polygon(pts, fill=_tint(acc, 0.75) + (255,))
+        # El arte IA suele venir con la FORMA de abanico dibujada sobre BLANCO opaco
+        # (esquinas blancas). Al recortarlo a nuestra forma, ese blanco caía en las
+        # PUNTAS. Se vuelve TRANSPARENTE el blanco exterior (flood desde las 4 esquinas,
+        # sin tocar los blancos internos como las nubes) y se rellena debajo con el
+        # color de cielo del propio arte → el patrón cubre TODO hasta la punta, sin
+        # blanco (feedback Pablo 10-jul-2026: "que todo esté cubierto de la imagen").
+        fondo = fondo.convert("RGBA")
+        bgcol = _color_fondo_arte(fondo)
+        linea = _outline_from_art(bgcol)           # contorno a tono del dibujo (feedback Pablo)
+        # ¿el arte llega hasta arriba (full-bleed) o viene con forma de abanico sobre
+        # BLANCO? Con las esquinas superiores blancas es arte "recortado" y conviene el
+        # sobre-escaneo grande (empuja el borde pálido afuera); si el dibujo llega al
+        # borde (full-bleed, como el arte que sube Pablo) el zoom grande CORTA la escena.
+        _tl = fondo.getpixel((3, 3))[:3]; _tr = fondo.getpixel((fondo.width - 4, 3))[:3]
+        _fan_art = (sum(_tl) > 705 and sum(_tr) > 705)
+        _ow, _oh = (1.55, 1.18) if _fan_art else (1.08, 1.05)
+        for _esq in ((0, 0), (fondo.width - 1, 0), (0, fondo.height - 1), (fondo.width - 1, fondo.height - 1)):
+            try:
+                ImageDraw.floodfill(fondo, _esq, (0, 0, 0, 0), thresh=48)
+            except Exception:
+                pass
+        dr.polygon(pts, fill=bgcol + (255,))
         mask = Image.new("L", (WpH, HpH), 0)
         ImageDraw.Draw(mask).polygon(pts, fill=255)
         import fondos_ia
@@ -192,23 +243,26 @@ def gorro(data, tema="safari"):
         bw, bh = bx1 - bx0, by1 - by0
         # más agresivo a lo ANCHO (las puntas del arco están a los costados) y
         # anclado abajo (ahí están los personajes: no recortarles la cabeza)
-        big = fondos_ia.cover(fondo, int(bw * 1.55), int(bh * 1.18))
+        big = fondos_ia.cover(fondo, int(bw * _ow), int(bh * _oh))
         ox = (big.width - bw) // 2
         oy = int((big.height - bh) * 0.62)
         art = big.crop((ox, oy, ox + bw, oy + bh))
         capa = Image.new("RGBA", (WpH, HpH), (0, 0, 0, 0))
         capa.paste(art, (bx0, by0))
-        im.paste(capa, (0, 0), mask)
+        # máscara = alfa del arte ∩ polígono del gorro: donde el arte quedó
+        # transparente (esquinas ex-blancas) se ve la base bgcol, no negro ni blanco.
+        alpha = ImageChops.multiply(capa.split()[3], mask)
+        im.paste(capa, (0, 0), alpha)
     else:
         dr.polygon(pts, fill=acc + (255,))
     dr.arc([cx - r, apex_y - r, cx + r, apex_y + r],
-           math.degrees(base - half), math.degrees(base + half), fill=acc, width=10)
+           math.degrees(base - half), math.degrees(base + half), fill=linea, width=10)
 
     ang_r, ang_l = base - half, base + half        # ángulo del borde derecho / izquierdo
     dir_r = (math.cos(ang_r), math.sin(ang_r))
     dir_l = (math.cos(ang_l), math.sin(ang_l))
     for d in (dir_r, dir_l):                       # bordes del abanico bien visibles
-        dr.line([(cx, apex_y), (cx + r * d[0], apex_y + r * d[1])], fill=_tint(acc, 0.15), width=7)
+        dr.line([(cx, apex_y), (cx + r * d[0], apex_y + r * d[1])], fill=linea, width=7)
 
     # SIN círculos de elástico impresos (Pablo 9-jul-2026: quedaban flotando en
     # la punta como algo sin dibujar — si quieren elástico, agujerean la punta).
@@ -238,10 +292,10 @@ def gorro(data, tema="safari"):
             ImageDraw.Draw(mk).polygon([(p[0] - wx0, p[1] - wy0) for p in poly], fill=255)
             im.paste(src, (wx0, wy0), mk)
     dr.arc([cx - r, apex_y - r, cx + r, apex_y + r],
-           math.degrees(base - half), math.degrees(base + half), fill=acc, width=10)
+           math.degrees(base - half), math.degrees(base + half), fill=linea, width=10)
     for d in (dir_r, dir_l):                       # bordes por encima del parche
         dr.line([(cx, apex_y), (cx + r * d[0], apex_y + r * d[1])],
-                fill=_tint(acc, 0.15), width=7)
+                fill=linea, width=7)
 
     # -- lengüeta (borde derecho) + ranura (borde izquierdo): encastre sin pegamento --
     # Lengüeta en T: CUELLO más angosto que la ranura (pasa fácil) y CABEZA más
@@ -262,10 +316,23 @@ def gorro(data, tema="safari"):
                 _pt_r(0, tab_w - ch), _pt_r(ch, tab_w), _pt_r(tab_len - ch, tab_w),
                 _pt_r(tab_len, tab_w - ch), _pt_r(tab_len, v_cuello),
                 _pt_r(cuello1, v_cuello), _pt_r(cuello1, 0)]
-    dr.polygon(tab_poly, fill=CREAM, outline=(90, 80, 70), width=6)
+    # rellenar la lengüeta con el PATRÓN (franja vecina del arte, hacia adentro del
+    # abanico) en vez de crema, y contornear a tono del dibujo — como la referencia.
+    if fondo is not None:
+        _tbx = [p[0] for p in tab_poly]; _tby = [p[1] for p in tab_poly]
+        _tx0, _ty0 = int(min(_tbx)), int(min(_tby))
+        _tx1, _ty1 = int(max(_tbx)) + 1, int(max(_tby)) + 1
+        _sdx = int(-perp_r[0] * (tab_w + 40)); _sdy = int(-perp_r[1] * (tab_w + 40))
+        _src = im.crop((_tx0 + _sdx, _ty0 + _sdy, _tx1 + _sdx, _ty1 + _sdy))
+        _mk = Image.new("L", (_tx1 - _tx0, _ty1 - _ty0), 0)
+        ImageDraw.Draw(_mk).polygon([(p[0] - _tx0, p[1] - _ty0) for p in tab_poly], fill=255)
+        im.paste(_src, (_tx0, _ty0), _mk)
+        dr.polygon(tab_poly, outline=linea, width=6)
+    else:
+        dr.polygon(tab_poly, fill=CREAM, outline=linea, width=6)
     tab_ang = math.degrees(math.atan2(perp_r[1], perp_r[0]))
     _texto_rotado(im, "LENGÜETA", _pt_r(tab_len / 2, tab_w * 0.62),
-                  _font(40), (90, 80, 70), tab_ang)
+                  _font(40), linea, tab_ang)
 
     # RANURA: corte PARALELO al borde izquierdo, PEGADO al borde (5mm hacia
     # adentro) y con el MISMO rango radial que la lengüeta — al enrollar el cono
@@ -284,7 +351,7 @@ def gorro(data, tema="safari"):
           apex_y + r_s0 * dir_l[1] + perp_l[1] * inset)
     s1 = (cx + r_s1 * dir_l[0] + perp_l[0] * inset,
           apex_y + r_s1 * dir_l[1] + perp_l[1] * inset)
-    dr.line([s0, s1], fill=(90, 80, 70), width=12)
+    dr.line([s0, s1], fill=linea, width=12)
     slot_ang = math.degrees(math.atan2(s1[1] - s0[1], s1[0] - s0[0]))
     if slot_ang > 90:                              # que el texto no quede cabeza abajo
         slot_ang -= 180
@@ -292,7 +359,7 @@ def gorro(data, tema="safari"):
         slot_ang += 180
     _texto_rotado(im, "RANURA", ((s0[0] + s1[0]) / 2 + perp_l[0] * 62,
                                  (s0[1] + s1[1]) / 2 + perp_l[1] * 62),
-                  _font(40), (90, 80, 70), slot_ang)
+                  _font(40), linea, slot_ang)
 
     # SIN nombre ni edad (decisión de Pablo, 8-jul-2026: el gorro se imprime para
     # todos los invitados y se pone en el momento — la edad solo elige el TALLE).

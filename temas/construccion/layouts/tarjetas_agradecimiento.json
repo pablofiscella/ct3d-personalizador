@@ -1,0 +1,36 @@
+{
+  "texto1": {
+    "x": 0.5062,
+    "y": 0.2789,
+    "size": 77.0,
+    "maxw": 0.82,
+    "wght": 500.0,
+    "font": "Bungee-Regular.ttf",
+    "color": "#ec9441",
+    "anchor": "mm",
+    "tpl": "¡Gracias por venir!"
+  },
+  "texto2": {
+    "x": 0.5103,
+    "y": 0.3546,
+    "size": 88.0,
+    "maxw": 0.82,
+    "wght": 500.0,
+    "font": "Bungee-Regular.ttf",
+    "color": "#ec9441",
+    "anchor": "mm",
+    "tpl": "al cumple de"
+  },
+  "texto3": {
+    "x": 0.5144,
+    "y": 0.4336,
+    "size": 156.0,
+    "maxw": 0.82,
+    "wght": 500.0,
+    "font": "Bungee-Regular.ttf",
+    "color": "#ec9441",
+    "anchor": "mm",
+    "tpl": "Sabri"
+  },
+  "_oculto": []
+}

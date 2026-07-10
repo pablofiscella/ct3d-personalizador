@@ -1,0 +1,36 @@
+{
+  "texto1": {
+    "x": 0.5021,
+    "y": 0.308,
+    "size": 82.0,
+    "maxw": 0.82,
+    "wght": 500.0,
+    "font": "LuckiestGuy.ttf",
+    "color": "#e53935",
+    "anchor": "mm",
+    "tpl": "¡Gracias por venir!"
+  },
+  "texto2": {
+    "x": 0.5,
+    "y": 0.5,
+    "size": 88.0,
+    "maxw": 0.82,
+    "wght": 500.0,
+    "font": "LuckiestGuy.ttf",
+    "color": "#e53935",
+    "anchor": "mm",
+    "tpl": ""
+  },
+  "texto3": {
+    "x": 0.5,
+    "y": 0.64,
+    "size": 88.0,
+    "maxw": 0.82,
+    "wght": 500.0,
+    "font": "LuckiestGuy.ttf",
+    "color": "#e53935",
+    "anchor": "mm",
+    "tpl": ""
+  },
+  "_oculto": []
+}

@@ -1,0 +1,15 @@
+{
+  "nombre": {
+    "x": 0.5,
+    "y": 0.5,
+    "size": 150.0,
+    "maxw": 0.7,
+    "wght": 700.0,
+    "font": "Fredoka-VF.ttf",
+    "color": "#4a4a4a",
+    "anchor": "mm"
+  },
+  "_oculto": [
+    "nombre"
+  ]
+}

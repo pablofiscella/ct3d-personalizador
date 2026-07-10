@@ -35,7 +35,7 @@ from piezas import (A4, WHITE, CREAM, MUST, SAGE, make_sheet, txt, fit_into,
                     paste_center, accent, ink_c, font_disp, _band, animales,
                     load, has_recortes, _edad_any, lema, titulo)
 from generador import (render, specs_de, draw_text, _effective_texts, BROWN, OLIVE,
-                       TERRA, _safe_edad, layout_file_path)
+                       TERRA, _safe_edad, layout_file_path, _hex_rgb, _FONT_FILES)
 
 INK = (74, 74, 74)  # gris oscuro para líneas de colorear
 
@@ -345,8 +345,32 @@ def _campos_texto_extra(tema, base, img=None):
     return []
 
 def _overlay_texto(img, tema, base, d):
-    """Escribe el texto personalizado sobre la pieza (si corresponde). Nunca rompe el kit."""
+    """Escribe el texto personalizado sobre la pieza (si corresponde). Aplica también
+    lo que el cliente movió/escribió en el editor de ESA pieza (d['_over'], del kit
+    multi-pieza). Nunca rompe el kit."""
+    over = d.get("_over") if isinstance(d.get("_over"), dict) else {}
     for campo in _campos_texto_extra(tema, base, img):
+        o = over.get(campo.get("id")) if over else None
+        incluido = isinstance(o, dict) and not o.get("hidden")
+        if campo.get("default_hidden") and not incluido:
+            continue                                  # apagado por default; solo si el cliente lo incluyó
+        if isinstance(o, dict):
+            if o.get("hidden"):
+                continue                              # el cliente sacó este texto
+            for k in ("x", "y", "size", "maxw", "wght"):
+                if k in o:
+                    try: campo[k] = float(o[k])
+                    except (TypeError, ValueError): pass
+            a = o.get("anchor")
+            if isinstance(a, str) and len(a) == 2 and a[0] in "lmr" and a[1] in "tmb":
+                campo["anchor"] = a
+            if isinstance(o.get("font"), str) and o["font"] in _FONT_FILES:
+                campo["font"] = o["font"]
+            if isinstance(o.get("color"), str) and o["color"].startswith("#"):
+                c = _hex_rgb(o["color"])
+                if c: campo["color"] = c
+            if isinstance(o.get("text"), str):
+                campo["_text"] = o["text"]           # el texto que escribió el cliente
         try:
             draw_text(ImageDraw.Draw(img), campo, d, img.width, img.height)
         except Exception as e:
@@ -970,6 +994,25 @@ def tipos_publicos():
 # ---------------------------------------------------------------------------
 # GENERACIÓN + PREVIEW por tipo
 # ---------------------------------------------------------------------------
+def _aplicar_por_pieza(items, porp):
+    """Kit multi-pieza: cada pieza se renderiza con SU propio 'over' (lo que el cliente
+    editó en esa pieza en el editor). Mapea el nombre 'NN_<pieza>' -> porp[<pieza>].
+    Las piezas que el cliente no tocó quedan igual (usan el over global de la invitación)."""
+    out = []
+    for (nombre, fn, rgba) in items:
+        pz = nombre.split("_", 1)[1] if "_" in nombre else nombre
+        ov = porp.get(pz)
+        if isinstance(ov, dict):
+            def _mk(_fn, _ov):
+                def _f(d):
+                    d2 = dict(d); d2["_over"] = _ov
+                    return _fn(d2)
+                return _f
+            fn = _mk(fn, ov)
+        out.append((nombre, fn, rgba))
+    return out
+
+
 def generar(data, dest_dir, tema="safari", tipo=DEFAULT_TIPO):
     """Genera las piezas del TIPO en PDF (300 DPI) y las empaqueta en un ZIP.
 
@@ -1042,7 +1085,11 @@ def generar(data, dest_dir, tema="safari", tipo=DEFAULT_TIPO):
         except Exception as e:
             import logging
             logging.getLogger("productos").warning("cuaderno actividades falló (%s); uso piezas viejas", e)
-    return piezas.generar_kit(data, dest_dir, tema, piezas_list=piezas_tipo(tema, tipo))
+    items = piezas_tipo(tema, tipo)
+    porp = data.get("_porPieza")                 # kit multi-pieza: over por pieza
+    if isinstance(porp, dict) and porp:
+        items = _aplicar_por_pieza(items, porp)
+    return piezas.generar_kit(data, dest_dir, tema, piezas_list=items)
 
 
 def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):

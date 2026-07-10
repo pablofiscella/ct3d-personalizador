@@ -352,6 +352,7 @@ async function cargar(){
         <button class="btn-ghost cuad">📓 Cuaderno actividades</button>
         <button class="btn-ghost ia-kit" title="Ver, aprobar o regenerar pieza por pieza el arte IA del kit. Para CREAR todo usá ⚡ Armar TODO el tema.">🖼 Revisar arte IA</button>
         <button class="btn-ghost prod-nuevos">🖼️ Otros productos</button>
+        <button class="btn-ghost textos" title="Posicionar / agregar / ocultar los textos de cada pieza (invitación, afiche, banderín, tarjeta…)">✏️ Textos</button>
         <button class="btn-ghost armar-todo" style="border-color:var(--accent);font-weight:700">⚡ Armar TODO el tema</button>
         ${pubRow}
         ${t.base
@@ -364,6 +365,7 @@ async function cargar(){
     d.querySelector('.cuad').onclick=()=>openCuaderno(t.id,t.nombre);
     d.querySelector('.ia-kit').onclick=()=>openIA(t.id,t.nombre);
     d.querySelector('.prod-nuevos').onclick=()=>openProductosNuevos(t.id,t.nombre);
+    d.querySelector('.textos').onclick=()=>openTextos(t.id,t.nombre);
     d.querySelector('.armar-todo').onclick=()=>armarTodoTema(t.id,t.nombre);
     const bPubM=d.querySelector('.pubmodal'); if(bPubM)bPubM.onclick=()=>openPublicar(t.id,t.nombre);
     const bDelT=d.querySelector('.delt'); if(bDelT)bDelT.onclick=()=>eliminarTema(t.id,t.nombre);
@@ -1204,6 +1206,27 @@ async function openIA(tema, nombre){
   cargarBorradores();
 }
 
+function openTextos(tema, nombre){
+  // Abre el editor de una pieza EN MODO ADMIN para posicionar/agregar/ocultar sus textos.
+  const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const PIEZAS=[
+    ['invitacion','✉️ Invitación'],['afiche','🎈 Afiche / cartel de bienvenida'],
+    ['banderin','🎉 Banderín'],['tarjetas_agradecimiento','💌 Tarjetas de agradecimiento'],
+    ['cajita_sorpresa','🎁 Cajita sorpresa'],['decoracion_sorbetes','🥤 Decoración de sorbetes'],
+  ];
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px';
+  ov.innerHTML=`<div style="background:var(--bg-elevated,#1A1530);color:var(--ink-1,#fff);border-radius:14px;padding:22px;max-width:440px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.5)">
+    <h2 style="margin:0 0 4px;font-size:17px">✏️ Editar textos — ${esc(nombre)}</h2>
+    <p style="opacity:.65;font-size:12.5px;margin:0 0 14px">Elegí la pieza. Se abre el editor donde <b>posicionás</b> los textos, <b>agregás</b> nuevos ("+ Agregar texto") o marcás <b>"no corresponde"</b> los que no van. Lo que guardes es el default para el cliente.</p>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${PIEZAS.map(([pz,lb])=>`<a href="/cliente?tema=${encodeURIComponent(tema)}&pieza=${pz}&admin=1&key=${encodeURIComponent(KEY)}" target="_blank" style="text-decoration:none;color:inherit;padding:10px 12px;border:1px solid var(--border,#333);border-radius:9px;font-weight:600;display:flex;justify-content:space-between;align-items:center">${lb}<span style="opacity:.5">abrir ↗</span></a>`).join('')}
+    </div>
+    <div style="margin-top:14px;text-align:right"><button id="tx-close" class="btn-ghost" style="padding:6px 14px">Cerrar</button></div></div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('#tx-close').onclick=()=>ov.remove();
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+}
 async function openBase(tema, nombre){
   const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:24px';
@@ -1291,13 +1314,14 @@ async function openCuaderno(tema, nombre){
       return '<div style="width:150px;text-align:center;opacity:'+(p.removed?0.45:1)+'">'
         +'<div style="position:relative">'
         +'<div class="cu-spin" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);border-radius:8px;z-index:1">'+spinner+'</div>'
-        +'<img src="'+src+'" style="width:150px;min-height:150px;border:2px solid '+(p.override?'#2D8C5A':'rgba(255,255,255,.15)')+';border-radius:8px;background:#fff;display:block"'
+        +'<img src="'+src+'" class="cu-zoom" data-full="'+dl+'" title="Ver en pantalla completa" style="width:150px;min-height:150px;border:2px solid '+(p.override?'#2D8C5A':'rgba(255,255,255,.15)')+';border-radius:8px;background:#fff;display:block;cursor:zoom-in"'
         +' onload="this.previousElementSibling.style.display=\'none\'" onerror="this.previousElementSibling.style.display=\'none\'">'
         +(p.removed?'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:700;color:#C73E3A;background:rgba(0,0,0,.25);z-index:2">QUITADA</div>':'')
         +(p.override?'<span style="position:absolute;top:5px;left:5px;background:#2D8C5A;color:#fff;font-size:10px;padding:1px 6px;border-radius:6px;z-index:2">tuya</span>':'')
         +'</div>'
         +'<div style="font-size:11px;opacity:.7;margin:3px 0">Página '+(p.idx+1)+(p.label?' · <b>'+p.label+'</b>':'')+(p.extra?' (extra)':'')+'</div>'
         +'<div style="display:flex;gap:8px;justify-content:center;font-size:17px">'
+        +'<button class="cu-zoom" data-full="'+dl+'" title="Ver en pantalla completa" style="background:0;border:0;cursor:pointer;font-size:17px">🔍</button>'
         +'<button class="cu-rgp" data-idx="'+p.idx+'" title="Regenerar esta página (misma actividad, otra variante)" style="background:0;border:0;cursor:pointer;font-size:17px">🎲</button>'
         +'<a href="'+dl+'" target="_blank" title="Descargar para corregir" style="text-decoration:none">⬇️</a>'
         +'<label title="Reemplazar por tu versión" style="cursor:pointer">🔁<input type="file" accept="image/*" style="display:none" class="cu-up" data-idx="'+p.idx+'"></label>'
@@ -1310,6 +1334,16 @@ async function openCuaderno(tema, nombre){
       msg.textContent='Subiendo página '+(+inp.dataset.idx+1)+'…';
       try{ const j=await (await fetch('/dash/cuaderno-upload?tema='+encodeURIComponent(tema)+'&edad='+edad+'&idx='+inp.dataset.idx,{method:'POST',headers:{'X-API-Key':KEY},body:f})).json();
         msg.textContent=j.ok?'✓ Página reemplazada por la tuya':'✕ '+(j.error||'error'); if(j.ok)load(); }catch(e){ msg.textContent='✕ '+e; } }; });
+    body.querySelectorAll('.cu-zoom').forEach(el=>{ el.onclick=()=>{
+      const lb=document.createElement('div');
+      lb.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:10002;display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out';
+      lb.innerHTML='<img src="'+el.dataset.full+'" style="max-width:96%;max-height:96%;object-fit:contain;background:#fff;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.6)">'
+        +'<div style="position:fixed;top:14px;right:20px;color:#fff;font-size:30px;opacity:.85;cursor:pointer">✕</div>';
+      const cerrar=()=>{ lb.remove(); document.removeEventListener('keydown',esc); };
+      const esc=(e)=>{ if(e.key==='Escape') cerrar(); };
+      lb.onclick=cerrar; document.addEventListener('keydown',esc);
+      document.body.appendChild(lb);
+    }; });
     const act=(idx,accion)=>fetch('/dash/cuaderno-borrar?tema='+encodeURIComponent(tema)+'&edad='+edad+'&idx='+idx+'&accion='+accion,{method:'POST',headers:{'X-API-Key':KEY}}).then(r=>r.json());
     body.querySelectorAll('.cu-del').forEach(b=>{ b.onclick=async()=>{ msg.textContent='Quitando…'; const j=await act(b.dataset.idx,'quitar'); msg.textContent=j.ok?'✓ Página quitada':'✕'; if(j.ok)load(); }; });
     body.querySelectorAll('.cu-rest').forEach(b=>{ b.onclick=async()=>{ const j=await act(b.dataset.idx,'restaurar'); msg.textContent=j.ok?'✓ Restaurada':'✕'; if(j.ok)load(); }; });

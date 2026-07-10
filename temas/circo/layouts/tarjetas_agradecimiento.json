@@ -1,0 +1,36 @@
+{
+  "texto1": {
+    "x": 0.4938,
+    "y": 0.4636,
+    "size": 56.0,
+    "maxw": 0.82,
+    "wght": 500.0,
+    "font": "Rye-Regular.ttf",
+    "color": "#ff0000",
+    "anchor": "mm",
+    "tpl": "¡Gracias por venir!"
+  },
+  "texto2": {
+    "x": 0.5,
+    "y": 0.516,
+    "size": 88.0,
+    "maxw": 0.82,
+    "wght": 500.0,
+    "font": "Rye-Regular.ttf",
+    "color": "#ff0000",
+    "anchor": "mm",
+    "tpl": "al cumple de"
+  },
+  "texto3": {
+    "x": 0.5,
+    "y": 0.5659,
+    "size": 146.0,
+    "maxw": 0.82,
+    "wght": 500.0,
+    "font": "Rye-Regular.ttf",
+    "color": "#ff0026",
+    "anchor": "mm",
+    "tpl": "Tomás"
+  },
+  "_oculto": []
+}

@@ -7,6 +7,10 @@ woo_pub.json
 # pedidos/ = kits generados (datos de clientes); salida/ = previews/output
 pedidos/
 salida/
+# cache de miniaturas de la tienda (regenerable, se re-warmea solo)
+.cache/
+# carpeta de subidas manuales al server (scratch, ej: arte que pasa Pablo por scp)
+entrada/
 __pycache__/
 *.pyc
 

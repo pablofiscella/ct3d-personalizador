@@ -1,0 +1,22 @@
+{
+  "titulo": {
+    "x": 0.5165,
+    "y": 0.8285,
+    "size": 120.0,
+    "maxw": 0.82,
+    "wght": 600.0,
+    "font": "Fredoka-VF.ttf",
+    "color": "#4e92c8",
+    "anchor": "mm"
+  },
+  "nombre": {
+    "x": 0.5206,
+    "y": 0.8886,
+    "size": 165.0,
+    "maxw": 0.74,
+    "wght": 600.0,
+    "font": "Fredoka-VF.ttf",
+    "color": "#4e92c8",
+    "anchor": "mm"
+  }
+}

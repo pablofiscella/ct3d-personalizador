@@ -2,7 +2,13 @@
   "id": "futbol",
   "nombre": "Fútbol",
   "edades": [
-    1
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
   ],
   "piezas": {
     "invitacion": {
@@ -36,7 +42,10 @@
           "x": 0.4,
           "y": 0.52,
           "anchor": "lm",
-          "maxw": 0.5
+          "maxw": 0.5,
+          "icon": "calendar",
+          "icon_color": "#6f4e37",
+          "iconable": true
         },
         {
           "id": "hora",
@@ -48,7 +57,10 @@
           "x": 0.4,
           "y": 0.57,
           "anchor": "lm",
-          "maxw": 0.5
+          "maxw": 0.5,
+          "icon": "clock",
+          "icon_color": "#6f4e37",
+          "iconable": true
         },
         {
           "id": "lugar",
@@ -60,7 +72,10 @@
           "x": 0.4,
           "y": 0.618,
           "anchor": "lm",
-          "maxw": 0.5
+          "maxw": 0.5,
+          "icon": "pin",
+          "icon_color": "#6f4e37",
+          "iconable": true
         },
         {
           "id": "direccion",
@@ -73,7 +88,10 @@
           "x": 0.4,
           "y": 0.655,
           "anchor": "lm",
-          "maxw": 0.5
+          "maxw": 0.5,
+          "icon": "pin2",
+          "icon_color": "#6f4e37",
+          "iconable": true
         },
         {
           "id": "confirma",

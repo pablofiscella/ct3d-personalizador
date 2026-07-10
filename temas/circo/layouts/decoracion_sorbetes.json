@@ -1,0 +1,19 @@
+{
+  "nombre": {
+    "x": 0.2951,
+    "y": 0.1279,
+    "size": 56.0,
+    "maxw": 0.55,
+    "wght": 500.0,
+    "font": "Rye-Regular.ttf",
+    "color": "#f5c67a",
+    "anchor": "mm",
+    "repeat": {
+      "count": 9,
+      "cols": 2,
+      "dx": 0.52,
+      "dy": 0.25
+    }
+  },
+  "_oculto": []
+}

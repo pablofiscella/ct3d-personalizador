@@ -362,6 +362,19 @@ def draw_text(draw, field, data, W, H, stage="all"):
     "front" solo el texto (sombra incluida), "all" ambos. El render hace dos pasadas
     (todos los marcos primero, todos los textos después) para que ningún marco tape
     el título ni otro texto que se solape con él."""
+    rep = field.get("repeat")                  # multiplicador: mismo texto/estilo N veces en grilla
+    if isinstance(rep, dict) and int(rep.get("count") or 1) > 1:
+        n = min(int(rep.get("count") or 1), 60)
+        cols = max(1, int(rep.get("cols") or 1))
+        dx = float(rep.get("dx") or 0.0); dy = float(rep.get("dy") or 0.0)
+        bx = float(field.get("x", 0.5)); by = float(field.get("y", 0.5))
+        base = {k: v for k, v in field.items() if k != "repeat"}
+        for i in range(n):
+            c = dict(base)
+            c["x"] = bx + (i % cols) * dx
+            c["y"] = by + (i // cols) * dy
+            draw_text(draw, c, data, W, H, stage)
+        return
     text = _field_text(field, data)
     if not text.strip():
         return
@@ -448,14 +461,48 @@ def _layout_path(spec):
         return None
     return p if os.path.isabs(p) else os.path.join(spec.get("_dir", BASEDIR), p)
 
-def _effective_texts(spec):
-    """Devuelve los campos de texto con las posiciones/tamaños del editor
-    (si existe el archivo de layout), sin tocar los defaults del spec."""
+def _campo_nuevo(nf):
+    """Arma un campo de texto completo a partir de la config mínima que guarda el
+    editor admin al AGREGAR un texto a una pieza (id, tpl y posición/estilo)."""
+    fid = str(nf.get("id") or "").strip()
+    if not fid:
+        return None
+    fn = nf.get("font")
+    col = _hex_rgb(nf.get("color", "#333333")) or (51, 51, 51)
+    a = nf.get("anchor", "mm")
+    if not (isinstance(a, str) and len(a) == 2 and a[0] in "lmr" and a[1] in "tmb"):
+        a = "mm"
+    def _f(k, d):
+        try: return float(nf.get(k, d))
+        except Exception: return d
+    return {"id": fid, "tpl": str(nf.get("tpl", "")),
+            "x": _f("x", 0.5), "y": _f("y", 0.5), "size": _f("size", 48),
+            "maxw": _f("maxw", 0.9), "anchor": a, "wght": int(_f("wght", 500)),
+            "font": fn if fn in _FONT_FILES else "Poppins-Medium.ttf",
+            "color": col, "editable": bool(nf.get("editable", True)),
+            "toggleable": bool(nf.get("toggleable", False)), "_nuevo": True}
+
+
+# Piezas que NO llevan texto personalizado por default: el cliente no las edita y en el
+# editor admin aparecen con "no corresponde" tildado. Pablo puede destildarlo por tema
+# (al guardar queda la decisión explícita en el layout y ese default deja de aplicar).
+_NO_CORRESPONDE_DEFAULT = {"banderin", "cajita_sorpresa", "decoracion_sorbetes"}
+
+def _effective_texts(spec, incluir_ocultos=False):
+    """Campos de texto con las posiciones/tamaños del editor (si hay layout), MÁS los
+    campos que el admin agregó a la pieza (_nuevos), MENOS los que marcó como
+    'no corresponde' (_oculto). Con incluir_ocultos=True los devuelve igual, marcados
+    con no_corresponde=True (para que el editor admin los pueda re-activar)."""
     texts = copy.deepcopy(spec["text"])
     p = _layout_path(spec)
+    base = os.path.splitext(os.path.basename(p))[0] if p else None
+    ocultos = set()
+    tiene_decision = False        # ¿el layout ya guardó qué se muestra / qué "no corresponde"?
     if p and os.path.exists(p):
         try:
             ov = json.load(open(p, encoding="utf-8"))
+            tiene_decision = "_oculto" in ov
+            ocultos = set(ov.get("_oculto") or [])
             for f in texts:
                 o = ov.get(f["id"]) or {}
                 for k in ("x", "y", "size", "maxw", "wght"):
@@ -470,8 +517,29 @@ def _effective_texts(spec):
                 a = o.get("anchor")                   # alineación guardada
                 if isinstance(a, str) and len(a) == 2 and a[0] in "lmr" and a[1] in "tmb":
                     f["anchor"] = a
+                if isinstance(o.get("tpl"), str):     # texto default fijado por el admin (texto2/texto3)
+                    f["tpl"] = o["tpl"]
+                if "default_hidden" in o:             # el admin dejó el toggle "incluir" apagado
+                    f["default_hidden"] = bool(o["default_hidden"])
+                r = o.get("repeat")                   # multiplicador (repetir el texto N veces)
+                if isinstance(r, dict) and int(r.get("count") or 1) > 1:
+                    f["repeat"] = r
+            for nf in (ov.get("_nuevos") or []):      # campos que el admin agregó a la pieza
+                c = _campo_nuevo(nf)
+                if c:
+                    texts.append(c)
         except Exception:
             pass
+    # Default 'no corresponde' para banderín/cajita/sorbetes mientras Pablo no haya
+    # tomado una decisión explícita en el editor (layout sin clave _oculto).
+    if base in _NO_CORRESPONDE_DEFAULT and not tiene_decision:
+        ocultos = {f["id"] for f in texts}
+    if incluir_ocultos:
+        for f in texts:
+            if f["id"] in ocultos:
+                f["no_corresponde"] = True
+    else:
+        texts = [f for f in texts if f["id"] not in ocultos]
     return texts
 
 def _safe_edad(edad):
@@ -497,8 +565,9 @@ def bg_path_for(pieza, edad="1", tema=TEMA_DEFAULT):
 def layout_file_path(pieza, tema=TEMA_DEFAULT):
     return _layout_path(specs_de(tema).get(pieza, SPEC))
 
-def layout_para_editor(pieza="invitacion", tema=TEMA_DEFAULT):
-    """Datos que necesita el editor visual para dibujar y mover cada texto."""
+def layout_para_editor(pieza="invitacion", tema=TEMA_DEFAULT, admin=False):
+    """Datos que necesita el editor visual para dibujar y mover cada texto. Con
+    admin=True incluye los campos marcados 'no corresponde' (para re-activarlos)."""
     spec = specs_de(tema).get(pieza, SPEC)
     # ejemplo para mostrar el texto propuesto de cada campo (formateando su tpl)
     ej = {"nombre": "Tomás", "fecha": "Sábado 12 de julio", "hora": "16:00 hs",
@@ -511,7 +580,7 @@ def layout_para_editor(pieza="invitacion", tema=TEMA_DEFAULT):
     fams = dict(_FILE_TO_FAMILY)
     fams.setdefault("Poppins-Medium.ttf", "Poppins")
     out = []
-    for f in _effective_texts(spec):
+    for f in _effective_texts(spec, incluir_ocultos=admin):
         ffile = f["font"]
         marco_kind = next((k for k in DECOR_KEYS if k in f), None)  # tipo de marco o None
         out.append({"id": f["id"], "x": f["x"], "y": f["y"], "size": f["size"],
@@ -524,7 +593,10 @@ def layout_para_editor(pieza="invitacion", tema=TEMA_DEFAULT):
                     "tpl": f.get("tpl", ""),
                     "marco": marco_kind,                # tipo de decoración apagable (o None)
                     "marco_color": f.get("slime") or f.get("band") or f.get("splatter") or "",
-                    "default_hidden": f.get("default_hidden", False)})
+                    "default_hidden": f.get("default_hidden", False),
+                    "no_corresponde": f.get("no_corresponde", False),  # admin lo marcó: el cliente no lo ve
+                    "repeat": f.get("repeat") or None,                 # multiplicador (repetir N veces)
+                    "nuevo": f.get("_nuevo", False)})                  # campo agregado por el admin
     return {"size": spec["size"], "fields": out, "pieza": pieza, "tema": tema,
             "piezas": list(specs_de(tema).keys()), "fonts": FONTS_CATALOG, "icons": ICONS_CATALOG}
 

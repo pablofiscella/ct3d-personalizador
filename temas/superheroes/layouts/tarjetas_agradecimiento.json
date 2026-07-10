@@ -1,0 +1,36 @@
+{
+  "texto1": {
+    "x": 0.5288,
+    "y": 0.3109,
+    "size": 86.0,
+    "maxw": 0.82,
+    "wght": 500.0,
+    "font": "Bangers-Regular.ttf",
+    "color": "#88b8dd",
+    "anchor": "mm",
+    "tpl": "¡Gracias por venir!"
+  },
+  "texto2": {
+    "x": 0.5,
+    "y": 0.5,
+    "size": 88.0,
+    "maxw": 0.82,
+    "wght": 500.0,
+    "font": "Bangers-Regular.ttf",
+    "color": "#ffffff",
+    "anchor": "mm",
+    "tpl": ""
+  },
+  "texto3": {
+    "x": 0.5,
+    "y": 0.64,
+    "size": 88.0,
+    "maxw": 0.82,
+    "wght": 500.0,
+    "font": "Bangers-Regular.ttf",
+    "color": "#ffffff",
+    "anchor": "mm",
+    "tpl": ""
+  },
+  "_oculto": []
+}
