@@ -455,42 +455,71 @@ def _hex_rgb(h):
 
 
 def _render_portada(dj, pers_imgs):
-    """Portada 1200×900 (cover de Mi biblioteca + og:image + preview de la tienda)."""
+    """Portada 900×1200 — VERTICAL como las tapas de los audiolibros: la card
+    de Mi biblioteca es 3:4 y la versión apaisada se recortaba a los costados
+    (feedback Pablo 10-jul)."""
     pal = dj["paleta"]
-    W, H = 1200, 900
+    W, H = 900, 1200
     im = Image.new("RGB", (W, H), _hex_rgb(pal["bg"]))
     dr = ImageDraw.Draw(im)
-    # franja superior con el acento + burbujas suaves del secundario
-    dr.rounded_rectangle((40, 40, W - 40, H - 40), radius=48, fill=_hex_rgb(pal["card"]))
-    dr.rounded_rectangle((40, 40, W - 40, 250), radius=48, fill=_hex_rgb(pal["ac"]))
-    dr.rectangle((40, 180, W - 40, 250), fill=_hex_rgb(pal["ac"]))
-    f_marca = _fuente("Nunito-VF.ttf", 34)
-    f_tit = _fuente("Baloo2-VF.ttf", 86)
-    f_sub = _fuente("Nunito-VF.ttf", 42)
-    dr.text((W // 2, 105), "CASATRIDIMENSIONAL", font=f_marca, fill="#FFFFFF",
+    dr.rounded_rectangle((36, 36, W - 36, H - 36), radius=44, fill=_hex_rgb(pal["card"]))
+    # franja superior con el acento
+    dr.rounded_rectangle((36, 36, W - 36, 240), radius=44, fill=_hex_rgb(pal["ac"]))
+    dr.rectangle((36, 170, W - 36, 240), fill=_hex_rgb(pal["ac"]))
+    f_marca = _fuente("Nunito-VF.ttf", 32)
+    f_tit = _fuente("Baloo2-VF.ttf", 78)
+    f_sub = _fuente("Nunito-VF.ttf", 40)
+    dr.text((W // 2, 100), "CASATRIDIMENSIONAL", font=f_marca, fill="#FFFFFF",
             anchor="mm")
-    dr.text((W // 2, 180), "Cuaderno interactivo", font=f_sub, fill="#FFFFFF",
+    dr.text((W // 2, 172), "Cuaderno interactivo", font=f_sub, fill="#FFFFFF",
             anchor="mm")
-    # título
+    # título (dos líneas: "Las actividades" / "de <nombre>" si no entra en una)
     tit = dj["titulo"]
     f = f_tit
-    while f.getlength(tit) > W - 220 and f.size > 40:
-        f = _fuente("Baloo2-VF.ttf", f.size - 4)
-    dr.text((W // 2, 360), tit, font=f, fill=_hex_rgb(pal["ink"]), anchor="mm")
-    dr.text((W // 2, 445), "%s · %s años" % (dj["tema_nombre"], dj["edad"] or "?"),
+    if f.getlength(tit) > W - 140:
+        pre = "de " + (dj.get("nombre") or "")
+        if dj.get("nombre") and tit.endswith(pre):
+            l1 = tit[: -len(pre)].strip()
+            for i, linea in enumerate((l1, pre)):
+                fl = f_tit
+                while fl.getlength(linea) > W - 140 and fl.size > 40:
+                    fl = _fuente("Baloo2-VF.ttf", fl.size - 4)
+                dr.text((W // 2, 350 + i * 92), linea, font=fl,
+                        fill=_hex_rgb(pal["ink"]), anchor="mm")
+            y_sub = 530
+        else:
+            while f.getlength(tit) > W - 140 and f.size > 36:
+                f = _fuente("Baloo2-VF.ttf", f.size - 4)
+            dr.text((W // 2, 390), tit, font=f, fill=_hex_rgb(pal["ink"]), anchor="mm")
+            y_sub = 490
+    else:
+        dr.text((W // 2, 390), tit, font=f, fill=_hex_rgb(pal["ink"]), anchor="mm")
+        y_sub = 490
+    dr.text((W // 2, y_sub), "%s · %s años" % (dj["tema_nombre"], dj["edad"] or "?"),
             font=f_sub, fill=_hex_rgb(pal["ac2"]), anchor="mm")
-    # personajes (hasta 3, apoyados abajo)
+    # personajes: protagonista GRANDE al centro + 2 escoltas. thumbnail() no
+    # AGRANDA — con recortes chicos (hojas de mini-stickers) quedaban enanos:
+    # se reescala al alto pedido con tope 1.8x para no imprimir borroso.
+    def _escalar(img, mw, mh):
+        alto = min(mh, int(img.height * 1.8))
+        w = max(1, int(img.width * alto / img.height))
+        if w > mw:
+            alto = int(alto * mw / w)
+            w = mw
+        return img.resize((w, alto), Image.LANCZOS)
     if pers_imgs:
         n = min(3, len(pers_imgs))
-        slot = (W - 240) // n
-        for i in range(n):
-            p = pers_imgs[i].copy()
-            p.thumbnail((slot - 40, 300), Image.LANCZOS)
-            x = 120 + slot * i + (slot - p.width) // 2
-            im.paste(p, (x, 810 - p.height), p)
+        if n >= 3:
+            for idx, cx, base in ((1, 190, 1100), (2, W - 190, 1100)):
+                if idx < len(pers_imgs):
+                    p = _escalar(pers_imgs[idx], 260, 280)
+                    im.paste(p, (cx - p.width // 2, base - p.height), p)
+        p = _escalar(pers_imgs[0], 420, 430)
+        im.paste(p, (W // 2 - p.width // 2, 1120 - p.height), p)
     # estrellitas decorativas
     star = _hex_rgb(pal["star"])
-    for cx, cy, r in ((150, 320, 14), (1050, 300, 18), (990, 500, 12), (190, 520, 10)):
+    for cx, cy, r in ((120, 300, 13), (780, 290, 16), (700, 560, 11), (170, 580, 10),
+                      (810, 700, 12)):
         dr.regular_polygon((cx, cy, r), 5, rotation=90, fill=star)
     return im
 
