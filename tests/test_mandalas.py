@@ -21,7 +21,7 @@ def test_piezas_procedurales_se_generan(tmp_path, monkeypatch):
     monkeypatch.setattr(temas, "TEMAS_DIR", str(tmp_path))
     items = productos.piezas_tipo("safari", "mandalas")
     # portada + 6 mándalas + cómo imprimir
-    assert len(items) == mandalas.NIVELES + 2
+    assert len(items) == mandalas.N_MANDALAS + 2
     for nombre, fn, _is_rgba in items:
         img = fn({"nombre": "Sofía"})
         assert img.size == mandalas.A4          # A4 300dpi REAL (evita el gotcha DPI)
@@ -44,7 +44,7 @@ def test_kit_zip_completo(tmp_path, monkeypatch):
     productos.generar({"nombre": "Sofía"}, str(tmp_path), "safari", "mandalas")
     z = os.path.join(str(tmp_path), "kit.zip")
     assert os.path.exists(z)
-    assert len(zipfile.ZipFile(z).namelist()) == mandalas.NIVELES + 2
+    assert len(zipfile.ZipFile(z).namelist()) == mandalas.N_MANDALAS + 2
 
 
 def test_override_reemplaza_una_pieza(tmp_path, monkeypatch):
@@ -75,7 +75,7 @@ def test_dificultad_declarada_por_nivel():
 def test_arte_ia_existe_y_es_bn_puro():
     """Los 6 assets de arte (line-art IA limpiado) están presentes y son B/N puro y cuadrados."""
     from PIL import Image
-    for nivel in range(1, mandalas.NIVELES + 1):
+    for nivel in range(1, mandalas.N_MANDALAS + 1):
         p = mandalas._asset(nivel)
         assert p is not None, f"falta el asset del nivel {nivel}"
         im = Image.open(p).convert("L")
@@ -88,8 +88,20 @@ def test_pagina_usa_el_arte_ia_cuando_existe(monkeypatch):
     """Con asset presente, la página usa el arte IA (no el procedural). Se verifica por
     cantidad de tinta: el arte IA del nivel 6 es mucho más denso que el procedural."""
     from PIL import Image
-    pg = mandalas.pagina(6, 6).convert("L")
+    pg = mandalas.pagina(9).convert("L")  # zen muy difícil = densa
     tinta = sum(1 for p in pg.getdata() if p < 8)
     # sin asset, draw_mandala procedural deja mucha menos tinta (line-art fino, ~1-2% de la
     # página); el arte IA nivel 6 llena el área central → ~7-8% sobre la hoja completa.
     assert tinta > pg.width * pg.height * 0.05
+
+
+def test_kit_de_10_con_categorias():
+    """El kit son 10 mándalas por categoría × dificultad (metadata MANDALAS)."""
+    assert mandalas.N_MANDALAS == 10
+    assert len(mandalas.MANDALAS) == 10
+    cats = {c for c, _dif, _st in mandalas.MANDALAS}
+    assert cats == {"Animales", "Naturaleza", "Florales", "Geométricas", "Zen"}
+    # estrellas 1..6 válidas
+    assert all(1 <= st <= 6 for _c, _d, st in mandalas.MANDALAS)
+    # las 10 tienen asset de arte
+    assert all(mandalas._asset(i) for i in range(1, 11))

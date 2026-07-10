@@ -554,10 +554,10 @@ def _piezas_mandalas(tema):
     line-art B/N; queda como eje para la Fase 2 con arte IA)."""
     import mandalas
     out = [("00_portada", lambda d: mandalas.portada(d), False)]
-    for lvl in range(1, mandalas.NIVELES + 1):
-        out.append(("%02d_mandala" % lvl,
-                    (lambda L: (lambda d: mandalas.pagina(L, L, mandalas.NIVELES)))(lvl), False))
-    out.append(("%02d_como_imprimir" % (mandalas.NIVELES + 1), lambda d: mandalas.como_imprimir(d), False))
+    for i in range(1, mandalas.N_MANDALAS + 1):
+        out.append(("%02d_mandala" % i,
+                    (lambda k: (lambda d: mandalas.pagina(k)))(i), False))
+    out.append(("%02d_como_imprimir" % (mandalas.N_MANDALAS + 1), lambda d: mandalas.como_imprimir(d), False))
     return out
 
 
@@ -951,10 +951,12 @@ _PIEZA_LABELS = {
     "1_cartas_memoria": "Cartas del memory",
     "2_dorso": "Dorso de cartas",
     "00_portada": "Portada",
-    "01_mandala": "Mándala 1 · Muy fácil", "02_mandala": "Mándala 2 · Fácil",
-    "03_mandala": "Mándala 3 · Intermedio", "04_mandala": "Mándala 4 · Avanzado",
-    "05_mandala": "Mándala 5 · Difícil", "06_mandala": "Mándala 6 · Muy difícil",
-    "07_como_imprimir": "Cómo imprimir",
+    "01_mandala": "Animales · Muy fácil", "02_mandala": "Animales · Fácil",
+    "03_mandala": "Naturaleza · Fácil", "04_mandala": "Naturaleza · Media",
+    "05_mandala": "Florales · Media", "06_mandala": "Florales · Difícil",
+    "07_mandala": "Geométricas · Media", "08_mandala": "Geométricas · Difícil",
+    "09_mandala": "Zen · Muy difícil", "10_mandala": "Zen · Muy difícil",
+    "11_como_imprimir": "Cómo imprimir",
     # kits dinámicos por arte estática (extras/): nombres lindos para la galería
     "01_invitacion": "Invitación", "02_afiche": "Afiche del número",
     "03_topper": "Topper de torta", "04_stickers": "Stickers",

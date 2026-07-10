@@ -22,7 +22,7 @@ MW_DIR = os.path.join(BASEDIR, "mandalas_web")          # carpetas por token (gi
 ART_DIR = os.path.join(BASEDIR, "mandalas_arte")        # las 6 mándalas fijas (en el repo)
 TEMPLATE_HTML = os.path.join(BASEDIR, "mandalas_player.html")
 TEMPLATE_JS = os.path.join(BASEDIR, "mandalas_player.js")
-NIVELES = mandalas.NIVELES
+NIVELES = mandalas.N_MANDALAS
 _TOKEN_RE = r"[A-Za-z0-9_-]{8,32}"
 
 
@@ -95,15 +95,16 @@ def html(token):
         t = f.read()
     # NIVELES y NOMBRE se inyectan en un <script> (contexto JS) → JSON crudo, NO _esc
     # (los labels son fijos; el nombre va JSON-encodeado para cerrar bien el string).
-    niveles = json.dumps([{"src": f"mandala_{i}.png", "dif": mandalas.DIFICULTAD[i - 1]}
-                          for i in range(1, NIVELES + 1)], ensure_ascii=False)
+    niveles = json.dumps([{"src": f"mandala_{i}.png", "cat": cat, "dif": dif, "stars": stars}
+                          for i, (cat, dif, stars) in enumerate(mandalas.MANDALAS, 1)],
+                         ensure_ascii=False)
     return (t.replace("{{TITULO}}", _esc(reg.get("titulo") or "Mándalas para pintar"))
              .replace("{{NIVELES}}", niveles)
              .replace("{{NOMBRE}}", json.dumps(reg.get("nombre") or "", ensure_ascii=False))
              .replace("{{V}}", _player_version()))
 
 
-_ASSET_RE = re.compile(r"^(player\.js|mandala_[1-6]\.png|portada\.jpg|kit\.zip|manifest\.json)$")
+_ASSET_RE = re.compile(r"^(player\.js|mandala_([1-9]|10)\.png|portada\.jpg|kit\.zip|manifest\.json)$")
 _CT = {".js": "text/javascript; charset=utf-8", ".png": "image/png", ".jpg": "image/jpeg",
        ".zip": "application/zip", ".json": "application/json; charset=utf-8"}
 
@@ -113,7 +114,7 @@ def archivo(token, nombre):
     kit.zip / portada.jpg / manifest.json salen de la carpeta del token."""
     if not _cargar(token) or not _ASSET_RE.fullmatch(nombre or ""):
         return None
-    m = re.fullmatch(r"mandala_([1-6])\.png", nombre)
+    m = re.fullmatch(r"mandala_([1-9]|10)\.png", nombre)
     if nombre == "player.js":
         p = TEMPLATE_JS
     elif m:

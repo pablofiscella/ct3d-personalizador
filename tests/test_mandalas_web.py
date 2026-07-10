@@ -46,7 +46,7 @@ def test_archivo_whitelist(tmp_path):
     assert ok["kit.zip"] == "application/zip"
     assert ok["mandala_1.png"] == "image/png"
     # bloqueados: fuera del whitelist, traversal, niveles inexistentes
-    for bad in ("hack.png", "../manifest.json", "mandala_9.png", "../../etc/passwd", "data.json"):
+    for bad in ("hack.png", "../manifest.json", "mandala_11.png", "mandala_0.png", "../../etc/passwd", "data.json"):
         assert mw.archivo(tok, bad) is None, f"NO debería servir {bad}"
 
 

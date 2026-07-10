@@ -6,7 +6,8 @@
 
 ## Qué es
 
-6 mándalas para colorear de fácil → muy difícil (rango chicos→adultos) + portada
+10 mándalas para colorear organizadas por **categoría × dificultad** (Animales, Naturaleza,
+Florales, Geométricas, Zen — de chicos a adultos antiestrés; ver `mandalas.MANDALAS`) + portada
 personalizable con el nombre + hoja "cómo imprimir".
 
 **El arte es FIJO** (mismas mándalas para todos, no se personalizan): line-art generado
@@ -21,7 +22,7 @@ las mándalas son fijas, no hace falta IA en vivo: arte estático servido del re
 
 Al comprar, `/api/generar` tipo `mandalas` (branch en `servicio.py`) llama
 `mandalas_web.crear(data)` y devuelve **un link visor** `/pintar/<token>/`. Ese visor:
-- **Deja PINTAR online** las 6 mándalas (balde/flood-fill sobre el line-art, paleta,
+- **Deja PINTAR online** las 10 mándalas (balde/flood-fill sobre el line-art, paleta,
   deshacer, limpiar, guardar PNG, **persistencia en localStorage** por mándala).
 - Tiene el botón **⬇️ PDF** que descarga el `kit.zip` imprimible (guardado en el token,
   con la portada personalizada).

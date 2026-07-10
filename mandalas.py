@@ -31,7 +31,24 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 CX, CY = A4[0] // 2, A4[1] // 2
 R = 1060                          # radio máx del mandala (cabe en el área imprimible)
-NIVELES = 6
+NIVELES = 6                       # niveles de complejidad del diseño PROCEDURAL (fallback)
+
+# El KIT: 10 mándalas por CATEGORÍA × dificultad. Por cada una: (categoría, dificultad,
+# estrellas 1-6). El arte vive en mandalas_arte/<n>.png; las estrellas mapean a la
+# complejidad del fallback procedural.
+MANDALAS = [
+    ("Animales",    "Muy fácil",   1),
+    ("Animales",    "Fácil",       2),
+    ("Naturaleza",  "Fácil",       2),
+    ("Naturaleza",  "Media",       3),
+    ("Florales",    "Media",       3),
+    ("Florales",    "Difícil",     5),
+    ("Geométricas", "Media",       4),
+    ("Geométricas", "Difícil",     5),
+    ("Zen",         "Muy difícil", 6),
+    ("Zen",         "Muy difícil", 6),
+]
+N_MANDALAS = len(MANDALAS)
 
 # Arte fijo (line-art generado con IA, limpiado a B/N puro, 2244px @300dpi). Se genera UNA
 # vez y se vende a todos (las mándalas no son personalizadas). Si falta un asset, la pieza
@@ -247,27 +264,29 @@ def _star(d, cx, cy, r, filled):
     d.polygon(pts, fill=BLACK if filled else None, outline=BLACK, width=3)
 
 
-def _pegar_mandala(img, nivel, cx=CX, cy=CY, size=2160):
-    """Dibuja la mándala del nivel: usa el arte IA (asset) si existe, si no el procedural."""
-    art = _asset(nivel)
+def _pegar_mandala(img, idx, cx=CX, cy=CY, size=2160):
+    """Dibuja la mándala `idx` (1..N): usa el arte IA (asset) si existe, si no el procedural
+    (complejidad = estrellas de esa mándala)."""
+    art = _asset(idx)
     if art:
         m = Image.open(art).convert("RGB").resize((size, size), Image.LANCZOS)
         img.paste(m, (int(cx - size / 2), int(cy - size / 2)))
     else:
-        draw_mandala(ImageDraw.Draw(img), nivel, cx=cx, cy=cy, rmax=size // 2)
+        estrellas = MANDALAS[idx - 1][2] if 1 <= idx <= N_MANDALAS else 3
+        draw_mandala(ImageDraw.Draw(img), estrellas, cx=cx, cy=cy, rmax=size // 2)
 
 
-def pagina(nivel, idx, total=NIVELES):
-    """Una hoja de mándala (line-art para colorear)."""
+def pagina(idx, total=N_MANDALAS):
+    """Una hoja de mándala (line-art para colorear). idx 1..N_MANDALAS."""
+    cat, dif, estrellas = MANDALAS[idx - 1]
     img, d = _page()
-    _pegar_mandala(img, nivel)
+    _pegar_mandala(img, idx)
     _txt(d, f"{idx} / {total}", CX, 150, "Poppins-Regular.ttf", 40, (150, 150, 150))
-    gap, sr, ns = 74, 24, NIVELES
+    gap, sr, ns = 74, 24, 6
     x0 = CX - (ns - 1) * gap / 2
     for i in range(ns):
-        _star(d, x0 + i * gap, A4[1] - 210, sr, filled=(i < nivel))
-    _txt(d, DIFICULTAD[max(0, min(NIVELES, nivel) - 1)], CX, A4[1] - 148,
-         "Poppins-Regular.ttf", 40, (90, 90, 90))
+        _star(d, x0 + i * gap, A4[1] - 215, sr, filled=(i < estrellas))
+    _txt(d, f"{cat} · {dif}", CX, A4[1] - 150, "Poppins-Regular.ttf", 40, (90, 90, 90))
     _footer(d)
     return img
 
@@ -282,9 +301,9 @@ def portada(data=None):
     _txt(d, "Mándalas", CX, 520, "Fredoka-VF.ttf", 210, BLACK, wght=650, maxw=A4[0] - 400)
     sub = f"de {nombre}" if nombre else "para pintar"
     _txt(d, sub, CX, 720, "Fredoka-VF.ttf", 120, BLACK, wght=500, maxw=A4[0] - 500)
-    _pegar_mandala(img, 3, cx=CX, cy=1920, size=1560)
-    _txt(d, f"{NIVELES} diseños · dificultad creciente · listo para imprimir en casa",
-         CX, 2820, "Poppins-Regular.ttf", 44, (70, 70, 70), maxw=A4[0] - 300)
+    _pegar_mandala(img, 5, cx=CX, cy=1920, size=1560)
+    _txt(d, f"{N_MANDALAS} mándalas · animales, flores, geométricas y zen · imprimir y pintar",
+         CX, 2820, "Poppins-Regular.ttf", 42, (70, 70, 70), maxw=A4[0] - 240)
     _footer(d)
     return img
 
@@ -321,8 +340,8 @@ if __name__ == "__main__":
     out = sys.argv[1] if len(sys.argv) > 1 else "salida_mandalas"
     os.makedirs(out, exist_ok=True)
     pages = [portada({"nombre": ""})]
-    for lvl in range(1, NIVELES + 1):
-        pages.append(pagina(lvl, lvl, NIVELES))
+    for i in range(1, N_MANDALAS + 1):
+        pages.append(pagina(i))
     pages.append(como_imprimir())
     pdf = os.path.join(out, "kit_mandalas.pdf")
     pages[0].save(pdf, "PDF", resolution=300, save_all=True, append_images=pages[1:])

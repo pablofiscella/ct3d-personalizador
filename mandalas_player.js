@@ -21,8 +21,8 @@
     MANDALAS.forEach(function (m, i) {
       var card = el("div", "card");
       var img = el("img"); img.src = m.src; img.alt = "Mándala " + (i + 1); img.loading = "lazy";
-      var dif = el("div", "dif"); dif.textContent = m.dif;
-      var st = el("div", "stars"); st.textContent = estrellas(i + 1);
+      var dif = el("div", "dif"); dif.textContent = (m.cat ? m.cat + " · " : "") + m.dif;
+      var st = el("div", "stars"); st.textContent = estrellas(m.stars || (i + 1));
       card.append(img, st, dif);
       card.addEventListener("click", function () { abrirPintar(i); });
       grid.appendChild(card);
