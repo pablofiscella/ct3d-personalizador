@@ -22,6 +22,8 @@ from html import escape as _esc
 
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
+import piezas
+
 BASEDIR = os.path.dirname(os.path.abspath(__file__))
 ACT_DIR = os.path.join(BASEDIR, "actividades")
 TEMPLATE_HTML = os.path.join(BASEDIR, "actividades_player.html")
@@ -236,42 +238,6 @@ def _cargar(token):
 
 # ── Generación ──
 
-def _un_solo_blob(im, min_frac=0.18):
-    """True si el recorte es UNA figura (no una tira compuesta). Componentes
-    conexas del CONTENIDO COLOREADO a 64×64: si hay una segunda mancha grande
-    (> min_frac de la mayor), es un compuesto tipo 'jirafa + hojas + flores' y
-    se descarta — la misma clase de bug que las columnas apiladas del cuaderno
-    (skill §19). OJO: el halo blanco troquelado del sticker puentea las figuras
-    si se mira solo el alpha — por eso se excluyen los píxeles casi blancos."""
-    im64 = im.resize((64, 64))
-    a64, rgb = im64.split()[3].load(), im64.convert("RGB").load()
-    a = Image.new("L", (64, 64), 0)
-    px = a.load()
-    for y in range(64):
-        for x in range(64):
-            r, g, b2 = rgb[x, y]
-            if a64[x, y] > 40 and not (r > 225 and g > 225 and b2 > 225):
-                px[x, y] = 255
-    visto = bytearray(64 * 64)
-    areas = []
-    for y0 in range(64):
-        for x0 in range(64):
-            if px[x0, y0] and not visto[y0 * 64 + x0]:
-                area, pila = 0, [(x0, y0)]
-                visto[y0 * 64 + x0] = 1
-                while pila:
-                    x, y = pila.pop()
-                    area += 1
-                    for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
-                        if 0 <= nx < 64 and 0 <= ny < 64 and px[nx, ny] \
-                                and not visto[ny * 64 + nx]:
-                            visto[ny * 64 + nx] = 1
-                            pila.append((nx, ny))
-                areas.append(area)
-    areas.sort(reverse=True)
-    return len(areas) < 2 or areas[1] < areas[0] * min_frac
-
-
 def _miniatura_cmp(im):
     """Miniatura RGB 24×24 del contenido (para comparar recortes entre sí)."""
     from PIL import ImageOps
@@ -396,7 +362,7 @@ def _personajes(tema, d):
         except Exception:
             continue
         im = im.crop(im.getbbox() or (0, 0, im.width, im.height))
-        if not _un_solo_blob(im):
+        if not piezas.un_solo_blob(im):
             continue
         matiz, _sat = _matiz_sat(im)
         cand = {"mini": _miniatura_cmp(im), "matiz": matiz,

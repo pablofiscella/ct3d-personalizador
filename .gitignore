@@ -22,6 +22,8 @@ temas/*/ia_draft/
 temas/*/ia_maestra.png
 temas/*/invitacion_web_hero.png
 temas/*/stl3d_cache/
+# hoja de stickers recompuesta (cache regenerable)
+temas/*/extras/.stickers_uniforme.png
 .thumbs/
 
 # ── Dependencias regenerables (npm install) ──
