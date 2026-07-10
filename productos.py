@@ -548,6 +548,19 @@ def _piezas_memoria(tema):
             ("2_dorso", lambda d: memoria.dorso_memoria(d, tema), True)]
 
 
+def _piezas_mandalas(tema):
+    """Kit de mándalas para pintar: portada (personalizable con nombre) + 6 mándalas
+    de dificultad creciente + hoja 'cómo imprimir'. 100% procedural (tema no afecta el
+    line-art B/N; queda como eje para la Fase 2 con arte IA)."""
+    import mandalas
+    out = [("00_portada", lambda d: mandalas.portada(d), False)]
+    for i in range(1, mandalas.N_MANDALAS + 1):
+        out.append(("%02d_mandala" % i,
+                    (lambda k: (lambda d: mandalas.pagina(k)))(i), False))
+    out.append(("%02d_como_imprimir" % (mandalas.N_MANDALAS + 1), lambda d: mandalas.como_imprimir(d), False))
+    return out
+
+
 # ── STL 3D (medalla/topper/trofeo/cortante/pack) ────────────────────────────
 # Piezas generadas por código (OpenSCAD) desde el personaje del tema — sin STL de
 # terceros, cero duda de licencia. La galería de la ficha usa un preview PNG
@@ -816,6 +829,13 @@ TIPOS = {
         "preview": "memoria",
         "piezas": _piezas_memoria,
     },
+    "mandalas": {
+        "nombre": "Kit de mándalas para pintar",
+        "descripcion": "6 mándalas para colorear de fácil a difícil + guía de impresión. Line-art listo para imprimir en casa (A4 o Carta). La portada se personaliza con el nombre.",
+        "campos": ["nombre"],
+        "preview": "mandalas",
+        "piezas": _piezas_mandalas,
+    },
     "stl-medalla": {
         "nombre": "Medalla 3D imprimible",
         "descripcion": "Medalla con el personaje del tema en relieve + nombre/edad grabado. Archivo STL para imprimir en 3D, generado 100% por código (sin diseños de terceros).",
@@ -930,6 +950,13 @@ _PIEZA_LABELS = {
     "1_cubo": "Cubo 3D para armar",
     "1_cartas_memoria": "Cartas del memory",
     "2_dorso": "Dorso de cartas",
+    "00_portada": "Portada",
+    "01_mandala": "Animales · Muy fácil", "02_mandala": "Animales · Fácil",
+    "03_mandala": "Naturaleza · Fácil", "04_mandala": "Naturaleza · Media",
+    "05_mandala": "Florales · Media", "06_mandala": "Florales · Difícil",
+    "07_mandala": "Geométricas · Media", "08_mandala": "Geométricas · Difícil",
+    "09_mandala": "Zen · Muy difícil", "10_mandala": "Zen · Muy difícil",
+    "11_como_imprimir": "Cómo imprimir",
     # kits dinámicos por arte estática (extras/): nombres lindos para la galería
     "01_invitacion": "Invitación", "02_afiche": "Afiche del número",
     "03_topper": "Topper de torta", "04_stickers": "Stickers",
@@ -975,6 +1002,7 @@ PERSONALIZADAS = {
     "video-invitacion": {"*": ["nombre", "edad", "fecha", "hora", "lugar"]},
     "invitacion-web": {"*": ["nombre", "edad", "fecha", "hora", "lugar", "direccion"]},
     "actividades-web": {"*": ["nombre", "edad"]},
+    "mandalas":        {"00_portada": ["nombre"]},   # solo la portada usa el nombre; las mándalas son fijas
     # FIJAS (sin datos del comprador): antifaces, memoria, papertoys, babyshower
 }
 
@@ -1137,7 +1165,7 @@ def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):
         import baby_shower as bs
         img = bs.pieza("invitacion", data, tema)
     elif pieza in ("certificado", "corona", "antifaces", "menu", "rompecabezas",
-                  "capsula", "libro", "calendario", "papertoys", "memoria",
+                  "capsula", "libro", "calendario", "papertoys", "memoria", "mandalas",
                   "invitacion-web", "actividades-web", "fiesta-completa", "video-invitacion",
                   "stl-medalla", "stl-topper", "stl-trofeo", "stl-cortante", "stl-pack"):
         # 100% procedurales: pasan por piezas_tipo() para que un override subido a mano

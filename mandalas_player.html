@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>{{TITULO}}</title>
+<style>
+  :root{
+    --bg:#f6f1e7; --card:#fffdf8; --ink:#3a3330; --muted:#8a807a;
+    --ac:#c8674e; --ac2:#6b7a4f; --line:#e7ddcd; --shadow:0 6px 22px rgba(60,40,20,.10);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0; height:100%}
+  body{
+    font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif; color:var(--ink);
+    background:var(--bg); overscroll-behavior:none;
+  }
+  header{
+    display:flex; align-items:center; gap:12px; padding:14px 16px;
+    background:var(--card); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5;
+  }
+  header h1{font-size:19px; margin:0; font-weight:800; letter-spacing:.2px; flex:1;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .btn{
+    border:none; border-radius:14px; padding:11px 15px; font-size:15px; font-weight:700;
+    cursor:pointer; background:var(--line); color:var(--ink); min-height:46px;
+  }
+  .btn.ac{background:var(--ac); color:#fff}
+  .btn.gh{background:transparent; border:1.5px solid var(--line)}
+  .wrap{max-width:1000px; margin:0 auto; padding:16px}
+  /* galería */
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:16px}
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:18px; padding:12px;
+    box-shadow:var(--shadow); cursor:pointer; text-align:center; transition:transform .08s;
+  }
+  .card:active{transform:scale(.97)}
+  .card img{width:100%; aspect-ratio:1; object-fit:contain; border-radius:10px}
+  .card .dif{margin-top:8px; font-size:13px; color:var(--muted); font-weight:700}
+  .card .stars{color:var(--ac); letter-spacing:2px; font-size:13px}
+  .intro{color:var(--muted); font-size:15px; margin:2px 0 16px}
+  /* pintar */
+  #paint{display:none}
+  #paint.on{display:block}
+  #gallery.off{display:none}
+  .canvasbox{display:flex; justify-content:center; background:var(--card);
+    border:1px solid var(--line); border-radius:16px; padding:10px; box-shadow:var(--shadow)}
+  canvas{max-width:100%; touch-action:none; border-radius:8px; cursor:crosshair}
+  .palette{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:14px 0}
+  .swatch{width:44px; height:44px; border-radius:50%; border:3px solid #fff;
+    box-shadow:0 0 0 1.5px var(--line); cursor:pointer; padding:0}
+  .swatch.on{box-shadow:0 0 0 3px var(--ac); transform:scale(1.08)}
+  .swatch.eraser{background:#fff !important; position:relative}
+  .swatch.eraser::after{content:"⌫"; position:absolute; inset:0; display:grid; place-items:center; color:#b9ad9c}
+  .tools{display:flex; gap:10px; flex-wrap:wrap; justify-content:center}
+  .hint{text-align:center; color:var(--muted); font-size:14px; margin:10px 0 2px}
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#221f1c; --card:#2c2825; --ink:#efe7dc; --muted:#a89e93; --line:#3c352f}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="titulo">{{TITULO}}</h1>
+  <a id="pdf" class="btn ac" href="kit.zip" download>⬇️ PDF</a>
+</header>
+
+<div class="wrap">
+  <section id="gallery">
+    <p class="intro">Elegí una mándala y pintala tocando cada zona. Cuando quieras, descargá el <b>PDF</b> para imprimirlas.</p>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section id="paint">
+    <div class="tools" style="margin-bottom:12px">
+      <button class="btn gh" id="volver">← Elegir otra</button>
+      <button class="btn gh" id="undo">↩️ Deshacer</button>
+      <button class="btn gh" id="limpiar">🧽 Limpiar</button>
+      <button class="btn ac" id="guardar">⬇️ Guardar dibujo</button>
+    </div>
+    <div class="canvasbox"><canvas id="lienzo"></canvas></div>
+    <div class="palette" id="palette"></div>
+    <p class="hint">Tocá una zona para pintarla · el blanco (⌫) borra</p>
+  </section>
+</div>
+
+<script>window.MANDALAS = {{NIVELES}}; window.NOMBRE = {{NOMBRE}};</script>
+<script src="player.js?v={{V}}"></script>
+</body>
+</html>

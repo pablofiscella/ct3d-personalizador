@@ -854,6 +854,38 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(body)))
             self.end_headers(); self.wfile.write(body)
             return
+        # ---- mándalas para pintar (modalidad web del kit; link con token) ----
+        # Igual que /act: rutas RELATIVAS -> servir SIEMPRE bajo /pintar/<tok>/.
+        m = re.match(r"^/pintar/([A-Za-z0-9_-]+)(?:/([a-z_0-9.]*))?$", path)
+        if m:
+            import mandalas_web as mw
+            token, arch = m.group(1), m.group(2)
+            if arch is None:
+                self.send_response(301)
+                self.send_header("Location", "/pintar/%s/" % token)
+                self.end_headers()
+                return
+            if arch:
+                r = mw.archivo(token, arch)
+                if r is None:
+                    return self._json(404, {"ok": False, "error": "no existe"})
+                data_b, ct = r
+                self.send_response(200)
+                self.send_header("Content-Type", ct)
+                self.send_header("Cache-Control", "public, max-age=86400")
+                self.send_header("Content-Length", str(len(data_b)))
+                self.end_headers(); self.wfile.write(data_b)
+                return
+            page = mw.html(token)
+            if page is None:
+                return self._json(404, {"ok": False, "error": "mándalas no encontradas"})
+            body = page.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers(); self.wfile.write(body)
+            return
         m = re.match(r"^/descarga/([A-Za-z0-9_-]+)$", path)
         if m:
             token = m.group(1)
@@ -1230,6 +1262,19 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(500, {"ok": False, "error": str(e)[:200]})
             return self._json(200, {"ok": True, "token": token, "act_token": tok_act,
                                     "download_url": f"{self.base_url()}/act/{tok_act}/"})
+        if tipo == "mandalas":
+            # DOBLE modalidad en un solo producto: el visor /pintar/<tok>/ deja PINTAR las
+            # mándalas online Y tiene el botón de descarga del PDF imprimible (el kit.zip que
+            # se guarda en el token). Se entrega como link (como actividades-web): la tienda
+            # lo trata de visor y el PDF viaja dentro. Síncrono y rápido (sin IA; el arte ya
+            # está en el repo).
+            import mandalas_web as mw
+            try:
+                tok_m = mw.crear({**data, "tema": tema})
+            except Exception as e:
+                return self._json(500, {"ok": False, "error": str(e)[:200]})
+            return self._json(200, {"ok": True, "token": token, "mand_token": tok_m,
+                                    "download_url": f"{self.base_url()}/pintar/{tok_m}/"})
         if tipo == "libro-audio":
             # Genera páginas + narración TTS (~1-2 min) EN BACKGROUND, pero devuelve
             # YA el link estable del visor /al/<tok_al>. Así la tienda lo guarda en la
