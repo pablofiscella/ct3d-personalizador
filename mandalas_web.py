@@ -95,7 +95,14 @@ def html(token):
         t = f.read()
     # NIVELES y NOMBRE se inyectan en un <script> (contexto JS) → JSON crudo, NO _esc
     # (los labels son fijos; el nombre va JSON-encodeado para cerrar bien el string).
-    niveles = json.dumps([{"src": f"mandala_{i}.png", "cat": cat, "dif": dif, "stars": stars}
+    # Cache-buster `?v=<mtime>` por asset: las mándalas se sirven con Cache-Control de 24h,
+    # así que sin esto el navegador seguía mostrando la versión vieja al regenerar el arte.
+    def _av(i):
+        try:
+            return int(os.path.getmtime(os.path.join(mandalas.ART_DIR, f"{i}.png")))
+        except OSError:
+            return 1
+    niveles = json.dumps([{"src": f"mandala_{i}.png?v={_av(i)}", "cat": cat, "dif": dif, "stars": stars}
                           for i, (cat, dif, stars) in enumerate(mandalas.MANDALAS, 1)],
                          ensure_ascii=False)
     return (t.replace("{{TITULO}}", _esc(reg.get("titulo") or "Mándalas para pintar"))
