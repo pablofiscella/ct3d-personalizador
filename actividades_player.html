@@ -74,7 +74,10 @@ button.pill:active { transform: scale(.94); }
 #btnAtras.ver { display: flex; }
 
 /* ── escenario ── */
-#stage { max-width: 1020px; margin: 0 auto; padding: 10px 16px 48px; }
+#stage { max-width: 1020px; margin: 0 auto;
+  /* aire abajo SIEMPRE (+ safe-area: la barra del navegador / indicador de
+     inicio comía el margen y el menú/los juegos quedaban al ras del borde) */
+  padding: 10px 16px calc(72px + env(safe-area-inset-bottom)); }
 
 /* menú de juegos */
 #menu { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 16px; }
@@ -346,7 +349,7 @@ button.pill:active { transform: scale(.94); }
 }
 @media (max-width: 560px) {
   #menu { grid-template-columns: repeat(auto-fill, minmax(136px, 1fr)); gap: 12px; }
-  #stage { padding: 6px 10px 40px; }
+  #stage { padding: 6px 10px calc(64px + env(safe-area-inset-bottom)); }
   body { font-size: 17px; }
   /* header y consigna compactos: más pantalla para el juego */
   #hdr { padding: calc(6px + env(safe-area-inset-top)) 10px 6px; gap: 8px; }

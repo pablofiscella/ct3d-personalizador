@@ -15,7 +15,7 @@ function ajustarAlto() {
   const j = $("#juego");
   document.documentElement.style.setProperty("--hdrH", ($("#hdr").offsetHeight || 74) + "px");
   if (!j) return;
-  const alto = Math.max(280, innerHeight - j.getBoundingClientRect().top - 12);
+  const alto = Math.max(280, innerHeight - j.getBoundingClientRect().top - 30);
   document.documentElement.style.setProperty("--altoJuego", alto + "px");
 }
 const el = (tag, cls, html) => {
@@ -1061,7 +1061,6 @@ GAMES.sombra = {
       ctx.juego.innerHTML = "";
       const idxs = sample(P.map((_, i) => i), pares);
       const tab = el("div", "tablero lienzo");
-      tab.style.minHeight = "420px";
       const wrap = el("div");
       wrap.style.cssText = "display:flex;justify-content:space-between;gap:16px";
       const izq = el("div"), der = el("div");
@@ -1071,7 +1070,7 @@ GAMES.sombra = {
       tab.appendChild(wrap);
       ctx.juego.appendChild(tab);
       let TAM = Math.min(130, Math.floor((innerWidth - 140) / Math.max(3, pares)) + 40);
-      const dispS = innerHeight - tab.getBoundingClientRect().top - 24;
+      const dispS = innerHeight - tab.getBoundingClientRect().top - 48;
       TAM = Math.max(64, Math.min(TAM, Math.floor((dispS - (pares - 1) * 18 - 16) / pares)));
       const siluetas = shuffle(idxs).map((ix) => {
         const d = el("div", "silueta", `<img src="${(D.sombras || P)[ix]}" alt="">`);
