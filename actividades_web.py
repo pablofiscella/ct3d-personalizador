@@ -455,42 +455,42 @@ def _hex_rgb(h):
 
 
 def _render_portada(dj, pers_imgs):
-    """Portada 1200×900 (cover de Mi biblioteca + og:image + preview de la tienda)."""
+    """Portada VERTICAL 1000×1414 (ratio A4 ≈ 826/1169, el de la tarjeta de Mi biblioteca:
+    antes era apaisada 1200×900 y `object-fit:cover` le comía los costados). Cover de
+    biblioteca + og:image + preview de la tienda."""
     pal = dj["paleta"]
-    W, H = 1200, 900
+    W, H = 1000, 1414
     im = Image.new("RGB", (W, H), _hex_rgb(pal["bg"]))
     dr = ImageDraw.Draw(im)
-    # franja superior con el acento + burbujas suaves del secundario
+    # tarjeta + franja superior con el acento
     dr.rounded_rectangle((40, 40, W - 40, H - 40), radius=48, fill=_hex_rgb(pal["card"]))
-    dr.rounded_rectangle((40, 40, W - 40, 250), radius=48, fill=_hex_rgb(pal["ac"]))
-    dr.rectangle((40, 180, W - 40, 250), fill=_hex_rgb(pal["ac"]))
+    dr.rounded_rectangle((40, 40, W - 40, 300), radius=48, fill=_hex_rgb(pal["ac"]))
+    dr.rectangle((40, 230, W - 40, 300), fill=_hex_rgb(pal["ac"]))
     f_marca = _fuente("Nunito-VF.ttf", 34)
-    f_tit = _fuente("Baloo2-VF.ttf", 86)
-    f_sub = _fuente("Nunito-VF.ttf", 42)
-    dr.text((W // 2, 105), "CASATRIDIMENSIONAL", font=f_marca, fill="#FFFFFF",
-            anchor="mm")
-    dr.text((W // 2, 180), "Cuaderno interactivo", font=f_sub, fill="#FFFFFF",
-            anchor="mm")
-    # título
+    f_tit = _fuente("Baloo2-VF.ttf", 88)
+    f_sub = _fuente("Nunito-VF.ttf", 44)
+    dr.text((W // 2, 130), "CASATRIDIMENSIONAL", font=f_marca, fill="#FFFFFF", anchor="mm")
+    dr.text((W // 2, 220), "Cuaderno interactivo", font=f_sub, fill="#FFFFFF", anchor="mm")
+    # título (auto-ajuste al ancho)
     tit = dj["titulo"]
     f = f_tit
-    while f.getlength(tit) > W - 220 and f.size > 40:
+    while f.getlength(tit) > W - 200 and f.size > 40:
         f = _fuente("Baloo2-VF.ttf", f.size - 4)
-    dr.text((W // 2, 360), tit, font=f, fill=_hex_rgb(pal["ink"]), anchor="mm")
-    dr.text((W // 2, 445), "%s · %s años" % (dj["tema_nombre"], dj["edad"] or "?"),
+    dr.text((W // 2, 470), tit, font=f, fill=_hex_rgb(pal["ink"]), anchor="mm")
+    dr.text((W // 2, 575), "%s · %s años" % (dj["tema_nombre"], dj["edad"] or "?"),
             font=f_sub, fill=_hex_rgb(pal["ac2"]), anchor="mm")
-    # personajes (hasta 3, apoyados abajo)
+    # personajes (hasta 3, apoyados abajo) — más aire vertical que en la apaisada
     if pers_imgs:
         n = min(3, len(pers_imgs))
-        slot = (W - 240) // n
+        slot = (W - 160) // n
         for i in range(n):
             p = pers_imgs[i].copy()
-            p.thumbnail((slot - 40, 300), Image.LANCZOS)
-            x = 120 + slot * i + (slot - p.width) // 2
-            im.paste(p, (x, 810 - p.height), p)
+            p.thumbnail((slot - 30, 560), Image.LANCZOS)
+            x = 80 + slot * i + (slot - p.width) // 2
+            im.paste(p, (x, H - 110 - p.height), p)
     # estrellitas decorativas
     star = _hex_rgb(pal["star"])
-    for cx, cy, r in ((150, 320, 14), (1050, 300, 18), (990, 500, 12), (190, 520, 10)):
+    for cx, cy, r in ((150, 430, 16), (850, 400, 20), (880, 720, 13), (150, 760, 11)):
         dr.regular_polygon((cx, cy, r), 5, rotation=90, fill=star)
     return im
 
