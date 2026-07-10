@@ -1813,15 +1813,32 @@ class Handler(BaseHTTPRequestHandler):
         os.makedirs(os.path.dirname(p), exist_ok=True)
         try:
             json.dump(layout, open(p, "w", encoding="utf-8"), ensure_ascii=False)
-            # default global para temas nuevos
-            json.dump(layout.get("base", {}), open(self._cal_default_path(), "w", encoding="utf-8"),
+            # default global para temas nuevos: las DOS reglas (5 y 6 filas)
+            json.dump({"base": layout.get("base", {}), "base6": layout.get("base6")},
+                      open(self._cal_default_path(), "w", encoding="utf-8"),
                       ensure_ascii=False)
         except Exception:
             pass
 
+    @staticmethod
+    def _cal_completar_base6(layout, anyo):
+        """Si el layout todavía no tiene la regla de 6 filas, la precarga desde el
+        override puntual de algún mes de 6 filas (los ajustes a mano que ya hizo
+        el usuario) para que el editor no arranque de cero."""
+        if layout.get("base6"):
+            return
+        import calendario
+        for m in calendario.meses_por_filas(anyo, 6):
+            cfg = (layout.get("meses") or {}).get(str(m))
+            if cfg:
+                layout["base6"] = cfg
+                return
+
     def _dash_calendario_layout(self, q):
-        """Devuelve las coordenadas guardadas del calendario de un tema (memoria por tema).
-        Si el tema no tiene, hereda el layout de la última temática configurada."""
+        """Devuelve las coordenadas guardadas del calendario de un tema (memoria por
+        tema): regla general `base` (meses de 5 filas), regla `base6` (meses de 6
+        filas) y overrides puntuales `meses`. Si el tema no tiene, hereda el layout
+        de la última temática configurada."""
         if not self._admin_ok():
             return self._deny()
         tema = slug((q.get("tema", [""]) or [""])[0])
@@ -1830,17 +1847,25 @@ class Handler(BaseHTTPRequestHandler):
         layout = self._cal_load_layout(tema)
         origen = "tema"
         if not layout:
-            base = {}
+            base, base6 = {}, None
             dp = self._cal_default_path()
             if os.path.isfile(dp):
                 try:
-                    base = json.load(open(dp, encoding="utf-8"))
+                    d = json.load(open(dp, encoding="utf-8"))
+                    # formato nuevo: {"base":..., "base6":...}; viejo: la base pelada
+                    base = d.get("base", d) if isinstance(d, dict) and "base" in d else d
+                    base6 = d.get("base6") if isinstance(d, dict) else None
                     origen = "default"
                 except Exception:
                     base = {}
             if not base:
                 origen = "vacio"
-            layout = {"base": base, "meses": {}, "anyo": "2026"}
+            layout = {"base": base, "base6": base6, "meses": {}, "anyo": "2026"}
+        try:
+            anyo = int(re.sub(r"\D", "", str(layout.get("anyo") or "2026"))[:4] or "2026")
+        except Exception:
+            anyo = 2026
+        self._cal_completar_base6(layout, anyo)
         fondo = os.path.join(temas.TEMAS_DIR, tema, "calendario", "fondo.png")
         return self._json(200, {"ok": True, "layout": layout, "origen": origen,
                                 "tiene_fondo": os.path.isfile(fondo)})
@@ -1863,8 +1888,12 @@ class Handler(BaseHTTPRequestHandler):
 
     def _dash_calendario_generar(self):
         """Genera el calendario superponiendo mes/días/números sobre la plantilla.
-        - Sin `mes`: genera los 12 (guarda base + aplica overrides por mes existentes).
-        - Con `mes` (1-12): regenera SOLO ese mes con sus coordenadas propias (editor por mes).
+        - Con `filas` (5 o 6): regenera TODOS los meses de ese grupo con la regla
+          (config) y la guarda en `base` (5) o `base6` (6). Los overrides puntuales
+          de esos meses se descartan: la regla pasa a mandar.
+        - Sin `mes` ni `filas`: genera los 12 (guarda base + regla de 6 filas +
+          overrides por mes existentes).
+        - Con `mes` (1-12): regenera SOLO ese mes con coordenadas propias (compat).
         La plantilla viene en el body; si no, se usa el fondo.png guardado del tema.
         Guarda las coordenadas en layout.json (memoria por tema)."""
         if not self._admin_ok():
@@ -1876,6 +1905,8 @@ class Handler(BaseHTTPRequestHandler):
         config_str = q.get("config", [""])[0] or ""
         mes_str = re.sub(r"\D", "", q.get("mes", [""])[0] or "")
         mes = int(mes_str) if mes_str else 0     # 0 = los 12
+        filas_str = re.sub(r"\D", "", q.get("filas", [""])[0] or "")
+        filas = int(filas_str) if filas_str in ("5", "6") else 0
         if mes and not (1 <= mes <= 12):
             return self._json(400, {"ok": False, "error": "mes inválido"})
         if not tema or not temas.existe(tema):
@@ -1912,10 +1943,27 @@ class Handler(BaseHTTPRequestHandler):
 
             layout = self._cal_load_layout(tema) or {"base": {}, "meses": {}, "anyo": anyo_str}
             layout.setdefault("meses", {})
+            anyo_int = int(anyo_str)
             data = {"nombre": nombre, "anyo": anyo_str}
 
-            if mes:  # un solo mes
-                cfg = config or layout["meses"].get(str(mes)) or layout.get("base") or {}
+            if filas:  # regla de grupo: todos los meses de 5 (o menos) / 6 filas
+                grupo = calendario.meses_por_filas(anyo_int, filas)
+                clave = "base6" if filas == 6 else "base"
+                cfg = config or layout.get(clave) or layout.get("base") or {}
+                layout[clave] = cfg
+                layout["anyo"] = anyo_str
+                # la regla reemplaza los ajustes puntuales de esos meses
+                for m in grupo:
+                    layout["meses"].pop(str(m), None)
+                for m in grupo:
+                    img = calendario.generar_mes_con_plantilla(data, plantilla, tema, m, cfg)
+                    piezas.to_rgb(img).save(os.path.join(override_dir, "%d.png" % (m - 1)))
+                self._cal_save_layout(tema, layout)
+                return self._json(200, {"ok": True, "tema": tema, "filas": filas,
+                                        "meses": grupo, "generados": len(grupo)})
+
+            if mes:  # un solo mes (compat: ajuste puntual)
+                cfg = config or calendario.config_para_mes(layout, anyo_int, mes)
                 img = calendario.generar_mes_con_plantilla(data, plantilla, tema, mes, cfg)
                 piezas.to_rgb(img).save(os.path.join(override_dir, "%d.png" % (mes - 1)))
                 layout["meses"][str(mes)] = cfg
@@ -1923,13 +1971,13 @@ class Handler(BaseHTTPRequestHandler):
                 self._cal_save_layout(tema, layout)
                 return self._json(200, {"ok": True, "tema": tema, "mes": mes, "generados": 1})
 
-            # los 12
+            # los 12: cada mes con su regla (override puntual > base6 > base)
             base = config or layout.get("base") or {}
             layout["base"] = base
             layout["anyo"] = anyo_str
             generados = []
             for m in range(1, 13):
-                cfg = layout["meses"].get(str(m)) or base
+                cfg = calendario.config_para_mes(layout, anyo_int, m)
                 img = calendario.generar_mes_con_plantilla(data, plantilla, tema, m, cfg)
                 piezas.to_rgb(img).save(os.path.join(override_dir, "%d.png" % (m - 1)))
                 generados.append(m)

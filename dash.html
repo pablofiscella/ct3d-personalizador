@@ -706,7 +706,7 @@ async function openProductosNuevos(tema, nombre){
           <a class="btn-ghost pn-dl" title="Descargar esta pieza" style="font-size:10.5px;padding:4px 8px;text-decoration:none" href="/dash/producto-descargar?tema=${encodeURIComponent(tema)}&tipo=${encodeURIComponent(tipoActual)}&pieza=${p.idx}&key=${encodeURIComponent(KEY)}">⬇</a>
           <label class="btn-ghost" title="Subir tu propia versión" style="font-size:10.5px;padding:4px 8px;cursor:pointer">📤<input type="file" accept="image/*" data-idx="${p.idx}" class="pn-up" style="display:none"></label>
           ${pnRegenLabel(tipoActual,p.idx)?`<button class="btn-ghost pn-regen" data-idx="${p.idx}" title="Regenerar con IA: ${pnRegenLabel(tipoActual,p.idx)}" style="font-size:10.5px;padding:4px 8px">♻</button>`:''}
-          ${esCalendario?`<button class="btn-ghost pn-cal-edit" data-mes="${p.idx+1}" data-tema="${esc(tema)}" title="Acomodar y regenerar solo este mes" style="font-size:10.5px;padding:4px 8px">✏️ ajustar</button>`:''}
+          ${esCalendario?`<button class="btn-ghost pn-cal-edit" data-mes="${p.idx+1}" data-tema="${esc(tema)}" title="Acomodar la regla de este grupo (los meses de 5 y de 6 filas se configuran por separado)" style="font-size:10.5px;padding:4px 8px">✏️ ajustar</button>`:''}
           ${p.override?`<button class="btn-ghost pn-revert" data-idx="${p.idx}" style="font-size:10.5px;padding:4px 8px">↺ original</button>`:''}
         </div>
       </div>`;}).join('');
@@ -1523,8 +1523,14 @@ cargar();
 </script>
 
 <dialog id="cal-editor-modal" style="border:none;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.3);max-width:1350px;width:90%;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%)">
-  <div style="padding:20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee">
+  <div style="padding:20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee;gap:12px;flex-wrap:wrap">
     <h2 style="margin:0;font-size:18px;font-family:Fredoka,sans-serif;color:#333">⚙️ Editor de Plantilla de Calendario</h2>
+    <!-- DOS reglas de posiciones: los meses de 5 filas y los de 6 filas se acomodan
+         distinto (la grilla de 6 necesita otro espaciado). Cada botón edita SU regla. -->
+    <div id="cal-grupo-toggle" style="display:flex;gap:6px">
+      <button type="button" class="btn-ghost" data-filas="5" style="font-size:12px;padding:6px 14px;border-radius:999px;border:1px solid #ccc;cursor:pointer">5 filas</button>
+      <button type="button" class="btn-ghost" data-filas="6" style="font-size:12px;padding:6px 14px;border-radius:999px;border:1px solid #ccc;cursor:pointer">6 filas</button>
+    </div>
   </div>
 <div id="cal-editor-container">
 <!-- Editor de calendario embebible en modal - SIMPLE Y AUTOMÁTICO -->
@@ -1644,6 +1650,11 @@ document.addEventListener('click', (e) => {
   if (zi && zi.dataset.full) { window.verImagenGrande(zi.dataset.full); return; }
   if (e.target.id === 'cal-editor-btn') {
     if (window.TEMA_ACTUAL) window.abrirEditorCal(0);
+    return;
+  }
+  const gt = e.target.closest && e.target.closest('#cal-grupo-toggle button');
+  if (gt) {
+    activarRegla(parseInt(gt.dataset.filas) === 6 ? 6 : 5, 0);
     return;
   }
   const edb = e.target.closest && e.target.closest('.pn-cal-edit');
@@ -1921,14 +1932,63 @@ SLIDER_IDS.forEach(id => {
     });
   }
 });
-if (anyoInput) anyoInput.addEventListener('input', dibujarPreview);
+if (anyoInput) anyoInput.addEventListener('input', () => {
+  // Al cambiar el año cambian qué meses tienen 6 filas: re-encajar el preview en el grupo.
+  activarRegla(window.calEditorFilas || 5, window.calEditorMes);
+});
 if (monthColorInput) monthColorInput.addEventListener('input', dibujarPreview);
 if (domingoRojoInput) domingoRojoInput.addEventListener('change', dibujarPreview);
 
 // --- Memoria por tema: precargar coordenadas + fondo guardado ---
 const _MESES_CAL = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-window.calEditorMes = 0;
+window.calEditorMes = 1;      // mes que se PREVISUALIZA (siempre uno del grupo activo)
+window.calEditorFilas = 5;    // regla activa: 5 o 6 filas
+window.calLayoutCache = null; // layout del tema, para cambiar de regla sin re-fetch
 window.calHuboCambios = false;
+
+// Cantidad de filas (semanas, lunes primero) del mes — mismo cálculo que el motor.
+function filasDelMes(anyo, mes) {
+  const start = (new Date(anyo, mes - 1, 1).getDay() + 6) % 7;
+  const dias = new Date(anyo, mes, 0).getDate();
+  return Math.ceil((start + dias) / 7);
+}
+function mesesDeRegla(anyo, filas) {
+  const out = [];
+  for (let m = 1; m <= 12; m++) {
+    if ((filas === 6) === (filasDelMes(anyo, m) >= 6)) out.push(m);
+  }
+  return out;
+}
+function configDeRegla(layout, filas) {
+  const base = (layout && layout.base) || {};
+  return filas === 6 ? ((layout && layout.base6) || base) : base;
+}
+function pintarGrupoToggle() {
+  const anyo = parseInt(anyoInput && anyoInput.value) || 2026;
+  document.querySelectorAll('#cal-grupo-toggle button').forEach(function (b) {
+    const f = parseInt(b.dataset.filas);
+    const activo = f === window.calEditorFilas;
+    b.textContent = f + ' filas (' + mesesDeRegla(anyo, f).length + ' meses)';
+    b.style.background = activo ? '#4FA11C' : '#fff';
+    b.style.color = activo ? '#fff' : '#333';
+    b.style.borderColor = activo ? '#4FA11C' : '#ccc';
+  });
+  if (genBtn) {
+    const g = mesesDeRegla(anyo, window.calEditorFilas);
+    genBtn.textContent = '🚀 Regenerar los ' + g.length + ' meses de ' + window.calEditorFilas + ' filas';
+  }
+}
+// Activa una regla (5/6): carga sus coordenadas en el formulario y previsualiza
+// un mes de ese grupo (el pedido, si pertenece; si no, el primero).
+function activarRegla(filas, mesPreferido) {
+  window.calEditorFilas = filas;
+  const anyo = parseInt(anyoInput && anyoInput.value) || 2026;
+  const grupo = mesesDeRegla(anyo, filas);
+  window.calEditorMes = (mesPreferido && grupo.indexOf(mesPreferido) >= 0) ? mesPreferido : (grupo[0] || 1);
+  if (window.calLayoutCache) aplicarLayout(configDeRegla(window.calLayoutCache, filas));
+  pintarGrupoToggle();
+  if (imagenCargada) dibujarPreview();
+}
 
 function _setCal(id, val) {
   if (val === null || val === undefined) return;
@@ -1969,11 +2029,10 @@ window.abrirEditorCal = async function(mes, tema) {
   mes = mes || 0;
   if (tema) window.TEMA_ACTUAL = tema;
   if (!window.TEMA_ACTUAL) return;
-  window.calEditorMes = mes;
   const modal = document.getElementById('cal-editor-modal');
   if (!modal) return;
   imagenCargada = null; plantillaFile = null;
-  if (genBtn) { genBtn.disabled = true; genBtn.textContent = mes ? ('🚀 Regenerar solo ' + _MESES_CAL[mes - 1]) : '🚀 Generar 12 meses'; }
+  if (genBtn) genBtn.disabled = true;
   if (statusDiv) statusDiv.textContent = 'Cargando…';
   if (preview) preview.innerHTML = '<div style="padding:40px;color:#999">Cargando…</div>';
   try { modal.showModal(); } catch (e) {}
@@ -1981,16 +2040,17 @@ window.abrirEditorCal = async function(mes, tema) {
     const r = await fetch('/dash/calendario-layout?tema=' + encodeURIComponent(window.TEMA_ACTUAL), { headers: { 'X-API-Key': KEY } });
     const j = await r.json();
     if (j && j.ok) {
-      const base = (j.layout && j.layout.base) || {};
-      const perMes = (mes && j.layout && j.layout.meses) ? j.layout.meses[String(mes)] : null;
-      aplicarLayout(perMes || base);
+      window.calLayoutCache = j.layout || {};
       if (anyoInput && j.layout && j.layout.anyo) anyoInput.value = j.layout.anyo;
+      const anyo = parseInt(anyoInput && anyoInput.value) || 2026;
+      // Regla según el mes clickeado (los de 6 filas abren SU regla); sin mes → 5 filas.
+      activarRegla(mes ? (filasDelMes(anyo, mes) >= 6 ? 6 : 5) : 5, mes || 0);
       if (j.tiene_fondo) await cargarFondoGuardado(window.TEMA_ACTUAL);
-      let msg = '';
-      if (mes) msg = '✏️ Editás SOLO ' + _MESES_CAL[mes - 1] + '. Acomodá la grilla y regenerá ese mes.';
-      else if (j.origen === 'default') msg = 'ℹ️ Coordenadas heredadas de otra temática (ajustalas si hace falta).';
-      else if (j.origen === 'vacio') msg = 'ℹ️ Tema nuevo: posiciones por defecto.';
-      if (!j.tiene_fondo) msg += (msg ? '  ' : '') + '📤 Subí la plantilla de fondo.';
+      let msg = '🗓️ Editás la regla de ' + window.calEditorFilas + ' filas: al regenerar se aplica a TODOS los meses de ' +
+                window.calEditorFilas + ' filas (los de ' + (window.calEditorFilas === 6 ? 5 : 6) + ' filas no se tocan).';
+      if (j.origen === 'default') msg += '  ℹ️ Coordenadas heredadas de otra temática.';
+      else if (j.origen === 'vacio') msg += '  ℹ️ Tema nuevo: posiciones por defecto.';
+      if (!j.tiene_fondo) msg += '  📤 Subí la plantilla de fondo.';
       if (statusDiv) statusDiv.textContent = msg;
     }
   } catch (e) { if (statusDiv) statusDiv.textContent = ''; }
@@ -2006,9 +2066,11 @@ if (genBtn) {
       return;
     }
 
-    const mes = window.calEditorMes || 0;
+    const filas = window.calEditorFilas || 5;
+    const anyo = parseInt(anyoInput.value) || 2026;
+    const grupo = mesesDeRegla(anyo, filas);
     genBtn.disabled = true;
-    statusDiv.textContent = mes ? ('⏳ Regenerando ' + _MESES_CAL[mes - 1] + '...') : '⏳ Generando...';
+    statusDiv.textContent = '⏳ Regenerando los ' + grupo.length + ' meses de ' + filas + ' filas...';
 
     const p = leerParams();
     const config = {
@@ -2021,9 +2083,9 @@ if (genBtn) {
     const qs = new URLSearchParams({
       tema: window.TEMA_ACTUAL,
       anyo: anyoInput.value,
+      filas: String(filas),
       config: JSON.stringify(config)
     });
-    if (mes) qs.set('mes', String(mes));
 
     try {
       const res = await fetch('/dash/calendario-generar?' + qs.toString(), {
@@ -2033,10 +2095,11 @@ if (genBtn) {
       });
 
       if (res.ok) {
-        // Mismo comportamiento en ambos casos: cerrar el editor y volver al popup
-        // de "Otros productos" refrescado (sin recargar toda la página).
+        // Guardar la regla también en el cache local, para que cambiar de grupo
+        // sin cerrar el modal muestre lo recién guardado.
+        if (window.calLayoutCache) window.calLayoutCache[filas === 6 ? 'base6' : 'base'] = config;
         window.calHuboCambios = false;
-        statusDiv.textContent = mes ? ('✅ ' + _MESES_CAL[mes - 1] + ' regenerado') : '✅ 12 meses generados';
+        statusDiv.textContent = '✅ ' + grupo.length + ' meses de ' + filas + ' filas regenerados';
         setTimeout(() => {
           document.getElementById('cal-editor-modal').close();
           if (window.__refrescarProductos) window.__refrescarProductos();

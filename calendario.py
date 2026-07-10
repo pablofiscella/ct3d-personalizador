@@ -455,6 +455,36 @@ _DEFAULT_CAL_CONFIG = {
 }
 
 
+def filas_del_mes(anyo, mes):
+    """Cantidad de filas (semanas, lunes primero) que ocupa el mes en la grilla.
+    En 2026: marzo/agosto/noviembre ocupan 6 filas; el resto 5."""
+    return len(calendar.Calendar().monthdayscalendar(int(anyo), mes))
+
+
+def meses_por_filas(anyo, filas):
+    """Meses (1-12) del año que ocupan exactamente `filas` filas si filas==6,
+    o 5 filas O MENOS si filas==5 (febrero puede ocupar 4)."""
+    if int(filas) >= 6:
+        return [m for m in range(1, 13) if filas_del_mes(anyo, m) >= 6]
+    return [m for m in range(1, 13) if filas_del_mes(anyo, m) < 6]
+
+
+def config_para_mes(layout, anyo, mes):
+    """Config efectiva de un mes según las DOS reglas del layout:
+    override puntual del mes > regla de 6 filas (`base6`) > regla general (`base`).
+    Los meses de 6 filas necesitan otra posición/espaciado para que la grilla
+    entre en el arte, por eso llevan regla propia."""
+    layout = layout or {}
+    cfg = (layout.get("meses") or {}).get(str(mes))
+    if cfg:
+        return cfg
+    if filas_del_mes(anyo, mes) >= 6:
+        cfg = layout.get("base6")
+        if cfg:
+            return cfg
+    return layout.get("base") or {}
+
+
 def generar_mes_con_plantilla(data, plantilla_img, tema, mes, config):
     """Genera UN solo mes (1-12) con config + plantilla y devuelve la PIL Image RGBA.
     Se usa para regenerar un mes puntual desde su tarjeta (editor por mes), con
