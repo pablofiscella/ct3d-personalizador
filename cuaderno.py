@@ -1122,10 +1122,26 @@ def _a_buscar(b, n):
     b.y = BOT
     b.soladd("buscar", [placed[t] for t in targets])
 
+def _cerrar_huecos_lineart(g):
+    """Cierra huecos chicos del contorno para que el balde (flood-fill) NO se escape y
+    pinte todo el fondo. El line-art de la IA a veces deja un trazo ABIERTO (bug real: la
+    planta de abajo-izq. de safari/colorear_2 tenía un gap de ~9px → pintar la hoja pintaba
+    toda la escena). Clausura morfológica: dilata el negro y lo vuelve a erosionar → puentea
+    gaps de hasta ~2·r px sin engrosar el trazo de forma perceptible (+~1% de tinta). `g` es
+    L umbralizada (0=línea, 255=fondo). Radio proporcional al tamaño (~5 para 2400px)."""
+    r = max(3, round(g.width / 480))
+    for _ in range(r):
+        g = g.filter(ImageFilter.MinFilter(3))
+    for _ in range(r):
+        g = g.filter(ImageFilter.MaxFilter(3))
+    return g
+
+
 def _colorear_imgs(tema):
     """Páginas para colorear DIBUJADAS por OpenAI (colorear*.png en extras/ o ia_draft/),
-    cada una con garantía B/N idempotente. Lista (puede haber varias). Vacía si todavía no
-    hay ninguna -> el cuaderno cae al line art derivado del personaje (fallback)."""
+    cada una con garantía B/N idempotente + huecos del contorno cerrados (anti-fuga del
+    balde). Lista (puede haber varias). Vacía si todavía no hay ninguna -> el cuaderno cae
+    al line art derivado del personaje (fallback)."""
     seen, out = set(), []
     for d in ("extras", "ia_draft"):
         for p in sorted(glob.glob(os.path.join(TEMAS, tema, d, "colorear*.png"))):
@@ -1135,7 +1151,8 @@ def _colorear_imgs(tema):
             seen.add(n)
             im = Image.open(p).convert("RGBA")
             bg = Image.new("RGBA", im.size, (255, 255, 255, 255)); bg.alpha_composite(im)
-            out.append(bg.convert("L").point(lambda v: 0 if v < 165 else 255).convert("RGBA"))
+            g = bg.convert("L").point(lambda v: 0 if v < 165 else 255)
+            out.append(_cerrar_huecos_lineart(g).convert("RGBA"))
     return out
 
 def _a_colorear(b, k=0):
