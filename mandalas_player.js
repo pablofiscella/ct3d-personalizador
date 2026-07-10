@@ -13,7 +13,13 @@
   var estrellas = function (n) {
     var s = ""; for (var i = 0; i < 6; i++) s += i < n ? "★" : "☆"; return s;
   };
-  var claveGuardado = function (idx) { return "mand:" + location.pathname + ":" + idx; };
+  // Clave de guardado atada a la VERSIÓN del asset (?v=mtime): si el arte se regenera,
+  // la clave cambia y NO se restaura el snapshot viejo encima de la mándala nueva.
+  var claveGuardado = function (idx) {
+    var m = MANDALAS[idx] || {};
+    var v = (m.src && m.src.indexOf("v=") >= 0) ? m.src.split("v=")[1] : "0";
+    return "mand:" + location.pathname + ":" + idx + ":" + v;
+  };
 
   // ── galería ──
   function armarGaleria() {
