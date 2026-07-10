@@ -83,12 +83,12 @@
   function dibujarBase(cb) {
     var im = new Image();
     im.onload = function () {
-      var maxW = Math.min(920, (cv.parentElement.clientWidth || 900) - 24);
-      var esc = Math.min(1, maxW / im.width);
-      cv.width = Math.round(im.width * esc);
-      cv.height = Math.round(im.height * esc);
-      cx.fillStyle = "#fff"; cx.fillRect(0, 0, cv.width, cv.height);
-      cx.drawImage(im, 0, 0, cv.width, cv.height);
+      // Resolución INTERNA fija (cuadrada) → el flood-fill es estable y el CSS
+      // (max-width/height:100%) ajusta el display para que entre en el alto de la pantalla.
+      var S = 900;
+      cv.width = S; cv.height = S;
+      cx.fillStyle = "#fff"; cx.fillRect(0, 0, S, S);
+      cx.drawImage(im, 0, 0, S, S);
       if (cb) cb();
     };
     im.src = MANDALAS[idxActual].src;

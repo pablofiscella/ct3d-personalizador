@@ -14,10 +14,11 @@
   body{
     font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif; color:var(--ink);
     background:var(--bg); overscroll-behavior:none;
+    height:100dvh; display:flex; flex-direction:column;
   }
   header{
-    display:flex; align-items:center; gap:12px; padding:14px 16px;
-    background:var(--card); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5;
+    display:flex; align-items:center; gap:12px; padding:12px 16px; flex:0 0 auto;
+    background:var(--card); border-bottom:1px solid var(--line); z-index:5;
   }
   header h1{font-size:19px; margin:0; font-weight:800; letter-spacing:.2px; flex:1;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
@@ -27,7 +28,7 @@
   }
   .btn.ac{background:var(--ac); color:#fff}
   .btn.gh{background:transparent; border:1.5px solid var(--line)}
-  .wrap{max-width:1000px; margin:0 auto; padding:16px}
+  .wrap{flex:1 1 auto; min-height:0; overflow:auto; max-width:1100px; margin:0 auto; width:100%; padding:14px}
   /* galería */
   .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:16px}
   .card{
@@ -39,21 +40,26 @@
   .card .dif{margin-top:8px; font-size:13px; color:var(--muted); font-weight:700}
   .card .stars{color:var(--ac); letter-spacing:2px; font-size:13px}
   .intro{color:var(--muted); font-size:15px; margin:2px 0 16px}
-  /* pintar */
+  /* pintar: rieles laterales (botones izq · colores der) + canvas que entra en el alto */
   #paint{display:none}
-  #paint.on{display:block}
+  #paint.on{display:flex; height:100%}
   #gallery.off{display:none}
-  .canvasbox{display:flex; justify-content:center; background:var(--card);
-    border:1px solid var(--line); border-radius:16px; padding:10px; box-shadow:var(--shadow)}
-  canvas{max-width:100%; touch-action:none; border-radius:8px; cursor:crosshair}
-  .palette{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:14px 0}
-  .swatch{width:44px; height:44px; border-radius:50%; border:3px solid #fff;
+  .paint-layout{display:flex; gap:10px; width:100%; height:100%; align-items:stretch}
+  .rail{display:flex; flex-direction:column; gap:8px; flex:0 0 auto; overflow-y:auto; padding:2px; align-items:center}
+  .canvasbox{flex:1 1 auto; min-width:0; display:flex; align-items:center; justify-content:center;
+    background:var(--card); border:1px solid var(--line); border-radius:16px; padding:8px; box-shadow:var(--shadow)}
+  canvas{max-width:100%; max-height:100%; touch-action:none; border-radius:8px; cursor:crosshair}
+  .tbtn{width:60px; min-height:54px; border-radius:14px; border:1.5px solid var(--line);
+    background:var(--card); color:var(--ink); cursor:pointer; padding:6px 2px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px}
+  .tbtn span{font-size:20px; line-height:1}
+  .tbtn small{font-size:9px; font-weight:700}
+  .tbtn.ac{background:var(--ac); color:#fff; border-color:var(--ac)}
+  .swatch{width:46px; height:46px; border-radius:50%; border:3px solid #fff; flex:0 0 auto;
     box-shadow:0 0 0 1.5px var(--line); cursor:pointer; padding:0}
   .swatch.on{box-shadow:0 0 0 3px var(--ac); transform:scale(1.08)}
   .swatch.eraser{background:#fff !important; position:relative}
   .swatch.eraser::after{content:"⌫"; position:absolute; inset:0; display:grid; place-items:center; color:#b9ad9c}
-  .tools{display:flex; gap:10px; flex-wrap:wrap; justify-content:center}
-  .hint{text-align:center; color:var(--muted); font-size:14px; margin:10px 0 2px}
   @media (prefers-color-scheme:dark){
     :root{--bg:#221f1c; --card:#2c2825; --ink:#efe7dc; --muted:#a89e93; --line:#3c352f}
   }
@@ -72,15 +78,16 @@
   </section>
 
   <section id="paint">
-    <div class="tools" style="margin-bottom:12px">
-      <button class="btn gh" id="volver">← Elegir otra</button>
-      <button class="btn gh" id="undo">↩️ Deshacer</button>
-      <button class="btn gh" id="limpiar">🧽 Limpiar</button>
-      <button class="btn ac" id="guardar">⬇️ Guardar dibujo</button>
+    <div class="paint-layout">
+      <div class="rail rail-left">
+        <button class="tbtn" id="volver" title="Elegir otra mándala"><span>←</span><small>Otra</small></button>
+        <button class="tbtn" id="undo" title="Deshacer"><span>↩️</span><small>Deshacer</small></button>
+        <button class="tbtn" id="limpiar" title="Limpiar"><span>🧽</span><small>Limpiar</small></button>
+        <button class="tbtn ac" id="guardar" title="Guardar dibujo"><span>⬇️</span><small>Guardar</small></button>
+      </div>
+      <div class="canvasbox"><canvas id="lienzo"></canvas></div>
+      <div class="rail rail-right" id="palette"></div>
     </div>
-    <div class="canvasbox"><canvas id="lienzo"></canvas></div>
-    <div class="palette" id="palette"></div>
-    <p class="hint">Tocá una zona para pintarla · el blanco (⌫) borra</p>
   </section>
 </div>
 
