@@ -182,3 +182,12 @@ def test_tipo_registrado_en_productos():
     import productos
     assert productos.existe_tipo("rompecabezas-web")
     assert productos.campos_tipo("rompecabezas-web") == ["nombre", "edad"]
+
+
+def test_portada_banda_clara_y_edad_mas():
+    """Feedback Pablo 11-jul: la banda inferior de la portada es SIEMPRE clara
+    (con la paleta oscura del tema espacial salía azul) y la edad se muestra
+    como «+N años»."""
+    im = rw.preview_mock({"nombre": "", "edad": "3"}, "un-espacio-de-locura")
+    r, g, b = im.convert("RGB").getpixel((450, 1120))
+    assert 0.299 * r + 0.587 * g + 0.114 * b > 180, "banda oscura en la portada"
