@@ -172,6 +172,15 @@ cachear → reusar. Solo se vende lo revisado. Toda pieza conserva su fallback p
   Bézier cúbicas formando un knob; bulbo ≈20-25% del largo del borde, más ancho que su
   cuello (traba de verdad); jitter aleatorio en posición/tamaño de knobs (cada pieza
   única). Es EL diferenciador pro.
+- **Knobs ACOTADOS y en DAMERO (bug real 11-jul-2026, Pablo probando el web)**: la
+  punta del knob ≤~31% del borde (con la escala 0.9 queda <30% de la celda) y el
+  bulbo ≤~½ del borde — con la receta vieja (punta al 45%) los knobs de bordes
+  perpendiculares se CRUZABAN (~12 cruces por puzzle: líneas superpuestas, piezas
+  con puntas "sueltas"). Flips por PARIDAD, no al azar: toda pieza interior con 2
+  trabas + 2 huecos (con flip random salían piezas con 4 trabas para afuera).
+  Test guardián: `tests/test_rompecabezas_bordes.py` (intersecciones en 3
+  proporciones de celda + profundidad + damero) — correrlo ante CUALQUIER retoque
+  de `_borde_knob`/`_bordes_grilla`.
 - Grillas por edad (hoja carta apaisada, arte 24x18cm): **4x3=12 piezas de 6x6cm**
   (3-5 años) · **5x4=20 piezas de ~4.8x4.5cm** (5-7). Menores de 3: piezas ≥5cm
   (seguridad: nada que entre en cilindro de Ø3.2cm).

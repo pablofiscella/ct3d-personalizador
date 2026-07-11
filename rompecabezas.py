@@ -83,30 +83,48 @@ def _bezier(p0, p1, p2, p3, n=24):
     return pts
 
 
-def _borde_knob(rnd):
+def _borde_knob(rnd, flip=None):
     """Polilínea (coordenadas unitarias, borde de (0,0) a (1,0)) de un borde de
-    puzzle con knob: 3 Bézier cúbicas, bulbo ~20% del borde y más ancho que su
-    cuello (traba real), con jitter — la receta de los generadores clásicos."""
-    t = 0.2                                     # tamaño del bulbo
-    j = 0.04                                    # jitter
+    puzzle con knob: 3 Bézier cúbicas, bulbo más ancho que su cuello (traba
+    real), con jitter — la receta de los generadores clásicos.
+
+    ACOTADO 11-jul-2026 (feedback Pablo probando el rompecabezas web): la
+    versión anterior (t=0.2, controles a 3t) llevaba la PUNTA del knob al ~45%
+    de la celda (el comentario decía 18%…) y los knobs de bordes
+    perpendiculares se CRUZABAN entre sí (~12 cruces por puzzle 4x5): líneas
+    superpuestas y piezas con puntas visualmente sueltas. Ahora la punta llega
+    al ~31% del borde (~28% de la celda con la escala 0.9) y el bulbo abarca
+    ~½ del borde — knobs que jamás se tocan (test guardián de intersecciones
+    en tests/test_rompecabezas_bordes.py)."""
+    t = 0.14                                    # medio ancho del cuello
+    j = 0.03                                    # jitter
     a, b, c, d = (rnd.uniform(-j, j) for _ in range(4))
-    flip = rnd.choice((1, -1))                  # knob para un lado o el otro
+    if flip is None:
+        flip = rnd.choice((1, -1))              # knob para un lado o el otro
     def f(x, y):
         return (x, y * flip)
     p = []
-    p += _bezier(f(0, 0), f(0.2, a), f(0.5 + b + d, -t + c), f(0.5 - t + b, t + c))
-    p += _bezier(f(0.5 - t + b, t + c), f(0.5 - 2 * t + b - d, 3 * t + c),
-                 f(0.5 + 2 * t + b - d, 3 * t + c), f(0.5 + t + b, t + c))[1:]
-    p += _bezier(f(0.5 + t + b, t + c), f(0.5 + b + d, -t + c), f(0.8, a), f(1, 0))[1:]
+    p += _bezier(f(0, 0), f(0.25, a), f(0.5 + b + d, -0.6 * t + c), f(0.5 - t + b, t + c))
+    p += _bezier(f(0.5 - t + b, t + c), f(0.5 - 2.2 * t + b - d, 2.6 * t + c),
+                 f(0.5 + 2.2 * t + b - d, 2.6 * t + c), f(0.5 + t + b, t + c))[1:]
+    p += _bezier(f(0.5 + t + b, t + c), f(0.5 + b + d, -0.6 * t + c), f(0.75, a), f(1, 0))[1:]
     return p
 
 
 def _bordes_grilla(cols, filas, seed):
     """Bordes interiores de la grilla, determinísticos por seed: el MISMO seed
-    reproduce las MISMAS formas en la página bandeja."""
+    reproduce las MISMAS formas en la página bandeja.
+
+    Flips en DAMERO (no al azar — feedback Pablo 11-jul-2026): con flip
+    aleatorio salían piezas con las 4 trabas para afuera («puntas que no las
+    une nada»); alternando por paridad, TODA pieza interior queda con 2 trabas
+    y 2 huecos, como los puzzles comerciales. La variedad la sigue poniendo el
+    jitter (cada pieza es única igual)."""
     rnd = random.Random(seed)
-    horiz = [[_borde_knob(rnd) for _ in range(cols)] for _ in range(filas - 1)]
-    vert = [[_borde_knob(rnd) for _ in range(filas)] for _ in range(cols - 1)]
+    horiz = [[_borde_knob(rnd, 1 if (fi + ci) % 2 == 0 else -1)
+              for ci in range(cols)] for fi in range(filas - 1)]
+    vert = [[_borde_knob(rnd, 1 if (ci + fi) % 2 == 0 else -1)
+             for fi in range(filas)] for ci in range(cols - 1)]
     return horiz, vert
 
 
