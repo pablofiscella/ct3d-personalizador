@@ -19,6 +19,11 @@ const rint = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 
 let D = null;              // data.json
 const ESC = 0.9;           // escala del knob (idéntica a rompecabezas._dibujar_cortes)
+/* cache-buster de los assets del token: los sirve el server con caché de 24h;
+   DV (mtime del data.json, inyectado en el HTML que es no-store) cambia al
+   REGENERAR el token — sin esto el navegador mostraba piezas viejas. */
+const DV = window.DV || "1";
+const bust = (src) => src + "?v=" + DV;
 
 /* ── persistencia (estrellas + progreso + sonido) por token ── */
 const Store = {
@@ -140,8 +145,8 @@ function pintarHeader() {
   $("#hdrSub").textContent = `${D.tema_nombre} · Casatridimensional`;
   const av = $("#avatar"), mf = $("#mascoFestejo");
   if (D.masco) {
-    av.innerHTML = ""; av.appendChild(el("img")).src = D.masco;
-    mf.innerHTML = ""; const m = el("img", "masco"); m.src = D.masco; mf.appendChild(m);
+    av.innerHTML = ""; av.appendChild(el("img")).src = bust(D.masco);
+    mf.innerHTML = ""; const m = el("img", "masco"); m.src = bust(D.masco); mf.appendChild(m);
   } else {
     av.textContent = "🧩";
     mf.innerHTML = ""; mf.appendChild(el("div", "mascoEmoji", "🧩"));
@@ -167,7 +172,7 @@ function pintarMenu() {
   const menu = el("div"); menu.id = "menu";
   D.puzzles.forEach((p, i) => {
     const c = el("button", "carta", `
-      <div class="foto"><img src="${p.thumb}" alt="" loading="lazy"></div>
+      <div class="foto"><img src="${bust(p.thumb)}" alt="" loading="lazy"></div>
       <div class="nombre">Rompecabezas ${i + 1}</div>
       <div class="mini-est">${estrellitas(Math.min(3, Math.round(starsPuzzle(i) / D.targets.length)))}</div>`);
     c.addEventListener("click", () => { Sfx.pop(); pintarNiveles(i); });
@@ -184,7 +189,7 @@ function pintarNiveles(pi) {
   stage.className = ""; stage.innerHTML = "";
   const p = D.puzzles[pi];
   const cont = el("div"); cont.id = "niveles";
-  cont.appendChild(el("div", "foto", `<img src="${p.thumb}" alt="">`));
+  cont.appendChild(el("div", "foto", `<img src="${bust(p.thumb)}" alt="">`));
   cont.appendChild(el("h2", "", "¿De cuántas piezas lo armás?"));
   const btns = el("div"); btns.id = "nivelBtns";
   D.targets.forEach((t) => {
@@ -258,7 +263,7 @@ const Juego = {
       $("#cargando").style.display = "none";
       this.dibujar();
     };
-    this.img.src = this.puz.img;
+    this.img.src = bust(this.puz.img);
   },
 
   cerrar() {
@@ -517,7 +522,7 @@ async function boot() {
   Sfx.on = Store.data.sound !== false;
   $("#btnSonido").textContent = Sfx.on ? "🔊" : "🔇";
   try {
-    D = await (await fetch("data.json")).json();
+    D = await (await fetch(bust("data.json"))).json();
   } catch (e) {
     $("#cargando").innerHTML = "<div class='fx' style='font-size:22px'>No pudimos cargar 😕<br>Probá recargar la página.</div>";
     return;

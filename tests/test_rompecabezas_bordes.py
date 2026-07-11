@@ -70,13 +70,14 @@ def test_bordes_no_se_cruzan(cw, ch):
 
 
 def test_profundidad_acotada():
-    """La punta del knob no pasa de ~⅓ del borde (con ESC queda <30% de la
-    celda): garantiza que nunca invade el knob de la celda de enfrente."""
+    """Proporciones comerciales (feedback Pablo 11-jul: «uniones más chicas»):
+    la punta del knob queda en ~21% de la celda (0.235 unitario + jitter) —
+    nunca por encima de 0.28, que ya se ve tosco e invade a la vecina."""
     horiz, vert = _bordes_grilla(6, 6, 7)
     for grupo in (horiz, vert):
         for fila in grupo:
             for e in fila:
-                assert max(abs(y) for _, y in e) < 0.36
+                assert 0.16 < max(abs(y) for _, y in e) < 0.28
 
 
 def test_flips_en_damero():

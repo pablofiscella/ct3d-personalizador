@@ -88,16 +88,19 @@ def _borde_knob(rnd, flip=None):
     puzzle con knob: 3 Bézier cúbicas, bulbo más ancho que su cuello (traba
     real), con jitter — la receta de los generadores clásicos.
 
-    ACOTADO 11-jul-2026 (feedback Pablo probando el rompecabezas web): la
-    versión anterior (t=0.2, controles a 3t) llevaba la PUNTA del knob al ~45%
-    de la celda (el comentario decía 18%…) y los knobs de bordes
-    perpendiculares se CRUZABAN entre sí (~12 cruces por puzzle 4x5): líneas
-    superpuestas y piezas con puntas visualmente sueltas. Ahora la punta llega
-    al ~31% del borde (~28% de la celda con la escala 0.9) y el bulbo abarca
-    ~½ del borde — knobs que jamás se tocan (test guardián de intersecciones
-    en tests/test_rompecabezas_bordes.py)."""
-    t = 0.14                                    # medio ancho del cuello
-    j = 0.03                                    # jitter
+    ACOTADO 11-jul-2026 (feedback Pablo probando el rompecabezas web, en dos
+    rondas — «las uniones tienen que ser más chicas»): la versión original
+    (t=0.2, controles a 3t) llevaba la PUNTA del knob al ~45% de la celda (el
+    comentario decía 18%…) y los knobs de bordes perpendiculares se CRUZABAN
+    entre sí (~12 cruces por puzzle 4x5): líneas superpuestas y piezas con
+    puntas visualmente sueltas. Proporciones actuales CALIBRADAS contra el
+    estándar comercial ribbon-cut (= default del generador clásico de
+    Draradech: traba ~20% de la celda), medidas con ESC=0.9:
+    profundidad ≈21% de la celda · bulbo ≈28% del borde · cuello 20%
+    (traba 1.4: el bulbo agarra de verdad). Knobs que jamás se tocan — test
+    guardián de intersecciones en tests/test_rompecabezas_bordes.py."""
+    t = 0.10                                    # medio ancho del cuello
+    j = 0.025                                   # jitter
     a, b, c, d = (rnd.uniform(-j, j) for _ in range(4))
     if flip is None:
         flip = rnd.choice((1, -1))              # knob para un lado o el otro
@@ -105,8 +108,8 @@ def _borde_knob(rnd, flip=None):
         return (x, y * flip)
     p = []
     p += _bezier(f(0, 0), f(0.25, a), f(0.5 + b + d, -0.6 * t + c), f(0.5 - t + b, t + c))
-    p += _bezier(f(0.5 - t + b, t + c), f(0.5 - 2.2 * t + b - d, 2.6 * t + c),
-                 f(0.5 + 2.2 * t + b - d, 2.6 * t + c), f(0.5 + t + b, t + c))[1:]
+    p += _bezier(f(0.5 - t + b, t + c), f(0.5 - 3.0 * t + b - d, 2.8 * t + c),
+                 f(0.5 + 3.0 * t + b - d, 2.8 * t + c), f(0.5 + t + b, t + c))[1:]
     p += _bezier(f(0.5 + t + b, t + c), f(0.5 + b + d, -0.6 * t + c), f(0.75, a), f(1, 0))[1:]
     return p
 

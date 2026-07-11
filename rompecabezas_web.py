@@ -361,15 +361,25 @@ def _player_version():
 
 def html(token):
     """El visor (HTML). Rutas RELATIVAS → servirlo SIEMPRE bajo /armar/<token>/
-    (con barra final). None si el token no está listo."""
+    (con barra final). None si el token no está listo.
+
+    {{DV}} = mtime del data.json del token: los assets van con Cache-Control
+    de 24h y sin esto, al REGENERAR un token el navegador seguía mostrando las
+    piezas viejas (le pasó a Pablo probando el fix de knobs 11-jul-2026 —
+    mismo cache-buster por asset que usa mandalas_web)."""
     from html import escape as _esc
     reg = _cargar(token)
     if not reg:
         return None
     with open(TEMPLATE_HTML, encoding="utf-8") as f:
         t = f.read()
+    try:
+        dv = str(int(os.path.getmtime(os.path.join(ROMPE_DIR, token, "data.json"))))
+    except OSError:
+        dv = "1"
     return (t.replace("{{TITULO}}", _esc(reg.get("titulo") or "Rompecabezas"))
-             .replace("{{V}}", _player_version()))
+             .replace("{{V}}", _player_version())
+             .replace("{{DV}}", dv))
 
 
 _ASSET_RE = re.compile(
