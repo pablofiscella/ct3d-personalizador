@@ -8,8 +8,14 @@
   var $ = function (id) { return document.getElementById(id); };
 
   // paleta: clásicos infantiles + tonos cálidos + blanco (borrador)
-  var COLORES = ["#E25555", "#F2984A", "#F7D154", "#8FC93A", "#3FA796", "#4F86C6",
-    "#7C5CBF", "#E36FA0", "#8D6E63", "#3A3330", "#C8674E", "#6B7A4F", "#FFFFFF"];
+  // paleta ampliada (2 columnas en el riel) + blanco (borrador) + color custom al final
+  var COLORES = [
+    "#E25555", "#C0392B", "#E36FA0", "#F78FB3",
+    "#F2984A", "#E67E22", "#F7D154", "#F4C430",
+    "#8FC93A", "#4E9F3D", "#2E7D32", "#7FD1AE",
+    "#3FA796", "#5BC0EB", "#4F86C6", "#1B4965",
+    "#7C5CBF", "#9B6BD6", "#8D6E63", "#5D4037",
+    "#3A3330", "#FFFFFF"];
   var estrellas = function (n) {
     var s = ""; for (var i = 0; i < 6; i++) s += i < n ? "★" : "☆"; return s;
   };
@@ -120,16 +126,27 @@
 
   function armarPaleta() {
     var pal = $("palette");
+    var seleccionar = function (b, c) {
+      color = c;
+      pal.querySelectorAll(".swatch").forEach(function (x) { x.classList.remove("on"); });
+      b.classList.add("on");
+    };
     COLORES.forEach(function (c, i) {
       var b = el("button", "swatch" + (c === "#FFFFFF" ? " eraser" : "") + (i === 0 ? " on" : ""));
       b.style.background = c;
-      b.addEventListener("click", function () {
-        color = c;
-        pal.querySelectorAll(".swatch").forEach(function (x) { x.classList.remove("on"); });
-        b.classList.add("on");
-      });
+      b.addEventListener("click", function () { seleccionar(b, c); });
       pal.appendChild(b);
     });
+    // color CUSTOM: swatch con el picker nativo; al elegir, pinta con ese color
+    var cust = el("button", "swatch custom");
+    var inp = el("input"); inp.type = "color"; inp.value = "#c0392b";
+    inp.addEventListener("input", function () {
+      cust.style.background = inp.value;
+      cust.classList.remove("custom");
+      seleccionar(cust, inp.value);
+    });
+    cust.appendChild(inp);
+    pal.appendChild(cust);
   }
 
   function init() {
