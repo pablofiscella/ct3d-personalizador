@@ -854,6 +854,38 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(body)))
             self.end_headers(); self.wfile.write(body)
             return
+        # ---- rompecabezas interactivo (link con token) ----
+        # Igual que /act: rutas RELATIVAS -> servir SIEMPRE bajo /armar/<tok>/.
+        m = re.match(r"^/armar/([A-Za-z0-9_-]+)(?:/([a-z_0-9.]*))?$", path)
+        if m:
+            import rompecabezas_web as rw
+            token, arch = m.group(1), m.group(2)
+            if arch is None:
+                self.send_response(301)
+                self.send_header("Location", "/armar/%s/" % token)
+                self.end_headers()
+                return
+            if arch:
+                r = rw.archivo(token, arch)
+                if r is None:
+                    return self._json(404, {"ok": False, "error": "no existe"})
+                data_b, ct = r
+                self.send_response(200)
+                self.send_header("Content-Type", ct)
+                self.send_header("Cache-Control", "public, max-age=86400")
+                self.send_header("Content-Length", str(len(data_b)))
+                self.end_headers(); self.wfile.write(data_b)
+                return
+            page = rw.html(token)
+            if page is None:
+                return self._json(404, {"ok": False, "error": "rompecabezas no encontrado"})
+            body = page.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers(); self.wfile.write(body)
+            return
         # ---- mándalas para pintar (modalidad web del kit; link con token) ----
         # Igual que /act: rutas RELATIVAS -> servir SIEMPRE bajo /pintar/<tok>/.
         m = re.match(r"^/pintar/([A-Za-z0-9_-]+)(?:/([a-z_0-9.]*))?$", path)
@@ -1177,12 +1209,20 @@ class Handler(BaseHTTPRequestHandler):
             # ¿es un cuaderno de actividades? (mismo canje: pegar el link /act/<tok>)
             import actividades_web as aw
             est = aw.estado(tok)
+            if est is not None:
+                reg = aw._cargar(tok) or {}
+                return self._json(200, {"ok": True, "tipo": "actividades-web", "estado": est,
+                                        "nombre": reg.get("nombre", ""), "tema": reg.get("tema", ""),
+                                        "url": f"{self.base_url()}/act/{tok}/"})
+            # ¿es un rompecabezas interactivo? (mismo canje: pegar el link /armar/<tok>)
+            import rompecabezas_web as rw
+            est = rw.estado(tok)
             if est is None:
                 return self._json(404, {"ok": False, "error": "token no encontrado"})
-            reg = aw._cargar(tok) or {}
-            return self._json(200, {"ok": True, "tipo": "actividades-web", "estado": est,
+            reg = rw._cargar(tok) or {}
+            return self._json(200, {"ok": True, "tipo": "rompecabezas-web", "estado": est,
                                     "nombre": reg.get("nombre", ""), "tema": reg.get("tema", ""),
-                                    "url": f"{self.base_url()}/act/{tok}/"})
+                                    "url": f"{self.base_url()}/armar/{tok}/"})
         if path != "/api/generar":
             return self._json(404, {"ok": False, "error": "ruta no encontrada"})
         if not secrets.compare_digest(self.headers.get("X-API-Key", "") or "", API_KEY):
@@ -1262,6 +1302,17 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(500, {"ok": False, "error": str(e)[:200]})
             return self._json(200, {"ok": True, "token": token, "act_token": tok_act,
                                     "download_url": f"{self.base_url()}/act/{tok_act}/"})
+        if tipo == "rompecabezas-web":
+            # El producto ES un link (rompecabezas interactivo, app viva).
+            # Generación SÍNCRONA y rápida — sin llamadas IA: cortes procedurales
+            # (la receta del imprimible) + arte ya existente del tema.
+            import rompecabezas_web as rw
+            try:
+                tok_r = rw.crear(data, tema)
+            except Exception as e:
+                return self._json(500, {"ok": False, "error": str(e)[:200]})
+            return self._json(200, {"ok": True, "token": token, "rompe_token": tok_r,
+                                    "download_url": f"{self.base_url()}/armar/{tok_r}/"})
         if tipo == "mandalas":
             # DOBLE modalidad en un solo producto: el visor /pintar/<tok>/ deja PINTAR las
             # mándalas online Y tiene el botón de descarga del PDF imprimible (el kit.zip que

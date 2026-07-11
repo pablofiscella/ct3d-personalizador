@@ -178,6 +178,11 @@ cachear → reusar. Solo se vende lo revisado. Toda pieza conserva su fallback p
 - Nombre en 100-150pt ocupando ~40% de la altura, sobre escena IA del tema (no fondo liso).
 - Premium: **página-bandeja** con el contorno de las piezas impreso (se arma encima) +
   imagen de referencia del puzzle armado.
+- **Versión WEB** (`rompecabezas_web.py`, producto `rompecabezas-web`, link
+  `/armar/<token>/`): exporta la MISMA receta de bordes a data.json como
+  polilíneas unitarias. Al tocar `_borde_knob`/`_bordes_grilla` mantener el
+  contrato — cada borde de (0,0) a (1,0), knob perpendicular acotado (<0.55) —
+  porque el player ya vendido lo mapea así. Doc: `docs/ROMPECABEZAS-WEB.md`.
 
 ## 7. GORRO Y CORONA — `corona.py` (YA rediseñado — es el modelo a seguir)
 
