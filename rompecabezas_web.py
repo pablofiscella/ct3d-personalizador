@@ -421,14 +421,24 @@ def n_puzzles(tema):
 
 
 def preview_puzzle(tema, idx):
-    """Una escena del set con los cortes encima (galería «qué incluye» de la
-    ficha, sin crear token)."""
+    """Una escena del set con los cortes encima, en tarjeta UNIFORME 3:4
+    (contain sobre el crema del tema: no se recorta nada y la galería de la
+    ficha queda pareja — Pablo 11-jul-2026: la mezcla de proporciones se veía
+    desprolija)."""
     paths = _imagenes_tema(tema)
     img = Image.open(paths[idx]).convert("RGB")
-    w, h = _formato(img)
-    im = fondos_ia.cover(img, w, h)
-    _dibujar_cortes_pil(im, 3, 4, zlib.crc32(b"portada-rompe"),
-                        (255, 255, 255, 175), 5)
+    W, H = 900, 1200
+    im = Image.new("RGB", (W, H), _hex_rgb(_paleta(tema)["soft"]))
+    esc = min((W - 60) / img.width, (H - 60) / img.height)
+    iw, ih = int(img.width * esc), int(img.height * esc)
+    img = img.resize((iw, ih), Image.LANCZOS)
+    x0, y0 = (W - iw) // 2, (H - ih) // 2
+    im.paste(img, (x0, y0))
+    from rompecabezas import _bordes_grilla, _dibujar_cortes
+    cols, filas = _grilla(12, iw, ih)
+    horiz, vert = _bordes_grilla(cols, filas, zlib.crc32(b"portada-rompe"))
+    _dibujar_cortes(ImageDraw.Draw(im, "RGBA"), x0, y0, iw, ih, cols, filas,
+                    horiz, vert, (255, 255, 255, 175), 5)
     return im
 
 

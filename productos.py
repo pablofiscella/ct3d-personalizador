@@ -523,14 +523,13 @@ def _piezas_actividades_web(tema):
     return [("1_actividades_web", lambda d: actividades_web.preview_mock(d, tema), False)]
 
 def _piezas_rompecabezas_web(tema):
-    # galería de la ficha: la portada + los 6 rompecabezas que incluye
-    # (pedido Pablo 11-jul-2026: «que aparezcan las imágenes»)
+    # galería de la ficha: SOLO los rompecabezas que incluye, en tarjeta
+    # UNIFORME 3:4 (Pablo 11-jul-2026: sin la portada con título — mostraba
+    # un nombre de muestra — y sin mezclar proporciones)
     import rompecabezas_web
-    piezas = [("0_portada", lambda d: rompecabezas_web.preview_mock(d, tema), False)]
-    for i in range(rompecabezas_web.n_puzzles(tema)):
-        piezas.append(("%d_rompecabezas" % (i + 1),
-                       (lambda d, i=i: rompecabezas_web.preview_puzzle(tema, i)), False))
-    return piezas
+    return [("%d_rompecabezas_%d" % (i + 1, i + 1),
+             (lambda d, i=i: rompecabezas_web.preview_puzzle(tema, i)), False)
+            for i in range(rompecabezas_web.n_puzzles(tema))]
 
 def _piezas_libro(tema):
     import libro
