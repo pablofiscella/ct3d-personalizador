@@ -88,7 +88,8 @@ def _preview_warm(tema, tipo, indices):
         for mx in (260, 1200):   # primero thumbs (render maestro); el 1200 deriva del maestro
             for i in indices:
                 try:
-                    urllib.request.urlopen("%s?%s&pieza=%d&max=%d" % (base, qs, int(i), mx),
+                    # mismo fmt que usa el popup del dash (jpg) para que la clave coincida
+                    urllib.request.urlopen("%s?%s&pieza=%d&max=%d&fmt=jpg" % (base, qs, int(i), mx),
                                            timeout=180).read()
                 except Exception:
                     pass
@@ -643,7 +644,9 @@ class Handler(BaseHTTPRequestHandler):
                     img = piezas.marca_agua(img)   # marca de agua SOLO en el preview (el comprado sale limpio)
                     buf = io.BytesIO()
                     if fmt in ("jpg", "jpeg"):
-                        img.convert("RGB").save(buf, "JPEG", quality=80, optimize=True)
+                        # to_rgb (fondo BLANCO), no convert("RGB") directo: convert aplana
+                        # la transparencia a NEGRO y las piezas con alpha salían oscuras
+                        piezas.to_rgb(img).save(buf, "JPEG", quality=80, optimize=True)
                     else:
                         img.save(buf, "PNG")
                     body = buf.getvalue()
