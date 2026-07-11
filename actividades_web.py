@@ -82,6 +82,10 @@ def _menu(banda, edad):
             {"id": "diferente", "titulo": "El distinto",      "icono": "🔍", "cfg": {"opciones": 3, "rondas": 5}},
             {"id": "tamano",    "titulo": "El más grande",    "icono": "📏", "cfg": {"rondas": 5}},
             {"id": "patron",    "titulo": "Seguí el patrón",  "icono": "🔁", "cfg": {"nivel": 1, "rondas": 5}},
+            {"id": "simon",     "titulo": "Escuchá y repetí", "icono": "🎵", "cfg": {"colores": 3, "rondas": 4}},
+            {"id": "agrupar",   "titulo": "¿Dónde va?",       "icono": "🧺", "cfg": {"canastas": 2, "rondas": 4}},
+            {"id": "quefalta",  "titulo": "¿Qué falta?",      "icono": "❓", "cfg": {"items": 3, "rondas": 4}},
+            {"id": "bingo",     "titulo": "Bingo de amigos",  "icono": "🎯", "cfg": {"tam": 4}},
         ]
     if banda == "media":
         m = [
@@ -95,6 +99,10 @@ def _menu(banda, edad):
             {"id": "mas_menos", "titulo": "¿Dónde hay más?",  "icono": "⚖️", "cfg": {"max": 6, "rondas": 5}},
             {"id": "diferente", "titulo": "El distinto",      "icono": "🔍", "cfg": {"opciones": 4, "rondas": 5}},
             {"id": "tamano",    "titulo": "El más grande",    "icono": "📏", "cfg": {"rondas": 5}},
+            {"id": "simon",     "titulo": "Escuchá y repetí", "icono": "🎵", "cfg": {"colores": 4, "rondas": 5}},
+            {"id": "agrupar",   "titulo": "¿Dónde va?",       "icono": "🧺", "cfg": {"canastas": 2, "rondas": 6}},
+            {"id": "quefalta",  "titulo": "¿Qué falta?",      "icono": "❓", "cfg": {"items": 4, "rondas": 5}},
+            {"id": "bingo",     "titulo": "Bingo de amigos",  "icono": "🎯", "cfg": {"tam": 6}},
         ]
         if e >= 5:
             m.append({"id": "sumas", "titulo": "Sumas", "icono": "➕", "cfg": {"max": 5, "rondas": 5}})
@@ -112,6 +120,10 @@ def _menu(banda, edad):
         {"id": "contar",    "titulo": "¿Cuántos hay?",    "icono": "🖐️", "cfg": {"max": 9, "rondas": 5}},
         {"id": "colorear",  "titulo": "¡A pintar!",       "icono": "🎨", "cfg": {}},
         {"id": "mas_menos", "titulo": "¿Dónde hay más?",  "icono": "⚖️", "cfg": {"max": 9, "rondas": 5}},
+        {"id": "simon",     "titulo": "Escuchá y repetí", "icono": "🎵", "cfg": {"colores": 5, "rondas": 6}},
+        {"id": "agrupar",   "titulo": "¿Dónde va?",       "icono": "🧺", "cfg": {"canastas": 3, "rondas": 8}},
+        {"id": "quefalta",  "titulo": "¿Qué falta?",      "icono": "❓", "cfg": {"items": 5, "rondas": 6}},
+        {"id": "bingo",     "titulo": "Bingo de amigos",  "icono": "🎯", "cfg": {"tam": 9}},
     ]
 
 

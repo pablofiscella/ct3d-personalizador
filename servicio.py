@@ -49,15 +49,51 @@ def _cache_tema_dir(tema):
     safe = re.sub(r"[^a-zA-Z0-9_-]", "", str(tema or ""))[:40] or "default"
     return os.path.join(PREVIEW_CACHE_DIR, safe)
 
-def _preview_cache_clear(tema=None):
-    """Borra el cache de previews de un tema (o todo). Se llama al guardar un layout o
-    regenerar el arte, para que la tienda refleje el cambio sin esperar el TTL."""
+def _cache_tipo_prefix(tipo):
+    return re.sub(r"[^a-z0-9_-]", "", str(tipo or "").lower())[:24] or "x"
+
+# dedupe de renders idénticos concurrentes (popup + warmer pidiendo la misma pieza)
+_RENDER_LOCKS = {}
+_RENDER_LOCKS_GUARD = threading.Lock()
+
+def _preview_cache_clear(tema=None, tipo=None):
+    """Borra el cache de previews de un tema (o todo). Con `tipo`, borra SOLO las
+    entradas de ese tipo (prefijo del archivo) — así regenerar el calendario no
+    enfría las tarjetas de todos los demás productos del tema."""
     import shutil
     try:
+        if tema and tipo:
+            d = _cache_tema_dir(tema)
+            pref = _cache_tipo_prefix(tipo) + "-"
+            if os.path.isdir(d):
+                for f in os.listdir(d):
+                    if f.startswith(pref):
+                        try: os.remove(os.path.join(d, f))
+                        except OSError: pass
+            return
         shutil.rmtree(_cache_tema_dir(tema) if tema else PREVIEW_CACHE_DIR, ignore_errors=True)
         os.makedirs(PREVIEW_CACHE_DIR, exist_ok=True)
     except Exception:
         pass
+
+def _preview_warm(tema, tipo, indices):
+    """Pre-calienta el cache de tarjetas EN BACKGROUND tras regenerar/subir piezas:
+    pide las miniaturas (260) y la vista grande (1200) al propio servicio, así
+    cuando el popup se refresca las tarjetas ya están renderizadas (el throttle
+    _RENDER_SEM sigue mandando, no satura la CPU)."""
+    import urllib.request
+    base = "http://127.0.0.1:%d/preview" % PORT
+    qs = "tipo=%s&tema=%s" % (urllib.parse.quote(str(tipo)), urllib.parse.quote(str(tema)))
+    def _go():
+        for mx in (260, 1200):   # primero thumbs (render maestro); el 1200 deriva del maestro
+            for i in indices:
+                try:
+                    # mismo fmt que usa el popup del dash (jpg) para que la clave coincida
+                    urllib.request.urlopen("%s?%s&pieza=%d&max=%d&fmt=jpg" % (base, qs, int(i), mx),
+                                           timeout=180).read()
+                except Exception:
+                    pass
+    threading.Thread(target=_go, daemon=True).start()
 
 # Página que ve el cliente si abre su audiolibro mientras aún se está generando
 # (~1-2 min tras la compra). Se auto-refresca hasta que el visor esté listo.
@@ -538,7 +574,9 @@ class Handler(BaseHTTPRequestHandler):
             if not ov:
                 key_parts = sorted((k, v[0]) for k, v in q.items() if k != "cb")
                 ckey = hashlib.md5(repr(key_parts).encode("utf-8")).hexdigest()
-                cpath = os.path.join(_cache_tema_dir(tema), ckey + ("." + fmt))
+                # prefijo por tipo → invalidación selectiva (_preview_cache_clear con tipo)
+                cpath = os.path.join(_cache_tema_dir(tema),
+                                     _cache_tipo_prefix(tipo) + "-" + ckey + ("." + fmt))
                 try:
                     if os.path.exists(cpath) and (time.time() - os.path.getmtime(cpath) < PREVIEW_CACHE_TTL):
                         with open(cpath, "rb") as fh:
@@ -554,27 +592,76 @@ class Handler(BaseHTTPRequestHandler):
             if ov:
                 try: data["_over"] = json.loads(ov)
                 except Exception: pass
-            with _RENDER_SEM:                # throttle: nunca más de N renders Pillow a la vez
-                img = None
-                if pieza != "":
-                    try: img = productos.preview_pieza(data, tema, tipo, int(pieza), max_px=max_px)
-                    except Exception: img = None
-                if img is None:
-                    img = productos.preview(data, tema=tema, tipo=tipo, max_px=max_px)
-                img = piezas.marca_agua(img)   # marca de agua SOLO en el preview (el comprado sale limpio)
-                buf = io.BytesIO()
-                if fmt in ("jpg", "jpeg"):
-                    img.convert("RGB").save(buf, "JPEG", quality=80, optimize=True)
-                else:
-                    img.save(buf, "PNG")
-                body = buf.getvalue()
-            if cpath:                        # guardar en cache para las próximas cargas
-                try:
-                    os.makedirs(os.path.dirname(cpath), exist_ok=True)
-                    tmp = cpath + ".tmp"
-                    with open(tmp, "wb") as fh: fh.write(body)
-                    os.replace(tmp, cpath)
-                except Exception: pass
+            # Render MAESTRO por pieza (tamaño completo, sin marca de agua, cacheado):
+            # la miniatura (260) y la vista grande (1200) se derivan del mismo render
+            # con un resize de milisegundos — antes cada tamaño re-renderizaba la hoja
+            # entera (~2s c/u) y el zoom de una tarjeta recién cargada tardaba otra vez.
+            mpath = None
+            if not ov and pieza != "":
+                mparts = sorted((k, v[0]) for k, v in q.items() if k not in ("cb", "max", "fmt"))
+                mpath = os.path.join(_cache_tema_dir(tema),
+                                     _cache_tipo_prefix(tipo) + "-" +
+                                     hashlib.md5(repr(mparts).encode("utf-8")).hexdigest() + ".master.png")
+            # dedupe: si el warmer y el popup piden lo mismo a la vez, renderiza UNO
+            lk = None
+            if cpath:
+                with _RENDER_LOCKS_GUARD:
+                    lk = _RENDER_LOCKS.setdefault(cpath, threading.Lock())
+            try:
+                if lk: lk.acquire()
+                body = None
+                if cpath and os.path.exists(cpath) and (time.time() - os.path.getmtime(cpath) < PREVIEW_CACHE_TTL):
+                    with open(cpath, "rb") as fh:   # otro hilo lo dejó listo mientras esperábamos
+                        body = fh.read()
+                if body is None:
+                    img = None
+                    if mpath and os.path.exists(mpath) and (time.time() - os.path.getmtime(mpath) < PREVIEW_CACHE_TTL):
+                        try:
+                            img = Image.open(mpath).convert("RGB")
+                            img.thumbnail((max_px, max_px), Image.LANCZOS)
+                        except Exception:
+                            img = None
+                    if img is None:
+                        with _RENDER_SEM:        # throttle: nunca más de N renders Pillow a la vez
+                            if pieza != "":
+                                # con master: render a tamaño completo (después se deriva);
+                                # sin master (preview personalizado con `over`): al tamaño pedido
+                                try: img = productos.preview_pieza(data, tema, tipo, int(pieza),
+                                                                   max_px=(4000 if mpath else max_px))
+                                except Exception: img = None
+                            if img is None:
+                                img = productos.preview(data, tema=tema, tipo=tipo, max_px=max_px)
+                                mpath = None     # el preview compuesto no se masteriza
+                        if mpath:
+                            try:
+                                os.makedirs(os.path.dirname(mpath), exist_ok=True)
+                                tmp = mpath + ".tmp"
+                                img.convert("RGB").save(tmp, "PNG")
+                                os.replace(tmp, mpath)
+                            except Exception: pass
+                            img = img.copy()
+                            img.thumbnail((max_px, max_px), Image.LANCZOS)
+                    img = piezas.marca_agua(img)   # marca de agua SOLO en el preview (el comprado sale limpio)
+                    buf = io.BytesIO()
+                    if fmt in ("jpg", "jpeg"):
+                        # to_rgb (fondo BLANCO), no convert("RGB") directo: convert aplana
+                        # la transparencia a NEGRO y las piezas con alpha salían oscuras
+                        piezas.to_rgb(img).save(buf, "JPEG", quality=80, optimize=True)
+                    else:
+                        img.save(buf, "PNG")
+                    body = buf.getvalue()
+                    if cpath:                    # guardar en cache para las próximas cargas
+                        try:
+                            os.makedirs(os.path.dirname(cpath), exist_ok=True)
+                            tmp = cpath + ".tmp"
+                            with open(tmp, "wb") as fh: fh.write(body)
+                            os.replace(tmp, cpath)
+                        except Exception: pass
+            finally:
+                if lk:
+                    lk.release()
+                    with _RENDER_LOCKS_GUARD:
+                        _RENDER_LOCKS.pop(cpath, None)
             self.send_response(200)
             self.send_header("Content-Type", ctype)
             # 10 min, no 24h: si se regenera el arte de un tema, la tienda lo refleja
@@ -1772,6 +1859,9 @@ class Handler(BaseHTTPRequestHandler):
         dest = productos.override_path(tema, tipo, idx)
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         im.save(dest)
+        # sin esto, la tarjeta del dash (y la tienda) muestran la pieza VIEJA hasta 6h
+        generador._specs_cache.pop(tema, None); _preview_cache_clear(tema, tipo)
+        _preview_warm(tema, tipo, [idx])
         return self._json(200, {"ok": True})
 
     def _dash_producto_borrar_override(self):
@@ -1788,6 +1878,8 @@ class Handler(BaseHTTPRequestHandler):
         dest = productos.override_path(tema, tipo, idx)
         if os.path.isfile(dest):
             os.remove(dest)
+            generador._specs_cache.pop(tema, None); _preview_cache_clear(tema, tipo)
+            _preview_warm(tema, tipo, [idx])
             return self._json(200, {"ok": True, "borrado": True})
         return self._json(200, {"ok": True, "borrado": False})
 
@@ -1813,15 +1905,32 @@ class Handler(BaseHTTPRequestHandler):
         os.makedirs(os.path.dirname(p), exist_ok=True)
         try:
             json.dump(layout, open(p, "w", encoding="utf-8"), ensure_ascii=False)
-            # default global para temas nuevos
-            json.dump(layout.get("base", {}), open(self._cal_default_path(), "w", encoding="utf-8"),
+            # default global para temas nuevos: las DOS reglas (5 y 6 filas)
+            json.dump({"base": layout.get("base", {}), "base6": layout.get("base6")},
+                      open(self._cal_default_path(), "w", encoding="utf-8"),
                       ensure_ascii=False)
         except Exception:
             pass
 
+    @staticmethod
+    def _cal_completar_base6(layout, anyo):
+        """Si el layout todavía no tiene la regla de 6 filas, la precarga desde el
+        override puntual de algún mes de 6 filas (los ajustes a mano que ya hizo
+        el usuario) para que el editor no arranque de cero."""
+        if layout.get("base6"):
+            return
+        import calendario
+        for m in calendario.meses_por_filas(anyo, 6):
+            cfg = (layout.get("meses") or {}).get(str(m))
+            if cfg:
+                layout["base6"] = cfg
+                return
+
     def _dash_calendario_layout(self, q):
-        """Devuelve las coordenadas guardadas del calendario de un tema (memoria por tema).
-        Si el tema no tiene, hereda el layout de la última temática configurada."""
+        """Devuelve las coordenadas guardadas del calendario de un tema (memoria por
+        tema): regla general `base` (meses de 5 filas), regla `base6` (meses de 6
+        filas) y overrides puntuales `meses`. Si el tema no tiene, hereda el layout
+        de la última temática configurada."""
         if not self._admin_ok():
             return self._deny()
         tema = slug((q.get("tema", [""]) or [""])[0])
@@ -1830,28 +1939,42 @@ class Handler(BaseHTTPRequestHandler):
         layout = self._cal_load_layout(tema)
         origen = "tema"
         if not layout:
-            base = {}
+            base, base6 = {}, None
             dp = self._cal_default_path()
             if os.path.isfile(dp):
                 try:
-                    base = json.load(open(dp, encoding="utf-8"))
+                    d = json.load(open(dp, encoding="utf-8"))
+                    # formato nuevo: {"base":..., "base6":...}; viejo: la base pelada
+                    base = d.get("base", d) if isinstance(d, dict) and "base" in d else d
+                    base6 = d.get("base6") if isinstance(d, dict) else None
                     origen = "default"
                 except Exception:
                     base = {}
             if not base:
                 origen = "vacio"
-            layout = {"base": base, "meses": {}, "anyo": "2026"}
-        fondo = os.path.join(temas.TEMAS_DIR, tema, "calendario", "fondo.png")
+            layout = {"base": base, "base6": base6, "meses": {}, "anyo": "2026"}
+        try:
+            anyo = int(re.sub(r"\D", "", str(layout.get("anyo") or "2026"))[:4] or "2026")
+        except Exception:
+            anyo = 2026
+        self._cal_completar_base6(layout, anyo)
+        cal_dir = os.path.join(temas.TEMAS_DIR, tema, "calendario")
         return self._json(200, {"ok": True, "layout": layout, "origen": origen,
-                                "tiene_fondo": os.path.isfile(fondo)})
+                                "tiene_fondo": os.path.isfile(os.path.join(cal_dir, "fondo.png")),
+                                "tiene_fondo6": os.path.isfile(os.path.join(cal_dir, "fondo6.png"))})
 
     def _dash_calendario_fondo(self, q):
-        """Sirve la plantilla (fondo.png) guardada del calendario del tema, para que el
-        editor la precargue sin tener que volver a subirla."""
+        """Sirve la plantilla guardada del calendario del tema, para que el editor
+        la precargue sin volver a subirla. Con `filas=6` sirve la plantilla propia
+        de los meses de 6 filas (fondo6.png) si existe; si no, la general."""
         if not self._admin_ok():
             return self._deny()
         tema = slug((q.get("tema", [""]) or [""])[0])
-        fondo = os.path.join(temas.TEMAS_DIR, tema, "calendario", "fondo.png")
+        filas6 = ((q.get("filas", [""]) or [""])[0] or "").strip() == "6"
+        cal_dir = os.path.join(temas.TEMAS_DIR, tema, "calendario")
+        fondo = os.path.join(cal_dir, "fondo6.png")
+        if not filas6 or not os.path.isfile(fondo):
+            fondo = os.path.join(cal_dir, "fondo.png")
         if not tema or not os.path.isfile(fondo):
             return self._json(404, {"ok": False, "error": "no hay fondo"})
         data = open(fondo, "rb").read()
@@ -1863,10 +1986,15 @@ class Handler(BaseHTTPRequestHandler):
 
     def _dash_calendario_generar(self):
         """Genera el calendario superponiendo mes/días/números sobre la plantilla.
-        - Sin `mes`: genera los 12 (guarda base + aplica overrides por mes existentes).
-        - Con `mes` (1-12): regenera SOLO ese mes con sus coordenadas propias (editor por mes).
-        La plantilla viene en el body; si no, se usa el fondo.png guardado del tema.
-        Guarda las coordenadas en layout.json (memoria por tema)."""
+        - Con `filas` (5 o 6): regenera TODOS los meses de ese grupo con la regla
+          (config) y la guarda en `base` (5) o `base6` (6). Los overrides puntuales
+          de esos meses se descartan: la regla pasa a mandar.
+        - Sin `mes` ni `filas`: genera los 12 (guarda base + regla de 6 filas +
+          overrides por mes existentes).
+        - Con `mes` (1-12): regenera SOLO ese mes con coordenadas propias (compat).
+        La plantilla viene en el body; si no, se usa la guardada del GRUPO que se
+        genera (fondo.png para 5 filas, fondo6.png para 6 — cada regla puede tener
+        su propio arte). Guarda las coordenadas en layout.json (memoria por tema)."""
         if not self._admin_ok():
             return self._deny()
         q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
@@ -1876,6 +2004,8 @@ class Handler(BaseHTTPRequestHandler):
         config_str = q.get("config", [""])[0] or ""
         mes_str = re.sub(r"\D", "", q.get("mes", [""])[0] or "")
         mes = int(mes_str) if mes_str else 0     # 0 = los 12
+        filas_str = re.sub(r"\D", "", q.get("filas", [""])[0] or "")
+        filas = int(filas_str) if filas_str in ("5", "6") else 0
         if mes and not (1 <= mes <= 12):
             return self._json(400, {"ok": False, "error": "mes inválido"})
         if not tema or not temas.existe(tema):
@@ -1887,53 +2017,102 @@ class Handler(BaseHTTPRequestHandler):
 
         tdir = os.path.join(temas.TEMAS_DIR, tema)
         fondo_dir = os.path.join(tdir, "calendario")
-        fondo_path = os.path.join(fondo_dir, "fondo.png")
 
-        # plantilla: del body si vino; si no, la guardada (fondo.png)
-        plantilla = None
+        # Una plantilla por regla: los meses de 6 filas pueden tener SU propio arte
+        # (fondo6.png). Subir la imagen editando una regla NO pisa la de la otra.
+        def _fondo_path(f):
+            return os.path.join(fondo_dir, "fondo6.png" if int(f) >= 6 else "fondo.png")
+
+        def _cargar_fondo(f):
+            p = _fondo_path(f)
+            if os.path.isfile(p):
+                return Image.open(p).convert("RGBA")
+            if int(f) >= 6 and os.path.isfile(_fondo_path(5)):  # sin arte propio → el general
+                return Image.open(_fondo_path(5)).convert("RGBA")
+            return None
+
+        # plantilla subida en el body (si vino): es la del grupo que se está generando
+        subida = None
         try:
             n = int(self.headers.get("Content-Length", "0"))
             raw = self.rfile.read(n) if n else b""
             if raw:
-                plantilla = Image.open(io.BytesIO(raw)).convert("RGBA")
+                subida = Image.open(io.BytesIO(raw)).convert("RGBA")
         except Exception as e:
             return self._json(400, {"ok": False, "error": "imagen inválida: %s" % e})
-        if plantilla is None and os.path.isfile(fondo_path):
-            plantilla = Image.open(fondo_path).convert("RGBA")
-        if plantilla is None:
-            return self._json(400, {"ok": False, "error": "sin plantilla (subí una imagen primero)"})
 
         try:
             import calendario
             os.makedirs(fondo_dir, exist_ok=True)
-            plantilla.save(fondo_path)
             override_dir = os.path.join(tdir, "overrides", "calendario")
             os.makedirs(override_dir, exist_ok=True)
 
             layout = self._cal_load_layout(tema) or {"base": {}, "meses": {}, "anyo": anyo_str}
             layout.setdefault("meses", {})
+            anyo_int = int(anyo_str)
             data = {"nombre": nombre, "anyo": anyo_str}
 
-            if mes:  # un solo mes
-                cfg = config or layout["meses"].get(str(mes)) or layout.get("base") or {}
+            if filas:  # regla de grupo: todos los meses de 5 (o menos) / 6 filas
+                plantilla = subida or _cargar_fondo(filas)
+                if plantilla is None:
+                    return self._json(400, {"ok": False, "error": "sin plantilla (subí una imagen primero)"})
+                if subida:
+                    subida.save(_fondo_path(filas))
+                grupo = calendario.meses_por_filas(anyo_int, filas)
+                clave = "base6" if filas == 6 else "base"
+                cfg = config or layout.get(clave) or layout.get("base") or {}
+                layout[clave] = cfg
+                layout["anyo"] = anyo_str
+                # la regla reemplaza los ajustes puntuales de esos meses
+                for m in grupo:
+                    layout["meses"].pop(str(m), None)
+                for m in grupo:
+                    img = calendario.generar_mes_con_plantilla(data, plantilla, tema, m, cfg)
+                    piezas.to_rgb(img).save(os.path.join(override_dir, "%d.png" % (m - 1)))
+                self._cal_save_layout(tema, layout)
+                _preview_cache_clear(tema, "calendario")   # sin esto el dash muestra los meses viejos hasta 6h
+                _preview_warm(tema, "calendario", [m - 1 for m in grupo])
+                return self._json(200, {"ok": True, "tema": tema, "filas": filas,
+                                        "meses": grupo, "generados": len(grupo)})
+
+            if mes:  # un solo mes (compat: ajuste puntual, con el fondo de su grupo)
+                f_mes = 6 if calendario.filas_del_mes(anyo_int, mes) >= 6 else 5
+                plantilla = subida or _cargar_fondo(f_mes)
+                if plantilla is None:
+                    return self._json(400, {"ok": False, "error": "sin plantilla (subí una imagen primero)"})
+                if subida:
+                    subida.save(_fondo_path(f_mes))
+                cfg = config or calendario.config_para_mes(layout, anyo_int, mes)
                 img = calendario.generar_mes_con_plantilla(data, plantilla, tema, mes, cfg)
                 piezas.to_rgb(img).save(os.path.join(override_dir, "%d.png" % (mes - 1)))
                 layout["meses"][str(mes)] = cfg
                 layout["anyo"] = anyo_str
                 self._cal_save_layout(tema, layout)
+                _preview_cache_clear(tema, "calendario")
+                _preview_warm(tema, "calendario", [mes - 1])
                 return self._json(200, {"ok": True, "tema": tema, "mes": mes, "generados": 1})
 
-            # los 12
+            # los 12: cada mes con su regla y el fondo de su grupo
+            plantilla5 = subida or _cargar_fondo(5)
+            if plantilla5 is None:
+                return self._json(400, {"ok": False, "error": "sin plantilla (subí una imagen primero)"})
+            if subida:
+                subida.save(_fondo_path(5))
+            f6 = _fondo_path(6)
+            plantilla6 = Image.open(f6).convert("RGBA") if os.path.isfile(f6) else plantilla5
             base = config or layout.get("base") or {}
             layout["base"] = base
             layout["anyo"] = anyo_str
             generados = []
             for m in range(1, 13):
-                cfg = layout["meses"].get(str(m)) or base
-                img = calendario.generar_mes_con_plantilla(data, plantilla, tema, m, cfg)
+                cfg = calendario.config_para_mes(layout, anyo_int, m)
+                pl = plantilla6 if calendario.filas_del_mes(anyo_int, m) >= 6 else plantilla5
+                img = calendario.generar_mes_con_plantilla(data, pl, tema, m, cfg)
                 piezas.to_rgb(img).save(os.path.join(override_dir, "%d.png" % (m - 1)))
                 generados.append(m)
             self._cal_save_layout(tema, layout)
+            _preview_cache_clear(tema, "calendario")
+            _preview_warm(tema, "calendario", list(range(12)))
             return self._json(200, {"ok": True, "tema": tema, "anyo": anyo_str,
                                     "generados": len(generados)})
         except Exception as e:
