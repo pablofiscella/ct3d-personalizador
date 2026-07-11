@@ -1978,6 +1978,7 @@ class Handler(BaseHTTPRequestHandler):
                     img = calendario.generar_mes_con_plantilla(data, plantilla, tema, m, cfg)
                     piezas.to_rgb(img).save(os.path.join(override_dir, "%d.png" % (m - 1)))
                 self._cal_save_layout(tema, layout)
+                _preview_cache_clear(tema)   # sin esto el dash muestra los meses viejos hasta 6h
                 return self._json(200, {"ok": True, "tema": tema, "filas": filas,
                                         "meses": grupo, "generados": len(grupo)})
 
@@ -1994,6 +1995,7 @@ class Handler(BaseHTTPRequestHandler):
                 layout["meses"][str(mes)] = cfg
                 layout["anyo"] = anyo_str
                 self._cal_save_layout(tema, layout)
+                _preview_cache_clear(tema)
                 return self._json(200, {"ok": True, "tema": tema, "mes": mes, "generados": 1})
 
             # los 12: cada mes con su regla y el fondo de su grupo
@@ -2015,6 +2017,7 @@ class Handler(BaseHTTPRequestHandler):
                 piezas.to_rgb(img).save(os.path.join(override_dir, "%d.png" % (m - 1)))
                 generados.append(m)
             self._cal_save_layout(tema, layout)
+            _preview_cache_clear(tema)
             return self._json(200, {"ok": True, "tema": tema, "anyo": anyo_str,
                                     "generados": len(generados)})
         except Exception as e:

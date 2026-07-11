@@ -1584,6 +1584,10 @@ cargar();
             <input type="checkbox" id="cal-domingo-rojo" checked>
             <label for="cal-domingo-rojo">🔴 Domingo en rojo (Dom + números)</label>
           </div>
+          <div style="margin-top:6px">
+            <input type="checkbox" id="cal-detras" checked>
+            <label for="cal-detras" title="Si un dibujo de la plantilla pisa una celda, el número queda tapado. Destildá para que los números salgan SIEMPRE por encima.">🫥 Ocultar números detrás de los dibujos</label>
+          </div>
         </div>
       </div>
 
@@ -1678,6 +1682,7 @@ const monthSizeInput = document.getElementById('cal-month-size');
 const monthWeightInput = document.getElementById('cal-month-weight');
 const monthColorInput = document.getElementById('cal-month-color');
 const domingoRojoInput = document.getElementById('cal-domingo-rojo');
+const detrasInput = document.getElementById('cal-detras');
 
 const weekdayXInput = document.getElementById('cal-weekday-x');
 const weekdayYInput = document.getElementById('cal-weekday-y');
@@ -1707,6 +1712,7 @@ function leerParams() {
     monthWeight: parseInt(monthWeightInput.value) || 700,
     monthColor: monthColorInput.value || '#000000',
     domingoRojo: domingoRojoInput.checked,
+    detras: detrasInput ? detrasInput.checked : true,
     weekdayX: parseInt(weekdayXInput.value) || 271,
     weekdayY: parseInt(weekdayYInput.value) || 335,
     weekdaySize: parseInt(weekdaySizeInput.value) || 24,
@@ -2017,6 +2023,7 @@ function aplicarLayout(cfg) {
   _setCal('cal-month-size', m.size); _setCal('cal-month-weight', m.weight);
   if (c.month_text) _setCal('cal-month-color', c.month_text);
   if (cfg.domingo_rojo !== undefined && domingoRojoInput) domingoRojoInput.checked = !!cfg.domingo_rojo;
+  if (detrasInput) detrasInput.checked = cfg.detras !== false;
   _setCal('cal-weekday-x', w.x); _setCal('cal-weekday-y', w.y);
   _setCal('cal-weekday-size', w.size); _setCal('cal-weekday-spacing', w.spacing); _setCal('cal-weekday-weight', w.weight);
   _setCal('cal-days-x', d.x); _setCal('cal-days-y', d.y);
@@ -2096,7 +2103,8 @@ if (genBtn) {
       weekday: { x: p.weekdayX, y: p.weekdayY, size: p.weekdaySize, spacing: p.weekdaySpacing, weight: p.weekdayWeight },
       days: { x: p.daysX, y: p.daysY, size: p.daySize, spacingH: p.daysSpacingH, spacingV: p.daysSpacingV, weight: p.dayWeight },
       colors: { month_text: p.monthColor },
-      domingo_rojo: p.domingoRojo
+      domingo_rojo: p.domingoRojo,
+      detras: p.detras
     };
     const qs = new URLSearchParams({
       tema: window.TEMA_ACTUAL,
