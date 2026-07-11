@@ -49,15 +49,50 @@ def _cache_tema_dir(tema):
     safe = re.sub(r"[^a-zA-Z0-9_-]", "", str(tema or ""))[:40] or "default"
     return os.path.join(PREVIEW_CACHE_DIR, safe)
 
-def _preview_cache_clear(tema=None):
-    """Borra el cache de previews de un tema (o todo). Se llama al guardar un layout o
-    regenerar el arte, para que la tienda refleje el cambio sin esperar el TTL."""
+def _cache_tipo_prefix(tipo):
+    return re.sub(r"[^a-z0-9_-]", "", str(tipo or "").lower())[:24] or "x"
+
+# dedupe de renders idénticos concurrentes (popup + warmer pidiendo la misma pieza)
+_RENDER_LOCKS = {}
+_RENDER_LOCKS_GUARD = threading.Lock()
+
+def _preview_cache_clear(tema=None, tipo=None):
+    """Borra el cache de previews de un tema (o todo). Con `tipo`, borra SOLO las
+    entradas de ese tipo (prefijo del archivo) — así regenerar el calendario no
+    enfría las tarjetas de todos los demás productos del tema."""
     import shutil
     try:
+        if tema and tipo:
+            d = _cache_tema_dir(tema)
+            pref = _cache_tipo_prefix(tipo) + "-"
+            if os.path.isdir(d):
+                for f in os.listdir(d):
+                    if f.startswith(pref):
+                        try: os.remove(os.path.join(d, f))
+                        except OSError: pass
+            return
         shutil.rmtree(_cache_tema_dir(tema) if tema else PREVIEW_CACHE_DIR, ignore_errors=True)
         os.makedirs(PREVIEW_CACHE_DIR, exist_ok=True)
     except Exception:
         pass
+
+def _preview_warm(tema, tipo, indices):
+    """Pre-calienta el cache de tarjetas EN BACKGROUND tras regenerar/subir piezas:
+    pide las miniaturas (260) y la vista grande (1200) al propio servicio, así
+    cuando el popup se refresca las tarjetas ya están renderizadas (el throttle
+    _RENDER_SEM sigue mandando, no satura la CPU)."""
+    import urllib.request
+    base = "http://127.0.0.1:%d/preview" % PORT
+    qs = "tipo=%s&tema=%s" % (urllib.parse.quote(str(tipo)), urllib.parse.quote(str(tema)))
+    def _go():
+        for mx in (260, 1200):   # primero thumbs (render maestro); el 1200 deriva del maestro
+            for i in indices:
+                try:
+                    urllib.request.urlopen("%s?%s&pieza=%d&max=%d" % (base, qs, int(i), mx),
+                                           timeout=180).read()
+                except Exception:
+                    pass
+    threading.Thread(target=_go, daemon=True).start()
 
 # Página que ve el cliente si abre su audiolibro mientras aún se está generando
 # (~1-2 min tras la compra). Se auto-refresca hasta que el visor esté listo.
@@ -538,7 +573,9 @@ class Handler(BaseHTTPRequestHandler):
             if not ov:
                 key_parts = sorted((k, v[0]) for k, v in q.items() if k != "cb")
                 ckey = hashlib.md5(repr(key_parts).encode("utf-8")).hexdigest()
-                cpath = os.path.join(_cache_tema_dir(tema), ckey + ("." + fmt))
+                # prefijo por tipo → invalidación selectiva (_preview_cache_clear con tipo)
+                cpath = os.path.join(_cache_tema_dir(tema),
+                                     _cache_tipo_prefix(tipo) + "-" + ckey + ("." + fmt))
                 try:
                     if os.path.exists(cpath) and (time.time() - os.path.getmtime(cpath) < PREVIEW_CACHE_TTL):
                         with open(cpath, "rb") as fh:
@@ -554,27 +591,74 @@ class Handler(BaseHTTPRequestHandler):
             if ov:
                 try: data["_over"] = json.loads(ov)
                 except Exception: pass
-            with _RENDER_SEM:                # throttle: nunca más de N renders Pillow a la vez
-                img = None
-                if pieza != "":
-                    try: img = productos.preview_pieza(data, tema, tipo, int(pieza), max_px=max_px)
-                    except Exception: img = None
-                if img is None:
-                    img = productos.preview(data, tema=tema, tipo=tipo, max_px=max_px)
-                img = piezas.marca_agua(img)   # marca de agua SOLO en el preview (el comprado sale limpio)
-                buf = io.BytesIO()
-                if fmt in ("jpg", "jpeg"):
-                    img.convert("RGB").save(buf, "JPEG", quality=80, optimize=True)
-                else:
-                    img.save(buf, "PNG")
-                body = buf.getvalue()
-            if cpath:                        # guardar en cache para las próximas cargas
-                try:
-                    os.makedirs(os.path.dirname(cpath), exist_ok=True)
-                    tmp = cpath + ".tmp"
-                    with open(tmp, "wb") as fh: fh.write(body)
-                    os.replace(tmp, cpath)
-                except Exception: pass
+            # Render MAESTRO por pieza (tamaño completo, sin marca de agua, cacheado):
+            # la miniatura (260) y la vista grande (1200) se derivan del mismo render
+            # con un resize de milisegundos — antes cada tamaño re-renderizaba la hoja
+            # entera (~2s c/u) y el zoom de una tarjeta recién cargada tardaba otra vez.
+            mpath = None
+            if not ov and pieza != "":
+                mparts = sorted((k, v[0]) for k, v in q.items() if k not in ("cb", "max", "fmt"))
+                mpath = os.path.join(_cache_tema_dir(tema),
+                                     _cache_tipo_prefix(tipo) + "-" +
+                                     hashlib.md5(repr(mparts).encode("utf-8")).hexdigest() + ".master.png")
+            # dedupe: si el warmer y el popup piden lo mismo a la vez, renderiza UNO
+            lk = None
+            if cpath:
+                with _RENDER_LOCKS_GUARD:
+                    lk = _RENDER_LOCKS.setdefault(cpath, threading.Lock())
+            try:
+                if lk: lk.acquire()
+                body = None
+                if cpath and os.path.exists(cpath) and (time.time() - os.path.getmtime(cpath) < PREVIEW_CACHE_TTL):
+                    with open(cpath, "rb") as fh:   # otro hilo lo dejó listo mientras esperábamos
+                        body = fh.read()
+                if body is None:
+                    img = None
+                    if mpath and os.path.exists(mpath) and (time.time() - os.path.getmtime(mpath) < PREVIEW_CACHE_TTL):
+                        try:
+                            img = Image.open(mpath).convert("RGB")
+                            img.thumbnail((max_px, max_px), Image.LANCZOS)
+                        except Exception:
+                            img = None
+                    if img is None:
+                        with _RENDER_SEM:        # throttle: nunca más de N renders Pillow a la vez
+                            if pieza != "":
+                                # con master: render a tamaño completo (después se deriva);
+                                # sin master (preview personalizado con `over`): al tamaño pedido
+                                try: img = productos.preview_pieza(data, tema, tipo, int(pieza),
+                                                                   max_px=(4000 if mpath else max_px))
+                                except Exception: img = None
+                            if img is None:
+                                img = productos.preview(data, tema=tema, tipo=tipo, max_px=max_px)
+                                mpath = None     # el preview compuesto no se masteriza
+                        if mpath:
+                            try:
+                                os.makedirs(os.path.dirname(mpath), exist_ok=True)
+                                tmp = mpath + ".tmp"
+                                img.convert("RGB").save(tmp, "PNG")
+                                os.replace(tmp, mpath)
+                            except Exception: pass
+                            img = img.copy()
+                            img.thumbnail((max_px, max_px), Image.LANCZOS)
+                    img = piezas.marca_agua(img)   # marca de agua SOLO en el preview (el comprado sale limpio)
+                    buf = io.BytesIO()
+                    if fmt in ("jpg", "jpeg"):
+                        img.convert("RGB").save(buf, "JPEG", quality=80, optimize=True)
+                    else:
+                        img.save(buf, "PNG")
+                    body = buf.getvalue()
+                    if cpath:                    # guardar en cache para las próximas cargas
+                        try:
+                            os.makedirs(os.path.dirname(cpath), exist_ok=True)
+                            tmp = cpath + ".tmp"
+                            with open(tmp, "wb") as fh: fh.write(body)
+                            os.replace(tmp, cpath)
+                        except Exception: pass
+            finally:
+                if lk:
+                    lk.release()
+                    with _RENDER_LOCKS_GUARD:
+                        _RENDER_LOCKS.pop(cpath, None)
             self.send_response(200)
             self.send_header("Content-Type", ctype)
             # 10 min, no 24h: si se regenera el arte de un tema, la tienda lo refleja
@@ -1773,7 +1857,8 @@ class Handler(BaseHTTPRequestHandler):
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         im.save(dest)
         # sin esto, la tarjeta del dash (y la tienda) muestran la pieza VIEJA hasta 6h
-        generador._specs_cache.pop(tema, None); _preview_cache_clear(tema)
+        generador._specs_cache.pop(tema, None); _preview_cache_clear(tema, tipo)
+        _preview_warm(tema, tipo, [idx])
         return self._json(200, {"ok": True})
 
     def _dash_producto_borrar_override(self):
@@ -1790,7 +1875,8 @@ class Handler(BaseHTTPRequestHandler):
         dest = productos.override_path(tema, tipo, idx)
         if os.path.isfile(dest):
             os.remove(dest)
-            generador._specs_cache.pop(tema, None); _preview_cache_clear(tema)
+            generador._specs_cache.pop(tema, None); _preview_cache_clear(tema, tipo)
+            _preview_warm(tema, tipo, [idx])
             return self._json(200, {"ok": True, "borrado": True})
         return self._json(200, {"ok": True, "borrado": False})
 
@@ -1981,7 +2067,8 @@ class Handler(BaseHTTPRequestHandler):
                     img = calendario.generar_mes_con_plantilla(data, plantilla, tema, m, cfg)
                     piezas.to_rgb(img).save(os.path.join(override_dir, "%d.png" % (m - 1)))
                 self._cal_save_layout(tema, layout)
-                _preview_cache_clear(tema)   # sin esto el dash muestra los meses viejos hasta 6h
+                _preview_cache_clear(tema, "calendario")   # sin esto el dash muestra los meses viejos hasta 6h
+                _preview_warm(tema, "calendario", [m - 1 for m in grupo])
                 return self._json(200, {"ok": True, "tema": tema, "filas": filas,
                                         "meses": grupo, "generados": len(grupo)})
 
@@ -1998,7 +2085,8 @@ class Handler(BaseHTTPRequestHandler):
                 layout["meses"][str(mes)] = cfg
                 layout["anyo"] = anyo_str
                 self._cal_save_layout(tema, layout)
-                _preview_cache_clear(tema)
+                _preview_cache_clear(tema, "calendario")
+                _preview_warm(tema, "calendario", [mes - 1])
                 return self._json(200, {"ok": True, "tema": tema, "mes": mes, "generados": 1})
 
             # los 12: cada mes con su regla y el fondo de su grupo
@@ -2020,7 +2108,8 @@ class Handler(BaseHTTPRequestHandler):
                 piezas.to_rgb(img).save(os.path.join(override_dir, "%d.png" % (m - 1)))
                 generados.append(m)
             self._cal_save_layout(tema, layout)
-            _preview_cache_clear(tema)
+            _preview_cache_clear(tema, "calendario")
+            _preview_warm(tema, "calendario", list(range(12)))
             return self._json(200, {"ok": True, "tema": tema, "anyo": anyo_str,
                                     "generados": len(generados)})
         except Exception as e:
