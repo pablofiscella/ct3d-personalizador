@@ -42,13 +42,16 @@ _TOKEN_RE = r"[A-Za-z0-9_-]{8,32}"
 MAX_PUZZLES = 6
 
 # Niveles (cantidad de piezas) por banda de edad. Web ≠ papel: sin tijera de
-# por medio el nivel alto de cada banda puede ser más ambicioso que la grilla
-# imprimible (12 piezas hasta 5 años / 20 para 6+), pero el piso respeta la
-# misma calibración por desarrollo.
+# por medio el nivel alto puede ser más ambicioso que la grilla imprimible
+# (12 piezas hasta 5 años / 20 para 6+), pero el piso respeta la misma
+# calibración por desarrollo. TODAS las bandas llegan al tope (pedido de Pablo
+# 11-jul-2026: «que se pueda hacer hasta 50 piezas en todas») — el tope real
+# es 48/49 según la proporción de la foto: son los conteos ≤50 con piezas
+# CUADRADAS (6x8 / 7x7); 50 exacto solo factoriza 5x10, piezas 2:1.
 NIVELES_BANDA = {
-    "mini":   [4, 6, 12],
-    "media":  [6, 12, 20],
-    "grande": [12, 20, 30],
+    "mini":   [4, 6, 12, 20, 30, 48],
+    "media":  [6, 12, 20, 30, 48],
+    "grande": [12, 20, 30, 48],
 }
 
 
@@ -97,18 +100,24 @@ def _formato(im):
 
 
 def _grilla(target, w, h):
-    """(cols, filas) con cols*filas == target y piezas lo más cuadradas posible
-    para la proporción w:h de la imagen (cols, filas >= 2)."""
+    """(cols, filas) con piezas lo más cuadradas posible para la proporción
+    w:h de la imagen (cols, filas >= 2). Los niveles chicos exigen el conteo
+    EXACTO (factorizan bien); el tope (~50) admite conteos vecinos ±3 porque
+    50 exacto solo factoriza 5x10 (piezas 2:1) — así una foto 3:4 corta 6x8=48
+    y una cuadrada 7x7=49, siempre piezas cuadradas. El player muestra el
+    conteo REAL (cols*filas)."""
     mejor = None
-    for c in range(2, target + 1):
-        if target % c:
-            continue
-        f = target // c
-        if f < 2:
-            continue
-        d = abs(math.log((w / c) / (h / f)))
-        if mejor is None or d < mejor[0]:
-            mejor = (d, c, f)
+    conteos = range(target - 3, target + 4) if target >= 40 else (target,)
+    for n in conteos:
+        for c in range(2, n + 1):
+            if n % c:
+                continue
+            f = n // c
+            if f < 2:
+                continue
+            d = (abs(math.log((w / c) / (h / f))), abs(n - target))
+            if mejor is None or d < mejor[0]:
+                mejor = (d, c, f)
     return mejor[1], mejor[2]
 
 

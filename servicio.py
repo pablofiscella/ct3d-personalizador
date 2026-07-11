@@ -1141,6 +1141,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._fondos_ia_generar()
         if path == "/dash/armar-tema":
             return self._armar_tema()
+        if path == "/dash/rompe-demo":
+            return self._rompe_demo()
         if path == "/dash/pieza-regenerar":
             return self._pieza_regenerar()
         if path == "/dash/agregar-edades":
@@ -2967,10 +2969,41 @@ function regen(i){
                         _cuad.base_paginas(tema, ed)
             except Exception as e:
                 emit("(precalentado de actividades falló: %s)" % e)
+            # refrescar el rompecabezas web de muestra con el arte nuevo del
+            # tema (el que abre el botón 🎮 de la tarjeta)
+            try:
+                import rompecabezas_web as _rw
+                emit("— Rompecabezas web de muestra —")
+                _rw.crear({"nombre": "", "edad": "3"}, tema,
+                          token=("demo-" + tema)[:32])
+            except Exception as e:
+                emit("(rompecabezas de muestra falló: %s)" % e)
             emit("✓ Tema completo. Revisá las piezas en la galería y aprobá el draft.")
         jid = ia_jobs.iniciar(trabajo)
         return self._json(200, {"ok": True, "job": jid, "total": total,
                                 "calidad": calidad})
+
+    def _rompe_demo(self):
+        """Crea/actualiza el rompecabezas web de MUESTRA del tema (token fijo
+        demo-<tema>) y devuelve su URL — lo abre el botón 🎮 de la tarjeta del
+        tema (pedido de Pablo 11-jul-2026: poder armar los rompecabezas de
+        todos los temas desde el dash). Con edad 3 (banda mini) el demo lista
+        TODOS los niveles, de 4 a ~50 piezas. Síncrono: sin IA, tarda segundos."""
+        if not self._admin_ok():
+            return self._deny()
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        tema = slug(q.get("tema", [""])[0])
+        if not tema or not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "tema inválido"})
+        import rompecabezas_web as rw
+        try:
+            # [:32] = tope del regex de tokens (un slug de tema larguísimo no
+            # debe caer al token aleatorio: el link demo tiene que ser estable)
+            tok = rw.crear({"nombre": "", "edad": "3"}, tema,
+                           token=("demo-" + tema)[:32])
+        except Exception as e:
+            return self._json(500, {"ok": False, "error": str(e)[:200]})
+        return self._json(200, {"ok": True, "token": tok, "url": "/armar/%s/" % tok})
 
     def _ia_colorear_variantes(self):
         """Genera las 3 variantes de 'colorear' que necesita el cuaderno de actividades

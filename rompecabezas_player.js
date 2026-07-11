@@ -193,8 +193,11 @@ function pintarNiveles(pi) {
   cont.appendChild(el("h2", "", "¿De cuántas piezas lo armás?"));
   const btns = el("div"); btns.id = "nivelBtns";
   D.targets.forEach((t) => {
+    // conteo REAL de la grilla (el tope "48" puede ser 6x8=48 o 7x7=49 según
+    // la proporción de la foto — siempre piezas cuadradas)
+    const [c, f] = p.grillas[String(t)].split("x").map(Number);
     const b = el("button", "nivelBtn", `
-      <div class="n">${t}</div><div class="t">piezas</div>
+      <div class="n">${c * f}</div><div class="t">piezas</div>
       <div class="est">${estrellitas(Store.stars(pi + "|" + t))}</div>`);
     b.addEventListener("click", () => { Sfx.pop(); jugar(pi, t); });
     btns.appendChild(b);
@@ -236,7 +239,7 @@ const Juego = {
     j.innerHTML = `
       <canvas id="lienzo"></canvas>
       <div id="barraJuego">
-        <div class="estado"><span id="puestas">0</span> / ${target} piezas</div>
+        <div class="estado"><span id="puestas">0</span> / ${c * f} piezas</div>
         <button class="btn suave" id="btnEspiar">🖼️ Espiar</button>
         <button class="btn suave" id="btnMezclar">🔀 Mezclar</button>
       </div>`;

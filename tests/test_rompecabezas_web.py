@@ -54,9 +54,11 @@ def test_imagenes_coinciden_con_data(token, data):
 
 
 def test_bandas_de_edad():
-    assert rw.NIVELES_BANDA[rw._banda("2")] == [4, 6, 12]
-    assert rw.NIVELES_BANDA[rw._banda("5")] == [6, 12, 20]
-    assert rw.NIVELES_BANDA[rw._banda("8")] == [12, 20, 30]
+    assert rw.NIVELES_BANDA[rw._banda("2")] == [4, 6, 12, 20, 30, 48]
+    assert rw.NIVELES_BANDA[rw._banda("5")] == [6, 12, 20, 30, 48]
+    assert rw.NIVELES_BANDA[rw._banda("8")] == [12, 20, 30, 48]
+    # TODAS las bandas llegan al tope ~50 (pedido de Pablo 11-jul-2026)
+    assert all(n[-1] == 48 for n in rw.NIVELES_BANDA.values())
 
 
 def test_grillas_y_bordes(data):
@@ -64,7 +66,12 @@ def test_grillas_y_bordes(data):
         assert set(p["grillas"]) == {str(t) for t in data["targets"]}
         for t, clave in p["grillas"].items():
             cols, filas = map(int, clave.split("x"))
-            assert cols * filas == int(t)
+            if int(t) >= 40:
+                # el tope admite conteos vecinos (6x8=48 / 7x7=49): 50 exacto
+                # solo factoriza 5x10, piezas 2:1
+                assert abs(cols * filas - int(t)) <= 3
+            else:
+                assert cols * filas == int(t)
             b = data["bordes"][clave]
             assert len(b["h"]) == filas - 1
             assert all(len(fila) == cols for fila in b["h"])
@@ -126,6 +133,17 @@ def test_piezas_particionan_la_imagen(data):
             total = sum(_area(_poli(ci, fi, cols, filas, b, p["w"], p["h"]))
                         for fi in range(filas) for ci in range(cols))
             assert abs(total - p["w"] * p["h"]) / (p["w"] * p["h"]) < 0.002, clave
+
+
+def test_nivel_tope_piezas_cuadradas(data):
+    """El tope (~50) elige grillas de piezas CUADRADAS: 6x8=48 en fotos 3:4,
+    7x7=49 en cuadradas — nunca 5x10 (piezas 2:1)."""
+    import math
+    for p in data["puzzles"]:
+        clave = p["grillas"][str(data["targets"][-1])]
+        cols, filas = map(int, clave.split("x"))
+        r = (p["w"] / cols) / (p["h"] / filas)
+        assert abs(math.log(r)) < 0.12, clave
 
 
 def test_bordes_deterministicos_por_token(token, data):

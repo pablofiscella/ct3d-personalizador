@@ -9,14 +9,17 @@
 ## Qué es
 
 Una web app táctil personalizada (nombre + edad + tema): hasta 6 rompecabezas
-por tema (el fondo IA dedicado del puzzle imprimible + escenas del libro) y 3
-niveles por banda de edad:
+por tema (el fondo IA dedicado del puzzle imprimible + escenas del libro).
+TODAS las bandas llegan al tope de ~50 piezas (pedido de Pablo 11-jul-2026);
+el tope real es 48 (6x8, fotos 3:4) o 49 (7x7, cuadradas) — los conteos ≤50
+con piezas CUADRADAS; 50 exacto solo factoriza 5x10 (piezas 2:1). El player
+muestra el conteo real.
 
 | Banda | Edad | Niveles (piezas) |
 |---|---|---|
-| mini | ≤3 | 4 · 6 · 12 |
-| media | 4-5 | 6 · 12 · 20 |
-| grande | 6+ | 12 · 20 · 30 |
+| mini | ≤3 | 4 · 6 · 12 · 20 · 30 · ~50 |
+| media | 4-5 | 6 · 12 · 20 · 30 · ~50 |
+| grande | 6+ | 12 · 20 · 30 · ~50 |
 
 **El mismo principio del motor:** las formas de las piezas las genera el código
 — `rompecabezas._bordes_grilla` (knobs Bézier con bulbo más ancho que su
@@ -62,6 +65,14 @@ puzzle imprimible) + escenas de `overrides/libro/*.png` espaciadas parejo,
 hasta 6. Todo arte YA REVISADO que vive en el repo — acá no se genera IA.
 Los 12 temas del catálogo generan OK (validado 11-jul-2026: 6 puzzles y
 mascota cada uno, data.json 33-65KB, ~1.3MB por token).
+
+## Demo por tema (dash)
+
+Cada tema tiene un rompecabezas de MUESTRA con token fijo `demo-<tema>`
+(edad 3 → lista todos los niveles): lo crea/actualiza el botón **🎮
+Rompecabezas web** de la tarjeta del tema (`POST /dash/rompe-demo?tema=X`,
+síncrono, sin IA) y también se refresca solo al final del job de **⚡ Armar
+TODO el tema** (así el demo siempre refleja el arte vigente).
 
 ## Probar local
 
