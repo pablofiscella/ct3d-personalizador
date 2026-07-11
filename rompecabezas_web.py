@@ -242,31 +242,43 @@ def _fuente(nombre, px):
         return ImageFont.load_default()
 
 
+def _luminancia(rgb):
+    return 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]
+
+
 def _render_portada(titulo, tema_nombre, edad, pal, img):
     """Portada 900×1200 (la card de Mi biblioteca es 3:4): el arte del primer
     puzzle a sangre con los cortes encima — se lee «rompecabezas» de una — y
-    una banda inferior con marca y título."""
+    una banda inferior con marca y título.
+
+    Feedback Pablo 11-jul-2026: (1) la edad va como «+3 años» — «3 años» seco
+    parecía SOLO para esa edad, y los niveles llegan a ~50 piezas para
+    cualquier edad; (2) la banda va SIEMPRE clara — con la paleta oscura del
+    tema espacial salía azul y desentonaba con el resto de la grilla de Mi
+    biblioteca (las demás son blancas)."""
     W, H = 900, 1200
     im = fondos_ia.cover(img, W, H).convert("RGB")
     _dibujar_cortes_pil(im, 3, 4, zlib.crc32(b"portada-rompe"),
                         (255, 255, 255, 175), 5)
     dr = ImageDraw.Draw(im, "RGBA")
+    card, ink = _hex_rgb(pal["card"]), _hex_rgb(pal["ink"])
+    if _luminancia(card) < 150:            # paleta oscura (espacio) → banda clara
+        card, ink = (255, 255, 255), (58, 48, 42)
     bh = 250
-    dr.rectangle((0, H - bh, W, H), fill=_hex_rgb(pal["card"]) + (242,))
+    dr.rectangle((0, H - bh, W, H), fill=card + (242,))
     dr.rectangle((0, H - bh, W, H - bh + 10), fill=_hex_rgb(pal["ac"]) + (255,))
     f_tit = _fuente("Baloo2-VF.ttf", 64)
     tit = titulo
     while f_tit.getlength(tit) > W - 90 and f_tit.size > 34:
         f_tit = _fuente("Baloo2-VF.ttf", f_tit.size - 4)
-    dr.text((W // 2, H - bh + 88), tit, font=f_tit,
-            fill=_hex_rgb(pal["ink"]), anchor="mm")
+    dr.text((W // 2, H - bh + 88), tit, font=f_tit, fill=ink, anchor="mm")
     f_sub = _fuente("Nunito-VF.ttf", 36)
-    sub = "%s · %s años" % (tema_nombre, edad) if edad else tema_nombre
+    sub = "%s · +%s años" % (tema_nombre, edad) if edad else tema_nombre
     dr.text((W // 2, H - bh + 158), sub, font=f_sub,
             fill=_hex_rgb(pal["ac2"]), anchor="mm")
     f_marca = _fuente("Nunito-VF.ttf", 27)
     dr.text((W // 2, H - 42), "Rompecabezas interactivo · CASATRIDIMENSIONAL",
-            font=f_marca, fill=_hex_rgb(pal["ink"]) + (150,), anchor="mm")
+            font=f_marca, fill=ink + (150,), anchor="mm")
     return im
 
 
