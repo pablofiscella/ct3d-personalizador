@@ -69,7 +69,8 @@ h1, h2, h3, .fx { font-family: "Baloo", "Nunito", sans-serif; font-weight: 600; 
   background: var(--card); border-radius: 999px; box-shadow: var(--sombra);
   font-family: "Baloo", sans-serif; font-size: 21px; border: none; color: var(--ink);
 }
-button.pill:active { transform: scale(.94); }
+button.pill:active, a.pill:active { transform: scale(.94); }
+#btnBiblioteca { text-decoration: none; }
 #btnAtras { display: none; }
 #btnAtras.ver { display: flex; }
 
@@ -375,6 +376,7 @@ button.pill:active { transform: scale(.94); }
 <div id="cargando"><div class="aro"></div><div class="fx" style="font-size:22px">Preparando tus juegos…</div></div>
 
 <header id="hdr">
+  <a href="https://casatridimensional.com.ar/mi-cuenta" class="pill" id="btnBiblioteca" aria-label="Volver a Mi biblioteca">📚</a>
   <button id="btnAtras" class="pill" aria-label="Volver al menú">←</button>
   <div class="avatar"><img id="mascoHdr" alt="" src=""></div>
   <div id="hdrTitulo"><b id="hdrNombre">¡Hola!</b><span id="hdrSub"></span></div>
