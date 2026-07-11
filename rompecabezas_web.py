@@ -315,7 +315,8 @@ def crear(data, tema, token=None):
                         "w": w, "h": h, "grillas": grillas})
 
     from cuaderno import _tema_nombre
-    titulo = ("Los rompecabezas de %s" % nombre) if nombre else "Rompecabezas para armar"
+    titulo = ("Los rompecabezas de %s" % nombre) if nombre \
+        else "Rompecabezas %s" % _tema_nombre(tema)
     pal = _paleta(tema)
     dj = {
         "v": 1, "tema": tema, "tema_nombre": _tema_nombre(tema),
@@ -415,14 +416,30 @@ def archivo(token, nombre):
         return f.read(), ct
 
 
+def n_puzzles(tema):
+    return min(MAX_PUZZLES, len(_imagenes_tema(tema)))
+
+
+def preview_puzzle(tema, idx):
+    """Una escena del set con los cortes encima (galería «qué incluye» de la
+    ficha, sin crear token)."""
+    paths = _imagenes_tema(tema)
+    img = Image.open(paths[idx]).convert("RGB")
+    w, h = _formato(img)
+    im = fondos_ia.cover(img, w, h)
+    _dibujar_cortes_pil(im, 3, 4, zlib.crc32(b"portada-rompe"),
+                        (255, 255, 255, 175), 5)
+    return im
+
+
 def preview_mock(data, tema):
-    """Miniatura para la ficha de la tienda / dash (sin crear token): la portada."""
-    nombre = (data.get("nombre") or "").strip() or "Sofía"
+    """Miniatura para la ficha de la tienda / dash (sin crear token): la portada.
+    Sin nombre (el producto no pide datos — Pablo 11-jul-2026)."""
     paths = _imagenes_tema(tema)
     if paths:
         img = Image.open(paths[0]).convert("RGB")
     else:
         img = Image.new("RGB", (900, 1200), _hex_rgb(_paleta(tema)["soft"]))
     from cuaderno import _tema_nombre
-    return _render_portada("Los rompecabezas de %s" % nombre,
+    return _render_portada("Rompecabezas %s" % _tema_nombre(tema),
                            _tema_nombre(tema), _paleta(tema), img)

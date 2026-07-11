@@ -483,9 +483,17 @@ def _piezas_menu(tema):
     return [("1_menu", lambda d: menu_infantil.generar_menu(d, tema), True)]
 
 def _piezas_rompecabezas(tema):
+    # SET de 6 hojas (las mismas escenas del interactivo) con dificultad
+    # progresiva 4→48 piezas, cada una con su bandeja (Pablo 11-jul-2026).
     import rompecabezas
-    return [("1_rompecabezas", lambda d: rompecabezas.rompecabezas_nombre(d, tema), True),
-            ("2_bandeja", lambda d: rompecabezas.bandeja(d, tema), True)]
+    piezas = []
+    for i in range(rompecabezas.n_puzzles(tema)):
+        c, f = rompecabezas.GRILLAS_SET[min(i, len(rompecabezas.GRILLAS_SET) - 1)]
+        piezas.append(("%02d_rompecabezas_%d_piezas" % (i * 2 + 1, c * f),
+                       (lambda d, i=i: rompecabezas.puzzle_pagina(d, tema, i)), True))
+        piezas.append(("%02d_bandeja_%d" % (i * 2 + 2, i + 1),
+                       (lambda d, i=i: rompecabezas.bandeja_pagina(d, tema, i)), True))
+    return piezas
 
 def _piezas_capsula(tema):
     import capsula_tiempo
@@ -515,8 +523,14 @@ def _piezas_actividades_web(tema):
     return [("1_actividades_web", lambda d: actividades_web.preview_mock(d, tema), False)]
 
 def _piezas_rompecabezas_web(tema):
+    # galería de la ficha: la portada + los 6 rompecabezas que incluye
+    # (pedido Pablo 11-jul-2026: «que aparezcan las imágenes»)
     import rompecabezas_web
-    return [("1_rompecabezas_web", lambda d: rompecabezas_web.preview_mock(d, tema), False)]
+    piezas = [("0_portada", lambda d: rompecabezas_web.preview_mock(d, tema), False)]
+    for i in range(rompecabezas_web.n_puzzles(tema)):
+        piezas.append(("%d_rompecabezas" % (i + 1),
+                       (lambda d, i=i: rompecabezas_web.preview_puzzle(tema, i)), False))
+    return piezas
 
 def _piezas_libro(tema):
     import libro
@@ -740,12 +754,11 @@ TIPOS = {
         "piezas": _piezas_menu,
     },
     "rompecabezas": {
-        # SIN nombre (rediseño 7-jul + pedido Pablo 11-jul-2026): es la imagen
-        # completa del tema hecha puzzle — el nombre no aparece en ninguna
-        # pieza, así que no se pide al comprar. La edad elige la grilla.
+        # SIN nombre NI edad (Pablo 11-jul-2026): 6 escenas del tema hechas
+        # puzzle con dificultad progresiva — nada para completar al comprar.
         "nombre": "Rompecabezas imprimible",
-        "descripcion": "La escena de la temática hecha rompecabezas: piezas con encastres de verdad para recortar y armar, más la hoja-bandeja con la guía de las piezas y la imagen de referencia. La edad elige la cantidad de piezas (12 o 20).",
-        "campos": ["edad"],
+        "descripcion": "SEIS rompecabezas de la temática (las mismas escenas del interactivo) con dificultad progresiva: de 4 a 48 piezas con encastres de verdad, cada uno con su hoja-bandeja para armar encima. Para pegar en cartulina, recortar y armar mil veces. Nada para completar.",
+        "campos": [],
         "preview": "rompecabezas",
         "piezas": _piezas_rompecabezas,
     },
@@ -800,8 +813,8 @@ TIPOS = {
     },
     "rompecabezas-web": {
         "nombre": "Rompecabezas interactivo (web)",
-        "descripcion": "Los rompecabezas de la temática, pero JUGABLES: una web con el nombre del peque donde arma las escenas de su tema arrastrando piezas con encastres de verdad — con imán al encajar, estrellas y festejos. Hasta 6 fotos del tema y en cada una elegís de 4 a ~50 piezas; se pueden armar mil veces. Para celu, tablet o compu; link que dura años.",
-        "campos": ["nombre"],
+        "descripcion": "Los rompecabezas de la temática, pero JUGABLES en el navegador: se arman arrastrando piezas con encastres de verdad — con imán al encajar, estrellas y festejos. 6 fotos del tema y en cada una se elige de 4 a ~50 piezas; se pueden armar mil veces. Para celu, tablet o compu; link que dura años. Nada para completar.",
+        "campos": [],
         "preview": "rompecabezas-web",
         "piezas": _piezas_rompecabezas_web,
     },
@@ -1054,7 +1067,6 @@ PERSONALIZADAS = {
     "certificado":    {"*": ["nombre", "edad"]},
     "corona":         {"*": ["edad"]},                    # la edad elige el TALLE
     "menu":           {"*": ["menu_entrada", "menu_plato", "menu_postre", "menu_bebida"]},
-    "rompecabezas":   {"*": ["edad"]},                    # la edad elige la grilla
     "capsula":        {"*": ["edad"]},                    # destino "tus 18 años"
     "libro":          {"*": ["nombre", "edad", "dedicatoria"]},
     "libro-premium":  {"*": ["nombre", "edad", "genero", "historia", "dedicatoria"]},
@@ -1065,7 +1077,6 @@ PERSONALIZADAS = {
     "video-invitacion": {"*": ["nombre", "edad", "fecha", "hora", "lugar"]},
     "invitacion-web": {"*": ["nombre", "edad", "fecha", "hora", "lugar", "direccion"]},
     "actividades-web": {"*": ["nombre", "edad"]},
-    "rompecabezas-web": {"*": ["nombre"]},
     "mandalas":        {"00_portada": ["nombre"]},   # solo la portada usa el nombre; las mándalas son fijas
     "mandalas-media":         {"00_portada": ["nombre"]},
     "mandalas-media-pdf":     {"00_portada": ["nombre"]},

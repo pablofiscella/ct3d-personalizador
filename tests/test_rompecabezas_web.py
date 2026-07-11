@@ -180,7 +180,7 @@ def test_preview_mock():
 def test_tipo_registrado_en_productos():
     import productos
     assert productos.existe_tipo("rompecabezas-web")
-    assert productos.campos_tipo("rompecabezas-web") == ["nombre"]   # SIN edad (Pablo 11-jul)
+    assert productos.campos_tipo("rompecabezas-web") == []   # nada para completar (Pablo 11-jul)
 
 
 def test_portada_banda_clara_y_edad_mas():

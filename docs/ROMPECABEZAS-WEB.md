@@ -8,18 +8,14 @@
 
 ## Qué es
 
-Una web app táctil personalizada (nombre + edad + tema): hasta 6 rompecabezas
-por tema (el fondo IA dedicado del puzzle imprimible + escenas del libro).
-TODAS las bandas llegan al tope de ~50 piezas (pedido de Pablo 11-jul-2026);
-el tope real es 48 (6x8, fotos 3:4) o 49 (7x7, cuadradas) — los conteos ≤50
-con piezas CUADRADAS; 50 exacto solo factoriza 5x10 (piezas 2:1). El player
-muestra el conteo real.
-
-| Banda | Edad | Niveles (piezas) |
-|---|---|---|
-| mini | ≤3 | 4 · 6 · 12 · 20 · 30 · ~50 |
-| media | 4-5 | 6 · 12 · 20 · 30 · ~50 |
-| grande | 6+ | 12 · 20 · 30 · ~50 |
+Una web app táctil por temática, SIN datos para completar (Pablo 11-jul-2026:
+no pide nombre ni edad): hasta 6 rompecabezas por tema (el fondo IA dedicado
+del puzzle imprimible + escenas del libro) y en cada uno se elige el nivel —
+4 · 6 · 12 · 20 · 30 · ~50 piezas, siempre los mismos para toda compra. El
+tope real es 48 (6x8, fotos 3:4) o 49 (7x7, cuadradas) — los conteos ≤50 con
+piezas CUADRADAS; 50 exacto solo factoriza 5x10 (piezas 2:1). El player
+muestra el conteo real. El IMPRIMIBLE (rompecabezas.py) usa las MISMAS 6
+escenas con grillas progresivas 4→48 (GRILLAS_SET), cada hoja con su bandeja.
 
 **El mismo principio del motor:** las formas de las piezas las genera el código
 — `rompecabezas._bordes_grilla` (knobs Bézier con bulbo más ancho que su

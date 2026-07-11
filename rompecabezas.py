@@ -147,12 +147,25 @@ def _dibujar_cortes(dr, x0, y0, w, h, cols, filas, horiz, vert, color, ancho):
     dr.rectangle([x0, y0, x0 + w, y0 + h], outline=color, width=ancho)
 
 
-def _grilla_por_edad(edad):
+# SET de 6 hojas (Pablo 11-jul-2026: «en ambos quiero que estén los 6
+# rompecabezas que están en test») — las MISMAS escenas del interactivo con
+# dificultad PROGRESIVA, la misma escalera de niveles del web (4 → 48 piezas;
+# piezas cuadradas en el área 180x240mm; la de 48 da piezas de 30x30mm).
+GRILLAS_SET = [(2, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 8)]
+
+
+def _imagenes(tema):
+    """Las MISMAS escenas que el rompecabezas interactivo (hasta 6 paths)."""
     try:
-        e = int(str(edad).strip())
+        import rompecabezas_web
+        return rompecabezas_web._imagenes_tema(tema)[:len(GRILLAS_SET)]
     except Exception:
-        e = 4
-    return (4, 5) if e >= 6 else (3, 4)          # (cols, filas)
+        return []
+
+
+def n_puzzles(tema):
+    """Cuántas hojas trae el set (1 con el fallback procedural)."""
+    return max(1, len(_imagenes(tema)))
 
 
 def _imagen_puzzle(tema):
@@ -203,21 +216,35 @@ def _arte(tema, w, h):
     return im
 
 
-def rompecabezas_nombre(data, tema="safari"):
-    """Página 1: la imagen completa del tema con los CORTES de puzzle encima
-    (sin nombre — el seed de las formas sale de tema+grilla)."""
+def _arte_hoja(tema, idx, w, h):
+    """El arte de la hoja `idx`: su escena del set (cover, nunca estira) o el
+    fallback procedural si el tema no tiene imágenes."""
+    imgs = _imagenes(tema)
+    if idx < len(imgs):
+        import fondos_ia
+        return fondos_ia.cover(Image.open(imgs[idx]).convert("RGBA"), int(w), int(h))
+    return _arte(tema, w, h)
+
+
+def _grilla_hoja(idx):
+    return GRILLAS_SET[min(idx, len(GRILLAS_SET) - 1)]
+
+
+def puzzle_pagina(data, tema="safari", idx=0):
+    """Hoja `idx` del set: la escena con los CORTES de puzzle encima (sin
+    nombre — el seed de las formas sale de tema+hoja+grilla)."""
     acc = _accent(tema)
-    cols, filas = _grilla_por_edad(data.get("edad"))
-    seed = zlib.crc32(("%s|%dx%d" % (tema, cols, filas)).encode())
+    cols, filas = _grilla_hoja(idx)
+    seed = zlib.crc32(("%s|%d|%dx%d" % (tema, idx, cols, filas)).encode())
 
     im = Image.new("RGBA", (Wp, Hp), CREAM + (255,))
     dr = ImageDraw.Draw(im)
-    dr.text((60, 55), "ROMPECABEZAS · %d piezas" % (cols * filas),
+    dr.text((60, 55), "ROMPECABEZAS %d · %d piezas" % (idx + 1, cols * filas),
             font=_font(44, False), fill=_tint(acc, 0.3))
 
     aw, ah = _mm(180), _mm(240)
     ax, ay = (Wp - aw) / 2, _mm(22)
-    im.alpha_composite(_arte(tema, aw, ah), (int(ax), int(ay)))
+    im.alpha_composite(_arte_hoja(tema, idx, aw, ah), (int(ax), int(ay)))
 
     horiz, vert = _bordes_grilla(cols, filas, seed)
     _dibujar_cortes(ImageDraw.Draw(im), ax, ay, aw, ah, cols, filas, horiz, vert, CORTE, 5)
@@ -231,16 +258,16 @@ def rompecabezas_nombre(data, tema="safari"):
     return im
 
 
-def bandeja(data, tema="safari"):
-    """Página 2: la BANDEJA — contornos de las MISMAS piezas (mismo seed) para
-    armar encima + mini referencia del puzzle armado."""
+def bandeja_pagina(data, tema="safari", idx=0):
+    """Bandeja de la hoja `idx`: contornos de las MISMAS piezas (mismo seed)
+    para armar encima + mini referencia del puzzle armado."""
     acc = _accent(tema)
-    cols, filas = _grilla_por_edad(data.get("edad"))
-    seed = zlib.crc32(("%s|%dx%d" % (tema, cols, filas)).encode())
+    cols, filas = _grilla_hoja(idx)
+    seed = zlib.crc32(("%s|%d|%dx%d" % (tema, idx, cols, filas)).encode())
 
     im = Image.new("RGBA", (Wp, Hp), CREAM + (255,))
     dr = ImageDraw.Draw(im)
-    dr.text((60, 55), "BANDEJA · armá el rompecabezas acá encima",
+    dr.text((60, 55), "BANDEJA %d · armá el rompecabezas acá encima" % (idx + 1),
             font=_font(44, False), fill=_tint(acc, 0.3))
 
     aw, ah = _mm(180), _mm(240)
@@ -253,7 +280,7 @@ def bandeja(data, tema="safari"):
 
     # mini referencia ADENTRO de la bandeja (esquina inferior derecha, como las
     # bandejas profesionales: las piezas la van tapando al armar)
-    mini = _arte(tema, aw, ah)
+    mini = _arte_hoja(tema, idx, aw, ah)
     mini.thumbnail((int(_mm(38)), int(_mm(50))), Image.LANCZOS)
     mx = int(ax + aw - mini.width - _mm(6))
     my = int(ay + ah - mini.height - _mm(6))
@@ -268,6 +295,16 @@ def bandeja(data, tema="safari"):
     dr2.text((Wp / 2, Hp - 60), "casatridimensional.com.ar", font=_font(36, False),
              fill=(180, 180, 180), anchor="mm")
     return im
+
+
+def rompecabezas_nombre(data, tema="safari"):
+    """Compat: la primera hoja del set (usos viejos: previews/audit)."""
+    return puzzle_pagina(data, tema, 2)      # 12 piezas: la más representativa
+
+
+def bandeja(data, tema="safari"):
+    """Compat: la bandeja de la primera hoja representativa."""
+    return bandeja_pagina(data, tema, 2)
 
 
 if __name__ == "__main__":
