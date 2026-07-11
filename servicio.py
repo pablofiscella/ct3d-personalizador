@@ -1005,6 +1005,38 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(body)))
             self.end_headers(); self.wfile.write(body)
             return
+        # ---- "elegí tu aventura" (PROTOTIPO; libro-cuento con decisiones; link con
+        # token) ---- Igual que /act: rutas RELATIVAS -> servir SIEMPRE bajo /leer/<tok>/.
+        m = re.match(r"^/leer/([A-Za-z0-9_-]+)(?:/([a-z_0-9.]*))?$", path)
+        if m:
+            import aventura_web as avw
+            token, arch = m.group(1), m.group(2)
+            if arch is None:
+                self.send_response(301)
+                self.send_header("Location", "/leer/%s/" % token)
+                self.end_headers()
+                return
+            if arch:
+                r = avw.archivo(token, arch)
+                if r is None:
+                    return self._json(404, {"ok": False, "error": "no existe"})
+                data_b, ct = r
+                self.send_response(200)
+                self.send_header("Content-Type", ct)
+                self.send_header("Cache-Control", "public, max-age=86400")
+                self.send_header("Content-Length", str(len(data_b)))
+                self.end_headers(); self.wfile.write(data_b)
+                return
+            page = avw.html(token)
+            if page is None:
+                return self._json(404, {"ok": False, "error": "aventura no encontrada"})
+            body = page.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers(); self.wfile.write(body)
+            return
         m = re.match(r"^/descarga/([A-Za-z0-9_-]+)$", path)
         if m:
             token = m.group(1)

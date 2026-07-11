@@ -41,6 +41,8 @@ actividades/
 rompecabezas_web/
 # mándalas web para pintar (carpetas por token: kit.zip + portada, datos de compra)
 mandalas_web/
+# "elegí tu aventura" — prototipo (carpetas por token: manifest.json, datos de compra/demo)
+aventura_web/
 temas/*/audiolibro_demo.txt
 
 # cache de arte del catálogo de audiolibros (generar una vez -> revisar -> reusar)
