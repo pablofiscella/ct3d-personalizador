@@ -172,12 +172,29 @@ cachear → reusar. Solo se vende lo revisado. Toda pieza conserva su fallback p
   Bézier cúbicas formando un knob; bulbo ≈20-25% del largo del borde, más ancho que su
   cuello (traba de verdad); jitter aleatorio en posición/tamaño de knobs (cada pieza
   única). Es EL diferenciador pro.
+- **Knobs con PROPORCIONES COMERCIALES y en DAMERO (bug real 11-jul-2026, Pablo
+  probando el web, dos rondas de feedback)**: profundidad ≈21% de la celda, bulbo
+  ≈28% del borde, cuello 20% (traba 1.4) — el estándar ribbon-cut (default del
+  generador clásico de Draradech: traba ~20% de celda). Con la receta original
+  (punta al 45% de la celda) los knobs de bordes perpendiculares se CRUZABAN
+  (~12 cruces por puzzle: líneas superpuestas, piezas con puntas "sueltas"); la
+  primera corrección (28%) a Pablo todavía le pareció grande. Flips por PARIDAD,
+  no al azar: toda pieza interior con 2 trabas + 2 huecos (con flip random salían
+  piezas con 4 trabas para afuera). Test guardián:
+  `tests/test_rompecabezas_bordes.py` (intersecciones en 3 proporciones de celda
+  + banda de profundidad 0.16-0.28 + damero) — correrlo ante CUALQUIER retoque de
+  `_borde_knob`/`_bordes_grilla`.
 - Grillas por edad (hoja carta apaisada, arte 24x18cm): **4x3=12 piezas de 6x6cm**
   (3-5 años) · **5x4=20 piezas de ~4.8x4.5cm** (5-7). Menores de 3: piezas ≥5cm
   (seguridad: nada que entre en cilindro de Ø3.2cm).
 - Nombre en 100-150pt ocupando ~40% de la altura, sobre escena IA del tema (no fondo liso).
 - Premium: **página-bandeja** con el contorno de las piezas impreso (se arma encima) +
   imagen de referencia del puzzle armado.
+- **Versión WEB** (`rompecabezas_web.py`, producto `rompecabezas-web`, link
+  `/armar/<token>/`): exporta la MISMA receta de bordes a data.json como
+  polilíneas unitarias. Al tocar `_borde_knob`/`_bordes_grilla` mantener el
+  contrato — cada borde de (0,0) a (1,0), knob perpendicular acotado (<0.55) —
+  porque el player ya vendido lo mapea así. Doc: `docs/ROMPECABEZAS-WEB.md`.
 
 ## 7. GORRO Y CORONA — `corona.py` (YA rediseñado — es el modelo a seguir)
 

@@ -37,6 +37,8 @@ audiolibros/
 
 # actividades web interactivas (datos de pedidos en runtime)
 actividades/
+# rompecabezas web interactivos (carpetas por token, datos de pedidos en runtime)
+rompecabezas_web/
 # mándalas web para pintar (carpetas por token: kit.zip + portada, datos de compra)
 mandalas_web/
 temas/*/audiolibro_demo.txt

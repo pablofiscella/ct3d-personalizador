@@ -514,6 +514,10 @@ def _piezas_actividades_web(tema):
     import actividades_web
     return [("1_actividades_web", lambda d: actividades_web.preview_mock(d, tema), False)]
 
+def _piezas_rompecabezas_web(tema):
+    import rompecabezas_web
+    return [("1_rompecabezas_web", lambda d: rompecabezas_web.preview_mock(d, tema), False)]
+
 def _piezas_libro(tema):
     import libro
     n_hist = libro.paginas_historia(tema)
@@ -791,6 +795,13 @@ TIPOS = {
         "preview": "actividades-web",
         "piezas": _piezas_actividades_web,
     },
+    "rompecabezas-web": {
+        "nombre": "Rompecabezas interactivo (web)",
+        "descripcion": "Los rompecabezas de la temática, pero JUGABLES: una web con el nombre del peque donde arma las escenas de su tema arrastrando piezas con encastres de verdad — con imán al encajar, estrellas y festejos. Varios rompecabezas y niveles según la edad; se pueden armar mil veces. Para celu, tablet o compu; link que dura años.",
+        "campos": ["nombre", "edad"],
+        "preview": "rompecabezas-web",
+        "piezas": _piezas_rompecabezas_web,
+    },
     "libro": {
         "nombre": "Libro de cuento personalizado",
         "descripcion": "Cuento de 10 páginas donde el chico es el protagonista: portada, dedicatoria, 7 páginas de aventura con la temática y final. Listo para imprimir como libro. Cada página puede llevar ilustración IA (override).",
@@ -1051,6 +1062,7 @@ PERSONALIZADAS = {
     "video-invitacion": {"*": ["nombre", "edad", "fecha", "hora", "lugar"]},
     "invitacion-web": {"*": ["nombre", "edad", "fecha", "hora", "lugar", "direccion"]},
     "actividades-web": {"*": ["nombre", "edad"]},
+    "rompecabezas-web": {"*": ["nombre", "edad"]},
     "mandalas":        {"00_portada": ["nombre"]},   # solo la portada usa el nombre; las mándalas son fijas
     "mandalas-media":         {"00_portada": ["nombre"]},
     "mandalas-media-pdf":     {"00_portada": ["nombre"]},
@@ -1222,7 +1234,8 @@ def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):
     elif pieza in ("certificado", "corona", "antifaces", "menu", "rompecabezas",
                   "capsula", "libro", "calendario", "papertoys", "memoria", "mandalas",
                   "mandalas-media", "mandalas-dificil", "mandalas-muydificil",
-                  "invitacion-web", "actividades-web", "fiesta-completa", "video-invitacion",
+                  "invitacion-web", "actividades-web", "rompecabezas-web",
+                  "fiesta-completa", "video-invitacion",
                   "stl-medalla", "stl-topper", "stl-trofeo", "stl-cortante", "stl-pack"):
         # 100% procedurales: pasan por piezas_tipo() para que un override subido a mano
         # (ver override_path) se refleje también en la miniatura del producto.

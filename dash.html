@@ -353,6 +353,7 @@ async function cargar(){
         <button class="btn-ghost ia-kit" title="Ver, aprobar o regenerar pieza por pieza el arte IA del kit. Para CREAR todo usá ⚡ Armar TODO el tema.">🖼 Revisar arte IA</button>
         <button class="btn-ghost prod-nuevos">🖼️ Otros productos</button>
         <button class="btn-ghost textos" title="Posicionar / agregar / ocultar los textos de cada pieza (invitación, afiche, banderín, tarjeta…)">✏️ Textos</button>
+        <button class="btn-ghost rompe-web" title="Abrir el rompecabezas web de muestra del tema (se arma al momento con el arte ya generado, sin gastar IA)">🎮 Rompecabezas web</button>
         <button class="btn-ghost armar-todo" style="border-color:var(--accent);font-weight:700">⚡ Armar TODO el tema</button>
         ${pubRow}
         ${t.base
@@ -366,6 +367,7 @@ async function cargar(){
     d.querySelector('.ia-kit').onclick=()=>openIA(t.id,t.nombre);
     d.querySelector('.prod-nuevos').onclick=()=>openProductosNuevos(t.id,t.nombre);
     d.querySelector('.textos').onclick=()=>openTextos(t.id,t.nombre);
+    d.querySelector('.rompe-web').onclick=()=>probarRompeWeb(t.id,d.querySelector('.rompe-web'));
     d.querySelector('.armar-todo').onclick=()=>armarTodoTema(t.id,t.nombre);
     const bPubM=d.querySelector('.pubmodal'); if(bPubM)bPubM.onclick=()=>openPublicar(t.id,t.nombre);
     const bDelT=d.querySelector('.delt'); if(bDelT)bDelT.onclick=()=>eliminarTema(t.id,t.nombre);
@@ -373,6 +375,18 @@ async function cargar(){
     cont.appendChild(d);
   });
   updateCarNav();
+}
+async function probarRompeWeb(tema, btn){
+  // abre la pestaña ANTES del await (los popup blockers matan window.open
+  // asíncrono) y después la apunta al demo recién creado/actualizado
+  const w=window.open('about:blank','_blank');
+  const prev=btn?btn.textContent:''; if(btn){btn.disabled=true;btn.textContent='🎮 Armando…';}
+  try{
+    const r=await (await fetch('/dash/rompe-demo?tema='+encodeURIComponent(tema),{method:'POST',headers:{'X-API-Key':KEY}})).json();
+    if(!r.ok){ if(w)w.close(); alert('Error: '+(r.error||'?')); return; }
+    if(w)w.location=r.url; else location.href=r.url;
+  }catch(e){ if(w)w.close(); alert('No se pudo armar el rompecabezas: '+e); }
+  finally{ if(btn){btn.disabled=false;btn.textContent=prev;} }
 }
 async function armarTodoTema(tema, nombre){
   // BOTÓN ÚNICO: primero un dry-run para mostrar qué falta y cuánto va a
