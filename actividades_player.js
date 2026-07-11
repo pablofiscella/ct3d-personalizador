@@ -1410,3 +1410,226 @@ GAMES.serie = {
     jugar();
   },
 };
+
+/* ── ESCUCHÁ Y REPETÍ — memoria auditiva/visual tipo Simon: la secuencia crece
+   un color por nivel; un error nunca hace perder nada, solo repite la secuencia
+   completa y deja reintentar (cero fail states). ── */
+const SIMON_COLORES = [
+  { c: "#E25555", nota: 392 }, { c: "#4F86C6", nota: 330 }, { c: "#F2C94C", nota: 262 },
+  { c: "#4CAF7D", nota: 440 }, { c: "#9B6BD6", nota: 494 },
+];
+GAMES.simon = {
+  crear(ctx) {
+    const nColores = Math.min(ctx.cfg.colores || 4, SIMON_COLORES.length);
+    const rondas = ctx.cfg.rondas || 5;
+    const colores = SIMON_COLORES.slice(0, nColores);
+    ctx.rondas(rondas);
+    const seq = [];
+    let nivel = 0, entrada = [], reproduciendo = false, botones = [];
+
+    const flash = (i, dur) => {
+      const b = botones[i];
+      b.style.filter = "brightness(1.55)"; b.style.transform = "scale(1.06)";
+      Sfx._nota(colores[i].nota, 0, (dur || 320) / 1000, "triangle", 0.18);
+      setTimeout(() => { b.style.filter = ""; b.style.transform = ""; }, dur || 320);
+    };
+    const reproducir = async () => {
+      reproduciendo = true;
+      ctx.consigna("Mirá y escuchá…");
+      await espera(400);
+      for (let i = 0; i < seq.length; i++) { flash(seq[i], 380); await espera(480); }
+      reproduciendo = false;
+      entrada = [];
+      ctx.consigna("Ahora repetí vos, tocando en el mismo orden");
+    };
+    const construir = () => {
+      ctx.juego.innerHTML = "";
+      const fila = el("div", "filaSprites");
+      fila.style.maxWidth = "480px";
+      const TAM = nColores > 4 ? 84 : 100;
+      botones = colores.map((col, i) => {
+        const b = el("button", "spriteBtn");
+        b.style.cssText = `width:${TAM}px;height:${TAM}px;background:${col.c};border-radius:26px`;
+        b.addEventListener("click", async () => {
+          if (reproduciendo) return;
+          flash(i, 220);
+          entrada.push(i);
+          const pos = entrada.length - 1;
+          if (entrada[pos] !== seq[pos]) {
+            ctx.casi();
+            await espera(500);
+            await reproducir();   // repasa la secuencia entera, sin penalizar
+            return;
+          }
+          if (entrada.length === seq.length) {
+            ctx.bien();
+            nivel++;
+            await espera(500);
+            if (nivel >= rondas) { ctx.win(); return; }
+            jugar();
+          }
+        });
+        fila.appendChild(b);
+        return b;
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    const jugar = async () => {
+      ctx.ronda(nivel);
+      seq.push(rint(0, nColores - 1));
+      construir();
+      await espera(300);
+      await reproducir();
+    };
+    jugar();
+  },
+};
+
+/* ── ¿DÓNDE VA? — clasificar: cada amigo va a la canasta de su igual (tap, sin
+   drag — más robusto en mobile). ── */
+GAMES.agrupar = {
+  minP: 2,
+  crear(ctx) {
+    const canastas = Math.min(ctx.cfg.canastas || 2, P.length);
+    const rondas = ctx.cfg.rondas || 6;
+    const refs = sample(P, canastas);
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿A qué canasta va?");
+      ctx.juego.innerHTML = "";
+      const item = refs[rint(0, canastas - 1)];
+      const arriba = el("div", "tablero");
+      const cont = el("div", "spriteQuieto anim-pop",
+        `<img src="${item}" alt="" style="width:120px;height:120px">`);
+      arriba.appendChild(cont);
+      ctx.juego.appendChild(arriba);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      refs.forEach((r) => {
+        const b = el("button", "spriteBtn", `<div style="position:relative">
+          <img src="${r}" alt="" style="width:96px;height:96px;opacity:.55">
+          <div style="position:absolute;bottom:-6px;right:-6px;font-size:26px">🧺</div>
+        </div>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (r === item) {
+            resuelto = true;
+            cont.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(700);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── ¿QUÉ FALTA? — atención y memoria a corto plazo: se muestran los amigos, se
+   tapa uno y hay que reconocerlo entre las opciones (sin escribir/leer). ── */
+GAMES.quefalta = {
+  minP: 3,
+  crear(ctx) {
+    const n = Math.min(ctx.cfg.items || 4, P.length);
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = async () => {
+      ctx.ronda(ronda);
+      const grupo = sample(P, n);
+      const faltaIdx = rint(0, n - 1);
+      const falta = grupo[faltaIdx];
+      ctx.consigna("Mirá bien quiénes están…");
+      ctx.juego.innerHTML = "";
+      const fila = el("div", "filaSprites");
+      const TAM = Math.min(120, Math.floor((Math.min(innerWidth, 1000) - 80) / n) - 12);
+      const celdas = grupo.map((s) => {
+        const d = el("div", "spriteQuieto", `<img src="${s}" alt="" style="width:${TAM}px;height:${TAM}px">`);
+        fila.appendChild(d);
+        return d;
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+      await espera(2200);
+      ctx.consigna("¿Quién se escondió?");
+      celdas[faltaIdx].innerHTML = `<div class="hueco" style="width:${TAM}px;height:${TAM}px">?</div>`;
+      const ops = el("div", "ops");
+      let resuelto = false;
+      shuffle(grupo).forEach((s) => {
+        const b = el("button", "spriteBtn", `<img src="${s}" alt="" style="width:78px;height:78px">`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (s === falta) {
+            resuelto = true;
+            celdas[faltaIdx].innerHTML = `<img src="${s}" alt="" style="width:${TAM}px;height:${TAM}px">`;
+            celdas[faltaIdx].classList.add("anim-pop");
+            ctx.bien();
+            ronda++;
+            await espera(800);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        ops.appendChild(b);
+      });
+      ctx.juego.appendChild(ops);
+    };
+    jugar();
+  },
+};
+
+/* ── BINGO DE AMIGOS — escaneo visual, sin necesidad de leer: se pide un amigo
+   por vez (con imagen de pista) y hay que encontrarlo en la grilla. ── */
+GAMES.bingo = {
+  minP: 4,
+  crear(ctx) {
+    const tam = Math.min(ctx.cfg.tam || 6, P.length);
+    const cols = tam <= 4 ? 2 : 3;
+    const items = sample(P, tam);
+    const orden = shuffle(items);
+    ctx.rondas(tam);
+    let encontrados = 0, objetivo = orden[0];
+    const gridInner = el("div");
+    gridInner.style.cssText =
+      `display:grid;grid-template-columns:repeat(${cols},1fr);gap:12px;max-width:${cols * 130}px;margin:0 auto`;
+    items.forEach((s) => {
+      const b = el("button", "spriteBtn", `<img src="${s}" alt="" style="width:96px;height:96px">`);
+      b.addEventListener("click", async () => {
+        if (b.dataset.ok) return;
+        if (s === objetivo) {
+          b.dataset.ok = "1";
+          b.style.opacity = ".4";
+          b.disabled = true;
+          b.classList.add("anim-brinco");
+          ctx.bien();
+          encontrados++;
+          ctx.ronda(encontrados);
+          if (encontrados >= tam) { await espera(500); ctx.win(); return; }
+          objetivo = orden[encontrados];
+          ctx.consigna("Buscá a:", objetivo);
+        } else {
+          b.style.animation = "sacudir .4s ease";
+          setTimeout(() => (b.style.animation = ""), 450);
+          ctx.casi();
+        }
+      });
+      gridInner.appendChild(b);
+    });
+    ctx.consigna("Buscá a:", objetivo);
+    ctx.juego.appendChild(el("div", "tablero")).appendChild(gridInner);
+  },
+};
