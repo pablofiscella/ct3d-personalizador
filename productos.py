@@ -552,13 +552,22 @@ def _piezas_mandalas(tema):
     """Kit de mándalas para pintar: portada (personalizable con nombre) + 6 mándalas
     de dificultad creciente + hoja 'cómo imprimir'. 100% procedural (tema no afecta el
     line-art B/N; queda como eje para la Fase 2 con arte IA)."""
-    import mandalas
-    out = [("00_portada", lambda d: mandalas.portada(d), False)]
-    for i in range(1, mandalas.N_MANDALAS + 1):
-        out.append(("%02d_mandala" % i,
-                    (lambda k: (lambda d: mandalas.pagina(k)))(i), False))
-    out.append(("%02d_como_imprimir" % (mandalas.N_MANDALAS + 1), lambda d: mandalas.como_imprimir(d), False))
-    return out
+    return _piezas_mandalas_kit(None)(tema)
+
+
+def _piezas_mandalas_kit(kit):
+    """Factory: devuelve la función de piezas del kit de mándalas `kit` (None = original/chicos;
+    'media'/'dificil'/'muydificil' = kits de adultos). portada + 10 mándalas + cómo imprimir."""
+    def _piezas(tema):
+        import mandalas
+        out = [("00_portada", (lambda d: mandalas.portada(d, kit=kit)), False)]
+        for i in range(1, mandalas.N_MANDALAS + 1):
+            out.append(("%02d_mandala" % i,
+                        (lambda k: (lambda d: mandalas.pagina(k, kit=kit)))(i), False))
+        out.append(("%02d_como_imprimir" % (mandalas.N_MANDALAS + 1),
+                    lambda d: mandalas.como_imprimir(d), False))
+        return out
+    return _piezas
 
 
 # ── STL 3D (medalla/topper/trofeo/cortante/pack) ────────────────────────────
@@ -836,6 +845,27 @@ TIPOS = {
         "preview": "mandalas",
         "piezas": _piezas_mandalas,
     },
+    "mandalas-media": {
+        "nombre": "Mándalas para pintar — Nivel Medio",
+        "descripcion": "10 mándalas de dificultad MEDIA (florales, geométricas, mehndi, naturaleza y más) para colorear. Line-art 300dpi, imprimir en casa (A4/Carta) + pintar online.",
+        "campos": ["nombre"],
+        "preview": "mandalas-media",
+        "piezas": _piezas_mandalas_kit("media"),
+    },
+    "mandalas-dificil": {
+        "nombre": "Mándalas para pintar — Nivel Difícil",
+        "descripcion": "10 mándalas DIFÍCILES (intrincadas, antiestrés) de estilos variados para colorear. Line-art 300dpi, imprimir en casa (A4/Carta) + pintar online.",
+        "campos": ["nombre"],
+        "preview": "mandalas-dificil",
+        "piezas": _piezas_mandalas_kit("dificil"),
+    },
+    "mandalas-muydificil": {
+        "nombre": "Mándalas para pintar — Nivel Muy difícil",
+        "descripcion": "10 mándalas MUY DIFÍCILES (máximo detalle, antiestrés) de estilos variados para colorear. Line-art 300dpi, imprimir en casa (A4/Carta) + pintar online.",
+        "campos": ["nombre"],
+        "preview": "mandalas-muydificil",
+        "piezas": _piezas_mandalas_kit("muydificil"),
+    },
     "stl-medalla": {
         "nombre": "Medalla 3D imprimible",
         "descripcion": "Medalla con el personaje del tema en relieve + nombre/edad grabado. Archivo STL para imprimir en 3D, generado 100% por código (sin diseños de terceros).",
@@ -951,12 +981,10 @@ _PIEZA_LABELS = {
     "1_cartas_memoria": "Cartas del memory",
     "2_dorso": "Dorso de cartas",
     "00_portada": "Portada",
-    "01_mandala": "Animales · Muy fácil", "02_mandala": "Animales · Fácil",
-    "03_mandala": "Naturaleza · Fácil", "04_mandala": "Naturaleza · Media",
-    "05_mandala": "Florales · Media", "06_mandala": "Florales · Difícil",
-    "07_mandala": "Geométricas · Media", "08_mandala": "Geométricas · Difícil",
-    "09_mandala": "Zen · Muy difícil", "10_mandala": "Zen · Muy difícil",
-    "11_como_imprimir": "Cómo imprimir",
+    "01_mandala": "Mándala 1", "02_mandala": "Mándala 2", "03_mandala": "Mándala 3",
+    "04_mandala": "Mándala 4", "05_mandala": "Mándala 5", "06_mandala": "Mándala 6",
+    "07_mandala": "Mándala 7", "08_mandala": "Mándala 8", "09_mandala": "Mándala 9",
+    "10_mandala": "Mándala 10", "11_como_imprimir": "Cómo imprimir",
     # kits dinámicos por arte estática (extras/): nombres lindos para la galería
     "01_invitacion": "Invitación", "02_afiche": "Afiche del número",
     "03_topper": "Topper de torta", "04_stickers": "Stickers",
@@ -1003,6 +1031,9 @@ PERSONALIZADAS = {
     "invitacion-web": {"*": ["nombre", "edad", "fecha", "hora", "lugar", "direccion"]},
     "actividades-web": {"*": ["nombre", "edad"]},
     "mandalas":        {"00_portada": ["nombre"]},   # solo la portada usa el nombre; las mándalas son fijas
+    "mandalas-media":     {"00_portada": ["nombre"]},
+    "mandalas-dificil":   {"00_portada": ["nombre"]},
+    "mandalas-muydificil": {"00_portada": ["nombre"]},
     # FIJAS (sin datos del comprador): antifaces, memoria, papertoys, babyshower
 }
 
@@ -1166,6 +1197,7 @@ def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):
         img = bs.pieza("invitacion", data, tema)
     elif pieza in ("certificado", "corona", "antifaces", "menu", "rompecabezas",
                   "capsula", "libro", "calendario", "papertoys", "memoria", "mandalas",
+                  "mandalas-media", "mandalas-dificil", "mandalas-muydificil",
                   "invitacion-web", "actividades-web", "fiesta-completa", "video-invitacion",
                   "stl-medalla", "stl-topper", "stl-trofeo", "stl-cortante", "stl-pack"):
         # 100% procedurales: pasan por piezas_tipo() para que un override subido a mano

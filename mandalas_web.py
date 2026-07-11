@@ -32,31 +32,40 @@ def _esc(s):
 
 
 # ── Generación (una carpeta por compra) ──────────────────────────────────────
-def crear(data, token=None):
+def _kit_de_tipo(tipo):
+    """'mandalas-media' → 'media'; 'mandalas' → None (kit original/chicos)."""
+    t = (tipo or "mandalas")
+    return t[len("mandalas-"):] if t.startswith("mandalas-") and t[len("mandalas-"):] in mandalas.KITS else None
+
+
+def crear(data, token=None, tipo="mandalas"):
     """Arma mandalas_web/<token>/ con el kit.zip (PDF, portada personalizada) + portada.jpg.
-    Devuelve el token. Las mándalas para pintar NO se copian (salen del repo)."""
+    `tipo` elige el KIT (mandalas / mandalas-media / -dificil / -muydificil). Devuelve el token.
+    Las mándalas para pintar NO se copian (salen del repo)."""
     data = dict(data or {})
     tema = (data.get("tema") or "safari").strip() or "safari"
+    kit = _kit_de_tipo(tipo)
     token = token or secrets.token_urlsafe(12)
     dest = os.path.join(MW_DIR, token)
     os.makedirs(dest, exist_ok=True)
 
     # PDF imprimible (mismo pipeline que la modalidad impresa) → kit.zip en el token
     import productos
-    productos.generar(data, dest, tema, "mandalas")
+    productos.generar(data, dest, tema, tipo if tipo in productos.TIPOS else "mandalas")
 
     # Cover de biblioteca (la portada, achicada)
     try:
-        port = mandalas.portada(data).convert("RGB")
+        port = mandalas.portada(data, kit=kit).convert("RGB")
         port.thumbnail((900, 1273))
         port.save(os.path.join(dest, "portada.jpg"), quality=88)
     except Exception:
         pass
 
     nombre = str(data.get("nombre") or "").strip()
-    titulo = f"Mándalas de {nombre}" if nombre else "Mándalas para pintar"
+    base = f"Mándalas nivel {mandalas.KITS[kit][0].lower()}" if kit else "Mándalas para pintar"
+    titulo = f"{base} — {nombre}" if nombre else base
     with open(os.path.join(dest, "manifest.json"), "w", encoding="utf-8") as f:
-        json.dump({"v": 1, "nombre": nombre, "titulo": titulo, "ts": int(time.time())},
+        json.dump({"v": 1, "nombre": nombre, "titulo": titulo, "kit": kit, "ts": int(time.time())},
                   f, ensure_ascii=False)
     return token
 
@@ -97,13 +106,16 @@ def html(token):
     # (los labels son fijos; el nombre va JSON-encodeado para cerrar bien el string).
     # Cache-buster `?v=<mtime>` por asset: las mándalas se sirven con Cache-Control de 24h,
     # así que sin esto el navegador seguía mostrando la versión vieja al regenerar el arte.
+    kit = reg.get("kit")
+    _sub = kit if (kit and kit in mandalas.KITS) else ""
+
     def _av(i):
         try:
-            return int(os.path.getmtime(os.path.join(mandalas.ART_DIR, f"{i}.png")))
+            return int(os.path.getmtime(os.path.join(mandalas.ART_DIR, _sub, f"{i}.png")))
         except OSError:
             return 1
     niveles = json.dumps([{"src": f"mandala_{i}.png?v={_av(i)}", "cat": cat, "dif": dif, "stars": stars}
-                          for i, (cat, dif, stars) in enumerate(mandalas.MANDALAS, 1)],
+                          for i, (cat, dif, stars) in enumerate(mandalas.meta_de(kit), 1)],
                          ensure_ascii=False)
     return (t.replace("{{TITULO}}", _esc(reg.get("titulo") or "Mándalas para pintar"))
              .replace("{{NIVELES}}", niveles)
@@ -117,15 +129,18 @@ _CT = {".js": "text/javascript; charset=utf-8", ".png": "image/png", ".jpg": "im
 
 
 def archivo(token, nombre):
-    """(bytes, content_type) de un asset, o None. player.js y las mándalas salen del REPO;
-    kit.zip / portada.jpg / manifest.json salen de la carpeta del token."""
-    if not _cargar(token) or not _ASSET_RE.fullmatch(nombre or ""):
+    """(bytes, content_type) de un asset, o None. player.js y las mándalas salen del REPO
+    (del subdir del kit); kit.zip / portada.jpg / manifest.json salen de la carpeta del token."""
+    reg = _cargar(token)
+    if not reg or not _ASSET_RE.fullmatch(nombre or ""):
         return None
     m = re.fullmatch(r"mandala_([1-9]|10)\.png", nombre)
     if nombre == "player.js":
         p = TEMPLATE_JS
     elif m:
-        p = os.path.join(ART_DIR, f"{m.group(1)}.png")
+        kit = reg.get("kit")
+        sub = kit if (kit and kit in mandalas.KITS) else ""
+        p = os.path.join(ART_DIR, sub, f"{m.group(1)}.png")
     else:
         p = os.path.join(MW_DIR, token, nombre)
     if not os.path.isfile(p):

@@ -105,3 +105,16 @@ def test_kit_de_10_con_categorias():
     assert all(1 <= st <= 6 for _c, _d, st in mandalas.MANDALAS)
     # las 10 tienen asset de arte
     assert all(mandalas._asset(i) for i in range(1, 11))
+
+
+def test_kits_de_adultos_por_dificultad():
+    """3 kits (media/dificil/muydificil): 10 mándalas c/u, estilos variados, con su asset."""
+    assert set(mandalas.KITS) == {"media", "dificil", "muydificil"}
+    for kit, (dif, st) in mandalas.KITS.items():
+        meta = mandalas.meta_de(kit)
+        assert len(meta) == 10
+        assert all(m[1] == dif and m[2] == st for m in meta)          # misma dificultad
+        assert len({m[0] for m in meta}) == 10                        # 10 estilos distintos
+        assert all(mandalas._asset(i, kit) for i in range(1, 11))     # 10 assets del kit
+    # el kit None sigue siendo el original (chicos)
+    assert mandalas.meta_de(None) == mandalas.MANDALAS

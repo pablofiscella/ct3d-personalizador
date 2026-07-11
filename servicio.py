@@ -1262,15 +1262,15 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(500, {"ok": False, "error": str(e)[:200]})
             return self._json(200, {"ok": True, "token": token, "act_token": tok_act,
                                     "download_url": f"{self.base_url()}/act/{tok_act}/"})
-        if tipo == "mandalas":
+        if tipo in ("mandalas", "mandalas-media", "mandalas-dificil", "mandalas-muydificil"):
             # DOBLE modalidad en un solo producto: el visor /pintar/<tok>/ deja PINTAR las
             # mándalas online Y tiene el botón de descarga del PDF imprimible (el kit.zip que
-            # se guarda en el token). Se entrega como link (como actividades-web): la tienda
-            # lo trata de visor y el PDF viaja dentro. Síncrono y rápido (sin IA; el arte ya
-            # está en el repo).
+            # se guarda en el token). `tipo` elige el KIT (chicos / media / difícil / muy difícil).
+            # Se entrega como link (como actividades-web): la tienda lo trata de visor y el PDF
+            # viaja dentro. Síncrono y rápido (sin IA; el arte ya está en el repo).
             import mandalas_web as mw
             try:
-                tok_m = mw.crear({**data, "tema": tema})
+                tok_m = mw.crear({**data, "tema": tema}, tipo=tipo)
             except Exception as e:
                 return self._json(500, {"ok": False, "error": str(e)[:200]})
             return self._json(200, {"ok": True, "token": token, "mand_token": tok_m,

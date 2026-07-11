@@ -50,14 +50,35 @@ MANDALAS = [
 ]
 N_MANDALAS = len(MANDALAS)
 
+# Kits de ADULTOS por dificultad (3 productos separados: mandalas-media/dificil/muydificil):
+# mismos 10 ESTILOS, subiendo el detalle. Arte en mandalas_arte/<kit>/1..10.png.
+# kit=None → el kit original (chicos, MANDALAS de arriba, mandalas_arte/1..10.png).
+KIT_ESTILOS = ["Floral", "Geométrica", "Mehndi", "Naturaleza", "Estrella",
+               "Celta", "Rosetón", "Plumas", "Celestial", "Encaje"]
+KITS = {  # kit_id: (dificultad, estrellas 1-6)
+    "media":      ("Media",       4),
+    "dificil":    ("Difícil",     5),
+    "muydificil": ("Muy difícil", 6),
+}
+
+
+def meta_de(kit=None):
+    """(estilo/categoría, dificultad, estrellas) de las 10 de un kit. kit None = el original."""
+    if kit and kit in KITS:
+        dif, st = KITS[kit]
+        return [(e, dif, st) for e in KIT_ESTILOS]
+    return MANDALAS
+
+
 # Arte fijo (line-art generado con IA, limpiado a B/N puro, 2244px @300dpi). Se genera UNA
 # vez y se vende a todos (las mándalas no son personalizadas). Si falta un asset, la pieza
 # cae al diseño PROCEDURAL de abajo (la casa: toda pieza conserva su fallback nativo).
 ART_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mandalas_arte")
 
 
-def _asset(nivel):
-    p = os.path.join(ART_DIR, f"{int(nivel)}.png")
+def _asset(nivel, kit=None):
+    sub = kit if (kit and kit in KITS) else ""
+    p = os.path.join(ART_DIR, sub, f"{int(nivel)}.png")
     return p if os.path.isfile(p) else None
 
 
@@ -264,23 +285,24 @@ def _star(d, cx, cy, r, filled):
     d.polygon(pts, fill=BLACK if filled else None, outline=BLACK, width=3)
 
 
-def _pegar_mandala(img, idx, cx=CX, cy=CY, size=2160):
-    """Dibuja la mándala `idx` (1..N): usa el arte IA (asset) si existe, si no el procedural
-    (complejidad = estrellas de esa mándala)."""
-    art = _asset(idx)
+def _pegar_mandala(img, idx, cx=CX, cy=CY, size=2160, kit=None):
+    """Dibuja la mándala `idx` (1..N) del kit: usa el arte IA (asset) si existe, si no el
+    procedural (complejidad = estrellas de esa mándala)."""
+    art = _asset(idx, kit)
     if art:
         m = Image.open(art).convert("RGB").resize((size, size), Image.LANCZOS)
         img.paste(m, (int(cx - size / 2), int(cy - size / 2)))
     else:
-        estrellas = MANDALAS[idx - 1][2] if 1 <= idx <= N_MANDALAS else 3
+        meta = meta_de(kit)
+        estrellas = meta[idx - 1][2] if 1 <= idx <= len(meta) else 3
         draw_mandala(ImageDraw.Draw(img), estrellas, cx=cx, cy=cy, rmax=size // 2)
 
 
-def pagina(idx, total=N_MANDALAS):
+def pagina(idx, total=N_MANDALAS, kit=None):
     """Una hoja de mándala (line-art para colorear). idx 1..N_MANDALAS."""
-    cat, dif, estrellas = MANDALAS[idx - 1]
+    cat, dif, estrellas = meta_de(kit)[idx - 1]
     img, d = _page()
-    _pegar_mandala(img, idx)
+    _pegar_mandala(img, idx, kit=kit)
     _txt(d, f"{idx} / {total}", CX, 150, "Poppins-Regular.ttf", 40, (150, 150, 150))
     gap, sr, ns = 74, 24, 6
     x0 = CX - (ns - 1) * gap / 2
@@ -291,19 +313,21 @@ def pagina(idx, total=N_MANDALAS):
     return img
 
 
-def portada(data=None):
+def portada(data=None, kit=None):
     """Portada del kit. Se personaliza con data['nombre'] si viene."""
-    nombre = (data or {}).get("nombre", "")
-    nombre = str(nombre).strip()
+    nombre = str((data or {}).get("nombre", "")).strip()
     img, d = _page()
     d.rectangle([90, 90, A4[0] - 90, A4[1] - 90], outline=BLACK, width=6)
     d.rectangle([120, 120, A4[0] - 120, A4[1] - 120], outline=BLACK, width=2)
     _txt(d, "Mándalas", CX, 520, "Fredoka-VF.ttf", 210, BLACK, wght=650, maxw=A4[0] - 400)
     sub = f"de {nombre}" if nombre else "para pintar"
     _txt(d, sub, CX, 720, "Fredoka-VF.ttf", 120, BLACK, wght=500, maxw=A4[0] - 500)
-    _pegar_mandala(img, 5, cx=CX, cy=1920, size=1560)
-    _txt(d, f"{N_MANDALAS} mándalas · animales, flores, geométricas y zen · imprimir y pintar",
-         CX, 2820, "Poppins-Regular.ttf", 42, (70, 70, 70), maxw=A4[0] - 240)
+    _pegar_mandala(img, 5, cx=CX, cy=1920, size=1560, kit=kit)
+    if kit and kit in KITS:
+        pie = f"10 mándalas · nivel {KITS[kit][0].lower()} · para imprimir y pintar"
+    else:
+        pie = f"{N_MANDALAS} mándalas · animales, flores, geométricas y zen · imprimir y pintar"
+    _txt(d, pie, CX, 2820, "Poppins-Regular.ttf", 42, (70, 70, 70), maxw=A4[0] - 240)
     _footer(d)
     return img
 

@@ -28,7 +28,7 @@ def test_html_inyecta_js_valido_y_boton_pdf(tmp_path):
     h = mw.html(tok)
     assert h is not None
     # NIVELES se inyecta como JSON CRUDO (no HTML-escapeado) → JS válido
-    assert '"src": "mandala_1.png"' in h
+    assert '"src": "mandala_1.png?v=' in h    # con cache-buster
     assert "&quot;" not in h.split("window.MANDALAS")[1][:400]
     assert "Tomás" in h                       # título personalizado
     assert 'href="kit.zip"' in h              # botón de descarga del PDF
