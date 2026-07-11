@@ -130,13 +130,20 @@ _DIAS_ES = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
 # ── convención NUEVA del editor con arrastre: temas/<tema>/calendario/{fondo.png,
 #    layout.json}. UN fondo compartido por los 12 meses + layout.json con "base"
 #    (config default) y "meses" (ajustes puntuales por número de mes, 1-12). ──
-def _load_fondo_nuevo(tema):
-    p = os.path.join(TEMAS, tema, "calendario", "fondo.png")
-    if os.path.isfile(p):
-        try:
-            return Image.open(p).convert("RGBA")
-        except Exception:
-            return None
+def _load_fondo_nuevo(tema, filas=5):
+    """Plantilla del grupo: fondo6.png para los meses de 6 filas (si existe),
+    fondo.png para el resto — la misma resolución que usa el editor del dash."""
+    cal_dir = os.path.join(TEMAS, tema, "calendario")
+    candidatos = ["fondo.png"]
+    if int(filas) >= 6:
+        candidatos.insert(0, "fondo6.png")
+    for nombre in candidatos:
+        p = os.path.join(cal_dir, nombre)
+        if os.path.isfile(p):
+            try:
+                return Image.open(p).convert("RGBA")
+            except Exception:
+                continue
     return None
 
 
@@ -150,11 +157,10 @@ def _load_layout_nuevo(tema):
     return None
 
 
-def _config_del_mes(layout, mes):
-    """El layout.json tiene "base" (default) + "meses"."<N>" (config completa
-    que reemplaza a "base" para ese mes puntual, si el editor la tocó)."""
-    meses = layout.get("meses") or {}
-    return meses.get(str(mes)) or layout.get("base") or _DEFAULT_CAL_CONFIG
+def _config_del_mes(layout, mes, anyo=2026):
+    """Config del mes con las DOS reglas del editor (ver config_para_mes):
+    override puntual > base6 (meses de 6 filas) > base."""
+    return config_para_mes(layout, anyo, mes) or _DEFAULT_CAL_CONFIG
 
 
 def _bbox_contenido(im, umbral=250, margen=24):
@@ -206,11 +212,13 @@ def mes_hoja(mes, anyo, acc, tema="safari"):
     override system además tapaba cualquier intento de generación real con una
     imagen estática fija por tema (ver la excepción de 'calendario' en
     productos.piezas_tipo)."""
-    fondo = _load_fondo_nuevo(tema)
     layout = _load_layout_nuevo(tema)
-    if fondo is not None and layout:
+    if layout:
         anyo = int(layout.get("anyo") or anyo)
-        config = _config_del_mes(layout, mes)
+    # el fondo y la config salen de la regla del mes (5 o 6 filas), igual que el editor
+    fondo = _load_fondo_nuevo(tema, filas_del_mes(anyo, mes))
+    if fondo is not None and layout:
+        config = _config_del_mes(layout, mes, anyo)
         return mes_hoja_desde_config(mes, anyo, "", config, fondo, tema)
     config = _load_config(tema)
     plantilla = _load_plantilla(tema)
