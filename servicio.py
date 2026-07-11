@@ -1772,6 +1772,8 @@ class Handler(BaseHTTPRequestHandler):
         dest = productos.override_path(tema, tipo, idx)
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         im.save(dest)
+        # sin esto, la tarjeta del dash (y la tienda) muestran la pieza VIEJA hasta 6h
+        generador._specs_cache.pop(tema, None); _preview_cache_clear(tema)
         return self._json(200, {"ok": True})
 
     def _dash_producto_borrar_override(self):
@@ -1788,6 +1790,7 @@ class Handler(BaseHTTPRequestHandler):
         dest = productos.override_path(tema, tipo, idx)
         if os.path.isfile(dest):
             os.remove(dest)
+            generador._specs_cache.pop(tema, None); _preview_cache_clear(tema)
             return self._json(200, {"ok": True, "borrado": True})
         return self._json(200, {"ok": True, "borrado": False})
 
