@@ -542,21 +542,43 @@ GAMES.laberinto = {
           y: Math.floor(((ev.clientY - r.top) * esc - M) / C),
         };
       };
+      // Camino real entre dos celdas (BFS por los pasillos). El seguimiento viejo
+      // solo daba pasos "hacia" el puntero: con una pared en el medio no se movía
+      // hasta alejar MUCHO el mouse a lo largo del pasillo. Con el camino real, el
+      // personaje dobla las esquinas siguiendo el dedo aunque esté a una celda.
+      const ruta = (desde, hasta) => {
+        if (hasta.x < 0 || hasta.y < 0 || hasta.x >= n || hasta.y >= n) return null;
+        const key = (x, y) => y * n + x;
+        const prev = new Array(n * n).fill(-1);
+        prev[key(desde.x, desde.y)] = key(desde.x, desde.y);
+        const cola = [[desde.x, desde.y]];
+        const DIRS = [[0, -1, "N"], [0, 1, "S"], [1, 0, "E"], [-1, 0, "W"]];
+        while (cola.length) {
+          const [x, y] = cola.shift();
+          if (x === hasta.x && y === hasta.y) break;
+          for (const [dx, dy, dir] of DIRS) {
+            const nx = x + dx, ny = y + dy;
+            if (nx < 0 || ny < 0 || nx >= n || ny >= n) continue;
+            if (!abierta(x, y, dir) || prev[key(nx, ny)] !== -1) continue;
+            prev[key(nx, ny)] = key(x, y);
+            cola.push([nx, ny]);
+          }
+        }
+        if (prev[key(hasta.x, hasta.y)] === -1) return null;
+        const camino = [];
+        let k = key(hasta.x, hasta.y);
+        while (k !== prev[k]) { camino.push([k % n, (k - (k % n)) / n]); k = prev[k]; }
+        return camino.reverse();
+      };
       const seguir = (ev) => {
         const objetivo = celdaDePuntero(ev);
-        // camina hacia el dedo mientras el pasillo lo permita (máx 14 pasos/evento)
-        for (let i = 0; i < 14; i++) {
-          const dx = objetivo.x - cur.x, dy = objetivo.y - cur.y;
-          if (!dx && !dy) break;
-          let movio = false;
-          if (Math.abs(dx) >= Math.abs(dy)) {
-            movio = dx && paso(Math.sign(dx), 0);
-            if (!movio && dy) movio = paso(0, Math.sign(dy));
-          } else {
-            movio = dy && paso(0, Math.sign(dy));
-            if (!movio && dx) movio = paso(Math.sign(dx), 0);
+        const camino = ruta(cur, objetivo);
+        if (camino) {
+          // sigue al dedo por el pasillo, de a pocos pasos por evento: se siente
+          // pegado al dedo pero no resuelve el laberinto solo si apoyan en la ⭐
+          for (const [x, y] of camino.slice(0, 6)) {
+            if (!paso(x - cur.x, y - cur.y)) break;
           }
-          if (!movio) break;
         }
         if (cur.x === n - 1 && cur.y === n - 1) llegada();
       };
