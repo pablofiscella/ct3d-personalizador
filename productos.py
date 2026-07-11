@@ -740,9 +740,12 @@ TIPOS = {
         "piezas": _piezas_menu,
     },
     "rompecabezas": {
-        "nombre": "Rompecabezas del nombre",
-        "descripcion": "Hoja A4 con el nombre partido en piezas para recortar y armar. Incluye solución.",
-        "campos": ["nombre", "edad"],
+        # SIN nombre (rediseño 7-jul + pedido Pablo 11-jul-2026): es la imagen
+        # completa del tema hecha puzzle — el nombre no aparece en ninguna
+        # pieza, así que no se pide al comprar. La edad elige la grilla.
+        "nombre": "Rompecabezas imprimible",
+        "descripcion": "La escena de la temática hecha rompecabezas: piezas con encastres de verdad para recortar y armar, más la hoja-bandeja con la guía de las piezas y la imagen de referencia. La edad elige la cantidad de piezas (12 o 20).",
+        "campos": ["edad"],
         "preview": "rompecabezas",
         "piezas": _piezas_rompecabezas,
     },
