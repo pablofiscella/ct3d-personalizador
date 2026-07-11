@@ -51,8 +51,9 @@
   .swatch.custom input{position:absolute; inset:-4px; opacity:0; cursor:pointer}
   .swatch.custom::after{content:"+"; position:absolute; inset:0; display:grid; place-items:center; color:#fff; font-weight:800; text-shadow:0 0 2px #0007}
   .canvasbox{flex:1 1 auto; min-width:0; display:flex; align-items:center; justify-content:center;
-    background:var(--card); border:1px solid var(--line); border-radius:16px; padding:8px; box-shadow:var(--shadow)}
-  canvas{max-width:100%; max-height:100%; touch-action:none; border-radius:8px;
+    background:var(--card); border:1px solid var(--line); border-radius:16px; padding:8px; box-shadow:var(--shadow);
+    overflow:hidden; position:relative}
+  canvas{max-width:100%; max-height:100%; touch-action:none; border-radius:8px; transition:transform .04s linear;
     cursor:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABUUlEQVR4nO2WoU7DQByHvxEeoRp9D4A8S0NmJqbmUHPDTKyO4DpBSJibwk1NEJKFgK3co0zxAoehy7W9tlf6vyHg53p3ue/L7y5t4T+Bo7U2vwr/fHw1TRJnIeG78QKA3XhR20QQARuep05CXEBrbZIkYbhdVuZcEgNJeKwjc5s8H5/TNKXcBMBwuyTLsgEINhDryLw8XPKU3hzHfJoQEcjhAD4Sog3Y8DxNEjYcet4BF9zOaL6nfCdsOPRooA0OxSZccPhhAz5wO6P5nvfs4GR1bkAS3llAGt5JIATcWyAU3EsgJLxVIDS8UeAU8FqBU8FrBfJNQ8MBzssDsY7Mejb53nxD27u+DxxaLuF6NqltQgIOpW+BUsq83V9VFk1XxSak4OBo4Pruo7LIbkIS7hRoijQcrCNQShX+VvOjmK42AOLgVgGAi+gQDFyJS+BP5AuWQdfrEvF3ewAAAABJRU5ErkJggg==") 2 30, crosshair}
   .tbtn{width:60px; min-height:54px; border-radius:14px; border:1.5px solid var(--line);
     background:var(--card); color:var(--ink); cursor:pointer; padding:6px 2px;

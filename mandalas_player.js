@@ -43,6 +43,16 @@
 
   // ── pintar ──
   var cv, cx, historia = [], color = COLORES[0], idxActual = 0, guardarTimer = null;
+  var zoom = 1, panX = 0, panY = 0;   // zoom (ruedita) + pan (arrastrar con mouse) del canvas
+  var aplicarTransform = function () {
+    cv.style.transform = "translate(" + panX + "px," + panY + "px) scale(" + zoom + ")";
+  };
+  var resetZoom = function () { zoom = 1; panX = 0; panY = 0; aplicarTransform(); };
+  var acotarPan = function () {
+    var mx = (cv.clientWidth * (zoom - 1)) / 2, my = (cv.clientHeight * (zoom - 1)) / 2;
+    panX = Math.max(-mx, Math.min(mx, panX));
+    panY = Math.max(-my, Math.min(my, panY));
+  };
 
   function hexRgb(h) {
     h = h.replace("#", "");
@@ -101,6 +111,7 @@
       cv.width = S; cv.height = S;
       cx.fillStyle = "#fff"; cx.fillRect(0, 0, S, S);
       cx.drawImage(im, 0, 0, S, S);
+      resetZoom();   // mándala nueva → arranca sin zoom/pan
       if (cb) cb();
     };
     im.src = MANDALAS[idxActual].src;
@@ -155,14 +166,52 @@
     armarGaleria();
     armarPaleta();
 
-    cv.addEventListener("pointerdown", function (ev) {
-      ev.preventDefault();
+    var pintarEn = function (ev) {
       var r = cv.getBoundingClientRect();
       var x = Math.round((ev.clientX - r.left) * (cv.width / r.width));
       var y = Math.round((ev.clientY - r.top) * (cv.height / r.height));
       if (x < 0 || y < 0 || x >= cv.width || y >= cv.height) return;
       balde(x, y);
+    };
+
+    // zoom (ruedita) + pan (arrastrar con mouse), acotado a la tarjeta (canvasbox
+    // tiene overflow:hidden → nunca se sale). Solo mouse: en touch, tap sigue pintando.
+    cv.addEventListener("wheel", function (ev) {
+      ev.preventDefault();
+      var factor = ev.deltaY < 0 ? 1.15 : 1 / 1.15;
+      zoom = Math.max(1, Math.min(6, zoom * factor));
+      if (zoom <= 1.001) { zoom = 1; panX = 0; panY = 0; } else { acotarPan(); }
+      aplicarTransform();
+    }, { passive: false });
+
+    var arrastre = null;
+    cv.addEventListener("pointerdown", function (ev) {
+      ev.preventDefault();
+      if (ev.pointerType === "mouse") {
+        arrastre = { x: ev.clientX, y: ev.clientY, panning: false, x0: panX, y0: panY };
+        cv.setPointerCapture(ev.pointerId);
+        return;
+      }
+      pintarEn(ev);   // táctil/lápiz: pintar al toque, como siempre
     });
+    cv.addEventListener("pointermove", function (ev) {
+      if (!arrastre || ev.pointerType !== "mouse") return;
+      var dx = ev.clientX - arrastre.x, dy = ev.clientY - arrastre.y;
+      if (!arrastre.panning && zoom > 1 && Math.hypot(dx, dy) > 5) arrastre.panning = true;
+      if (arrastre.panning) {
+        panX = arrastre.x0 + dx; panY = arrastre.y0 + dy;
+        acotarPan(); aplicarTransform();
+        cv.style.cursor = "grabbing";
+      }
+    });
+    var soltarArrastre = function (ev) {
+      if (!arrastre || ev.pointerType !== "mouse") return;
+      if (!arrastre.panning) pintarEn(ev);   // fue un click simple → pintar
+      cv.style.cursor = ""; arrastre = null;
+      try { cv.releasePointerCapture(ev.pointerId); } catch (e) { }
+    };
+    cv.addEventListener("pointerup", soltarArrastre);
+    cv.addEventListener("pointercancel", soltarArrastre);
     $("volver").addEventListener("click", volverGaleria);
     $("undo").addEventListener("click", function () {
       var im = historia.pop(); if (im) { cx.putImageData(im, 0, 0); persistir(); }
