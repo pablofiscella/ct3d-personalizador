@@ -812,7 +812,7 @@ TIPOS = {
     },
     "rompecabezas-web": {
         "nombre": "Rompecabezas interactivo (web)",
-        "descripcion": "Los rompecabezas de la temática, pero JUGABLES en el navegador: se arman arrastrando piezas con encastres de verdad — con imán al encajar, estrellas y festejos. 6 fotos del tema y en cada una se elige de 4 a ~50 piezas; se pueden armar mil veces. Para celu, tablet o compu; link que dura años. Nada para completar.",
+        "descripcion": "NO es un PDF ni hay nada para imprimir: al pagar te llega un LINK que se abre en el celu, la tablet o la compu, y queda guardado en tu biblioteca de Casatridimensional. Son 6 rompecabezas con las escenas de la temática que se arman arrastrando las piezas: encastran con imán, suman estrellas y festejan cada logro. En cada foto se elige la cantidad de piezas — de 4 a ~50 — así sirve desde los 3 años y la dificultad crece con el peque. El progreso se guarda solo (se puede cerrar y seguir otro día) y se arma mil veces. También lo podés regalar por WhatsApp. Nada para completar al comprar.",
         "campos": [],
         "preview": "rompecabezas-web",
         "piezas": _piezas_rompecabezas_web,
