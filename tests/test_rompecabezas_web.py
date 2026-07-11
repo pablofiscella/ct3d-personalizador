@@ -53,12 +53,11 @@ def test_imagenes_coinciden_con_data(token, data):
             assert im.size == (p["w"], p["h"])
 
 
-def test_bandas_de_edad():
-    assert rw.NIVELES_BANDA[rw._banda("2")] == [4, 6, 12, 20, 30, 48]
-    assert rw.NIVELES_BANDA[rw._banda("5")] == [6, 12, 20, 30, 48]
-    assert rw.NIVELES_BANDA[rw._banda("8")] == [12, 20, 30, 48]
-    # TODAS las bandas llegan al tope ~50 (pedido de Pablo 11-jul-2026)
-    assert all(n[-1] == 48 for n in rw.NIVELES_BANDA.values())
+def test_niveles_fijos_para_todos(data):
+    """Pablo 11-jul-2026: el producto NO pide edad — toda compra trae los
+    mismos niveles, de 4 a ~50 piezas (como el demo)."""
+    assert rw.TARGETS == [4, 6, 12, 20, 30, 48]
+    assert data["targets"] == rw.TARGETS
 
 
 def test_grillas_y_bordes(data):
@@ -181,7 +180,7 @@ def test_preview_mock():
 def test_tipo_registrado_en_productos():
     import productos
     assert productos.existe_tipo("rompecabezas-web")
-    assert productos.campos_tipo("rompecabezas-web") == ["nombre", "edad"]
+    assert productos.campos_tipo("rompecabezas-web") == ["nombre"]   # SIN edad (Pablo 11-jul)
 
 
 def test_portada_banda_clara_y_edad_mas():

@@ -800,8 +800,8 @@ TIPOS = {
     },
     "rompecabezas-web": {
         "nombre": "Rompecabezas interactivo (web)",
-        "descripcion": "Los rompecabezas de la temática, pero JUGABLES: una web con el nombre del peque donde arma las escenas de su tema arrastrando piezas con encastres de verdad — con imán al encajar, estrellas y festejos. Varios rompecabezas y niveles según la edad; se pueden armar mil veces. Para celu, tablet o compu; link que dura años.",
-        "campos": ["nombre", "edad"],
+        "descripcion": "Los rompecabezas de la temática, pero JUGABLES: una web con el nombre del peque donde arma las escenas de su tema arrastrando piezas con encastres de verdad — con imán al encajar, estrellas y festejos. Hasta 6 fotos del tema y en cada una elegís de 4 a ~50 piezas; se pueden armar mil veces. Para celu, tablet o compu; link que dura años.",
+        "campos": ["nombre"],
         "preview": "rompecabezas-web",
         "piezas": _piezas_rompecabezas_web,
     },
@@ -1065,7 +1065,7 @@ PERSONALIZADAS = {
     "video-invitacion": {"*": ["nombre", "edad", "fecha", "hora", "lugar"]},
     "invitacion-web": {"*": ["nombre", "edad", "fecha", "hora", "lugar", "direccion"]},
     "actividades-web": {"*": ["nombre", "edad"]},
-    "rompecabezas-web": {"*": ["nombre", "edad"]},
+    "rompecabezas-web": {"*": ["nombre"]},
     "mandalas":        {"00_portada": ["nombre"]},   # solo la portada usa el nombre; las mándalas son fijas
     "mandalas-media":         {"00_portada": ["nombre"]},
     "mandalas-media-pdf":     {"00_portada": ["nombre"]},

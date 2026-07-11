@@ -3153,8 +3153,7 @@ function regen(i){
             try:
                 import rompecabezas_web as _rw
                 emit("— Rompecabezas web de muestra —")
-                _rw.crear({"nombre": "", "edad": "3"}, tema,
-                          token=("demo-" + tema)[:32])
+                _rw.crear({"nombre": ""}, tema, token=("demo-" + tema)[:32])
             except Exception as e:
                 emit("(rompecabezas de muestra falló: %s)" % e)
             emit("✓ Tema completo. Revisá las piezas en la galería y aprobá el draft.")
@@ -3166,8 +3165,7 @@ function regen(i){
         """Crea/actualiza el rompecabezas web de MUESTRA del tema (token fijo
         demo-<tema>) y devuelve su URL — lo abre el botón 🎮 de la tarjeta del
         tema (pedido de Pablo 11-jul-2026: poder armar los rompecabezas de
-        todos los temas desde el dash). Con edad 3 (banda mini) el demo lista
-        TODOS los niveles, de 4 a ~50 piezas. Síncrono: sin IA, tarda segundos."""
+        todos los temas desde el dash). Síncrono: sin IA, tarda segundos."""
         if not self._admin_ok():
             return self._deny()
         q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
@@ -3178,8 +3176,7 @@ function regen(i){
         try:
             # [:32] = tope del regex de tokens (un slug de tema larguísimo no
             # debe caer al token aleatorio: el link demo tiene que ser estable)
-            tok = rw.crear({"nombre": "", "edad": "3"}, tema,
-                           token=("demo-" + tema)[:32])
+            tok = rw.crear({"nombre": ""}, tema, token=("demo-" + tema)[:32])
         except Exception as e:
             return self._json(500, {"ok": False, "error": str(e)[:200]})
         return self._json(200, {"ok": True, "token": tok, "url": "/armar/%s/" % tok})

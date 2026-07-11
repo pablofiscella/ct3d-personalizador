@@ -41,28 +41,16 @@ _TOKEN_RE = r"[A-Za-z0-9_-]{8,32}"
 
 MAX_PUZZLES = 6
 
-# Niveles (cantidad de piezas) por banda de edad. Web ≠ papel: sin tijera de
-# por medio el nivel alto puede ser más ambicioso que la grilla imprimible
-# (12 piezas hasta 5 años / 20 para 6+), pero el piso respeta la misma
-# calibración por desarrollo. TODAS las bandas llegan al tope (pedido de Pablo
-# 11-jul-2026: «que se pueda hacer hasta 50 piezas en todas») — el tope real
-# es 48/49 según la proporción de la foto: son los conteos ≤50 con piezas
-# CUADRADAS (6x8 / 7x7); 50 exacto solo factoriza 5x10, piezas 2:1.
-NIVELES_BANDA = {
-    "mini":   [4, 6, 12, 20, 30, 48],
-    "media":  [6, 12, 20, 30, 48],
-    "grande": [12, 20, 30, 48],
-}
+# Niveles (cantidad de piezas): los MISMOS para toda compra (Pablo 11-jul-2026:
+# el producto no pide edad — el chico elige de 4 a ~50 piezas, como el demo).
+# El tope real es 48/49 según la proporción de la foto: son los conteos ≤50
+# con piezas CUADRADAS (6x8 / 7x7); 50 exacto solo factoriza 5x10, piezas 2:1.
+TARGETS = [4, 6, 12, 20, 30, 48]
 
 
 def _paleta(tema):
     import actividades_web
     return actividades_web._paleta(tema)
-
-
-def _banda(edad):
-    import actividades_web
-    return actividades_web._banda(edad)
 
 
 # ── Imágenes del tema (arte ya revisado; NUNCA se genera IA acá) ──
@@ -246,16 +234,15 @@ def _luminancia(rgb):
     return 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]
 
 
-def _render_portada(titulo, tema_nombre, edad, pal, img):
+def _render_portada(titulo, tema_nombre, pal, img):
     """Portada 900×1200 (la card de Mi biblioteca es 3:4): el arte del primer
     puzzle a sangre con los cortes encima — se lee «rompecabezas» de una — y
     una banda inferior con marca y título.
 
-    Feedback Pablo 11-jul-2026: (1) la edad va como «+3 años» — «3 años» seco
-    parecía SOLO para esa edad, y los niveles llegan a ~50 piezas para
-    cualquier edad; (2) la banda va SIEMPRE clara — con la paleta oscura del
-    tema espacial salía azul y desentonaba con el resto de la grilla de Mi
-    biblioteca (las demás son blancas)."""
+    Feedback Pablo 11-jul-2026: (1) la edad va FIJA como «+3 años» (el
+    producto ya no pide edad: toda compra trae los niveles de 4 a ~50 piezas);
+    (2) la banda va SIEMPRE clara — con la paleta oscura del tema espacial
+    salía azul y desentonaba con el resto de la grilla de Mi biblioteca."""
     W, H = 900, 1200
     im = fondos_ia.cover(img, W, H).convert("RGB")
     _dibujar_cortes_pil(im, 3, 4, zlib.crc32(b"portada-rompe"),
@@ -273,7 +260,7 @@ def _render_portada(titulo, tema_nombre, edad, pal, img):
         f_tit = _fuente("Baloo2-VF.ttf", f_tit.size - 4)
     dr.text((W // 2, H - bh + 88), tit, font=f_tit, fill=ink, anchor="mm")
     f_sub = _fuente("Nunito-VF.ttf", 36)
-    sub = "%s · +%s años" % (tema_nombre, edad) if edad else tema_nombre
+    sub = "%s · +3 años" % tema_nombre
     dr.text((W // 2, H - bh + 158), sub, font=f_sub,
             fill=_hex_rgb(pal["ac2"]), anchor="mm")
     f_marca = _fuente("Nunito-VF.ttf", 27)
@@ -299,9 +286,7 @@ def crear(data, tema, token=None):
             except OSError:
                 pass
     nombre = (data.get("nombre") or "").strip()
-    edad = (str(data.get("edad") or "")).strip()
-    banda = _banda(edad)
-    targets = NIVELES_BANDA[banda]
+    targets = TARGETS
 
     paths = _imagenes_tema(tema)
     if not paths:
@@ -334,7 +319,7 @@ def crear(data, tema, token=None):
     pal = _paleta(tema)
     dj = {
         "v": 1, "tema": tema, "tema_nombre": _tema_nombre(tema),
-        "nombre": nombre, "edad": edad, "banda": banda, "titulo": titulo,
+        "nombre": nombre, "titulo": titulo,
         "paleta": pal, "targets": targets,
         "masco": _mascota(tema, d),
         "puzzles": puzzles, "bordes": bordes,
@@ -342,12 +327,11 @@ def crear(data, tema, token=None):
     with open(os.path.join(d, "data.json"), "w", encoding="utf-8") as f:
         json.dump(dj, f, ensure_ascii=False)
 
-    _render_portada(titulo, dj["tema_nombre"], edad, pal,
+    _render_portada(titulo, dj["tema_nombre"], pal,
                     imgs[0]).save(os.path.join(d, "portada.jpg"), quality=88)
 
     with open(os.path.join(d, "manifest.json"), "w", encoding="utf-8") as f:
-        json.dump({"tema": tema, "nombre": nombre, "edad": edad,
-                   "banda": banda, "titulo": titulo,
+        json.dump({"tema": tema, "nombre": nombre, "titulo": titulo,
                    "creado": int(time.time())}, f, ensure_ascii=False)
     try:
         os.remove(_marca_gen(token))
@@ -434,7 +418,6 @@ def archivo(token, nombre):
 def preview_mock(data, tema):
     """Miniatura para la ficha de la tienda / dash (sin crear token): la portada."""
     nombre = (data.get("nombre") or "").strip() or "Sofía"
-    edad = (str(data.get("edad") or "")).strip() or "5"
     paths = _imagenes_tema(tema)
     if paths:
         img = Image.open(paths[0]).convert("RGB")
@@ -442,4 +425,4 @@ def preview_mock(data, tema):
         img = Image.new("RGB", (900, 1200), _hex_rgb(_paleta(tema)["soft"]))
     from cuaderno import _tema_nombre
     return _render_portada("Los rompecabezas de %s" % nombre,
-                           _tema_nombre(tema), edad, _paleta(tema), img)
+                           _tema_nombre(tema), _paleta(tema), img)
