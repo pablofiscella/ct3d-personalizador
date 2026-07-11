@@ -1900,6 +1900,7 @@ function attachDragHandlers(canvas) {
 // Cargar imagen
 if (fileInput) {
   fileInput.addEventListener('change', (e) => {
+    _fondoReq++;   // invalida cargas de fondo guardado en vuelo: manda el archivo elegido
     plantillaFile = e.target.files[0];
     if (plantillaFile) {
       const reader = new FileReader();
@@ -1978,16 +1979,26 @@ function pintarGrupoToggle() {
     genBtn.textContent = '🚀 Regenerar los ' + g.length + ' meses de ' + window.calEditorFilas + ' filas';
   }
 }
-// Activa una regla (5/6): carga sus coordenadas en el formulario y previsualiza
+// Activa una regla (5/6): carga sus coordenadas en el formulario, SU plantilla
+// (cada regla puede tener arte propio: fondo.png / fondo6.png) y previsualiza
 // un mes de ese grupo (el pedido, si pertenece; si no, el primero).
 function activarRegla(filas, mesPreferido) {
+  const cambioRegla = filas !== window.calEditorFilas;
   window.calEditorFilas = filas;
   const anyo = parseInt(anyoInput && anyoInput.value) || 2026;
   const grupo = mesesDeRegla(anyo, filas);
   window.calEditorMes = (mesPreferido && grupo.indexOf(mesPreferido) >= 0) ? mesPreferido : (grupo[0] || 1);
   if (window.calLayoutCache) aplicarLayout(configDeRegla(window.calLayoutCache, filas));
   pintarGrupoToggle();
+  if (window.TEMA_ACTUAL && (cambioRegla || !imagenCargada)) {
+    plantillaFile = null;   // lo subido sin generar era para la otra regla
+    return cargarFondoGuardado(window.TEMA_ACTUAL, filas).then(function (ok) {
+      if (ok && imagenCargada) dibujarPreview();
+      return ok;
+    });
+  }
   if (imagenCargada) dibujarPreview();
+  return Promise.resolve(!!imagenCargada);
 }
 
 function _setCal(id, val) {
@@ -2013,13 +2024,18 @@ function aplicarLayout(cfg) {
   _setCal('cal-days-spacing-v', d.spacingV); _setCal('cal-day-weight', d.weight);
 }
 
-async function cargarFondoGuardado(tema) {
+let _fondoReq = 0;   // si el usuario cambia de regla a mitad de una carga, gana la última
+async function cargarFondoGuardado(tema, filas) {
+  const req = ++_fondoReq;
   try {
-    const r = await fetch('/dash/calendario-fondo?tema=' + encodeURIComponent(tema), { headers: { 'X-API-Key': KEY } });
-    if (!r.ok) return false;
+    const r = await fetch('/dash/calendario-fondo?tema=' + encodeURIComponent(tema) + '&filas=' + (filas === 6 ? 6 : 5),
+                          { headers: { 'X-API-Key': KEY } });
+    if (!r.ok || req !== _fondoReq) return false;
     const blob = await r.blob();
+    if (req !== _fondoReq) return false;
     plantillaFile = new File([blob], 'fondo.png', { type: 'image/png' });
-    await new Promise((res) => { const img = new Image(); img.onload = () => { imagenCargada = img; res(); }; img.onerror = () => res(); img.src = URL.createObjectURL(blob); });
+    await new Promise((res) => { const img = new Image(); img.onload = () => { if (req === _fondoReq) imagenCargada = img; res(); }; img.onerror = () => res(); img.src = URL.createObjectURL(blob); });
+    if (req !== _fondoReq) return false;
     if (genBtn) genBtn.disabled = false;
     return true;
   } catch (e) { return false; }
@@ -2044,10 +2060,12 @@ window.abrirEditorCal = async function(mes, tema) {
       if (anyoInput && j.layout && j.layout.anyo) anyoInput.value = j.layout.anyo;
       const anyo = parseInt(anyoInput && anyoInput.value) || 2026;
       // Regla según el mes clickeado (los de 6 filas abren SU regla); sin mes → 5 filas.
-      activarRegla(mes ? (filasDelMes(anyo, mes) >= 6 ? 6 : 5) : 5, mes || 0);
-      if (j.tiene_fondo) await cargarFondoGuardado(window.TEMA_ACTUAL);
+      // activarRegla también carga la plantilla propia de la regla.
+      window.calEditorFilas = 0;   // forzar recarga de fondo aunque la regla coincida
+      await activarRegla(mes ? (filasDelMes(anyo, mes) >= 6 ? 6 : 5) : 5, mes || 0);
       let msg = '🗓️ Editás la regla de ' + window.calEditorFilas + ' filas: al regenerar se aplica a TODOS los meses de ' +
-                window.calEditorFilas + ' filas (los de ' + (window.calEditorFilas === 6 ? 5 : 6) + ' filas no se tocan).';
+                window.calEditorFilas + ' filas (los de ' + (window.calEditorFilas === 6 ? 5 : 6) + ' filas no se tocan). ' +
+                'La imagen que subas acá es SOLO para este grupo.';
       if (j.origen === 'default') msg += '  ℹ️ Coordenadas heredadas de otra temática.';
       else if (j.origen === 'vacio') msg += '  ℹ️ Tema nuevo: posiciones por defecto.';
       if (!j.tiene_fondo) msg += '  📤 Subí la plantilla de fondo.';

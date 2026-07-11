@@ -1866,17 +1866,23 @@ class Handler(BaseHTTPRequestHandler):
         except Exception:
             anyo = 2026
         self._cal_completar_base6(layout, anyo)
-        fondo = os.path.join(temas.TEMAS_DIR, tema, "calendario", "fondo.png")
+        cal_dir = os.path.join(temas.TEMAS_DIR, tema, "calendario")
         return self._json(200, {"ok": True, "layout": layout, "origen": origen,
-                                "tiene_fondo": os.path.isfile(fondo)})
+                                "tiene_fondo": os.path.isfile(os.path.join(cal_dir, "fondo.png")),
+                                "tiene_fondo6": os.path.isfile(os.path.join(cal_dir, "fondo6.png"))})
 
     def _dash_calendario_fondo(self, q):
-        """Sirve la plantilla (fondo.png) guardada del calendario del tema, para que el
-        editor la precargue sin tener que volver a subirla."""
+        """Sirve la plantilla guardada del calendario del tema, para que el editor
+        la precargue sin volver a subirla. Con `filas=6` sirve la plantilla propia
+        de los meses de 6 filas (fondo6.png) si existe; si no, la general."""
         if not self._admin_ok():
             return self._deny()
         tema = slug((q.get("tema", [""]) or [""])[0])
-        fondo = os.path.join(temas.TEMAS_DIR, tema, "calendario", "fondo.png")
+        filas6 = ((q.get("filas", [""]) or [""])[0] or "").strip() == "6"
+        cal_dir = os.path.join(temas.TEMAS_DIR, tema, "calendario")
+        fondo = os.path.join(cal_dir, "fondo6.png")
+        if not filas6 or not os.path.isfile(fondo):
+            fondo = os.path.join(cal_dir, "fondo.png")
         if not tema or not os.path.isfile(fondo):
             return self._json(404, {"ok": False, "error": "no hay fondo"})
         data = open(fondo, "rb").read()
@@ -1894,8 +1900,9 @@ class Handler(BaseHTTPRequestHandler):
         - Sin `mes` ni `filas`: genera los 12 (guarda base + regla de 6 filas +
           overrides por mes existentes).
         - Con `mes` (1-12): regenera SOLO ese mes con coordenadas propias (compat).
-        La plantilla viene en el body; si no, se usa el fondo.png guardado del tema.
-        Guarda las coordenadas en layout.json (memoria por tema)."""
+        La plantilla viene en el body; si no, se usa la guardada del GRUPO que se
+        genera (fondo.png para 5 filas, fondo6.png para 6 — cada regla puede tener
+        su propio arte). Guarda las coordenadas en layout.json (memoria por tema)."""
         if not self._admin_ok():
             return self._deny()
         q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
@@ -1918,26 +1925,33 @@ class Handler(BaseHTTPRequestHandler):
 
         tdir = os.path.join(temas.TEMAS_DIR, tema)
         fondo_dir = os.path.join(tdir, "calendario")
-        fondo_path = os.path.join(fondo_dir, "fondo.png")
 
-        # plantilla: del body si vino; si no, la guardada (fondo.png)
-        plantilla = None
+        # Una plantilla por regla: los meses de 6 filas pueden tener SU propio arte
+        # (fondo6.png). Subir la imagen editando una regla NO pisa la de la otra.
+        def _fondo_path(f):
+            return os.path.join(fondo_dir, "fondo6.png" if int(f) >= 6 else "fondo.png")
+
+        def _cargar_fondo(f):
+            p = _fondo_path(f)
+            if os.path.isfile(p):
+                return Image.open(p).convert("RGBA")
+            if int(f) >= 6 and os.path.isfile(_fondo_path(5)):  # sin arte propio → el general
+                return Image.open(_fondo_path(5)).convert("RGBA")
+            return None
+
+        # plantilla subida en el body (si vino): es la del grupo que se está generando
+        subida = None
         try:
             n = int(self.headers.get("Content-Length", "0"))
             raw = self.rfile.read(n) if n else b""
             if raw:
-                plantilla = Image.open(io.BytesIO(raw)).convert("RGBA")
+                subida = Image.open(io.BytesIO(raw)).convert("RGBA")
         except Exception as e:
             return self._json(400, {"ok": False, "error": "imagen inválida: %s" % e})
-        if plantilla is None and os.path.isfile(fondo_path):
-            plantilla = Image.open(fondo_path).convert("RGBA")
-        if plantilla is None:
-            return self._json(400, {"ok": False, "error": "sin plantilla (subí una imagen primero)"})
 
         try:
             import calendario
             os.makedirs(fondo_dir, exist_ok=True)
-            plantilla.save(fondo_path)
             override_dir = os.path.join(tdir, "overrides", "calendario")
             os.makedirs(override_dir, exist_ok=True)
 
@@ -1947,6 +1961,11 @@ class Handler(BaseHTTPRequestHandler):
             data = {"nombre": nombre, "anyo": anyo_str}
 
             if filas:  # regla de grupo: todos los meses de 5 (o menos) / 6 filas
+                plantilla = subida or _cargar_fondo(filas)
+                if plantilla is None:
+                    return self._json(400, {"ok": False, "error": "sin plantilla (subí una imagen primero)"})
+                if subida:
+                    subida.save(_fondo_path(filas))
                 grupo = calendario.meses_por_filas(anyo_int, filas)
                 clave = "base6" if filas == 6 else "base"
                 cfg = config or layout.get(clave) or layout.get("base") or {}
@@ -1962,7 +1981,13 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(200, {"ok": True, "tema": tema, "filas": filas,
                                         "meses": grupo, "generados": len(grupo)})
 
-            if mes:  # un solo mes (compat: ajuste puntual)
+            if mes:  # un solo mes (compat: ajuste puntual, con el fondo de su grupo)
+                f_mes = 6 if calendario.filas_del_mes(anyo_int, mes) >= 6 else 5
+                plantilla = subida or _cargar_fondo(f_mes)
+                if plantilla is None:
+                    return self._json(400, {"ok": False, "error": "sin plantilla (subí una imagen primero)"})
+                if subida:
+                    subida.save(_fondo_path(f_mes))
                 cfg = config or calendario.config_para_mes(layout, anyo_int, mes)
                 img = calendario.generar_mes_con_plantilla(data, plantilla, tema, mes, cfg)
                 piezas.to_rgb(img).save(os.path.join(override_dir, "%d.png" % (mes - 1)))
@@ -1971,14 +1996,22 @@ class Handler(BaseHTTPRequestHandler):
                 self._cal_save_layout(tema, layout)
                 return self._json(200, {"ok": True, "tema": tema, "mes": mes, "generados": 1})
 
-            # los 12: cada mes con su regla (override puntual > base6 > base)
+            # los 12: cada mes con su regla y el fondo de su grupo
+            plantilla5 = subida or _cargar_fondo(5)
+            if plantilla5 is None:
+                return self._json(400, {"ok": False, "error": "sin plantilla (subí una imagen primero)"})
+            if subida:
+                subida.save(_fondo_path(5))
+            f6 = _fondo_path(6)
+            plantilla6 = Image.open(f6).convert("RGBA") if os.path.isfile(f6) else plantilla5
             base = config or layout.get("base") or {}
             layout["base"] = base
             layout["anyo"] = anyo_str
             generados = []
             for m in range(1, 13):
                 cfg = calendario.config_para_mes(layout, anyo_int, m)
-                img = calendario.generar_mes_con_plantilla(data, plantilla, tema, m, cfg)
+                pl = plantilla6 if calendario.filas_del_mes(anyo_int, m) >= 6 else plantilla5
+                img = calendario.generar_mes_con_plantilla(data, pl, tema, m, cfg)
                 piezas.to_rgb(img).save(os.path.join(override_dir, "%d.png" % (m - 1)))
                 generados.append(m)
             self._cal_save_layout(tema, layout)
