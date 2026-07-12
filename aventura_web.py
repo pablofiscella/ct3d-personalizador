@@ -90,24 +90,35 @@ def html(token):
              .replace("{{V}}", _player_version()))
 
 
-_ASSET_RE = re.compile(r"^(player\.js|[2-8](_nena)?\.png|manifest\.json)$")
+_NOMBRE_RE = re.compile(r"^[A-Za-z0-9_.-]{1,64}$")
 _CT = {".js": "text/javascript; charset=utf-8", ".png": "image/png",
        ".json": "application/json; charset=utf-8"}
 
 
 def archivo(token, nombre):
-    """(bytes, content_type) de un asset, o None. player.js y las escenas salen del REPO
-    (temas/<tema>/overrides/libro/ — el mismo arte del libro de cuento); manifest.json
-    sale de la carpeta del token."""
+    """(bytes, content_type) de un asset, o None. player.js sale del REPO; las escenas
+    salen de overrides/aventura/<nodo>.png (arte propio, aventura_ia.py) o, si todavía
+    no se generó para ese nodo, del placeholder libro-<idx>[_nena].png reciclado de
+    overrides/libro/ (ver aventura._imagen_archivo). manifest.json sale del token.
+    El whitelist real es el propio manifest: solo se sirve un nombre que aparezca
+    como 'imagen' de algún nodo de ESTE token (arma el servidor, no lo elige quien
+    pide el asset)."""
     reg = _cargar(token)
-    if not reg or not _ASSET_RE.fullmatch(nombre or ""):
+    if not reg or not _NOMBRE_RE.fullmatch(nombre or ""):
         return None
     if nombre == "player.js":
         p = TEMPLATE_JS
     elif nombre == "manifest.json":
         p = os.path.join(AV_DIR, token, "manifest.json")
     else:
-        p = os.path.join(_temas.TEMAS_DIR, reg["tema"], "overrides", "libro", nombre)
+        imagenes = {n["imagen"] for n in reg["nodos"].values()}
+        if nombre not in imagenes:
+            return None
+        if nombre.startswith("libro-"):
+            resto = nombre[len("libro-"):]  # "<idx>.png" / "<idx>_nena.png"
+            p = os.path.join(_temas.TEMAS_DIR, reg["tema"], "overrides", "libro", resto)
+        else:
+            p = os.path.join(_temas.TEMAS_DIR, reg["tema"], "overrides", "aventura", nombre)
     if not os.path.isfile(p):
         return None
     ct = _CT[os.path.splitext(nombre)[1]]
