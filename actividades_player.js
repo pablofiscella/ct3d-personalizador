@@ -839,17 +839,18 @@ GAMES.contar = {
   crear(ctx) {
     const max = ctx.cfg.max || 5, rondas = ctx.cfg.rondas || 5;
     ctx.rondas(rondas);
-    // cantidades que suben de a poco (andamiaje), pero con variación real: la
-    // fórmula lineal sola (sin +jitter) daba SIEMPRE la misma secuencia exacta
-    // (ej. 1,2,3,4,5) cada vez que se abría el link — jugado dos veces, ya se
-    // sabía de memoria sin necesidad de contar. El jitter + reordenar mantiene
-    // el andamiaje (sigue siendo más fácil al principio) pero varía entre partidas.
-    const cantidades = [];
+    // Ronda 1: la fórmula lineal sola daba SIEMPRE la misma secuencia exacta
+    // (1,2,3,4,5) — le agregué jitter, pero quedó ordenada de menor a mayor
+    // (.sort()), así que el patrón "cada ronda es más que la anterior" seguía
+    // siendo 100% predecible (Pablo, 12-jul). Ahora: mismo conjunto de
+    // cantidades variadas, pero el ORDEN en que aparecen también es al azar —
+    // ninguna relación entre el número de ronda y cuánto hay que contar.
+    let cantidades = [];
     for (let i = 0; i < rondas; i++) {
       const lineal = Math.round(1 + (max - 1) * i / (rondas - 1 || 1));
       cantidades.push(Math.min(max, Math.max(1, lineal + rint(-1, 1))));
     }
-    cantidades.sort((a, b) => a - b);
+    cantidades = shuffle(cantidades);   // shuffle() devuelve una COPIA, no muta in-place
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
