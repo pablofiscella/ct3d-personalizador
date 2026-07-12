@@ -68,6 +68,38 @@ def estado(token):
     return "listo" if _cargar(token) else None
 
 
+# ── Narración por nodo (opcional, por compra: aventura_audio.py) ──────────────
+def audio_dir(token):
+    return os.path.join(AV_DIR, token, "audio")
+
+
+def generar_audio(token, api_key=None, progress=None):
+    """Genera el MP3 de narración de cada nodo (aventura_audio.py) para un token ya
+    creado. Progresivo: si se corta a mitad de camino, correrlo de nuevo retoma
+    donde quedó — no repite los nodos ya generados."""
+    reg = _cargar(token)
+    if not reg:
+        raise ValueError("token %r no existe" % token)
+    import aventura_audio
+    return aventura_audio.generar(token, reg["nodos"], audio_dir(token),
+                                  api_key=api_key, progress=progress)
+
+
+def estado_audio(token):
+    """'listo' si TODOS los nodos ya tienen su mp3, 'parcial' si hay algunos (corte a
+    mitad de una corrida), None si todavía no se generó nada."""
+    reg = _cargar(token)
+    if not reg:
+        return None
+    d = audio_dir(token)
+    total = len(reg["nodos"])
+    listos = sum(1 for nid in reg["nodos"]
+                 if os.path.isfile(os.path.join(d, "%s.mp3" % nid)))
+    if listos == 0:
+        return None
+    return "listo" if listos == total else "parcial"
+
+
 # ── Servido (visor + assets) ──────────────────────────────────────────────────
 def _player_version():
     try:
@@ -112,17 +144,19 @@ def html(token):
 
 _NOMBRE_RE = re.compile(r"^[A-Za-z0-9_.-]{1,64}$")
 _CT = {".js": "text/javascript; charset=utf-8", ".png": "image/png",
-       ".json": "application/json; charset=utf-8"}
+       ".json": "application/json; charset=utf-8", ".mp3": "audio/mpeg"}
 
 
 def archivo(token, nombre):
     """(bytes, content_type) de un asset, o None. player.js sale del REPO; las escenas
     salen de overrides/aventura/<nodo>.png (arte propio, aventura_ia.py) o, si todavía
     no se generó para ese nodo, del placeholder libro-<idx>[_nena].png reciclado de
-    overrides/libro/ (ver aventura._imagen_archivo). manifest.json sale del token.
-    El whitelist real es el propio manifest: solo se sirve un nombre que aparezca
-    como 'imagen' de algún nodo de ESTE token (arma el servidor, no lo elige quien
-    pide el asset)."""
+    overrides/libro/ (ver aventura._imagen_archivo). <nodo>.mp3 sale de audio_dir(token)
+    si ya se generó la narración (aventura_audio.py) — si no, 404 y el visor lee sin
+    audio (degradación silenciosa, ver aventura_player.js). manifest.json sale del
+    token. El whitelist real es el propio manifest: solo se sirve un nombre que
+    aparezca como 'imagen' de algún nodo, o '<nodo_id>.mp3' de algún nodo, de ESTE
+    token (arma el servidor, no lo elige quien pide el asset)."""
     reg = _cargar(token)
     if not reg or not _NOMBRE_RE.fullmatch(nombre or ""):
         return None
@@ -130,6 +164,10 @@ def archivo(token, nombre):
         p = TEMPLATE_JS
     elif nombre == "manifest.json":
         p = os.path.join(AV_DIR, token, "manifest.json")
+    elif nombre.endswith(".mp3"):
+        if nombre[:-len(".mp3")] not in reg["nodos"]:
+            return None
+        p = os.path.join(audio_dir(token), nombre)
     else:
         imagenes = {n["imagen"] for n in reg["nodos"].values()}
         if nombre not in imagenes:
