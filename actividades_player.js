@@ -460,9 +460,7 @@ GAMES.laberinto = {
     const labs = D.laberintos.slice(ctx.cfg.desde || 0);
     ctx.rondas(labs.length);
     let nivel = 0;
-    let caminando = null;      // interval de la caminata automática (compartido entre niveles)
     const arrancar = () => {
-      if (caminando) { clearInterval(caminando); caminando = null; }
       ctx.ronda(nivel);
       ctx.consigna("Llevá a tu amigo hasta la estrella ⭐", P[nivel % P.length]);
       ctx.juego.innerHTML = "";
@@ -544,54 +542,21 @@ GAMES.laberinto = {
           y: Math.floor(((ev.clientY - r.top) * esc - M) / C),
         };
       };
-      // Camino real entre dos celdas (BFS por los pasillos). El seguimiento viejo
-      // solo daba pasos "hacia" el puntero: con una pared en el medio no se movía
-      // hasta alejar MUCHO el mouse a lo largo del pasillo. Con el camino real, el
-      // personaje dobla las esquinas siguiendo el dedo aunque esté a una celda.
-      const ruta = (desde, hasta) => {
-        if (hasta.x < 0 || hasta.y < 0 || hasta.x >= n || hasta.y >= n) return null;
-        const key = (x, y) => y * n + x;
-        const prev = new Array(n * n).fill(-1);
-        prev[key(desde.x, desde.y)] = key(desde.x, desde.y);
-        const cola = [[desde.x, desde.y]];
-        const DIRS = [[0, -1, "N"], [0, 1, "S"], [1, 0, "E"], [-1, 0, "W"]];
-        while (cola.length) {
-          const [x, y] = cola.shift();
-          if (x === hasta.x && y === hasta.y) break;
-          for (const [dx, dy, dir] of DIRS) {
-            const nx = x + dx, ny = y + dy;
-            if (nx < 0 || ny < 0 || nx >= n || ny >= n) continue;
-            if (!abierta(x, y, dir) || prev[key(nx, ny)] !== -1) continue;
-            prev[key(nx, ny)] = key(x, y);
-            cola.push([nx, ny]);
-          }
-        }
-        if (prev[key(hasta.x, hasta.y)] === -1) return null;
-        const camino = [];
-        let k = key(hasta.x, hasta.y);
-        while (k !== prev[k]) { camino.push([k % n, (k - (k % n)) / n]); k = prev[k]; }
-        return camino.reverse();
-      };
-      // Caminata automática por tiempo (no por evento): antes, si el dedo se
-      // quedaba quieto (incluso apoyado en la ⭐) o el arrastre era muy rápido
-      // para el muestreo de pointermove, el personaje dejaba de avanzar a
-      // mitad de camino y nunca llegaba. Ahora el objetivo es solo "hacia
-      // dónde apunta el dedo": un intervalo lo camina solo, un paso genuino
-      // por tick, hasta llegar — sigue caminando aunque el dedo se detenga o
-      // ya se haya levantado, y solo se re-dirige si aparece un nuevo toque.
-      let objetivo = null;
-      const detenerCaminata = () => { if (caminando) { clearInterval(caminando); caminando = null; } };
-      const apuntar = (ev) => {
-        objetivo = celdaDePuntero(ev);
-        if (caminando) return;
-        caminando = setInterval(() => {
-          if (!objetivo) return detenerCaminata();
-          const camino = ruta(cur, objetivo);
-          if (!camino || !camino.length) return detenerCaminata();
-          const [x, y] = camino[0];
-          if (!paso(x - cur.x, y - cur.y)) return detenerCaminata();
-          if (cur.x === n - 1 && cur.y === n - 1) { detenerCaminata(); llegada(); }
-        }, 90);
+      // Seguimiento DIRECTO, celda por celda — pedido de Pablo: nada de
+      // auto-resolver ni de rutear solo alrededor de las paredes. El dedo
+      // tiene que recorrer de verdad el pasillo: cada evento de puntero
+      // mueve al personaje UNA sola celda (la vecina N/S/E/W) y solo si esa
+      // celda es exactamente donde está el dedo Y el paso está abierto. Si
+      // el dedo se despega de las líneas del laberinto (salta a una celda
+      // no vecina, o vecina pero con pared en el medio) el personaje se
+      // queda quieto ahí — no avanza — hasta que el dedo vuelva a estar
+      // sobre un paso válido.
+      const seguir = (ev) => {
+        const objetivo = celdaDePuntero(ev);
+        const dx = objetivo.x - cur.x, dy = objetivo.y - cur.y;
+        const esVecina = (Math.abs(dx) === 1 && dy === 0) || (Math.abs(dy) === 1 && dx === 0);
+        if (esVecina) paso(dx, dy);
+        if (cur.x === n - 1 && cur.y === n - 1) llegada();
       };
       const llegada = async () => {
         svg.style.pointerEvents = "none";
@@ -603,14 +568,15 @@ GAMES.laberinto = {
         else { toast("¡Lo lograste! Ahora uno más grande…"); await espera(1100); arrancar(); }
       };
       svg.addEventListener("pointerdown", (ev) => {
-        arrastrando = true; svg.setPointerCapture(ev.pointerId); apuntar(ev);
+        // agarrar = apoyar el dedo justo sobre el personaje (si no, un toque
+        // cualquiera en el tablero no debería arrastrarlo desde ahí)
+        const c = celdaDePuntero(ev);
+        if (c.x !== cur.x || c.y !== cur.y) return;
+        arrastrando = true; svg.setPointerCapture(ev.pointerId);
       });
-      svg.addEventListener("pointermove", (ev) => { if (arrastrando) apuntar(ev); });
-      // al soltar NO se frena: la caminata sigue sola hasta el último punto
-      // señalado (soltar rápido cerca de la meta no debe dejarlo a mitad de
-      // camino). pointercancel sí frena (gesto interrumpido de verdad).
+      svg.addEventListener("pointermove", (ev) => { if (arrastrando) seguir(ev); });
       svg.addEventListener("pointerup", () => { arrastrando = false; });
-      svg.addEventListener("pointercancel", () => { arrastrando = false; detenerCaminata(); });
+      svg.addEventListener("pointercancel", () => { arrastrando = false; });
     };
     arrancar();
   },
