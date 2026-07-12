@@ -140,6 +140,10 @@ button.pill:active, a.pill:active { transform: scale(.94); }
   font-family: "Baloo", sans-serif; font-size: 24px; min-height: 66px;
   padding: 8px 30px; border-radius: 999px; box-shadow: var(--sombra);
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  text-align: center; -webkit-appearance: none; appearance: none;
+  /* el <button> nativo en algunos celulares (Safari/iOS viejo) no respeta
+     del todo el centrado por flexbox solo — text-align + sacar el estilo
+     nativo del control lo hace consistente en todos lados */
 }
 .btn:active { transform: scale(.95); }
 .btn.suave { background: var(--soft); color: var(--ink); }
@@ -187,6 +191,9 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 #festejo .estrellas span { display: inline-block; opacity: 0; }
 #festejo .estrellas span.gana { animation: pop .5s ease both; }
 #festejo .botones { display: flex; gap: 12px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+/* en celular angosto (dos botones no entran en una fila) apilan prolijo
+   a todo el ancho, en vez de dos píldoras de distinto tamaño sueltas */
+#festejo .botones .btn { flex: 1 1 200px; }
 
 /* confeti */
 #confeti { position: fixed; inset: 0; z-index: 55; pointer-events: none; }
