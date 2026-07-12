@@ -542,28 +542,53 @@ GAMES.laberinto = {
           y: Math.floor(((ev.clientY - r.top) * esc - M) / C),
         };
       };
-      // Seguimiento DIRECTO, celda por celda — pedido de Pablo: nada de
-      // auto-resolver ni de rutear solo alrededor de las paredes. El dedo
-      // tiene que recorrer de verdad el pasillo. Reporte real (Pablo, tramo
-      // vertical largo): con un arrastre rápido el evento de puntero puede
-      // "saltar" varias celdas de un salto (el muestreo no da abasto) — con
-      // un solo paso por evento el personaje se quedaba atrás sin que se
-      // notara, y al llegar abajo y doblar parecía que "una pared" lo
-      // frenaba cuando en realidad todavía no había bajado del todo. Fix:
-      // si el dedo saltó de largo pero en LÍNEA RECTA (mismo pasillo, sin
-      // doblar), alcanza todo ese tramo de un saque — pero se frena en la
-      // primera pared, y si el salto no es en línea recta (dx Y dy != 0,
-      // cortaría una esquina) no se mueve nada: sigue exigiendo que el
-      // dedo trace la esquina de verdad, no rutea solo.
-      const seguir = (ev) => {
-        const objetivo = celdaDePuntero(ev);
-        const dx = objetivo.x - cur.x, dy = objetivo.y - cur.y;
-        if (dx !== 0 && dy !== 0) return;   // no es un tramo recto: no corta esquinas
-        const sx = Math.sign(dx), sy = Math.sign(dy);
-        for (let i = 0, pasos = Math.abs(dx) + Math.abs(dy); i < pasos; i++) {
-          if (!paso(sx, sy)) break;
+      // Una mano de verdad NUNCA arrastra en línea perfectamente recta (el
+      // intento anterior, "solo línea recta", se trababa con cualquier
+      // temblor mínimo — "cuesta que se mueva, no llega nunca abajo").
+      // Vuelve el camino real por BFS (dobla esquinas siguiendo al dedo
+      // aunque el puntero esté a una celda de distancia, tolera el
+      // temblor de una mano real) PERO con tope de pasos por evento: un
+      // solo toque lejos no resuelve el laberinto de un saque, hace falta
+      // arrastrar de verdad. Y al soltar el dedo, PARA — no sigue
+      // caminando solo (eso sí lo pidió Pablo explícitamente: "no tiene
+      // que hacer todo el circuito en un movimiento").
+      const ruta = (desde, hasta) => {
+        if (hasta.x < 0 || hasta.y < 0 || hasta.x >= n || hasta.y >= n) return null;
+        const key = (x, y) => y * n + x;
+        const prev = new Array(n * n).fill(-1);
+        prev[key(desde.x, desde.y)] = key(desde.x, desde.y);
+        const cola = [[desde.x, desde.y]];
+        const DIRS = [[0, -1, "N"], [0, 1, "S"], [1, 0, "E"], [-1, 0, "W"]];
+        while (cola.length) {
+          const [x, y] = cola.shift();
+          if (x === hasta.x && y === hasta.y) break;
+          for (const [dx, dy, dir] of DIRS) {
+            const nx = x + dx, ny = y + dy;
+            if (nx < 0 || ny < 0 || nx >= n || ny >= n) continue;
+            if (!abierta(x, y, dir) || prev[key(nx, ny)] !== -1) continue;
+            prev[key(nx, ny)] = key(x, y);
+            cola.push([nx, ny]);
+          }
         }
-        if (cur.x === n - 1 && cur.y === n - 1) llegada();
+        if (prev[key(hasta.x, hasta.y)] === -1) return null;
+        const camino = [];
+        let k = key(hasta.x, hasta.y);
+        while (k !== prev[k]) { camino.push([k % n, (k - (k % n)) / n]); k = prev[k]; }
+        return camino.reverse();
+      };
+      let llegando = false;   // guard: dos eventos de puntero casi simultáneos
+      // llegando a la meta no deben disparar llegada() dos veces (corrompía
+      // "nivel" y rompía el nivel siguiente — bug real visto en pruebas)
+      const seguir = (ev) => {
+        if (llegando) return;
+        const objetivo = celdaDePuntero(ev);
+        const camino = ruta(cur, objetivo);
+        if (camino) {
+          for (const [x, y] of camino.slice(0, 8)) {
+            if (!paso(x - cur.x, y - cur.y)) break;
+          }
+        }
+        if (cur.x === n - 1 && cur.y === n - 1) { llegando = true; llegada(); }
       };
       const llegada = async () => {
         svg.style.pointerEvents = "none";
@@ -575,11 +600,13 @@ GAMES.laberinto = {
         else { toast("¡Lo lograste! Ahora uno más grande…"); await espera(1100); arrancar(); }
       };
       svg.addEventListener("pointerdown", (ev) => {
-        // agarrar = apoyar el dedo justo sobre el personaje (si no, un toque
-        // cualquiera en el tablero no debería arrastrarlo desde ahí)
+        // agarrar = apoyar el dedo cerca del personaje (con margen de una
+        // celda: un dedo real nunca apoya pixel-perfecto arriba de él) —
+        // un toque cualquiera lejos, en otra parte del tablero, no debería
+        // arrastrarlo desde ahí.
         const c = celdaDePuntero(ev);
-        if (c.x !== cur.x || c.y !== cur.y) return;
-        arrastrando = true; svg.setPointerCapture(ev.pointerId);
+        if (Math.abs(c.x - cur.x) > 1 || Math.abs(c.y - cur.y) > 1) return;
+        arrastrando = true; svg.setPointerCapture(ev.pointerId); seguir(ev);
       });
       svg.addEventListener("pointermove", (ev) => { if (arrastrando) seguir(ev); });
       svg.addEventListener("pointerup", () => { arrastrando = false; });
