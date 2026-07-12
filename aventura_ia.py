@@ -153,6 +153,15 @@ def prompt_nodo(tema, nodo_id, genero=None):
         "que se entienda que la historia es sobre ÉL. Si en la escena hay un animal o "
         "mascota, tiene que quedar CLARO que el protagonista es el niño y el animal es "
         "secundario (más chico o atrás). Nunca confundir al niño con un animal. "
+        "VESTIMENTA DEL PROTAGONISTA (obligatoria, SIEMPRE la MISMA en todas las "
+        "escenas de esta aventura, sin excepción): remera de manga CORTA color "
+        "naranja/mostaza (NUNCA buzo, hoodie, remera a rayas ni de otro color), short "
+        "o pantalón corto verde (NUNCA jean, NUNCA largo hasta el tobillo, NUNCA de "
+        "otro color), medias blancas, zapatillas o botines de trekking color MARRÓN "
+        "(NUNCA verdes, naranjas ni de otro color), y una mochila de explorador verde "
+        "cargada a la espalda con los dos tiradores puestos. Es el mismo personaje en "
+        "todas las páginas de esta historia — la ropa NUNCA cambia de una escena a "
+        "otra, ni el color ni el tipo de prenda. "
         "La escena llena TODA la imagen, sin marcos, bordes ni viñetas. "
         "ESCENARIO COMPLETO (obligatorio): la escena tiene SIEMPRE un fondo "
         "completo que llena toda la imagen — piso con textura y color del tema "
@@ -192,22 +201,37 @@ def prompt_nodo(tema, nodo_id, genero=None):
 
 
 def generar_ilustraciones(client, tema, nodos=None, calidad="medium", progress=None,
-                          genero=None, verificar=True, fallos_log=None):
+                          genero=None, verificar=True, fallos_log=None,
+                          ref_protagonista_path=None):
     """Genera y guarda la ilustración de cada nodo (default: todos los del tema).
     Devuelve la lista de paths escritos. `client` es ia_kit.client.OpenAIImageClient
-    (o cualquier objeto con .editar(refs, prompt, size, quality=) -> bytes PNG)."""
+    (o cualquier objeto con .editar(refs, prompt, size, quality=) -> bytes PNG).
+
+    CONSISTENCIA DE VESTIMENTA (feedback real de Pablo, 11-jul-2026: el texto solo
+    NO alcanza, la ropa del protagonista variaba entre escenas pese a describirla).
+    Además de la referencia de ESTILO del tema (ia_maestra.png), se suma una
+    referencia del PROTAGONISTA mismo — así el modelo copia la ropa exacta, no solo
+    la lee en el prompt: `ref_protagonista_path` si se pasa una imagen ya aprobada
+    (recomendado al regenerar nodos sueltos de una aventura ya armada), o si no, la
+    PRIMERA imagen que se genera y acepta en esta corrida — todas las siguientes la
+    usan de ahí en más."""
     nodos = list(nodos) if nodos is not None else sorted(aventura.AVENTURAS[tema])
-    refs = libro_ia.referencias(tema)
-    if not refs:
+    refs_estilo = libro_ia.referencias(tema)
+    if not refs_estilo:
         raise RuntimeError(
             "el tema %r no tiene imagen de referencia (ia_maestra.png/stickers) "
             "— agregala antes de generar la aventura" % tema)
     qa_key = os.environ.get("OPENAI_API_KEY")
+    ref_protagonista = None
+    if ref_protagonista_path:
+        with open(ref_protagonista_path, "rb") as f:
+            ref_protagonista = f.read()
     out = []
     for n, nid in enumerate(nodos):
         if progress:
             progress("Nodo %d de %d (%s)…" % (n + 1, len(nodos), nid))
         prompt = prompt_nodo(tema, nid, genero=genero)
+        refs = refs_estilo + ([ref_protagonista] if ref_protagonista else [])
         raw = client.editar(refs, prompt, _APAISADA, quality=calidad)
         if verificar and qa_key:
             ok, motivo = libro_ia.verificar_ilustracion(qa_key, raw, prompt)
@@ -231,6 +255,8 @@ def generar_ilustraciones(client, tema, nodos=None, calidad="medium", progress=N
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         img.save(dest)
         out.append(dest)
+        if ref_protagonista is None:
+            ref_protagonista = raw   # ancla de vestimenta/personaje para el resto de la corrida
     return out
 
 
