@@ -76,6 +76,20 @@ def _player_version():
         return "1"
 
 
+def _ruta_escena(tema, nombre):
+    if nombre.startswith("libro-"):
+        return os.path.join(_temas.TEMAS_DIR, tema, "overrides", "libro",
+                            nombre[len("libro-"):])
+    return os.path.join(_temas.TEMAS_DIR, tema, "overrides", "aventura", nombre)
+
+
+def _escena_version(tema, nombre):
+    try:
+        return int(os.path.getmtime(_ruta_escena(tema, nombre)))
+    except OSError:
+        return 1
+
+
 def html(token):
     """El visor HTML (rutas relativas -> servir SIEMPRE bajo /leer/<token>/)."""
     reg = _cargar(token)
@@ -83,10 +97,16 @@ def html(token):
         return None
     with open(TEMPLATE_HTML, encoding="utf-8") as f:
         t = f.read()
+    tema = reg.get("tema")
+    # Cache-buster `?v=<mtime>` por escena (igual que mandalas_web): las imágenes se
+    # sirven con Cache-Control de 24h, así que sin esto el navegador seguía mostrando
+    # el arte viejo después de regenerarlo (pasó real: fix de vestimenta 11-jul-2026).
+    nodos_v = {nid: {**n, "imagen": "%s?v=%d" % (n["imagen"], _escena_version(tema, n["imagen"]))}
+               for nid, n in (reg.get("nodos") or {}).items()}
     # INICIO/NODOS se inyectan como JSON crudo (contexto JS), no _esc.
     return (t.replace("{{TITULO}}", _esc(reg.get("titulo") or "Elegí tu aventura"))
              .replace("{{INICIO}}", json.dumps(reg.get("inicio")))
-             .replace("{{NODOS}}", json.dumps(reg.get("nodos"), ensure_ascii=False))
+             .replace("{{NODOS}}", json.dumps(nodos_v, ensure_ascii=False))
              .replace("{{V}}", _player_version()))
 
 
