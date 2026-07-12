@@ -29,32 +29,101 @@ _APAISADA = "1536x1024"
 # problema de concordancia de género (mismo truco que usa libro_ia._ESCENAS_*).
 _ESCENAS = {
     "safari": {
-        "inicio": "{protagonista} mirando un mapa viejo desplegado en las manos, en la "
-                  "entrada de la sabana dorada del safari, donde el camino se bifurca: "
-                  "un sendero baja hacia un río a lo lejos, y otro sube hacia una "
-                  "montaña rocosa. Luz cálida de mañana.",
-        "rio": "{protagonista} caminando por la orilla de un río en la sabana, con "
-              "pájaros de colores volando sobre los juncos y un grupo de elefantes "
-              "chapoteando en el agua a lo lejos. En la otra orilla, una familia de "
-              "monitos agitando los brazos pidiendo ayuda.",
-        "rio2": "{protagonista} frente a un puente colgante de sogas y madera, "
-               "escondido entre lianas, cruzando el río. Del otro lado del puente "
-               "algo dorado brillando entre las piedras.",
-        "montana": "{protagonista} subiendo por rocas doradas iluminadas por el sol, "
-                  "llegando a la entrada oscura de una cueva en la ladera de una "
-                  "montaña rocosa. Una pequeña estrella tallada marca la entrada de "
-                  "la cueva.",
-        "montana2": "{protagonista} sosteniendo una linterna encendida dentro de una "
-                   "cueva en penumbras, iluminando a un grupo de animales de la selva "
-                   "(un leoncito, una jirafa, una cebra) agrupados tímidamente, algo "
-                   "perdidos en la oscuridad.",
-        "final_tesoro": "{protagonista} sosteniendo con las dos manos una brújula "
-                        "dorada brillante recién encontrada entre las rocas de una "
-                        "cueva, con una expresión de asombro y alegría, luz dorada "
-                        "mágica alrededor del objeto.",
-        "final_amigos": "{protagonista} en medio de un grupo alegre de animales de la "
-                        "selva (león, elefante, jirafa, monitos) celebrando todos "
-                        "juntos como amigos, atardecer dorado en la sabana.",
+        # ── espina 1-4 ──────────────────────────────────────────────────────
+        "hook": "{protagonista} encontrando un mapa viejo y doblado en el fondo de "
+               "una mochila abierta, dentro de una carpa de campamento acogedora, "
+               "con una X dorada brillando en el papel.",
+        "camino": "{protagonista} saliendo de un campamento de safari al amanecer, "
+                 "con una mochila al hombro, caminando hacia la sabana dorada bajo "
+                 "un cielo rosado de primera luz.",
+        "sabana": "{protagonista} caminando entre pastizales altos y dorados de la "
+                 "sabana, rodeado a lo lejos de cebras y jirafas pastando "
+                 "tranquilas bajo el sol.",
+        "bifurcacion": "{protagonista} mirando un mapa viejo desplegado en las "
+                       "manos, en la entrada de la sabana dorada del safari, donde "
+                       "el camino se bifurca: un sendero baja hacia un río a lo "
+                       "lejos, y otro sube hacia una montaña rocosa. Luz cálida de "
+                       "mañana.",
+        # ── rama río 5-7 ────────────────────────────────────────────────────
+        "rio_1": "{protagonista} caminando por la orilla de un río en la sabana, "
+                "con pájaros de colores volando sobre los juncos y un grupo de "
+                "elefantes chapoteando en el agua a lo lejos. En la otra orilla, "
+                "una familia de monitos agitando los brazos pidiendo ayuda.",
+        "rio_2": "{protagonista} mirando hacia la otra orilla del río, donde una "
+                "familia de monitos agita los brazos pidiendo ayuda desde unas "
+                "rocas.",
+        "rio_3": "{protagonista} caminando con cuidado sobre piedras dentro de un "
+                "río poco profundo, acercándose a una familia de monitos que lo "
+                "esperan aliviados en la otra orilla.",
+        # ── rama montaña 5-7 ────────────────────────────────────────────────
+        "montana_1": "{protagonista} subiendo por rocas doradas iluminadas por el "
+                     "sol, en la ladera empinada de una montaña rocosa de la "
+                     "sabana.",
+        "montana_2": "{protagonista} agachado mirando unas huellas extrañas "
+                     "marcadas en el polvo de un sendero rocoso, que se pierden "
+                     "entre las piedras.",
+        "montana_3": "{protagonista} subiendo por rocas doradas iluminadas por el "
+                     "sol, llegando a la entrada oscura de una cueva en la ladera "
+                     "de una montaña rocosa. Una pequeña estrella tallada marca la "
+                     "entrada de la cueva.",
+        # ── espina 8-15 ─────────────────────────────────────────────────────
+        "reencuentro": "{protagonista} agachándose para levantar un pedazo de mapa "
+                       "viejo y rasgado, enganchado en las ramas de un arbusto, con "
+                       "una gran meseta dorada de fondo.",
+        "jirafas": "{protagonista} caminando por una meseta dorada de la sabana, "
+                  "con un grupo de jirafas altas estirando el cuello con "
+                  "curiosidad para mirarlo pasar.",
+        "ravine": "{protagonista} cruzando con los brazos abiertos un tronco caído "
+                 "que hace de puente sobre una pequeña quebrada rocosa de la "
+                 "sabana.",
+        "marcas": "{protagonista} observando unas marcas doradas y brillantes "
+                 "talladas sobre unas rocas de la sabana, como pistas antiguas de "
+                 "un camino.",
+        "tormenta": "{protagonista} cubriéndose la cara con un brazo mientras el "
+                    "viento levanta arena y hojas a su alrededor, bajo un cielo "
+                    "gris de tormenta en la sabana.",
+        "refugio": "{protagonista} agachado y a resguardo detrás de unas piedras "
+                  "grandes, junto a un grupo de animales de la selva también "
+                  "refugiados de la tormenta.",
+        "calma": "{protagonista} de pie mirando la sabana dorada iluminada por el "
+                "sol de la tarde después de la tormenta, con el cielo despejado y "
+                "luz cálida.",
+        "encrucijada": "{protagonista} parado en un cruce de caminos de la sabana "
+                       "al atardecer, con una luz dorada brillando entre unas "
+                       "rocas hacia un lado, y sombras de animales asomando hacia "
+                       "el otro.",
+        # ── final tesoro 16-20 ──────────────────────────────────────────────
+        "tesoro_1": "{protagonista} caminando hacia un brillo dorado que se filtra "
+                    "entre unas rocas cubiertas de flores silvestres, al atardecer "
+                    "en la sabana.",
+        "tesoro_2": "{protagonista} entrando a una pequeña gruta escondida cubierta "
+                    "de flores silvestres y luz dorada, con algo brillante "
+                    "destellando en el centro.",
+        "tesoro_3": "{protagonista} acercándose a una piedra lisa dentro de una "
+                    "gruta iluminada, donde descansa una brújula dorada brillante.",
+        "tesoro_4": "{protagonista} sosteniendo con las dos manos una brújula "
+                    "dorada brillante recién encontrada entre las rocas de una "
+                    "cueva, con una expresión de asombro y alegría, luz dorada "
+                    "mágica alrededor del objeto.",
+        "tesoro_final": "{protagonista} de pie en la sabana dorada al atardecer, "
+                        "sosteniendo en alto una brújula dorada brillante, con una "
+                        "gran sonrisa de triunfo.",
+        # ── final amigos 16-20 ──────────────────────────────────────────────
+        "amigos_1": "{protagonista} corriendo decidido por la sabana dorada al "
+                    "atardecer, hacia el sonido de voces de animales pidiendo "
+                    "ayuda.",
+        "amigos_2": "{protagonista} encontrando a un grupo de animales de la selva "
+                    "(león, jirafa, elefante) reunidos y preocupados, algo "
+                    "perdidos en la sabana al atardecer.",
+        "amigos_3": "{protagonista} caminando adelante guiando con calma a un "
+                    "grupo de animales de la selva por un sendero de la sabana "
+                    "dorada al atardecer.",
+        "amigos_4": "{protagonista} caminando junto a un grupo de animales de la "
+                    "selva, todos más tranquilos, acercándose a la sabana abierta "
+                    "bajo un cielo dorado.",
+        "amigos_final": "{protagonista} en medio de un grupo alegre de animales de "
+                        "la selva (león, elefante, jirafa, monitos) celebrando "
+                        "todos juntos como amigos, atardecer dorado en la sabana.",
     },
 }
 
