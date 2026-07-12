@@ -63,24 +63,32 @@ def test_html_inyecta_json_valido_y_titulo(tmp_path):
 
 def test_archivo_whitelist(tmp_path):
     tok = _crear(tmp_path)
-    for a in ("player.js", "2.png", "8.png", "manifest.json"):
+    # safari ya tiene arte PROPIO generado (aventura_ia.py) para los 7 nodos, así que
+    # el manifest apunta directo a <nodo_id>.png (no al placeholder reciclado).
+    for a in ("player.js", "manifest.json", "inicio.png", "final_amigos.png"):
         r = avw.archivo(tok, a)
         assert r is not None, f"debería servir {a}"
     assert avw.archivo(tok, "player.js")[1].startswith("text/javascript")
-    assert avw.archivo(tok, "2.png")[1] == "image/png"
-    for bad in ("hack.png", "../manifest.json", "9.png", "1.png", "0.png",
-                "../../etc/passwd", "data.json"):
+    assert avw.archivo(tok, "inicio.png")[1] == "image/png"
+    for bad in ("hack.png", "../manifest.json", "2.png", "9.png", "libro-99.png",
+                "circo.png", "../../etc/passwd", "data.json"):
         assert avw.archivo(tok, bad) is None, f"NO debería servir {bad}"
 
 
-def test_genero_usa_variante_nena_si_existe(tmp_path):
-    tok = _crear(tmp_path, "Valentina", genero="nena")
-    d = os.path.join(str(tmp_path), tok)
-    with open(os.path.join(d, "manifest.json"), encoding="utf-8") as f:
-        nodos = json.load(f)["nodos"]
-    # 6.png tiene variante _nena para safari (ver temas/safari/overrides/libro/)
-    assert nodos["montana2"]["imagen"] == "6_nena.png"
-    assert avw.archivo(tok, "6_nena.png") is not None
+def test_arte_propio_tiene_prioridad_sobre_placeholder(tmp_path):
+    """aventura._imagen_archivo: sin arte propio en overrides/aventura/ cae al
+    placeholder reciclado del libro; en cuanto aventura_ia.py genera el archivo del
+    nodo, ese pasa a usarse (aislado del disco real con un TEMAS_DIR de prueba)."""
+    temas_dir = tmp_path / "temas"
+    os.makedirs(temas_dir / "safari" / "overrides" / "aventura")
+    original = aventura._temas.TEMAS_DIR
+    aventura._temas.TEMAS_DIR = str(temas_dir)
+    try:
+        assert aventura._imagen_archivo("safari", "inicio") == "libro-2.png"
+        (temas_dir / "safari" / "overrides" / "aventura" / "inicio.png").write_bytes(b"x")
+        assert aventura._imagen_archivo("safari", "inicio") == "inicio.png"
+    finally:
+        aventura._temas.TEMAS_DIR = original
 
 
 def test_tema_sin_aventura_armada_falla_claro(tmp_path):

@@ -90,22 +90,21 @@ def temas_disponibles():
     return sorted(AVENTURAS)
 
 
-def _imagen_archivo(tema, idx, genero=None):
-    """idx (2..8, las escenas del libro) -> nombre de archivo, con variante _nena si
-    existe para ese idx (mismo criterio que libro.usar_genero)."""
-    g = (genero or "").strip().lower()
-    if g in ("nena", "niña", "nina", "f"):
-        p = os.path.join(_temas.TEMAS_DIR, tema, "overrides", "libro", f"{idx}_nena.png")
-        if os.path.isfile(p):
-            return f"{idx}_nena.png"
-    return f"{idx}.png"
+def _imagen_archivo(tema, nodo_id):
+    """nodo_id -> nombre de archivo dentro de overrides/aventura/ (ilustración PROPIA
+    del nodo, generada por aventura_ia.py). Si todavía no se generó (prototipo recién
+    armado), cae al arte reciclado del libro lineal como placeholder — ver
+    aventura_ia.py para el mecanismo real de ilustración por nodo."""
+    p = os.path.join(_temas.TEMAS_DIR, tema, "overrides", "aventura", f"{nodo_id}.png")
+    if os.path.isfile(p):
+        return f"{nodo_id}.png"
+    return f"libro-{AVENTURAS[tema][nodo_id]['imagen']}.png"  # placeholder reciclado
 
 
 def grafo(tema, nombre="", genero=None):
     """Arma el grafo de nodos con el {nombre} ya reemplazado y el archivo de imagen
-    resuelto (con variante de género si existe). Los nombres de archivo devueltos
-    coinciden 1:1 con temas/<tema>/overrides/libro/ — quien sirve el asset solo
-    necesita unir esa ruta base."""
+    resuelto. `genero` no afecta la ilustración todavía (el arte propio de cada nodo
+    usa un protagonista neutro/de espaldas) — queda como posible mejora futura."""
     nodos = AVENTURAS.get(tema)
     if not nodos:
         return None
@@ -113,7 +112,7 @@ def grafo(tema, nombre="", genero=None):
     for nid, n in nodos.items():
         out[nid] = {
             "texto": n["texto"].format(nombre=nombre or "el explorador"),
-            "imagen": _imagen_archivo(tema, n["imagen"], genero),
+            "imagen": _imagen_archivo(tema, nid),
             "opciones": n.get("opciones", []),
             "final": n.get("final"),
         }
