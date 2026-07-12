@@ -544,18 +544,25 @@ GAMES.laberinto = {
       };
       // Seguimiento DIRECTO, celda por celda — pedido de Pablo: nada de
       // auto-resolver ni de rutear solo alrededor de las paredes. El dedo
-      // tiene que recorrer de verdad el pasillo: cada evento de puntero
-      // mueve al personaje UNA sola celda (la vecina N/S/E/W) y solo si esa
-      // celda es exactamente donde está el dedo Y el paso está abierto. Si
-      // el dedo se despega de las líneas del laberinto (salta a una celda
-      // no vecina, o vecina pero con pared en el medio) el personaje se
-      // queda quieto ahí — no avanza — hasta que el dedo vuelva a estar
-      // sobre un paso válido.
+      // tiene que recorrer de verdad el pasillo. Reporte real (Pablo, tramo
+      // vertical largo): con un arrastre rápido el evento de puntero puede
+      // "saltar" varias celdas de un salto (el muestreo no da abasto) — con
+      // un solo paso por evento el personaje se quedaba atrás sin que se
+      // notara, y al llegar abajo y doblar parecía que "una pared" lo
+      // frenaba cuando en realidad todavía no había bajado del todo. Fix:
+      // si el dedo saltó de largo pero en LÍNEA RECTA (mismo pasillo, sin
+      // doblar), alcanza todo ese tramo de un saque — pero se frena en la
+      // primera pared, y si el salto no es en línea recta (dx Y dy != 0,
+      // cortaría una esquina) no se mueve nada: sigue exigiendo que el
+      // dedo trace la esquina de verdad, no rutea solo.
       const seguir = (ev) => {
         const objetivo = celdaDePuntero(ev);
         const dx = objetivo.x - cur.x, dy = objetivo.y - cur.y;
-        const esVecina = (Math.abs(dx) === 1 && dy === 0) || (Math.abs(dy) === 1 && dx === 0);
-        if (esVecina) paso(dx, dy);
+        if (dx !== 0 && dy !== 0) return;   // no es un tramo recto: no corta esquinas
+        const sx = Math.sign(dx), sy = Math.sign(dy);
+        for (let i = 0, pasos = Math.abs(dx) + Math.abs(dy); i < pasos; i++) {
+          if (!paso(sx, sy)) break;
+        }
         if (cur.x === n - 1 && cur.y === n - 1) llegada();
       };
       const llegada = async () => {
