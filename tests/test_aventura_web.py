@@ -83,6 +83,10 @@ def test_html_inyecta_json_valido_y_titulo(tmp_path):
     assert "&quot;" not in h.split("window.AVENTURA_NODOS")[1][:400]
     assert '"hook"' in h
     assert "player.js?v=" in h
+    # cache-buster por escena: sin esto el navegador seguía mostrando arte viejo
+    # después de regenerarlo (pasó real con el fix de vestimenta)
+    assert '"imagen": "hook.png?v=' in h
+    assert '"imagen": "amigos_final.png?v=' in h
 
 
 def test_archivo_whitelist(tmp_path):
