@@ -29,6 +29,7 @@
   .btn.ac{background:var(--ac); color:#fff}
   .btn.gh{background:transparent; border:1.5px solid var(--line); flex:0 1 auto; max-width:150px;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .btn.icon{flex:0 0 auto; width:44px; min-height:44px; padding:0; text-align:center; font-size:18px}
   .wrap{flex:1 1 auto; max-width:640px; margin:0 auto; width:100%; padding:18px 16px 32px}
   .escena-box{background:var(--card); border:1px solid var(--line); border-radius:18px;
     box-shadow:var(--shadow); overflow:hidden; margin-bottom:18px}
@@ -48,6 +49,7 @@
 <header>
   <a class="btn gh" href="https://casatridimensional.com.ar/mi-cuenta">← Mi biblioteca</a>
   <h1 id="titulo">{{TITULO}}</h1>
+  <button class="btn icon" id="audio-toggle" title="Silenciar/activar narración">🔊</button>
 </header>
 
 <div class="wrap">
@@ -58,6 +60,7 @@
   <button class="btn ac" id="reiniciar">🔁 Empezar de nuevo</button>
 </div>
 
+<audio id="audio" preload="auto"></audio>
 <script>
   window.AVENTURA_INICIO = {{INICIO}};
   window.AVENTURA_NODOS = {{NODOS}};
