@@ -472,9 +472,25 @@ def _render_portada(dj, pers_imgs):
     (feedback Pablo 10-jul)."""
     pal = dj["paleta"]
     W, H = 900, 1200
-    im = Image.new("RGB", (W, H), _hex_rgb(pal["bg"]))
+    # el margen de 36px alrededor de la card usa un fondo NEUTRO fijo, no
+    # pal["bg"] del tema — "un-espacio-de-locura" es la única paleta oscura
+    # a propósito y ese margen se veía como un borde azul marino feo (Pablo
+    # 12-jul: "sácale el fondo azul... en todas pasa lo mismo" — el bug es
+    # el mismo código para los 12 temas, solo que en los demás pal["bg"] es
+    # un pastel clarito y casi no se nota contra la card blanca).
+    im = Image.new("RGB", (W, H), _hex_rgb(_PALETA_DEFAULT["bg"]))
     dr = ImageDraw.Draw(im)
-    dr.rounded_rectangle((36, 36, W - 36, H - 36), radius=44, fill=_hex_rgb(pal["card"]))
+    # la card en sí: si el tema tiene card OSCURA (misma paleta oscura a
+    # propósito — la única hoy es "un-espacio-de-locura"), acá se fuerza
+    # blanca + tinta oscura segura, porque el "ink" de esa paleta es CASI
+    # BLANCO (pensado para texto sobre fondo oscuro real del juego) — sobre
+    # una card blanca hubiera quedado invisible. Los otros 11 temas ya
+    # tienen card blanca de por sí, esto no les cambia nada.
+    card_color, ink_color = pal["card"], pal["ink"]
+    cr, cg, cb = _hex_rgb(card_color)
+    if 0.299 * cr + 0.587 * cg + 0.114 * cb < 128:
+        card_color, ink_color = "#FFFFFF", _PALETA_DEFAULT["ink"]
+    dr.rounded_rectangle((36, 36, W - 36, H - 36), radius=44, fill=_hex_rgb(card_color))
     # franja superior con el acento
     dr.rounded_rectangle((36, 36, W - 36, 240), radius=44, fill=_hex_rgb(pal["ac"]))
     dr.rectangle((36, 170, W - 36, 240), fill=_hex_rgb(pal["ac"]))
@@ -497,15 +513,15 @@ def _render_portada(dj, pers_imgs):
                 while fl.getlength(linea) > W - 140 and fl.size > 40:
                     fl = _fuente("Baloo2-VF.ttf", fl.size - 4)
                 dr.text((W // 2, 350 + i * 92), linea, font=fl,
-                        fill=_hex_rgb(pal["ink"]), anchor="mm")
+                        fill=_hex_rgb(ink_color), anchor="mm")
             y_sub = 530
         else:
             while f.getlength(tit) > W - 140 and f.size > 36:
                 f = _fuente("Baloo2-VF.ttf", f.size - 4)
-            dr.text((W // 2, 390), tit, font=f, fill=_hex_rgb(pal["ink"]), anchor="mm")
+            dr.text((W // 2, 390), tit, font=f, fill=_hex_rgb(ink_color), anchor="mm")
             y_sub = 490
     else:
-        dr.text((W // 2, 390), tit, font=f, fill=_hex_rgb(pal["ink"]), anchor="mm")
+        dr.text((W // 2, 390), tit, font=f, fill=_hex_rgb(ink_color), anchor="mm")
         y_sub = 490
     dr.text((W // 2, y_sub), "%s · %s años" % (dj["tema_nombre"], dj["edad"] or "?"),
             font=f_sub, fill=_hex_rgb(pal["ac2"]), anchor="mm")
