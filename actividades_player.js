@@ -574,12 +574,22 @@ GAMES.laberinto = {
       // "nivel" y rompía el nivel siguiente — bug real visto en pruebas)
       const seguir = (ev) => {
         if (llegando) return;
-        const objetivo = celdaDePuntero(ev);
-        if (objetivo.x < 0 || objetivo.y < 0 || objetivo.x >= n || objetivo.y >= n) return;
-        for (const [dx, dy] of pasosLinea(cur.x, cur.y, objetivo.x, objetivo.y)) {
-          if (!paso(dx, dy)) break;
+        // getCoalescedEvents: el navegador agrupa varios movimientos reales
+        // del mouse/dedo en un solo evento "pointermove" por rendimiento —
+        // sin esto solo veíamos el ÚLTIMO punto de cada tanda, perdiendo
+        // pasos intermedios (sentía "poco sensible", y en una esquina
+        // rápida el personaje se quedaba atrás del mouse sin reconectar).
+        // Con los eventos agrupados seguimos el trazo real punto a punto.
+        const eventos = (ev.getCoalescedEvents && ev.getCoalescedEvents().length)
+          ? ev.getCoalescedEvents() : [ev];
+        for (const e of eventos) {
+          const objetivo = celdaDePuntero(e);
+          if (objetivo.x < 0 || objetivo.y < 0 || objetivo.x >= n || objetivo.y >= n) continue;
+          for (const [dx, dy] of pasosLinea(cur.x, cur.y, objetivo.x, objetivo.y)) {
+            if (!paso(dx, dy)) break;
+          }
+          if (cur.x === n - 1 && cur.y === n - 1) { llegando = true; llegada(); return; }
         }
-        if (cur.x === n - 1 && cur.y === n - 1) { llegando = true; llegada(); }
       };
       const llegada = async () => {
         svg.style.pointerEvents = "none";
