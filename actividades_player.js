@@ -839,10 +839,17 @@ GAMES.contar = {
   crear(ctx) {
     const max = ctx.cfg.max || 5, rondas = ctx.cfg.rondas || 5;
     ctx.rondas(rondas);
-    // cantidades que suben de a poco (andamiaje)
+    // cantidades que suben de a poco (andamiaje), pero con variación real: la
+    // fórmula lineal sola (sin +jitter) daba SIEMPRE la misma secuencia exacta
+    // (ej. 1,2,3,4,5) cada vez que se abría el link — jugado dos veces, ya se
+    // sabía de memoria sin necesidad de contar. El jitter + reordenar mantiene
+    // el andamiaje (sigue siendo más fácil al principio) pero varía entre partidas.
     const cantidades = [];
-    for (let i = 0; i < rondas; i++)
-      cantidades.push(Math.min(max, Math.max(1, Math.round(1 + (max - 1) * i / (rondas - 1 || 1)))));
+    for (let i = 0; i < rondas; i++) {
+      const lineal = Math.round(1 + (max - 1) * i / (rondas - 1 || 1));
+      cantidades.push(Math.min(max, Math.max(1, lineal + rint(-1, 1))));
+    }
+    cantidades.sort((a, b) => a - b);
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
@@ -1305,7 +1312,10 @@ GAMES.tamano = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      const grande = ronda % 2 === 0 || D.banda === "mini";  // mini: siempre "grande"
+      // mini: siempre "grande" (más simple); el resto: al azar de verdad —
+      // alternar por paridad de ronda hacía que, jugado dos veces, ya se
+      // supiera sin mirar que la ronda 2 siempre pedía "el más chico".
+      const grande = D.banda === "mini" || rint(0, 1) === 0;
       ctx.consigna(grande ? "Tocá el MÁS GRANDE" : "Ahora tocá el MÁS CHICO");
       ctx.juego.innerHTML = "";
       const s = P[rint(0, P.length - 1)];
@@ -1352,7 +1362,9 @@ GAMES.mas_menos = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      const buscaMas = D.banda === "mini" ? true : ronda % 2 === 0;
+      // mini: siempre "más" (más simple); el resto: al azar de verdad — igual
+      // bug que en tamano, alternar por paridad se aprendía de memoria.
+      const buscaMas = D.banda === "mini" || rint(0, 1) === 0;
       ctx.consigna(buscaMas ? "¿Dónde hay MÁS? Tocá el grupo" : "¿Dónde hay MENOS? Tocá el grupo");
       ctx.juego.innerHTML = "";
       let a = rint(1, max), b = rint(1, max);
@@ -1400,7 +1412,11 @@ GAMES.serie = {
       ctx.ronda(ronda);
       ctx.consigna("¿Qué número falta?");
       ctx.juego.innerHTML = "";
-      const paso = ronda < rondas / 2 ? 1 : 2;         // sube la dificultad
+      // sube la dificultad, pero sin un corte fijo en la mitad exacta (que
+      // hacía adivinable CUÁNDO cambia el tipo de patrón): más probable +1
+      // al principio, +2 hacia el final, con el medio genuinamente al azar.
+      const progreso = rondas > 1 ? ronda / (rondas - 1) : 0;
+      const paso = Math.random() < progreso ? 2 : 1;
       const desde = rint(1, paso === 1 ? 12 : 8);
       const seq = Array.from({ length: 5 }, (_, i) => desde + i * paso);
       const falta = rint(1, 4);
