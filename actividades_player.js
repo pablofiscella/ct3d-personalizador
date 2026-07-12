@@ -536,45 +536,38 @@ GAMES.laberinto = {
       let arrastrando = false;
       const celdaDePuntero = (ev) => {
         const r = svg.getBoundingClientRect();
-        const esc = S / r.width;
+        // escala X e Y por separado: el tablero no siempre renderiza
+        // perfectamente cuadrado (el CSS lo cap a un alto máximo), y usar
+        // una sola escala (basada solo en el ancho) para las dos corría el
+        // cálculo del eje vertical — "el cursor siempre queda más abajo
+        // del ícono para que llegue ahí" era exactamente este bug.
+        const escX = S / r.width, escY = S / r.height;
         return {
-          x: Math.floor(((ev.clientX - r.left) * esc - M) / C),
-          y: Math.floor(((ev.clientY - r.top) * esc - M) / C),
+          x: Math.floor(((ev.clientX - r.left) * escX - M) / C),
+          y: Math.floor(((ev.clientY - r.top) * escY - M) / C),
         };
       };
-      // Una mano de verdad NUNCA arrastra en línea perfectamente recta (el
-      // intento anterior, "solo línea recta", se trababa con cualquier
-      // temblor mínimo — "cuesta que se mueva, no llega nunca abajo").
-      // Vuelve el camino real por BFS (dobla esquinas siguiendo al dedo
-      // aunque el puntero esté a una celda de distancia, tolera el
-      // temblor de una mano real) PERO con tope de pasos por evento: un
-      // solo toque lejos no resuelve el laberinto de un saque, hace falta
-      // arrastrar de verdad. Y al soltar el dedo, PARA — no sigue
-      // caminando solo (eso sí lo pidió Pablo explícitamente: "no tiene
-      // que hacer todo el circuito en un movimiento").
-      const ruta = (desde, hasta) => {
-        if (hasta.x < 0 || hasta.y < 0 || hasta.x >= n || hasta.y >= n) return null;
-        const key = (x, y) => y * n + x;
-        const prev = new Array(n * n).fill(-1);
-        prev[key(desde.x, desde.y)] = key(desde.x, desde.y);
-        const cola = [[desde.x, desde.y]];
-        const DIRS = [[0, -1, "N"], [0, 1, "S"], [1, 0, "E"], [-1, 0, "W"]];
-        while (cola.length) {
-          const [x, y] = cola.shift();
-          if (x === hasta.x && y === hasta.y) break;
-          for (const [dx, dy, dir] of DIRS) {
-            const nx = x + dx, ny = y + dy;
-            if (nx < 0 || ny < 0 || nx >= n || ny >= n) continue;
-            if (!abierta(x, y, dir) || prev[key(nx, ny)] !== -1) continue;
-            prev[key(nx, ny)] = key(x, y);
-            cola.push([nx, ny]);
-          }
+      // El BFS (dobla esquinas solo, aunque el mouse apunte lejos en línea
+      // general) resultó ser MÁS de lo que hacía falta: "si voy a donde
+      // quiero hace todo el camino" — no debe rutear alrededor de una
+      // pared, tiene que seguir literalmente la línea del mouse y frenarse
+      // ahí si esa línea cruza una pared. Bresenham en cuadrícula: la
+      // secuencia de pasos ortogonales (nunca diagonales — los pasillos no
+      // conectan en diagonal) que sigue la línea recta real entre dos
+      // celdas, tolerando el temblor natural de una mano sin rutear.
+      const pasosLinea = (x0, y0, x1, y1) => {
+        const pasos = [];
+        let x = x0, y = y0;
+        const adx = Math.abs(x1 - x0), ady = Math.abs(y1 - y0);
+        const sx = x1 > x0 ? 1 : -1, sy = y1 > y0 ? 1 : -1;
+        let err = adx - ady;
+        while (x !== x1 || y !== y1) {
+          const e2 = 2 * err;
+          if (e2 > -ady && x !== x1) { err -= ady; x += sx; pasos.push([sx, 0]); }
+          else if (e2 < adx && y !== y1) { err += adx; y += sy; pasos.push([0, sy]); }
+          else break;
         }
-        if (prev[key(hasta.x, hasta.y)] === -1) return null;
-        const camino = [];
-        let k = key(hasta.x, hasta.y);
-        while (k !== prev[k]) { camino.push([k % n, (k - (k % n)) / n]); k = prev[k]; }
-        return camino.reverse();
+        return pasos;
       };
       let llegando = false;   // guard: dos eventos de puntero casi simultáneos
       // llegando a la meta no deben disparar llegada() dos veces (corrompía
@@ -582,11 +575,9 @@ GAMES.laberinto = {
       const seguir = (ev) => {
         if (llegando) return;
         const objetivo = celdaDePuntero(ev);
-        const camino = ruta(cur, objetivo);
-        if (camino) {
-          for (const [x, y] of camino.slice(0, 8)) {
-            if (!paso(x - cur.x, y - cur.y)) break;
-          }
+        if (objetivo.x < 0 || objetivo.y < 0 || objetivo.x >= n || objetivo.y >= n) return;
+        for (const [dx, dy] of pasosLinea(cur.x, cur.y, objetivo.x, objetivo.y)) {
+          if (!paso(dx, dy)) break;
         }
         if (cur.x === n - 1 && cur.y === n - 1) { llegando = true; llegada(); }
       };
