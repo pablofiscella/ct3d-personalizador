@@ -644,8 +644,11 @@ def archivo(token, nombre):
 
 
 def preview_mock(data, tema):
-    """Miniatura para la ficha de la tienda / dash (sin crear token): la portada."""
-    nombre = (data.get("nombre") or "").strip() or "Sofía"
+    """Miniatura para la ficha de la tienda / dash (sin crear token): la portada.
+    Sin nombre real (nadie compró todavía) — genérico, nunca un nombre de
+    muestra (mostraba "Las actividades de Sofía" en la ficha pública, como si
+    ya viniera personalizado para una nena en particular)."""
+    nombre = (data.get("nombre") or "").strip() or "tu peque"
     edad = (str(data.get("edad") or "")).strip() or "5"
     dj = _armar_data_liviano(tema, nombre, edad)
     pers = []
