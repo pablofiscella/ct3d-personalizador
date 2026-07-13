@@ -841,7 +841,13 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(data)
             return
         # ---- audiolibro web (página narrada con page-flip; link con token) ----
-        m = re.match(r"^/al/([A-Za-z0-9_-]+)(?:/([a-z_0-9.]+))?$", path)
+        # el filename usa [a-z_0-9.]* (0+, no 1+): con 1+ una barra final SIN
+        # nombre de archivo (/al/<token>/, un link compartido muy común) no
+        # matcheaba nada y caía a 404 — bug real, encontrado 13-jul-2026
+        # revisando por qué el link del regalo gratis no convertía ninguna
+        # venta. Los otros 3 productos con token (/act/, /armar/, /leer/) ya
+        # usaban 0+ correctamente; este había quedado con 1+ por error.
+        m = re.match(r"^/al/([A-Za-z0-9_-]+)(?:/([a-z_0-9.]*))?$", path)
         if m:
             import audiolibro
             token, arch = m.group(1), m.group(2)
