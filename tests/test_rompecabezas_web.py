@@ -190,3 +190,68 @@ def test_portada_banda_clara_y_edad_mas():
     im = rw.preview_mock({"nombre": "", "edad": "3"}, "un-espacio-de-locura")
     r, g, b = im.convert("RGB").getpixel((450, 1120))
     assert 0.299 * r + 0.587 * g + 0.114 * b > 180, "banda oscura en la portada"
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Rompecabezas de FOTO (13-jul-2026): Pablo, "rompecabezas con una foto que
+# nos suba". PROTOTIPO — probado el motor real hasta 500 piezas antes de
+# fijar TARGETS_FOTO (server y snap andan bien en todo el rango; el techo es
+# de USO, no de motor: la bandeja de piezas sueltas se satura antes que el
+# tablero — ver TARGETS_FOTO). Reusa el mismo _bordes_json que el de tema,
+# así que la partición geométrica (test_piezas_particionan_la_imagen) ya
+# está cubierta por _bordes_grilla en general — acá se verifica el camino
+# ESPECÍFICO de la foto: sin tema, targets ampliados, y los rechazos.
+_TOK_FOTO = "test-rompe-foto-aabbccdd"
+
+
+@pytest.fixture(scope="module")
+def token_foto():
+    d = os.path.join(rw.ROMPE_DIR, _TOK_FOTO)
+    shutil.rmtree(d, ignore_errors=True)
+    foto = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                        "temas", "circo", "overrides", "libro", "1.png")
+    with open(foto, "rb") as f:
+        rw.crear_desde_foto(f.read(), token=_TOK_FOTO)
+    yield _TOK_FOTO
+    shutil.rmtree(d, ignore_errors=True)
+
+
+@pytest.fixture(scope="module")
+def data_foto(token_foto):
+    return json.load(open(os.path.join(rw.ROMPE_DIR, token_foto, "data.json"),
+                          encoding="utf-8"))
+
+
+def test_foto_sin_tema_ni_mascota(data_foto):
+    assert data_foto["tema"] is None
+    assert data_foto["masco"] is None
+    assert data_foto["tema_nombre"] == "Tu foto"
+
+
+def test_foto_targets_ampliados(data_foto):
+    assert data_foto["targets"] == rw.TARGETS_FOTO
+    assert 70 in rw.TARGETS_FOTO and 100 in rw.TARGETS_FOTO   # niveles nuevos, probados
+
+
+def test_foto_grillas_altas_particionan_bien(data_foto):
+    """Mismo chequeo de partición que test_piezas_particionan_la_imagen, pero
+    en los niveles NUEVOS (70/100) para no confiar solo en la inspección
+    visual manual de esta sesión."""
+    p = data_foto["puzzles"][0]
+    for t in (70, 100):
+        clave = p["grillas"][str(t)]
+        cols, filas = map(int, clave.split("x"))
+        b = data_foto["bordes"][clave]
+        total = sum(_area(_poli(ci, fi, cols, filas, b, p["w"], p["h"]))
+                    for fi in range(filas) for ci in range(cols))
+        assert abs(total - p["w"] * p["h"]) / (p["w"] * p["h"]) < 0.002, clave
+
+
+def test_foto_rechaza_no_imagen():
+    with pytest.raises(ValueError):
+        rw.crear_desde_foto(b"esto no es una imagen")
+
+
+def test_foto_rechaza_demasiado_pesada():
+    with pytest.raises(ValueError):
+        rw.crear_desde_foto(b"x" * (16 * 1024 * 1024))

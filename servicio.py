@@ -116,6 +116,49 @@ Esta página se actualiza sola — ¡no hace falta que hagas nada!</p>
 <div class="dots"><span></span><span></span><span></span></div>
 </body></html>"""
 
+# Página de prueba del rompecabezas de FOTO (13-jul-2026, Pablo: "rompecabezas
+# con una foto que nos suba") — PROTOTIPO sin integración a la tienda todavía,
+# solo para validar el mecanismo (subís una foto, jugás al toque). Standalone
+# a propósito (no vive en /opt/ct3d): así Pablo la puede probar hoy mismo sin
+# esperar el flujo de compra completo.
+_ROMPECABEZAS_FOTO_HTML = """<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Rompecabezas de tu foto — prueba</title><style>
+*{margin:0;padding:0;box-sizing:border-box}html,body{height:100%}
+body{background:#FBF4EA;color:#44372E;font-family:system-ui,sans-serif;text-align:center;padding:24px;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;min-height:100vh}
+.emoji{font-size:56px}h1{font-size:22px;font-weight:800}p{color:#6b5f52;max-width:420px;line-height:1.5}
+input[type=file]{max-width:320px}
+button{background:#E0713C;color:#fff;border:0;border-radius:999px;padding:14px 28px;font-size:17px;
+ font-weight:700;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+#msg{min-height:24px;color:#c0392b;font-weight:600}
+#msg.ok{color:#2e7d32}
+</style></head><body>
+<div class="emoji">🧩</div>
+<h1>Armá un rompecabezas con tu foto</h1>
+<p>Prueba interna — subí cualquier foto y generamos un rompecabezas jugable al toque, con piezas de verdad (no un mockup).</p>
+<input type="file" id="foto" accept="image/*">
+<button id="ir" disabled>Generar mi rompecabezas</button>
+<p id="msg"></p>
+<script>
+var inp = document.getElementById('foto'), btn = document.getElementById('ir'), msg = document.getElementById('msg');
+inp.addEventListener('change', function(){ btn.disabled = !inp.files.length; msg.textContent=''; msg.className=''; });
+btn.addEventListener('click', function(){
+  if (!inp.files.length) return;
+  btn.disabled = true; btn.textContent = 'Generando…'; msg.textContent=''; msg.className='';
+  fetch('/rompecabezas-foto', { method: 'POST', body: inp.files[0] })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d.ok) { msg.className='ok'; msg.textContent = '¡Listo! Te llevamos a jugar…'; location.href = d.url; }
+      else { btn.disabled = false; btn.textContent = 'Generar mi rompecabezas'; msg.textContent = d.error || 'Algo falló, probá de nuevo.'; }
+    })
+    .catch(function(){ btn.disabled = false; btn.textContent = 'Generar mi rompecabezas'; msg.textContent = 'No se pudo conectar, probá de nuevo.'; });
+});
+</script>
+</body></html>"""
+
 # El audiolibro falló al generarse: en vez de dejar al cliente en 'grabándose'
 # eterno, un cartel amable. Se auto-refresca por si un reintento manual lo resuelve.
 _AUDIOLIBRO_ERROR_HTML = """<!doctype html><html lang="es"><head><meta charset="utf-8">
@@ -547,6 +590,15 @@ class Handler(BaseHTTPRequestHandler):
             # reordene la galería (desbloqueados primero) al cambiar de edad.
             import actividades_web
             return self._json(200, {"ok": True, "incluidos": actividades_web.incluidos_por_edad()})
+        if path == "/rompecabezas-foto":
+            # página de prueba del rompecabezas de foto (ver POST del mismo path)
+            body = _ROMPECABEZAS_FOTO_HTML.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers(); self.wfile.write(body)
+            return
         if path == "/preview":
             q = urllib.parse.parse_qs(u.query)
             data = {c: (q.get(c, [""])[0] or "") for c in CAMPOS}
@@ -1255,6 +1307,8 @@ class Handler(BaseHTTPRequestHandler):
         path = urllib.parse.urlparse(self.path).path
         if not self._origin_ok():          # A5: rechaza POST cross-site de navegador
             return self._deny()
+        if path == "/rompecabezas-foto":
+            return self._rompecabezas_foto_upload()
         if path == "/editor/save":
             return self._editor_save()
         if path == "/dash/upload":
@@ -1649,6 +1703,34 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(500, {"ok": False, "error": f"fallo al generar: {e}"})
         return self._json(200, {"ok": True, "token": token,
                                 "download_url": f"{self.base_url()}/descarga/{token}"})
+
+    def _rompecabezas_foto_upload(self):
+        """Sube UNA foto del cliente y genera su rompecabezas — PROTOTIPO
+        13-jul-2026 (Pablo: "rompecabezas con una foto que nos suba"), SIN
+        integración a la tienda todavía: valida el mecanismo antes de
+        invertir en el flujo de compra completo. Body = bytes crudos de la
+        imagen (mismo patrón que /dash/upload, sin multipart). Público (sin
+        _admin_ok) pero con rate-limit propio, más estricto que el default:
+        cada request hace decode + generación real de 5 niveles de piezas."""
+        if not _rate_ok(self._client_ip(), limit=6, window=60):
+            return self._json(429, {"ok": False, "error": "Probaste muchas veces seguidas — esperá un minuto."})
+        try:
+            n = int(self.headers.get("Content-Length", "0"))
+        except ValueError:
+            n = 0
+        if n <= 0:
+            return self._json(400, {"ok": False, "error": "No llegó ninguna foto."})
+        if n > 15 * 1024 * 1024 + 4096:
+            return self._json(400, {"ok": False, "error": "La foto pesa más de 15MB — probá con una más liviana."})
+        raw = self.rfile.read(n)
+        import rompecabezas_web
+        try:
+            token = rompecabezas_web.crear_desde_foto(raw)
+        except ValueError as e:
+            return self._json(400, {"ok": False, "error": str(e)})
+        except Exception as e:
+            return self._json(500, {"ok": False, "error": "No pudimos generar el rompecabezas: %s" % e})
+        return self._json(200, {"ok": True, "token": token, "url": "/armar/%s/" % token})
 
     def _editor_save(self):
         if not self._admin_ok():

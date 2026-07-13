@@ -19,6 +19,7 @@ solo las dibuja. Las imágenes salen del arte YA REVISADO del tema (fondo IA
 dedicado «rompecabezas» + escenas del libro). La banda de edad decide los
 niveles (cantidad de piezas), igual que en actividades_web."""
 import glob
+import io
 import json
 import math
 import os
@@ -46,6 +47,18 @@ MAX_PUZZLES = 6
 # El tope real es 48/49 según la proporción de la foto: son los conteos ≤50
 # con piezas CUADRADAS (6x8 / 7x7); 50 exacto solo factoriza 5x10, piezas 2:1.
 TARGETS = [4, 6, 12, 20, 30, 48]
+
+# Niveles del rompecabezas de FOTO (13-jul-2026): probado el motor real
+# (generación + drag/snap en Chromium, en fotos hasta 500 piezas) — server y
+# snap andan bien en todo el rango, el techo real es de USO: en celu, arriba
+# de ~70 piezas la BANDEJA de piezas sueltas (área de ancho fijo, se satura
+# mucho antes que el tablero) se vuelve difícil de escanear con la vista y
+# los targets táctiles bajan de 44px. 70/100 quedaron habilitados acá; el
+# player (rompecabezas_player.js) oculta el nivel 100 en pantallas angostas
+# — "quizás en tablets que aparezca un botón de más piezas que en el
+# teléfono no" (Pablo). Ir más allá de 100 pide antes rediseñar la bandeja
+# (mostrar piezas de a tandas, agrupar por zona) — no es un techo de motor.
+TARGETS_FOTO = [12, 24, 48, 70, 100]
 
 
 def _paleta(tema):
@@ -333,6 +346,85 @@ def crear(data, tema, token=None):
 
     with open(os.path.join(d, "manifest.json"), "w", encoding="utf-8") as f:
         json.dump({"tema": tema, "nombre": nombre, "titulo": titulo,
+                   "creado": int(time.time())}, f, ensure_ascii=False)
+    try:
+        os.remove(_marca_gen(token))
+    except OSError:
+        pass
+    _limpiar_vencidos()
+    return token
+
+
+_FOTO_MAX_BYTES = 15 * 1024 * 1024      # 15MB: generoso para una foto de celular
+_FOTO_MAX_PIXELS = 40_000_000           # ~40MP: por encima de cualquier foto de celular real
+
+
+def crear_desde_foto(foto_bytes, token=None):
+    """Rompecabezas de UNA foto que sube el cliente (no del tema) — PROTOTIPO
+    13-jul-2026, Pablo: "rompecabezas con una foto que nos suba". Mismo motor
+    que el de tema (knobs Bézier, niveles de piezas) aplicado a una imagen
+    cualquiera: no hay `_imagenes_tema`, la fuente es la foto misma. Sin
+    tema → sin mascota (el player ya cae solo al emoji 🧩) y paleta neutra
+    de marca. Levanta ValueError con un mensaje ARGENTINO listo para
+    mostrarle al comprador si la foto no sirve (no un stacktrace)."""
+    if len(foto_bytes) > _FOTO_MAX_BYTES:
+        raise ValueError("La foto pesa más de 15MB — probá con una más liviana.")
+    try:
+        im = Image.open(io.BytesIO(foto_bytes))
+        im.load()
+    except Exception:
+        raise ValueError("No pudimos abrir esa imagen — probá con una foto JPG o PNG.")
+    if im.width * im.height > _FOTO_MAX_PIXELS:
+        raise ValueError("Esa foto es demasiado grande — probá con una más chica.")
+    im = im.convert("RGB")
+
+    if not (token and re.fullmatch(_TOKEN_RE, token)):
+        token = secrets.token_urlsafe(12)
+    d = os.path.join(ROMPE_DIR, token)
+    os.makedirs(d, exist_ok=True)
+    for fn in os.listdir(d):
+        if re.fullmatch(r"[pt]\d\.jpg|masco\.png", fn):
+            try:
+                os.remove(os.path.join(d, fn))
+            except OSError:
+                pass
+
+    w, h = _formato(im)
+    im = fondos_ia.cover(im, w, h)
+    im.save(os.path.join(d, "p0.jpg"), quality=86)
+    th = im.copy()
+    th.thumbnail((330, 330), Image.LANCZOS)
+    th.save(os.path.join(d, "t0.jpg"), quality=80)
+
+    targets = TARGETS_FOTO
+    bordes = {}
+    grillas = {}
+    for t in targets:
+        cols, filas = _grilla(t, w, h)
+        clave = "%dx%d" % (cols, filas)
+        if clave not in bordes:
+            seed = zlib.crc32(("%s|%s" % (token, clave)).encode())
+            bordes[clave] = _bordes_json(cols, filas, seed)
+        grillas[str(t)] = clave
+    puzzles = [{"img": "p0.jpg", "thumb": "t0.jpg", "w": w, "h": h, "grillas": grillas}]
+
+    titulo = "Tu rompecabezas"
+    pal = _paleta(None)
+    dj = {
+        "v": 1, "tema": None, "tema_nombre": "Tu foto",
+        "nombre": "", "titulo": titulo,
+        "paleta": pal, "targets": targets,
+        "masco": None,
+        "puzzles": puzzles, "bordes": bordes,
+    }
+    with open(os.path.join(d, "data.json"), "w", encoding="utf-8") as f:
+        json.dump(dj, f, ensure_ascii=False)
+
+    _render_portada(titulo, dj["tema_nombre"], pal,
+                    im).save(os.path.join(d, "portada.jpg"), quality=88)
+
+    with open(os.path.join(d, "manifest.json"), "w", encoding="utf-8") as f:
+        json.dump({"tema": None, "nombre": "", "titulo": titulo,
                    "creado": int(time.time())}, f, ensure_ascii=False)
     try:
         os.remove(_marca_gen(token))
