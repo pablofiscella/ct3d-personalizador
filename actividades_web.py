@@ -20,7 +20,7 @@ al token. La banda de edad decide el menú de juegos, igual que _construir."""
 import os, re, json, glob, math, time, zlib, random, secrets
 from html import escape as _esc
 
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
 
 import piezas
 
@@ -577,45 +577,64 @@ def _catalogo_juegos():
     return out
 
 
-def _render_lista_juegos(tema, pal):
-    """Pieza EXTRA de la galería: la lista de juegos incluidos, como "chips" de
-    texto — Pablo 12-jul-2026, tras confirmarle que la edad sí cambia el menú
-    (11 a los 2 años, hasta 16 a los 7-8): la galería no probaba esa variedad,
-    solo mostraba portada+colorear+escena. Sin íconos emoji (Pillow no siempre
-    tiene una fuente con glifos de color instalada — texto solo, seguro)."""
-    juegos = _catalogo_juegos()
-    W, H = 900, 1200
+def _personajes_para_cards(tema, n=8):
+    """Stickers ya abiertos para repartir entre las cards de juegos (ciclados
+    con módulo si hay menos variedad que juegos — variedad_estricta puede
+    devolver menos de n)."""
+    try:
+        from cuaderno import _seleccionar_recortes
+        paths = _seleccionar_recortes(tema, n, variedad_estricta=True, incluir_objetos=True)
+        if not paths:
+            paths = _seleccionar_recortes(tema, n, incluir_objetos=True)
+        return [Image.open(p).convert("RGBA") for p in paths]
+    except Exception:
+        return []
+
+
+def _render_juego_card(tema, pal, titulo, personaje, incluido=True):
+    """Card individual de UN juego del catálogo — Pablo 12-jul-2026: "prefiero
+    ver las 19 imágenes de lo que contiene la actividad" en vez de una sola
+    imagen con la lista en texto (_render_lista_juegos, que queda sin uso).
+    `personaje` es la imagen YA ABIERTA del sticker a mostrar (se elige y
+    abre una sola vez afuera, para no reabrir archivos 19 veces).
+
+    `incluido=False` (Pablo 12-jul-2026: "que cambien viendo cambio la edad")
+    pinta una variante apagada/grisácea con leyenda — así la galería de "qué
+    incluye" cambia de verdad al mover el dropdown de edad del producto (los
+    juegos no incluidos en esa banda quedan visiblemente bloqueados), en vez
+    de mostrar siempre las mismas 19 imágenes sin importar la edad elegida."""
+    W, H = 640, 640
+    card_color, ink_color, _soft = _colores_seguros(pal)
+    ac = pal["ac"] if incluido else "#B9B0A4"
     im = Image.new("RGB", (W, H), _hex_rgb(_PALETA_DEFAULT["bg"]))
     dr = ImageDraw.Draw(im)
-    card_color, ink_color, soft_color = _colores_seguros(pal)
-    dr.rounded_rectangle((36, 36, W - 36, H - 36), radius=44, fill=_hex_rgb(card_color))
-    dr.rounded_rectangle((36, 36, W - 36, 190), radius=44, fill=_hex_rgb(pal["ac"]))
-    dr.rectangle((36, 130, W - 36, 190), fill=_hex_rgb(pal["ac"]))
-    f_marca = _fuente("Nunito-VF.ttf", 28)
-    f_tit = _fuente("Baloo2-VF.ttf", 46)
-    f_chip = _fuente("Baloo2-VF.ttf", 25)
-    dr.text((W // 2, 70), "CASATRIDIMENSIONAL", font=f_marca, fill="#FFFFFF", anchor="mm")
-    dr.text((W // 2, 145), "%d juegos incluidos" % len(juegos), font=f_tit,
+    dr.rounded_rectangle((24, 24, W - 24, H - 24), radius=32, fill=_hex_rgb(card_color))
+    dr.rounded_rectangle((24, 24, W - 24, 110), radius=32, fill=_hex_rgb(ac))
+    dr.rectangle((24, 78, W - 24, 110), fill=_hex_rgb(ac))
+    dr.text((W // 2, 67), "CASATRIDIMENSIONAL", font=_fuente("Nunito-VF.ttf", 22),
             fill="#FFFFFF", anchor="mm")
-    dr.text((W // 2, 232), "Se van desbloqueando según la edad (2 a 8 años)",
-            font=_fuente("Nunito-VF.ttf", 27), fill=_hex_rgb(ink_color), anchor="mm")
-    # grilla de chips, 2 columnas
-    cols, gap, mx = 2, 16, 56
-    chip_w = (W - 2 * mx - gap) // cols
-    chip_h = 78
-    y0 = 270
-    soft = _hex_rgb(soft_color)
-    for i, titulo in enumerate(juegos):
-        col, row = i % cols, i // cols
-        x = mx + col * (chip_w + gap)
-        y = y0 + row * (chip_h + 12)
-        dr.rounded_rectangle((x, y, x + chip_w, y + chip_h), radius=18, fill=soft)
-        f = f_chip
-        maxw = chip_w - 30
-        while f.getlength(titulo) > maxw and f.size > 15:
-            f = _fuente("Baloo2-VF.ttf", f.size - 2)
-        dr.text((x + chip_w // 2, y + chip_h // 2), titulo, font=f,
-                fill=_hex_rgb(ink_color), anchor="mm")
+    if personaje is not None:
+        p = personaje.copy()
+        alto = 340
+        w = max(1, int(p.width * alto / p.height))
+        if w > 420:
+            w = 420
+            alto = max(1, int(p.height * w / p.width))
+        p = p.resize((w, alto), Image.LANCZOS)
+        if not incluido:
+            r, g, b, a = p.split()
+            gris = ImageOps.grayscale(Image.merge("RGB", (r, g, b)))
+            p = Image.merge("RGBA", (gris, gris, gris, a))
+        im.paste(p, (W // 2 - w // 2, 150), p)
+    f = _fuente("Baloo2-VF.ttf", 44)
+    while f.getlength(titulo) > W - 80 and f.size > 26:
+        f = _fuente("Baloo2-VF.ttf", f.size - 3)
+    txt_color = ink_color if incluido else "#8A8177"
+    dr.text((W // 2, 555 if incluido else 535), titulo, font=f, fill=_hex_rgb(txt_color), anchor="mm")
+    if not incluido:
+        f2 = _fuente("Nunito-VF.ttf", 25)
+        dr.text((W // 2, 585), "Se desbloquea en otra edad", font=f2,
+                 fill=_hex_rgb("#8A8177"), anchor="mm")
     return im
 
 
@@ -750,9 +769,18 @@ def preview_mock_extra(data, tema, indice):
     portada, pieza 0) — Pablo 12-jul-2026: "no aparecen imágenes de las
     actividades que tiene el kit" — antes solo se repetía la portada. Estas
     muestran contenido REAL del tema (una página para colorear + la escena
-    de fondo que usan varios juegos), no un mockup sintético. Nunca devuelve
-    None — preview_pieza() no tolera un None (rompería la galería), así que
-    ante cualquier falla cae de vuelta a la portada."""
+    de fondo que usan varios juegos), no un mockup sintético.
+
+    Índices 3 a 21: una card por CADA juego del catálogo (19 en total,
+    Pablo 12-jul-2026: "prefiero ver las 19 imágenes de lo que contiene la
+    actividad" en vez de una sola imagen con la lista en texto). Cada card
+    lee `data["edad"]` y se pinta "bloqueada" si ese juego puntual no está
+    en la banda de esa edad ("y que cambien viendo cambio la edad") — así la
+    galería responde de verdad al dropdown de edad del producto, no queda
+    fija.
+
+    Nunca devuelve None — preview_pieza() no tolera un None (rompería la
+    galería), así que ante cualquier falla cae de vuelta a la portada."""
     try:
         if indice == 1:
             from cuaderno import _colorear_imgs
@@ -765,8 +793,17 @@ def preview_mock_extra(data, tema, indice):
             f = fondos_ia.cargar_fondo(tema, "escena")
             if f is not None:
                 return f.convert("RGB")
-        elif indice == 3:
-            return _render_lista_juegos(tema, _paleta(tema))
+        elif indice >= 3:
+            juegos = _catalogo_juegos()
+            i = indice - 3
+            if 0 <= i < len(juegos):
+                edad = (str(data.get("edad") or "")).strip() or "5"
+                incluidos = {m["titulo"] for m in _menu(_banda(edad), edad)}
+                titulo = juegos[i]
+                personajes = _personajes_para_cards(tema, 8)
+                personaje = personajes[i % len(personajes)] if personajes else None
+                return _render_juego_card(tema, _paleta(tema), titulo, personaje,
+                                           incluido=titulo in incluidos)
     except Exception:
         pass
     return preview_mock(data, tema)

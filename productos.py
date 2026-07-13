@@ -519,19 +519,24 @@ def _piezas_invitacion_web(tema):
     return [("1_invitacion_web", lambda d: invitacion_web.preview_mock(d, tema), False)]
 
 def _piezas_actividades_web(tema):
-    # portada + 3 piezas de contenido REAL (colorear, escena, lista de juegos)
-    # — antes solo se repetía la portada en toda la galería (Pablo 12-jul-2026:
-    # "no aparecen imágenes de las actividades que tiene el kit"). La lista de
-    # juegos se sumó después de confirmarle con datos que la edad SÍ cambia el
-    # menú (11 a los 2 años, hasta 16 a los 7-8) — la galería no probaba esa
-    # variedad ("en todo lo que incluye solo hay 3 imágenes").
+    # portada + colorear + escena + UNA CARD POR JUEGO (19 en total, Pablo
+    # 12-jul-2026: "prefiero ver las 19 imágenes de lo que contiene la
+    # actividad" en vez de una sola imagen con la lista en texto — venía de
+    # "no aparecen imágenes de las actividades que tiene el kit" / "en todo
+    # lo que incluye solo hay 3 imágenes"). Cada card de juego lee la edad
+    # elegida y se pinta bloqueada si ese juego no está en esa banda ("y que
+    # cambien viendo cambio la edad") — ver actividades_web.preview_mock_extra.
     import actividades_web
-    return [
+    juegos = actividades_web._catalogo_juegos()
+    piezas = [
         ("1_actividades_web", lambda d: actividades_web.preview_mock(d, tema), False),
         ("2_actividades_web", lambda d: actividades_web.preview_mock_extra(d, tema, 1), False),
         ("3_actividades_web", lambda d: actividades_web.preview_mock_extra(d, tema, 2), False),
-        ("4_actividades_web", lambda d: actividades_web.preview_mock_extra(d, tema, 3), False),
     ]
+    for i in range(len(juegos)):
+        nombre = "%d_actividades_web" % (i + 4)
+        piezas.append((nombre, (lambda d, i=i: actividades_web.preview_mock_extra(d, tema, i + 3)), False))
+    return piezas
 
 def _piezas_rompecabezas_web(tema):
     # galería de la ficha: SOLO los rompecabezas que incluye, en tarjeta
@@ -1039,7 +1044,7 @@ _PIEZA_LABELS = {
     "3_libro_portada": "Libro de cuento", "4_medalla_3d": "Medalla 3D",
     "1_cubo": "Cubo 3D para armar",
     "1_actividades_web": "Portada", "2_actividades_web": "Para colorear",
-    "3_actividades_web": "Escena del tema", "4_actividades_web": "Todos los juegos",
+    "3_actividades_web": "Escena del tema",
     "1_cartas_memoria": "Cartas del memory",
     "2_dorso": "Dorso de cartas",
     "00_portada": "Portada",
@@ -1060,6 +1065,19 @@ def pieza_label(name):
     if name in _PIEZA_LABELS:
         return _PIEZA_LABELS[name]
     import re
+    m = re.match(r"^(\d+)_actividades_web$", name)
+    if m and int(m.group(1)) >= 4:
+        # cards de juego (5+ del tipo actividades-web): título REAL del juego,
+        # nunca un dict estático de 19 entradas que se desincroniza si cambia
+        # el catálogo de _menu() en actividades_web.py.
+        try:
+            import actividades_web
+            juegos = actividades_web._catalogo_juegos()
+            i = int(m.group(1)) - 4
+            if 0 <= i < len(juegos):
+                return juegos[i]
+        except Exception:
+            pass
     return re.sub(r"^\d+_", "", name).replace("_", " ").capitalize()
 
 def piezas_nombres(tipo, tema="safari"):
