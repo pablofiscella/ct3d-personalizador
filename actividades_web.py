@@ -466,6 +466,20 @@ def _hex_rgb(h):
     return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
 
 
+def _colores_seguros(pal):
+    """(card, ink, soft) listos para pintar SOBRE FONDO CLARO fijo (el margen
+    de las piezas de galería ya no usa pal["bg"]). Si la card del tema es
+    oscura (hoy solo "un-espacio-de-locura", a propósito — pal["ink"]/["soft"]
+    están pensados para el fondo oscuro REAL del juego), se cae a los defaults
+    claros — si no, quedan combinaciones oscuro-sobre-oscuro ilegibles (bug
+    real: los chips de "Todos los juegos" quedaban invisibles en ese tema)."""
+    card, ink, soft = pal["card"], pal["ink"], pal["soft"]
+    cr, cg, cb = _hex_rgb(card)
+    if 0.299 * cr + 0.587 * cg + 0.114 * cb < 128:
+        card, ink, soft = "#FFFFFF", _PALETA_DEFAULT["ink"], _PALETA_DEFAULT["soft"]
+    return card, ink, soft
+
+
 def _render_portada(dj, pers_imgs):
     """Portada 900×1200 — VERTICAL como las tapas de los audiolibros: la card
     de Mi biblioteca es 3:4 y la versión apaisada se recortaba a los costados
@@ -486,10 +500,7 @@ def _render_portada(dj, pers_imgs):
     # BLANCO (pensado para texto sobre fondo oscuro real del juego) — sobre
     # una card blanca hubiera quedado invisible. Los otros 11 temas ya
     # tienen card blanca de por sí, esto no les cambia nada.
-    card_color, ink_color = pal["card"], pal["ink"]
-    cr, cg, cb = _hex_rgb(card_color)
-    if 0.299 * cr + 0.587 * cg + 0.114 * cb < 128:
-        card_color, ink_color = "#FFFFFF", _PALETA_DEFAULT["ink"]
+    card_color, ink_color, _soft = _colores_seguros(pal)
     dr.rounded_rectangle((36, 36, W - 36, H - 36), radius=44, fill=_hex_rgb(card_color))
     # franja superior con el acento
     dr.rounded_rectangle((36, 36, W - 36, 240), radius=44, fill=_hex_rgb(pal["ac"]))
@@ -549,6 +560,62 @@ def _render_portada(dj, pers_imgs):
     for cx, cy, r in ((120, 300, 13), (780, 290, 16), (700, 560, 11), (170, 580, 10),
                       (810, 700, 12)):
         dr.regular_polygon((cx, cy, r), 5, rotation=90, fill=star)
+    return im
+
+
+def _catalogo_juegos():
+    """Los juegos DISTINTOS de todo el catálogo, uniendo las 3 bandas de edad
+    (mini/media/grande) — un chico puntual no ve los 19 (cada banda tiene los
+    suyos, algunos se "gradúan" según la edad), pero es el total real que
+    ofrece el producto entre los 2 y los 8 años."""
+    vistos, out = set(), []
+    for banda, edad in (("mini", "2"), ("media", "5"), ("grande", "8")):
+        for m in _menu(banda, edad):
+            if m["id"] not in vistos:
+                vistos.add(m["id"])
+                out.append(m["titulo"])
+    return out
+
+
+def _render_lista_juegos(tema, pal):
+    """Pieza EXTRA de la galería: la lista de juegos incluidos, como "chips" de
+    texto — Pablo 12-jul-2026, tras confirmarle que la edad sí cambia el menú
+    (11 a los 2 años, hasta 16 a los 7-8): la galería no probaba esa variedad,
+    solo mostraba portada+colorear+escena. Sin íconos emoji (Pillow no siempre
+    tiene una fuente con glifos de color instalada — texto solo, seguro)."""
+    juegos = _catalogo_juegos()
+    W, H = 900, 1200
+    im = Image.new("RGB", (W, H), _hex_rgb(_PALETA_DEFAULT["bg"]))
+    dr = ImageDraw.Draw(im)
+    card_color, ink_color, soft_color = _colores_seguros(pal)
+    dr.rounded_rectangle((36, 36, W - 36, H - 36), radius=44, fill=_hex_rgb(card_color))
+    dr.rounded_rectangle((36, 36, W - 36, 190), radius=44, fill=_hex_rgb(pal["ac"]))
+    dr.rectangle((36, 130, W - 36, 190), fill=_hex_rgb(pal["ac"]))
+    f_marca = _fuente("Nunito-VF.ttf", 28)
+    f_tit = _fuente("Baloo2-VF.ttf", 46)
+    f_chip = _fuente("Baloo2-VF.ttf", 25)
+    dr.text((W // 2, 70), "CASATRIDIMENSIONAL", font=f_marca, fill="#FFFFFF", anchor="mm")
+    dr.text((W // 2, 145), "%d juegos incluidos" % len(juegos), font=f_tit,
+            fill="#FFFFFF", anchor="mm")
+    dr.text((W // 2, 232), "Se van desbloqueando según la edad (2 a 8 años)",
+            font=_fuente("Nunito-VF.ttf", 27), fill=_hex_rgb(ink_color), anchor="mm")
+    # grilla de chips, 2 columnas
+    cols, gap, mx = 2, 16, 56
+    chip_w = (W - 2 * mx - gap) // cols
+    chip_h = 78
+    y0 = 270
+    soft = _hex_rgb(soft_color)
+    for i, titulo in enumerate(juegos):
+        col, row = i % cols, i // cols
+        x = mx + col * (chip_w + gap)
+        y = y0 + row * (chip_h + 12)
+        dr.rounded_rectangle((x, y, x + chip_w, y + chip_h), radius=18, fill=soft)
+        f = f_chip
+        maxw = chip_w - 30
+        while f.getlength(titulo) > maxw and f.size > 15:
+            f = _fuente("Baloo2-VF.ttf", f.size - 2)
+        dr.text((x + chip_w // 2, y + chip_h // 2), titulo, font=f,
+                fill=_hex_rgb(ink_color), anchor="mm")
     return im
 
 
@@ -698,6 +765,8 @@ def preview_mock_extra(data, tema, indice):
             f = fondos_ia.cargar_fondo(tema, "escena")
             if f is not None:
                 return f.convert("RGB")
+        elif indice == 3:
+            return _render_lista_juegos(tema, _paleta(tema))
     except Exception:
         pass
     return preview_mock(data, tema)
