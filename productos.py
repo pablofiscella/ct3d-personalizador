@@ -519,14 +519,18 @@ def _piezas_invitacion_web(tema):
     return [("1_invitacion_web", lambda d: invitacion_web.preview_mock(d, tema), False)]
 
 def _piezas_actividades_web(tema):
-    # portada + 2 piezas de contenido REAL (colorear, escena) — antes solo se
-    # repetía la portada en toda la galería (Pablo 12-jul-2026: "no aparecen
-    # imágenes de las actividades que tiene el kit").
+    # portada + 3 piezas de contenido REAL (colorear, escena, lista de juegos)
+    # — antes solo se repetía la portada en toda la galería (Pablo 12-jul-2026:
+    # "no aparecen imágenes de las actividades que tiene el kit"). La lista de
+    # juegos se sumó después de confirmarle con datos que la edad SÍ cambia el
+    # menú (11 a los 2 años, hasta 16 a los 7-8) — la galería no probaba esa
+    # variedad ("en todo lo que incluye solo hay 3 imágenes").
     import actividades_web
     return [
         ("1_actividades_web", lambda d: actividades_web.preview_mock(d, tema), False),
         ("2_actividades_web", lambda d: actividades_web.preview_mock_extra(d, tema, 1), False),
         ("3_actividades_web", lambda d: actividades_web.preview_mock_extra(d, tema, 2), False),
+        ("4_actividades_web", lambda d: actividades_web.preview_mock_extra(d, tema, 3), False),
     ]
 
 def _piezas_rompecabezas_web(tema):
@@ -1035,7 +1039,7 @@ _PIEZA_LABELS = {
     "3_libro_portada": "Libro de cuento", "4_medalla_3d": "Medalla 3D",
     "1_cubo": "Cubo 3D para armar",
     "1_actividades_web": "Portada", "2_actividades_web": "Para colorear",
-    "3_actividades_web": "Escena del tema",
+    "3_actividades_web": "Escena del tema", "4_actividades_web": "Todos los juegos",
     "1_cartas_memoria": "Cartas del memory",
     "2_dorso": "Dorso de cartas",
     "00_portada": "Portada",
