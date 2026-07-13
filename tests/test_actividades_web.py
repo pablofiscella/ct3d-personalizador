@@ -122,3 +122,22 @@ def test_paletas_completas():
     claves = set(aw._PALETA_DEFAULT)
     for tema, pal in aw.PALETAS.items():
         assert set(pal) == claves, tema
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Diploma de logro (14-jul-2026): Pablo — "cuando algún peque haga todo el
+# cuaderno de actividades interactivo sin errores que le agregue el
+# certificado de esa actividad para que lo pueda imprimir como un logro".
+# Se renderiza EN VIVO (no se pre-genera con el resto de los assets del
+# token) porque depende de algo que solo se sabe DESPUÉS de jugar.
+def test_certificado_logro_token_valido(token, data):
+    im = aw.certificado_logro(token)
+    assert im is not None
+    import certificado
+    assert im.size == (certificado.WpH, certificado.HpH)
+
+
+def test_certificado_logro_token_invalido():
+    assert aw.certificado_logro("no-existe-xx") is None
+    assert aw.certificado_logro("../../etc") is None
+    assert aw.certificado_logro("") is None

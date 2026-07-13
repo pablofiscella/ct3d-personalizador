@@ -254,6 +254,21 @@ def _cargar(token):
         return None
 
 
+def certificado_logro(token):
+    """Diploma de logro (14-jul-2026) — se renderiza EN VIVO recién cuando el
+    peque lo pide (el player solo habilita el link una vez que ganó 3
+    estrellas en TODOS los juegos: Store.stars en actividades_player.js, sin
+    contraparte server-side — no hay progreso persistido en el servidor, así
+    que esto no valida "de verdad" que lo completó, mismo criterio de
+    confianza que el resto de los links por token). None si el token no
+    existe/no está listo."""
+    reg = _cargar(token)
+    if not reg:
+        return None
+    import certificado
+    return certificado.generar_certificado_logro(reg, reg.get("tema") or "safari")
+
+
 # ── Generación ──
 
 def _miniatura_cmp(im):

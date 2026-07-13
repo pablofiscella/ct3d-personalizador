@@ -140,9 +140,21 @@ function toast(txt) {
   t.classList.add("ver");
 }
 
+/* ── diploma de logro (14-jul-2026): cuaderno COMPLETO, sin errores en
+   ningún juego (3 estrellas = 0 fallos, mismo criterio que Shell.ctx().win).
+   Progreso vive solo en localStorage (Store) — no hay servidor que lo
+   valide, mismo nivel de confianza que el resto de los links por token. */
+function juegosDelMenu() {
+  return D.menu.filter((m) => GAMES[m.id] && P.length >= (GAMES[m.id].minP || 0));
+}
+function todoCompleto() {
+  const js = juegosDelMenu();
+  return js.length > 0 && js.every((m) => Store.stars(m.id) === 3);
+}
+
 /* ── shell de juego: consigna + progreso + festejo ── */
 const Shell = {
-  actual: null, fallos: 0, _rondas: 0,
+  actual: null, fallos: 0, _rondas: 0, _nuevoLogro: false,
   abrir(id) {
     const item = D.menu.find((m) => m.id === id);
     if (!item || !GAMES[id]) return;
@@ -186,7 +198,9 @@ const Shell = {
       win(estrellas) {
         const e = estrellas !== undefined ? estrellas
           : (self.fallos === 0 ? 3 : (self.fallos <= 2 ? 2 : 1));
+        const yaEstabaCompleto = todoCompleto();
         Store.setStars(self.actual, e);
+        if (!yaEstabaCompleto && todoCompleto()) self._nuevoLogro = true;
         pintarHeader();
         festejar(e);
       },
@@ -213,6 +227,13 @@ function festejar(estrellas) {
 
 function cerrarFestejo() { $("#festejo").classList.remove("ver"); }
 
+function mostrarLogro() {
+  Confeti.tirar(220);
+  Sfx.fanfarria();
+  $("#logro").classList.add("ver");
+}
+function cerrarLogro() { $("#logro").classList.remove("ver"); }
+
 /* ── menú principal ── */
 function pintarHeader() {
   $("#totalEstrellas").textContent = Store.total();
@@ -229,7 +250,8 @@ function pintarMenu() {
   stage.innerHTML = "";
   const bienv = el("div", "", "");
   bienv.id = "bienvenida";
-  bienv.innerHTML = `<h1>${D.titulo}</h1><p>Elegí un juego y ganá estrellas ⭐</p>`;
+  bienv.innerHTML = `<h1>${D.titulo}</h1><p>Elegí un juego y ganá estrellas ⭐</p>
+    <a id="pillLogro" class="${todoCompleto() ? "ver" : ""}" href="certificado.png" target="_blank" rel="noopener">🏆 Ver mi diploma</a>`;
   stage.appendChild(bienv);
   const menu = el("div"); menu.id = "menu";
   D.menu.forEach((m, i) => {
@@ -281,12 +303,16 @@ async function boot() {
     $("#btnSonido").textContent = Sfx.on ? "🔊" : "🔇";
     if (Sfx.on) Sfx.pop();
   });
-  $("#btnSeguir").addEventListener("click", () => { cerrarFestejo(); pintarMenu(); });
+  $("#btnSeguir").addEventListener("click", () => {
+    cerrarFestejo(); pintarMenu();
+    if (Shell._nuevoLogro) { Shell._nuevoLogro = false; mostrarLogro(); }
+  });
   $("#btnOtraVez").addEventListener("click", () => {
     const id = Shell.actual;
     cerrarFestejo();
     if (id) Shell.abrir(id);
   });
+  $("#btnCerrarLogro").addEventListener("click", cerrarLogro);
   addEventListener("resize", () => requestAnimationFrame(ajustarAlto));
   ajustarAlto();
   // iOS: desbloquear el audio en el primer toque

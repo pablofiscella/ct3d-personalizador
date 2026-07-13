@@ -936,6 +936,22 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_header("Location", "/act/%s/" % token)
                 self.end_headers()
                 return
+            if arch == "certificado.png":
+                # diploma de logro: renderizado EN VIVO, recién cuando el player
+                # lo pide (ganó 3 estrellas en TODOS los juegos) — no se
+                # pre-genera con el resto de los assets del token.
+                im = aw.certificado_logro(token)
+                if im is None:
+                    return self._json(404, {"ok": False, "error": "no existe"})
+                buf = io.BytesIO()
+                im.convert("RGB").save(buf, format="PNG")
+                data_b = buf.getvalue()
+                self.send_response(200)
+                self.send_header("Content-Type", "image/png")
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("Content-Length", str(len(data_b)))
+                self.end_headers(); self.wfile.write(data_b)
+                return
             if arch:
                 r = aw.archivo(token, arch)
                 if r is None:
