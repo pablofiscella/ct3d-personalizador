@@ -577,6 +577,19 @@ def _catalogo_juegos():
     return out
 
 
+def incluidos_por_edad():
+    """{edad: [títulos incluidos]} para las 7 edades del dropdown (2 a 8) —
+    Pablo 13-jul-2026: "cuando cambio de edad... creo que no cambian las
+    imágenes". El bloqueo SÍ cambia (verificado), pero 8 de los 19 juegos
+    están en TODAS las bandas y esas cards nunca se ven distintas — el resto
+    queda mezclado entre ellas, así que el cambio real es fácil de no notar
+    en el scroll. La tienda usa esto para REORDENAR la galería (desbloqueados
+    primero) cuando cambia la edad, no solo repintar cada card en el mismo
+    lugar. Independiente del tema: el menú de _menu() no varía por tema."""
+    return {e: sorted({m["titulo"] for m in _menu(_banda(e), e)})
+            for e in ("2", "3", "4", "5", "6", "7", "8")}
+
+
 def _personajes_para_cards(tema, n=8):
     """PATHS de stickers del tema para armar la página de un juego (mismo
     criterio que usa el cuaderno IMPRESO para elegir sus `mons` — no
@@ -999,15 +1012,20 @@ def preview_mock_extra(data, tema, indice):
                 edad = (str(data.get("edad") or "")).strip() or "5"
                 incluidos = {m["id"] for m in _menu(_banda(edad), edad)}
                 incluido = juego["id"] in incluidos
-                # seed FIJA por (tema, juego): la card es material de marketing,
-                # no una compra — tiene que salir siempre igual para que el
-                # cache de disco sirva (misma lógica que preview_pieza).
+                # PRIORIDAD 1: screenshot REAL del player interactivo (Pablo
+                # 13-jul-2026: "Asi es como quiero que las muestres tal cual
+                # se ven en la web" — nada de mockups). Generado una vez por
+                # tema con actividades_web_cards.py, no en cada request.
+                import actividades_web_cards
+                p = actividades_web_cards.card_path(tema, juego["id"])
+                if os.path.isfile(p):
+                    foto = Image.open(p).convert("RGB")
+                    return foto if incluido else _apagar_bloqueado(foto)
+                # PRIORIDAD 2 (tema todavía sin cards generadas): la página
+                # del cuaderno impreso — mejor que nada mientras se genera.
                 seed = zlib.crc32(("%s|%s" % (tema, juego["id"])).encode())
                 from cuaderno import _colorear_imgs, _escena_tema, _tema_palabras
                 mons = _personajes_para_cards(tema, 8)
-                # _colorear_imgs procesa PNGs grandes (~8s): solo el juego
-                # "colorear" la necesita, cargarla siempre penalizaba las
-                # otras 18 cards con un costo que no usan para nada.
                 colorear_imgs = _colorear_imgs(tema) if juego["id"] == "colorear" else []
                 pagina = _juego_page(tema, edad, juego["id"], mons, _escena_tema(tema),
                                       colorear_imgs, _tema_palabras(tema), seed)
