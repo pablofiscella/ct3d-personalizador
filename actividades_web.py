@@ -46,8 +46,14 @@ PALETAS = {
     "campamento":   {"bg": "#F2F6EC", "card": "#FFFFFF", "ink": "#2F3B26", "ac": "#5F8B3B", "ac2": "#A06C3C", "soft": "#E1ECD4", "star": "#F2A93B"},
     "artistas":     {"bg": "#FBF4ED", "card": "#FFFFFF", "ink": "#3A2E3C", "ac": "#DB6844", "ac2": "#2E96A8", "soft": "#F6E1D2", "star": "#E8A426"},
     "aviadores":    {"bg": "#EDF5FB", "card": "#FFFFFF", "ink": "#243447", "ac": "#3577B4", "ac2": "#D96A5F", "soft": "#D8E8F6", "star": "#F2A93B"},
+    # Pablo 13-jul-2026: era la única paleta oscura del catálogo ("fondo
+    # espacial nocturno" a propósito) — con las cards de la galería mostrando
+    # ahora el player REAL (no un mockup en fondo blanco fijo), se notaba
+    # inconsistente al lado de los otros 11 temas. Repintada clara (mismo
+    # criterio que el resto: bg pastel, card blanca) conservando el acento
+    # violeta/turquesa "espacial" como color, no como fondo.
     "un-espacio-de-locura":
-                    {"bg": "#171C42", "card": "#232A63", "ink": "#F2F4FF", "ac": "#8E7DFF", "ac2": "#43D6C5", "soft": "#2B3170", "star": "#FFD166"},
+                    {"bg": "#EEF0FC", "card": "#FFFFFF", "ink": "#2B2A63", "ac": "#8E7DFF", "ac2": "#2FA9A0", "soft": "#E4E0FA", "star": "#F2A93B"},
 }
 _PALETA_DEFAULT = {"bg": "#FBF4EA", "card": "#FFFFFF", "ink": "#44372E", "ac": "#E0713C", "ac2": "#4E9C7E", "soft": "#F5E4CE", "star": "#F2A93B"}
 
