@@ -194,6 +194,22 @@ def test_tipo_registrado_en_productos():
     assert im.size[0] > 0 and im.size[1] > 0
 
 
+def test_preview_thumbnail_rompecabezas_foto_no_cae_a_invitacion():
+    """La miniatura de la ficha (usada por tienda_kit_admin.preview_thumb) pasa
+    por productos.preview() -> _spec(tipo)['preview'] -> el whitelist de tipos
+    100% procedurales. Si "rompecabezas-foto" faltara ahí, caería silenciosamente
+    al render de invitación (bug real encontrado al auditar el registro completo,
+    14-jul-2026) — acá se compara CONTENIDO (no solo tamaño) contra la imagen
+    de ejemplo del tipo, para no dejar pasar un fallback que "por casualidad"
+    tenga el mismo tamaño."""
+    import productos
+    im = productos.preview({}, tema="safari", tipo="rompecabezas-foto", max_px=300)
+    demo = productos.piezas_tipo(None, "rompecabezas-foto")[0][1]({}).convert("RGB")
+    demo.thumbnail((300, 300), Image.LANCZOS)
+    assert im.size == demo.size
+    assert im.convert("RGB").getpixel((5, 5)) == demo.getpixel((5, 5))
+
+
 def test_portada_banda_clara_y_edad_mas():
     """Feedback Pablo 11-jul: la banda inferior de la portada es SIEMPRE clara
     (con la paleta oscura del tema espacial salía azul) y la edad se muestra

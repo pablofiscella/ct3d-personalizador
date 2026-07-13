@@ -1297,7 +1297,7 @@ def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):
     elif pieza in ("certificado", "corona", "antifaces", "menu", "rompecabezas",
                   "capsula", "libro", "calendario", "papertoys", "memoria", "mandalas",
                   "mandalas-media", "mandalas-dificil", "mandalas-muydificil",
-                  "invitacion-web", "actividades-web", "rompecabezas-web",
+                  "invitacion-web", "actividades-web", "rompecabezas-web", "rompecabezas-foto",
                   "fiesta-completa", "video-invitacion",
                   "stl-medalla", "stl-topper", "stl-trofeo", "stl-cortante", "stl-pack"):
         # 100% procedurales: pasan por piezas_tipo() para que un override subido a mano
