@@ -193,6 +193,13 @@ function pintarNiveles(pi) {
   cont.appendChild(el("h2", "", "¿De cuántas piezas lo armás?"));
   const btns = el("div"); btns.id = "nivelBtns";
   D.targets.forEach((t) => {
+    // niveles grandes (>70) solo en pantallas anchas (tablet/desktop): en un
+    // celular la BANDEJA de piezas sueltas (área de ancho fijo) se vuelve un
+    // amontonamiento ilegible mucho antes que el tablero — probado con el
+    // motor real (Pablo 13-jul-2026, "quizás en tablets que aparezca un botón
+    // de más piezas que en el teléfono no"). En pantalla ancha la bandeja
+    // tiene más aire real y sigue siendo jugable hasta ~100.
+    if (t > 70 && innerWidth < 700) return;
     // conteo REAL de la grilla (el tope "48" puede ser 6x8=48 o 7x7=49 según
     // la proporción de la foto — siempre piezas cuadradas)
     const [c, f] = p.grillas[String(t)].split("x").map(Number);
