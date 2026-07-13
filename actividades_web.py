@@ -678,6 +678,31 @@ def preview_mock(data, tema):
     return _render_portada(dj, pers)
 
 
+def preview_mock_extra(data, tema, indice):
+    """Piezas EXTRA de la galería "Qué incluye" de la ficha (además de la
+    portada, pieza 0) — Pablo 12-jul-2026: "no aparecen imágenes de las
+    actividades que tiene el kit" — antes solo se repetía la portada. Estas
+    muestran contenido REAL del tema (una página para colorear + la escena
+    de fondo que usan varios juegos), no un mockup sintético. Nunca devuelve
+    None — preview_pieza() no tolera un None (rompería la galería), así que
+    ante cualquier falla cae de vuelta a la portada."""
+    try:
+        if indice == 1:
+            from cuaderno import _colorear_imgs
+            imgs = _colorear_imgs(tema)
+            if imgs:
+                im = imgs[0].convert("L").convert("RGB")
+                return im
+        elif indice == 2:
+            import fondos_ia
+            f = fondos_ia.cargar_fondo(tema, "escena")
+            if f is not None:
+                return f.convert("RGB")
+    except Exception:
+        pass
+    return preview_mock(data, tema)
+
+
 def _armar_data_liviano(tema, edad):
     """Solo lo que necesita la portada (sin generar puzzles)."""
     from cuaderno import _tema_nombre
