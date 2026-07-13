@@ -18,6 +18,7 @@ determinístico por seed) y se exportan como polilíneas en data.json; el player
 solo las dibuja. Las imágenes salen del arte YA REVISADO del tema (fondo IA
 dedicado «rompecabezas» + escenas del libro). La banda de edad decide los
 niveles (cantidad de piezas), igual que en actividades_web."""
+import base64
 import glob
 import io
 import json
@@ -31,9 +32,12 @@ import zlib
 from PIL import Image, ImageDraw
 
 import fondos_ia
+import piezas
 
 BASEDIR = os.path.dirname(os.path.abspath(__file__))
 ROMPE_DIR = os.path.join(BASEDIR, "rompecabezas_web")
+_STAGING_DIR = os.path.join(BASEDIR, "_rompecabezas_foto_staging")
+_STAGING_VIGENCIA_SEG = 2 * 3600   # 2h: tiempo de sobra para completar una compra
 TEMAS = os.path.join(BASEDIR, "temas")
 TEMPLATE_HTML = os.path.join(BASEDIR, "rompecabezas_player.html")
 TEMPLATE_JS = os.path.join(BASEDIR, "rompecabezas_player.js")
@@ -442,6 +446,73 @@ def _limpiar_vencidos():
             p = os.path.join(ROMPE_DIR, fn)
             if os.path.isdir(p) and os.path.getmtime(p) < limite:
                 shutil.rmtree(p, ignore_errors=True)
+    except OSError:
+        pass
+
+
+def stage_foto(foto_bytes):
+    """Valida y guarda TEMPORALMENTE una foto subida ANTES de pagar — separado
+    de crear_desde_foto (que arma el rompecabezas completo con los 5 niveles)
+    para que el checkout solo transporte un stage_token chiquito, no la foto
+    entera (14-jul-2026, flujo real de venta). Devuelve (stage_token, preview
+    en data URI) — el preview lleva marca de agua (piezas.marca_agua) para
+    que no sirva de nada "robar" el link del preview sin pagar."""
+    if len(foto_bytes) > _FOTO_MAX_BYTES:
+        raise ValueError("La foto pesa más de 15MB — probá con una más liviana.")
+    try:
+        im = Image.open(io.BytesIO(foto_bytes))
+        im.load()
+    except Exception:
+        raise ValueError("No pudimos abrir esa imagen — probá con una foto JPG o PNG.")
+    if im.width * im.height > _FOTO_MAX_PIXELS:
+        raise ValueError("Esa foto es demasiado grande — probá con una más chica.")
+    im = im.convert("RGB")
+
+    os.makedirs(_STAGING_DIR, exist_ok=True)
+    _limpiar_staging_vencido()
+    stage_token = secrets.token_urlsafe(16)
+    im.save(os.path.join(_STAGING_DIR, stage_token + ".jpg"), quality=90)
+
+    prev = im.copy()
+    prev.thumbnail((480, 480), Image.LANCZOS)
+    prev = piezas.marca_agua(prev)
+    buf = io.BytesIO()
+    prev.save(buf, format="JPEG", quality=78)
+    preview = "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode("ascii")
+    return stage_token, preview
+
+
+def crear_desde_foto_staged(stage_token, token=None):
+    """Materializa el rompecabezas completo a partir de una foto ya subida con
+    stage_foto — se llama recién DESPUÉS de confirmado el pago, desde
+    /api/generar. Borra el staging al terminar (éxito o error: no tiene
+    sentido reintentar con la misma foto, el cliente puede volver a subir)."""
+    if not re.fullmatch(r"[A-Za-z0-9_-]{10,40}", stage_token or ""):
+        raise ValueError("El código de la foto no es válido — subila de nuevo.")
+    p = os.path.join(_STAGING_DIR, stage_token + ".jpg")
+    if not os.path.isfile(p):
+        raise ValueError("Esa foto ya venció o no la encontramos — subila de nuevo.")
+    with open(p, "rb") as f:
+        foto_bytes = f.read()
+    try:
+        return crear_desde_foto(foto_bytes, token=token)
+    finally:
+        try:
+            os.remove(p)
+        except OSError:
+            pass
+
+
+def _limpiar_staging_vencido():
+    limite = time.time() - _STAGING_VIGENCIA_SEG
+    try:
+        for fn in os.listdir(_STAGING_DIR):
+            p = os.path.join(_STAGING_DIR, fn)
+            if os.path.isfile(p) and os.path.getmtime(p) < limite:
+                try:
+                    os.remove(p)
+                except OSError:
+                    pass
     except OSError:
         pass
 

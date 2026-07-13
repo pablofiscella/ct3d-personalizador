@@ -547,6 +547,16 @@ def _piezas_rompecabezas_web(tema):
              (lambda d, i=i: rompecabezas_web.preview_puzzle(tema, i)), False)
             for i in range(rompecabezas_web.n_puzzles(tema))]
 
+def _piezas_rompecabezas_foto(tema):
+    # SIN tema (el cliente sube SU propia foto) — la ficha muestra un
+    # ejemplo fijo para dar la idea (Pablo 13-jul-2026, venta a $9000).
+    demo = os.path.join(temas.TEMAS_DIR, "circo", "overrides", "libro", "1.png")
+    def _prev(d):
+        im = Image.open(demo).convert("RGB")
+        im.thumbnail((900, 1200), Image.LANCZOS)
+        return im
+    return [("1_rompecabezas_foto", _prev, False)]
+
 def _piezas_libro(tema):
     import libro
     n_hist = libro.paginas_historia(tema)
@@ -834,6 +844,13 @@ TIPOS = {
         "campos": [],
         "preview": "rompecabezas-web",
         "piezas": _piezas_rompecabezas_web,
+    },
+    "rompecabezas-foto": {
+        "nombre": "Rompecabezas con tu foto",
+        "descripcion": "Subís UNA foto (la familia, el bebé, las vacaciones — la que quieras) y se convierte en un rompecabezas armable en el celu, la tablet o la compu: piezas con encastre real, imán al acercarlas y 5 niveles de dificultad (12 a 100 piezas) para que crezca con quien lo arma. Queda guardado en tu biblioteca de Casatridimensional para siempre. Nada para completar aparte de la foto.",
+        "campos": [],
+        "preview": "rompecabezas-foto",
+        "piezas": _piezas_rompecabezas_foto,
     },
     "libro": {
         "nombre": "Libro de cuento personalizado",
@@ -1280,7 +1297,7 @@ def preview(data, tema="safari", tipo=DEFAULT_TIPO, max_px=1000):
     elif pieza in ("certificado", "corona", "antifaces", "menu", "rompecabezas",
                   "capsula", "libro", "calendario", "papertoys", "memoria", "mandalas",
                   "mandalas-media", "mandalas-dificil", "mandalas-muydificil",
-                  "invitacion-web", "actividades-web", "rompecabezas-web",
+                  "invitacion-web", "actividades-web", "rompecabezas-web", "rompecabezas-foto",
                   "fiesta-completa", "video-invitacion",
                   "stl-medalla", "stl-topper", "stl-trofeo", "stl-cortante", "stl-pack"):
         # 100% procedurales: pasan por piezas_tipo() para que un override subido a mano
