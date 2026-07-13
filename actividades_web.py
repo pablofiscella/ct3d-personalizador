@@ -661,12 +661,12 @@ def archivo(token, nombre):
 
 def preview_mock(data, tema):
     """Miniatura para la ficha de la tienda / dash (sin crear token): la portada.
-    Sin nombre real (nadie compró todavía) — genérico, nunca un nombre de
-    muestra (mostraba "Las actividades de Sofía" en la ficha pública, como si
-    ya viniera personalizado para una nena en particular)."""
-    nombre = (data.get("nombre") or "").strip() or "tu peque"
+    Actividades-web ya NO se personaliza por nombre (12-jul-2026, decisión de
+    Pablo: "lo sacaría de todas las actividades" — ni en la compra ni en la
+    portada) — genérica para todos, mismo título que usa crear() cuando no
+    hay nombre real."""
     edad = (str(data.get("edad") or "")).strip() or "5"
-    dj = _armar_data_liviano(tema, nombre, edad)
+    dj = _armar_data_liviano(tema, edad)
     pers = []
     try:
         from cuaderno import _seleccionar_recortes
@@ -678,8 +678,8 @@ def preview_mock(data, tema):
     return _render_portada(dj, pers)
 
 
-def _armar_data_liviano(tema, nombre, edad):
+def _armar_data_liviano(tema, edad):
     """Solo lo que necesita la portada (sin generar puzzles)."""
     from cuaderno import _tema_nombre
-    return {"titulo": "Las actividades de %s" % nombre, "paleta": _paleta(tema),
+    return {"titulo": "Cuaderno de actividades", "paleta": _paleta(tema),
             "tema_nombre": _tema_nombre(tema), "edad": edad}
