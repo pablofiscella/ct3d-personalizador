@@ -519,8 +519,15 @@ def _piezas_invitacion_web(tema):
     return [("1_invitacion_web", lambda d: invitacion_web.preview_mock(d, tema), False)]
 
 def _piezas_actividades_web(tema):
+    # portada + 2 piezas de contenido REAL (colorear, escena) — antes solo se
+    # repetía la portada en toda la galería (Pablo 12-jul-2026: "no aparecen
+    # imágenes de las actividades que tiene el kit").
     import actividades_web
-    return [("1_actividades_web", lambda d: actividades_web.preview_mock(d, tema), False)]
+    return [
+        ("1_actividades_web", lambda d: actividades_web.preview_mock(d, tema), False),
+        ("2_actividades_web", lambda d: actividades_web.preview_mock_extra(d, tema, 1), False),
+        ("3_actividades_web", lambda d: actividades_web.preview_mock_extra(d, tema, 2), False),
+    ]
 
 def _piezas_rompecabezas_web(tema):
     # galería de la ficha: SOLO los rompecabezas que incluye, en tarjeta
@@ -1027,6 +1034,8 @@ _PIEZA_LABELS = {
     "1_invitacion_web": "Invitación web interactiva", "2_invitacion": "Invitación del kit",
     "3_libro_portada": "Libro de cuento", "4_medalla_3d": "Medalla 3D",
     "1_cubo": "Cubo 3D para armar",
+    "1_actividades_web": "Portada", "2_actividades_web": "Para colorear",
+    "3_actividades_web": "Escena del tema",
     "1_cartas_memoria": "Cartas del memory",
     "2_dorso": "Dorso de cartas",
     "00_portada": "Portada",
