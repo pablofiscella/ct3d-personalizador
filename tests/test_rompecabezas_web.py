@@ -194,6 +194,21 @@ def test_tipo_registrado_en_productos():
     assert im.size[0] > 0 and im.size[1] > 0
 
 
+def test_rompecabezas_foto_portada_familiar_existe_y_se_usa():
+    """Portada elegida por Pablo (14-jul-2026) para la venta a $9000 — la
+    ficha/miniatura debe mostrar la foto familiar, no el placeholder viejo
+    del tema circo."""
+    import productos
+    demo = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                        "assets", "rompecabezas_foto", "portada_familia.jpg")
+    assert os.path.isfile(demo)
+    im = productos.piezas_tipo(None, "rompecabezas-foto")[0][1]({})
+    esperado = Image.open(demo).convert("RGB")
+    esperado.thumbnail((900, 1200), Image.LANCZOS)
+    assert im.size == esperado.size
+    assert im.getpixel((5, 5)) == esperado.getpixel((5, 5))
+
+
 def test_preview_thumbnail_rompecabezas_foto_no_cae_a_invitacion():
     """La miniatura de la ficha (usada por tienda_kit_admin.preview_thumb) pasa
     por productos.preview() -> _spec(tipo)['preview'] -> el whitelist de tipos
