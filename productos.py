@@ -1075,7 +1075,7 @@ def pieza_label(name):
             juegos = actividades_web._catalogo_juegos()
             i = int(m.group(1)) - 4
             if 0 <= i < len(juegos):
-                return juegos[i]
+                return juegos[i]["titulo"]
         except Exception:
             pass
     return re.sub(r"^\d+_", "", name).replace("_", " ").capitalize()

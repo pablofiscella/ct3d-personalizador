@@ -20,7 +20,7 @@ al token. La banda de edad decide el menú de juegos, igual que _construir."""
 import os, re, json, glob, math, time, zlib, random, secrets
 from html import escape as _esc
 
-from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps, ImageChops
 
 import piezas
 
@@ -564,78 +564,276 @@ def _render_portada(dj, pers_imgs):
 
 
 def _catalogo_juegos():
-    """Los juegos DISTINTOS de todo el catálogo, uniendo las 3 bandas de edad
-    (mini/media/grande) — un chico puntual no ve los 19 (cada banda tiene los
-    suyos, algunos se "gradúan" según la edad), pero es el total real que
-    ofrece el producto entre los 2 y los 8 años."""
+    """Los juegos DISTINTOS de todo el catálogo (id + título), uniendo las 3
+    bandas de edad (mini/media/grande) — un chico puntual no ve los 19 (cada
+    banda tiene los suyos, algunos se "gradúan" según la edad), pero es el
+    total real que ofrece el producto entre los 2 y los 8 años."""
     vistos, out = set(), []
     for banda, edad in (("mini", "2"), ("media", "5"), ("grande", "8")):
         for m in _menu(banda, edad):
             if m["id"] not in vistos:
                 vistos.add(m["id"])
-                out.append(m["titulo"])
+                out.append({"id": m["id"], "titulo": m["titulo"]})
     return out
 
 
 def _personajes_para_cards(tema, n=8):
-    """Stickers ya abiertos para repartir entre las cards de juegos (ciclados
-    con módulo si hay menos variedad que juegos — variedad_estricta puede
-    devolver menos de n)."""
+    """PATHS de stickers del tema para armar la página de un juego (mismo
+    criterio que usa el cuaderno IMPRESO para elegir sus `mons` — no
+    variedad_estricta, porque varios juegos necesitan varias copias del
+    mismo personaje)."""
     try:
-        from cuaderno import _seleccionar_recortes
-        paths = _seleccionar_recortes(tema, n, variedad_estricta=True, incluir_objetos=True)
-        if not paths:
-            paths = _seleccionar_recortes(tema, n, incluir_objetos=True)
-        return [Image.open(p).convert("RGBA") for p in paths]
+        from cuaderno import _seleccionar_recortes, _extraer_monstruos
+        paths = _seleccionar_recortes(tema, n, incluir_objetos=True)
+        if len(paths) < 4:
+            paths = _extraer_monstruos(tema) or paths
+        return paths
     except Exception:
         return []
 
 
-def _render_juego_card(tema, pal, titulo, personaje, incluido=True):
-    """Card individual de UN juego del catálogo — Pablo 12-jul-2026: "prefiero
-    ver las 19 imágenes de lo que contiene la actividad" en vez de una sola
-    imagen con la lista en texto (_render_lista_juegos, que queda sin uso).
-    `personaje` es la imagen YA ABIERTA del sticker a mostrar (se elige y
-    abre una sola vez afuera, para no reabrir archivos 19 veces).
+# ── Cards de la galería "qué incluye": Pablo 12-jul-2026, viendo la primera
+#    versión (stickers decorativos + título): "esto es lo que veo. No tiene
+#    nada que ver con las actividades" — con razón: no mostraba NADA del
+#    juego en sí. Ahora cada card es la página REAL del juego, reusando los
+#    mismos generadores verificados del cuaderno IMPRESO (mismo laberinto con
+#    salida garantizada, mismo sudoku de solución única, la misma sopa de
+#    letras temática...) — la card muestra de verdad lo que esa actividad
+#    contiene. Los 5 juegos que son SOLO interactivos (no existen en el
+#    cuaderno impreso: memotest, simon, agrupar, quefalta, bingo) tienen su
+#    propio render, con la misma mecánica que arma el player en el navegador.
+def _dispatch_cuaderno(cuad, game_id, b):
+    """Llama al generador de página del cuaderno IMPRESO que corresponde a
+    `game_id`, con parámetros chicos (pensados para una card, no para el
+    largo real del cuaderno). None si no hay generador para ese id (los 5
+    juegos solo-interactivos se resuelven en `_JUEGOS_CUSTOM`)."""
+    if game_id == "contar":
+        return cuad._a_contar(b, 3, 2)
+    if game_id == "colorear":
+        return cuad._a_colorear(b, 0)
+    if game_id == "sombra":
+        return cuad._a_sombra(b, 3)
+    if game_id == "diferente":
+        return cuad._a_diferente(b, 2)
+    if game_id == "tamano":
+        return cuad._a_tamano(b, 2)
+    if game_id == "patron":
+        return cuad._a_patron(b, 2)
+    if game_id == "laberinto":
+        return cuad._a_laberinto(b, 6)
+    if game_id == "puntos":
+        return cuad._a_puntos(b, 10, "estrella")
+    if game_id == "mas_menos":
+        return cuad._a_mas_menos(b, 2)
+    if game_id == "sumas":
+        return cuad._a_sumas(b, 2)
+    if game_id == "sopa":
+        return cuad._a_sopa(b, getattr(b, "_palabras", None))
+    if game_id == "sudoku":
+        return cuad._a_sudoku(b)
+    if game_id == "restas":
+        return cuad._a_restas(b, 2)
+    if game_id == "serie":
+        return cuad._a_serie(b, 2)
+    return "sin-generador"
 
-    `incluido=False` (Pablo 12-jul-2026: "que cambien viendo cambio la edad")
-    pinta una variante apagada/grisácea con leyenda — así la galería de "qué
-    incluye" cambia de verdad al mover el dropdown de edad del producto (los
-    juegos no incluidos en esa banda quedan visiblemente bloqueados), en vez
-    de mostrar siempre las mismas 19 imágenes sin importar la edad elegida."""
+
+def _juego_page_memotest(b):
+    from cuaderno import _paste_h, _IM, _font, NAVY, VIOLET, Wp, BOT
+    if not b.mons:
+        return
+    b.sec("Memotest", "Dado vuelta las cartas, encontrá las parejas iguales.")
+    pares = min(3, len(b.mons))
+    ids = list(range(pares)) * 2
+    b.rnd.shuffle(ids)
+    boca_arriba = set(b.rnd.sample(range(len(ids)), pares))
+    cols = pares
+    cw = (Wp - 160) // cols
+    ch = min(300, (BOT - b.y) // 2 - 30)
+    x0 = 80
+    for i, gi in enumerate(ids):
+        r, c = divmod(i, cols)
+        cx, cy = x0 + c * cw + cw / 2, b.y + 30 + r * (ch + 30) + ch / 2
+        if i in boca_arriba:
+            b.dr.rounded_rectangle([cx - cw * .42, cy - ch * .42, cx + cw * .42, cy + ch * .42],
+                                    16, fill="#FFFFFF", outline=NAVY, width=4)
+            _paste_h(b.im, _IM(b.mons[gi]), cx, cy, int(ch * .72))
+        else:
+            b.dr.rounded_rectangle([cx - cw * .42, cy - ch * .42, cx + cw * .42, cy + ch * .42],
+                                    16, fill=VIOLET)
+            b.dr.text((cx, cy), "?", font=_font(60), fill="white", anchor="mm")
+    b.y = BOT
+
+
+def _juego_page_simon(b):
+    from cuaderno import _font, COLS, Wp, BOT
+    b.sec("Escuchá y repetí", "Tocá los colores en el mismo orden que sonaron.")
+    n, r = 4, 130
+    cy = b.y + (BOT - b.y) / 2
+    gap = 300
+    x0 = Wp / 2 - gap * (n - 1) / 2
+    for i in range(n):
+        x = x0 + i * gap
+        b.dr.ellipse([x - r, cy - r, x + r, cy + r], fill=COLS[i % len(COLS)])
+        b.dr.text((x, cy), str(i + 1), font=_font(58), fill="white", anchor="mm")
+    b.y = BOT
+
+
+def _juego_page_agrupar(b):
+    from cuaderno import _paste_h, _IM, VIOLET, COLS, Wp, BOT
+    if len(b.mons) < 2:
+        return
+    b.sec("¿Dónde va?", "Arrastrá cada uno a la canasta que le corresponde.")
+    picks = b.rnd.sample(range(len(b.mons)), min(4, len(b.mons)))
+    top_y = b.y + 150
+    x0 = Wp / 2 - (len(picks) - 1) * 130
+    for i, mi in enumerate(picks):
+        _paste_h(b.im, _IM(b.mons[mi]), x0 + i * 260, top_y, 130)
+    # canastas PEGADAS a los items (no al fondo de la hoja) — a tamaño de
+    # card, dejarlas en BOT-170 abría un hueco enorme en el medio que el
+    # recorte de contenido no puede sacar (hay dibujo antes Y después).
+    basket_y = top_y + 260
+    for i, bx in enumerate((Wp * .32, Wp * .68)):
+        col = COLS[i % len(COLS)]
+        b.dr.polygon([(bx - 150, basket_y), (bx + 150, basket_y),
+                      (bx + 108, basket_y + 150), (bx - 108, basket_y + 150)], fill=col)
+        b.dr.rounded_rectangle([bx - 160, basket_y - 16, bx + 160, basket_y + 16], 12, fill=VIOLET)
+    b.y = min(BOT, basket_y + 200)
+
+
+def _juego_page_quefalta(b):
+    from cuaderno import _paste_h, _IM, _font, NAVY, Wp, BOT
+    if not b.mons:
+        return
+    b.sec("¿Qué falta?", "Mirá bien la fila y decí cuál falta.")
+    n = min(4, max(3, len(b.mons)))
+    picks = [b.mons[i % len(b.mons)] for i in range(n)]
+    falta = b.rnd.randrange(n)
+    y = b.y + (BOT - b.y) / 2
+    gap = min(260, (Wp - 200) // n)
+    x0 = Wp / 2 - (n - 1) * gap / 2
+    for i, p in enumerate(picks):
+        x = x0 + i * gap
+        if i == falta:
+            b.dr.rounded_rectangle([x - 90, y - 90, x + 90, y + 90], 16, outline=NAVY, width=4)
+            b.dr.text((x, y), "?", font=_font(70), fill=(185, 180, 200), anchor="mm")
+        else:
+            _paste_h(b.im, _IM(p), x, y, 160)
+    b.y = BOT
+
+
+def _juego_page_bingo(b):
+    from cuaderno import _paste_h, _IM, VIOLET, COLS, Wp, BOT
+    if not b.mons:
+        return
+    b.sec("Bingo de amigos", "Marcá cada personaje que va saliendo en tu cartón.")
+    n = 3
+    cell = min(220, (Wp - 160) // n)
+    gx = (Wp - n * cell) // 2
+    gy = b.y + max(0, (BOT - b.y - n * cell) // 2)
+    marcados = set(b.rnd.sample(range(n * n), 2))
+    for i in range(n * n):
+        r, c = divmod(i, n)
+        x0, y0 = gx + c * cell, gy + r * cell
+        b.dr.rectangle([x0, y0, x0 + cell, y0 + cell], outline=VIOLET, width=3)
+        _paste_h(b.im, _IM(b.mons[i % len(b.mons)]), x0 + cell / 2, y0 + cell / 2, cell - 40)
+        if i in marcados:
+            b.dr.ellipse([x0 + 10, y0 + 10, x0 + cell - 10, y0 + cell - 10], outline=COLS[0], width=8)
+    b.y = BOT
+
+
+_JUEGOS_CUSTOM = {
+    "memotest": _juego_page_memotest, "simon": _juego_page_simon,
+    "agrupar": _juego_page_agrupar, "quefalta": _juego_page_quefalta,
+    "bingo": _juego_page_bingo,
+}
+
+
+def _recortar_contenido(im, header_h=300, footer_h=110, margin=36, gap_max=40):
+    """Achica el aire de MÁS: los generadores del cuaderno IMPRESO centran el
+    contenido en TODA la hoja A4 disponible (`BOT - b.y`, pensado para llenar
+    una hoja entera), así que a tamaño de card queda con una franja en blanco
+    ANTES del contenido (el centrado vertical) y otra DESPUÉS (real: el
+    laberinto quedaba con casi media card vacía arriba del dibujo). Busca el
+    bbox real de lo dibujado dentro de la zona de contenido (después del
+    banner+título, antes del pie de página fijo — el pie SIEMPRE tiene texto,
+    por eso se excluye del bbox) y pega ese bbox pegado al header, dejando
+    como mucho `gap_max` de aire arriba."""
+    rgb = im.convert("RGB")
+    w, h = rgb.size
+    zona = rgb.crop((0, header_h, w, h - footer_h))
+    bg = Image.new("RGB", zona.size, (255, 255, 255))
+    bbox = ImageChops.difference(zona, bg).getbbox()
+    if not bbox:
+        return im
+    top_excedente = max(0, bbox[1] - gap_max)
+    contenido = im.crop((0, header_h + top_excedente, w, min(h - footer_h, header_h + bbox[3] + margin)))
+    out = Image.new("RGB", (w, header_h + contenido.height), (255, 255, 255))
+    out.paste(im.crop((0, 0, w, header_h)), (0, 0))
+    out.paste(contenido, (0, header_h))
+    return out
+
+
+def _juego_page(tema, edad, game_id, mons, escena, colorear_imgs, palabras, seed):
+    """La página REAL de UN juego (Wp×Hp, igual que el cuaderno impreso,
+    recortada al contenido) para usarla como card de la galería. None si algo
+    falla (tema sin arte de colorear todavía, muy pocos stickers, etc.) — el
+    caller cae a un fallback genérico, nunca a una excepción."""
+    import cuaderno
+    try:
+        b = cuaderno._Book(str(edad), mons, seed, cuaderno._tema_nombre(tema))
+        b.tema = tema
+        b._colorear = colorear_imgs
+        b._escena = escena
+        b._palabras = palabras
+        if game_id in _JUEGOS_CUSTOM:
+            _JUEGOS_CUSTOM[game_id](b)
+        elif _dispatch_cuaderno(cuaderno, game_id, b) == "sin-generador":
+            return None
+        b.finish()
+        return _recortar_contenido(b.pages[0]) if b.pages else None
+    except Exception:
+        return None
+
+
+def _apagar_bloqueado(im):
+    """Variante "bloqueada" de una card (Pablo 12-jul-2026: "que cambien
+    viendo cambio la edad") — apagada + franja con leyenda, sin perder la
+    imagen de fondo (a diferencia de un grisado 100%, se sigue reconociendo
+    el juego)."""
+    base = im.convert("RGBA")
+    g = ImageOps.grayscale(base.convert("RGB"))
+    gris = Image.merge("RGB", (g, g, g)).convert("RGBA")
+    apagado = Image.blend(base, gris, 0.7)
+    velo = Image.new("RGBA", apagado.size, (255, 255, 255, 130))
+    apagado.alpha_composite(velo)
+    dr = ImageDraw.Draw(apagado)
+    w, h = apagado.size
+    bh = max(70, h // 16)
+    dr.rectangle((0, h - bh, w, h), fill=(120, 113, 103, 235))
+    f = _fuente("Nunito-VF.ttf", max(20, w // 26))
+    while f.getlength("Se desbloquea en otra edad") > w - 40 and f.size > 16:
+        f = _fuente("Nunito-VF.ttf", f.size - 2)
+    dr.text((w / 2, h - bh / 2), "Se desbloquea en otra edad", font=f, fill="#FFFFFF", anchor="mm")
+    return apagado.convert("RGB")
+
+
+def _render_juego_card_fallback(tema, pal, titulo, incluido=True):
+    """Fallback si `_juego_page` no pudo generar la página real (tema sin
+    arte de colorear todavía, etc.) — nunca None, preview_pieza() no lo
+    tolera."""
     W, H = 640, 640
     card_color, ink_color, _soft = _colores_seguros(pal)
-    ac = pal["ac"] if incluido else "#B9B0A4"
-    im = Image.new("RGB", (W, H), _hex_rgb(_PALETA_DEFAULT["bg"]))
+    im = Image.new("RGB", (W, H), _hex_rgb(card_color))
     dr = ImageDraw.Draw(im)
-    dr.rounded_rectangle((24, 24, W - 24, H - 24), radius=32, fill=_hex_rgb(card_color))
-    dr.rounded_rectangle((24, 24, W - 24, 110), radius=32, fill=_hex_rgb(ac))
-    dr.rectangle((24, 78, W - 24, 110), fill=_hex_rgb(ac))
+    dr.rounded_rectangle((24, 24, W - 24, 110), radius=32, fill=_hex_rgb(pal["ac"]))
     dr.text((W // 2, 67), "CASATRIDIMENSIONAL", font=_fuente("Nunito-VF.ttf", 22),
             fill="#FFFFFF", anchor="mm")
-    if personaje is not None:
-        p = personaje.copy()
-        alto = 340
-        w = max(1, int(p.width * alto / p.height))
-        if w > 420:
-            w = 420
-            alto = max(1, int(p.height * w / p.width))
-        p = p.resize((w, alto), Image.LANCZOS)
-        if not incluido:
-            r, g, b, a = p.split()
-            gris = ImageOps.grayscale(Image.merge("RGB", (r, g, b)))
-            p = Image.merge("RGBA", (gris, gris, gris, a))
-        im.paste(p, (W // 2 - w // 2, 150), p)
     f = _fuente("Baloo2-VF.ttf", 44)
     while f.getlength(titulo) > W - 80 and f.size > 26:
         f = _fuente("Baloo2-VF.ttf", f.size - 3)
-    txt_color = ink_color if incluido else "#8A8177"
-    dr.text((W // 2, 555 if incluido else 535), titulo, font=f, fill=_hex_rgb(txt_color), anchor="mm")
-    if not incluido:
-        f2 = _fuente("Nunito-VF.ttf", 25)
-        dr.text((W // 2, 585), "Se desbloquea en otra edad", font=f2,
-                 fill=_hex_rgb("#8A8177"), anchor="mm")
-    return im
+    dr.text((W // 2, H // 2), titulo, font=f, fill=_hex_rgb(ink_color), anchor="mm")
+    return im if incluido else _apagar_bloqueado(im)
 
 
 def crear(data, tema, token=None):
@@ -797,13 +995,28 @@ def preview_mock_extra(data, tema, indice):
             juegos = _catalogo_juegos()
             i = indice - 3
             if 0 <= i < len(juegos):
+                juego = juegos[i]
                 edad = (str(data.get("edad") or "")).strip() or "5"
-                incluidos = {m["titulo"] for m in _menu(_banda(edad), edad)}
-                titulo = juegos[i]
-                personajes = _personajes_para_cards(tema, 8)
-                personaje = personajes[i % len(personajes)] if personajes else None
-                return _render_juego_card(tema, _paleta(tema), titulo, personaje,
-                                           incluido=titulo in incluidos)
+                incluidos = {m["id"] for m in _menu(_banda(edad), edad)}
+                incluido = juego["id"] in incluidos
+                # seed FIJA por (tema, juego): la card es material de marketing,
+                # no una compra — tiene que salir siempre igual para que el
+                # cache de disco sirva (misma lógica que preview_pieza).
+                seed = zlib.crc32(("%s|%s" % (tema, juego["id"])).encode())
+                from cuaderno import _colorear_imgs, _escena_tema, _tema_palabras
+                mons = _personajes_para_cards(tema, 8)
+                # _colorear_imgs procesa PNGs grandes (~8s): solo el juego
+                # "colorear" la necesita, cargarla siempre penalizaba las
+                # otras 18 cards con un costo que no usan para nada.
+                colorear_imgs = _colorear_imgs(tema) if juego["id"] == "colorear" else []
+                pagina = _juego_page(tema, edad, juego["id"], mons, _escena_tema(tema),
+                                      colorear_imgs, _tema_palabras(tema), seed)
+                if pagina is not None:
+                    w = 700
+                    h = max(1, int(pagina.height * w / pagina.width))
+                    pagina = pagina.convert("RGB").resize((w, h), Image.LANCZOS)
+                    return pagina if incluido else _apagar_bloqueado(pagina)
+                return _render_juego_card_fallback(tema, _paleta(tema), juego["titulo"], incluido)
     except Exception:
         pass
     return preview_mock(data, tema)
