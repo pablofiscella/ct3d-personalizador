@@ -460,9 +460,19 @@ def _armar_data(tema, nombre, edad, seed):
     }
 
 
-def _fuente(nombre, px):
+def _fuente(nombre, px, peso=None):
+    """`peso` (200-1000) selecciona el grosor en una fuente VARIABLE (Nunito-VF,
+    Baloo2-VF...) — sin esto, PIL abre la fuente en su instancia por DEFECTO,
+    que en Nunito-VF es 200 (ExtraLight, casi invisible de fino) — mismo
+    patrón que cuaderno._font."""
     try:
-        return ImageFont.truetype(os.path.join(BASEDIR, "fonts", nombre), px)
+        f = ImageFont.truetype(os.path.join(BASEDIR, "fonts", nombre), px)
+        if peso is not None:
+            try:
+                f.set_variation_by_axes([peso])
+            except Exception:
+                pass
+        return f
     except Exception:
         return ImageFont.load_default()
 
@@ -511,9 +521,15 @@ def _render_portada(dj, pers_imgs):
     # franja superior con el acento
     dr.rounded_rectangle((36, 36, W - 36, 240), radius=44, fill=_hex_rgb(pal["ac"]))
     dr.rectangle((36, 170, W - 36, 240), fill=_hex_rgb(pal["ac"]))
-    f_marca = _fuente("Nunito-VF.ttf", 32)
+    # "CASATRIDIMENSIONAL" con la MISMA tipografía que la marca en la web
+    # (Titillium Web, font-display de tienda_static/css/tokens.css) — pedido
+    # de Pablo 13-jul-2026 para que la card matchee la identidad del sitio.
+    f_marca = _fuente("TitilliumWeb-Bold.ttf", 30)
     f_tit = _fuente("Baloo2-VF.ttf", 78)
-    f_sub = _fuente("Nunito-VF.ttf", 40)
+    # "Cuaderno interactivo" más grueso (Pablo 13-jul-2026): Nunito-VF sin
+    # `peso` abre en su instancia por defecto (200, ExtraLight) — quedaba
+    # casi invisible de fino contra la franja de color.
+    f_sub = _fuente("Nunito-VF.ttf", 40, peso=800)
     dr.text((W // 2, 100), "CASATRIDIMENSIONAL", font=f_marca, fill="#FFFFFF",
             anchor="mm")
     dr.text((W // 2, 172), "Cuaderno interactivo", font=f_sub, fill="#FFFFFF",
@@ -846,7 +862,7 @@ def _render_juego_card_fallback(tema, pal, titulo, incluido=True):
     im = Image.new("RGB", (W, H), _hex_rgb(card_color))
     dr = ImageDraw.Draw(im)
     dr.rounded_rectangle((24, 24, W - 24, 110), radius=32, fill=_hex_rgb(pal["ac"]))
-    dr.text((W // 2, 67), "CASATRIDIMENSIONAL", font=_fuente("Nunito-VF.ttf", 22),
+    dr.text((W // 2, 67), "CASATRIDIMENSIONAL", font=_fuente("TitilliumWeb-Bold.ttf", 21),
             fill="#FFFFFF", anchor="mm")
     f = _fuente("Baloo2-VF.ttf", 44)
     while f.getlength(titulo) > W - 80 and f.size > 26:
