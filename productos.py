@@ -548,9 +548,11 @@ def _piezas_rompecabezas_web(tema):
             for i in range(rompecabezas_web.n_puzzles(tema))]
 
 def _piezas_rompecabezas_foto(tema):
-    # SIN tema (el cliente sube SU propia foto) — la ficha muestra un
-    # ejemplo fijo para dar la idea (Pablo 13-jul-2026, venta a $9000).
-    demo = os.path.join(temas.TEMAS_DIR, "circo", "overrides", "libro", "1.png")
+    # SIN tema (el cliente sube SU propia foto) — la ficha muestra una
+    # portada de ejemplo (foto familiar, elegida por Pablo 14-jul-2026 para
+    # la venta a $9000) para dar la idea antes de que suban la propia.
+    demo = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        "assets", "rompecabezas_foto", "portada_familia.jpg")
     def _prev(d):
         im = Image.open(demo).convert("RGB")
         im.thumbnail((900, 1200), Image.LANCZOS)
