@@ -4,12 +4,17 @@ Mismo criterio que el resto del motor: lo que tiene respuesta correcta se
 VERIFICA por código — acá, que las piezas exportadas a data.json cierren y
 PARTICIONEN exactamente la imagen (los bordes compartidos entre piezas vecinas
 son la misma polilínea, así que la suma de áreas debe dar el área total)."""
+import base64
+import io
 import json
 import os
+import re
 import shutil
 import sys
+import time
 
 import pytest
+from PIL import Image
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import rompecabezas_web as rw  # noqa: E402
@@ -181,6 +186,12 @@ def test_tipo_registrado_en_productos():
     import productos
     assert productos.existe_tipo("rompecabezas-web")
     assert productos.campos_tipo("rompecabezas-web") == []   # nada para completar (Pablo 11-jul)
+    assert productos.existe_tipo("rompecabezas-foto")
+    assert productos.campos_tipo("rompecabezas-foto") == []  # la personalización es la foto, no texto
+    piezas = productos.piezas_tipo(None, "rompecabezas-foto")
+    assert len(piezas) == 1
+    im = piezas[0][1]({})
+    assert im.size[0] > 0 and im.size[1] > 0
 
 
 def test_portada_banda_clara_y_edad_mas():
@@ -255,3 +266,95 @@ def test_foto_rechaza_no_imagen():
 def test_foto_rechaza_demasiado_pesada():
     with pytest.raises(ValueError):
         rw.crear_desde_foto(b"x" * (16 * 1024 * 1024))
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Staging (14-jul-2026): venta REAL a $9000 — la foto sube ANTES de pagar
+# (stage_foto, ficha del producto) y el rompecabezas completo recién se
+# arma DESPUÉS del pago confirmado (crear_desde_foto_staged, /api/generar).
+_FOTO_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                          "temas", "circo", "overrides", "libro", "1.png")
+
+
+@pytest.fixture
+def foto_bytes():
+    with open(_FOTO_PATH, "rb") as f:
+        return f.read()
+
+
+def test_stage_foto_devuelve_token_y_preview_con_marca_de_agua(foto_bytes):
+    stage_token, preview = rw.stage_foto(foto_bytes)
+    try:
+        assert re.fullmatch(r"[A-Za-z0-9_-]{10,40}", stage_token)
+        assert preview.startswith("data:image/jpeg;base64,")
+        raw_prev = base64.b64decode(preview.split(",", 1)[1])
+        im = Image.open(io.BytesIO(raw_prev))
+        assert max(im.size) <= 480
+        assert os.path.isfile(os.path.join(rw._STAGING_DIR, stage_token + ".jpg"))
+    finally:
+        try:
+            os.remove(os.path.join(rw._STAGING_DIR, stage_token + ".jpg"))
+        except OSError:
+            pass
+
+
+def test_stage_foto_rechaza_igual_que_crear_desde_foto():
+    with pytest.raises(ValueError):
+        rw.stage_foto(b"esto no es una imagen")
+    with pytest.raises(ValueError):
+        rw.stage_foto(b"x" * (16 * 1024 * 1024))
+
+
+def test_crear_desde_foto_staged_materializa_y_borra_el_staging(foto_bytes):
+    stage_token, _ = rw.stage_foto(foto_bytes)
+    stage_path = os.path.join(rw._STAGING_DIR, stage_token + ".jpg")
+    assert os.path.isfile(stage_path)
+    tok = rw.crear_desde_foto_staged(stage_token)
+    try:
+        d = json.load(open(os.path.join(rw.ROMPE_DIR, tok, "data.json"), encoding="utf-8"))
+        assert d["tema"] is None and d["targets"] == rw.TARGETS_FOTO
+        assert not os.path.isfile(stage_path), "el staging debe borrarse tras materializar"
+    finally:
+        shutil.rmtree(os.path.join(rw.ROMPE_DIR, tok), ignore_errors=True)
+
+
+def test_crear_desde_foto_staged_token_desconocido_o_invalido():
+    with pytest.raises(ValueError):
+        rw.crear_desde_foto_staged("token-que-no-existe-nunca-se-subio")
+    with pytest.raises(ValueError):
+        rw.crear_desde_foto_staged("../../etc/passwd")
+    with pytest.raises(ValueError):
+        rw.crear_desde_foto_staged("")
+
+
+def test_crear_desde_foto_staged_no_se_puede_reusar(foto_bytes):
+    """Una vez materializado, el mismo stage_token no debe volver a andar —
+    evita que alguien reintente /api/generar y arme el mismo pedido dos
+    veces gratis a partir de una sola foto subida."""
+    stage_token, _ = rw.stage_foto(foto_bytes)
+    tok = rw.crear_desde_foto_staged(stage_token)
+    try:
+        with pytest.raises(ValueError):
+            rw.crear_desde_foto_staged(stage_token)
+    finally:
+        shutil.rmtree(os.path.join(rw.ROMPE_DIR, tok), ignore_errors=True)
+
+
+def test_limpiar_staging_vencido_borra_solo_lo_viejo(foto_bytes):
+    stage_token, _ = rw.stage_foto(foto_bytes)
+    p = os.path.join(rw._STAGING_DIR, stage_token + ".jpg")
+    viejo = os.path.join(rw._STAGING_DIR, "viejo-test-token.jpg")
+    with open(viejo, "wb") as f:
+        f.write(foto_bytes)
+    vencido = time.time() - rw._STAGING_VIGENCIA_SEG - 60
+    os.utime(viejo, (vencido, vencido))
+    try:
+        rw._limpiar_staging_vencido()
+        assert not os.path.isfile(viejo), "el staging vencido debe borrarse"
+        assert os.path.isfile(p), "el staging reciente NO debe tocarse"
+    finally:
+        for x in (p, viejo):
+            try:
+                os.remove(x)
+            except OSError:
+                pass

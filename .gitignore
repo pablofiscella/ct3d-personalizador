@@ -40,6 +40,8 @@ audiolibros/
 actividades/
 # rompecabezas web interactivos (carpetas por token, datos de pedidos en runtime)
 rompecabezas_web/
+# rompecabezas-foto: fotos subidas ANTES de pagar, staging temporal (2h)
+_rompecabezas_foto_staging/
 # mándalas web para pintar (carpetas por token: kit.zip + portada, datos de compra)
 mandalas_web/
 # "elegí tu aventura" — prototipo (carpetas por token: manifest.json, datos de compra/demo)
