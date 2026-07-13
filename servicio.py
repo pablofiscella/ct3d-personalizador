@@ -542,6 +542,11 @@ class Handler(BaseHTTPRequestHandler):
             tipo = q.get("tipo", ["kit"])[0]
             tema = q.get("tema", ["safari"])[0]
             return self._json(200, {"ok": True, "piezas": productos.piezas_meta(tipo, tema)})
+        if path == "/actividades-incluidos":
+            # {edad: [títulos incluidos]} de actividades-web, para que la tienda
+            # reordene la galería (desbloqueados primero) al cambiar de edad.
+            import actividades_web
+            return self._json(200, {"ok": True, "incluidos": actividades_web.incluidos_por_edad()})
         if path == "/preview":
             q = urllib.parse.parse_qs(u.query)
             data = {c: (q.get(c, [""])[0] or "") for c in CAMPOS}
