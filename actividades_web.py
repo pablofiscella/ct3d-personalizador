@@ -140,7 +140,7 @@ def _menu(banda, edad):
             # SOLO 5 años (a los 4 el eje del bimestre 1 es otro).
             m.append({"id": "silabas", "titulo": "¿Cuántas partes?", "icono": "👂", "cfg": {"rondas": 5}})
         return m
-    return [
+    g = [
         {"id": "memotest",  "titulo": "Memotest",         "icono": "🧠", "cfg": {"pares": 8}},
         {"id": "laberinto", "titulo": "El laberinto",     "icono": "🌀", "cfg": {"desde": 0}},
         {"id": "sopa",      "titulo": "Sopa de letras",   "icono": "🔤", "cfg": {}},
@@ -158,6 +158,21 @@ def _menu(banda, edad):
         {"id": "quefalta",  "titulo": "¿Qué falta?",      "icono": "❓", "cfg": {"items": 5, "rondas": 6}},
         {"id": "bingo",     "titulo": "Bingo de amigos",  "icono": "🎯", "cfg": {"tam": 9}},
     ]
+    if e == 6:
+        # NAP 1° grado Bimestre 1: "números del 1 al 30", "anterior y
+        # posterior" — "serie" ya hacía justo esto (¿qué número falta en la
+        # secuencia?) pero con techo fijo ~16; con cfg.tope explícito llega
+        # a 30 sin tocar la mecánica (14-jul-2026).
+        for item in g:
+            if item["id"] == "serie":
+                item["cfg"] = {**item["cfg"], "tope": 30}
+        # NAP 1° grado Bimestre 2: "sílabas directas (consonante+vocal)...
+        # construir palabras arrastrando sílabas desordenadas" — Pablo ya
+        # había traído esta idea. Reusa el pipeline de audio de silabas
+        # (Sala de 5); a diferencia de silabas (contar CUÁNTAS partes),
+        # acá arma la palabra completa tocando sus sílabas EN ORDEN.
+        g.append({"id": "armar_palabra", "titulo": "Armá la palabra", "icono": "🧩", "cfg": {"rondas": 5}})
+    return g
 
 
 # ── Puzzles verificados (reusan los generadores determinísticos de cuaderno.py) ──
@@ -1021,6 +1036,16 @@ def _duracion_minima(texto):
     return max(0.4, n_vocales * 0.22)
 
 
+def _duracion_maxima(texto):
+    """Techo de duración razonable — mismo proxy por vocales, mirror de
+    _duracion_minima() para el otro extremo. Encontrado 14-jul-2026 armando
+    1° grado: "SAPO" (2 vocales, esperable ~0.7-1s como GATO/PATO/MOTO) salió
+    una toma de 2.72s — sin techo, esa toma larga/rara se hubiera vendido
+    igual (el piso solo agarra tomas CORTADAS, no tomas de más)."""
+    n_vocales = max(1, len(_VOCAL_RE.findall(texto)))
+    return max(2.5, n_vocales * 1.0)
+
+
 def generar_audio_consignas(textos):
     """Audio-guía (14-jul-2026, investigación §2b: "es la brecha de UX más
     urgente para 4-5 años, más urgente que sumar juegos nuevos" — a esa edad
@@ -1030,9 +1055,10 @@ def generar_audio_consignas(textos):
     criterio que player.js/las fuentes, NO se regeneran por token. Reusa el
     mismo motor de voz del audiolibro (ElevenLabs Lizy, acento argentino).
 
-    QA de duración (piso por conteo de vocales, ver _duracion_minima): hasta
-    4 tomas con seeds distintos, se queda con la primera que pase el piso o,
-    si ninguna pasa, con la más larga de las 4 (nunca falla en silencio).
+    QA de duración (piso Y techo por conteo de vocales, ver _duracion_minima/
+    _duracion_maxima): hasta 4 tomas con seeds distintos, se queda con la
+    primera que caiga DENTRO del rango o, si ninguna cae, con la que haya
+    quedado más cerca del rango (nunca falla en silencio).
 
     Idempotente: solo genera el .mp3 que todavía no existe (podés volver a
     llamarla agregando textos nuevos sin regastar en los que ya están).
@@ -1052,13 +1078,15 @@ def generar_audio_consignas(textos):
             continue
         limpio = _texto_para_tts(texto)
         minimo = _duracion_minima(limpio)
+        maximo = _duracion_maxima(limpio)
         mejor = None
         for intento in range(4):
             mp3 = audiolibro._tts_elevenlabs(limpio, seed=4242 + intento * 137)
             dur = audiolibro._dur_mp3_128(mp3)
-            if mejor is None or dur > mejor[1]:
-                mejor = (mp3, dur)
-            if dur >= minimo:
+            dist = max(0.0, minimo - dur, dur - maximo)
+            if mejor is None or dist < mejor[2]:
+                mejor = (mp3, dur, dist)
+            if dist == 0:
                 break
         with open(path, "wb") as f:
             f.write(mejor[0])

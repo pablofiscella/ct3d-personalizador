@@ -186,7 +186,7 @@ corta del porqué, no solo "¡mal! probá de nuevo".
 |---|---|---|---|
 | 1 | Sala de 4 años | ✅ Primer incremento shippeado 14-jul-2026 (§5b): mas_menos con feedback elaborado, juego nuevo `posicion`, `contar` diferenciado por edad. Faltan: audio-guía, auditoría visual completa, versión impresa de `posicion` | Bajo |
 | 2 | Sala de 5 años | ✅ Primer incremento shippeado 14-jul-2026 (§5c): `contar`/`mas_menos` con rango ampliado, juego nuevo `silabas` (primera mecánica de audio real del motor). Falta: sonido inicial de vocales, consonantes M/P/S/L, escritura del nombre — quedan fuera de esta primera pasada | Bajo (matemática) / Medio (fonética, mecánica nueva) |
-| 3 | 1° grado | Ampliar rango numérico real (hoy tope ~7-8, NAP pide hasta 100) + agregar mecánica de sílabas CV (juego nuevo: "armar palabras arrastrando sílabas", idea que el propio Pablo ya trajo) — reusa el trabajo de audio de Sala de 5 | Medio |
+| 3 | 1° grado | ✅ Primer incremento shippeado 14-jul-2026 (§5d): rango de `serie` ampliado a 30 (Bimestre 1), juego nuevo `armar_palabra` (sílabas CV, Bimestre 2). Falta: abecedario, cuerpo humano, animales/plantas, barrio/transportes, efemérides, materiales/luz, "la tiendita" con dinero, grilla 1-100 — construcción nueva, backlog | Medio |
 | 4 | 2° grado | Separar de la banda "grande" (hoy comparte banda con 1° y con 12 años); sílabas complejas, cursiva, multiplicación conceptual (arreglos rectangulares), números hasta 1.000 — desglose bimestral ya disponible en `docs/CURRICULUM-NAP-ARGENTINA.md` | Medio |
 | 5 | 3° grado | Construir de cero: tabla pitagórica interactiva, números de 4 cifras, cuerpos geométricos, primeras nociones de ciencias naturales/sociales curriculares | Alto |
 | 6 | 4°-5° grado | Fracciones (con apoyo visual — tiras, CPA), decimales, geometría con compás, primera historia argentina real (colonia, Revolución de Mayo) | Alto |
@@ -403,6 +403,87 @@ actividades que hicimos podés hacerlo")
    esas edades.
 3. **Equivalente impreso (PDF) de `silabas`** — es un juego 100% de audio,
    no tiene un análogo natural en papel; no se intentó forzar uno.
+
+## 5d. Plan de implementación — 1° grado
+
+1° grado es el primer año donde el trabajo deja de ser 100% curación — el
+propio roadmap (§4) ya lo anticipaba como esfuerzo "Medio", no "Bajo" como
+Sala de 4/5. Bimestre a bimestre, 1° grado toca CUATRO áreas NAP (Prácticas
+del Lenguaje, Matemática, Ciencias Naturales, Ciencias Sociales), no solo los
+3 ejes integrados de nivel inicial — y el motor hoy solo tiene contenido real
+para Matemática y una pieza de Lenguaje. Este primer incremento se acotó
+deliberadamente a esas dos, dejando Ciencias Naturales/Sociales para una
+pasada aparte (son construcción de tipos de actividad enteramente nuevos, no
+ajuste de los que ya existen — mismo criterio de "no mezclar tipos de
+esfuerzo distintos en el mismo sprint" que ya se usó en Sala de 4/5, §5
+conclusión).
+
+### Construido 14-jul-2026 (Pablo: "dale", tras confirmar seguir con 1° grado)
+
+1. ✅ **Rango de `serie` ampliado para 1° grado** — NAP Bimestre 1: "números
+   del 1 al 30", "anterior y posterior en un tablero". `serie` (¿qué número
+   falta en la secuencia?) YA hacía exactamente esto pero con techo fijo
+   ~16; se agregó `cfg.tope` (default 16, retrocompatible con toda otra
+   edad/banda que no lo pase) y se fijó en 30 solo para edad exacta 6.
+   Verificado en vivo: la secuencia llega a números en el rango 20+ donde
+   antes topeaba ~16.
+2. ✅ **Construido `GAMES.armar_palabra`** — NAP Bimestre 2: "sílabas
+   directas (consonante+vocal)... construir palabras arrastrando sílabas
+   desordenadas (ej. PE-LO-TA)", idea que el propio Pablo ya había traído.
+   Diseño:
+   - Banco de 7 palabras CV-CV o CV-CV-CV con emoji (GATO, LUNA, CASA, SAPO,
+     MOTO, PATO, PELOTA) — reusa el pipeline de audio de `silabas` (Sala de
+     5); GATO/LUNA/CASA/PELOTA ya tenían grabación, se generaron 3 nuevas
+     (SAPO, MOTO, PATO) + la consigna nueva.
+   - **Sin drag real — TAP en orden** (mismo criterio de robustez mobile que
+     `agrupar`, documentado en su propio comentario del código: "tap, sin
+     drag — más robusto en mobile"). Las sílabas se muestran mezcladas como
+     botones; tocar la siguiente en secuencia la "coloca" en el primer hueco
+     vacío de arriba; tocar una fuera de orden sacude sin colocar nada
+     (cero fail states, igual que el resto del motor).
+   - Sin distractores: TODAS las sílabas mostradas pertenecen a la palabra
+     — el desafío es la SECUENCIA, no filtrar sílabas ajenas (a diferencia
+     de `silabas`, que sí necesita distractores de cantidad).
+   - Agregado a la banda `grande` SOLO para edad exacta 6 (no se filtra a
+     edades mayores que comparten la misma banda).
+3. ✅ **Bug real de QA de audio encontrado y corregido — el espejo del bug
+   de Sala de 5.** "SAPO" (2 vocales, esperable ~0.7-1s como GATO/PATO/MOTO)
+   salió en una toma de 2.72s — el piso de duración (`_duracion_minima`,
+   Sala de 5) no lo agarra porque 2.72s NO es una toma corta, es una toma
+   RARA/larga. Verificado real regenerando con 3 seeds distintos (1.02-1.67s
+   en las alternativas, ninguna cerca de 2.72s). Solución generalizada, no
+   parche puntual: `_duracion_maxima()` (techo simétrico al piso, mismo
+   proxy por vocales) + reescritura de `generar_audio_consignas()` para que
+   el criterio de "mejor toma" sea la distancia al rango `[mínimo, máximo]`
+   en vez de solo "la más larga" — agarra tomas cortadas Y tomas raras de
+   más, cualquiera de las dos.
+4. ✅ Probado en vivo con Playwright: `armar_palabra` completa rondas con
+   sílabas en el orden correcto Y rechaza (sacude, no coloca) sílabas fuera
+   de orden; `serie` alcanza números 20+ donde antes topeaba ~16. Sin errores
+   de consola. Suite completa en verde.
+
+### Deliberadamente NO hecho en esta pasada
+
+1. **Ciencias Naturales (cuerpo humano, animales por alimentación/cobertura,
+   plantas) y Ciencias Sociales (la escuela, el barrio, transportes,
+   efemérides)** — de los 4 bimestres de 1° grado, son contenido curricular
+   enteramente nuevo para el motor (hoy CERO tipos de actividad de ciencias
+   reales, confirmado en el hallazgo principal §1) — construcción de cero,
+   no curación; se deja para una pasada dedicada, mismo criterio que separó
+   Sala de 4 (curación) de 3°+ grado (construcción) en el roadmap original.
+2. **Abecedario / orden alfabético, escritura del nombre propio y de
+   compañeros** (Bimestre 1) — necesita un tipo de actividad nuevo
+   (ordenar/reconocer letras), no un juego existente curado.
+3. **"La tiendita" con billetes/monedas de fantasía y la grilla numérica
+   1-100** (Bimestre 4, números hasta 100) — el mecanismo CONCRETO de
+   `sumas`/`restas` (sprites contables uno por uno) no escala a 100 objetos
+   en pantalla; el propio NAP sugiere dinero de fantasía como paso
+   PICTÓRICO/simbólico (Singapore Math CPA) para números grandes — es un
+   juego nuevo, no una extensión de parámetro de los que ya existen.
+4. **Audio-guía de `armar_palabra`/`serie` en las otras bandas** — mismo
+   patrón que Sala de 4/5: las grabaciones nuevas cubren solo esta pieza.
+5. **Equivalente impreso (PDF) de `armar_palabra`** — no se intentó forzar
+   un análogo en papel para un juego pensado para tap-en-orden.
 
 ## 6. Pendientes que dependen de Pablo (no técnicos)
 
