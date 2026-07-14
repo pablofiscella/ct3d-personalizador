@@ -296,9 +296,17 @@ function abrirPerfil() {
   });
   // sin perfil activo (primera vez) no hay nada que cancelar
   $("#perfilCancelar").style.display = Store.data.activeProfile ? "" : "none";
-  $("#perfilInput").value = "";
+  // Nombre de la compra (14-jul-2026) como DEFAULT del primer perfil, no
+  // como personalización dura: solo se precarga si todavía no hay ningún
+  // perfil creado — así el caso de 1 solo chico es un solo toque ("¡Jugar!"
+  // sin escribir nada), y si juega un segundo chico en la misma casa, esta
+  // misma pantalla ya lo resuelve (perfil 1 queda de botón arriba, el
+  // input para el nombre nuevo arranca vacío, no repite el de la compra).
+  const esElPrimerPerfil = Object.keys(Store.data.profiles).length === 0;
+  $("#perfilInput").value = esElPrimerPerfil ? (D.nombre || "") : "";
   $("#perfil").classList.add("ver");
   $("#perfilInput").focus();
+  $("#perfilInput").select();
 }
 function cerrarPerfil() { $("#perfil").classList.remove("ver"); }
 function elegirPerfil(nombre) {

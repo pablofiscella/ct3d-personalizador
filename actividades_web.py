@@ -1072,10 +1072,13 @@ def archivo(token, nombre):
 
 def preview_mock(data, tema):
     """Miniatura para la ficha de la tienda / dash (sin crear token): la portada.
-    Actividades-web ya NO se personaliza por nombre (12-jul-2026, decisión de
-    Pablo: "lo sacaría de todas las actividades" — ni en la compra ni en la
-    portada) — genérica para todos, mismo título que usa crear() cuando no
-    hay nombre real."""
+    Se ignora `data.get("nombre")` A PROPÓSITO — nadie compró todavía, así
+    que mostrar un nombre de muestra en la ficha pública ("Las actividades de
+    Sofía") daría la impresión falsa de que ya viene personalizado para una
+    nena en particular (bug real, corregido 12-jul-2026). El título genérico
+    es el mismo fallback que usa crear() cuando la compra real no trae
+    nombre. La compra SÍ vuelve a pedir nombre (14-jul-2026) — solo esta
+    miniatura de PRE-venta se mantiene genérica."""
     edad = (str(data.get("edad") or "")).strip() or "5"
     dj = _armar_data_liviano(tema, edad)
     pers = []
