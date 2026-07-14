@@ -103,6 +103,10 @@ def _menu(banda, edad):
             {"id": "puntos",    "titulo": "Uní los puntos",   "icono": "✨", "cfg": {"figuras": ["estrella"]}},
             {"id": "patron",    "titulo": "Seguí el patrón",  "icono": "🔁", "cfg": {"nivel": 2, "rondas": 5}},
             {"id": "mas_menos", "titulo": "¿Dónde hay más?",  "icono": "⚖️", "cfg": {"max": 6, "rondas": 5}},
+            # Sala de 4 Bimestre 1 (NAP): noción espacial arriba/abajo/
+            # adentro/afuera — único contenido de ese bimestre sin ningún
+            # juego hasta el 14-jul-2026 (ver docs/INFORME-ACTIVIDADES-PROGRESIVAS.md §5).
+            {"id": "posicion",  "titulo": "¿Dónde está?",     "icono": "📦", "cfg": {"rondas": 5}},
             {"id": "diferente", "titulo": "El distinto",      "icono": "🔍", "cfg": {"opciones": 4, "rondas": 5}},
             {"id": "tamano",    "titulo": "El más grande",    "icono": "📏", "cfg": {"rondas": 5}},
             {"id": "simon",     "titulo": "Escuchá y repetí", "icono": "🎵", "cfg": {"colores": 4, "rondas": 5}},
@@ -112,6 +116,13 @@ def _menu(banda, edad):
         ]
         if e >= 5:
             m.append({"id": "sumas", "titulo": "Sumas", "icono": "➕", "cfg": {"max": 5, "rondas": 5}})
+        if e == 4:
+            # NAP Sala de 4 (docs/CURRICULUM-NAP-ARGENTINA.md): "conteo oral
+            # hasta el 5" — hasta el 14-jul-2026 "contar" tenía el mismo
+            # max=6 sin distinguir 4 de 5 años dentro de la banda "media".
+            for item in m:
+                if item["id"] == "contar":
+                    item["cfg"] = {**item["cfg"], "max": 5}
         return m
     return [
         {"id": "memotest",  "titulo": "Memotest",         "icono": "🧠", "cfg": {"pares": 8}},

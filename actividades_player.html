@@ -391,6 +391,40 @@ button.pill:active, a.pill:active { transform: scale(.94); }
   transition: transform .12s; }
 #dosGrupos .grupo:active { transform: scale(.96); }
 #dosGrupos .grupo img { width: 52px; height: 52px; object-fit: contain; }
+/* feedback elaborado (14-jul-2026): al errar, un anclaje numérico concreto
+   para volver a contar — más útil que solo sacudir, y no depende de leer
+   (investigación: el feedback que explica el porqué aprende más que el
+   feedback simple "mal, probá de nuevo") */
+#dosGrupos .grupo__num {
+  position: absolute; top: 8px; right: 8px; min-width: 34px; height: 34px;
+  border-radius: 999px; background: var(--ac); color: #fff; font-family: "Baloo", sans-serif;
+  font-size: 19px; display: none; align-items: center; justify-content: center;
+  box-shadow: var(--sombra); animation: pop .3s ease both;
+}
+#dosGrupos .grupo__num.ver { display: flex; }
+
+/* noción espacial (14-jul-2026, Sala de 4 Bimestre 1 — arriba/abajo/
+   adentro/afuera): una caja de referencia fija + 2 sprites en posiciones
+   CONTRASTANTES del mismo eje (arriba↔abajo o adentro↔afuera) — nunca se
+   mezclan los dos ejes en la misma ronda. */
+.cajaPosicion { position: relative; min-height: 300px; width: 100%; max-width: 380px; margin: 0 auto; }
+.cajaPosicion__caja {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 160px; height: 120px; border: 5px dashed var(--ac2); border-radius: 18px;
+  background: var(--soft);
+}
+.cajaPosicion .spriteBtn { position: absolute; width: 84px; height: 84px; padding: 0; }
+.cajaPosicion .spriteBtn img { width: 100%; height: 100%; object-fit: contain; }
+.cajaPosicion__arriba  { left: 50%; top: 0; transform: translateX(-50%); }
+.cajaPosicion__abajo   { left: 50%; bottom: 0; transform: translateX(-50%); }
+.cajaPosicion__adentro { left: 50%; top: 50%; transform: translate(-50%, -50%); }
+.cajaPosicion__afuera  { right: 8px; top: 50%; transform: translateY(-50%); }
+/* .spriteBtn:active pisa el transform con scale() — combinarlo, si no el
+   sprite "salta" al toque (perdía la posición absoluta al apretar) */
+.cajaPosicion__arriba:active  { transform: translateX(-50%) scale(.92); }
+.cajaPosicion__abajo:active   { transform: translateX(-50%) scale(.92); }
+.cajaPosicion__adentro:active { transform: translate(-50%, -50%) scale(.92); }
+.cajaPosicion__afuera:active  { transform: translateY(-50%) scale(.92); }
 
 /* números grandes (sumas / restas / serie) */
 .cuentaGrande { display: flex; align-items: center; justify-content: center; gap: 14px;

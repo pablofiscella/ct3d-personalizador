@@ -184,7 +184,7 @@ corta del porqué, no solo "¡mal! probá de nuevo".
 
 | Orden | Edad/grado | Tipo de trabajo | Esfuerzo relativo |
 |---|---|---|---|
-| 1 | Sala de 4 años | Curación pura sobre bimestres reales del NAP — ver diseño abajo (§5): 11/11 contenidos matemáticos ya tienen juego | Bajo |
+| 1 | Sala de 4 años | ✅ Primer incremento shippeado 14-jul-2026 (§5b): mas_menos con feedback elaborado, juego nuevo `posicion`, `contar` diferenciado por edad. Faltan: audio-guía, auditoría visual completa, versión impresa de `posicion` | Bajo |
 | 2 | Sala de 5 años | Mitad curación (matemática) + primer trabajo de audio/fonética (conciencia fonológica) — ver §5 | Bajo (matemática) / Medio (fonética, mecánica nueva) |
 | 3 | 1° grado | Ampliar rango numérico real (hoy tope ~7-8, NAP pide hasta 100) + agregar mecánica de sílabas CV (juego nuevo: "armar palabras arrastrando sílabas", idea que el propio Pablo ya trajo) — reusa el trabajo de audio de Sala de 5 | Medio |
 | 4 | 2° grado | Separar de la banda "grande" (hoy comparte banda con 1° y con 12 años); sílabas complejas, cursiva, multiplicación conceptual (arreglos rectangulares), números hasta 1.000 — desglose bimestral ya disponible en `docs/CURRICULUM-NAP-ARGENTINA.md` | Medio |
@@ -268,38 +268,55 @@ tipos de trabajo distintos:
    juego con componente de AUDIO real, no solo visual. Vale la pena tratarlo
    como su propio hito, no colarlo dentro del trabajo de curación.
 
-## 5b. Plan de implementación — Sala de 4 años (listo para construir)
+## 5b. Plan de implementación — Sala de 4 años
 
-Con las 5 fuentes cruzadas, esto es lo que hay que hacer, en orden, para que
-Sala de 4 sea real y no solo "aceptable":
+### Construido 14-jul-2026 (Pablo: "empecemos... si hay que mejorar las
+actividades que hicimos podés hacerlo")
 
-1. **Auditar los 11 juegos de la banda `media` usados en Sala de 4** (§5)
-   contenido visual por contenido visual: para cada uno, ¿el set de
-   imágenes que se le puede mostrar a un chico de 4 años es
-   REPRESENTACIONAL de lo que se le pide, o hay decoración tangencial de
-   por medio? (§2b — el hallazgo del "detalle seductor"). Ejemplo concreto:
-   en `agrupar` (clasificación por atributo, Bimestre 2), las imágenes que
-   se clasifican tienen que ser el foco — sin personajes de fondo
-   compitiendo por atención.
-2. **Ajustar los parámetros numéricos por bimestre** (no un solo `max` para
-   todo el año): B1 conteo hasta 5, B2 número hasta 3, B3 conteo hasta 10 —
-   hoy `contar` tiene un solo `max=6` para toda la banda `media`; hace falta
-   parametrizar por bimestre, no por banda de edad completa.
-3. **Revisar cada juego contra la verificación de aprendizaje real** (§2b):
-   ¿tiene pocas opciones donde la eliminación gana sin entender (como
-   `mas_menos`)? Si sí, documentarlo como deuda conocida — no bloquea
-   lanzar Sala de 4, pero sí que quede escrito para no repetir el patrón en
-   juegos nuevos.
-4. **Diseñar (no necesariamente construir ya) el componente de audio-guía**
-   — es la brecha de UX más urgente identificada (§2b), más que cualquier
-   juego nuevo. Aunque no se implemente en la primera versión, dejarlo
-   como decisión consciente y documentada, no como olvido.
-5. **El único contenido de Sala de 4 sin ningún juego hoy** es la noción
-   espacial (arriba/abajo/adentro/afuera, Bimestre 1) — decidir si entra en
-   esta primera versión (juego nuevo chico) o se deja fuera conscientemente.
-6. **Escribir el test guardián** de cualquier parámetro nuevo (ej. que
-   `contar` con `max=3` nunca muestre más de 3 objetos) — mismo criterio
-   que el resto del motor.
+1. ✅ **Arreglado el hueco de "aprender de verdad" en `mas_menos`.**
+   Feedback elaborado real (§2b, punto 3 del informe / §4c de la skill): al
+   errar, ambos grupos muestran su cantidad en un número grande 1.4s antes
+   de dejar reintentar — un anclaje concreto para volver a contar, en vez
+   de solo sacudir sin explicar nada. No cambia el criterio de estrellas
+   (ya exigía 0 errores para 3⭐, correcto), mejora la CALIDAD del intento
+   fallido.
+2. ✅ **Construido `GAMES.posicion`** — el único contenido de Sala de 4 sin
+   ningún juego (noción espacial arriba/abajo/adentro/afuera, Bimestre 1).
+   Una caja de referencia + 2 posiciones CONTRASTANTES del mismo eje por
+   ronda (nunca arriba vs. afuera, siempre arriba↔abajo o adentro↔afuera) —
+   mismo criterio de distractor-no-al-azar que pide §2b. Agregado a la
+   banda `media` de `actividades_web._menu()` (4 y 5 años).
+3. ✅ **Diferenciado `contar` por edad exacta, no solo por banda** — Sala de
+   4 pide "conteo oral hasta el 5" (NAP); hasta ahora 4 y 5 años
+   compartían el mismo `max=6`. Mismo patrón que ya usaba `sumas`
+   (`if e >= 5`), extendido con `if e == 4`.
+4. Probado en vivo con Playwright (no solo tests unitarios): las 3 mejoras
+   funcionan de punta a punta en un navegador real, capturas en la
+   conversación.
+
+### Deliberadamente NO hecho en esta pasada (decisión consciente, no olvido)
+
+1. **Audio-guía** — sigue siendo la brecha de UX más urgente identificada
+   (§2b), pero es un trabajo grande de verdad (integrar TTS, generar/cachear
+   audio por consigna, cambios de UI del player) que merece su propio
+   hito enfocado, no una tarea more agregada a esta tanda. `audiolibro.py`
+   ya tiene el motor de voz (ElevenLabs, acento argentino) — reusar ese
+   mismo camino cuando se aborde.
+2. **Auditoría visual completa de las 11 piezas de Sala de 4 contra el
+   "detalle seductor"** (§2b) — no se revisó imagen por imagen todavía si
+   hay decoración tangencial en `agrupar`/`diferente`/etc. Queda para la
+   próxima pasada.
+3. **Parametrización real por bimestre** — no se construyó un selector de
+   bimestre porque hoy NO existe ningún flujo (compra o "Modo Maestra") que
+   pida esa información; hacerlo ahora sería plomería sin nada que la use
+   todavía. El ajuste del punto 3 de arriba (edad exacta, no bimestre) es
+   la versión que SÍ tiene un consumidor real hoy — el bimestre exacto
+   espera a que "Modo Maestra" exista como feature real.
+4. **Equivalente impreso (PDF) de `posicion`** — el juego nuevo hoy es
+   solo interactivo web; `cuaderno.py` no tiene un generador `_a_posicion`
+   todavía. Verificado que esto NO rompe nada (la card de la galería cae a
+   un fallback genérico), pero es trabajo pendiente si se quiere paridad
+   completa PDF/web.
 
 ## 6. Pendientes que dependen de Pablo (no técnicos)
 

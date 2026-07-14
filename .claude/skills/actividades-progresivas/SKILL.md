@@ -102,7 +102,7 @@ edad" (roadmap 14-jul-2026). NO improvisar la mezcla — usar esta tabla:
 
 | Orden | Edad/grado | Estado (14-jul-2026) | Tipo de trabajo |
 |---|---|---|---|
-| 1 | Sala de 4 años | 🔜 Próximo — mapeo bimestre a bimestre ya hecho, informe §5: 11/11 contenidos matemáticos ya tienen juego | Curación (bajo esfuerzo) |
+| 1 | Sala de 4 años | ✅ Primer incremento shippeado 14-jul-2026 — ver informe §5b. Faltan: audio-guía (su propio hito), auditoría visual completa, `posicion` en el cuaderno impreso | Curación (bajo esfuerzo) |
 | 2 | Sala de 5 años | Mapeo ya hecho, informe §5 — mitad matemática lista, mitad fonética sin construir | Curación (matemática) + construcción (audio/fonética) |
 | 3 | 1° grado | Desglose disponible en el currículum | Curación + ampliar rango numérico + sílabas CV (reusa el audio de Sala 5) |
 | 4 | 2° grado | Desglose disponible en el currículum (completado 14-jul) | Curación + banda propia (hoy comparte con 12 años) + cursiva + multiplicación conceptual |

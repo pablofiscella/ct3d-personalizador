@@ -52,6 +52,18 @@ def test_bandas_de_edad():
     assert "sopa" not in ids_mini and "sudoku" not in ids_mini
     ids_grande = {m["id"] for m in aw._menu("grande", 7)}
     assert {"sopa", "sudoku", "sumas", "restas"} <= ids_grande
+    # "posicion" (noción espacial arriba/abajo/adentro/afuera, Sala de 4
+    # Bimestre 1 NAP, 14-jul-2026): banda media (4-5 años), no en mini ni grande
+    ids_media4 = {m["id"] for m in aw._menu("media", 4)}
+    assert "posicion" in ids_media4
+    assert "posicion" not in ids_mini and "posicion" not in ids_grande
+    # NAP Sala de 4: "conteo oral hasta el 5" — antes del 14-jul-2026 4 y 5
+    # años compartían el mismo max=6 en "contar", sin distinguir dentro de
+    # la banda "media".
+    contar4 = next(m for m in aw._menu("media", 4) if m["id"] == "contar")
+    contar5 = next(m for m in aw._menu("media", 5) if m["id"] == "contar")
+    assert contar4["cfg"]["max"] == 5
+    assert contar5["cfg"]["max"] == 6
 
 
 def test_laberintos_transitables(data):
