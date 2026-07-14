@@ -5300,6 +5300,7 @@ GAMES.programar_camino = {
       ctx.juego.appendChild(filaInstr);
 
       const filaAcciones = el("div", "filaSprites");
+      filaAcciones.style.marginTop = "14px";
       const btnDeshacer = el("button", "btn suave", "⌫ Deshacer");
       btnDeshacer.addEventListener("click", () => {
         if (jugando) return;
