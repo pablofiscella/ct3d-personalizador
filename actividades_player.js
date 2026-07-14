@@ -3561,6 +3561,524 @@ GAMES.prefijos_sufijos = {
   },
 };
 
+/* ── ¿VERDADERO O FALSO? — VIDA COLONIAL (14-jul-2026, 5° grado NAP
+   Bimestre 1 "Ideas web": "trivia histórica de la vida colonial en Buenos
+   Aires"). Mismo patrón de clasificar 2 categorías que campo_ciudad. ── */
+const COLONIAL_BANCO = [
+  { afirmacion: "El Cabildo era el gobierno de la ciudad en la época colonial", val: true },
+  { afirmacion: "El contrabando estaba permitido libremente por España", val: false },
+  { afirmacion: "La pulpería era una tienda donde se vendía de todo", val: true },
+  { afirmacion: "Los criollos eran hijos de españoles nacidos en América", val: true },
+  { afirmacion: "El monopolio permitía comerciar libremente con cualquier país", val: false },
+];
+GAMES.trivia_colonial = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Es verdadero o falso?");
+      ctx.juego.innerHTML = "";
+      let disp = COLONIAL_BANCO.filter((x) => !usados.includes(x.afirmacion));
+      if (!disp.length) { usados = []; disp = COLONIAL_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.afirmacion);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:22px;font-family:'Baloo',sans-serif">${item.afirmacion}</span>`));
+      ctx.juego.appendChild(arriba);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      shuffle([{ v: true, label: "✅ Verdadero" }, { v: false, label: "❌ Falso" }]).forEach(({ v, label }) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:19px;font-family:'Baloo',sans-serif">${label}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (v === item.val) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── EL CAMINO DIGESTIVO (14-jul-2026, 5° grado NAP Bimestre 1 "Ideas
+   web": "arrastrar alimentos por los órganos correctos" — adaptado a
+   tap-en-orden, mismo patrón que armar_palabra/prefijos_sufijos: tocar los
+   órganos en el orden real del sistema digestivo. ── */
+GAMES.camino_digestivo = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 4;
+    ctx.rondas(rondas);
+    const ORGANOS = ["Boca", "Esófago", "Estómago", "Intestino delgado", "Intestino grueso"];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("Tocá los órganos en el orden correcto del camino digestivo");
+      ctx.juego.innerHTML = "";
+      const tablero = el("div", "tablero armarPalabraTablero");
+      const filaSlots = el("div", "armarPalabraSlots");
+      const slots = ORGANOS.map(() => el("div", "armarPalabraSlot", ""));
+      slots.forEach((s) => filaSlots.appendChild(s));
+      tablero.appendChild(filaSlots);
+      const filaOrganos = el("div", "filaSprites");
+      filaOrganos.style.marginTop = "18px";
+      let siguiente = 0;
+      let resuelto = false;
+      shuffle(ORGANOS.map((s, i) => ({ s, i }))).forEach(({ s, i }) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:15px;font-family:'Baloo',sans-serif">${s}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto || b.disabled) return;
+          if (i === siguiente) {
+            b.disabled = true;
+            b.classList.add("anim-brinco");
+            slots[i].textContent = String(i + 1);
+            slots[i].classList.add("anim-pop");
+            Sfx.tick(siguiente + 1);
+            siguiente++;
+            if (siguiente >= ORGANOS.length) {
+              resuelto = true;
+              ctx.bien();
+              ronda++;
+              await espera(1100);
+              if (ronda >= rondas) ctx.win();
+              else jugar();
+            }
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        filaOrganos.appendChild(b);
+      });
+      tablero.appendChild(filaOrganos);
+      ctx.juego.appendChild(tablero);
+    };
+    jugar();
+  },
+};
+
+/* ── FRACCIONES EQUIVALENTES — NIVEL 2 (14-jul-2026, 5° grado NAP
+   Bimestre 2 "Ideas web": "calculadora de equivalencias con barras
+   deslizantes — 2/3 = 4/6 = 6/9"). Mismo motor visual (barras CPA) que
+   fracciones_equivalentes de 4° grado, banco más difícil (tercios/novenos/
+   décimos en vez de medios/cuartos/octavos) — juego propio, no una
+   extensión del banco del año anterior, para que cada año conserve su
+   propio progreso de estrellas. ── */
+const FRACCIONES_AVANZADO_BANCO = [
+  { num: 2, den: 3, eq: { num: 4, den: 6 }, d1: { num: 3, den: 6 }, d2: { num: 5, den: 6 } },
+  { num: 2, den: 3, eq: { num: 6, den: 9 }, d1: { num: 4, den: 9 }, d2: { num: 8, den: 9 } },
+  { num: 1, den: 3, eq: { num: 3, den: 9 }, d1: { num: 2, den: 9 }, d2: { num: 5, den: 9 } },
+  { num: 3, den: 5, eq: { num: 6, den: 10 }, d1: { num: 4, den: 10 }, d2: { num: 8, den: 10 } },
+  { num: 2, den: 5, eq: { num: 4, den: 10 }, d1: { num: 3, den: 10 }, d2: { num: 7, den: 10 } },
+];
+GAMES.fracciones_avanzado = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    const barra = (num, den) => {
+      const cont = el("div", "fraccionBarra");
+      for (let i = 0; i < den; i++) cont.appendChild(el("div", "fraccionBarra__seg" + (i < num ? " lleno" : "")));
+      return cont;
+    };
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Cuál de estas barras muestra la misma fracción?");
+      ctx.juego.innerHTML = "";
+      let disp = FRACCIONES_AVANZADO_BANCO.filter((x) => !usados.includes(x.num + "/" + x.den));
+      if (!disp.length) { usados = []; disp = FRACCIONES_AVANZADO_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.num + "/" + item.den);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(barra(item.num, item.den));
+      ctx.juego.appendChild(arriba);
+      const opciones = shuffle([item.eq, item.d1, item.d2]);
+      const fila = el("div", "filaSprites fraccionesOpciones");
+      let resuelto = false;
+      opciones.forEach((op) => {
+        const b = el("button", "spriteBtn fraccionBtn");
+        b.appendChild(barra(op.num, op.den));
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (op.num === item.eq.num && op.den === item.eq.den) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── NÚCLEO DEL SUJETO O DEL PREDICADO — CONTRARRELOJ (14-jul-2026, 5°
+   grado NAP Bimestre 2 "Ideas web": "velocidad de análisis sintáctico —
+   núcleo del sujeto o del predicado"). SEGUNDA mecánica de timer del
+   motor (la primera fue tablas_contrarreloj, 2° grado) — mismo guard de
+   seguridad: el intervalo se auto-apaga si su nodo deja de estar
+   conectado al documento (evita corromper Shell.fallos de otro juego si
+   el jugador navega a mitad de ronda). ── */
+const SINTACTICO_BANCO = [
+  { oracion: "El <b>perro</b> ladra fuerte.", tipo: "sujeto" },
+  { oracion: "La niña <b>corre</b> en el parque.", tipo: "predicado" },
+  { oracion: "Los <b>chicos</b> juegan al fútbol.", tipo: "sujeto" },
+  { oracion: "Mi mamá <b>cocina</b> todos los días.", tipo: "predicado" },
+  { oracion: "El <b>sol</b> brilla en el cielo.", tipo: "sujeto" },
+  { oracion: "El gato <b>duerme</b> en el sillón.", tipo: "predicado" },
+];
+GAMES.analisis_sintactico = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 6;
+    ctx.rondas(rondas);
+    const TIEMPO_MS = 6000;
+    let usados = [];
+    let ronda = 0;
+    let intervalId = null;
+    const jugar = () => {
+      if (intervalId) { clearInterval(intervalId); intervalId = null; }
+      ctx.ronda(ronda);
+      ctx.consigna("Elegí rápido: ¿es núcleo del sujeto o del predicado?");
+      ctx.juego.innerHTML = "";
+      let disp = SINTACTICO_BANCO.filter((x) => !usados.includes(x.oracion));
+      if (!disp.length) { usados = []; disp = SINTACTICO_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.oracion);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:22px;font-family:'Baloo',sans-serif">${item.oracion}</span>`));
+      ctx.juego.appendChild(arriba);
+      const barraWrap = el("div", "barraTiempo");
+      const barra = el("div", "barraTiempo__fill");
+      barraWrap.appendChild(barra);
+      ctx.juego.appendChild(barraWrap);
+      let resuelto = false;
+      const inicio = Date.now();
+      intervalId = setInterval(() => {
+        if (!barraWrap.isConnected) {
+          clearInterval(intervalId);
+          intervalId = null;
+          return;
+        }
+        const restante = Math.max(0, 1 - (Date.now() - inicio) / TIEMPO_MS);
+        barra.style.width = (restante * 100) + "%";
+        if (restante <= 0 && !resuelto) {
+          clearInterval(intervalId);
+          intervalId = null;
+          ctx.casi();
+          jugar();
+        }
+      }, 100);
+      const fila = el("div", "filaSprites");
+      shuffle(["sujeto", "predicado"]).forEach((tipo) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:18px;font-family:'Baloo',sans-serif">Núcleo del ${tipo}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (tipo === item.tipo) {
+            resuelto = true;
+            if (intervalId) { clearInterval(intervalId); intervalId = null; }
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(700);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── PAGO EXACTO (14-jul-2026, 5° grado NAP Bimestre 3 "Ideas web":
+   "simular pago con billetes/monedas argentinas reales — centavos
+   incluidos"). Mismo patrón probado de cajero_automatico (3° grado, tocar
+   2 que sumen el objetivo), con denominaciones que incluyen centavos —
+   los valores se guardan en CENTAVOS (enteros) para no arrastrar errores
+   de punto flotante, y se formatean a pesos recién al mostrar. ── */
+function _formatoPesos(centavos) {
+  return "$" + (centavos / 100).toFixed(2);
+}
+GAMES.pago_exacto = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    const MONEDAS = [25, 50, 100, 200, 500, 1000];   // $0.25, $0.50, $1, $2, $5, $10
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("Tocá las monedas que sumen el pago exacto");
+      ctx.juego.innerHTML = "";
+      const idxA = rint(0, MONEDAS.length - 1);
+      let idxB = rint(0, MONEDAS.length - 1);
+      while (idxB === idxA) idxB = rint(0, MONEDAS.length - 1);
+      const a = MONEDAS[idxA], b = MONEDAS[idxB];
+      const objetivo = a + b;
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:30px;font-family:'Baloo',sans-serif">Pagá ${_formatoPesos(objetivo)}</span>`));
+      ctx.juego.appendChild(arriba);
+      let nums = [a, b];
+      let guardas = 0;
+      while (nums.length < 5 && guardas < 100) {
+        guardas++;
+        const v = MONEDAS[rint(0, MONEDAS.length - 1)];
+        if (!nums.includes(v) && !nums.some((n) => n + v === objetivo)) nums.push(v);
+      }
+      nums = shuffle(nums);
+      const fila = el("div", "filaSprites");
+      let elegido = null;
+      let resuelto = false;
+      nums.forEach((v, idx) => {
+        const btn = el("button", "spriteBtn", `<span style="font-size:18px;font-family:'Baloo',sans-serif">${_formatoPesos(v)}</span>`);
+        btn.addEventListener("click", async () => {
+          if (resuelto || btn.disabled) return;
+          if (elegido === null) {
+            elegido = { idx, v, btn };
+            btn.classList.add("elegido");
+            return;
+          }
+          if (elegido.idx === idx) return;
+          if (elegido.v + v === objetivo) {
+            resuelto = true;
+            btn.disabled = true;
+            elegido.btn.disabled = true;
+            btn.classList.add("anim-pop");
+            elegido.btn.classList.add("anim-pop");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            const prevBtn = elegido.btn;
+            prevBtn.classList.remove("elegido");
+            btn.style.animation = "sacudir .4s ease";
+            prevBtn.style.animation = "sacudir .4s ease";
+            setTimeout(() => { btn.style.animation = ""; prevBtn.style.animation = ""; }, 450);
+            ctx.casi();
+            elegido = null;
+          }
+        });
+        fila.appendChild(btn);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── ¿QUÉ SE PRODUCE EN ESTA REGIÓN? (14-jul-2026, 5° grado NAP Bimestre
+   3 "Ideas web": "mapa interactivo de actividad económica por región" —
+   simplificado a trivia, mismo criterio que provincias_region de 4°
+   grado: un mapa económico interactivo real es un asset, no un juego). ── */
+const ECONOMIA_BANCO = [
+  { p: "Vino", region: "Cuyo" }, { p: "Ganado", region: "Pampeana" },
+  { p: "Azúcar", region: "NOA" }, { p: "Yerba mate", region: "NEA" },
+  { p: "Petróleo", region: "Patagonia" }, { p: "Trigo", region: "Pampeana" },
+];
+GAMES.actividad_economica = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 6;
+    ctx.rondas(rondas);
+    const REGIONES = ["Cuyo", "Pampeana", "NOA", "NEA", "Patagonia"];
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿En qué región se produce esto?");
+      ctx.juego.innerHTML = "";
+      let disp = ECONOMIA_BANCO.filter((x) => !usados.includes(x.p));
+      if (!disp.length) { usados = []; disp = ECONOMIA_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.p);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:28px;font-family:'Baloo',sans-serif">${item.p}</span>`));
+      ctx.juego.appendChild(arriba);
+      // 3 opciones: la correcta + 2 distractoras (nunca las 5 regiones juntas —
+      // demasiadas opciones para el tamaño mínimo de blanco táctil)
+      let opciones = [item.region];
+      while (opciones.length < 3) {
+        const r = REGIONES[rint(0, REGIONES.length - 1)];
+        if (!opciones.includes(r)) opciones.push(r);
+      }
+      opciones = shuffle(opciones);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      opciones.forEach((r) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:18px;font-family:'Baloo',sans-serif">${r}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (r === item.region) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── PLANTA POTABILIZADORA (14-jul-2026, 5° grado NAP Bimestre 4 "Ideas
+   web": "planta potabilizadora — ordenar los pasos de purificación").
+   Mismo patrón tap-en-orden que camino_digestivo/armar_palabra. ── */
+GAMES.planta_potabilizadora = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 4;
+    ctx.rondas(rondas);
+    const PASOS = ["Captación", "Filtración", "Desinfección", "Distribución"];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("Tocá los pasos de la potabilización en el orden correcto");
+      ctx.juego.innerHTML = "";
+      const tablero = el("div", "tablero armarPalabraTablero");
+      const filaSlots = el("div", "armarPalabraSlots");
+      const slots = PASOS.map(() => el("div", "armarPalabraSlot", ""));
+      slots.forEach((s) => filaSlots.appendChild(s));
+      tablero.appendChild(filaSlots);
+      const filaPasos = el("div", "filaSprites");
+      filaPasos.style.marginTop = "18px";
+      let siguiente = 0;
+      let resuelto = false;
+      shuffle(PASOS.map((s, i) => ({ s, i }))).forEach(({ s, i }) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:16px;font-family:'Baloo',sans-serif">${s}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto || b.disabled) return;
+          if (i === siguiente) {
+            b.disabled = true;
+            b.classList.add("anim-brinco");
+            slots[i].textContent = String(i + 1);
+            slots[i].classList.add("anim-pop");
+            Sfx.tick(siguiente + 1);
+            siguiente++;
+            if (siguiente >= PASOS.length) {
+              resuelto = true;
+              ctx.bien();
+              ronda++;
+              await espera(1100);
+              if (ronda >= rondas) ctx.win();
+              else jugar();
+            }
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        filaPasos.appendChild(b);
+      });
+      tablero.appendChild(filaPasos);
+      ctx.juego.appendChild(tablero);
+    };
+    jugar();
+  },
+};
+
+/* ── DERECHOS Y CONSTITUCIÓN (14-jul-2026, 5° grado NAP Bimestre 4 "Ideas
+   web": "trivia de Derechos del Niño y bases constitucionales"). Mismo
+   patrón Verdadero/Falso que trivia_colonial. ── */
+const DERECHOS_BANCO = [
+  { afirmacion: "Todos los niños tienen derecho a la educación", val: true },
+  { afirmacion: "La Constitución Argentina no protege ningún derecho", val: false },
+  { afirmacion: "Argentina es una república federal y democrática", val: true },
+  { afirmacion: "Los niños no tienen derecho a jugar ni a descansar", val: false },
+  { afirmacion: "Todos los niños tienen derecho a la salud", val: true },
+];
+GAMES.derechos_constitucion = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Es verdadero o falso?");
+      ctx.juego.innerHTML = "";
+      let disp = DERECHOS_BANCO.filter((x) => !usados.includes(x.afirmacion));
+      if (!disp.length) { usados = []; disp = DERECHOS_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.afirmacion);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:22px;font-family:'Baloo',sans-serif">${item.afirmacion}</span>`));
+      ctx.juego.appendChild(arriba);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      shuffle([{ v: true, label: "✅ Verdadero" }, { v: false, label: "❌ Falso" }]).forEach(({ v, label }) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:19px;font-family:'Baloo',sans-serif">${label}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (v === item.val) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 GAMES.serie = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 6;

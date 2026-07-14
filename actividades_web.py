@@ -237,6 +237,21 @@ def _menu(banda, edad):
         # Bimestre 4: ángulos + prefijos.
         g.append({"id": "angulos", "titulo": "Agudo, recto u obtuso", "icono": "📐", "cfg": {"rondas": 6}})
         g.append({"id": "prefijos_sufijos", "titulo": "Palabras nuevas", "icono": "🔗", "cfg": {"rondas": 5}})
+    if e == 10:
+        # 5° grado (14-jul-2026): mismo criterio — un juego por cada "Idea
+        # web" del NAP.
+        # Bimestre 1: trivia colonial + camino digestivo.
+        g.append({"id": "trivia_colonial", "titulo": "Vida colonial", "icono": "🏛️", "cfg": {"rondas": 5}})
+        g.append({"id": "camino_digestivo", "titulo": "El camino digestivo", "icono": "🍽️", "cfg": {"rondas": 4}})
+        # Bimestre 2: fracciones nivel 2 + análisis sintáctico contrarreloj.
+        g.append({"id": "fracciones_avanzado", "titulo": "Fracciones equivalentes II", "icono": "🥧", "cfg": {"rondas": 5}})
+        g.append({"id": "analisis_sintactico", "titulo": "Núcleo del sujeto o predicado", "icono": "✏️", "cfg": {"rondas": 6}})
+        # Bimestre 3: pago exacto + actividad económica por región.
+        g.append({"id": "pago_exacto", "titulo": "Pago exacto", "icono": "🪙", "cfg": {"rondas": 5}})
+        g.append({"id": "actividad_economica", "titulo": "¿Qué se produce acá?", "icono": "🌾", "cfg": {"rondas": 6}})
+        # Bimestre 4: planta potabilizadora + derechos y constitución.
+        g.append({"id": "planta_potabilizadora", "titulo": "Planta potabilizadora", "icono": "💧", "cfg": {"rondas": 4}})
+        g.append({"id": "derechos_constitucion", "titulo": "Derechos y Constitución", "icono": "📜", "cfg": {"rondas": 5}})
     return g
 
 
