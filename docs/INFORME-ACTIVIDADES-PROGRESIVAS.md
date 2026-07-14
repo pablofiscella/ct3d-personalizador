@@ -192,7 +192,7 @@ corta del porqué, no solo "¡mal! probá de nuevo".
 | 6 | 4° grado | ✅ Cerrado 14-jul-2026 (§5h): mismo criterio "Ideas web" — 8 juegos nuevos (`abstractos_concretos`, `provincias_region`, `acentuacion`, `fotosintesis`, `laboratorio_electrico`, `fracciones_equivalentes`, `angulos`, `prefijos_sufijos`). PRIMERA representación visual de fracciones del motor (barras CPA) — bug real de CSS encontrado y arreglado en vivo. 2 "Ideas web" simplificadas (mapa de provincias → trivia de región; transportador → ángulo dibujado clasificado) por necesitar assets/mecánicas que el motor no tiene | Medio |
 | 7 | 5° grado | ✅ Cerrado 14-jul-2026 (§5i): mismo criterio "Ideas web" — 8 juegos nuevos (`trivia_colonial`, `camino_digestivo`, `fracciones_avanzado`, `analisis_sintactico`, `pago_exacto`, `actividad_economica`, `planta_potabilizadora`, `derechos_constitucion`). SEGUNDA mecánica de timer del motor. Mapa económico simplificado a trivia (mismo criterio que 4° grado) | Medio |
 | 8 | 6° grado | ✅ Cerrado 14-jul-2026 (§5j): mismo criterio "Ideas web" — 8 juegos nuevos (`celula_partes`, `hechos_opiniones`, `sistema_nervioso`, `viaje_inmigrante`, `fraccion_de_cantidad`, `sufragio_argentina`, `energia_renovable`, `poligonos_lados`). 3 "Ideas web" simplificadas de simulación a contenido directo (microscopio, reflejos, ciudad sustentable) | Medio |
-| 9 | 7° grado | Mcm/dcm, álgebra informal, sistema solar, geopolítica de América Latina — fin del NAP (año de egreso) — desglose bimestral disponible en el currículum | Alto |
+| 9 | 7° grado | ✅ Cerrado 14-jul-2026 (§5k, fin del NAP — año de egreso): mismo criterio "Ideas web" — 8 juegos nuevos (`traductor_algebraico`, `planetas_tipo`, `linea_democracia`, `sistema_reproductor`, `estadistica_datos`, `red_trofica`, `area_perimetro`, `escape_room_egreso`). Con esto se cierran los 9 años del currículum NAP completo (Sala de 4 a 7° grado) | Medio |
 
 Los pasos 5-7 comparten un patrón: necesitan tipos de actividad NUEVOS (no
 extender parámetros de los 23 que ya existen), así que conviene diseñarlos
@@ -861,6 +861,66 @@ Nacional, Modelo Agroexportador, marco ESI de pubertad) queda para una
 pasada de diseño aparte. Una superficie de dibujo geométrico por
 nodos/vértices y un medidor de tiempo de reacción real quedan como
 inversión de mecánica pendiente si en algún momento se justifican.
+
+## 5k. Cierre de 7° grado (fin del NAP — año de egreso)
+
+Mismo criterio "Ideas web". Último año del currículum: con este cierre
+quedan cubiertos los 9 años de escolaridad completos (Sala de 4 a 7°
+grado). Sin ninguna mecánica nueva del motor (a diferencia de 2°/5° grado
+con timer o 4° grado con barras CPA) — los 8 juegos reusan integramente
+patrones ya probados en años anteriores.
+
+| Bimestre | "Idea web" del NAP | Juego | Nota |
+|---|---|---|---|
+| 1 | traductor algebraico (emparejar oración con fórmula) | `traductor_algebraico` | matching 3 opciones |
+| 1 | simulador a escala del sistema solar (modificar órbitas) | `planetas_tipo` | **simplificado** a clasificar terrestre/gaseoso |
+| 2 | línea de tiempo de la democracia (presidentes e hitos desde 1983) | `linea_democracia` | tap-en-orden |
+| 2 | diagrama interactivo de aparatos reproductores | `sistema_reproductor` | matching parte→función (contenido ESI, ley 26.150) |
+| 3 | creador de gráficos dinámicos (datos → promedio) | `estadistica_datos` | **simplificado** a cálculo directo del promedio |
+| 3 | simulador de red trófica (retirar un eslabón, ver el colapso) | `red_trofica` | **simplificado** a clasificar 3 categorías (productor/consumidor/descomponedor) |
+| 4 | diseñador de planos virtual (arrastrar muebles, área/perímetro en vivo) | `area_perimetro` | **simplificado** a calcular área de figura compuesta (2 rectángulos) |
+| 4 | escape room de egreso (integra matemática, historia, gramática, biología del año) | `escape_room_egreso` | **simplificado** a trivia mixta de las 4 áreas, matching 3 opciones |
+
+### Decisiones de diseño
+
+1. **`sistema_reproductor`** es contenido de Educación Sexual Integral (ley
+   26.150, obligatoria en la NAP de 7° grado) — se construyó con registro
+   estrictamente clínico/textual (nombre del órgano → su función), sin
+   ninguna imagen, mismo patrón exacto de matching que `celula_partes`.
+   Los distractores son la confusión real más común a esta edad: el
+   órgano equivalente del OTRO sexo, o un órgano de OTRO sistema del
+   cuerpo — nunca una opción absurda al azar.
+2. **`planetas_tipo`** y **`area_perimetro`**: ambas "Ideas web" pedían una
+   mecánica de arrastre/simulación libre (mover órbitas, arrastrar
+   paredes con recálculo en vivo) que el motor no tiene; en los dos casos
+   el contenido curricular real —clasificar planetas, calcular área de
+   una figura compuesta— se verifica igual de bien sin esa capa.
+3. **`escape_room_egreso`**: la "Idea web" original describe explícitamente
+   una integración de las 4 áreas DEL AÑO (no de los 9 años completos) —
+   el banco de preguntas se armó a propósito solo con contenido de los
+   otros 3 bimestres de 7° grado (mcm, democracia, sujeto/predicado,
+   cambios físicos/químicos, sistema solar, proporcionalidad inversa,
+   geografía de América Latina, tilde diacrítica), no un repaso de toda
+   la escolaridad.
+4. **`red_trofica`**: reusa el patrón de 3 categorías de `partes_oracion`
+   (3° grado) en vez de 2 — primera vez que ese patrón se reusa para
+   ciencias naturales en lugar de lengua.
+
+### Deliberadamente NO hecho
+
+Mismo criterio que todos los años anteriores: contenido de 7° grado sin
+una "Idea web" propia del NAP (texto de divulgación científica, análisis
+sintáctico profundo con aposición, proporcionalidad inversa con tablas,
+novela juvenil/debate académico, reseña literaria, geopolítica y
+globalización — ONU/OEA/Mercosur, Estado federal y coparticipación,
+propiedades de la materia, literatura clásica de egreso, texto colectivo
+de despedida) queda para una pasada de diseño aparte — son "Ideas PDF" o
+contenido sin sugerencia web todavía, no deuda de esta pasada.
+
+Con el cierre de 7° grado terminan los 9 años del currículum NAP
+(Sala de 4 a 7° grado). Cualquier trabajo siguiente sobre
+`actividades-web` es una pasada de REVISIÓN/MEJORA sobre lo ya construido,
+no expansión de currículum nuevo.
 
 ## 6. Pendientes que dependen de Pablo (no técnicos)
 

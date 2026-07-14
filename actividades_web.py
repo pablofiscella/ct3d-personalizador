@@ -267,6 +267,21 @@ def _menu(banda, edad):
         # Bimestre 4: energía renovable + polígonos.
         g.append({"id": "energia_renovable", "titulo": "¿Renovable o no?", "icono": "⚡", "cfg": {"rondas": 6}})
         g.append({"id": "poligonos_lados", "titulo": "¿Cuántos lados tiene?", "icono": "⬡", "cfg": {"rondas": 6}})
+    if e == 12:
+        # 7° grado (14-jul-2026, año de egreso, fin del NAP) — mismo
+        # criterio: un juego por cada "Idea web" del NAP.
+        # Bimestre 1: traductor algebraico + sistema solar (terrestre/gaseoso).
+        g.append({"id": "traductor_algebraico", "titulo": "Traductor algebraico", "icono": "🧮", "cfg": {"rondas": 5}})
+        g.append({"id": "planetas_tipo", "titulo": "¿Terrestre o gaseoso?", "icono": "🪐", "cfg": {"rondas": 6}})
+        # Bimestre 2: línea de tiempo de la democracia + aparato reproductor.
+        g.append({"id": "linea_democracia", "titulo": "Línea de tiempo: la democracia", "icono": "🕊️", "cfg": {"rondas": 4}})
+        g.append({"id": "sistema_reproductor", "titulo": "Aparato reproductor", "icono": "🧬", "cfg": {"rondas": 5}})
+        # Bimestre 3: estadística (media) + red trófica.
+        g.append({"id": "estadistica_datos", "titulo": "Media, moda o mediana", "icono": "📊", "cfg": {"rondas": 5}})
+        g.append({"id": "red_trofica", "titulo": "Red trófica", "icono": "🕸️", "cfg": {"rondas": 6}})
+        # Bimestre 4: área de figuras compuestas + escape room de egreso.
+        g.append({"id": "area_perimetro", "titulo": "Área de la habitación", "icono": "🏠", "cfg": {"rondas": 5}})
+        g.append({"id": "escape_room_egreso", "titulo": "Escape room de egreso", "icono": "🔐", "cfg": {"rondas": 6}})
     return g
 
 
