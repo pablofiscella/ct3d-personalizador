@@ -185,7 +185,7 @@ corta del porqué, no solo "¡mal! probá de nuevo".
 | Orden | Edad/grado | Tipo de trabajo | Esfuerzo relativo |
 |---|---|---|---|
 | 1 | Sala de 4 años | ✅ Primer incremento shippeado 14-jul-2026 (§5b): mas_menos con feedback elaborado, juego nuevo `posicion`, `contar` diferenciado por edad. Faltan: audio-guía, auditoría visual completa, versión impresa de `posicion` | Bajo |
-| 2 | Sala de 5 años | Mitad curación (matemática) + primer trabajo de audio/fonética (conciencia fonológica) — ver §5 | Bajo (matemática) / Medio (fonética, mecánica nueva) |
+| 2 | Sala de 5 años | ✅ Primer incremento shippeado 14-jul-2026 (§5c): `contar`/`mas_menos` con rango ampliado, juego nuevo `silabas` (primera mecánica de audio real del motor). Falta: sonido inicial de vocales, consonantes M/P/S/L, escritura del nombre — quedan fuera de esta primera pasada | Bajo (matemática) / Medio (fonética, mecánica nueva) |
 | 3 | 1° grado | Ampliar rango numérico real (hoy tope ~7-8, NAP pide hasta 100) + agregar mecánica de sílabas CV (juego nuevo: "armar palabras arrastrando sílabas", idea que el propio Pablo ya trajo) — reusa el trabajo de audio de Sala de 5 | Medio |
 | 4 | 2° grado | Separar de la banda "grande" (hoy comparte banda con 1° y con 12 años); sílabas complejas, cursiva, multiplicación conceptual (arreglos rectangulares), números hasta 1.000 — desglose bimestral ya disponible en `docs/CURRICULUM-NAP-ARGENTINA.md` | Medio |
 | 5 | 3° grado | Construir de cero: tabla pitagórica interactiva, números de 4 cifras, cuerpos geométricos, primeras nociones de ciencias naturales/sociales curriculares | Alto |
@@ -238,9 +238,9 @@ que agregar juegos nuevos.
 
 | Bimestre | Contenido NAP | Juego del motor que sirve | Estado |
 |---|---|---|---|
-| 1 | Conteo oral hasta 15, comparación de colecciones | `contar`, `mas_menos` (rango a ampliar — hoy tope 6) | ⚠️ Necesita ampliar el `max` para esta banda |
-| 1 | Escritura del nombre propio, sonido inicial de vocales | — | ❌ No existe (fonética/escritura — confirma el hueco de mecánica que ya señaló la investigación pedagógica) |
-| 2 | Conciencia fonológica — sílabas (aplaudirlas) | — | ❌ No existe — necesita audio, es la pieza más nueva a construir |
+| 1 | Conteo oral hasta 15, comparación de colecciones | `contar`, `mas_menos` (`max=8` para edad exacta 5, ampliado 14-jul-2026) | ✅ Listo |
+| 1 | Escritura del nombre propio, sonido inicial de vocales | — | ❌ No existe (fonética/escritura — queda para 1° grado) |
+| 2 | Conciencia fonológica — sílabas (aplaudirlas) | `silabas` (nuevo, construido 14-jul-2026 — ver §5c) | ✅ Listo |
 | 2 | Registro escrito hasta 10 | `contar`/`puntos` con rango ampliado | ⚠️ Ajuste de parámetro |
 | 3 | Iniciación a la suma | `sumas` (`max=5`, YA existe específicamente desde los 5 años — `if e>=5` en el código) | ✅ Listo, coincide exacto con el NAP |
 | 3 | Consonantes M/P/S/L y rimas | — | ❌ No existe |
@@ -340,6 +340,69 @@ actividades que hicimos podés hacerlo")
    edades. El festejo ("¡Muy bien, {nombre}!") tampoco tiene voz — incluye
    el nombre del perfil, que varía por chico, no es texto fijo grabable de
    la misma manera.
+
+## 5c. Plan de implementación — Sala de 5 años
+
+### Construido 14-jul-2026 (Pablo: "hace merge y continua con 5 años")
+
+1. ✅ **Ampliado `contar`/`mas_menos` para edad exacta 5** — NAP pide "conteo
+   oral hasta el 15" y "comparación de colecciones"; antes 4 y 5 compartían
+   el mismo `max=6` de la banda `media`. Mismo patrón de diferenciación por
+   edad exacta que ya se usó en Sala de 4 (§5b, punto 3): `if e == 5` sube
+   `contar`/`mas_menos` a `max=8`.
+2. ✅ **Construido `GAMES.silabas`** — la conciencia fonológica (Bimestre 2,
+   "aplaudir sílabas") era el único contenido de Sala de 4/5 sin ningún
+   camino, y el primer juego del motor que depende de AUDIO real, no solo de
+   sprites. Diseño:
+   - Banco de 13 palabras (1 a 4 sílabas) con su emoji — **la palabra NUNCA
+     se muestra escrita** (a los 5 años todavía no leen; el objetivo es
+     ESCUCHAR, no leer). El emoji se muestra como `❓` y solo se revela al
+     acertar, como festejo — evita que el chico "adivine por asociación
+     visual" en vez de escuchar de verdad (mandato explícito de Pablo:
+     "los chicos tienen que aprender de verdad con estas actividades").
+   - Distractores por contraste real, no al azar: siempre ±1 sílaba de la
+     respuesta correcta (mismo criterio que `posicion` en Sala de 4 — un
+     distractor de "6 sílabas" para una palabra de 2 no mide nada).
+   - Botón "🔊 Escuchar de nuevo" + reproducción automática de la palabra al
+     entrar a cada ronda — reusa `reproducirConsigna()` del sistema de
+     audio-guía de Sala de 4 (§5b, punto 4), llamado directo (no vía
+     `ctx.consigna()`, que pisaría el texto de instrucción visible).
+   - Agregado a la banda `media` SOLO para edad exacta 5 (`if e == 5`), no
+     para 4 — a los 4 años el NAP todavía no pide conciencia fonológica.
+3. ✅ **QA de audio reforzado — bug real encontrado y corregido en el
+   camino.** Al generar las 14 grabaciones nuevas (consigna fija + 13
+   palabras del banco), la toma de "MARIPOSA" salió a 0.71s — sospechosamente
+   corta contra otras palabras de las mismas 4 sílabas ("ELEFANTE" a 2.22s).
+   Verificado que era una toma real apurada/cortada (no un bug de caché,
+   comparando el contenido de los archivos) regenerando "MARIPOSA" con 3
+   seeds distintos (1.02s / 2.14s / 1.83s) — confirma que 0.71s no era
+   representativo. Mismo problema encontrado en "BICICLETA". Solución
+   generalizada, no solo parche puntual: `_duracion_minima()` (piso de
+   duración por conteo de vocales, proxy de sílabas) + reescritura de
+   `generar_audio_consignas()` para reintentar hasta 4 tomas con seeds
+   distintas y quedarse con la más larga si ninguna supera el piso — nunca
+   vuelve a vender una toma apurada sin darse cuenta.
+4. ✅ Probado en vivo con Playwright (no solo tests unitarios): manifest de
+   audio carga, la consigna y la palabra se narran solas al entrar a cada
+   ronda, "Escuchar de nuevo" repite la palabra, los distractores ±1 no
+   revelan el emoji al fallar, acertar revela el emoji correcto con feedback
+   positivo, y el juego completa las 5 rondas con el sistema de estrellas
+   reflejando los errores cometidos (capturas en la conversación).
+
+### Deliberadamente NO hecho en esta pasada
+
+1. **Sonido inicial de vocales, consonantes M/P/S/L y rimas, escritura del
+   nombre propio** (Bimestres 1, 3 y 4) — quedan fuera: son contenido de
+   lecto-escritura más cercano a 1° grado que a Sala de 5, y el roadmap
+   (§4, paso 3) ya prevé reusar el trabajo de audio de `silabas` para la
+   mecánica de sílabas CV de 1° grado. Construirlos ahora sería adelantar
+   trabajo de un año que todavía no se diseñó.
+2. **Audio-guía de `silabas` en las otras bandas** — igual que en Sala de 4
+   (§5b, punto 4 de "NO hecho"), las 14 grabaciones nuevas cubren solo esta
+   pieza; extender a `mini`/`grande` sigue pendiente para cuando se aborden
+   esas edades.
+3. **Equivalente impreso (PDF) de `silabas`** — es un juego 100% de audio,
+   no tiene un análogo natural en papel; no se intentó forzar uno.
 
 ## 6. Pendientes que dependen de Pablo (no técnicos)
 
