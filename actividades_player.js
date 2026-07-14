@@ -306,7 +306,11 @@ function abrirPerfil() {
   $("#perfilInput").value = esElPrimerPerfil ? (D.nombre || "") : "";
   $("#perfil").classList.add("ver");
   $("#perfilInput").focus();
-  $("#perfilInput").select();
+  // cursor al final (no seleccionar todo el texto): se entiende que se
+  // puede seguir escribiendo/borrar sin que el nombre completo se vea
+  // "marcado" en azul (Pablo, 14-jul-2026 — encontró raro el resaltado)
+  const largo = $("#perfilInput").value.length;
+  $("#perfilInput").setSelectionRange(largo, largo);
 }
 function cerrarPerfil() { $("#perfil").classList.remove("ver"); }
 function elegirPerfil(nombre) {
