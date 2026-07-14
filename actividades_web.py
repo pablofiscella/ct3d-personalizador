@@ -171,7 +171,20 @@ def _menu(banda, edad):
         # había traído esta idea. Reusa el pipeline de audio de silabas
         # (Sala de 5); a diferencia de silabas (contar CUÁNTAS partes),
         # acá arma la palabra completa tocando sus sílabas EN ORDEN.
-        g.append({"id": "armar_palabra", "titulo": "Armá la palabra", "icono": "🧩", "cfg": {"rondas": 5}})
+        g.append({"id": "armar_palabra", "titulo": "Armá la palabra", "icono": "🧱", "cfg": {"rondas": 5}})
+        # NAP 1° grado Bimestre 1 "Ideas web": "ordenar alfabéticamente".
+        g.append({"id": "abecedario", "titulo": "El abecedario", "icono": "🔡", "cfg": {"rondas": 5, "letras": 4}})
+        # NAP 1° grado Bimestre 2 "Ideas web": "suma rápida — tocar burbujas
+        # que sumen 10".
+        g.append({"id": "suma_rapida", "titulo": "Suma rápida", "icono": "🫧", "cfg": {"rondas": 5}})
+        # NAP 1° grado Bimestre 3 "Ideas web": "clasificar ¿Campo o Ciudad?"
+        # y "unir planta con su fruto/semilla".
+        g.append({"id": "campo_ciudad", "titulo": "¿Campo o ciudad?", "icono": "🚜", "cfg": {"rondas": 6}})
+        g.append({"id": "planta_fruto", "titulo": "¿Qué fruto da?", "icono": "🌳", "cfg": {"rondas": 4}})
+        # NAP 1° grado Bimestre 4 "Ideas web": "trivia de materiales" y
+        # "rompecabezas numérico de la grilla 1-100".
+        g.append({"id": "materiales", "titulo": "¿De qué material es?", "icono": "🪟", "cfg": {"rondas": 5}})
+        g.append({"id": "grilla100", "titulo": "La grilla numérica", "icono": "🧮", "cfg": {"rondas": 6}})
     return g
 
 
@@ -1031,9 +1044,19 @@ def _duracion_minima(texto):
     de vocales (no tenemos silabización real acá, pero alcanza para detectar
     una toma apurada/cortada). Encontrado 14-jul-2026: "MARIPOSA" (4
     sílabas) salió una toma de 0.71s — la MISMA palabra en otras tomas dio
-    1.6-2.1s. Sin este piso esa toma rota se hubiera vendido tal cual."""
+    1.6-2.1s. Sin este piso esa toma rota se hubiera vendido tal cual.
+
+    Tasa por vocal MÁS BAJA a partir de 6 vocales (14-jul-2026, armando 1°
+    grado): palabras sueltas se enuncian más despacio por vocal (~0.35-0.55s)
+    que una ORACIÓN completa dicha con cadencia natural (~0.17-0.26s medido
+    en consignas ya en producción, ej. "Escuchá la palabra y elegí cuántas
+    partes tiene" a 3.74s/18 vocales = 0.21s/vocal). Con la tasa única
+    anterior (0.22 fija) esa MISMA consigna, ya vendida y funcionando,
+    quedaba fuera de rango — no es un piso, es puro ruido de calibración
+    para oraciones largas. Vocales cortas (palabras) siguen con 0.22."""
     n_vocales = max(1, len(_VOCAL_RE.findall(texto)))
-    return max(0.4, n_vocales * 0.22)
+    tasa = 0.22 if n_vocales <= 6 else 0.14
+    return max(0.4, n_vocales * tasa)
 
 
 def _duracion_maxima(texto):
@@ -1041,9 +1064,13 @@ def _duracion_maxima(texto):
     _duracion_minima() para el otro extremo. Encontrado 14-jul-2026 armando
     1° grado: "SAPO" (2 vocales, esperable ~0.7-1s como GATO/PATO/MOTO) salió
     una toma de 2.72s — sin techo, esa toma larga/rara se hubiera vendido
-    igual (el piso solo agarra tomas CORTADAS, no tomas de más)."""
+    igual (el piso solo agarra tomas CORTADAS, no tomas de más). Misma tasa
+    más baja a partir de 6 vocales que _duracion_minima(), por la misma
+    razón (oraciones largas se hablan más rápido por vocal que palabras
+    sueltas)."""
     n_vocales = max(1, len(_VOCAL_RE.findall(texto)))
-    return max(2.5, n_vocales * 1.0)
+    tasa = 1.0 if n_vocales <= 6 else 0.5
+    return max(2.5, n_vocales * tasa)
 
 
 def generar_audio_consignas(textos):

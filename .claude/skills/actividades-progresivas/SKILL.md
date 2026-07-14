@@ -104,7 +104,7 @@ edad" (roadmap 14-jul-2026). NO improvisar la mezcla — usar esta tabla:
 |---|---|---|---|
 | 1 | Sala de 4 años | ✅ Shippeado 14-jul-2026 (ver informe §5b): mejoras + juego nuevo + audio-guía + auditoría visual, todo hecho. Falta: `posicion` en el cuaderno impreso | Curación (bajo esfuerzo) |
 | 2 | Sala de 5 años | ✅ Shippeado 14-jul-2026 (ver informe §5c): rango de `contar`/`mas_menos` ampliado + juego nuevo `silabas` (primer juego de audio real del motor) + QA de duración de TTS. Falta: vocales/consonantes/rimas/escritura (quedan para 1° grado) | Curación (matemática) + construcción (audio/fonética) |
-| 3 | 1° grado | ✅ Shippeado 14-jul-2026 (ver informe §5d): `serie` con rango a 30 + juego nuevo `armar_palabra` (sílabas CV, tap-en-orden sin drag) + techo de duración de TTS (mirror del piso de Sala 5). Falta: abecedario, ciencias naturales/sociales, "la tiendita" con dinero, grilla 1-100 — construcción nueva, backlog | Curación (matemática) + construcción (audio/fonética) |
+| 3 | 1° grado | ✅ Cerrado 14-jul-2026 (ver informe §5d-§5e): un juego por cada "Idea web" del NAP en los 4 bimestres (7 juegos nuevos/curados). Falta a propósito: "la tiendita" con dinero + contenido sin "Idea web" propia (ciencias, escuela/barrio, efemérides) — pasada aparte, no deuda | Curación (matemática) + construcción (audio/fonética/clasificación) |
 | 4 | 2° grado | Desglose disponible en el currículum (completado 14-jul) | Curación + banda propia (hoy comparte con 12 años) + cursiva + multiplicación conceptual |
 | 5 | 3° grado | Desglose disponible en el currículum | Construcción (tabla pitagórica, miles, geometría) |
 | 6 | 4°-5° grado | Desglose disponible en el currículum (completado 14-jul) | Construcción (fracciones CPA, decimales, historia real) |
@@ -202,7 +202,15 @@ el primer intento = se puede completar sin aprender.
    (currículum completo desde el 14-jul-2026, los 9 años tienen desglose
    bimestral). Si en algún momento aparece un año sin detalle, pedírselo a
    Pablo ANTES de inventar contenido — no rellenar el hueco con suposición
-   propia.
+   propia. **Priorizar las "Ideas web" de cada bimestre por sobre
+   "Contenidos" en general** (encontrado 14-jul-2026 cerrando 1° grado):
+   "Contenidos" es el currículum completo (sirve también para el cuaderno
+   PDF), pero "Ideas web" ya viene curado específicamente para el medio
+   interactivo — seguirlo literalmente da un alcance concreto y defendible
+   en vez de tener que inventar CÓMO gamificar un tema abstracto (cuerpo
+   humano, efemérides) sin ninguna guía. Lo que quede en "Contenidos" sin
+   una "Idea web" propia es candidato a PDF o a una pasada de diseño aparte,
+   no una obligación de la primera pasada web de ese año.
 2. Confirmar la banda de edad en el motor: ¿existe ya una banda separada para
    este grado, o hay que crear una (ver hallazgo de la banda `"grande"` sin
    tope, sección 0)?
