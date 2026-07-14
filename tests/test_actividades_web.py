@@ -237,11 +237,23 @@ def test_certificado_logro_token_invalido():
     assert aw.certificado_logro("") is None
 
 
+# ─────────────────────────────────────────────────────────────────────────
+# Nombre de vuelta a la compra (14-jul-2026, revierte 452be39 del
+# 12-jul-2026): GUARDIÁN — mismo criterio que el guardián de la tienda
+# (tests/test_tienda_app.py::test_agregar_sin_nombre_tipos_directos), para
+# que una edición paralela de productos.py no vuelva a sacarlo por error.
+def test_campos_actividades_web_pide_nombre():
+    import productos
+    assert "nombre" in productos.TIPOS["actividades-web"]["campos"]
+    assert "nombre" in productos.PERSONALIZADAS["actividades-web"]["*"]
+
+
 def test_certificado_logro_nombre_del_perfil_pisa_al_de_la_compra(token):
-    """actividades-web NO pide nombre al comprar y el player soporta VARIOS
-    perfiles por token (14-jul-2026, Pablo: "pueden ser 2 chicos los que
-    juegan en la misma casa") — el nombre real viaja del perfil activo del
-    player (query param), no del manifest de la compra."""
+    """El nombre de la compra vuelve a existir (14-jul-2026) pero es solo el
+    DEFAULT del primer perfil, no una personalización dura — el player
+    soporta VARIOS perfiles por token (Pablo: "pueden ser 2 chicos los que
+    juegan en la misma casa"), y el nombre real del certificado viaja del
+    perfil activo (query param), no del manifest de la compra."""
     im_a = aw.certificado_logro(token, nombre="Valentina")
     im_b = aw.certificado_logro(token, nombre="Benjamín")
     assert im_a is not None and im_b is not None
