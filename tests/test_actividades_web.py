@@ -93,6 +93,17 @@ def test_bandas_de_edad():
     # sudoku/sopa ya existentes)
     iconos = [m["icono"] for m in aw._menu("grande", 6)]
     assert len(iconos) == len(set(iconos)), "íconos repetidos en el menú de 6 años"
+    # 2° grado (14-jul-2026, edad 7 — NAP "Ideas web" por bimestre):
+    # ninguno se filtra a 6 ni a 12 años, sin íconos repetidos.
+    ids_grande7 = {m["id"] for m in aw._menu("grande", 7)}
+    nuevos_2grado = {"sustantivos", "sumas_redondas", "sinonimos_antonimos",
+                      "multiplicacion_concepto", "conductor_aislante",
+                      "familia_palabras", "trivia_espacial", "tablas_contrarreloj"}
+    assert nuevos_2grado <= ids_grande7
+    assert not (nuevos_2grado & ids_grande6)
+    assert not (nuevos_2grado & ids_grande12)
+    iconos7 = [m["icono"] for m in aw._menu("grande", 7)]
+    assert len(iconos7) == len(set(iconos7)), "íconos repetidos en el menú de 7 años"
 
 
 def test_laberintos_transitables(data):

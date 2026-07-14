@@ -105,7 +105,7 @@ edad" (roadmap 14-jul-2026). NO improvisar la mezcla — usar esta tabla:
 | 1 | Sala de 4 años | ✅ Shippeado 14-jul-2026 (ver informe §5b): mejoras + juego nuevo + audio-guía + auditoría visual, todo hecho. Falta: `posicion` en el cuaderno impreso | Curación (bajo esfuerzo) |
 | 2 | Sala de 5 años | ✅ Shippeado 14-jul-2026 (ver informe §5c): rango de `contar`/`mas_menos` ampliado + juego nuevo `silabas` (primer juego de audio real del motor) + QA de duración de TTS. Falta: vocales/consonantes/rimas/escritura (quedan para 1° grado) | Curación (matemática) + construcción (audio/fonética) |
 | 3 | 1° grado | ✅ Cerrado 14-jul-2026 (ver informe §5d-§5e): un juego por cada "Idea web" del NAP en los 4 bimestres (7 juegos nuevos/curados). Falta a propósito: "la tiendita" con dinero + contenido sin "Idea web" propia (ciencias, escuela/barrio, efemérides) — pasada aparte, no deuda | Curación (matemática) + construcción (audio/fonética/clasificación) |
-| 4 | 2° grado | Desglose disponible en el currículum (completado 14-jul) | Curación + banda propia (hoy comparte con 12 años) + cursiva + multiplicación conceptual |
+| 4 | 2° grado | ✅ Cerrado 14-jul-2026 (ver informe §5f): 8 juegos nuevos, uno por "Idea web" del NAP en los 4 bimestres — incluye `tablas_contrarreloj`, primera mecánica de TIMER del motor. No hizo falta banda propia: `if e == 7` alcanza | Curación (matemática) + construcción (clasificación/timer) |
 | 5 | 3° grado | Desglose disponible en el currículum | Construcción (tabla pitagórica, miles, geometría) |
 | 6 | 4°-5° grado | Desglose disponible en el currículum (completado 14-jul) | Construcción (fracciones CPA, decimales, historia real) |
 | 7 | 6°-7° grado | Desglose disponible en el currículum | Construcción (porcentaje, álgebra informal, ciencias avanzadas) |
@@ -238,3 +238,12 @@ el primer intento = se puede completar sin aprender.
    lanzar contenido sin su audio grabado en esa franja.
 10. Actualizar la tabla de la sección 4 de ESTA skill cuando el año quede
     validado — que no quede desactualizada para la próxima sesión.
+11. **Si el juego usa `setInterval` (timers, cuentas regresivas, etc.)**:
+    el shell del player (`Shell.abrir()`) no tiene ningún hook de "se cerró
+    el juego anterior" — un intervalo que sigue vivo después de que el
+    jugador navegó a otra pantalla puede corromper `Shell.fallos`
+    (compartido entre juegos) del juego que esté abierto en ese momento.
+    Encontrado y resuelto armando `tablas_contrarreloj` (2° grado,
+    14-jul-2026, primer timer del motor): en cada tick, chequear si el
+    nodo DOM que ancla al juego sigue `.isConnected` y auto-apagarse
+    (`clearInterval`) si no — sin tocar el shell compartido.
