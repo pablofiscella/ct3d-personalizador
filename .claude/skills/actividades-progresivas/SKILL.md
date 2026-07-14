@@ -109,7 +109,8 @@ edad" (roadmap 14-jul-2026). NO improvisar la mezcla — usar esta tabla:
 | 5 | 3° grado | ✅ Cerrado 14-jul-2026 (ver informe §5g): 8 juegos, uno por "Idea web" del NAP — 6 reusaron patrones de 1°/2° grado, solo 2 necesitaron forma nueva. Cuerpos geométricos simplificado (sin rotación 3D real, el motor no tiene render 3D) | Construcción (reusa patrones ya probados donde se puede) |
 | 6 | 4° grado | ✅ Cerrado 14-jul-2026 (ver informe §5h): 8 juegos, uno por "Idea web" del NAP. PRIMERA representación visual de fracciones del motor (barras CPA) — bug real de CSS (width:100% dentro de un `<button>` shrink-to-fit) encontrado y arreglado en vivo. Mapa de provincias y transportador simplificados a trivia (assets/mecánicas que el motor no tiene) | Construcción (fracciones CPA, primer render visual nuevo) |
 | 7 | 5° grado | ✅ Cerrado 14-jul-2026 (ver informe §5i): 8 juegos, uno por "Idea web" del NAP. SEGUNDA mecánica de timer (`analisis_sintactico`). 0 simplificaciones a trivia por falta de asset — primer año sin ninguna | Construcción (reusa patrones probados, decimales sin bugs de punto flotante) |
-| 8 | 6°-7° grado | Desglose disponible en el currículum | Construcción (porcentaje, álgebra informal, ciencias avanzadas) |
+| 8 | 6° grado | ✅ Cerrado 14-jul-2026 (ver informe §5j): 8 juegos, uno por "Idea web" del NAP. 3 simplificaciones de simulación a contenido directo (el año con más de todos) — cada una con su propia razón, no una regla genérica | Construcción (reusa patrones probados) |
+| 9 | 7° grado | Desglose disponible en el currículum — fin del NAP (año de egreso) | Construcción (álgebra informal, sistema solar, geopolítica) |
 
 ## 4b. Diseño gráfico no negociable (investigado 14-jul-2026, evidencia real)
 

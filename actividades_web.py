@@ -252,6 +252,21 @@ def _menu(banda, edad):
         # Bimestre 4: planta potabilizadora + derechos y constitución.
         g.append({"id": "planta_potabilizadora", "titulo": "Planta potabilizadora", "icono": "💧", "cfg": {"rondas": 4}})
         g.append({"id": "derechos_constitucion", "titulo": "Derechos y Constitución", "icono": "📜", "cfg": {"rondas": 5}})
+    if e == 11:
+        # 6° grado (14-jul-2026): mismo criterio — un juego por cada "Idea
+        # web" del NAP.
+        # Bimestre 1: partes de la célula + hechos vs. opiniones.
+        g.append({"id": "celula_partes", "titulo": "Partes de la célula", "icono": "🔬", "cfg": {"rondas": 4}})
+        g.append({"id": "hechos_opiniones", "titulo": "Hecho u opinión", "icono": "📰", "cfg": {"rondas": 6}})
+        # Bimestre 2: sistema nervioso + viaje del inmigrante.
+        g.append({"id": "sistema_nervioso", "titulo": "Sistema nervioso", "icono": "🫨", "cfg": {"rondas": 5}})
+        g.append({"id": "viaje_inmigrante", "titulo": "El viaje del inmigrante", "icono": "🚢", "cfg": {"rondas": 4}})
+        # Bimestre 3: fracción de una cantidad + sufragio argentino.
+        g.append({"id": "fraccion_de_cantidad", "titulo": "Fracción de una cantidad", "icono": "➗", "cfg": {"rondas": 5}})
+        g.append({"id": "sufragio_argentina", "titulo": "El voto en Argentina", "icono": "🗳️", "cfg": {"rondas": 4}})
+        # Bimestre 4: energía renovable + polígonos.
+        g.append({"id": "energia_renovable", "titulo": "¿Renovable o no?", "icono": "⚡", "cfg": {"rondas": 6}})
+        g.append({"id": "poligonos_lados", "titulo": "¿Cuántos lados tiene?", "icono": "⬡", "cfg": {"rondas": 6}})
     return g
 
 
