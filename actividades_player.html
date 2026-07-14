@@ -476,6 +476,32 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 .tablaPitagoricaCelda { cursor: pointer; transition: transform .12s; }
 .tablaPitagoricaCelda:active { transform: scale(.92); }
 
+/* fracciones equivalentes (14-jul-2026, 4° grado) — barras CPA (Singapore
+   Math), NUNCA solo el número: representación Pictórica no negociable
+   para matemática nueva (skill §4b/4c). */
+.fraccionBarra { display: flex; width: 100%; max-width: 240px; height: 46px; margin: 0 auto;
+  border-radius: 10px; overflow: hidden; border: 3px solid var(--ink); }
+.fraccionBarra__seg { flex: 1; background: var(--card); border-right: 2px solid var(--ink); }
+.fraccionBarra__seg:last-child { border-right: none; }
+.fraccionBarra__seg.lleno { background: var(--ac); }
+.fraccionesOpciones { gap: 14px; }
+.fraccionBtn { padding: 10px; }
+/* width EXPLÍCITO (no max-width): dentro de un <button> shrink-to-fit,
+   "width:100%" (heredado de .fraccionBarra base) no tiene un contenedor
+   firme contra el que resolverse y colapsaba a un óvalo casi sin ancho —
+   bug real encontrado en vivo (14-jul-2026). */
+.fraccionBtn .fraccionBarra { width: 130px; height: 36px; }
+
+/* ángulos — dos líneas desde un vértice común (14-jul-2026, 4° grado):
+   la base queda fija, el lado gira por transform:rotate() según el
+   ángulo real de la ronda. */
+.anguloDibujo { position: relative; width: 160px; height: 160px; margin: 10px auto; }
+.anguloDibujo__base, .anguloDibujo__lado {
+  position: absolute; left: 10px; bottom: 10px; width: 130px; height: 4px;
+  background: var(--ink); border-radius: 2px; transform-origin: left center;
+}
+.anguloDibujo__lado { transform: rotate(0deg); }
+
 /* números grandes (sumas / restas / serie) */
 .cuentaGrande { display: flex; align-items: center; justify-content: center; gap: 14px;
   font-family: "Baloo", sans-serif; font-size: clamp(38px, 8vw, 64px); flex-wrap: wrap; }

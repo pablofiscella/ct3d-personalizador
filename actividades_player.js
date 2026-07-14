@@ -3083,6 +3083,484 @@ GAMES.cajero_automatico = {
   },
 };
 
+/* ── ABSTRACTO O CONCRETO (14-jul-2026, 4° grado NAP Bimestre 1 "Ideas
+   web": "clasificador de sustantivos abstractos vs. concretos"). Mismo
+   patrón de clasificar 2 categorías que campo_ciudad. ── */
+const ABSTRACTOS_BANCO = [
+  { p: "Amor", tipo: "abstracto" }, { p: "Alegría", tipo: "abstracto" }, { p: "Libertad", tipo: "abstracto" },
+  { p: "Amistad", tipo: "abstracto" },
+  { p: "Mesa", tipo: "concreto" }, { p: "Perro", tipo: "concreto" }, { p: "Árbol", tipo: "concreto" },
+  { p: "Pelota", tipo: "concreto" },
+];
+GAMES.abstractos_concretos = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 6;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Es abstracto o concreto?");
+      ctx.juego.innerHTML = "";
+      let disp = ABSTRACTOS_BANCO.filter((x) => !usados.includes(x.p));
+      if (!disp.length) { usados = []; disp = ABSTRACTOS_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.p);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto anim-pop",
+        `<span style="font-size:36px;font-family:'Baloo',sans-serif">${item.p}</span>`));
+      ctx.juego.appendChild(arriba);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      shuffle(["abstracto", "concreto"]).forEach((tipo) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:20px;font-family:'Baloo',sans-serif">${tipo}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (tipo === item.tipo) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(700);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── ¿DE QUÉ REGIÓN ES? (14-jul-2026, 4° grado NAP Bimestre 1 "Ideas web":
+   "rompecabezas geográfico — encastrar provincias en el mapa nacional").
+   Simplificado a trivia de región (Norte/Centro/Cuyo/Patagonia) — un mapa
+   con las 24 provincias reales requiere un asset de geografía precisa que
+   el motor no tiene (no es un juego nuevo, es un asset nuevo — ver informe). ── */
+const PROVINCIAS_BANCO = [
+  { p: "Salta", region: "Norte" }, { p: "Jujuy", region: "Norte" }, { p: "Misiones", region: "Norte" },
+  { p: "Buenos Aires", region: "Centro" }, { p: "Córdoba", region: "Centro" }, { p: "Santa Fe", region: "Centro" },
+  { p: "Mendoza", region: "Cuyo" }, { p: "San Juan", region: "Cuyo" },
+  { p: "Chubut", region: "Patagonia" }, { p: "Santa Cruz", region: "Patagonia" },
+];
+GAMES.provincias_region = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 6;
+    ctx.rondas(rondas);
+    const REGIONES = ["Norte", "Centro", "Cuyo", "Patagonia"];
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿A qué región pertenece esta provincia?");
+      ctx.juego.innerHTML = "";
+      let disp = PROVINCIAS_BANCO.filter((x) => !usados.includes(x.p));
+      if (!disp.length) { usados = []; disp = PROVINCIAS_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.p);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:28px;font-family:'Baloo',sans-serif">${item.p}</span>`));
+      ctx.juego.appendChild(arriba);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      shuffle(REGIONES).forEach((r) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:18px;font-family:'Baloo',sans-serif">${r}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (r === item.region) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── AGUDA, GRAVE O ESDRÚJULA (14-jul-2026, 4° grado NAP Bimestre 2 "Ideas
+   web": "clasificar palabras por acentuación en el tren correcto"). Mismo
+   patrón de clasificar 3 categorías que partes_oracion. ── */
+const ACENTUACION_BANCO = [
+  { p: "Camión", tipo: "aguda" }, { p: "Café", tipo: "aguda" }, { p: "Jardín", tipo: "aguda" },
+  { p: "Mesa", tipo: "grave" }, { p: "Lápiz", tipo: "grave" }, { p: "Árbol", tipo: "grave" },
+  { p: "Música", tipo: "esdrújula" }, { p: "Teléfono", tipo: "esdrújula" }, { p: "Pájaro", tipo: "esdrújula" },
+];
+GAMES.acentuacion = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 6;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Es aguda, grave o esdrújula?");
+      ctx.juego.innerHTML = "";
+      let disp = ACENTUACION_BANCO.filter((x) => !usados.includes(x.p));
+      if (!disp.length) { usados = []; disp = ACENTUACION_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.p);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto anim-pop",
+        `<span style="font-size:36px;font-family:'Baloo',sans-serif">${item.p}</span>`));
+      ctx.juego.appendChild(arriba);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      shuffle(["aguda", "grave", "esdrújula"]).forEach((tipo) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:18px;font-family:'Baloo',sans-serif">${tipo}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (tipo === item.tipo) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(700);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── FOTOSÍNTESIS — EL INTRUSO (14-jul-2026, 4° grado NAP Bimestre 2
+   "Ideas web": "simulador de fotosíntesis — colocar agua, sol, CO2 en una
+   planta virtual"). Simplificado de simulación multi-paso a "odd one out"
+   (mismo concepto que el juego `diferente` de las bandas mini/media, pero
+   con contenido curricular real en vez de sprites decorativos del tema):
+   tocar lo que la planta NO necesita entre 3 correctos + 1 intruso. ── */
+const FOTOSINTESIS_NECESARIOS = ["💧", "☀️", "🌬️"];
+const FOTOSINTESIS_INTRUSOS = ["🍖", "🪨", "🚗", "📱", "👟"];
+GAMES.fotosintesis = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Cuál de estos NO necesita la planta para hacer la fotosíntesis?");
+      ctx.juego.innerHTML = "";
+      let disp = FOTOSINTESIS_INTRUSOS.filter((x) => !usados.includes(x));
+      if (!disp.length) { usados = []; disp = FOTOSINTESIS_INTRUSOS; }
+      const intruso = disp[rint(0, disp.length - 1)];
+      usados.push(intruso);
+      const opciones = shuffle([...FOTOSINTESIS_NECESARIOS, intruso]);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      opciones.forEach((op) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:44px">${op}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (op === intruso) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── LABORATORIO ELÉCTRICO (14-jul-2026, 4° grado NAP Bimestre 3 "Ideas
+   web": "conectar cables a materiales para ver qué enciende una
+   lamparita" — simplificado a clasificar, mismo patrón que
+   conductor_aislante de 2° grado, banco de contenido nuevo). ── */
+const ELECTRICO_BANCO = [
+  { e: "🔑", cat: "conduce" }, { e: "🥄", cat: "conduce" }, { e: "🪙", cat: "conduce" }, { e: "🔩", cat: "conduce" },
+  { e: "📖", cat: "noconduce" }, { e: "🧦", cat: "noconduce" }, { e: "🪵", cat: "noconduce" }, { e: "🎈", cat: "noconduce" },
+];
+GAMES.laboratorio_electrico = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 6;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Esto enciende la lamparita o no?");
+      ctx.juego.innerHTML = "";
+      let disp = ELECTRICO_BANCO.filter((x) => !usados.includes(x.e));
+      if (!disp.length) { usados = []; disp = ELECTRICO_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.e);
+      const arriba = el("div", "tablero");
+      const cont = el("div", "spriteQuieto anim-pop", `<span style="font-size:80px">${item.e}</span>`);
+      arriba.appendChild(cont);
+      ctx.juego.appendChild(arriba);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      [{ cat: "conduce", label: "💡 Enciende" }, { cat: "noconduce", label: "🚫 No enciende" }].forEach(({ cat, label }) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:17px;font-family:'Baloo',sans-serif">${label}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (cat === item.cat) {
+            resuelto = true;
+            cont.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(700);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── FRACCIONES EQUIVALENTES (14-jul-2026, 4° grado NAP Bimestre 3 "Ideas
+   web": "equivalencias de fracciones — emparejar 2/4 con 1/2"). PRIMERA
+   representación visual de fracciones del motor — no negociable mostrar
+   solo el número (regla CPA del skill §4b/4c: matemática nueva necesita
+   apoyo Pictórico, no solo símbolo). Barras divididas en segmentos, no
+   pizza — más simple de dibujar en CSS puro y es la herramienta CPA
+   estándar (Singapore Math "fraction bars"). Banco de distractores
+   ESCRITO A MANO (no generado): con fracciones, un distractor generado al
+   azar puede terminar siendo por coincidencia matemáticamente equivalente
+   igual (ej. la "complementaria" de 1/2 es 1/2) — más seguro autorearlos. ── */
+const FRACCIONES_BANCO = [
+  { num: 1, den: 2, eq: { num: 2, den: 4 }, d1: { num: 1, den: 4 }, d2: { num: 3, den: 4 } },
+  { num: 1, den: 2, eq: { num: 3, den: 6 }, d1: { num: 2, den: 6 }, d2: { num: 5, den: 6 } },
+  { num: 1, den: 4, eq: { num: 2, den: 8 }, d1: { num: 3, den: 8 }, d2: { num: 6, den: 8 } },
+  { num: 3, den: 4, eq: { num: 6, den: 8 }, d1: { num: 3, den: 8 }, d2: { num: 1, den: 8 } },
+  { num: 1, den: 3, eq: { num: 2, den: 6 }, d1: { num: 1, den: 6 }, d2: { num: 4, den: 6 } },
+];
+GAMES.fracciones_equivalentes = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    const barra = (num, den) => {
+      const cont = el("div", "fraccionBarra");
+      for (let i = 0; i < den; i++) cont.appendChild(el("div", "fraccionBarra__seg" + (i < num ? " lleno" : "")));
+      return cont;
+    };
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Cuál de estas barras muestra la misma fracción?");
+      ctx.juego.innerHTML = "";
+      let disp = FRACCIONES_BANCO.filter((x) => !usados.includes(x.num + "/" + x.den));
+      if (!disp.length) { usados = []; disp = FRACCIONES_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.num + "/" + item.den);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(barra(item.num, item.den));
+      ctx.juego.appendChild(arriba);
+      const opciones = shuffle([item.eq, item.d1, item.d2]);
+      const fila = el("div", "filaSprites fraccionesOpciones");
+      let resuelto = false;
+      opciones.forEach((op) => {
+        const b = el("button", "spriteBtn fraccionBtn");
+        b.appendChild(barra(op.num, op.den));
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (op.num === item.eq.num && op.den === item.eq.den) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── AGUDO, RECTO U OBTUSO (14-jul-2026, 4° grado NAP Bimestre 4 "Ideas
+   web": "transportador interactivo para medir ángulos de rampas de
+   skate" — simplificado de medición libre con transportador a
+   clasificación sobre un ángulo dibujado con CSS puro (dos líneas desde un
+   vértice común, una fija y otra rotada). Grados curados a propósito, no
+   al azar — un ángulo de 88° sería ambiguo a simple vista contra uno
+   recto real (90°), así que cada categoría usa valores CLARAMENTE
+   distinguibles. ── */
+const ANGULOS_BANCO = [
+  { grados: 30, tipo: "agudo" }, { grados: 45, tipo: "agudo" }, { grados: 60, tipo: "agudo" },
+  { grados: 90, tipo: "recto" },
+  { grados: 120, tipo: "obtuso" }, { grados: 135, tipo: "obtuso" }, { grados: 150, tipo: "obtuso" },
+];
+GAMES.angulos = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 6;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Es agudo, recto u obtuso?");
+      ctx.juego.innerHTML = "";
+      let disp = ANGULOS_BANCO.filter((x) => !usados.includes(x.grados));
+      if (!disp.length) { usados = []; disp = ANGULOS_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.grados);
+      const arriba = el("div", "tablero");
+      const dibujo = el("div", "anguloDibujo");
+      dibujo.appendChild(el("div", "anguloDibujo__base"));
+      const lado = el("div", "anguloDibujo__lado");
+      lado.style.transform = `rotate(-${item.grados}deg)`;
+      dibujo.appendChild(lado);
+      arriba.appendChild(dibujo);
+      ctx.juego.appendChild(arriba);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      shuffle(["agudo", "recto", "obtuso"]).forEach((tipo) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:18px;font-family:'Baloo',sans-serif">${tipo}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (tipo === item.tipo) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(700);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── PREFIJOS — FORMÁ LA PALABRA NUEVA (14-jul-2026, 4° grado NAP
+   Bimestre 4 "Ideas web": "arrastrar prefijos y sufijos para formar
+   palabras nuevas"). Mismo patrón tap-en-orden que armar_palabra/
+   prefijos_sufijos, SOLO prefijos (des-, in-, pre-, re-) — los sufijos
+   diminutivos del NAP (-ito, -oso) casi siempre piden apócope (gato+ito=
+   gatITO, no "gatoito"), un cambio ortográfico real que una concatenación
+   simple de tap no puede representar sin mentir; se deja afuera a
+   propósito en vez de simular mal la regla. Sin audio por palabra — a
+   esta edad ya hay autonomía lectora consolidada (2°-3° grado), a
+   diferencia de Sala 5/1° grado que sí la necesitaban. ── */
+GAMES.prefijos_sufijos = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    const BANCO = [
+      { partes: ["DES", "ATAR"], resultado: "DESATAR" },
+      { partes: ["IN", "ÚTIL"], resultado: "INÚTIL" },
+      { partes: ["PRE", "HISTÓRICO"], resultado: "PREHISTÓRICO" },
+      { partes: ["RE", "HACER"], resultado: "REHACER" },
+      { partes: ["DES", "ARMAR"], resultado: "DESARMAR" },
+    ];
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("Tocá el prefijo y la palabra en orden para formar la palabra nueva");
+      ctx.juego.innerHTML = "";
+      let disp = BANCO.filter((x) => !usados.includes(x.resultado));
+      if (!disp.length) { usados = []; disp = BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.resultado);
+      const tablero = el("div", "tablero armarPalabraTablero");
+      const filaSlots = el("div", "armarPalabraSlots");
+      const slots = item.partes.map(() => el("div", "armarPalabraSlot", ""));
+      slots.forEach((s) => filaSlots.appendChild(s));
+      tablero.appendChild(filaSlots);
+      const filaPartes = el("div", "filaSprites");
+      filaPartes.style.marginTop = "18px";
+      let siguiente = 0;
+      let resuelto = false;
+      shuffle(item.partes.map((s, i) => ({ s, i }))).forEach(({ s, i }) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:19px;font-family:'Baloo',sans-serif">${s}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto || b.disabled) return;
+          if (i === siguiente) {
+            b.disabled = true;
+            b.classList.add("anim-brinco");
+            slots[i].textContent = s;
+            slots[i].classList.add("anim-pop");
+            Sfx.tick(siguiente + 1);
+            siguiente++;
+            if (siguiente >= item.partes.length) {
+              resuelto = true;
+              ctx.bien();
+              ronda++;
+              await espera(1100);
+              if (ronda >= rondas) ctx.win();
+              else jugar();
+            }
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        filaPartes.appendChild(b);
+      });
+      tablero.appendChild(filaPartes);
+      ctx.juego.appendChild(tablero);
+    };
+    jugar();
+  },
+};
+
 GAMES.serie = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 6;
