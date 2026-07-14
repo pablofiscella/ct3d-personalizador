@@ -110,6 +110,88 @@ edad" (roadmap 14-jul-2026). NO improvisar la mezcla — usar esta tabla:
 | 6 | 4°-5° grado | Desglose disponible en el currículum (completado 14-jul) | Construcción (fracciones CPA, decimales, historia real) |
 | 7 | 6°-7° grado | Desglose disponible en el currículum | Construcción (porcentaje, álgebra informal, ciencias avanzadas) |
 
+## 4b. Diseño gráfico no negociable (investigado 14-jul-2026, evidencia real)
+
+Pablo: *"quiero que sea lo más serio posible... no solo las actividades sino
+la gráfica y estética que acompañe... los chicos tienen que aprender de
+verdad."* No es gusto estético — cada regla acá tiene evidencia detrás (ver
+el informe para las fuentes completas).
+
+1. **Toda ilustración en una actividad tiene que ser REPRESENTACIONAL del
+   contenido de ESA actividad puntual — nunca decorativa.** Este es el
+   hallazgo más importante para este negocio: el "efecto de detalle
+   seductor" está confirmado por meta-análisis — una imagen linda pero
+   tangencial al contenido EMPEORA la retención, aunque el material se vea
+   "más profesional". Un personaje del tema haciendo algo que no tiene que
+   ver con la consigna resta, no suma. Esto NO dice "sacar el arte IA" — dice
+   que el arte de cada pieza tiene que estar al servicio de la consigna, no
+   ser decoración alrededor de ella.
+2. **Contraste mínimo AAA (7:1 para texto normal), no el AA legal mínimo.**
+   Es el estándar de facto en educación seria. Ya verificado en el sistema
+   de paletas actual (`actividades_web.PALETAS`): `ink`/`card` da 11-13:1 en
+   los temas chequeados (excelente); `ac` (acento) da ~3-3.6:1 contra `card`
+   — CORRECTO porque hoy `--ac` nunca se usa como color de texto normal
+   (confirmado por grep), solo como fondo/borde/decoración, donde el umbral
+   de 3:1 aplica. Si en algún momento se usa `--ac` como color de texto,
+   volver a chequear contraste antes de shippear.
+3. **Ningún significado codificado SOLO por color** — siempre acompañar con
+   ícono, forma o texto (un chico daltónico o con dificultad de atención no
+   puede depender solo del color para entender la consigna).
+4. **Tipografía = la letra que el chico está aprendiendo a escribir a
+   mano.** Formas de una sola vía (a, g simples, no las de imprenta con
+   gancho ambiguo), diferenciación clara entre b/d. El motor ya usa Baloo
+   (títulos) y Nunito (cuerpo) — ambas rounded sans-serif, alineadas con
+   esto; no hace falta cambiar de fuente, sí verificar que las variantes
+   usadas efectivamente tengan formas de una sola vía en minúscula.
+5. **Una sola acción clara por pantalla para 4-6 años, con audio-guía
+   SIEMPRE presente** — nunca depender de que el chico lea la consigna
+   solo. El motor hoy NO tiene audio-guía en ningún juego (confirmado en la
+   auditoría) — es la brecha de diseño gráfico/UX más urgente para Sala de
+   4-5, más urgente que sumar juegos nuevos.
+6. **Targets táctiles ≥48×48dp con ≥64px de separación** entre elementos
+   interactivos — a los 4-7 años el control motor fino todavía falla.
+7. **El estilo de ilustración se elige según el OBJETIVO de esa pieza
+   puntual**: realista si el objetivo es comprensión/memoria de contenido
+   nuevo (ciencias, por ejemplo); estilizado/cartoon si el objetivo es
+   engagement/motivación (portada, festejo, mascota). No aplicar un único
+   estilo a todo el catálogo por default estético — la elección tiene que
+   ser deliberada pieza por pieza.
+
+## 4c. Verificación de aprendizaje real no negociable (investigado 14-jul-2026)
+
+Pablo: *"los chicos tienen que aprender de verdad con estas actividades."*
+Confirmado con código real (no solo teoría): `GAMES.mas_menos`
+(`actividades_player.js:1448`) tiene un hueco real — con solo 2 grupos para
+elegir y reintentos ilimitados sin penalización, un chico puede "ganar" las
+5 rondas por ELIMINACIÓN (tocar el que no tocó antes) sin haber entendido
+nunca "más" o "menos". Es EXACTAMENTE el riesgo que anticipa la
+investigación: cero fail states + pocas opciones + sin exigir precisión en
+el primer intento = se puede completar sin aprender.
+
+1. **Todo distractor incorrecto debe representar un error conceptual real
+   de esa habilidad, nunca un valor al azar.** Ej: en una resta, el
+   distractor no es "cualquier número", es el resultado de restar sin
+   pedir prestado correctamente (el error típico real).
+2. **Ninguna actividad "completa" con un solo acierto — exigir 80-90% de
+   precisión sostenida en preguntas VARIADAS** (estándar de Bloom's mastery
+   learning), no la misma pregunta repetida hasta acertar por casualidad.
+3. **Cada pregunta debe cambiar de valores/posición en cada intento** — si
+   memorizar dónde tocar alcanza para ganar, el juego está mal diseñado
+   (esto YA lo hace bien `mas_menos` en los VALORES pero no soluciona el
+   problema de fondo: con solo 2 opciones, la eliminación sigue ganando).
+4. **Distinguir "acertó al primer intento" (evidencia real de dominio) de
+   "acertó eventualmente" (no es evidencia de nada)** — solo el primero
+   debería contar para el criterio de "listo, siguiente nivel" o para
+   habilitar el diploma de logro. Esto es un cambio real a evaluar en
+   `Store`/`win()` del player: hoy no se distingue.
+5. **Todo error dispara una explicación corta del PORQUÉ** — una frase a
+   los 4-5 años, más detalle de los 8 en adelante — nunca solo "¡mal!
+   probá de nuevo" (`ctx.casi()` hoy no explica nada, solo sacude).
+6. **Cero fail states se mantiene — es una decisión correcta y respaldada
+   por evidencia (ver sección 2, punto 6) — pero nunca a costa del punto
+   2.** La ausencia de penalización no reemplaza la exigencia de dominio
+   real; son dos ejes independientes, no uno a costa del otro.
+
 ## 5. Antes de diseñar contenido nuevo para un año — checklist
 
 1. Releer la sección de ese grado en `docs/CURRICULUM-NAP-ARGENTINA.md`
@@ -123,9 +205,21 @@ edad" (roadmap 14-jul-2026). NO improvisar la mezcla — usar esta tabla:
 3. Aplicar CPA (matemática) o fonética sistemática (lengua) según corresponda
    — sección 2, no negociable.
 4. Diseñar el andamiaje/pistas gradual desde el arranque — sección 2, punto 5.
-5. Un tipo de actividad nuevo = un test guardián nuevo (mismo criterio que el
+5. Revisar la ilustración de la pieza contra la sección 4b, punto 1: ¿el arte
+   representa el contenido de ESTA consigna puntual, o es decoración
+   tangencial? Si es decoración, o se saca o se convierte en representacional
+   — nunca se deja "porque queda lindo".
+6. Diseñar los distractores (opciones incorrectas) a partir de errores
+   conceptuales reales de esa habilidad — sección 4c, punto 1 — nunca al
+   azar.
+7. Confirmar que la actividad exige precisión sostenida en preguntas
+   variadas antes de dar "completado" (sección 4c, puntos 2-4) — si un
+   juego con pocas opciones se puede ganar por eliminación (como
+   `mas_menos` hoy), documentarlo como deuda conocida aunque no se arregle
+   en esa misma sesión.
+8. Un tipo de actividad nuevo = un test guardián nuevo (mismo criterio que el
    resto del motor: lo que tiene respuesta correcta se VERIFICA por código —
    ver `tests/test_actividades_web.py`/`tests/test_certificado.py` como
    ejemplo de estilo).
-6. Actualizar la tabla de la sección 4 de ESTA skill cuando el año quede
+9. Actualizar la tabla de la sección 4 de ESTA skill cuando el año quede
    validado — que no quede desactualizada para la próxima sesión.

@@ -2,16 +2,24 @@
 
 > Pedido de Pablo (14-jul-2026): armar una investigación real (currículum NAP +
 > metodologías de aprendizaje) que sirva de base para diseñar actividades
-> progresivas, empezando por 4 años y subiendo desde ahí. Este informe cruza
-> tres fuentes:
+> progresivas, empezando por 4 años y subiendo desde ahí — **"lo más serio
+> posible... no solo las actividades sino la gráfica y estética que
+> acompañe... los chicos tienen que aprender de verdad"**. Este informe cruza
+> cinco fuentes:
 > 1. `docs/CURRICULUM-NAP-ARGENTINA.md` — el currículum NAP que Pablo pasó (QUÉ
->    tiene que aprender un chico en cada año escolar).
+>    tiene que aprender un chico en cada año escolar, los 9 años completos).
 > 2. Investigación de metodologías de aprendizaje (Piaget, Vygotsky, alfabetización
 >    basada en evidencia, Singapore Math, atención sostenida por edad) — CÓMO
 >    secuenciar la dificultad de forma pedagógicamente sólida.
 > 3. Auditoría real del motor (`cuaderno.py`, `actividades_web.py`,
 >    `actividades_player.js`) — QUÉ es capaz de generar HOY, verificado por
 >    código (no supuesto).
+> 4. Investigación de diseño gráfico basado en evidencia (tipografía, color,
+>    ilustración, layout) — CÓMO tiene que verse para que el diseño ayude al
+>    aprendizaje en vez de solo decorarlo.
+> 5. Investigación de verificación de aprendizaje real (distractores,
+>    mastery learning, feedback correctivo) — cómo asegurar que "completar
+>    la actividad" signifique "aprendió", no "adivinó".
 >
 > El proceso repetible para seguir construyendo esto queda en la skill
 > `.claude/skills/actividades-progresivas/SKILL.md`.
@@ -95,6 +103,68 @@ abajo — acá solo lo que cambia decisiones de diseño.)
 
 Esta tabla es directamente el motor de dosificación del feature "Modo
 Maestra / Mamá ocupada" (30 minutos según edad) — ya queda lista para usar.
+
+## 2b. Diseño gráfico y verificación de aprendizaje real (investigación adicional, 14-jul-2026)
+
+Pablo pidió explícitamente que la seriedad no fuera solo pedagógica sino
+también gráfica, y que "los chicos tienen que aprender de verdad" — dos
+preguntas que no había investigado en la primera ronda. Resumen aplicable
+(detalle completo y fuentes en `.claude/skills/actividades-progresivas/SKILL.md`
+§4b-4c):
+
+### El hallazgo más importante para este negocio puntual
+
+**El "efecto de detalle seductor" está confirmado por meta-análisis: una
+ilustración linda pero tangencial al contenido de la actividad EMPEORA la
+retención del aprendizaje, aunque haga que el material se vea "más
+profesional".** El negocio de Pablo depende de arte IA vistoso — esto no
+dice "sacar el arte", dice que el criterio de "¿está bueno este arte?" tiene
+que incluir "¿representa el contenido de ESTA consigna puntual, o es
+decoración alrededor de ella?". Un personaje del tema haciendo algo ajeno a
+la pregunta resta aprendizaje real aunque sume atractivo visual. La
+recomendación aplicable: estilo realista cuando el objetivo de la pieza es
+enseñar contenido nuevo (ciencias, por ejemplo), estilo cartoon/estilizado
+cuando el objetivo es enganche/motivación (portada, festejo, mascota) — no
+un único estilo parejo en todo el catálogo por default estético.
+
+### Otros hallazgos de diseño gráfico (accionables)
+
+- **Contraste AAA (7:1), no el AA legal mínimo** — es el estándar de facto
+  en educación seria. Ya verificado contra el sistema de paletas actual:
+  `ink/card` da 11-13:1 (excelente); `ac` da ~3-3.6:1 pero NUNCA se usa como
+  color de texto hoy (confirmado por grep) — correcto tal cual está.
+- **Nunca codificar significado solo por color** — siempre con ícono/forma/
+  texto acompañando.
+- **Tipografía = la letra que el chico está aprendiendo a escribir a mano**
+  (formas de una sola vía, b/d bien diferenciadas) — Baloo/Nunito (ya en
+  uso) están alineadas con este criterio.
+- **Audio-guía es la brecha de UX más urgente para 4-5 años** — más urgente
+  que sumar juegos nuevos, porque a esa edad no se puede depender de que el
+  chico lea la consigna solo.
+- **Targets táctiles ≥48×48dp con ≥64px de separación.**
+
+### Verificación de aprendizaje real: un hueco CONFIRMADO en el motor actual
+
+No es solo teoría — se verificó contra código real. `GAMES.mas_menos`
+(`actividades_player.js:1448`) tiene solo 2 grupos para elegir por ronda, y
+reintentos ilimitados sin penalización (cero fail states). Un chico puede
+"ganar" las 5 rondas tocando sistemáticamente "el que no toqué antes" —
+eliminación pura — sin haber entendido nunca qué significa "más" o "menos".
+Es EXACTAMENTE el riesgo que anticipa la investigación: cero fail states +
+pocas opciones + sin exigir precisión en el primer intento = se puede
+completar sin aprender. Esto no invalida "cero fail states" (sigue siendo
+correcto, con evidencia real detrás) — significa que cero fail states no
+alcanza SOLO, necesita además: (1) suficientes opciones para que adivinar
+no sea viable, o (2) distinguir "acertó al primer toque" de "acertó
+eventualmente" y solo contar lo primero como dominio real.
+
+**Regla no negociable para toda actividad nueva (y para revisar las
+existentes con el tiempo)**: los distractores (opciones incorrectas) tienen
+que representar errores conceptuales reales de esa habilidad, no valores al
+azar; ninguna actividad da "completado" con un solo acierto, hace falta
+precisión sostenida (80-90%, estándar de Bloom's mastery learning) en
+preguntas que varíen en cada intento; todo error dispara una explicación
+corta del porqué, no solo "¡mal! probá de nuevo".
 
 ## 3. Estado real del motor, por tipo de contenido (verificado por código)
 
@@ -197,6 +267,39 @@ tipos de trabajo distintos:
    el roadmap): esto es un tipo de trabajo nuevo para el motor — el primer
    juego con componente de AUDIO real, no solo visual. Vale la pena tratarlo
    como su propio hito, no colarlo dentro del trabajo de curación.
+
+## 5b. Plan de implementación — Sala de 4 años (listo para construir)
+
+Con las 5 fuentes cruzadas, esto es lo que hay que hacer, en orden, para que
+Sala de 4 sea real y no solo "aceptable":
+
+1. **Auditar los 11 juegos de la banda `media` usados en Sala de 4** (§5)
+   contenido visual por contenido visual: para cada uno, ¿el set de
+   imágenes que se le puede mostrar a un chico de 4 años es
+   REPRESENTACIONAL de lo que se le pide, o hay decoración tangencial de
+   por medio? (§2b — el hallazgo del "detalle seductor"). Ejemplo concreto:
+   en `agrupar` (clasificación por atributo, Bimestre 2), las imágenes que
+   se clasifican tienen que ser el foco — sin personajes de fondo
+   compitiendo por atención.
+2. **Ajustar los parámetros numéricos por bimestre** (no un solo `max` para
+   todo el año): B1 conteo hasta 5, B2 número hasta 3, B3 conteo hasta 10 —
+   hoy `contar` tiene un solo `max=6` para toda la banda `media`; hace falta
+   parametrizar por bimestre, no por banda de edad completa.
+3. **Revisar cada juego contra la verificación de aprendizaje real** (§2b):
+   ¿tiene pocas opciones donde la eliminación gana sin entender (como
+   `mas_menos`)? Si sí, documentarlo como deuda conocida — no bloquea
+   lanzar Sala de 4, pero sí que quede escrito para no repetir el patrón en
+   juegos nuevos.
+4. **Diseñar (no necesariamente construir ya) el componente de audio-guía**
+   — es la brecha de UX más urgente identificada (§2b), más que cualquier
+   juego nuevo. Aunque no se implemente en la primera versión, dejarlo
+   como decisión consciente y documentada, no como olvido.
+5. **El único contenido de Sala de 4 sin ningún juego hoy** es la noción
+   espacial (arriba/abajo/adentro/afuera, Bimestre 1) — decidir si entra en
+   esta primera versión (juego nuevo chico) o se deja fuera conscientemente.
+6. **Escribir el test guardián** de cualquier parámetro nuevo (ej. que
+   `contar` con `max=3` nunca muestre más de 3 objetos) — mismo criterio
+   que el resto del motor.
 
 ## 6. Pendientes que dependen de Pablo (no técnicos)
 
