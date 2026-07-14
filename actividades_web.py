@@ -1072,15 +1072,17 @@ def archivo(token, nombre):
 
 def preview_mock(data, tema):
     """Miniatura para la ficha de la tienda / dash (sin crear token): la portada.
-    Se ignora `data.get("nombre")` A PROPÓSITO — nadie compró todavía, así
-    que mostrar un nombre de muestra en la ficha pública ("Las actividades de
-    Sofía") daría la impresión falsa de que ya viene personalizado para una
-    nena en particular (bug real, corregido 12-jul-2026). El título genérico
-    es el mismo fallback que usa crear() cuando la compra real no trae
-    nombre. La compra SÍ vuelve a pedir nombre (14-jul-2026) — solo esta
-    miniatura de PRE-venta se mantiene genérica."""
+    Usa `data.get("nombre")` SI VIENE (14-jul-2026) — mismo criterio que
+    `_armar_data()`: genérica ("Cuaderno de actividades") cuando no hay
+    nombre real (ficha pública recién cargada, nadie escribió nada todavía —
+    mostrar un nombre de muestra ahí daría la impresión falsa de que ya
+    viene personalizado, bug real corregido 12-jul-2026), personalizada
+    cuando SÍ hay uno (la vista previa en vivo del formulario de compra, que
+    ya refleja la edad elegida — Pablo 14-jul-2026: "cambio la edad y
+    aparece... pero no el nombre")."""
+    nombre = (data.get("nombre") or "").strip()
     edad = (str(data.get("edad") or "")).strip() or "5"
-    dj = _armar_data_liviano(tema, edad)
+    dj = _armar_data_liviano(tema, nombre, edad)
     pers = []
     try:
         from cuaderno import _seleccionar_recortes
@@ -1157,8 +1159,9 @@ def preview_mock_extra(data, tema, indice):
     return preview_mock(data, tema)
 
 
-def _armar_data_liviano(tema, edad):
+def _armar_data_liviano(tema, nombre, edad):
     """Solo lo que necesita la portada (sin generar puzzles)."""
     from cuaderno import _tema_nombre
-    return {"titulo": "Cuaderno de actividades", "paleta": _paleta(tema),
+    titulo = ("Las actividades de %s" % nombre) if nombre else "Cuaderno de actividades"
+    return {"titulo": titulo, "paleta": _paleta(tema),
             "tema_nombre": _tema_nombre(tema), "edad": edad}

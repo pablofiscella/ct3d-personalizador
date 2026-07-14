@@ -226,6 +226,19 @@ def test_campos_actividades_web_pide_nombre():
     assert "nombre" in productos.PERSONALIZADAS["actividades-web"]["*"]
 
 
+def test_preview_mock_refleja_el_nombre_tipeado():
+    """Bug real (14-jul-2026, Pablo: "cambio la edad y aparece en la
+    portada... pero no el nombre"): la vista previa en vivo del formulario
+    de compra manda `nombre` en la query de /preview igual que `edad`, pero
+    preview_mock lo ignoraba — la portada cambiaba de edad y quedaba muda
+    ante el nombre. Con nombre, personaliza (igual criterio que crear());
+    sin nombre, sigue genérica (ficha pública recién cargada, nadie
+    escribió nada — no mostrar un nombre de muestra)."""
+    generica = aw.preview_mock({"edad": "5", "nombre": ""}, TEMA)
+    personalizada = aw.preview_mock({"edad": "5", "nombre": "Valentina"}, TEMA)
+    assert generica.tobytes() != personalizada.tobytes()
+
+
 def test_certificado_logro_nombre_del_perfil_pisa_al_de_la_compra(token):
     """El nombre de la compra vuelve a existir (14-jul-2026) pero es solo el
     DEFAULT del primer perfil, no una personalización dura — el player
