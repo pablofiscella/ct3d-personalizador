@@ -132,6 +132,10 @@ button.pill:active, a.pill:active { transform: scale(.94); }
   background: var(--card); border-radius: var(--radio); box-shadow: var(--sombra);
   padding: clamp(10px, 2.5vw, 22px); position: relative; overflow: hidden;
 }
+/* dos .tablero seguidos (consigna arriba + opciones abajo, patrón usado en
+   varios juegos: campo_ciudad, sumas_redondas...) quedaban pegados sin aire
+   entre las dos cards — Pablo 14-jul-2026, viendo la captura de sumas_redondas. */
+.tablero + .tablero { margin-top: 14px; }
 .lienzo { touch-action: none; }        /* superficies con drag propio */
 
 /* botones */
@@ -458,6 +462,13 @@ button.pill:active, a.pill:active { transform: scale(.94); }
   background: var(--card); border-radius: 12px; box-shadow: var(--sombra);
   font-family: "Baloo", sans-serif; font-size: 22px; }
 .grilla100Celda.hueco { font-size: 26px; }
+
+/* tablas contrarreloj (14-jul-2026, 2° grado): barra de tiempo — SOLO
+   comunica urgencia, nunca "falla" al llegar a 0 (cero fail states). */
+.barraTiempo { width: 100%; max-width: 340px; height: 14px; margin: 14px auto 6px;
+  border-radius: 999px; background: var(--soft); overflow: hidden; }
+.barraTiempo__fill { height: 100%; width: 100%; background: var(--ac); border-radius: 999px;
+  transition: width .1s linear; }
 
 /* números grandes (sumas / restas / serie) */
 .cuentaGrande { display: flex; align-items: center; justify-content: center; gap: 14px;

@@ -187,7 +187,7 @@ corta del porqué, no solo "¡mal! probá de nuevo".
 | 1 | Sala de 4 años | ✅ Primer incremento shippeado 14-jul-2026 (§5b): mas_menos con feedback elaborado, juego nuevo `posicion`, `contar` diferenciado por edad. Faltan: audio-guía, auditoría visual completa, versión impresa de `posicion` | Bajo |
 | 2 | Sala de 5 años | ✅ Primer incremento shippeado 14-jul-2026 (§5c): `contar`/`mas_menos` con rango ampliado, juego nuevo `silabas` (primera mecánica de audio real del motor). Falta: sonido inicial de vocales, consonantes M/P/S/L, escritura del nombre — quedan fuera de esta primera pasada | Bajo (matemática) / Medio (fonética, mecánica nueva) |
 | 3 | 1° grado | ✅ Cerrado 14-jul-2026 (§5d-§5e): 7 juegos nuevos/curados cubriendo un "Idea web" del NAP por bimestre (`serie`+tope, `armar_palabra`, `abecedario`, `suma_rapida`, `campo_ciudad`, `planta_fruto`, `materiales`, `grilla100`). Falta a propósito: "la tiendita" con dinero (única "Idea PDF" priorizada igual) + contenido sin "Idea web" sugerida por el NAP (cuerpo humano, escuela, barrio, efemérides, comprensión lectora, escritura real) — candidatos para pasada aparte, no deuda de esta | Medio |
-| 4 | 2° grado | Separar de la banda "grande" (hoy comparte banda con 1° y con 12 años); sílabas complejas, cursiva, multiplicación conceptual (arreglos rectangulares), números hasta 1.000 — desglose bimestral ya disponible en `docs/CURRICULUM-NAP-ARGENTINA.md` | Medio |
+| 4 | 2° grado | ✅ Cerrado 14-jul-2026 (§5f): mismo criterio que 1° grado — un juego por cada "Idea web" del NAP en los 4 bimestres (8 juegos nuevos: `sustantivos`, `sumas_redondas`, `sinonimos_antonimos`, `multiplicacion_concepto`, `conductor_aislante`, `familia_palabras`, `trivia_espacial`, `tablas_contrarreloj` — primera mecánica de TIMER del motor). No hizo falta separar de la banda "grande": edad exacta 7 alcanza, mismo patrón `if e == 7` que ya usan Sala de 5/1° grado | Medio |
 | 5 | 3° grado | Construir de cero: tabla pitagórica interactiva, números de 4 cifras, cuerpos geométricos, primeras nociones de ciencias naturales/sociales curriculares | Alto |
 | 6 | 4°-5° grado | Fracciones (con apoyo visual — tiras, CPA), decimales, geometría con compás, primera historia argentina real (colonia, Revolución de Mayo) | Alto |
 | 7 | 6°-7° grado | Porcentaje, proporcionalidad, álgebra informal, estadística, ciencias naturales avanzadas (célula, sistema nervioso/endocrino), historia/geografía argentina contemporánea | Alto |
@@ -556,6 +556,63 @@ NAP sugirió, en los 4 bimestres.
    §5d) y **audio-guía de los 6 juegos nuevos en `mini`/`media`** — no
    aplica a estos juegos (son específicos de 1° grado) salvo que se
    reutilicen para otro año.
+
+## 5f. Cierre de 2° grado (mismo día, Pablo: "dale. Sigamos y después voy a chequear todo")
+
+Mismo criterio que 1° grado (§5e): un juego por cada "Idea web" del NAP, uno
+por bimestre, edad exacta 7 con su propio bloque `if e == 7` en `_menu()`
+(no compartido con 1° grado ni con edades mayores de la banda `"grande"`).
+
+| Bimestre | "Idea web" del NAP | Juego construido |
+|---|---|---|
+| 1 | "arrastrar el sustantivo a Comunes vs. Propios" | `sustantivos` (clasificar 2 categorías, mismo patrón que `campo_ciudad`) |
+| 1 | "rompecabezas de sumas que den números redondos — 150+50=200" | `sumas_redondas` (mismo patrón que `suma_rapida`, objetivo variable 100/200/300 mostrado en pantalla) |
+| 2 | "unir sinónimos/antónimos" | `sinonimos_antonimos` (3 opciones, dos consignas fijas — una por relación) |
+| 2 | "asociar suma repetida con su multiplicación — 2+2+2+2 → 2×4" | `multiplicacion_concepto` (distractores por cantidad/sumando incorrectos, NO por orden conmutado — ver nota abajo) |
+| 3 | "simulador de cocina — clasificar materiales por si se calientan rápido" | `conductor_aislante` (clasificar 2 categorías) |
+| 3 | "completar palabra con su familia correcta" | `familia_palabras` (3 opciones) |
+| 4 | "trivia espacial — día/noche/ambos" | `trivia_espacial` (3 opciones) |
+| 4 | "cálculo mental contrarreloj con tablas del 2, 5 y 10" | `tablas_contrarreloj` — **primera mecánica de TIMER del motor** |
+
+### Decisiones de diseño que vale la pena dejar explícitas
+
+1. **`multiplicacion_concepto` — distractores por estructura, no por
+   conmutatividad.** "2+2+2+2" es "2×4" (2 repetido 4 veces). Matemáticamente
+   "4×2" da el mismo resultado (8), así que ponerlo como distractor
+   "incorrecto" sería enseñar una confusión falsa sobre la conmutatividad,
+   no una confusión real de conteo. Los distractores generados varían la
+   CANTIDAD de grupos o el SUMANDO (ej. "2×3", "3×4") — errores conceptuales
+   genuinos (contar mal cuántos grupos hay), no una trampa de notación.
+2. **`tablas_contrarreloj` — primer timer del motor, con un riesgo real
+   resuelto antes de shippear.** El shell del player (`Shell.abrir()`) NO
+   tiene ningún hook de "se cerró el juego anterior" — cuando se abre un
+   juego nuevo, el anterior simplemente queda sin referencias visibles pero
+   cualquier `setInterval` que haya dejado corriendo sigue vivo de fondo.
+   Para la mayoría de los juegos esto nunca importó (no usan timers), pero
+   acá SÍ: un `setInterval` huérfano que siga llamando a `ctx.casi()`/
+   `jugar()` después de que el jugador se fue a otra pantalla corrompería
+   el `Shell.fallos` (compartido, no por juego) del juego que esté abierto
+   en ese momento — un bug de "estrellas mal calculadas" real pero muy
+   difícil de reproducir a propósito. Resuelto sin tocar el shell
+   compartido: el propio intervalo chequea `elemento.isConnected` en cada
+   tick y se apaga solo si su nodo ya no está en el documento. Verificado
+   en vivo con Playwright: entrar al juego, salir a mitad de ronda, esperar
+   más que el timeout del timer (6s) jugando OTRO juego — cero errores de
+   consola, cero estrellas corrompidas.
+3. **Bug de espaciado real encontrado por Pablo mirando una captura**: los
+   juegos con dos ".tablero" apilados (consigna arriba + opciones abajo —
+   patrón usado en `campo_ciudad`, `sumas_redondas` y varios más) quedaban
+   con las dos tarjetas pegadas, sin aire entre ellas. Corregido con una
+   regla general (`.tablero + .tablero { margin-top: 14px }`) — beneficia a
+   TODOS los juegos con ese patrón, no solo al que se vio en la captura.
+
+### Deliberadamente NO hecho
+
+Mismo criterio que 1° grado: todo lo del NAP de 2° grado que NO tenía una
+"Idea web" sugerida (cursiva real — necesita reconocimiento de trazo, que el
+motor no tiene; comprensión de cuentos tradicionales; circuito productivo;
+leyendas populares argentinas; cartas/mails; ortografía MB/MP/NV) queda para
+una pasada de diseño aparte, no es deuda de este incremento.
 
 ## 6. Pendientes que dependen de Pablo (no técnicos)
 
