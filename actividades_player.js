@@ -40,20 +40,41 @@ let D = null;            // data.json
 let P = [];              // personajes (filenames)
 const GAMES = {};        // registro de juegos
 
-/* ── persistencia (estrellas + sonido) por token ── */
+/* ── persistencia (perfiles + estrellas + sonido) por token ── */
+/* Perfiles (14-jul-2026, Pablo: "pueden ser 2 chicos los que juegan en la
+   misma casa" — el link/token es UNO solo por compra, pero cada hermano
+   entra con su propio nombre y junta SUS estrellas, no las del otro; cada
+   uno gana su propio diploma. Formato viejo (antes de esto) guardaba
+   {stars,sound} sueltos — se migra a un perfil placeholder para no perder
+   el progreso ya juntado. */
 const Store = {
   key: "ct3d_act::" + location.pathname.replace(/\/$/, ""),
-  data: { stars: {}, sound: true },
+  data: { sound: true, activeProfile: null, profiles: {} },
   load() {
-    try { Object.assign(this.data, JSON.parse(localStorage.getItem(this.key) || "{}")); }
-    catch (e) {}
+    try {
+      const raw = JSON.parse(localStorage.getItem(this.key) || "{}");
+      if (raw.stars && !raw.profiles) {          // migración formato viejo (sin perfiles)
+        raw.profiles = { "Jugador 1": { stars: raw.stars } };
+        raw.activeProfile = "Jugador 1";
+        delete raw.stars;
+      }
+      Object.assign(this.data, raw);
+    } catch (e) {}
   },
   save() { try { localStorage.setItem(this.key, JSON.stringify(this.data)); } catch (e) {} },
-  stars(id) { return this.data.stars[id] || 0; },
-  setStars(id, n) {
-    if (n > this.stars(id)) { this.data.stars[id] = n; this.save(); }
+  _perfil() { return this.data.profiles[this.data.activeProfile]; },
+  stars(id) {
+    const p = this._perfil();
+    return (p && p.stars[id]) || 0;
   },
-  total() { return Object.values(this.data.stars).reduce((a, b) => a + b, 0); },
+  setStars(id, n) {
+    const p = this._perfil();
+    if (p && n > this.stars(id)) { p.stars[id] = n; this.save(); }
+  },
+  total() {
+    const p = this._perfil();
+    return p ? Object.values(p.stars).reduce((a, b) => a + b, 0) : 0;
+  },
 };
 
 /* ── sonidos sintetizados (WebAudio — sin assets, latencia cero) ── */
@@ -140,9 +161,24 @@ function toast(txt) {
   t.classList.add("ver");
 }
 
+/* ── diploma de logro (14-jul-2026): cuaderno COMPLETO, sin errores en
+   ningún juego (3 estrellas = 0 fallos, mismo criterio que Shell.ctx().win).
+   Progreso vive solo en localStorage (Store) — no hay servidor que lo
+   valide, mismo nivel de confianza que el resto de los links por token. */
+function juegosDelMenu() {
+  return D.menu.filter((m) => GAMES[m.id] && P.length >= (GAMES[m.id].minP || 0));
+}
+function todoCompleto() {
+  const js = juegosDelMenu();
+  return js.length > 0 && js.every((m) => Store.stars(m.id) === 3);
+}
+function certificadoUrl() {
+  return "certificado.png?nombre=" + encodeURIComponent(Store.data.activeProfile || "");
+}
+
 /* ── shell de juego: consigna + progreso + festejo ── */
 const Shell = {
-  actual: null, fallos: 0, _rondas: 0,
+  actual: null, fallos: 0, _rondas: 0, _nuevoLogro: false,
   abrir(id) {
     const item = D.menu.find((m) => m.id === id);
     if (!item || !GAMES[id]) return;
@@ -186,7 +222,9 @@ const Shell = {
       win(estrellas) {
         const e = estrellas !== undefined ? estrellas
           : (self.fallos === 0 ? 3 : (self.fallos <= 2 ? 2 : 1));
+        const yaEstabaCompleto = todoCompleto();
         Store.setStars(self.actual, e);
+        if (!yaEstabaCompleto && todoCompleto()) self._nuevoLogro = true;
         pintarHeader();
         festejar(e);
       },
@@ -198,7 +236,7 @@ const Shell = {
 function festejar(estrellas) {
   Sfx.fanfarria();
   Confeti.tirar(140);
-  $("#festejoTitulo").textContent = D.nombre ? `¡Muy bien, ${D.nombre}!` : "¡Muy bien!";
+  $("#festejoTitulo").textContent = Store.data.activeProfile ? `¡Muy bien, ${Store.data.activeProfile}!` : "¡Muy bien!";
   $("#festejoFrase").textContent = FRASES_FESTEJO[rint(0, FRASES_FESTEJO.length - 1)];
   const cont = $("#festejoEstrellas");
   cont.innerHTML = "";
@@ -213,10 +251,47 @@ function festejar(estrellas) {
 
 function cerrarFestejo() { $("#festejo").classList.remove("ver"); }
 
+function mostrarLogro() {
+  $("#btnVerLogro").href = certificadoUrl();
+  Confeti.tirar(220);
+  Sfx.fanfarria();
+  $("#logro").classList.add("ver");
+}
+function cerrarLogro() { $("#logro").classList.remove("ver"); }
+
+/* ── selector de jugador: varios chicos, un solo link (token) ── */
+function abrirPerfil() {
+  const lista = $("#perfilLista");
+  lista.innerHTML = "";
+  Object.keys(Store.data.profiles).forEach((n) => {
+    const b = el("button", "btn suave");
+    b.type = "button";
+    b.textContent = n;
+    b.addEventListener("click", () => elegirPerfil(n));
+    lista.appendChild(b);
+  });
+  // sin perfil activo (primera vez) no hay nada que cancelar
+  $("#perfilCancelar").style.display = Store.data.activeProfile ? "" : "none";
+  $("#perfilInput").value = "";
+  $("#perfil").classList.add("ver");
+  $("#perfilInput").focus();
+}
+function cerrarPerfil() { $("#perfil").classList.remove("ver"); }
+function elegirPerfil(nombre) {
+  nombre = (nombre || "").trim().slice(0, 20);
+  if (!nombre) return;
+  if (!Store.data.profiles[nombre]) Store.data.profiles[nombre] = { stars: {} };
+  Store.data.activeProfile = nombre;
+  Store.save();
+  cerrarPerfil();
+  pintarHeader();
+  pintarMenu();
+}
+
 /* ── menú principal ── */
 function pintarHeader() {
   $("#totalEstrellas").textContent = Store.total();
-  $("#hdrNombre").textContent = D.nombre ? `¡Hola, ${D.nombre}!` : "¡Hola!";
+  $("#hdrNombre").textContent = Store.data.activeProfile ? `¡Hola, ${Store.data.activeProfile}!` : "¡Hola!";
   $("#hdrSub").textContent = `${D.tema_nombre} · Casatridimensional`;
   $("#mascoHdr").src = P[0];
   $("#mascoFestejo").src = P[0];
@@ -229,7 +304,8 @@ function pintarMenu() {
   stage.innerHTML = "";
   const bienv = el("div", "", "");
   bienv.id = "bienvenida";
-  bienv.innerHTML = `<h1>${D.titulo}</h1><p>Elegí un juego y ganá estrellas ⭐</p>`;
+  bienv.innerHTML = `<h1>${D.titulo}</h1><p>Elegí un juego y ganá estrellas ⭐</p>
+    <a id="pillLogro" class="${todoCompleto() ? "ver" : ""}" href="${certificadoUrl()}" target="_blank" rel="noopener">🏆 Ver mi diploma</a>`;
   stage.appendChild(bienv);
   const menu = el("div"); menu.id = "menu";
   D.menu.forEach((m, i) => {
@@ -270,23 +346,36 @@ async function boot() {
   await Promise.all(P.map((src) => new Promise((res) => {
     const im = new Image(); im.onload = im.onerror = res; im.src = src;
   })));
-  pintarHeader();
-  pintarMenu();
   $("#cargando").remove();
+  if (Store.data.activeProfile && Store.data.profiles[Store.data.activeProfile]) {
+    pintarHeader(); pintarMenu();
+  } else {
+    abrirPerfil();   // primera vez con este link: preguntar quién juega
+  }
 
   $("#btnAtras").addEventListener("click", () => { Sfx.pop(); pintarMenu(); });
+  $("#hdrTitulo").addEventListener("click", () => { Sfx.pop(); abrirPerfil(); });
+  $("#perfilJugar").addEventListener("click", () => elegirPerfil($("#perfilInput").value));
+  $("#perfilInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") elegirPerfil($("#perfilInput").value);
+  });
+  $("#perfilCancelar").addEventListener("click", cerrarPerfil);
   $("#btnSonido").addEventListener("click", () => {
     Sfx.on = !Sfx.on;
     Store.data.sound = Sfx.on; Store.save();
     $("#btnSonido").textContent = Sfx.on ? "🔊" : "🔇";
     if (Sfx.on) Sfx.pop();
   });
-  $("#btnSeguir").addEventListener("click", () => { cerrarFestejo(); pintarMenu(); });
+  $("#btnSeguir").addEventListener("click", () => {
+    cerrarFestejo(); pintarMenu();
+    if (Shell._nuevoLogro) { Shell._nuevoLogro = false; mostrarLogro(); }
+  });
   $("#btnOtraVez").addEventListener("click", () => {
     const id = Shell.actual;
     cerrarFestejo();
     if (id) Shell.abrir(id);
   });
+  $("#btnCerrarLogro").addEventListener("click", cerrarLogro);
   addEventListener("resize", () => requestAnimationFrame(ajustarAlto));
   ajustarAlto();
   // iOS: desbloquear el audio en el primer toque
@@ -825,7 +914,7 @@ GAMES.colorear = {
     });
     bBajar.addEventListener("click", () => {
       const a = document.createElement("a");
-      a.download = (D.nombre ? D.nombre.toLowerCase() + "-" : "") + "dibujo.png";
+      a.download = (Store.data.activeProfile ? Store.data.activeProfile.toLowerCase() + "-" : "") + "dibujo.png";
       a.href = cv.toDataURL("image/png");
       a.click();
       toast("¡Guardado! 🖼️");

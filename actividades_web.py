@@ -254,6 +254,31 @@ def _cargar(token):
         return None
 
 
+def certificado_logro(token, nombre=None):
+    """Diploma de logro (14-jul-2026) — se renderiza EN VIVO recién cuando el
+    peque lo pide (el player solo habilita el link una vez que ganó 3
+    estrellas en TODOS los juegos: Store.stars en actividades_player.js, sin
+    contraparte server-side — no hay progreso persistido en el servidor, así
+    que esto no valida "de verdad" que lo completó, mismo criterio de
+    confianza que el resto de los links por token). None si el token no
+    existe/no está listo.
+
+    `nombre`: actividades-web NO pide nombre al comprar (compra directa) y
+    el player soporta VARIOS perfiles por token (Pablo 14-jul-2026: "pueden
+    ser 2 chicos los que juegan en la misma casa") — el nombre real viaja
+    desde el player (perfil activo en localStorage), no desde la compra.
+    Sin nombre explícito cae al de la compra (si lo hubiera) para no romper
+    otros tipos que sí lo piden."""
+    reg = _cargar(token)
+    if not reg:
+        return None
+    import certificado
+    data = dict(reg)
+    if nombre is not None:
+        data["nombre"] = nombre.strip()[:40]   # el input del player ya limita a 20; tope extra por las dudas
+    return certificado.generar_certificado_logro(data, reg.get("tema") or "safari")
+
+
 # ── Generación ──
 
 def _miniatura_cmp(im):

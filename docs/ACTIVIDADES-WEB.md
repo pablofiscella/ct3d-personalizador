@@ -57,6 +57,30 @@ assets ya existentes del tema (stickers recortados con filtros de calidad,
 - `tests/test_actividades_web.py` — 10 tests (puzzles verificados, whitelist
   de assets, tokens inválidos, paletas completas).
 
+## Diploma de logro (14-jul-2026)
+
+Pedido de Pablo: "cuando algún peque haga todo el cuaderno sin errores que le
+agregue el certificado de esa actividad para que lo pueda imprimir como un
+logro". "Sin errores" = 3⭐ en TODOS los juegos del menú (mismo cómputo que
+`Shell.ctx().win()`: 0 fallos = 3 estrellas).
+
+- El progreso vive SOLO en `localStorage` (`Store`, por token) — no hay
+  progreso persistido en el servidor, así que esto no se puede "validar" del
+  lado servidor; mismo nivel de confianza que el resto de los links por token.
+- `actividades_player.js`: `todoCompleto()` chequea el menú actual; `win()`
+  detecta la TRANSICIÓN (recién se completó) y dispara el modal `#logro`
+  (trofeo + confeti) al volver al menú; la pill `#pillLogro` queda visible en
+  visitas siguientes.
+- `certificado.py`: `generar_certificado_logro(data, tema)` — mismo estilo
+  visual que `generar_certificado` (fondo IA, orlas, roseta) pero el motivo es
+  la hazaña, no el cumpleaños (sin edad). Usa `_text_tracked()` (tracking
+  manual entre letras) en el subtítulo en mayúsculas — Fredoka pegaba tanto
+  la I/V/I de "ACTIVIDADES" que se leía "ACTMDADES".
+- `actividades_web.certificado_logro(token)`: renderiza EN VIVO (no se
+  pre-genera con el resto de los assets del token — depende de algo que solo
+  se sabe después de jugar). Servido en `GET /act/<token>/certificado.png`.
+- `tests/test_certificado.py` (nuevo) + 3 tests en `test_actividades_web.py`.
+
 ## Paletas
 
 `actividades_web.PALETAS` — una por tema, elegida a mano (bg/card/ink/ac/ac2/

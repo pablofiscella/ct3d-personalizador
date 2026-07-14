@@ -122,3 +122,41 @@ def test_paletas_completas():
     claves = set(aw._PALETA_DEFAULT)
     for tema, pal in aw.PALETAS.items():
         assert set(pal) == claves, tema
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Diploma de logro (14-jul-2026): Pablo — "cuando algún peque haga todo el
+# cuaderno de actividades interactivo sin errores que le agregue el
+# certificado de esa actividad para que lo pueda imprimir como un logro".
+# Se renderiza EN VIVO (no se pre-genera con el resto de los assets del
+# token) porque depende de algo que solo se sabe DESPUÉS de jugar.
+def test_certificado_logro_token_valido(token, data):
+    im = aw.certificado_logro(token)
+    assert im is not None
+    import certificado
+    assert im.size == (certificado.WpH, certificado.HpH)
+
+
+def test_certificado_logro_token_invalido():
+    assert aw.certificado_logro("no-existe-xx") is None
+    assert aw.certificado_logro("../../etc") is None
+    assert aw.certificado_logro("") is None
+
+
+def test_certificado_logro_nombre_del_perfil_pisa_al_de_la_compra(token):
+    """actividades-web NO pide nombre al comprar y el player soporta VARIOS
+    perfiles por token (14-jul-2026, Pablo: "pueden ser 2 chicos los que
+    juegan en la misma casa") — el nombre real viaja del perfil activo del
+    player (query param), no del manifest de la compra."""
+    im_a = aw.certificado_logro(token, nombre="Valentina")
+    im_b = aw.certificado_logro(token, nombre="Benjamín")
+    assert im_a is not None and im_b is not None
+    assert im_a.tobytes() != im_b.tobytes()
+
+
+def test_certificado_logro_sin_nombre_cae_al_de_la_compra(token, data):
+    """El fixture 'token' del módulo se creó con nombre='Sofía' (línea 24) —
+    sin nombre explícito, no debe quedar en blanco de la nada."""
+    con_nombre_compra = aw.certificado_logro(token)
+    con_nombre_explicito = aw.certificado_logro(token, nombre="Sofía")
+    assert con_nombre_compra.tobytes() == con_nombre_explicito.tobytes()

@@ -25,6 +25,20 @@ def _mm(v):
     return v * _PXMM
 
 
+def _text_tracked(dr, cx, cy, text, font, fill, tracking=0.05):
+    """Como dr.text(anchor="mm") pero con tracking extra entre letras —
+    encontrado 14-jul-2026 en el diploma de logro: Fredoka en MAYÚSCULAS
+    junta tanto la I/V/I que "ACTIVIDADES" se leía "ACTMDADES". Sin esto en
+    títulos/subtítulos en mayúsculas de este archivo."""
+    gap = font.size * tracking
+    widths = [font.getlength(ch) for ch in text]
+    total = sum(widths) + gap * (len(text) - 1)
+    x = cx - total / 2
+    for ch, w in zip(text, widths):
+        dr.text((x, cy), ch, font=font, fill=fill, anchor="lm")
+        x += w + gap
+
+
 def _font(sz, bold=True):
     for p in glob.glob(f"{KIT}/**/Fredoka*.ttf", recursive=True):
         try:
@@ -152,6 +166,70 @@ def generar_certificado(data, tema="safari"):
                 stroke_width=5, stroke_fill=(255, 253, 246))
     else:
         # zona inferior: fecha + firma a la izquierda · roseta a la derecha
+        yb = HpH - _mm(42)
+        dr.line([WpH * 0.16, yb, WpH * 0.38, yb], fill=INK, width=4)
+        dr.text((WpH * 0.27, yb + _mm(8)), "Firma del adulto a cargo de los abrazos",
+                font=_font(40, False), fill=(150, 150, 160), anchor="mm")
+        _roseta(dr, WpH * 0.72, yb - _mm(10), _mm(17), acc, GOLD)
+        dr.text((cx, HpH - _mm(12)), "casatridimensional.com.ar", font=_font(36, False),
+                fill=(180, 180, 180), anchor="mm")
+    return im
+
+
+def generar_certificado_logro(data, tema="safari"):
+    """Diploma de LOGRO — se gana jugando, no se compra (14-jul-2026, Pablo:
+    "cuando algún peque haga todo el cuaderno de actividades interactivo sin
+    errores que le agregue el certificado de esa actividad para que lo pueda
+    imprimir"). Mismo estilo visual que generar_certificado (fondo IA, orlas,
+    roseta) pero el motivo es la HAZAÑA (3 estrellas en TODOS los juegos del
+    cuaderno), no el cumpleaños — por eso no lleva la edad."""
+    acc = _accent(tema)
+    nombre = (str(data.get("nombre") or "").strip()) or "______________"
+
+    fondo = _fondo(tema)
+    if fondo is not None:
+        import fondos_ia
+        im = fondos_ia.cover(fondo, WpH, HpH)
+        dr = ImageDraw.Draw(im)
+    else:
+        im = Image.new("RGBA", (WpH, HpH), CREAM + (255,))
+        dr = ImageDraw.Draw(im)
+        dr.rounded_rectangle([_mm(8), _mm(8), WpH - _mm(8), HpH - _mm(8)], _mm(8),
+                             outline=GOLD, width=12)
+        dr.rounded_rectangle([_mm(13), _mm(13), WpH - _mm(13), HpH - _mm(13)], _mm(6),
+                             outline=acc, width=6)
+        pjs = _personajes(tema, 2)
+        if pjs:
+            spots = [(WpH * 0.11, HpH - _mm(42)), (WpH * 0.89, HpH - _mm(42))][:len(pjs)]
+            for p, (sx, sy) in zip(pjs, spots):
+                _paste_h(im, p, sx, sy, _mm(46))
+            dr = ImageDraw.Draw(im)
+
+    cx = WpH / 2
+    dr.text((cx, _mm(34)), "DIPLOMA DE CRACK", font=_font(150), fill=GOLD, anchor="mm")
+    _text_tracked(dr, cx, _mm(50), "CUADERNO DE ACTIVIDADES COMPLETO", _font(60, False), INK)
+    dr.text((cx, _mm(68)), "Se otorga el presente diploma a", font=_font(56, False),
+            fill=_tint(INK, 0.2), anchor="mm")
+
+    nom_fs = 230
+    while _font(nom_fs).getbbox(nombre)[2] > WpH * 0.62 and nom_fs > 80:
+        nom_fs -= 6
+    dr.text((cx, _mm(92)), nombre, font=_font(nom_fs), fill=acc, anchor="mm")
+    nw = _font(nom_fs).getbbox(nombre)[2]
+    dr.line([cx - nw / 2, _mm(107), cx + nw / 2, _mm(107)], fill=_tint(acc, 0.55), width=6)
+    dr.text((cx, _mm(122)), "por completar TODAS las actividades del cuaderno sin ningún error",
+            font=_font(54, False), fill=_tint(INK, 0.15), anchor="mm")
+
+    if fondo is not None:
+        yb = _mm(148)
+        dr.line([WpH * 0.30, yb, WpH * 0.52, yb], fill=INK, width=4)
+        dr.text((WpH * 0.41, yb + _mm(7)), "Firma del adulto a cargo de los abrazos",
+                font=_font(40, False), fill=(140, 140, 150), anchor="mm")
+        _roseta(dr, WpH * 0.63, yb - _mm(4), _mm(13), acc, GOLD)
+        dr.text((cx, HpH - _mm(9)), "casatridimensional.com.ar", font=_font(36, False),
+                fill=(150, 148, 145), anchor="mm",
+                stroke_width=5, stroke_fill=(255, 253, 246))
+    else:
         yb = HpH - _mm(42)
         dr.line([WpH * 0.16, yb, WpH * 0.38, yb], fill=INK, width=4)
         dr.text((WpH * 0.27, yb + _mm(8)), "Firma del adulto a cargo de los abrazos",

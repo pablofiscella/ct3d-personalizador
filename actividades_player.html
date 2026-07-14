@@ -60,7 +60,7 @@ h1, h2, h3, .fx { font-family: "Baloo", "Nunito", sans-serif; font-weight: 600; 
   flex: none; box-shadow: var(--sombra);
 }
 #hdr .avatar img { width: 44px; height: 44px; object-fit: contain; }
-#hdrTitulo { flex: 1; min-width: 0; }
+#hdrTitulo { flex: 1; min-width: 0; cursor: pointer; }
 #hdrTitulo b { display: block; font-family: "Baloo", sans-serif; font-size: 23px; line-height: 1.05;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #hdrTitulo span { font-size: 14px; opacity: .65; }
@@ -194,6 +194,55 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 /* en celular angosto (dos botones no entran en una fila) apilan prolijo
    a todo el ancho, en vez de dos píldoras de distinto tamaño sueltas */
 #festejo .botones .btn { flex: 1 1 200px; }
+
+/* ── diploma de logro (14-jul-2026): cuaderno completo, sin errores ── */
+#logro {
+  position: fixed; inset: 0; z-index: 61; display: none;
+  align-items: center; justify-content: center; padding: 22px;
+  background: color-mix(in srgb, var(--ink) 32%, transparent);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+}
+#logro.ver { display: flex; }
+#logro .caja {
+  background: var(--card); border-radius: 34px; box-shadow: var(--sombra-hi);
+  padding: 30px 26px 26px; text-align: center; max-width: 430px; width: 100%;
+}
+#logro .trofeo { font-size: 64px; animation: brinco .8s ease infinite; }
+#logro h2 { font-size: 30px; margin: 6px 0 2px; }
+#logro .frase { opacity: .75; font-size: 18px; margin-bottom: 10px; }
+#logro .botones { display: flex; gap: 12px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+#logro .botones .btn { flex: 1 1 200px; }
+#pillLogro {
+  display: none; margin: 10px auto 0; max-width: max-content; cursor: pointer;
+  align-items: center; gap: 8px; background: var(--soft); color: var(--ink);
+  border-radius: 999px; padding: 10px 20px; font-size: 16px; font-weight: 700;
+  text-decoration: none; box-shadow: var(--sombra);
+}
+#pillLogro.ver { display: inline-flex; }
+
+/* ── selector de jugador (14-jul-2026): varios chicos, un solo link ── */
+#perfil {
+  position: fixed; inset: 0; z-index: 62; display: none;
+  align-items: center; justify-content: center; padding: 22px;
+  background: color-mix(in srgb, var(--ink) 32%, transparent);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+}
+#perfil.ver { display: flex; }
+#perfil .caja {
+  background: var(--card); border-radius: 34px; box-shadow: var(--sombra-hi);
+  padding: 30px 26px 26px; text-align: center; max-width: 380px; width: 100%;
+}
+#perfil h2 { font-size: 28px; margin: 6px 0 14px; }
+#perfilLista { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 12px; }
+#perfilLista .btn { font-size: 19px; min-height: 54px; padding: 6px 22px; }
+#perfilInput {
+  width: 100%; font: inherit; font-family: "Baloo", sans-serif; font-size: 22px;
+  text-align: center; padding: 14px; border-radius: 999px; border: 2px solid var(--soft);
+  background: var(--bg); color: var(--ink); margin-bottom: 4px;
+}
+#perfilInput:focus { outline: none; border-color: var(--ac); }
+#perfil .botones { display: flex; gap: 12px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+#perfil .botones .btn { flex: 1 1 140px; }
 
 /* confeti */
 #confeti { position: fixed; inset: 0; z-index: 55; pointer-events: none; }
@@ -412,6 +461,31 @@ button.pill:active, a.pill:active { transform: scale(.94); }
     <div class="botones">
       <button class="btn suave" id="btnOtraVez">🔁 Otra vez</button>
       <button class="btn verde" id="btnSeguir">¡Seguir jugando!</button>
+    </div>
+  </div>
+</div>
+
+<div id="logro" role="dialog" aria-modal="true">
+  <div class="caja">
+    <div class="trofeo">🏆</div>
+    <h2>¡Completaste TODO sin errores!</h2>
+    <div class="frase">Ganaste un diploma de verdad para imprimir y colgar.</div>
+    <div class="botones">
+      <button class="btn suave" id="btnCerrarLogro">Seguir jugando</button>
+      <a class="btn verde" id="btnVerLogro" href="certificado.png" target="_blank" rel="noopener">🖨️ Ver mi diploma</a>
+    </div>
+  </div>
+</div>
+
+<div id="perfil" role="dialog" aria-modal="true">
+  <div class="caja">
+    <div class="fx" style="font-size:48px">👋</div>
+    <h2>¿Quién juega?</h2>
+    <div id="perfilLista"></div>
+    <input id="perfilInput" placeholder="Escribí tu nombre" maxlength="20" autocomplete="off">
+    <div class="botones">
+      <button class="btn suave" id="perfilCancelar">Cancelar</button>
+      <button class="btn verde" id="perfilJugar">¡Jugar!</button>
     </div>
   </div>
 </div>
