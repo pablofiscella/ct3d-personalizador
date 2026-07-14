@@ -202,7 +202,8 @@ def _menu(banda, edad):
         g.append({"id": "multiplicacion_concepto", "titulo": "De la suma a la multiplicación", "icono": "✖️", "cfg": {"rondas": 5}})
         # Bimestre 3: conductor/aislante + familia de palabras.
         g.append({"id": "conductor_aislante", "titulo": "¿Se calienta rápido?", "icono": "🍳", "cfg": {"rondas": 6}})
-        g.append({"id": "familia_palabras", "titulo": "Familia de palabras", "icono": "👪", "cfg": {"rondas": 5}})
+        # rondas=10 (14-jul-2026): FAMILIA_BANCO creció de 5 a 10.
+        g.append({"id": "familia_palabras", "titulo": "Familia de palabras", "icono": "👪", "cfg": {"rondas": 10}})
         # Bimestre 4: trivia espacial + tablas contrarreloj.
         g.append({"id": "trivia_espacial", "titulo": "Día, noche o ambos", "icono": "🌗", "cfg": {"rondas": 5}})
         g.append({"id": "tablas_contrarreloj", "titulo": "Tablas contrarreloj", "icono": "⏱️", "cfg": {"rondas": 6}})
@@ -214,7 +215,8 @@ def _menu(banda, edad):
         # importa cuando un año necesite CAMBIAR contenido base compartido,
         # no solo AGREGAR contenido propio con `if e == X` — ver informe §5g).
         # Bimestre 1: unir animal con su comida + sustantivo/adjetivo/verbo.
-        g.append({"id": "animal_comida", "titulo": "¿Qué come?", "icono": "🦁", "cfg": {"rondas": 5}})
+        # rondas=10 (14-jul-2026): ANIMAL_COMIDA_BANCO creció de 5 a 10.
+        g.append({"id": "animal_comida", "titulo": "¿Qué come?", "icono": "🦁", "cfg": {"rondas": 10}})
         g.append({"id": "partes_oracion", "titulo": "Sustantivo, adjetivo o verbo", "icono": "📚", "cfg": {"rondas": 6}})
         # Bimestre 2: tabla pitagórica + tiempos verbales.
         g.append({"id": "tabla_pitagorica", "titulo": "Busca el tesoro", "icono": "🗝️", "cfg": {"rondas": 6}})
@@ -251,7 +253,8 @@ def _menu(banda, edad):
         # 5° grado (14-jul-2026): mismo criterio — un juego por cada "Idea
         # web" del NAP.
         # Bimestre 1: trivia colonial + camino digestivo.
-        g.append({"id": "trivia_colonial", "titulo": "Vida colonial", "icono": "🏛️", "cfg": {"rondas": 5}})
+        # rondas=10 (14-jul-2026): COLONIAL_BANCO creció de 5 a 10.
+        g.append({"id": "trivia_colonial", "titulo": "Vida colonial", "icono": "🏛️", "cfg": {"rondas": 10}})
         g.append({"id": "camino_digestivo", "titulo": "El camino digestivo", "icono": "🍽️", "cfg": {"rondas": 4}})
         # Bimestre 2: fracciones nivel 2 + análisis sintáctico contrarreloj.
         # rondas=10 (14-jul-2026): FRACCIONES_AVANZADO_BANCO tiene 20 ítems, de sobra.
@@ -262,7 +265,8 @@ def _menu(banda, edad):
         g.append({"id": "actividad_economica", "titulo": "¿Qué se produce acá?", "icono": "🌾", "cfg": {"rondas": 6}})
         # Bimestre 4: planta potabilizadora + derechos y constitución.
         g.append({"id": "planta_potabilizadora", "titulo": "Planta potabilizadora", "icono": "💧", "cfg": {"rondas": 4}})
-        g.append({"id": "derechos_constitucion", "titulo": "Derechos y Constitución", "icono": "📜", "cfg": {"rondas": 5}})
+        # rondas=10 (14-jul-2026): DERECHOS_BANCO creció de 5 a 10.
+        g.append({"id": "derechos_constitucion", "titulo": "Derechos y Constitución", "icono": "📜", "cfg": {"rondas": 10}})
     if e == 11:
         # 6° grado (14-jul-2026): mismo criterio — un juego por cada "Idea
         # web" del NAP.
@@ -271,10 +275,12 @@ def _menu(banda, edad):
         g.append({"id": "celula_partes", "titulo": "Partes de la célula", "icono": "🔬", "cfg": {"rondas": 10}})
         g.append({"id": "hechos_opiniones", "titulo": "Hecho u opinión", "icono": "📰", "cfg": {"rondas": 6}})
         # Bimestre 2: sistema nervioso + viaje del inmigrante.
-        g.append({"id": "sistema_nervioso", "titulo": "Sistema nervioso", "icono": "🫨", "cfg": {"rondas": 5}})
+        # rondas=10 (14-jul-2026): NERVIOSO_BANCO creció de 5 a 10.
+        g.append({"id": "sistema_nervioso", "titulo": "Sistema nervioso", "icono": "🫨", "cfg": {"rondas": 10}})
         g.append({"id": "viaje_inmigrante", "titulo": "El viaje del inmigrante", "icono": "🚢", "cfg": {"rondas": 4}})
         # Bimestre 3: fracción de una cantidad + sufragio argentino.
-        g.append({"id": "fraccion_de_cantidad", "titulo": "Fracción de una cantidad", "icono": "➗", "cfg": {"rondas": 5}})
+        # rondas=10 (14-jul-2026): FRACCION_CANTIDAD_BANCO creció de 5 a 10.
+        g.append({"id": "fraccion_de_cantidad", "titulo": "Fracción de una cantidad", "icono": "➗", "cfg": {"rondas": 10}})
         # rondas=10 (14-jul-2026): SUFRAGIO_BANCO creció de 4 a 10.
         g.append({"id": "sufragio_argentina", "titulo": "El voto en Argentina", "icono": "🗳️", "cfg": {"rondas": 10}})
         # Bimestre 4: energía renovable + polígonos.
@@ -288,12 +294,14 @@ def _menu(banda, edad):
         g.append({"id": "planetas_tipo", "titulo": "¿Terrestre o gaseoso?", "icono": "🪐", "cfg": {"rondas": 6}})
         # Bimestre 2: línea de tiempo de la democracia + aparato reproductor.
         g.append({"id": "linea_democracia", "titulo": "Línea de tiempo: la democracia", "icono": "🕊️", "cfg": {"rondas": 4}})
-        g.append({"id": "sistema_reproductor", "titulo": "Aparato reproductor", "icono": "🧬", "cfg": {"rondas": 5}})
+        # rondas=10 (14-jul-2026): REPRODUCTOR_BANCO creció de 5 a 10.
+        g.append({"id": "sistema_reproductor", "titulo": "Aparato reproductor", "icono": "🧬", "cfg": {"rondas": 10}})
         # Bimestre 3: estadística (media) + red trófica.
         g.append({"id": "estadistica_datos", "titulo": "Media, moda o mediana", "icono": "📊", "cfg": {"rondas": 5}})
         g.append({"id": "red_trofica", "titulo": "Red trófica", "icono": "🕸️", "cfg": {"rondas": 6}})
         # Bimestre 4: área de figuras compuestas + escape room de egreso.
-        g.append({"id": "area_perimetro", "titulo": "Área de la habitación", "icono": "🏠", "cfg": {"rondas": 5}})
+        # rondas=10 (14-jul-2026): AREA_BANCO creció de 5 a 10.
+        g.append({"id": "area_perimetro", "titulo": "Área de la habitación", "icono": "🏠", "cfg": {"rondas": 10}})
         g.append({"id": "escape_room_egreso", "titulo": "Escape room de egreso", "icono": "🔐", "cfg": {"rondas": 6}})
     return g
 
