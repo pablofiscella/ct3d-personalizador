@@ -43,7 +43,10 @@ PREVIEW_CACHE_TTL = 21600        # 6h: cache estable (no re-render cada 10 min).
 os.makedirs(PREVIEW_CACHE_DIR, exist_ok=True)
 # Límite de renders Pillow CONCURRENTES: aunque la tienda pida cientos de miniaturas a la
 # vez (cache frío), nunca corren más de N a la vez → la CPU no se satura ni la memoria explota.
-_RENDER_SEM = threading.Semaphore(max(2, (os.cpu_count() or 4) // 2))
+# Pablo 14-jul-2026: con solo 2 slots, un calendario frío (12 piezas pedidas juntas por
+# el dash) tardaba ~30s en mostrarse completo (6 tandas de 2 en cola). Subido a cpu_count
+# entero — son ráfagas cortas, no sostenidas, y el load promedio del server deja margen.
+_RENDER_SEM = threading.Semaphore(max(3, os.cpu_count() or 4))
 
 def _cache_tema_dir(tema):
     safe = re.sub(r"[^a-zA-Z0-9_-]", "", str(tema or ""))[:40] or "default"
@@ -3379,7 +3382,20 @@ function regen(i){
         jid = ia_jobs.iniciar(trabajo)
         return self._json(200, {"ok": True, "job": jid})
 
+def _warm_calendarios_al_iniciar():
+    """Pre-calienta el cache de TODOS los calendarios al arrancar el servicio (Pablo
+    14-jul-2026: cada restart dejaba los calendarios fríos hasta que alguien los abría
+    y pagaba el render de las 12 piezas en el momento — ver _RENDER_SEM más arriba)."""
+    try:
+        for nombre in sorted(os.listdir(temas.TEMAS_DIR)):
+            if os.path.exists(os.path.join(temas.TEMAS_DIR, nombre, "calendario", "fondo.png")):
+                _preview_warm(nombre, "calendario", list(range(12)))
+    except Exception:
+        pass
+
 if __name__ == "__main__":
     os.makedirs(DATA_DIR, exist_ok=True)
     print(f"Servicio kit en puerto {PORT}  | data: {DATA_DIR}  | API key: {'(default)' if API_KEY=='cambiame-ya' else 'set'}")
-    ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
+    srv = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
+    threading.Timer(2.0, _warm_calendarios_al_iniciar).start()
+    srv.serve_forever()
