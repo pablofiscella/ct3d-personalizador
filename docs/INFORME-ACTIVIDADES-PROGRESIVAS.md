@@ -186,7 +186,7 @@ corta del porqué, no solo "¡mal! probá de nuevo".
 |---|---|---|---|
 | 1 | Sala de 4 años | ✅ Primer incremento shippeado 14-jul-2026 (§5b): mas_menos con feedback elaborado, juego nuevo `posicion`, `contar` diferenciado por edad. Faltan: audio-guía, auditoría visual completa, versión impresa de `posicion` | Bajo |
 | 2 | Sala de 5 años | ✅ Primer incremento shippeado 14-jul-2026 (§5c): `contar`/`mas_menos` con rango ampliado, juego nuevo `silabas` (primera mecánica de audio real del motor). Falta: sonido inicial de vocales, consonantes M/P/S/L, escritura del nombre — quedan fuera de esta primera pasada | Bajo (matemática) / Medio (fonética, mecánica nueva) |
-| 3 | 1° grado | ✅ Primer incremento shippeado 14-jul-2026 (§5d): rango de `serie` ampliado a 30 (Bimestre 1), juego nuevo `armar_palabra` (sílabas CV, Bimestre 2). Falta: abecedario, cuerpo humano, animales/plantas, barrio/transportes, efemérides, materiales/luz, "la tiendita" con dinero, grilla 1-100 — construcción nueva, backlog | Medio |
+| 3 | 1° grado | ✅ Cerrado 14-jul-2026 (§5d-§5e): 7 juegos nuevos/curados cubriendo un "Idea web" del NAP por bimestre (`serie`+tope, `armar_palabra`, `abecedario`, `suma_rapida`, `campo_ciudad`, `planta_fruto`, `materiales`, `grilla100`). Falta a propósito: "la tiendita" con dinero (única "Idea PDF" priorizada igual) + contenido sin "Idea web" sugerida por el NAP (cuerpo humano, escuela, barrio, efemérides, comprensión lectora, escritura real) — candidatos para pasada aparte, no deuda de esta | Medio |
 | 4 | 2° grado | Separar de la banda "grande" (hoy comparte banda con 1° y con 12 años); sílabas complejas, cursiva, multiplicación conceptual (arreglos rectangulares), números hasta 1.000 — desglose bimestral ya disponible en `docs/CURRICULUM-NAP-ARGENTINA.md` | Medio |
 | 5 | 3° grado | Construir de cero: tabla pitagórica interactiva, números de 4 cifras, cuerpos geométricos, primeras nociones de ciencias naturales/sociales curriculares | Alto |
 | 6 | 4°-5° grado | Fracciones (con apoyo visual — tiras, CPA), decimales, geometría con compás, primera historia argentina real (colonia, Revolución de Mayo) | Alto |
@@ -462,28 +462,100 @@ conclusión).
    de orden; `serie` alcanza números 20+ donde antes topeaba ~16. Sin errores
    de consola. Suite completa en verde.
 
-### Deliberadamente NO hecho en esta pasada
+### Deliberadamente NO hecho en la primera pasada (resuelto en la segunda, ver §5e)
 
-1. **Ciencias Naturales (cuerpo humano, animales por alimentación/cobertura,
-   plantas) y Ciencias Sociales (la escuela, el barrio, transportes,
-   efemérides)** — de los 4 bimestres de 1° grado, son contenido curricular
-   enteramente nuevo para el motor (hoy CERO tipos de actividad de ciencias
-   reales, confirmado en el hallazgo principal §1) — construcción de cero,
-   no curación; se deja para una pasada dedicada, mismo criterio que separó
-   Sala de 4 (curación) de 3°+ grado (construcción) en el roadmap original.
-2. **Abecedario / orden alfabético, escritura del nombre propio y de
-   compañeros** (Bimestre 1) — necesita un tipo de actividad nuevo
-   (ordenar/reconocer letras), no un juego existente curado.
-3. **"La tiendita" con billetes/monedas de fantasía y la grilla numérica
-   1-100** (Bimestre 4, números hasta 100) — el mecanismo CONCRETO de
-   `sumas`/`restas` (sprites contables uno por uno) no escala a 100 objetos
-   en pantalla; el propio NAP sugiere dinero de fantasía como paso
-   PICTÓRICO/simbólico (Singapore Math CPA) para números grandes — es un
-   juego nuevo, no una extensión de parámetro de los que ya existen.
-4. **Audio-guía de `armar_palabra`/`serie` en las otras bandas** — mismo
-   patrón que Sala de 4/5: las grabaciones nuevas cubren solo esta pieza.
-5. **Equivalente impreso (PDF) de `armar_palabra`** — no se intentó forzar
-   un análogo en papel para un juego pensado para tap-en-orden.
+1. ~~Ciencias Naturales/Sociales~~ y ~~Abecedario~~ y ~~grilla numérica 1-100~~ —
+   ver §5e: se re-acotó el alcance a lo que el propio NAP sugiere como
+   **"Ideas web"** por bimestre (en vez de TODO "Contenidos", que incluye
+   mucho pensado para el cuaderno PDF, no para el interactivo) y con eso el
+   alcance resultó más chico y más defendible de lo que parecía en esta
+   primera pasada.
+2. **Audio-guía de los juegos nuevos en las otras bandas** — mismo patrón
+   que Sala de 4/5: las grabaciones nuevas cubren solo la banda `grande`
+   edad 6.
+3. **Equivalente impreso (PDF)** de los juegos nuevos — no se intentó forzar
+   un análogo en papel para juegos pensados para tap-en-pantalla.
+
+## 5e. Cierre de 1° grado — segunda pasada (mismo día, Pablo: "continuemos hasta cerrarlo")
+
+Reencuadre importante antes de seguir: el NAP que pasó Pablo separa, por
+bimestre, "Contenidos" (el currículum en general — sirve tanto para PDF como
+para ideas propias) de **"Ideas web"** (sugerencias YA pensadas para el medio
+interactivo, curadas por quien armó el material). La primera pasada de 1°
+grado (§5d) había interpretado el alcance contra TODO "Contenidos" (cuerpo
+humano, la escuela, el barrio, efemérides...), lo cual disparaba la
+construcción de tipos de actividad genuinamente nuevos sin una guía clara de
+CÓMO gamificarlos. Repasando el NAP con más cuidado, las "Ideas web" mismas
+ya cubren un conjunto chico y concreto de mecánicas por bimestre — seguirlas
+literalmente (en vez de inventar sobre "Contenidos" en general) resultó en
+un alcance bien acotado y defendible:
+
+| Bimestre | "Idea web" del NAP | Juego construido |
+|---|---|---|
+| 1 | "ordenar alfabéticamente" | `abecedario` (tap-en-orden, mismas clases CSS que `armar_palabra`) |
+| 2 | "tocar burbujas que sumen 10" | `suma_rapida` |
+| 3 | "clasificar ¿Campo o Ciudad?" | `campo_ciudad` (banco de emoji FIJO, no sprites del tema — mismo contenido en los 12 temas) |
+| 3 | "unir planta con su fruto/semilla" | `planta_fruto` (banco de 4 pares) |
+| 4 | "trivia de materiales (vidrio/madera/metal)" | `materiales` (opciones de TEXTO, sin ambigüedad de ícono) |
+| 4 | "rompecabezas numérico de la grilla 1-100" | `grilla100` (una decena por ronda, layout 2×5 — el grid completo de 100 no entra con el tamaño mínimo de blanco táctil) |
+
+Con esto, 1° grado tiene AL MENOS un juego por cada "Idea web" que el propio
+NAP sugirió, en los 4 bimestres.
+
+### Bugs reales encontrados y corregidos en el camino
+
+1. **Bug de cierre (closure) en `suma_rapida`, encontrado en vivo con
+   Playwright** — al errar el segundo toque, el `setTimeout` que apaga la
+   animación de sacudida leía la variable `elegido` DESPUÉS de que el
+   código ya la había puesto en `null` (la reasignación es síncrona, el
+   timeout corre 450ms después) → `Cannot read properties of null (reading
+   'btn')`, error real de consola en cada intento fallido. Se solucionó
+   capturando el botón en una constante ANTES de resetear `elegido`. Este
+   es exactamente el tipo de bug que la disciplina de "probar cada juego
+   nuevo en un navegador real antes de darlo por terminado" existe para
+   agarrar — no lo hubiera encontrado ningún test unitario de Python.
+2. **Bug de calibración en el QA de audio — afecta TODA la audio-guía, no
+   solo lo nuevo de hoy.** `_duracion_minima()`/`_duracion_maxima()` se
+   habían calibrado con PALABRAS sueltas (GATO, MARIPOSA, SAPO), que se
+   enuncian más despacio por vocal que una ORACIÓN completa dicha con
+   cadencia natural. Con la tasa única de 0.22s/vocal, 4 de las 6 consignas
+   nuevas de hoy quedaban marcadas como "toma rota" siendo perfectamente
+   normales — y, más importante, la consigna YA VENDIDA de Sala de 5
+   ("Escuchá la palabra y elegí cuántas partes tiene", en producción)
+   TAMBIÉN quedaba marcada como rota bajo la fórmula vieja. Verificado que
+   no era un problema real de audio (tomas frescas independientes de otra
+   oración caen en el mismo rango que la ya guardada). Solución: tasa más
+   baja (0.14 vs. 0.22) a partir de 6 vocales — palabras cortas siguen con
+   la tasa estricta original, oraciones largas ya no generan falsos
+   positivos. No hizo falta regenerar audio ya guardado, era la fórmula la
+   que estaba mal, no las tomas.
+3. **Íconos repetidos** — `armar_palabra`/`abecedario` pisaban los íconos
+   ya usados por `sudoku`/`sopa` en la misma banda. Corregido (🧱/🔡) +
+   agregado un test guardián (`test_bandas_de_edad`) que falla si vuelve a
+   pasar con cualquier juego futuro.
+
+### Deliberadamente sigue NO hecho
+
+1. **"La tiendita" con billetes/monedas de fantasía** (Bimestre 4,
+   "problemas de suma/resta con perder, ganar, agregar, quitar") — es la
+   ÚNICA "Idea PDF" (no "Idea web") que se valoró igual de importante por
+   ser el paso PICTÓRICO/simbólico que el propio NAP sugiere para números
+   grandes (Singapore Math CPA) donde `sumas`/`restas` concretos ya no
+   escalan. Construcción genuinamente nueva (maneja de billetes/monedas,
+   no clasificación ni secuencia); se deja para cuando se aborde el resto
+   de Matemática de años superiores con la misma necesidad (2°+ grado
+   también pide "cálculos veloces"/dinero en algún punto).
+2. **Cuerpo humano, la escuela/normas de convivencia, el barrio/
+   instituciones públicas, efemérides + símbolos patrios, comprensión
+   lectora de cuentos, escritura autónoma real** — NINGUNO de estos tenía
+   una "Idea web" sugerida explícitamente por el NAP (quedaron en
+   "Contenidos" / "Ideas PDF"); construirlos ahora sería improvisar la
+   gamificación sin la guía curricular que sí existe para el resto. Quedan
+   como candidatos para una pasada de diseño aparte, no como deuda de esta.
+3. **Audio por sílaba individual en `armar_palabra`** (ya documentado en
+   §5d) y **audio-guía de los 6 juegos nuevos en `mini`/`media`** — no
+   aplica a estos juegos (son específicos de 1° grado) salvo que se
+   reutilicen para otro año.
 
 ## 6. Pendientes que dependen de Pablo (no técnicos)
 

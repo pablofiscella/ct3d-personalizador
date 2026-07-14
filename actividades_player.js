@@ -1746,6 +1746,370 @@ GAMES.armar_palabra = {
   },
 };
 
+/* ── ABECEDARIO — orden alfabético (14-jul-2026, 1° grado NAP Bimestre 1:
+   "el abecedario", "ordenar alfabéticamente"). Mismo patrón tap-en-orden que
+   armar_palabra, reusa sus mismas clases CSS (huecos arriba, letras abajo
+   mezcladas) — acá no hay audio por letra individual, es orden VISUAL, no
+   fonético (a diferencia de silabas/armar_palabra, que sí dependen de oído). ── */
+const ABECEDARIO = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split("");
+GAMES.abecedario = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    const nLetras = ctx.cfg.letras || 4;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("Tocá las letras en orden del abecedario");
+      ctx.juego.innerHTML = "";
+      const idxs = new Set();
+      while (idxs.size < nLetras) idxs.add(rint(0, ABECEDARIO.length - 1));
+      const correctas = [...idxs].sort((a, b) => a - b).map((i) => ABECEDARIO[i]);
+      const tablero = el("div", "tablero armarPalabraTablero");
+      const filaSlots = el("div", "armarPalabraSlots");
+      const slots = correctas.map(() => el("div", "armarPalabraSlot", ""));
+      slots.forEach((s) => filaSlots.appendChild(s));
+      tablero.appendChild(filaSlots);
+      const filaLetras = el("div", "filaSprites");
+      filaLetras.style.marginTop = "18px";
+      let siguiente = 0;
+      let resuelto = false;
+      shuffle(correctas.map((s, i) => ({ s, i }))).forEach(({ s, i }) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:30px;font-family:'Baloo',sans-serif">${s}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto || b.disabled) return;
+          if (i === siguiente) {
+            b.disabled = true;
+            b.classList.add("anim-brinco");
+            slots[i].textContent = s;
+            slots[i].classList.add("anim-pop");
+            Sfx.tick(siguiente + 1);
+            siguiente++;
+            if (siguiente >= correctas.length) {
+              resuelto = true;
+              ctx.bien();
+              ronda++;
+              await espera(1100);
+              if (ronda >= rondas) ctx.win();
+              else jugar();
+            }
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        filaLetras.appendChild(b);
+      });
+      tablero.appendChild(filaLetras);
+      ctx.juego.appendChild(tablero);
+    };
+    jugar();
+  },
+};
+
+/* ── SUMA RÁPIDA — burbujas que sumen 10 (14-jul-2026, 1° grado NAP
+   Bimestre 2 "Ideas web": "tocar burbujas que sumen 10"). Tocar DOS
+   burbujas cuya suma dé el objetivo; los distractores se generan evitando
+   que formen un segundo par válido por accidente (ambigüedad). ── */
+GAMES.suma_rapida = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    const objetivo = 10;   // NAP literal: "burbujas que sumen 10" — fijo (la consigna grabada dice "10")
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("Tocá dos burbujas que sumen 10");
+      ctx.juego.innerHTML = "";
+      const a = rint(1, objetivo - 1);
+      const b = objetivo - a;
+      let nums = [a, b];
+      let guardas = 0;
+      while (nums.length < 5 && guardas < 50) {
+        guardas++;
+        const v = rint(1, objetivo - 1);
+        if (nums.some((n) => n + v === objetivo)) continue;
+        nums.push(v);
+      }
+      nums = shuffle(nums);
+      const fila = el("div", "filaSprites");
+      let elegido = null;
+      let resuelto = false;
+      nums.forEach((v, idx) => {
+        const btn = el("button", "spriteBtn", `<span style="font-size:30px;font-family:'Baloo',sans-serif">${v}</span>`);
+        btn.addEventListener("click", async () => {
+          if (resuelto || btn.disabled) return;
+          if (elegido === null) {
+            elegido = { idx, v, btn };
+            btn.classList.add("elegido");
+            return;
+          }
+          if (elegido.idx === idx) return;
+          if (elegido.v + v === objetivo) {
+            resuelto = true;
+            btn.disabled = true;
+            elegido.btn.disabled = true;
+            btn.classList.add("anim-pop");
+            elegido.btn.classList.add("anim-pop");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            // capturar el botón ANTES de resetear `elegido` — el setTimeout
+            // corre 450ms después, cuando `elegido` ya es null (bug real
+            // encontrado en vivo 14-jul-2026: "Cannot read properties of
+            // null (reading 'btn')" al errar el segundo toque)
+            const prevBtn = elegido.btn;
+            prevBtn.classList.remove("elegido");
+            btn.style.animation = "sacudir .4s ease";
+            prevBtn.style.animation = "sacudir .4s ease";
+            setTimeout(() => { btn.style.animation = ""; prevBtn.style.animation = ""; }, 450);
+            ctx.casi();
+            elegido = null;
+          }
+        });
+        fila.appendChild(btn);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── CAMPO O CIUDAD — clasificar (14-jul-2026, 1° grado NAP Bimestre 3
+   "Ideas web": "clasificar ¿Campo o Ciudad? arrastrando elementos"). Banco
+   FIJO por emoji (no sprites del tema — tiene que dar el mismo contenido
+   curricular en los 12 temas). Tap-sin-drag, 2 categorías etiquetadas. ── */
+const CAMPO_CIUDAD_BANCO = [
+  { e: "🐄", cat: "campo" }, { e: "🚜", cat: "campo" }, { e: "🌾", cat: "campo" },
+  { e: "🐓", cat: "campo" }, { e: "🐖", cat: "campo" },
+  { e: "🏢", cat: "ciudad" }, { e: "🚦", cat: "ciudad" }, { e: "🚌", cat: "ciudad" },
+  { e: "🏬", cat: "ciudad" }, { e: "🚕", cat: "ciudad" },
+];
+GAMES.campo_ciudad = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 6;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Es del campo o de la ciudad?");
+      ctx.juego.innerHTML = "";
+      let disp = CAMPO_CIUDAD_BANCO.filter((x) => !usados.includes(x.e));
+      if (!disp.length) { usados = []; disp = CAMPO_CIUDAD_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.e);
+      const arriba = el("div", "tablero");
+      const cont = el("div", "spriteQuieto anim-pop", `<span style="font-size:80px">${item.e}</span>`);
+      arriba.appendChild(cont);
+      ctx.juego.appendChild(arriba);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      [{ cat: "campo", label: "🌾 Campo" }, { cat: "ciudad", label: "🏙️ Ciudad" }].forEach(({ cat, label }) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:24px;font-family:'Baloo',sans-serif">${label}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (cat === item.cat) {
+            resuelto = true;
+            cont.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(700);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── ¿QUÉ FRUTO DA? — unir planta con su fruto/semilla (14-jul-2026, 1°
+   grado NAP Bimestre 3 "Ideas web"). Banco chico (4 pares) — 3 opciones por
+   ronda, 1 correcta + 2 distractoras de OTROS pares del banco. ── */
+const PLANTA_FRUTO_BANCO = [
+  { planta: "🌳", fruto: "🍎" },   // árbol — manzana
+  { planta: "🌴", fruto: "🥥" },   // palmera — coco
+  { planta: "🌿", fruto: "🍓" },   // planta baja — frutilla
+  { planta: "🌱", fruto: "🥕" },   // brote — zanahoria
+];
+GAMES.planta_fruto = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Qué fruto da esta planta?");
+      ctx.juego.innerHTML = "";
+      let disp = PLANTA_FRUTO_BANCO.filter((x) => !usados.includes(x.planta));
+      if (!disp.length) { usados = []; disp = PLANTA_FRUTO_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.planta);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto", `<span style="font-size:80px">${item.planta}</span>`));
+      ctx.juego.appendChild(arriba);
+      let opciones = [item.fruto];
+      while (opciones.length < 3) {
+        const otro = PLANTA_FRUTO_BANCO[rint(0, PLANTA_FRUTO_BANCO.length - 1)].fruto;
+        if (!opciones.includes(otro)) opciones.push(otro);
+      }
+      opciones = shuffle(opciones);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      opciones.forEach((f) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:44px">${f}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (f === item.fruto) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── ¿DE QUÉ MATERIAL ES? — trivia (14-jul-2026, 1° grado NAP Bimestre 4
+   "Ideas web": "trivia de materiales — ¿vidrio, madera o metal para una
+   ventana?"). Opciones de TEXTO (no emoji — no hay glifo distintivo por
+   material sin ambigüedad con los objetos del banco). ── */
+const MATERIALES_BANCO = [
+  { obj: "🪟", material: "Vidrio" }, { obj: "🍷", material: "Vidrio" },
+  { obj: "🪑", material: "Madera" }, { obj: "🚪", material: "Madera" },
+  { obj: "🔔", material: "Metal" }, { obj: "🥄", material: "Metal" },
+];
+GAMES.materiales = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    const MATS = ["Vidrio", "Madera", "Metal"];
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿De qué material es?");
+      ctx.juego.innerHTML = "";
+      let disp = MATERIALES_BANCO.filter((x) => !usados.includes(x.obj));
+      if (!disp.length) { usados = []; disp = MATERIALES_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.obj);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto", `<span style="font-size:80px">${item.obj}</span>`));
+      ctx.juego.appendChild(arriba);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      shuffle(MATS).forEach((m) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:24px;font-family:'Baloo',sans-serif">${m}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (m === item.material) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── GRILLA 1-100 — rompecabezas numérico (14-jul-2026, 1° grado NAP
+   Bimestre 4 "Ideas web": "rompecabezas numérico de la grilla 1-100 en
+   baldosas 10×10"). Simplificado a UNA decena por ronda (10 baldosas, layout
+   2×5) en vez del grid completo de 100 celdas — a esta edad un grid de 100
+   objetivos táctiles no entra en pantalla con el tamaño mínimo de blanco
+   táctil que ya usa el resto del motor (skill §4b). ── */
+GAMES.grilla100 = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 6;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Qué número falta en la grilla?");
+      ctx.juego.innerHTML = "";
+      const desde = rint(1, 9) * 10 + 1;   // 11, 21, ... 91 — una decena completa
+      const nums = Array.from({ length: 10 }, (_, i) => desde + i);
+      const falta = rint(0, 9);
+      const grilla = el("div", "grilla100");
+      const celdas = nums.map((n, i) =>
+        el("div", i === falta ? "grilla100Celda hueco" : "grilla100Celda", i === falta ? "?" : String(n)));
+      celdas.forEach((c) => grilla.appendChild(c));
+      ctx.juego.appendChild(grilla);
+      const ops = el("div", "ops");
+      const distr = new Set([nums[falta]]);
+      let guardas = 0;
+      while (distr.size < 3 && guardas < 100) {
+        guardas++;
+        const v = nums[falta] + rint(-12, 12);
+        if (v > 0 && v <= 100 && !nums.includes(v)) distr.add(v);
+      }
+      let resuelto = false;
+      shuffle([...distr]).forEach((v) => {
+        const b = el("button", "op", v);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (v === nums[falta]) {
+            resuelto = true;
+            celdas[falta].textContent = v;
+            celdas[falta].classList.remove("hueco");
+            celdas[falta].classList.add("anim-pop");
+            ctx.bien();
+            ronda++;
+            await espera(1000);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.classList.add("casi");
+            setTimeout(() => b.classList.remove("casi"), 450);
+            ctx.casi();
+          }
+        });
+        ops.appendChild(b);
+      });
+      ctx.juego.appendChild(ops);
+    };
+    jugar();
+  },
+};
+
 GAMES.serie = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 6;

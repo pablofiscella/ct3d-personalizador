@@ -83,6 +83,16 @@ def test_bandas_de_edad():
     serie12 = next(m for m in aw._menu("grande", 12) if m["id"] == "serie")
     assert serie6["cfg"]["tope"] == 30
     assert "tope" not in serie12["cfg"]
+    # resto de 1° grado (14-jul-2026, cierre del año — NAP "Ideas web" por
+    # bimestre): ninguno debe filtrarse a los 12 años.
+    nuevos_1grado = {"abecedario", "suma_rapida", "campo_ciudad", "planta_fruto", "materiales", "grilla100"}
+    assert nuevos_1grado <= ids_grande6
+    assert not (nuevos_1grado & ids_grande12)
+    # sin íconos repetidos dentro del mismo menú (bug real encontrado
+    # armando esto: armar_palabra/abecedario pisaban el ícono de
+    # sudoku/sopa ya existentes)
+    iconos = [m["icono"] for m in aw._menu("grande", 6)]
+    assert len(iconos) == len(set(iconos)), "íconos repetidos en el menú de 6 años"
 
 
 def test_laberintos_transitables(data):
@@ -162,6 +172,24 @@ def test_duracion_minima_escala_con_mas_vocales():
     larga = aw._duracion_minima("MARIPOSA")        # 4 vocales
     assert larga > corta
     assert aw._duracion_minima("") >= 0.4          # piso absoluto, nunca 0
+
+
+def test_duracion_minima_mas_permisiva_en_oraciones_largas():
+    """Bug real de calibración (14-jul-2026, armando 1° grado): la tasa por
+    vocal de _duracion_minima() se calibró con PALABRAS sueltas (GATO,
+    MARIPOSA...), que se enuncian más despacio por vocal que una ORACIÓN
+    dicha con cadencia natural. Con una tasa única, la consigna YA
+    VENDIDA "Escuchá la palabra y elegí cuántas partes tiene" (3.74s, 18
+    vocales, en producción desde Sala de 5) quedaba MARCADA COMO ROTA por
+    el propio piso — puro ruido de calibración, no un problema real de
+    audio (verificado: tomas frescas independientes de otra oración nueva
+    caen en el mismo rango que la ya guardada). La tasa baja solo para
+    textos largos (>6 vocales) evita este falso positivo sin perder
+    sensibilidad en palabras sueltas."""
+    oracion_real = "Escuchá la palabra y elegí cuántas partes tiene"
+    assert aw._duracion_minima(oracion_real) <= 3.74
+    # una palabra corta (<=6 vocales) sigue con la tasa estricta original
+    assert aw._duracion_minima("MARIPOSA") == max(0.4, 4 * 0.22)
 
 
 def test_duracion_maxima_escala_con_mas_vocales():
