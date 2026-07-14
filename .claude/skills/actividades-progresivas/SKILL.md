@@ -104,7 +104,7 @@ edad" (roadmap 14-jul-2026). NO improvisar la mezcla — usar esta tabla:
 |---|---|---|---|
 | 1 | Sala de 4 años | ✅ Shippeado 14-jul-2026 (ver informe §5b): mejoras + juego nuevo + audio-guía + auditoría visual, todo hecho. Falta: `posicion` en el cuaderno impreso | Curación (bajo esfuerzo) |
 | 2 | Sala de 5 años | ✅ Shippeado 14-jul-2026 (ver informe §5c): rango de `contar`/`mas_menos` ampliado + juego nuevo `silabas` (primer juego de audio real del motor) + QA de duración de TTS. Falta: vocales/consonantes/rimas/escritura (quedan para 1° grado) | Curación (matemática) + construcción (audio/fonética) |
-| 3 | 1° grado | Desglose disponible en el currículum | Curación + ampliar rango numérico + sílabas CV (reusa el audio de Sala 5) |
+| 3 | 1° grado | ✅ Shippeado 14-jul-2026 (ver informe §5d): `serie` con rango a 30 + juego nuevo `armar_palabra` (sílabas CV, tap-en-orden sin drag) + techo de duración de TTS (mirror del piso de Sala 5). Falta: abecedario, ciencias naturales/sociales, "la tiendita" con dinero, grilla 1-100 — construcción nueva, backlog | Curación (matemática) + construcción (audio/fonética) |
 | 4 | 2° grado | Desglose disponible en el currículum (completado 14-jul) | Curación + banda propia (hoy comparte con 12 años) + cursiva + multiplicación conceptual |
 | 5 | 3° grado | Desglose disponible en el currículum | Construcción (tabla pitagórica, miles, geometría) |
 | 6 | 4°-5° grado | Desglose disponible en el currículum (completado 14-jul) | Construcción (fracciones CPA, decimales, historia real) |

@@ -71,6 +71,18 @@ def test_bandas_de_edad():
     ids_media5 = {m["id"] for m in aw._menu("media", 5)}
     assert "silabas" in ids_media5
     assert "silabas" not in ids_media4
+    # 1° grado (edad 6, banda "grande"): "serie" con tope=30 (NAP: "números
+    # del 1 al 30") + juego nuevo "armar_palabra" (sílabas CV, Bimestre 2) —
+    # ninguno de los dos debe filtrarse a un chico de 12 años (misma banda,
+    # sin diferenciar por defecto).
+    ids_grande6 = {m["id"] for m in aw._menu("grande", 6)}
+    ids_grande12 = {m["id"] for m in aw._menu("grande", 12)}
+    assert "armar_palabra" in ids_grande6
+    assert "armar_palabra" not in ids_grande12
+    serie6 = next(m for m in aw._menu("grande", 6) if m["id"] == "serie")
+    serie12 = next(m for m in aw._menu("grande", 12) if m["id"] == "serie")
+    assert serie6["cfg"]["tope"] == 30
+    assert "tope" not in serie12["cfg"]
 
 
 def test_laberintos_transitables(data):
@@ -152,6 +164,17 @@ def test_duracion_minima_escala_con_mas_vocales():
     assert aw._duracion_minima("") >= 0.4          # piso absoluto, nunca 0
 
 
+def test_duracion_maxima_escala_con_mas_vocales():
+    """Encontrado 14-jul-2026 armando 1° grado: una toma de TTS de "SAPO"
+    (2 vocales, esperable ~0.7-1s como GATO/PATO/MOTO) salió de 2.72s — el
+    piso no agarra esto (2.72s > mínimo), hace falta un TECHO simétrico."""
+    corta = aw._duracion_maxima("SAPO")            # 2 vocales
+    larga = aw._duracion_maxima("MARIPOSA")        # 4 vocales
+    assert larga > corta
+    assert aw._duracion_maxima("SAPO") < 2.72      # la toma rota real, fuera del rango
+    assert aw._duracion_maxima("") >= 2.5          # techo absoluto
+
+
 def test_generar_audio_consignas_idempotente_y_sirve_por_archivo(tmp_path, monkeypatch, token):
     """Mockea el TTS (no llama a ElevenLabs de verdad) para probar: genera lo
     nuevo, NO regenera lo que ya existe, el manifest mergea viejo+nuevo, y
@@ -188,6 +211,38 @@ def test_generar_audio_consignas_idempotente_y_sirve_por_archivo(tmp_path, monke
     fn = m2["Texto A"]
     body2, ct2 = aw.archivo(token, fn)
     assert ct2 == "audio/mpeg" and body2 == b"FAKE-MP3-BYTES" * 2000
+
+
+def test_generar_audio_consignas_descarta_toma_demasiado_larga(tmp_path, monkeypatch):
+    """Regresión del bug real de "SAPO" (14-jul-2026): una toma
+    desmedidamente larga (fuera del techo) no se guarda tal cual — reintenta
+    hasta encontrar una dentro de rango, y no sigue probando de más una vez
+    que la encuentra."""
+    monkeypatch.setattr(aw, "AUDIO_DIR", str(tmp_path))
+    # SAPO: minimo=0.44s, maximo=2.5s. Las primeras 2 tomas quedan MUY largas
+    # (6.25s, como la toma real 2.72s que motivó este test, exagerada acá
+    # para no depender de números finos); la 3ra cae en rango (1s).
+    tomas = [b"X" * 100000, b"X" * 100000, b"X" * 16000, b"NUNCA-SE-USA"]
+    llamadas = []
+
+    class FakeAudiolibro:
+        @staticmethod
+        def _tts_elevenlabs(texto, seed=None):
+            llamadas.append(seed)
+            return tomas[len(llamadas) - 1]
+
+        @staticmethod
+        def _dur_mp3_128(mp3):
+            return len(mp3) * 8 / 128000.0
+
+    import sys
+    monkeypatch.setitem(sys.modules, "audiolibro", FakeAudiolibro)
+
+    m = aw.generar_audio_consignas(["SAPO"])
+    assert len(llamadas) == 3   # se frena apenas encuentra una toma en rango, no prueba la 4ta
+    fn = m["SAPO"]
+    guardado = open(os.path.join(str(tmp_path), fn), "rb").read()
+    assert guardado == tomas[2]   # se queda con la que cayó en rango, no con las largas de antes
 
 
 def test_archivo_rechaza_mp3_con_nombre_invalido(token):

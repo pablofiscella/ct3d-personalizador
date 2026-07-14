@@ -1668,6 +1668,84 @@ GAMES.silabas = {
   },
 };
 
+/* ── ARMÁ LA PALABRA — sílabas CV (14-jul-2026, 1° grado NAP Bimestre 2:
+   "sílabas directas... construir palabras arrastrando sílabas desordenadas").
+   Sin drag de verdad (mismo criterio que agrupar: más robusto en mobile) —
+   las sílabas se tocan EN ORDEN y van llenando los huecos de arriba. No hay
+   "distractor": todas las sílabas mostradas son parte de la palabra, el
+   desafío es la SECUENCIA, no elegir la correcta entre ajenas. ── */
+GAMES.armar_palabra = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    const BANCO = [
+      { p: "GATO", e: "🐱", s: ["GA", "TO"] },
+      { p: "LUNA", e: "🌙", s: ["LU", "NA"] },
+      { p: "CASA", e: "🏠", s: ["CA", "SA"] },
+      { p: "SAPO", e: "🐸", s: ["SA", "PO"] },
+      { p: "MOTO", e: "🏍️", s: ["MO", "TO"] },
+      { p: "PATO", e: "🦆", s: ["PA", "TO"] },
+      { p: "PELOTA", e: "⚽", s: ["PE", "LO", "TA"] },
+    ];
+    let usadas = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      let disp = BANCO.filter((w) => !usadas.includes(w.p));
+      if (!disp.length) { usadas = []; disp = BANCO; }
+      const palabra = disp[rint(0, disp.length - 1)];
+      usadas.push(palabra.p);
+      ctx.consigna("Escuchá la palabra y tocá las sílabas en orden para armarla");
+      ctx.juego.innerHTML = "";
+      const tablero = el("div", "tablero armarPalabraTablero");
+      tablero.appendChild(el("div", "armarPalabraEmoji", palabra.e));
+      const filaSlots = el("div", "armarPalabraSlots");
+      const slots = palabra.s.map(() => el("div", "armarPalabraSlot", ""));
+      slots.forEach((s) => filaSlots.appendChild(s));
+      tablero.appendChild(filaSlots);
+      const btnEscuchar = el("button", "btn suave", "🔊 Escuchar de nuevo");
+      btnEscuchar.type = "button";
+      btnEscuchar.addEventListener("click", () => reproducirConsigna(palabra.p));
+      tablero.appendChild(btnEscuchar);
+      const filaSilabas = el("div", "filaSprites armarPalabraSilabas");
+      filaSilabas.style.marginTop = "18px";
+      let siguiente = 0;
+      let resuelto = false;
+      shuffle(palabra.s.map((s, i) => ({ s, i }))).forEach(({ s, i }) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:28px;font-family:'Baloo',sans-serif">${s}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto || b.disabled) return;
+          if (i === siguiente) {
+            b.disabled = true;
+            b.classList.add("anim-brinco");
+            slots[i].textContent = s;
+            slots[i].classList.add("anim-pop");
+            Sfx.tick(siguiente + 1);
+            siguiente++;
+            if (siguiente >= palabra.s.length) {
+              resuelto = true;
+              ctx.bien();
+              ronda++;
+              await espera(1100);
+              if (ronda >= rondas) ctx.win();
+              else jugar();
+            }
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        filaSilabas.appendChild(b);
+      });
+      tablero.appendChild(filaSilabas);
+      ctx.juego.appendChild(tablero);
+      setTimeout(() => reproducirConsigna(palabra.p), 1300);
+    };
+    jugar();
+  },
+};
+
 GAMES.serie = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 6;
@@ -1682,7 +1760,11 @@ GAMES.serie = {
       // al principio, +2 hacia el final, con el medio genuinamente al azar.
       const progreso = rondas > 1 ? ronda / (rondas - 1) : 0;
       const paso = Math.random() < progreso ? 2 : 1;
-      const desde = rint(1, paso === 1 ? 12 : 8);
+      // tope (14-jul-2026, 1° grado NAP: "números del 1 al 30"): 16 reproduce
+      // el rango histórico sin cfg.tope (12 con paso 1, 8 con paso 2 — la
+      // cuenta de siempre), más alto solo si el juego lo pide.
+      const tope = ctx.cfg.tope || 16;
+      const desde = rint(1, Math.max(1, tope - 4 * paso));
       const seq = Array.from({ length: 5 }, (_, i) => desde + i * paso);
       const falta = rint(1, 4);
       const fila = el("div", "serieFila");
