@@ -2383,6 +2383,10 @@ GAMES.multiplicacion_concepto = {
 const CONDUCTOR_BANCO = [
   { e: "🥄", cat: "conductor" }, { e: "🍳", cat: "conductor" }, { e: "🔑", cat: "conductor" }, { e: "🚰", cat: "conductor" },
   { e: "🥢", cat: "aislante" }, { e: "🧦", cat: "aislante" }, { e: "🧺", cat: "aislante" }, { e: "📖", cat: "aislante" },
+  // agregados 14-jul-2026 (banco ampliado de 8 a 10). Es sobre calor
+  // (¿se calienta rápido?), no electricidad — mismo criterio "cocina"
+  // que el resto del banco.
+  { e: "🔪", cat: "conductor" }, { e: "🧤", cat: "aislante" },
 ];
 GAMES.conductor_aislante = {
   crear(ctx) {
@@ -2702,6 +2706,7 @@ const PARTES_ORACION_BANCO = [
   { p: "Perro", tipo: "sustantivo" }, { p: "Casa", tipo: "sustantivo" }, { p: "Escuela", tipo: "sustantivo" },
   { p: "Corre", tipo: "verbo" }, { p: "Salta", tipo: "verbo" }, { p: "Come", tipo: "verbo" },
   { p: "Grande", tipo: "adjetivo" }, { p: "Rápido", tipo: "adjetivo" }, { p: "Lindo", tipo: "adjetivo" },
+  { p: "Feliz", tipo: "adjetivo" }, // agregado 14-jul-2026 (banco ampliado de 9 a 10)
 ];
 GAMES.partes_oracion = {
   crear(ctx) {
@@ -2816,6 +2821,7 @@ const TIEMPOS_BANCO = [
   { p: "Corrí", tiempo: "pasado" }, { p: "Comí", tiempo: "pasado" }, { p: "Salté", tiempo: "pasado" },
   { p: "Corro", tiempo: "presente" }, { p: "Como", tiempo: "presente" }, { p: "Salto", tiempo: "presente" },
   { p: "Correré", tiempo: "futuro" }, { p: "Comeré", tiempo: "futuro" }, { p: "Saltaré", tiempo: "futuro" },
+  { p: "Jugaré", tiempo: "futuro" }, // agregado 14-jul-2026 (banco ampliado de 9 a 10)
 ];
 GAMES.tiempos_verbales = {
   crear(ctx) {
@@ -3138,6 +3144,8 @@ const ABSTRACTOS_BANCO = [
   { p: "Amistad", tipo: "abstracto" },
   { p: "Mesa", tipo: "concreto" }, { p: "Perro", tipo: "concreto" }, { p: "Árbol", tipo: "concreto" },
   { p: "Pelota", tipo: "concreto" },
+  // agregados 14-jul-2026 (banco ampliado de 8 a 10).
+  { p: "Justicia", tipo: "abstracto" }, { p: "Silla", tipo: "concreto" },
 ];
 GAMES.abstractos_concretos = {
   crear(ctx) {
@@ -3250,6 +3258,7 @@ const ACENTUACION_BANCO = [
   { p: "Camión", tipo: "aguda" }, { p: "Café", tipo: "aguda" }, { p: "Jardín", tipo: "aguda" },
   { p: "Mesa", tipo: "grave" }, { p: "Lápiz", tipo: "grave" }, { p: "Árbol", tipo: "grave" },
   { p: "Música", tipo: "esdrújula" }, { p: "Teléfono", tipo: "esdrújula" }, { p: "Pájaro", tipo: "esdrújula" },
+  { p: "Álbum", tipo: "grave" }, // agregado 14-jul-2026 (banco ampliado de 9 a 10)
 ];
 GAMES.acentuacion = {
   crear(ctx) {
@@ -3355,6 +3364,8 @@ GAMES.fotosintesis = {
 const ELECTRICO_BANCO = [
   { e: "🔑", cat: "conduce" }, { e: "🥄", cat: "conduce" }, { e: "🪙", cat: "conduce" }, { e: "🔩", cat: "conduce" },
   { e: "📖", cat: "noconduce" }, { e: "🧦", cat: "noconduce" }, { e: "🪵", cat: "noconduce" }, { e: "🎈", cat: "noconduce" },
+  // agregados 14-jul-2026 (banco ampliado de 8 a 10).
+  { e: "🥫", cat: "conduce" }, { e: "🎋", cat: "noconduce" },
 ];
 GAMES.laboratorio_electrico = {
   crear(ctx) {
@@ -3483,6 +3494,8 @@ const ANGULOS_BANCO = [
   { grados: 30, tipo: "agudo" }, { grados: 45, tipo: "agudo" }, { grados: 60, tipo: "agudo" },
   { grados: 90, tipo: "recto" },
   { grados: 120, tipo: "obtuso" }, { grados: 135, tipo: "obtuso" }, { grados: 150, tipo: "obtuso" },
+  // agregados 14-jul-2026 (banco ampliado de 7 a 10).
+  { grados: 90, tipo: "recto" }, { grados: 15, tipo: "agudo" }, { grados: 170, tipo: "obtuso" },
 ];
 GAMES.angulos = {
   crear(ctx) {
@@ -4537,6 +4550,8 @@ GAMES.sufragio_argentina = {
 const ENERGIA_BANCO = [
   { e: "☀️", cat: "renovable" }, { e: "💨", cat: "renovable" }, { e: "💧", cat: "renovable" }, { e: "🌋", cat: "renovable" },
   { e: "⛽", cat: "no_renovable" }, { e: "⚫", cat: "no_renovable" }, { e: "☢️", cat: "no_renovable" },
+  // agregados 14-jul-2026 (banco ampliado de 7 a 10).
+  { e: "🌊", cat: "renovable" }, { e: "🌳", cat: "renovable" }, { e: "🛢️", cat: "no_renovable" },
 ];
 GAMES.energia_renovable = {
   crear(ctx) {
@@ -4720,6 +4735,11 @@ GAMES.traductor_algebraico = {
    conductor_aislante: el motor no tiene mecánica de arrastre de órbitas
    ni escala física real, pero el contenido curricular — distinguir
    planetas terrestres de gaseosos — se verifica igual de bien así). ── */
+// techo REAL de 8 (14-jul-2026): son los 8 planetas del sistema solar, ya
+// están todos — agregar un 9° ítem obligaría a forzar una categoría
+// incorrecta (Plutón no es limpiamente terrestre ni gaseoso) o inventar
+// un cuerpo que no es un planeta. Mismo criterio que planta_fruto: techo
+// honesto antes que contenido dudoso.
 const PLANETAS_BANCO = [
   { nombre: "Mercurio", tipo: "terrestre" }, { nombre: "Venus", tipo: "terrestre" },
   { nombre: "Tierra", tipo: "terrestre" }, { nombre: "Marte", tipo: "terrestre" },
@@ -4979,6 +4999,8 @@ const RED_TROFICA_BANCO = [
   { e: "🌾 Pasto", rol: "productor" }, { e: "🌳 Árbol", rol: "productor" },
   { e: "🐇 Conejo", rol: "consumidor" }, { e: "🦁 León", rol: "consumidor" }, { e: "🦌 Ciervo", rol: "consumidor" },
   { e: "🍄 Hongo", rol: "descomponedor" }, { e: "🦠 Bacteria", rol: "descomponedor" },
+  // agregados 14-jul-2026 (banco ampliado de 7 a 10).
+  { e: "🌻 Girasol", rol: "productor" }, { e: "🐺 Lobo", rol: "consumidor" }, { e: "🪱 Lombriz", rol: "descomponedor" },
 ];
 GAMES.red_trofica = {
   crear(ctx) {
@@ -5119,6 +5141,9 @@ const ESCAPE_ROOM_BANCO = [
   { texto: "¿Cuál es el planeta más grande del sistema solar?", correcta: "Júpiter", d1: "Saturno", d2: "Tierra" },
   { texto: "¿Cuál de estos es un país de América Latina?", correcta: "Perú", d1: "Canadá", d2: "Portugal" },
   { texto: "¿Cuál de estas palabras lleva tilde?", correcta: "¿Cuándo?", d1: "Cuando", d2: "Cuanto" },
+  // agregados 14-jul-2026 (banco ampliado de 8 a 10).
+  { texto: "¿Cuál es la fórmula de 'el doble de un número'?", correcta: "2x", d1: "x/2", d2: "x+2" },
+  { texto: "¿Qué gas liberan las plantas durante la fotosíntesis?", correcta: "Oxígeno", d1: "Dióxido de carbono", d2: "Nitrógeno" },
 ];
 GAMES.escape_room_egreso = {
   crear(ctx) {
