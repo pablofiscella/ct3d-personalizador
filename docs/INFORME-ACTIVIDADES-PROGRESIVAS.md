@@ -200,9 +200,9 @@ tipos de trabajo distintos:
 
 ## 6. Pendientes que dependen de Pablo (no técnicos)
 
-1. Desglose bimestral de 4° grado — es el único año de los 9 que sigue sin
-   detalle propio (Sala 4, Sala 5 y 2° grado ya se completaron 14-jul-2026 —
-   ver `docs/CURRICULUM-NAP-ARGENTINA.md`).
+1. ~~Desglose bimestral de 4° grado~~ — completado 14-jul-2026. El currículum
+   de los 9 años de escolaridad ya está completo en
+   `docs/CURRICULUM-NAP-ARGENTINA.md`.
 2. Decisión de alcance: ¿el feature "Modo Maestra" (30 min) es un producto
    nuevo con su propio precio, o una forma nueva de comprar/generar lo que
    ya existe (actividades imprimibles / actividades-web)?

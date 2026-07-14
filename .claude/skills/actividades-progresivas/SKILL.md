@@ -107,13 +107,14 @@ edad" (roadmap 14-jul-2026). NO improvisar la mezcla — usar esta tabla:
 | 3 | 1° grado | Desglose disponible en el currículum | Curación + ampliar rango numérico + sílabas CV (reusa el audio de Sala 5) |
 | 4 | 2° grado | Desglose disponible en el currículum (completado 14-jul) | Curación + banda propia (hoy comparte con 12 años) + cursiva + multiplicación conceptual |
 | 5 | 3° grado | Desglose disponible en el currículum | Construcción (tabla pitagórica, miles, geometría) |
-| 6 | 4°-5° grado | Pendiente — 4° sin desglose de Pablo | Construcción (fracciones CPA, decimales, historia real) |
+| 6 | 4°-5° grado | Desglose disponible en el currículum (completado 14-jul) | Construcción (fracciones CPA, decimales, historia real) |
 | 7 | 6°-7° grado | Desglose disponible en el currículum | Construcción (porcentaje, álgebra informal, ciencias avanzadas) |
 
 ## 5. Antes de diseñar contenido nuevo para un año — checklist
 
-1. Releer la sección de ese grado en `docs/CURRICULUM-NAP-ARGENTINA.md`. Si
-   dice "⚠️ PENDIENTE" (solo 4° grado al 14-jul-2026), pedirle el desglose a
+1. Releer la sección de ese grado en `docs/CURRICULUM-NAP-ARGENTINA.md`
+   (currículum completo desde el 14-jul-2026, los 9 años tienen desglose
+   bimestral). Si en algún momento aparece un año sin detalle, pedírselo a
    Pablo ANTES de inventar contenido — no rellenar el hueco con suposición
    propia.
 2. Confirmar la banda de edad en el motor: ¿existe ya una banda separada para

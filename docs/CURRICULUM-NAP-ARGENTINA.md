@@ -1,6 +1,6 @@
 # Currículum NAP Argentina — insumo para actividades progresivas
 
-> **Fuente:** Pablo pasó este contenido por chat el 14-jul-2026 (5 mensajes), como
+> **Fuente:** Pablo pasó este contenido por chat el 14-jul-2026 (varios mensajes), como
 > insumo para diseñar el feature "Modo Maestra / Mamá ocupada" ("necesito 30 minutos
 > de actividades para un niño de X años") y, más en general, para poder armar
 > actividades progresivas (PDF + web interactiva) alineadas a lo que un chico
@@ -384,10 +384,84 @@ de letra, dominar la tabla pitagórica completa y números de 4 cifras
 
 ## 4° Grado (9 años)
 
-> ⚠️ **PENDIENTE**: no se recibió el desglose bimestre a bimestre de 4°
-> grado — el mensaje de "Bloque 3" tituló "4° y 5° grado" pero solo
-> desarrolló el contenido de 5°. Falta pedírselo a Pablo si se necesita para
-> ese año puntual.
+Desafío del año: división por dos cifras, introducción teórica y práctica de
+las fracciones (medios, cuartos, octavos), estudio geográfico e histórico de
+la propia provincia.
+
+### Bimestre 1 — "Los números grandes y la provincia"
+
+- **Prácticas del Lenguaje**: texto expositivo/informativo; técnicas de
+  estudio (subrayar ideas principales/secundarias); sustantivo — clasificación
+  semántica completa (común, propio, concreto, abstracto, individual,
+  colectivo).
+- **Matemática**: números hasta 10.000-50.000 (lectura, escritura, orden);
+  composición/descomposición en potencias de 10; propiedades de suma y
+  resta.
+- **Ciencias Naturales**: clasificación de seres vivos en grandes grupos
+  (animales, plantas, hongos, microorganismos); ambientes aeroterrestres de
+  la provincia.
+- **Ciencias Sociales**: mapa político de la provincia y de Argentina
+  (límites, capitales); división política provincial.
+- **Ideas PDF**: mapa de la provincia en blanco para ubicar partidos/
+  departamentos y pintar la capital; ficha de lectura de animales locales
+  con cuadro sinóptico.
+- **Ideas web**: "rompecabezas geográfico" — encastrar provincias en el mapa
+  nacional; clasificador de sustantivos abstractos vs. concretos.
+
+### Bimestre 2 — "Multiplicación, división y el pasado colonial"
+
+- **Prácticas del Lenguaje**: cuento maravilloso/de hadas (inicio, conflicto,
+  resolución); adjetivo (calificativo, gentilicio, numeral); acentuación
+  (agudas, graves, esdrújulas).
+- **Matemática**: números hasta 100.000; multiplicación por dos cifras
+  (varias estrategias); división por una y dos cifras (estimar cifras del
+  cociente).
+- **Ciencias Naturales**: nutrición en plantas (fotosíntesis simple) y en
+  animales.
+- **Ciencias Sociales**: pueblos originarios pre-hispánicos del territorio
+  argentino — organización social y subsistencia.
+- **Ideas PDF**: "la cacería de acentos" — texto sin tildes para clasificar
+  en tabla agudas/graves/esdrújulas; reparto de grandes cantidades (2.500
+  alfajores en cajas de 12).
+- **Ideas web**: clasificar palabras por acentuación en el "tren" correcto
+  (agudas/graves/esdrújulas); "simulador de fotosíntesis" — colocar agua,
+  sol, CO2 en una planta virtual.
+
+### Bimestre 3 — "La llegada de las fracciones y de los conquistadores"
+
+- **Prácticas del Lenguaje**: leyenda local y de pueblos originarios;
+  circuito de la comunicación (emisor, receptor, mensaje, canal, código,
+  referente); diccionario escolar (acepciones múltiples).
+- **Matemática**: iniciación a fracciones en reparto/medición (1/2, 1/4,
+  3/4, 1/8) — fracción de un todo; geometría — rectas paralelas, secantes,
+  perpendiculares (escuadra y regla).
+- **Ciencias Naturales**: magnetismo (polos, brújula) y electricidad
+  (conductores/aislantes).
+- **Ciencias Sociales**: conquista española en América; corrientes
+  colonizadoras en Argentina; fundación de ciudades coloniales.
+- **Ideas PDF**: "la pizzería matemática" — pintar/escribir fracciones sobre
+  gráficos de pizza; trazado geométrico siguiendo instrucciones (recta
+  horizontal → perpendicular).
+- **Ideas web**: "laboratorio eléctrico" — conectar cables a materiales para
+  ver qué enciende una lamparita; equivalencias de fracciones (emparejar
+  2/4 con 1/2).
+
+### Bimestre 4 — "Geometría, biografías y ambientes"
+
+- **Prácticas del Lenguaje**: texto biográfico; verbos narrativos
+  (pretérito perfecto simple vs. imperfecto); prefijos y sufijos.
+- **Matemática**: ángulos — clasificación (agudo, recto, obtuso, llano) y
+  medición con transportador; triángulos por sus lados (escaleno, isósceles,
+  equilátero).
+- **Ciencias Naturales**: fuerzas y sus efectos (gravedad, rozamiento,
+  magnética); movimiento de los objetos.
+- **Ciencias Sociales**: ambientes de la provincia y recursos naturales;
+  problemas ambientales locales y soluciones ciudadanas.
+- **Ideas PDF**: medir ángulos impresos con transportador y clasificar;
+  biografía de un prócer con línea de tiempo como guía.
+- **Ideas web**: transportador interactivo para medir ángulos de rampas de
+  skate; arrastrar prefijos (des-, in-, pre-) y sufijos (-ito, -oso, -ería)
+  para formar palabras nuevas.
 
 ---
 
@@ -618,9 +692,8 @@ esto (por ejemplo, antes de invertir mucho contenido en un año puntual):
   en su diseño curricular jurisdiccional. Este documento representa el piso
   nacional, no el diseño de ninguna provincia en particular.
 
-## Pendientes de este insumo
+## Estado del insumo
 
-1. ~~Sala de 4 y Sala de 5 años~~ — completado 14-jul-2026.
-2. ~~2° grado~~ — completado 14-jul-2026.
-3. **4° grado — desglose bimestre a bimestre (falta).** Es el único año que
-   queda sin detalle propio de los 9 años de escolaridad.
+✅ **Completo — 14-jul-2026.** Los 9 años de escolaridad (Sala de 4, Sala de
+5, 1° a 7° grado) tienen su desglose bimestral, con contenidos curriculares
+e ideas de PDF/interactivo para cada uno.
