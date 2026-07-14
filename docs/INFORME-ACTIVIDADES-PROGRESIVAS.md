@@ -190,7 +190,7 @@ corta del porqué, no solo "¡mal! probá de nuevo".
 | 4 | 2° grado | ✅ Cerrado 14-jul-2026 (§5f): mismo criterio que 1° grado — un juego por cada "Idea web" del NAP en los 4 bimestres (8 juegos nuevos: `sustantivos`, `sumas_redondas`, `sinonimos_antonimos`, `multiplicacion_concepto`, `conductor_aislante`, `familia_palabras`, `trivia_espacial`, `tablas_contrarreloj` — primera mecánica de TIMER del motor). No hizo falta separar de la banda "grande": edad exacta 7 alcanza, mismo patrón `if e == 7` que ya usan Sala de 5/1° grado | Medio |
 | 5 | 3° grado | ✅ Cerrado 14-jul-2026 (§5g): mismo criterio "Ideas web" — 8 juegos nuevos (`animal_comida`, `partes_oracion`, `tabla_pitagorica`, `tiempos_verbales`, `estaciones`, `cuerpos_geometricos`, `separador_mezclas`, `cajero_automatico`). Resultó más "Medio" que "Alto" gracias a la reutilización de patrones ya probados (clasificar 2/3 categorías, matching 3 opciones, tocar 2 que sumen). Simplificado a propósito: sin rotación 3D real (no hay render 3D en el motor) | Medio |
 | 6 | 4° grado | ✅ Cerrado 14-jul-2026 (§5h): mismo criterio "Ideas web" — 8 juegos nuevos (`abstractos_concretos`, `provincias_region`, `acentuacion`, `fotosintesis`, `laboratorio_electrico`, `fracciones_equivalentes`, `angulos`, `prefijos_sufijos`). PRIMERA representación visual de fracciones del motor (barras CPA) — bug real de CSS encontrado y arreglado en vivo. 2 "Ideas web" simplificadas (mapa de provincias → trivia de región; transportador → ángulo dibujado clasificado) por necesitar assets/mecánicas que el motor no tiene | Medio |
-| 7 | 5° grado | Millones, fracciones "en serio", decimales, geometría, ciudadanía, primera historia argentina real (Revolución de Mayo) — desglose bimestral disponible en el currículum | Alto |
+| 7 | 5° grado | ✅ Cerrado 14-jul-2026 (§5i): mismo criterio "Ideas web" — 8 juegos nuevos (`trivia_colonial`, `camino_digestivo`, `fracciones_avanzado`, `analisis_sintactico`, `pago_exacto`, `actividad_economica`, `planta_potabilizadora`, `derechos_constitucion`). SEGUNDA mecánica de timer del motor. Mapa económico simplificado a trivia (mismo criterio que 4° grado) | Medio |
 | 8 | 6°-7° grado | Porcentaje, proporcionalidad, álgebra informal, estadística, ciencias naturales avanzadas (célula, sistema nervioso/endocrino), historia/geografía argentina contemporánea | Alto |
 
 Los pasos 5-7 comparten un patrón: necesitan tipos de actividad NUEVOS (no
@@ -761,6 +761,50 @@ ambientes/recursos de la provincia) queda para una pasada de diseño
 aparte. El mapa geográfico preciso de provincias y el transportador libre
 quedan como inversión de asset/mecánica pendiente si en algún momento se
 justifica (mismo criterio que la rotación 3D de 3° grado).
+
+## 5i. Cierre de 5° grado
+
+Mismo criterio "Ideas web" que los años anteriores. Este año consolida la
+matemática decimal e introduce la Revolución de Mayo — con la reutilización
+de patrones ya probados, ningún "Idea web" quedó sin construir de verdad
+(0 simplificaciones a trivia por falta de asset, a diferencia de 4°/3°
+grado que tuvieron 1-2 cada uno).
+
+| Bimestre | "Idea web" del NAP | Juego | Patrón |
+|---|---|---|---|
+| 1 | trivia histórica de la vida colonial | `trivia_colonial` | Verdadero/Falso (clasificar 2 categorías) |
+| 1 | "camino digestivo" — arrastrar alimentos por los órganos | `camino_digestivo` | tap-en-orden (`armar_palabra`) |
+| 2 | calculadora de equivalencias con barras (2/3=4/6=6/9) | `fracciones_avanzado` | mismo motor visual que `fracciones_equivalentes` (4° grado), banco propio más difícil |
+| 2 | velocidad de análisis sintáctico (núcleo sujeto/predicado) | `analisis_sintactico` | **SEGUNDA mecánica de timer** del motor (la primera fue `tablas_contrarreloj`, 2° grado) |
+| 3 | simular pago con billetes/monedas reales, centavos incluidos | `pago_exacto` | mismo patrón que `cajero_automatico` (3° grado), denominaciones con centavos |
+| 3 | mapa interactivo de actividad económica por región | `actividad_economica` | trivia (simplificado de mapa interactivo, mismo criterio que `provincias_region` de 4° grado) |
+| 4 | planta potabilizadora — ordenar pasos de purificación | `planta_potabilizadora` | tap-en-orden |
+| 4 | trivia de Derechos del Niño y bases constitucionales | `derechos_constitucion` | Verdadero/Falso |
+
+### Decisiones de diseño
+
+1. **`analisis_sintactico` reusa el guard de seguridad del primer timer sin
+   cambios** — el mismo patrón `elemento.isConnected` de `tablas_contrarreloj`
+   (2° grado) se copió tal cual, ya probado en producción desde entonces sin
+   incidentes.
+2. **`pago_exacto` guarda los valores en CENTAVOS (enteros), no en pesos
+   con decimales** — la aritmética de punto flotante de JavaScript puede
+   dar resultados como `0.1 + 0.2 = 0.30000000000000004`; sumando enteros
+   (25, 50, 100... centavos) y formateando a `$X.XX` recién al mostrar, se
+   evita esa clase de bug antes de que exista.
+3. **`camino_digestivo`/`planta_potabilizadora` muestran un NÚMERO de
+   orden en el hueco, no el nombre del órgano/paso** — a diferencia de
+   `armar_palabra` (sílabas cortas, caben en el hueco), acá los nombres
+   son largos ("Intestino delgado", "Desinfección") y no entran en las
+   celdas cuadradas de tamaño fijo. El progreso se sigue viendo (1, 2,
+   3...) aunque no se repita el texto — adaptación menor de espacio, no
+   pérdida de la mecánica.
+4. **`fracciones_avanzado` es un juego PROPIO, no una extensión del banco
+   de `fracciones_equivalentes`** — aunque el motor visual (barras CPA) es
+   idéntico al de 4° grado, se mantuvo como `id` separado para que cada
+   año conserve su propio progreso de estrellas por juego, mismo criterio
+   que ya se usó para no mezclar `sumas_redondas`/`cajero_automatico`/
+   `pago_exacto` en un solo juego "genérico de sumar 2".
 
 ## 6. Pendientes que dependen de Pablo (no técnicos)
 
