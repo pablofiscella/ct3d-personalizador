@@ -158,6 +158,21 @@ def test_bandas_de_edad():
     assert not (nuevos_6grado & ids_grande12)
     iconos11 = [m["icono"] for m in aw._menu("grande", 11)]
     assert len(iconos11) == len(set(iconos11)), "íconos repetidos en el menú de 11 años"
+    # 7° grado (14-jul-2026, edad 12 — año de egreso, fin del NAP — "Ideas
+    # web" por bimestre): ninguno se filtra a 6-11 años, sin íconos repetidos.
+    ids_grande12_full = {m["id"] for m in aw._menu("grande", 12)}
+    nuevos_7grado = {"traductor_algebraico", "planetas_tipo", "linea_democracia",
+                      "sistema_reproductor", "estadistica_datos", "red_trofica",
+                      "area_perimetro", "escape_room_egreso"}
+    assert nuevos_7grado <= ids_grande12_full
+    assert not (nuevos_7grado & ids_grande6)
+    assert not (nuevos_7grado & ids_grande7)
+    assert not (nuevos_7grado & ids_grande8)
+    assert not (nuevos_7grado & ids_grande9)
+    assert not (nuevos_7grado & ids_grande10)
+    assert not (nuevos_7grado & ids_grande11)
+    iconos12 = [m["icono"] for m in aw._menu("grande", 12)]
+    assert len(iconos12) == len(set(iconos12)), "íconos repetidos en el menú de 12 años"
 
 
 def test_laberintos_transitables(data):

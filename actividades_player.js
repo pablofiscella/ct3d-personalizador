@@ -4545,6 +4545,499 @@ GAMES.poligonos_lados = {
   },
 };
 
+/* ── TRADUCTOR ALGEBRAICO (14-jul-2026, 7° grado NAP Bimestre 1 "Ideas
+   web": "traductor algebraico — emparejar oración con fórmula").
+   Distractores por error de traducción REAL (agrupar mal, invertir la
+   operación), nunca al azar. ── */
+const ALGEBRA_BANCO = [
+  { texto: "El doble de un número", correcta: "2x", d1: "x/2", d2: "x+2" },
+  { texto: "El triple de un número", correcta: "3x", d1: "x+3", d2: "x/3" },
+  { texto: "El doble más uno", correcta: "2x+1", d1: "2x-1", d2: "2(x+1)" },
+  { texto: "La mitad de un número", correcta: "x/2", d1: "2x", d2: "x-2" },
+  { texto: "El siguiente de un número", correcta: "x+1", d1: "x-1", d2: "2x" },
+  { texto: "El triple menos dos", correcta: "3x-2", d1: "3x+2", d2: "3(x-2)" },
+];
+GAMES.traductor_algebraico = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("Elegí la fórmula que representa la frase");
+      ctx.juego.innerHTML = "";
+      let disp = ALGEBRA_BANCO.filter((x) => !usados.includes(x.texto));
+      if (!disp.length) { usados = []; disp = ALGEBRA_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.texto);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:24px;font-family:'Baloo',sans-serif">${item.texto}</span>`));
+      ctx.juego.appendChild(arriba);
+      const opciones = shuffle([item.correcta, item.d1, item.d2]);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      opciones.forEach((op) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:20px;font-family:'Baloo',sans-serif">${op}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (op === item.correcta) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── ¿TERRESTRE O GASEOSO? (14-jul-2026, 7° grado NAP Bimestre 1 "Ideas
+   web": "simulador a escala del sistema solar — modificar órbitas" —
+   simplificado a clasificar, mismo patrón que campo_ciudad/
+   conductor_aislante: el motor no tiene mecánica de arrastre de órbitas
+   ni escala física real, pero el contenido curricular — distinguir
+   planetas terrestres de gaseosos — se verifica igual de bien así). ── */
+const PLANETAS_BANCO = [
+  { nombre: "Mercurio", tipo: "terrestre" }, { nombre: "Venus", tipo: "terrestre" },
+  { nombre: "Tierra", tipo: "terrestre" }, { nombre: "Marte", tipo: "terrestre" },
+  { nombre: "Júpiter", tipo: "gaseoso" }, { nombre: "Saturno", tipo: "gaseoso" },
+  { nombre: "Urano", tipo: "gaseoso" }, { nombre: "Neptuno", tipo: "gaseoso" },
+];
+GAMES.planetas_tipo = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 6;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Es un planeta terrestre o gaseoso?");
+      ctx.juego.innerHTML = "";
+      let disp = PLANETAS_BANCO.filter((x) => !usados.includes(x.nombre));
+      if (!disp.length) { usados = []; disp = PLANETAS_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.nombre);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto anim-pop",
+        `<span style="font-size:30px;font-family:'Baloo',sans-serif">${item.nombre}</span>`));
+      ctx.juego.appendChild(arriba);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      [{ v: "terrestre", label: "🪨 Terrestre" }, { v: "gaseoso", label: "💨 Gaseoso" }].forEach(({ v, label }) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:18px;font-family:'Baloo',sans-serif">${label}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (v === item.tipo) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(700);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── LÍNEA DE TIEMPO: LA DEMOCRACIA (14-jul-2026, 7° grado NAP Bimestre 2
+   "Ideas web": "línea de tiempo de la democracia — presidentes e hitos
+   desde 1983"). Mismo patrón tap-en-orden que viaje_inmigrante. ── */
+GAMES.linea_democracia = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 4;
+    ctx.rondas(rondas);
+    const ETAPAS = ["Golpe militar (1976)", "Guerra de Malvinas (1982)", "Recuperación de la democracia (1983)", "Juicio a las Juntas (1985)"];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("Tocá los hechos históricos en el orden en que pasaron");
+      ctx.juego.innerHTML = "";
+      const tablero = el("div", "tablero armarPalabraTablero");
+      const filaSlots = el("div", "armarPalabraSlots");
+      const slots = ETAPAS.map(() => el("div", "armarPalabraSlot", ""));
+      slots.forEach((s) => filaSlots.appendChild(s));
+      tablero.appendChild(filaSlots);
+      const filaEtapas = el("div", "filaSprites");
+      filaEtapas.style.marginTop = "18px";
+      let siguiente = 0;
+      let resuelto = false;
+      shuffle(ETAPAS.map((s, i) => ({ s, i }))).forEach(({ s, i }) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:13px;font-family:'Baloo',sans-serif">${s}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto || b.disabled) return;
+          if (i === siguiente) {
+            b.disabled = true;
+            b.classList.add("anim-brinco");
+            slots[i].textContent = String(i + 1);
+            slots[i].classList.add("anim-pop");
+            Sfx.tick(siguiente + 1);
+            siguiente++;
+            if (siguiente >= ETAPAS.length) {
+              resuelto = true;
+              ctx.bien();
+              ronda++;
+              await espera(1100);
+              if (ronda >= rondas) ctx.win();
+              else jugar();
+            }
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        filaEtapas.appendChild(b);
+      });
+      tablero.appendChild(filaEtapas);
+      ctx.juego.appendChild(tablero);
+    };
+    jugar();
+  },
+};
+
+/* ── APARATO REPRODUCTOR: FUNCIÓN (14-jul-2026, 7° grado NAP Bimestre 2
+   "Ideas web": "diagrama interactivo de aparatos reproductores").
+   Contenido de Educación Sexual Integral (ley 26.150, NAP obligatorio a
+   esta edad) — registro estrictamente clínico/textual, sin imágenes,
+   mismo patrón de matching que celula_partes. Distractores por
+   confusión REAL (intercambiar el órgano equivalente del otro sexo, o
+   con otro sistema del cuerpo), nunca al azar. ── */
+const REPRODUCTOR_BANCO = [
+  { parte: "Ovarios", correcta: "Producen los óvulos", d1: "Producen espermatozoides", d2: "Bombean la sangre" },
+  { parte: "Testículos", correcta: "Producen los espermatozoides", d1: "Producen los óvulos", d2: "Filtran el aire" },
+  { parte: "Útero", correcta: "Es donde se desarrolla el bebé", d1: "Es donde se producen los óvulos", d2: "Es donde se digieren los alimentos" },
+  { parte: "Trompas de Falopio", correcta: "Conducen el óvulo hacia el útero", d1: "Producen espermatozoides", d2: "Almacenan la orina" },
+  { parte: "Pene", correcta: "Órgano reproductor externo masculino", d1: "Órgano reproductor externo femenino", d2: "Glándula del crecimiento" },
+];
+GAMES.sistema_reproductor = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Para qué sirve esta parte del aparato reproductor?");
+      ctx.juego.innerHTML = "";
+      let disp = REPRODUCTOR_BANCO.filter((x) => !usados.includes(x.parte));
+      if (!disp.length) { usados = []; disp = REPRODUCTOR_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.parte);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:26px;font-family:'Baloo',sans-serif">${item.parte}</span>`));
+      ctx.juego.appendChild(arriba);
+      const opciones = shuffle([item.correcta, item.d1, item.d2]);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      opciones.forEach((op) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:15px;font-family:'Baloo',sans-serif">${op}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (op === item.correcta) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── MEDIA, MODA O MEDIANA (14-jul-2026, 7° grado NAP Bimestre 3 "Ideas
+   web": "creador de gráficos dinámicos — datos → gráfico automático con
+   promedio" — simplificado a calcular el promedio directo, el contenido
+   real detrás de "gráfico con promedio"; el motor no arma gráficos
+   dinámicos de barras arrastrables, pero el cálculo SÍ se verifica). ── */
+const ESTADISTICA_BANCO = [
+  { texto: "4, 6, 8", correcta: 6 },
+  { texto: "2, 4, 6, 8", correcta: 5 },
+  { texto: "10, 20, 30", correcta: 20 },
+  { texto: "3, 5, 7", correcta: 5 },
+  { texto: "1, 2, 3, 4, 5", correcta: 3 },
+  { texto: "6, 8, 10, 12", correcta: 9 },
+];
+GAMES.estadistica_datos = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Cuál es el promedio de estos números?");
+      ctx.juego.innerHTML = "";
+      let disp = ESTADISTICA_BANCO.filter((x) => !usados.includes(x.texto));
+      if (!disp.length) { usados = []; disp = ESTADISTICA_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.texto);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:26px;font-family:'Baloo',sans-serif">${item.texto}</span>`));
+      ctx.juego.appendChild(arriba);
+      const opciones = new Set([item.correcta]);
+      let guardas = 0;
+      while (opciones.size < 3 && guardas < 50) {
+        guardas++;
+        const v = Math.max(1, item.correcta + rint(-3, 3));
+        if (v !== item.correcta) opciones.add(v);
+      }
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      shuffle([...opciones]).forEach((v) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:26px;font-family:'Baloo',sans-serif">${v}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (v === item.correcta) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── PRODUCTOR, CONSUMIDOR O DESCOMPONEDOR (14-jul-2026, 7° grado NAP
+   Bimestre 3 "Ideas web": "simulador de red trófica — retirar un
+   eslabón, ver el colapso" — simplificado a clasificar el rol de cada
+   ser vivo, mismo patrón de 3 categorías que partes_oracion: el motor
+   no tiene una red de nodos con propagación de colapso, pero el
+   contenido curricular real — el ROL de cada eslabón — se verifica
+   igual de bien clasificando). ── */
+const RED_TROFICA_BANCO = [
+  { e: "🌾 Pasto", rol: "productor" }, { e: "🌳 Árbol", rol: "productor" },
+  { e: "🐇 Conejo", rol: "consumidor" }, { e: "🦁 León", rol: "consumidor" }, { e: "🦌 Ciervo", rol: "consumidor" },
+  { e: "🍄 Hongo", rol: "descomponedor" }, { e: "🦠 Bacteria", rol: "descomponedor" },
+];
+GAMES.red_trofica = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 6;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Es productor, consumidor o descomponedor?");
+      ctx.juego.innerHTML = "";
+      let disp = RED_TROFICA_BANCO.filter((x) => !usados.includes(x.e));
+      if (!disp.length) { usados = []; disp = RED_TROFICA_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.e);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto anim-pop",
+        `<span style="font-size:26px;font-family:'Baloo',sans-serif">${item.e}</span>`));
+      ctx.juego.appendChild(arriba);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      shuffle(["productor", "consumidor", "descomponedor"]).forEach((rol) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:17px;font-family:'Baloo',sans-serif">${rol}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (rol === item.rol) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(700);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── ÁREA DE LA HABITACIÓN (14-jul-2026, 7° grado NAP Bimestre 4 "Ideas
+   web": "diseñador de planos virtual — arrastrar muebles/paredes, área/
+   perímetro en vivo" — simplificado a calcular el área total de una
+   figura compuesta por 2 rectángulos, el contenido curricular real
+   ("figuras compuestas"); el motor no tiene arrastre libre de paredes
+   con recálculo en vivo). Registro abstracto/textual a propósito — a
+   los 12 años el propio informe (§ banda de edad) ya no pide andamiaje
+   visual concreto, mismo criterio que trivia_colonial/sufragio_argentina. ── */
+const AREA_BANCO = [
+  { texto: "Rectángulo A: 4m × 3m.<br>Rectángulo B: 2m × 2m.", correcta: 16 },
+  { texto: "Rectángulo A: 5m × 2m.<br>Rectángulo B: 3m × 3m.", correcta: 19 },
+  { texto: "Rectángulo A: 6m × 2m.<br>Rectángulo B: 4m × 1m.", correcta: 16 },
+  { texto: "Rectángulo A: 3m × 3m.<br>Rectángulo B: 2m × 4m.", correcta: 17 },
+  { texto: "Rectángulo A: 7m × 2m.<br>Rectángulo B: 3m × 2m.", correcta: 20 },
+];
+GAMES.area_perimetro = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Cuál es el área total de la habitación?");
+      ctx.juego.innerHTML = "";
+      let disp = AREA_BANCO.filter((x) => !usados.includes(x.texto));
+      if (!disp.length) { usados = []; disp = AREA_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.texto);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:19px;line-height:1.5;font-family:'Baloo',sans-serif">${item.texto}</span>`));
+      ctx.juego.appendChild(arriba);
+      const opciones = new Set([item.correcta]);
+      let guardas = 0;
+      while (opciones.size < 3 && guardas < 50) {
+        guardas++;
+        const v = Math.max(1, item.correcta + rint(-3, 3));
+        if (v !== item.correcta) opciones.add(v);
+      }
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      shuffle([...opciones]).forEach((v) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:22px;font-family:'Baloo',sans-serif">${v} m²</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (v === item.correcta) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── ESCAPE ROOM DE EGRESO (14-jul-2026, 7° grado NAP Bimestre 4 "Ideas
+   web": "escape room de egreso — integrando matemática, historia,
+   gramática y biología del año" — simplificado a trivia mixta que
+   recorre las 4 áreas del año, mismo patrón de matching que
+   celula_partes: el motor no tiene una mecánica de "sala" con
+   combinaciones/candados, pero el espíritu integrador — repasar
+   contenido de TODO el año antes de egresar — se cumple igual
+   recorriendo una pregunta de cada área por ronda). Consigna fija
+   porque el contenido varía por pregunta (misma regla que celula_partes/
+   fraccion_de_cantidad). ── */
+const ESCAPE_ROOM_BANCO = [
+  { texto: "¿Cuál es el mínimo común múltiplo de 4 y 6?", correcta: "12", d1: "24", d2: "10" },
+  { texto: "¿En qué año volvió la democracia a la Argentina?", correcta: "1983", d1: "1976", d2: "1990" },
+  { texto: "En \"El perro grande ladra fuerte\", ¿cuál es el sujeto?", correcta: "El perro grande", d1: "ladra fuerte", d2: "grande" },
+  { texto: "Quemar un papel, ¿es un cambio físico o químico?", correcta: "Químico", d1: "Físico", d2: "Ninguno de los dos" },
+  { texto: "Si más obreros hacen un trabajo, el tiempo necesario...", correcta: "Disminuye", d1: "Aumenta", d2: "Se mantiene igual" },
+  { texto: "¿Cuál es el planeta más grande del sistema solar?", correcta: "Júpiter", d1: "Saturno", d2: "Tierra" },
+  { texto: "¿Cuál de estos es un país de América Latina?", correcta: "Perú", d1: "Canadá", d2: "Portugal" },
+  { texto: "¿Cuál de estas palabras lleva tilde?", correcta: "¿Cuándo?", d1: "Cuando", d2: "Cuanto" },
+];
+GAMES.escape_room_egreso = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 6;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("Elegí la respuesta correcta");
+      ctx.juego.innerHTML = "";
+      let disp = ESCAPE_ROOM_BANCO.filter((x) => !usados.includes(x.texto));
+      if (!disp.length) { usados = []; disp = ESCAPE_ROOM_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.texto);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:19px;font-family:'Baloo',sans-serif">${item.texto}</span>`));
+      ctx.juego.appendChild(arriba);
+      const opciones = shuffle([item.correcta, item.d1, item.d2]);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      opciones.forEach((op) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:17px;font-family:'Baloo',sans-serif">${op}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (op === item.correcta) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 GAMES.serie = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 6;
