@@ -219,6 +219,24 @@ def _menu(banda, edad):
         # Bimestre 4: separador de mezclas + cajero automático.
         g.append({"id": "separador_mezclas", "titulo": "Separá la mezcla", "icono": "🧪", "cfg": {"rondas": 4}})
         g.append({"id": "cajero_automatico", "titulo": "Cajero automático", "icono": "💵", "cfg": {"rondas": 5}})
+    if e == 9:
+        # 4° grado (14-jul-2026): mismo criterio — un juego por cada "Idea
+        # web" del NAP. Dos "Ideas web" del año (rompecabezas geográfico
+        # con mapa real, transportador interactivo) se simplificaron a
+        # trivia por necesitar assets/mecánicas que el motor no tiene hoy
+        # — ver informe §5h.
+        # Bimestre 1: abstracto/concreto + provincia → región.
+        g.append({"id": "abstractos_concretos", "titulo": "Abstracto o concreto", "icono": "💭", "cfg": {"rondas": 6}})
+        g.append({"id": "provincias_region", "titulo": "¿De qué región es?", "icono": "🗺️", "cfg": {"rondas": 6}})
+        # Bimestre 2: acentuación + fotosíntesis (el intruso).
+        g.append({"id": "acentuacion", "titulo": "Aguda, grave o esdrújula", "icono": "🚂", "cfg": {"rondas": 6}})
+        g.append({"id": "fotosintesis", "titulo": "¿Qué no necesita la planta?", "icono": "🌱", "cfg": {"rondas": 5}})
+        # Bimestre 3: laboratorio eléctrico + fracciones equivalentes.
+        g.append({"id": "laboratorio_electrico", "titulo": "Laboratorio eléctrico", "icono": "🔌", "cfg": {"rondas": 6}})
+        g.append({"id": "fracciones_equivalentes", "titulo": "Fracciones equivalentes", "icono": "🍕", "cfg": {"rondas": 5}})
+        # Bimestre 4: ángulos + prefijos.
+        g.append({"id": "angulos", "titulo": "Agudo, recto u obtuso", "icono": "📐", "cfg": {"rondas": 6}})
+        g.append({"id": "prefijos_sufijos", "titulo": "Palabras nuevas", "icono": "🔗", "cfg": {"rondas": 5}})
     return g
 
 

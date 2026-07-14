@@ -189,8 +189,9 @@ corta del porqué, no solo "¡mal! probá de nuevo".
 | 3 | 1° grado | ✅ Cerrado 14-jul-2026 (§5d-§5e): 7 juegos nuevos/curados cubriendo un "Idea web" del NAP por bimestre (`serie`+tope, `armar_palabra`, `abecedario`, `suma_rapida`, `campo_ciudad`, `planta_fruto`, `materiales`, `grilla100`). Falta a propósito: "la tiendita" con dinero (única "Idea PDF" priorizada igual) + contenido sin "Idea web" sugerida por el NAP (cuerpo humano, escuela, barrio, efemérides, comprensión lectora, escritura real) — candidatos para pasada aparte, no deuda de esta | Medio |
 | 4 | 2° grado | ✅ Cerrado 14-jul-2026 (§5f): mismo criterio que 1° grado — un juego por cada "Idea web" del NAP en los 4 bimestres (8 juegos nuevos: `sustantivos`, `sumas_redondas`, `sinonimos_antonimos`, `multiplicacion_concepto`, `conductor_aislante`, `familia_palabras`, `trivia_espacial`, `tablas_contrarreloj` — primera mecánica de TIMER del motor). No hizo falta separar de la banda "grande": edad exacta 7 alcanza, mismo patrón `if e == 7` que ya usan Sala de 5/1° grado | Medio |
 | 5 | 3° grado | ✅ Cerrado 14-jul-2026 (§5g): mismo criterio "Ideas web" — 8 juegos nuevos (`animal_comida`, `partes_oracion`, `tabla_pitagorica`, `tiempos_verbales`, `estaciones`, `cuerpos_geometricos`, `separador_mezclas`, `cajero_automatico`). Resultó más "Medio" que "Alto" gracias a la reutilización de patrones ya probados (clasificar 2/3 categorías, matching 3 opciones, tocar 2 que sumen). Simplificado a propósito: sin rotación 3D real (no hay render 3D en el motor) | Medio |
-| 6 | 4°-5° grado | Fracciones (con apoyo visual — tiras, CPA), decimales, geometría con compás, primera historia argentina real (colonia, Revolución de Mayo) | Alto |
-| 7 | 6°-7° grado | Porcentaje, proporcionalidad, álgebra informal, estadística, ciencias naturales avanzadas (célula, sistema nervioso/endocrino), historia/geografía argentina contemporánea | Alto |
+| 6 | 4° grado | ✅ Cerrado 14-jul-2026 (§5h): mismo criterio "Ideas web" — 8 juegos nuevos (`abstractos_concretos`, `provincias_region`, `acentuacion`, `fotosintesis`, `laboratorio_electrico`, `fracciones_equivalentes`, `angulos`, `prefijos_sufijos`). PRIMERA representación visual de fracciones del motor (barras CPA) — bug real de CSS encontrado y arreglado en vivo. 2 "Ideas web" simplificadas (mapa de provincias → trivia de región; transportador → ángulo dibujado clasificado) por necesitar assets/mecánicas que el motor no tiene | Medio |
+| 7 | 5° grado | Millones, fracciones "en serio", decimales, geometría, ciudadanía, primera historia argentina real (Revolución de Mayo) — desglose bimestral disponible en el currículum | Alto |
+| 8 | 6°-7° grado | Porcentaje, proporcionalidad, álgebra informal, estadística, ciencias naturales avanzadas (célula, sistema nervioso/endocrino), historia/geografía argentina contemporánea | Alto |
 
 Los pasos 5-7 comparten un patrón: necesitan tipos de actividad NUEVOS (no
 extender parámetros de los 23 que ya existen), así que conviene diseñarlos
@@ -685,6 +686,81 @@ geográficos de Argentina, problemas ambientales) queda para una pasada de
 diseño aparte. La rotación 3D real de cuerpos geométricos (ver arriba)
 también queda pendiente si en algún momento se justifica invertir en un
 motor de render 3D — hoy no hay ningún otro juego que lo necesite.
+
+## 5h. Cierre de 4° grado
+
+Primer año donde el roadmap original marcaba "Alto" esfuerzo con motivo real
+(fracciones, geometría con instrumentos, simulaciones) — terminó en "Medio"
+con el mismo criterio de "Ideas web" + reutilización, aunque acá sí hizo
+falta invertir en UNA representación visual genuinamente nueva.
+
+| Bimestre | "Idea web" del NAP | Juego | Nota |
+|---|---|---|---|
+| 1 | "rompecabezas geográfico — encastrar provincias en el mapa" | `provincias_region` | **simplificado**: trivia de región en vez de mapa real (ver abajo) |
+| 1 | "clasificador de sustantivos abstractos vs. concretos" | `abstractos_concretos` | reusa clasificar 2 categorías |
+| 2 | "clasificar palabras por acentuación en el tren correcto" | `acentuacion` | reusa clasificar 3 categorías |
+| 2 | "simulador de fotosíntesis — colocar agua/sol/CO2" | `fotosintesis` | **simplificado**: "el intruso" (odd-one-out) en vez de simulación multi-paso |
+| 3 | "laboratorio eléctrico — conectar cables, ver qué enciende" | `laboratorio_electrico` | reusa clasificar 2 categorías (mismo patrón que `conductor_aislante` de 2° grado) |
+| 3 | "equivalencias de fracciones — emparejar 2/4 con 1/2" | `fracciones_equivalentes` | **nuevo de verdad**: primera representación visual de fracciones (ver abajo) |
+| 4 | "transportador interactivo para medir ángulos" | `angulos` | **simplificado**: clasificar sobre un ángulo dibujado, no medición libre |
+| 4 | "arrastrar prefijos y sufijos para formar palabras" | `prefijos_sufijos` | tap-en-orden (patrón `armar_palabra`), solo prefijos — ver nota |
+
+### Decisiones de diseño y bugs reales
+
+1. **`fracciones_equivalentes` — primera vez que el motor RENDERIZA una
+   fracción, no solo la escribe.** La regla CPA del skill (§4b/4c) es no
+   negociable para matemática nueva: mostrar "2/4" y "1/2" como texto no
+   alcanza, hace falta el paso Pictórico. Se implementaron barras
+   divididas en segmentos (CSS puro, sin librerías) — el estándar
+   Singapore Math ("fraction bars"), más simple de dibujar que una pizza
+   con `conic-gradient` y pedagógicamente igual de válido. El banco de
+   distractores se escribió A MANO en vez de generarlo: con fracciones,
+   un distractor generado al azar puede terminar siendo matemáticamente
+   equivalente por coincidencia (ej. la fracción "complementaria" de 1/2
+   es 1/2 otra vez) — más seguro tener los 3 pares (correcta + 2
+   distractoras) explícitos y verificables a simple vista.
+2. **Bug real de CSS encontrado en vivo con Playwright**: las barras de
+   fracción DENTRO de los botones de opciones se veían como óvalos negros
+   diminutos, sin segmentos visibles — nada que ver con la barra grande de
+   arriba, que sí se veía bien. Causa: `.fraccionBarra` hereda
+   `width:100%` de la regla base, pero dentro de un `<button>` (que se
+   auto-dimensiona a su contenido, "shrink-to-fit") ese 100% no tiene un
+   ancho firme contra el cual resolverse, y colapsaba. Arreglado
+   reemplazando el `max-width` que tenía la regla más específica por un
+   `width` explícito en píxeles — sin ambigüedad de porcentaje. Encontrado
+   ANTES de considerar el juego terminado, exactamente para eso sirve
+   probar cada juego nuevo en un navegador real.
+3. **`provincias_region` — simplificación de asset, no de código.** Un
+   "rompecabezas geográfico" real necesita las 24 formas de provincia
+   reales (un mapa SVG preciso) — no es un juego que falte programar, es
+   un ASSET que no existe. Se simplificó a trivia de región
+   (Norte/Centro/Cuyo/Patagonia) — mantiene el contenido curricular
+   (geografía de Argentina) sin la inversión de un mapa preciso.
+4. **`angulos` — mismo criterio de simplificación que `cuerpos_geometricos`
+   de 3° grado.** El NAP pide un transportador INTERACTIVO (medir
+   libremente); se sustituyó por clasificar un ángulo YA DIBUJADO con dos
+   líneas CSS (una fija, una rotada por `transform`) — los grados se
+   curaron a mano (30/45/60 agudos, 90 recto, 120/135/150 obtusos) para
+   que cada categoría sea inequívoca a simple vista, nunca un valor
+   ambiguo como 88° que se confundiría con un recto real.
+5. **`prefijos_sufijos` — solo prefijos, sufijos deliberadamente afuera.**
+   El NAP menciona sufijos diminutivos (-ito, -oso) además de prefijos,
+   pero la mayoría de esos sufijos piden apócope real en español
+   ("gato"+"ito" = "gatito", no "gatoito") — una concatenación simple de
+   tap NO puede representar ese cambio ortográfico sin mostrar una
+   palabra mal escrita. Se dejaron solo prefijos (des-, in-, pre-, re-),
+   que sí concatenan literalmente sin cambios de ortografía.
+
+### Deliberadamente NO hecho
+
+Mismo criterio que los años anteriores: todo el NAP de 4° grado sin una
+"Idea web" sugerida (texto expositivo, técnicas de estudio, cuento
+maravilloso, circuito de la comunicación, diccionario escolar, leyenda
+local, texto biográfico, verbos narrativos, conquista española,
+ambientes/recursos de la provincia) queda para una pasada de diseño
+aparte. El mapa geográfico preciso de provincias y el transportador libre
+quedan como inversión de asset/mecánica pendiente si en algún momento se
+justifica (mismo criterio que la rotación 3D de 3° grado).
 
 ## 6. Pendientes que dependen de Pablo (no técnicos)
 

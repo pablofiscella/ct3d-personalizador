@@ -107,8 +107,9 @@ edad" (roadmap 14-jul-2026). NO improvisar la mezcla — usar esta tabla:
 | 3 | 1° grado | ✅ Cerrado 14-jul-2026 (ver informe §5d-§5e): un juego por cada "Idea web" del NAP en los 4 bimestres (7 juegos nuevos/curados). Falta a propósito: "la tiendita" con dinero + contenido sin "Idea web" propia (ciencias, escuela/barrio, efemérides) — pasada aparte, no deuda | Curación (matemática) + construcción (audio/fonética/clasificación) |
 | 4 | 2° grado | ✅ Cerrado 14-jul-2026 (ver informe §5f): 8 juegos nuevos, uno por "Idea web" del NAP en los 4 bimestres — incluye `tablas_contrarreloj`, primera mecánica de TIMER del motor. No hizo falta banda propia: `if e == 7` alcanza | Curación (matemática) + construcción (clasificación/timer) |
 | 5 | 3° grado | ✅ Cerrado 14-jul-2026 (ver informe §5g): 8 juegos, uno por "Idea web" del NAP — 6 reusaron patrones de 1°/2° grado, solo 2 necesitaron forma nueva. Cuerpos geométricos simplificado (sin rotación 3D real, el motor no tiene render 3D) | Construcción (reusa patrones ya probados donde se puede) |
-| 6 | 4°-5° grado | Desglose disponible en el currículum (completado 14-jul) | Construcción (fracciones CPA, decimales, historia real) |
-| 7 | 6°-7° grado | Desglose disponible en el currículum | Construcción (porcentaje, álgebra informal, ciencias avanzadas) |
+| 6 | 4° grado | ✅ Cerrado 14-jul-2026 (ver informe §5h): 8 juegos, uno por "Idea web" del NAP. PRIMERA representación visual de fracciones del motor (barras CPA) — bug real de CSS (width:100% dentro de un `<button>` shrink-to-fit) encontrado y arreglado en vivo. Mapa de provincias y transportador simplificados a trivia (assets/mecánicas que el motor no tiene) | Construcción (fracciones CPA, primer render visual nuevo) |
+| 7 | 5° grado | Desglose disponible en el currículum | Construcción (millones, fracciones "en serio", geometría, historia real) |
+| 8 | 6°-7° grado | Desglose disponible en el currículum | Construcción (porcentaje, álgebra informal, ciencias avanzadas) |
 
 ## 4b. Diseño gráfico no negociable (investigado 14-jul-2026, evidencia real)
 
