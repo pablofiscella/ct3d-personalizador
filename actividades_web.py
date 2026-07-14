@@ -185,6 +185,21 @@ def _menu(banda, edad):
         # "rompecabezas numérico de la grilla 1-100".
         g.append({"id": "materiales", "titulo": "¿De qué material es?", "icono": "🪟", "cfg": {"rondas": 5}})
         g.append({"id": "grilla100", "titulo": "La grilla numérica", "icono": "🧮", "cfg": {"rondas": 6}})
+    if e == 7:
+        # 2° grado (14-jul-2026): mismo criterio que 1° grado — un juego
+        # por cada "Idea web" que el propio NAP sugiere por bimestre.
+        # Bimestre 1: sustantivos comunes/propios + sumas a números redondos.
+        g.append({"id": "sustantivos", "titulo": "Común o propio", "icono": "📛", "cfg": {"rondas": 6}})
+        g.append({"id": "sumas_redondas", "titulo": "Sumas redondas", "icono": "🔟", "cfg": {"rondas": 5}})
+        # Bimestre 2: sinónimos/antónimos + suma repetida → multiplicación.
+        g.append({"id": "sinonimos_antonimos", "titulo": "Sinónimos y antónimos", "icono": "🔀", "cfg": {"rondas": 5}})
+        g.append({"id": "multiplicacion_concepto", "titulo": "De la suma a la multiplicación", "icono": "✖️", "cfg": {"rondas": 5}})
+        # Bimestre 3: conductor/aislante + familia de palabras.
+        g.append({"id": "conductor_aislante", "titulo": "¿Se calienta rápido?", "icono": "🍳", "cfg": {"rondas": 6}})
+        g.append({"id": "familia_palabras", "titulo": "Familia de palabras", "icono": "👪", "cfg": {"rondas": 5}})
+        # Bimestre 4: trivia espacial + tablas contrarreloj.
+        g.append({"id": "trivia_espacial", "titulo": "Día, noche o ambos", "icono": "🌗", "cfg": {"rondas": 5}})
+        g.append({"id": "tablas_contrarreloj", "titulo": "Tablas contrarreloj", "icono": "⏱️", "cfg": {"rondas": 6}})
     return g
 
 
