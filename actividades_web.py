@@ -200,6 +200,25 @@ def _menu(banda, edad):
         # Bimestre 4: trivia espacial + tablas contrarreloj.
         g.append({"id": "trivia_espacial", "titulo": "Día, noche o ambos", "icono": "🌗", "cfg": {"rondas": 5}})
         g.append({"id": "tablas_contrarreloj", "titulo": "Tablas contrarreloj", "icono": "⏱️", "cfg": {"rondas": 6}})
+    if e == 8:
+        # 3° grado (14-jul-2026): mismo criterio — un juego por cada "Idea
+        # web" del NAP, un bimestre a la vez. NO hizo falta separar la
+        # banda "grande" en una banda propia todavía (el hallazgo original
+        # del informe §1 sobre la banda sin tope sigue vigente, pero recién
+        # importa cuando un año necesite CAMBIAR contenido base compartido,
+        # no solo AGREGAR contenido propio con `if e == X` — ver informe §5g).
+        # Bimestre 1: unir animal con su comida + sustantivo/adjetivo/verbo.
+        g.append({"id": "animal_comida", "titulo": "¿Qué come?", "icono": "🦁", "cfg": {"rondas": 5}})
+        g.append({"id": "partes_oracion", "titulo": "Sustantivo, adjetivo o verbo", "icono": "📚", "cfg": {"rondas": 6}})
+        # Bimestre 2: tabla pitagórica + tiempos verbales.
+        g.append({"id": "tabla_pitagorica", "titulo": "Busca el tesoro", "icono": "🗝️", "cfg": {"rondas": 6}})
+        g.append({"id": "tiempos_verbales", "titulo": "Pasado, presente o futuro", "icono": "⏳", "cfg": {"rondas": 6}})
+        # Bimestre 3: estaciones del año + cuerpos geométricos.
+        g.append({"id": "estaciones", "titulo": "¿Qué estación es?", "icono": "🍂", "cfg": {"rondas": 4}})
+        g.append({"id": "cuerpos_geometricos", "titulo": "Caras y vértices", "icono": "🧊", "cfg": {"rondas": 5}})
+        # Bimestre 4: separador de mezclas + cajero automático.
+        g.append({"id": "separador_mezclas", "titulo": "Separá la mezcla", "icono": "🧪", "cfg": {"rondas": 4}})
+        g.append({"id": "cajero_automatico", "titulo": "Cajero automático", "icono": "💵", "cfg": {"rondas": 5}})
     return g
 
 

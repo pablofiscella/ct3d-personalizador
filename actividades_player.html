@@ -470,6 +470,12 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 .barraTiempo__fill { height: 100%; width: 100%; background: var(--ac); border-radius: 999px;
   transition: width .1s linear; }
 
+/* tabla pitagórica — "búsqueda del tesoro" (14-jul-2026, 3° grado): reusa
+   .grilla100Celda pero en 3 columnas (9 celdas clicables, no huecos). */
+.tablaPitagoricaGrid { grid-template-columns: repeat(3, 1fr); max-width: 280px; }
+.tablaPitagoricaCelda { cursor: pointer; transition: transform .12s; }
+.tablaPitagoricaCelda:active { transform: scale(.92); }
+
 /* números grandes (sumas / restas / serie) */
 .cuentaGrande { display: flex; align-items: center; justify-content: center; gap: 14px;
   font-family: "Baloo", sans-serif; font-size: clamp(38px, 8vw, 64px); flex-wrap: wrap; }

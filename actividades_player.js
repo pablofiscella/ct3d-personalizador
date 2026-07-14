@@ -2606,6 +2606,483 @@ GAMES.tablas_contrarreloj = {
   },
 };
 
+/* ── ¿QUÉ COME? — unir animal con su comida (14-jul-2026, 3° grado NAP
+   Bimestre 1 "Ideas web": "unir cráneo/pico del animal con su comida").
+   Mismo patrón de matching de 3 opciones que planta_fruto. ── */
+const ANIMAL_COMIDA_BANCO = [
+  { animal: "🦁", comida: "🥩" }, { animal: "🐰", comida: "🥕" }, { animal: "🐝", comida: "🌸" },
+  { animal: "🐼", comida: "🎋" }, { animal: "🦉", comida: "🐭" },
+];
+GAMES.animal_comida = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Qué come este animal?");
+      ctx.juego.innerHTML = "";
+      let disp = ANIMAL_COMIDA_BANCO.filter((x) => !usados.includes(x.animal));
+      if (!disp.length) { usados = []; disp = ANIMAL_COMIDA_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.animal);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto", `<span style="font-size:80px">${item.animal}</span>`));
+      ctx.juego.appendChild(arriba);
+      let opciones = [item.comida];
+      while (opciones.length < 3) {
+        const otro = ANIMAL_COMIDA_BANCO[rint(0, ANIMAL_COMIDA_BANCO.length - 1)].comida;
+        if (!opciones.includes(otro)) opciones.push(otro);
+      }
+      opciones = shuffle(opciones);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      opciones.forEach((c) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:44px">${c}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (c === item.comida) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── SUSTANTIVO, ADJETIVO O VERBO (14-jul-2026, 3° grado NAP Bimestre 1
+   "Ideas web": "clasificar palabras en sustantivo/adjetivo/verbo"). Mismo
+   patrón de clasificar que campo_ciudad, extendido a 3 categorías. ── */
+const PARTES_ORACION_BANCO = [
+  { p: "Perro", tipo: "sustantivo" }, { p: "Casa", tipo: "sustantivo" }, { p: "Escuela", tipo: "sustantivo" },
+  { p: "Corre", tipo: "verbo" }, { p: "Salta", tipo: "verbo" }, { p: "Come", tipo: "verbo" },
+  { p: "Grande", tipo: "adjetivo" }, { p: "Rápido", tipo: "adjetivo" }, { p: "Lindo", tipo: "adjetivo" },
+];
+GAMES.partes_oracion = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 6;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Es sustantivo, adjetivo o verbo?");
+      ctx.juego.innerHTML = "";
+      let disp = PARTES_ORACION_BANCO.filter((x) => !usados.includes(x.p));
+      if (!disp.length) { usados = []; disp = PARTES_ORACION_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.p);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto anim-pop",
+        `<span style="font-size:38px;font-family:'Baloo',sans-serif">${item.p}</span>`));
+      ctx.juego.appendChild(arriba);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      shuffle(["sustantivo", "adjetivo", "verbo"]).forEach((tipo) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:19px;font-family:'Baloo',sans-serif">${tipo}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (tipo === item.tipo) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(700);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── BÚSQUEDA DEL TESORO — tabla pitagórica (14-jul-2026, 3° grado NAP
+   Bimestre 2 "Ideas web": "búsqueda del tesoro en la tabla pitagórica —
+   tocar el casillero correcto"). Simplificado a una grilla de 9 resultados
+   (no la tabla 10×10 completa — mismo criterio de tamaño de blanco táctil
+   que ya usó grilla100 en 1° grado) con distractores que son productos
+   REALES de otras tablas (no números al azar — un distractor de "37" sería
+   obviamente falso, nunca aparece en ninguna tabla). ── */
+GAMES.tabla_pitagorica = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 6;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.juego.innerHTML = "";
+      const tabla = rint(2, 9);
+      const factor = rint(2, 9);
+      const correcta = tabla * factor;
+      // consigna de audio FIJA (el "6 × 7" cambia cada ronda — no puede
+      // grabarse, mismo criterio que "Formá {objetivo}" en sumas_redondas)
+      ctx.consigna("Buscá el resultado de la multiplicación");
+      const arribaOp = el("div", "tablero");
+      arribaOp.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:34px;font-family:'Baloo',sans-serif">${tabla} × ${factor}</span>`));
+      ctx.juego.appendChild(arribaOp);
+      const opciones = new Set([correcta]);
+      let guardas = 0;
+      while (opciones.size < 9 && guardas < 150) {
+        guardas++;
+        const v = rint(2, 9) * rint(2, 9);
+        if (v !== correcta) opciones.add(v);
+      }
+      const grid = el("div", "grilla100 tablaPitagoricaGrid");
+      let resuelto = false;
+      shuffle([...opciones]).forEach((v) => {
+        const c = el("div", "grilla100Celda tablaPitagoricaCelda", String(v));
+        c.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (v === correcta) {
+            resuelto = true;
+            c.classList.add("anim-pop");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            c.style.animation = "sacudir .4s ease";
+            setTimeout(() => (c.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        grid.appendChild(c);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(grid);
+    };
+    jugar();
+  },
+};
+
+/* ── PASADO, PRESENTE O FUTURO (14-jul-2026, 3° grado NAP Bimestre 2
+   "Ideas web": "clasificar verbos por tiempo verbal"). Mismo patrón de
+   clasificar de 3 categorías que partes_oracion. ── */
+const TIEMPOS_BANCO = [
+  { p: "Corrí", tiempo: "pasado" }, { p: "Comí", tiempo: "pasado" }, { p: "Salté", tiempo: "pasado" },
+  { p: "Corro", tiempo: "presente" }, { p: "Como", tiempo: "presente" }, { p: "Salto", tiempo: "presente" },
+  { p: "Correré", tiempo: "futuro" }, { p: "Comeré", tiempo: "futuro" }, { p: "Saltaré", tiempo: "futuro" },
+];
+GAMES.tiempos_verbales = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 6;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Pasado, presente o futuro?");
+      ctx.juego.innerHTML = "";
+      let disp = TIEMPOS_BANCO.filter((x) => !usados.includes(x.p));
+      if (!disp.length) { usados = []; disp = TIEMPOS_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.p);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto anim-pop",
+        `<span style="font-size:38px;font-family:'Baloo',sans-serif">${item.p}</span>`));
+      ctx.juego.appendChild(arriba);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      shuffle(["pasado", "presente", "futuro"]).forEach((tiempo) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:19px;font-family:'Baloo',sans-serif">${tiempo}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (tiempo === item.tiempo) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(700);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── ¿QUÉ ESTACIÓN ES? (14-jul-2026, 3° grado NAP Bimestre 3 "Ideas web":
+   "simular el movimiento de la Tierra para identificar estaciones" —
+   simplificado a trivia de reconocimiento, sin simulación real del
+   movimiento orbital). ── */
+const ESTACIONES_BANCO = [
+  { e: "☀️", estacion: "Verano" }, { e: "🍂", estacion: "Otoño" },
+  { e: "⛄", estacion: "Invierno" }, { e: "🌷", estacion: "Primavera" },
+];
+GAMES.estaciones = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 4;
+    ctx.rondas(rondas);
+    const OPS = ESTACIONES_BANCO.map((x) => x.estacion);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Qué estación del año es?");
+      ctx.juego.innerHTML = "";
+      let disp = ESTACIONES_BANCO.filter((x) => !usados.includes(x.e));
+      if (!disp.length) { usados = []; disp = ESTACIONES_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.e);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto", `<span style="font-size:80px">${item.e}</span>`));
+      ctx.juego.appendChild(arriba);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      shuffle(OPS).forEach((op) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:19px;font-family:'Baloo',sans-serif">${op}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (op === item.estacion) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── CARAS, VÉRTICES Y ARISTAS (14-jul-2026, 3° grado NAP Bimestre 3
+   "Ideas web": "rotar cuerpos geométricos 3D y contar caras/aristas/
+   vértices" — el motor no tiene render 3D en ningún lado, simplificado a
+   conteo sobre una imagen fija; la rotación real queda deliberadamente
+   afuera, ver informe). Consigna de audio FIJA y genérica — la pregunta
+   específica (qué cuerpo, qué propiedad) se muestra en pantalla como texto
+   dinámico, mismo criterio que "Formá {objetivo}" en sumas_redondas. ── */
+const CUERPOS_BANCO = [
+  { e: "🧊", nombre: "el cubo", caras: 6, vertices: 8, aristas: 12 },
+  { e: "📦", nombre: "el prisma rectangular", caras: 6, vertices: 8, aristas: 12 },
+  { e: "🔺", nombre: "la pirámide", caras: 5, vertices: 5, aristas: 8 },
+];
+GAMES.cuerpos_geometricos = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("Contá y elegí la respuesta correcta");
+      ctx.juego.innerHTML = "";
+      const item = CUERPOS_BANCO[rint(0, CUERPOS_BANCO.length - 1)];
+      const propKey = ["caras", "vertices", "aristas"][rint(0, 2)];
+      const propLabel = { caras: "caras", vertices: "vértices", aristas: "aristas" }[propKey];
+      const correcta = item[propKey];
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto", `
+        <div style="font-size:70px">${item.e}</div>
+        <div style="font-size:19px;font-family:'Baloo',sans-serif;margin-top:8px">¿Cuántas ${propLabel} tiene ${item.nombre}?</div>`));
+      ctx.juego.appendChild(arriba);
+      const opciones = new Set([correcta]);
+      let guardas = 0;
+      while (opciones.size < 3 && guardas < 50) {
+        guardas++;
+        const v = Math.max(1, correcta + rint(-3, 3));
+        if (v !== correcta) opciones.add(v);
+      }
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      shuffle([...opciones]).forEach((v) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:26px;font-family:'Baloo',sans-serif">${v}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (v === correcta) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── SEPARADOR DE MEZCLAS (14-jul-2026, 3° grado NAP Bimestre 4 "Ideas
+   web": "separador de mezclas virtual — arrastrar colador/imán/filtro").
+   Adaptado a tap (mismo criterio que agrupar: sin drag real, más robusto
+   en mobile) — texto en vez de emoji para la mezcla, no hay glifo preciso
+   para "limaduras de hierro y arena". ── */
+const MEZCLAS_BANCO = [
+  { mezcla: "Fideos en agua", herramienta: "Colador" },
+  { mezcla: "Limaduras de hierro y arena", herramienta: "Imán" },
+  { mezcla: "Café molido y agua", herramienta: "Filtro" },
+  { mezcla: "Papas hervidas y agua", herramienta: "Colador" },
+];
+GAMES.separador_mezclas = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 4;
+    ctx.rondas(rondas);
+    const HERRAMIENTAS = ["Colador", "Imán", "Filtro"];
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Con qué herramienta separás esta mezcla?");
+      ctx.juego.innerHTML = "";
+      let disp = MEZCLAS_BANCO.filter((x) => !usados.includes(x.mezcla));
+      if (!disp.length) { usados = []; disp = MEZCLAS_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.mezcla);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:24px;font-family:'Baloo',sans-serif">${item.mezcla}</span>`));
+      ctx.juego.appendChild(arriba);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      shuffle(HERRAMIENTAS).forEach((h) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:20px;font-family:'Baloo',sans-serif">${h}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (h === item.herramienta) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── CAJERO AUTOMÁTICO (14-jul-2026, 3° grado NAP Bimestre 4 "Ideas web":
+   "retirar la combinación exacta de billetes"). Mismo patrón probado de
+   suma_rapida/sumas_redondas (tocar 2 que sumen el objetivo) con billetes
+   en vez de números — de paso resuelve "la tiendita" que había quedado
+   pendiente del backlog de 1° grado (mismo mecanismo, distinto disfraz). ── */
+GAMES.cajero_automatico = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    const BILLETES = [10, 20, 50, 100, 200, 500, 1000];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("Tocá los billetes que sumen el monto exacto");
+      ctx.juego.innerHTML = "";
+      const idxA = rint(0, BILLETES.length - 1);
+      let idxB = rint(0, BILLETES.length - 1);
+      while (idxB === idxA) idxB = rint(0, BILLETES.length - 1);
+      const a = BILLETES[idxA], b = BILLETES[idxB];
+      const objetivo = a + b;
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:32px;font-family:'Baloo',sans-serif">Retirá $${objetivo}</span>`));
+      ctx.juego.appendChild(arriba);
+      let nums = [a, b];
+      let guardas = 0;
+      while (nums.length < 5 && guardas < 100) {
+        guardas++;
+        const v = BILLETES[rint(0, BILLETES.length - 1)];
+        if (!nums.includes(v) && !nums.some((n) => n + v === objetivo)) nums.push(v);
+      }
+      nums = shuffle(nums);
+      const fila = el("div", "filaSprites");
+      let elegido = null;
+      let resuelto = false;
+      nums.forEach((v, idx) => {
+        const btn = el("button", "spriteBtn", `<span style="font-size:20px;font-family:'Baloo',sans-serif">$${v}</span>`);
+        btn.addEventListener("click", async () => {
+          if (resuelto || btn.disabled) return;
+          if (elegido === null) {
+            elegido = { idx, v, btn };
+            btn.classList.add("elegido");
+            return;
+          }
+          if (elegido.idx === idx) return;
+          if (elegido.v + v === objetivo) {
+            resuelto = true;
+            btn.disabled = true;
+            elegido.btn.disabled = true;
+            btn.classList.add("anim-pop");
+            elegido.btn.classList.add("anim-pop");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            const prevBtn = elegido.btn;   // capturar ANTES de resetear (bug real de suma_rapida)
+            prevBtn.classList.remove("elegido");
+            btn.style.animation = "sacudir .4s ease";
+            prevBtn.style.animation = "sacudir .4s ease";
+            setTimeout(() => { btn.style.animation = ""; prevBtn.style.animation = ""; }, 450);
+            ctx.casi();
+            elegido = null;
+          }
+        });
+        fila.appendChild(btn);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 GAMES.serie = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 6;

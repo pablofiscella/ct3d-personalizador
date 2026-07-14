@@ -106,7 +106,7 @@ edad" (roadmap 14-jul-2026). NO improvisar la mezcla — usar esta tabla:
 | 2 | Sala de 5 años | ✅ Shippeado 14-jul-2026 (ver informe §5c): rango de `contar`/`mas_menos` ampliado + juego nuevo `silabas` (primer juego de audio real del motor) + QA de duración de TTS. Falta: vocales/consonantes/rimas/escritura (quedan para 1° grado) | Curación (matemática) + construcción (audio/fonética) |
 | 3 | 1° grado | ✅ Cerrado 14-jul-2026 (ver informe §5d-§5e): un juego por cada "Idea web" del NAP en los 4 bimestres (7 juegos nuevos/curados). Falta a propósito: "la tiendita" con dinero + contenido sin "Idea web" propia (ciencias, escuela/barrio, efemérides) — pasada aparte, no deuda | Curación (matemática) + construcción (audio/fonética/clasificación) |
 | 4 | 2° grado | ✅ Cerrado 14-jul-2026 (ver informe §5f): 8 juegos nuevos, uno por "Idea web" del NAP en los 4 bimestres — incluye `tablas_contrarreloj`, primera mecánica de TIMER del motor. No hizo falta banda propia: `if e == 7` alcanza | Curación (matemática) + construcción (clasificación/timer) |
-| 5 | 3° grado | Desglose disponible en el currículum | Construcción (tabla pitagórica, miles, geometría) |
+| 5 | 3° grado | ✅ Cerrado 14-jul-2026 (ver informe §5g): 8 juegos, uno por "Idea web" del NAP — 6 reusaron patrones de 1°/2° grado, solo 2 necesitaron forma nueva. Cuerpos geométricos simplificado (sin rotación 3D real, el motor no tiene render 3D) | Construcción (reusa patrones ya probados donde se puede) |
 | 6 | 4°-5° grado | Desglose disponible en el currículum (completado 14-jul) | Construcción (fracciones CPA, decimales, historia real) |
 | 7 | 6°-7° grado | Desglose disponible en el currículum | Construcción (porcentaje, álgebra informal, ciencias avanzadas) |
 
