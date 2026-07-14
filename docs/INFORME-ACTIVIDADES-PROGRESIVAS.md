@@ -191,7 +191,8 @@ corta del porqué, no solo "¡mal! probá de nuevo".
 | 5 | 3° grado | ✅ Cerrado 14-jul-2026 (§5g): mismo criterio "Ideas web" — 8 juegos nuevos (`animal_comida`, `partes_oracion`, `tabla_pitagorica`, `tiempos_verbales`, `estaciones`, `cuerpos_geometricos`, `separador_mezclas`, `cajero_automatico`). Resultó más "Medio" que "Alto" gracias a la reutilización de patrones ya probados (clasificar 2/3 categorías, matching 3 opciones, tocar 2 que sumen). Simplificado a propósito: sin rotación 3D real (no hay render 3D en el motor) | Medio |
 | 6 | 4° grado | ✅ Cerrado 14-jul-2026 (§5h): mismo criterio "Ideas web" — 8 juegos nuevos (`abstractos_concretos`, `provincias_region`, `acentuacion`, `fotosintesis`, `laboratorio_electrico`, `fracciones_equivalentes`, `angulos`, `prefijos_sufijos`). PRIMERA representación visual de fracciones del motor (barras CPA) — bug real de CSS encontrado y arreglado en vivo. 2 "Ideas web" simplificadas (mapa de provincias → trivia de región; transportador → ángulo dibujado clasificado) por necesitar assets/mecánicas que el motor no tiene | Medio |
 | 7 | 5° grado | ✅ Cerrado 14-jul-2026 (§5i): mismo criterio "Ideas web" — 8 juegos nuevos (`trivia_colonial`, `camino_digestivo`, `fracciones_avanzado`, `analisis_sintactico`, `pago_exacto`, `actividad_economica`, `planta_potabilizadora`, `derechos_constitucion`). SEGUNDA mecánica de timer del motor. Mapa económico simplificado a trivia (mismo criterio que 4° grado) | Medio |
-| 8 | 6°-7° grado | Porcentaje, proporcionalidad, álgebra informal, estadística, ciencias naturales avanzadas (célula, sistema nervioso/endocrino), historia/geografía argentina contemporánea | Alto |
+| 8 | 6° grado | ✅ Cerrado 14-jul-2026 (§5j): mismo criterio "Ideas web" — 8 juegos nuevos (`celula_partes`, `hechos_opiniones`, `sistema_nervioso`, `viaje_inmigrante`, `fraccion_de_cantidad`, `sufragio_argentina`, `energia_renovable`, `poligonos_lados`). 3 "Ideas web" simplificadas de simulación a contenido directo (microscopio, reflejos, ciudad sustentable) | Medio |
+| 9 | 7° grado | Mcm/dcm, álgebra informal, sistema solar, geopolítica de América Latina — fin del NAP (año de egreso) — desglose bimestral disponible en el currículum | Alto |
 
 Los pasos 5-7 comparten un patrón: necesitan tipos de actividad NUEVOS (no
 extender parámetros de los 23 que ya existen), así que conviene diseñarlos
@@ -805,6 +806,61 @@ grado que tuvieron 1-2 cada uno).
    año conserve su propio progreso de estrellas por juego, mismo criterio
    que ya se usó para no mezclar `sumas_redondas`/`cajero_automatico`/
    `pago_exacto` en un solo juego "genérico de sumar 2".
+
+## 5j. Cierre de 6° grado
+
+Mismo criterio "Ideas web". Este año tuvo el número más alto de
+simplificaciones de simulación a contenido directo (3) — consistente con
+que sus "Ideas web" originales pedían mecánicas genuinamente nuevas
+(enfocar un microscopio, medir tiempo de reacción, distribuir energía en un
+mapa), no solo curación de contenido sobre patrones ya probados.
+
+| Bimestre | "Idea web" del NAP | Juego | Nota |
+|---|---|---|---|
+| 1 | simulador de microscopio (enfocar y rotular la célula) | `celula_partes` | **simplificado** a matching parte→función |
+| 1 | cuestionario de hechos vs. opiniones | `hechos_opiniones` | clasificar 2 categorías |
+| 2 | simulador de reflejos (tiempo de reacción) | `sistema_nervioso` | **simplificado** a trivia de contenido (ver nota) |
+| 2 | viaje del inmigrante (mapa Génova → Hotel de Inmigrantes) | `viaje_inmigrante` | tap-en-orden |
+| 3 | balanza de fracciones (igualar peso con fracción mixta) | `fraccion_de_cantidad` | **simplificado** a cálculo directo (1/2 de 8 = 4) |
+| 3 | trivia de evolución del sufragio argentino | `sufragio_argentina` | Verdadero/Falso |
+| 4 | ciudad sustentable (distribuir energía minimizando impacto) | `energia_renovable` | **simplificado** a clasificar renovable/no renovable |
+| 4 | construir polígonos por nodos según ángulos/lados | `poligonos_lados` | **simplificado** a trivia de reconocimiento |
+
+### Por qué se simplificó cada simulación (no es la misma razón cada vez)
+
+1. **`celula_partes`** (antes microscopio): el contenido real detrás de
+   "enfocar y rotular" es asociar CADA parte con su función — eso se
+   verifica igual de bien con matching que con una simulación de enfoque
+   óptico, que además necesitaría un asset de célula ilustrada con capas.
+2. **`sistema_nervioso`** (antes reflejos): medir milisegundos de reacción
+   real es una mecánica GENUINAMENTE distinta a todo lo que tiene el motor
+   — no hay "respuesta correcta/incorrecta" por ronda, sino un tiempo a
+   minimizar, lo que no encaja en el Shell de `bien()`/`casi()`/rondas sin
+   inventar un sistema de puntaje paralelo. Se priorizó construir sobre un
+   patrón probado (trivia V/F sobre el contenido real del sistema
+   nervioso) antes que forzar una mecánica de timing a medio hacer.
+3. **`fraccion_de_cantidad`** (antes balanza): "igualar peso" es la
+   METÁFORA visual de la operación real (fracción de una cantidad) — se
+   fue directo al cálculo, que es lo que el NAP evalúa en el fondo.
+4. **`energia_renovable`** (antes ciudad sustentable): distribuir fuentes
+   en un mapa minimizando impacto es un problema de optimización con
+   múltiples variables — el contenido curricular real (reconocer qué
+   fuentes son renovables) se cubre con clasificar, sin la complejidad de
+   una simulación de mapa.
+5. **`poligonos_lados`** (antes construir por nodos): el motor no tiene
+   una superficie de dibujo por nodos/vértices; el contenido real (asociar
+   el NOMBRE de un polígono con su cantidad de lados) se verifica igual de
+   bien con reconocimiento.
+
+### Deliberadamente NO hecho
+
+Mismo criterio que los años anteriores: todo el NAP de 6° grado sin una
+"Idea web" sugerida (texto argumentativo, debate oral, cuento policial,
+ciencia ficción, voz pasiva, poesía de vanguardia/caligramas, Organización
+Nacional, Modelo Agroexportador, marco ESI de pubertad) queda para una
+pasada de diseño aparte. Una superficie de dibujo geométrico por
+nodos/vértices y un medidor de tiempo de reacción real quedan como
+inversión de mecánica pendiente si en algún momento se justifican.
 
 ## 6. Pendientes que dependen de Pablo (no técnicos)
 

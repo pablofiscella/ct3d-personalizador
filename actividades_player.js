@@ -4079,6 +4079,472 @@ GAMES.derechos_constitucion = {
   },
 };
 
+/* ── ¿PARA QUÉ SIRVE ESTA PARTE? — LA CÉLULA (14-jul-2026, 6° grado NAP
+   Bimestre 1 "Ideas web": "simulador de microscopio — enfocar y rotular
+   partes de la célula" — simplificado de simulación de enfoque a
+   matching parte→función, mismo patrón que planta_fruto/animal_comida). ── */
+const CELULA_BANCO = [
+  { parte: "Núcleo", correcta: "Controla las actividades de la célula", d1: "Fabrica proteínas", d2: "Le da forma a la célula" },
+  { parte: "Membrana", correcta: "Protege y controla lo que entra y sale", d1: "Controla las actividades", d2: "Genera energía" },
+  { parte: "Mitocondria", correcta: "Genera la energía de la célula", d1: "Protege a la célula", d2: "Guarda la información genética" },
+  { parte: "Citoplasma", correcta: "Ocupa el espacio entre el núcleo y la membrana", d1: "Genera energía", d2: "Controla las actividades" },
+];
+GAMES.celula_partes = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 4;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Para qué sirve esta parte de la célula?");
+      ctx.juego.innerHTML = "";
+      let disp = CELULA_BANCO.filter((x) => !usados.includes(x.parte));
+      if (!disp.length) { usados = []; disp = CELULA_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.parte);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:30px;font-family:'Baloo',sans-serif">${item.parte}</span>`));
+      ctx.juego.appendChild(arriba);
+      const opciones = shuffle([item.correcta, item.d1, item.d2]);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      opciones.forEach((op) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:16px;font-family:'Baloo',sans-serif">${op}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (op === item.correcta) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── ¿HECHO U OPINIÓN? (14-jul-2026, 6° grado NAP Bimestre 1 "Ideas web":
+   "cuestionario de hechos vs. opiniones en noticias"). Mismo patrón de
+   clasificar 2 categorías que campo_ciudad. ── */
+const HECHOS_OPINIONES_BANCO = [
+  { texto: "Llovió 50 milímetros ayer en Buenos Aires", tipo: "hecho" },
+  { texto: "El nuevo parque es hermoso", tipo: "opinion" },
+  { texto: "El equipo ganó el partido 3 a 1", tipo: "hecho" },
+  { texto: "Esa película fue aburrida", tipo: "opinion" },
+  { texto: "La reunión empieza a las 10", tipo: "hecho" },
+  { texto: "Creo que va a llover mañana", tipo: "opinion" },
+];
+GAMES.hechos_opiniones = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 6;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Es un hecho o una opinión?");
+      ctx.juego.innerHTML = "";
+      let disp = HECHOS_OPINIONES_BANCO.filter((x) => !usados.includes(x.texto));
+      if (!disp.length) { usados = []; disp = HECHOS_OPINIONES_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.texto);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:22px;font-family:'Baloo',sans-serif">${item.texto}</span>`));
+      ctx.juego.appendChild(arriba);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      shuffle([{ v: "hecho", label: "Hecho" }, { v: "opinion", label: "Opinión" }]).forEach(({ v, label }) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:19px;font-family:'Baloo',sans-serif">${label}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (v === item.tipo) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── SISTEMA NERVIOSO (14-jul-2026, 6° grado NAP Bimestre 2 "Ideas web":
+   "simulador de reflejos — tiempo de reacción, explica el impulso
+   nervioso" — simplificado a trivia de contenido. Medir milisegundos
+   reales de reacción es una mecánica genuinamente nueva -stimulus→tap,
+   sin "ronda" con respuesta correcta/incorrecta- que no encaja en el
+   Shell de bien()/casi()/rondas existente; se prefirió construir sobre el
+   patrón probado antes que forzar una mecánica a medio hacer). ── */
+const NERVIOSO_BANCO = [
+  { afirmacion: "El sistema nervioso central está formado por el cerebro y la médula espinal", val: true },
+  { afirmacion: "Los reflejos son respuestas lentas que pensamos antes de actuar", val: false },
+  { afirmacion: "Las neuronas transmiten información por impulsos eléctricos", val: true },
+  { afirmacion: "El sistema nervioso periférico no cumple ninguna función", val: false },
+  { afirmacion: "Un reflejo es una respuesta automática y rápida ante un estímulo", val: true },
+];
+GAMES.sistema_nervioso = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Es verdadero o falso?");
+      ctx.juego.innerHTML = "";
+      let disp = NERVIOSO_BANCO.filter((x) => !usados.includes(x.afirmacion));
+      if (!disp.length) { usados = []; disp = NERVIOSO_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.afirmacion);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:20px;font-family:'Baloo',sans-serif">${item.afirmacion}</span>`));
+      ctx.juego.appendChild(arriba);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      shuffle([{ v: true, label: "✅ Verdadero" }, { v: false, label: "❌ Falso" }]).forEach(({ v, label }) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:19px;font-family:'Baloo',sans-serif">${label}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (v === item.val) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── EL VIAJE DEL INMIGRANTE (14-jul-2026, 6° grado NAP Bimestre 2 "Ideas
+   web": "viaje del inmigrante — mapa Génova → Hotel de Inmigrantes").
+   Mismo patrón tap-en-orden que camino_digestivo/planta_potabilizadora. ── */
+GAMES.viaje_inmigrante = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 4;
+    ctx.rondas(rondas);
+    const ETAPAS = ["Puerto de Génova", "Barco a Buenos Aires", "Hotel de Inmigrantes", "Nueva vida en Argentina"];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("Tocá las etapas del viaje del inmigrante en el orden correcto");
+      ctx.juego.innerHTML = "";
+      const tablero = el("div", "tablero armarPalabraTablero");
+      const filaSlots = el("div", "armarPalabraSlots");
+      const slots = ETAPAS.map(() => el("div", "armarPalabraSlot", ""));
+      slots.forEach((s) => filaSlots.appendChild(s));
+      tablero.appendChild(filaSlots);
+      const filaEtapas = el("div", "filaSprites");
+      filaEtapas.style.marginTop = "18px";
+      let siguiente = 0;
+      let resuelto = false;
+      shuffle(ETAPAS.map((s, i) => ({ s, i }))).forEach(({ s, i }) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:14px;font-family:'Baloo',sans-serif">${s}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto || b.disabled) return;
+          if (i === siguiente) {
+            b.disabled = true;
+            b.classList.add("anim-brinco");
+            slots[i].textContent = String(i + 1);
+            slots[i].classList.add("anim-pop");
+            Sfx.tick(siguiente + 1);
+            siguiente++;
+            if (siguiente >= ETAPAS.length) {
+              resuelto = true;
+              ctx.bien();
+              ronda++;
+              await espera(1100);
+              if (ronda >= rondas) ctx.win();
+              else jugar();
+            }
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        filaEtapas.appendChild(b);
+      });
+      tablero.appendChild(filaEtapas);
+      ctx.juego.appendChild(tablero);
+    };
+    jugar();
+  },
+};
+
+/* ── FRACCIÓN DE UNA CANTIDAD (14-jul-2026, 6° grado NAP Bimestre 3
+   "Ideas web": "balanza de fracciones — igualar peso con fracción mixta"
+   — simplificado a cálculo directo de fracción de una cantidad, el
+   contenido real detrás de "igualar el peso": 1/2 de 8 = 4). ── */
+const FRACCION_CANTIDAD_BANCO = [
+  { texto: "1/2 de 8", correcta: 4 },
+  { texto: "1/4 de 12", correcta: 3 },
+  { texto: "1/3 de 9", correcta: 3 },
+  { texto: "3/4 de 8", correcta: 6 },
+  { texto: "2/5 de 10", correcta: 4 },
+];
+GAMES.fraccion_de_cantidad = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Cuánto es esta fracción de la cantidad?");
+      ctx.juego.innerHTML = "";
+      let disp = FRACCION_CANTIDAD_BANCO.filter((x) => !usados.includes(x.texto));
+      if (!disp.length) { usados = []; disp = FRACCION_CANTIDAD_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.texto);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:32px;font-family:'Baloo',sans-serif">${item.texto}</span>`));
+      ctx.juego.appendChild(arriba);
+      const opciones = new Set([item.correcta]);
+      let guardas = 0;
+      while (opciones.size < 3 && guardas < 50) {
+        guardas++;
+        const v = Math.max(1, item.correcta + rint(-3, 3));
+        if (v !== item.correcta) opciones.add(v);
+      }
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      shuffle([...opciones]).forEach((v) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:26px;font-family:'Baloo',sans-serif">${v}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (v === item.correcta) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── EL VOTO EN ARGENTINA (14-jul-2026, 6° grado NAP Bimestre 3 "Ideas
+   web": "trivia de evolución del sufragio en Argentina"). Mismo patrón
+   Verdadero/Falso que trivia_colonial. ── */
+const SUFRAGIO_BANCO = [
+  { afirmacion: "La Ley Sáenz Peña estableció el voto secreto y obligatorio", val: true },
+  { afirmacion: "Antes de 1912 todos los hombres podían votar libremente y en secreto", val: false },
+  { afirmacion: "Hipólito Yrigoyen fue elegido presidente en 1916 con la nueva ley", val: true },
+  { afirmacion: "Las mujeres podían votar desde 1912", val: false },
+];
+GAMES.sufragio_argentina = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 4;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Es verdadero o falso?");
+      ctx.juego.innerHTML = "";
+      let disp = SUFRAGIO_BANCO.filter((x) => !usados.includes(x.afirmacion));
+      if (!disp.length) { usados = []; disp = SUFRAGIO_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.afirmacion);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:20px;font-family:'Baloo',sans-serif">${item.afirmacion}</span>`));
+      ctx.juego.appendChild(arriba);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      shuffle([{ v: true, label: "✅ Verdadero" }, { v: false, label: "❌ Falso" }]).forEach(({ v, label }) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:19px;font-family:'Baloo',sans-serif">${label}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (v === item.val) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── ¿RENOVABLE O NO RENOVABLE? (14-jul-2026, 6° grado NAP Bimestre 4
+   "Ideas web": "ciudad sustentable — distribuir fuentes de energía
+   minimizando impacto" — simplificado a clasificar, mismo patrón que
+   campo_ciudad/conductor_aislante). ── */
+const ENERGIA_BANCO = [
+  { e: "☀️", cat: "renovable" }, { e: "💨", cat: "renovable" }, { e: "💧", cat: "renovable" }, { e: "🌋", cat: "renovable" },
+  { e: "⛽", cat: "no_renovable" }, { e: "⚫", cat: "no_renovable" }, { e: "☢️", cat: "no_renovable" },
+];
+GAMES.energia_renovable = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 6;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Es una energía renovable o no renovable?");
+      ctx.juego.innerHTML = "";
+      let disp = ENERGIA_BANCO.filter((x) => !usados.includes(x.e));
+      if (!disp.length) { usados = []; disp = ENERGIA_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.e);
+      const arriba = el("div", "tablero");
+      const cont = el("div", "spriteQuieto anim-pop", `<span style="font-size:80px">${item.e}</span>`);
+      arriba.appendChild(cont);
+      ctx.juego.appendChild(arriba);
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      [{ cat: "renovable", label: "♻️ Renovable" }, { cat: "no_renovable", label: "🚫 No renovable" }].forEach(({ cat, label }) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:17px;font-family:'Baloo',sans-serif">${label}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (cat === item.cat) {
+            resuelto = true;
+            cont.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(700);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── ¿CUÁNTOS LADOS TIENE? (14-jul-2026, 6° grado NAP Bimestre 4 "Ideas
+   web": "construir polígonos por nodos según ángulos/lados" —
+   simplificado de construcción libre a reconocimiento: el motor no tiene
+   una superficie de dibujo por nodos, y el contenido curricular real
+   (relacionar el NOMBRE del polígono con su cantidad de lados) se puede
+   verificar igual de bien con trivia). ── */
+const POLIGONOS_BANCO = [
+  { nombre: "Triángulo", lados: 3 }, { nombre: "Cuadrado", lados: 4 }, { nombre: "Pentágono", lados: 5 },
+  { nombre: "Hexágono", lados: 6 }, { nombre: "Heptágono", lados: 7 }, { nombre: "Octágono", lados: 8 },
+];
+GAMES.poligonos_lados = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 6;
+    ctx.rondas(rondas);
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Cuántos lados tiene esta figura?");
+      ctx.juego.innerHTML = "";
+      let disp = POLIGONOS_BANCO.filter((x) => !usados.includes(x.nombre));
+      if (!disp.length) { usados = []; disp = POLIGONOS_BANCO; }
+      const item = disp[rint(0, disp.length - 1)];
+      usados.push(item.nombre);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:30px;font-family:'Baloo',sans-serif">${item.nombre}</span>`));
+      ctx.juego.appendChild(arriba);
+      const opciones = new Set([item.lados]);
+      let guardas = 0;
+      while (opciones.size < 3 && guardas < 50) {
+        guardas++;
+        const v = Math.max(3, item.lados + rint(-2, 2));
+        if (v !== item.lados) opciones.add(v);
+      }
+      const fila = el("div", "filaSprites");
+      let resuelto = false;
+      shuffle([...opciones]).forEach((v) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:26px;font-family:'Baloo',sans-serif">${v}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (v === item.lados) {
+            resuelto = true;
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 GAMES.serie = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 6;
