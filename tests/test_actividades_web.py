@@ -63,7 +63,14 @@ def test_bandas_de_edad():
     contar4 = next(m for m in aw._menu("media", 4) if m["id"] == "contar")
     contar5 = next(m for m in aw._menu("media", 5) if m["id"] == "contar")
     assert contar4["cfg"]["max"] == 5
-    assert contar5["cfg"]["max"] == 6
+    assert contar5["cfg"]["max"] == 8
+    # NAP Sala de 5: "conteo oral hasta el 15 y comparación de colecciones"
+    masmenos5 = next(m for m in aw._menu("media", 5) if m["id"] == "mas_menos")
+    assert masmenos5["cfg"]["max"] == 8
+    # "silabas" (conciencia fonológica, Bimestre 2): SOLO a los 5, no a los 4
+    ids_media5 = {m["id"] for m in aw._menu("media", 5)}
+    assert "silabas" in ids_media5
+    assert "silabas" not in ids_media4
 
 
 def test_laberintos_transitables(data):
@@ -134,6 +141,17 @@ def test_slug_audio_deterministico_y_distinto_por_texto():
     assert a1.startswith("c_") and a1.endswith(".mp3")
 
 
+def test_duracion_minima_escala_con_mas_vocales():
+    """Encontrado 14-jul-2026 armando el juego de sílabas: una toma de TTS
+    de "MARIPOSA" (4 sílabas) salió de 0.71s — la MISMA palabra en otras
+    tomas dio 1.6-2.1s. El piso por conteo de vocales existe para detectar
+    justo esa toma apurada/cortada y reintentar, en vez de venderla así."""
+    corta = aw._duracion_minima("SOL")            # 1 vocal
+    larga = aw._duracion_minima("MARIPOSA")        # 4 vocales
+    assert larga > corta
+    assert aw._duracion_minima("") >= 0.4          # piso absoluto, nunca 0
+
+
 def test_generar_audio_consignas_idempotente_y_sirve_por_archivo(tmp_path, monkeypatch, token):
     """Mockea el TTS (no llama a ElevenLabs de verdad) para probar: genera lo
     nuevo, NO regenera lo que ya existe, el manifest mergea viejo+nuevo, y
@@ -143,9 +161,13 @@ def test_generar_audio_consignas_idempotente_y_sirve_por_archivo(tmp_path, monke
 
     class FakeAudiolibro:
         @staticmethod
-        def tts_mp3(api_key, texto):
+        def _tts_elevenlabs(texto, seed=None):
             llamadas.append(texto)
-            return b"FAKE-MP3-BYTES"
+            return b"FAKE-MP3-BYTES" * 2000   # "dura" de sobra para pasar el piso de QA
+
+        @staticmethod
+        def _dur_mp3_128(mp3):
+            return len(mp3) * 8 / 128000.0
 
     import sys
     monkeypatch.setitem(sys.modules, "audiolibro", FakeAudiolibro)
@@ -165,7 +187,7 @@ def test_generar_audio_consignas_idempotente_y_sirve_por_archivo(tmp_path, monke
     assert json.loads(body) == m2
     fn = m2["Texto A"]
     body2, ct2 = aw.archivo(token, fn)
-    assert ct2 == "audio/mpeg" and body2 == b"FAKE-MP3-BYTES"
+    assert ct2 == "audio/mpeg" and body2 == b"FAKE-MP3-BYTES" * 2000
 
 
 def test_archivo_rechaza_mp3_con_nombre_invalido(token):

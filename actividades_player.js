@@ -1593,6 +1593,81 @@ GAMES.posicion = {
 };
 
 /* ── LA SERIE — completá el número que falta (+1 o +2) ── */
+/* ── ¿CUÁNTAS PARTES? — conciencia fonológica (14-jul-2026, Sala de 5
+   Bimestre 2 NAP: "sílabas, aplaudirlas"). Primer juego del motor con
+   componente de AUDIO real, no decorativo: se ESCUCHA la palabra (nunca se
+   muestra escrita — el objetivo es el sonido, no la lectura) y se elige
+   cuántas partes tiene. Distractores SIEMPRE ±1 (el error real de contar
+   sílabas es equivocarse por una, nunca al azar). El emoji de la palabra
+   se revela recién DESPUÉS de acertar — mostrarlo antes dejaría "adivinar"
+   por asociación visual en vez de escuchar de verdad. ── */
+GAMES.silabas = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    const BANCO = [
+      { p: "SOL", e: "☀️", s: 1 }, { p: "PAN", e: "🍞", s: 1 }, { p: "MAR", e: "🌊", s: 1 },
+      { p: "GATO", e: "🐱", s: 2 }, { p: "CASA", e: "🏠", s: 2 }, { p: "LUNA", e: "🌙", s: 2 }, { p: "PERRO", e: "🐶", s: 2 },
+      { p: "PELOTA", e: "⚽", s: 3 }, { p: "ZAPATO", e: "👟", s: 3 }, { p: "CAMISA", e: "👕", s: 3 },
+      { p: "MARIPOSA", e: "🦋", s: 4 }, { p: "ELEFANTE", e: "🐘", s: 4 }, { p: "BICICLETA", e: "🚲", s: 4 },
+    ];
+    let usadas = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      let disp = BANCO.filter((w) => !usadas.includes(w.p));
+      if (!disp.length) { usadas = []; disp = BANCO; }
+      const palabra = disp[rint(0, disp.length - 1)];
+      usadas.push(palabra.p);
+      ctx.consigna("Escuchá la palabra y elegí cuántas partes tiene");
+      ctx.juego.innerHTML = "";
+      const tablero = el("div", "tablero silabasTablero");
+      const zonaEmoji = el("div", "silabasEmoji", "❓");
+      tablero.appendChild(zonaEmoji);
+      const btnEscuchar = el("button", "btn suave", "🔊 Escuchar de nuevo");
+      btnEscuchar.type = "button";
+      btnEscuchar.addEventListener("click", () => reproducirConsigna(palabra.p));
+      tablero.appendChild(btnEscuchar);
+      const fila = el("div", "filaSprites");
+      fila.style.marginTop = "18px";
+      let opciones = [palabra.s];
+      if (palabra.s > 1) opciones.push(palabra.s - 1);
+      opciones.push(palabra.s + 1);
+      if (opciones.length < 3) opciones.push(palabra.s + 2);
+      opciones = shuffle(opciones);
+      let resuelto = false;
+      opciones.forEach((n) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:34px;font-family:'Baloo',sans-serif">${n}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (n === palabra.s) {
+            resuelto = true;
+            zonaEmoji.textContent = palabra.e;   // recién ahora se revela
+            zonaEmoji.classList.add("anim-pop");
+            b.classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(1100);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi();
+            reproducirConsigna(palabra.p);   // reescuchar tras errar: feedback elaborado sin texto
+          }
+        });
+        fila.appendChild(b);
+      });
+      tablero.appendChild(fila);
+      ctx.juego.appendChild(tablero);
+      // la palabra se escucha automáticamente después de la consigna
+      setTimeout(() => reproducirConsigna(palabra.p), 1300);
+    };
+    jugar();
+  },
+};
+
 GAMES.serie = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 6;

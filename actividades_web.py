@@ -124,6 +124,21 @@ def _menu(banda, edad):
             for item in m:
                 if item["id"] == "contar":
                     item["cfg"] = {**item["cfg"], "max": 5}
+        if e == 5:
+            # NAP Sala de 5: "conteo oral hasta el 15" y "comparación de
+            # colecciones". No llevamos "contar" literal a 15 objetos en
+            # pantalla — el layout (targets táctiles ≥48px con separación,
+            # skill §4b punto 6) se satura antes de eso; 8 es el techo
+            # razonable sin comprometer el tamaño/separación de los targets.
+            for item in m:
+                if item["id"] in ("contar", "mas_menos"):
+                    item["cfg"] = {**item["cfg"], "max": 8}
+            # Sala de 5 Bimestre 2 (NAP): "conciencia fonológica — sílabas
+            # (aplaudirlas)" — construcción nueva de verdad (no curación),
+            # primer juego del motor con un componente de AUDIO real (no
+            # solo efectos): escuchá la palabra, contá las partes. Lo pide
+            # SOLO 5 años (a los 4 el eje del bimestre 1 es otro).
+            m.append({"id": "silabas", "titulo": "¿Cuántas partes?", "icono": "👂", "cfg": {"rondas": 5}})
         return m
     return [
         {"id": "memotest",  "titulo": "Memotest",         "icono": "🧠", "cfg": {"pares": 8}},
@@ -993,6 +1008,19 @@ def _texto_para_tts(texto):
     return _EMOJI_RE.sub("", texto).strip()
 
 
+_VOCAL_RE = re.compile("[aeiouáéíóúAEIOUÁÉÍÓÚ]")
+
+
+def _duracion_minima(texto):
+    """Piso de duración razonable en segundos — proxy de sílabas por conteo
+    de vocales (no tenemos silabización real acá, pero alcanza para detectar
+    una toma apurada/cortada). Encontrado 14-jul-2026: "MARIPOSA" (4
+    sílabas) salió una toma de 0.71s — la MISMA palabra en otras tomas dio
+    1.6-2.1s. Sin este piso esa toma rota se hubiera vendido tal cual."""
+    n_vocales = max(1, len(_VOCAL_RE.findall(texto)))
+    return max(0.4, n_vocales * 0.22)
+
+
 def generar_audio_consignas(textos):
     """Audio-guía (14-jul-2026, investigación §2b: "es la brecha de UX más
     urgente para 4-5 años, más urgente que sumar juegos nuevos" — a esa edad
@@ -1001,6 +1029,10 @@ def generar_audio_consignas(textos):
     que se graban UNA VEZ acá y se sirven como asset del repo — igual
     criterio que player.js/las fuentes, NO se regeneran por token. Reusa el
     mismo motor de voz del audiolibro (ElevenLabs Lizy, acento argentino).
+
+    QA de duración (piso por conteo de vocales, ver _duracion_minima): hasta
+    4 tomas con seeds distintos, se queda con la primera que pase el piso o,
+    si ninguna pasa, con la más larga de las 4 (nunca falla en silencio).
 
     Idempotente: solo genera el .mp3 que todavía no existe (podés volver a
     llamarla agregando textos nuevos sin regastar en los que ya están).
@@ -1018,9 +1050,18 @@ def generar_audio_consignas(textos):
         path = os.path.join(AUDIO_DIR, fn)
         if os.path.isfile(path):
             continue
-        mp3 = audiolibro.tts_mp3(None, _texto_para_tts(texto))
+        limpio = _texto_para_tts(texto)
+        minimo = _duracion_minima(limpio)
+        mejor = None
+        for intento in range(4):
+            mp3 = audiolibro._tts_elevenlabs(limpio, seed=4242 + intento * 137)
+            dur = audiolibro._dur_mp3_128(mp3)
+            if mejor is None or dur > mejor[1]:
+                mejor = (mp3, dur)
+            if dur >= minimo:
+                break
         with open(path, "wb") as f:
-            f.write(mp3)
+            f.write(mejor[0])
     with open(manifest_path, "w", encoding="utf-8") as f:
         json.dump(manifest, f, ensure_ascii=False)
     return manifest
