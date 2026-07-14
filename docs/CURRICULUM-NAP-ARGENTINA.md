@@ -36,11 +36,120 @@ que mezclan juego, motricidad y exploración del entorno:
 - **Eje 3 — Desarrollo Personal y Social**: autonomía, juego compartido,
   motricidad fina y gruesa.
 
-> ⚠️ **PENDIENTE**: Pablo propuso desglosar Sala de 4 y Sala de 5 años
-> bimestre a bimestre (como se hizo con los grados de primaria) pero ese
-> desglose nunca llegó a pasarse — el mensaje siguiente saltó directo a
-> "Primer Grado". Falta pedírselo si se necesita el mismo nivel de detalle
-> para nivel inicial.
+### Sala de 4 años
+
+A los 4 años el aprendizaje es puramente vivencial, lúdico y sensorio-motor.
+**Las actividades interactivas a esta edad deben ser visualmente limpias, con
+audio-guía (los chicos no leen todavía) y basadas en arrastrar, tocar o
+emparejar** — nota de diseño explícita, no solo contenido.
+
+#### Bimestre 1 — "Yo y mi entorno"
+
+- **Desarrollo Personal**: reconocimiento del propio nombre (firma gráfica,
+  iniciales); partes del cuerpo.
+- **Matemática**: conteo oral hasta el 5; noción espacial (arriba/abajo,
+  adentro/afuera); tamaños (grande/chico).
+- **Ambiente**: la familia y el espacio del jardín/casa.
+- **Ideas PDF**: silueta para pintar y señalar partes del cuerpo con
+  flechas; laberinto simple para entrar "adentro" de una casa.
+- **Ideas web**: arrastrar prendas al personaje según el clima; tocar los
+  objetos que están "arriba" de la mesa.
+
+#### Bimestre 2 — "Los sentidos y los colores de la naturaleza"
+
+- **Matemática**: clasificación por un atributo (color o forma); número y
+  cantidad hasta el 3 (grafismo ↔ objetos reales).
+- **Ambiente**: los cinco sentidos; animales de granja (sonidos,
+  características básicas).
+- **Lenguaje**: escucha de cuentos cortos, onomatopeyas.
+- **Ideas PDF**: dactilopintura — 3 manzanas en un árbol; unir animal con su
+  sonido (vaca → "muuu").
+- **Ideas web**: memotest con 4-6 cartas de animales; "pop the balloons" —
+  reventar solo los globos rojos.
+
+#### Bimestre 3 — "Exploradores de formas y texturas"
+
+- **Matemática**: formas básicas (círculo, cuadrado); conteo hasta 10
+  (reconocimiento visual 1-5); longitud (largo/corto).
+- **Ambiente**: partes de la planta (raíz, tallo, hojas); cuidado de la
+  salud (lavado de manos, cepillado de dientes).
+- **Lenguaje**: rimas sencillas y adivinanzas con soporte visual.
+- **Ideas PDF**: secuencia de lavado de manos (3 figuritas: mojar/enjabonar
+  → enjuagar → secar); colorear dibujo de círculos/cuadrados por código de
+  color.
+- **Ideas web**: clasificar objetos en caja de círculos vs. caja de
+  cuadrados; adivinanza con pista de audio, tocar el animal correcto.
+
+#### Bimestre 4 — "Historias, formas y cierres"
+
+- **Matemática**: el triángulo; correspondencia uno a uno (un plato por
+  oso); cuantificadores (muchos/pocos).
+- **Ambiente**: materiales cotidianos (madera/plástico/metal —
+  duro/blando); paso del tiempo (día/noche).
+- **Lenguaje**: expresión verbal de anécdotas; secuencia temporal de 3
+  pasos en una historia.
+- **Ideas PDF**: dibujar qué se hace de día (sol) y de noche (luna); pegar
+  papelitos de colores dentro de un triángulo grande.
+- **Ideas web**: arrastrar objetos al sol o a la luna según su uso (pijama
+  → luna, mochila → sol); ordenar secuencia de 3 imágenes (semilla → brote
+  → planta con flor).
+
+### Sala de 5 años
+
+Año de transición clave: se prepara la grafomotricidad fina, se consolida
+el número y **se introduce la conciencia fonológica** (el sonido de las
+letras — clave para leer después).
+
+#### Bimestre 1 — "Mi nombre y mis amigos"
+
+- **Lenguaje**: escritura autónoma del nombre propio; reconocimiento de
+  vocales (sonido inicial).
+- **Matemática**: conteo oral hasta 15; comparación de colecciones (¿dónde
+  hay más?); número escrito del 1 al 5.
+- **Ambiente**: el cuerpo por dentro (huesos, corazón — muy básico);
+  emociones (alegría, tristeza, enojo, miedo).
+- **Ideas PDF**: ficha "Todo sobre mí" (dibujarse, nombre en imprenta
+  mayúscula, velitas de su edad); unir caritas emocionales con situaciones.
+- **Ideas web**: encontrar la vocal intrusa (¿cuál NO empieza con "A"?);
+  contar manzanas y tocar el número correcto (1-5).
+
+#### Bimestre 2 — "Naturaleza en movimiento"
+
+- **Lenguaje**: conciencia fonológica — sílabas (aplaudirlas); lectura de
+  imágenes.
+- **Matemática**: registro escrito hasta 10; nociones espaciales complejas
+  (cerca/lejos, adelante/atrás).
+- **Ambiente**: vertebrados/invertebrados (clasificación simple: vuelan,
+  caminan, nadan); ciclo del agua elemental.
+- **Ideas PDF**: pintar tantos círculos como sílabas (MA-RI-PO-SA → 4);
+  completar camino contando 1 al 10.
+- **Ideas web**: arrastrar animales a su hábitat (agua/tierra/aire);
+  "Simón dice" de posiciones espaciales.
+
+#### Bimestre 3 — "La comunidad y los números"
+
+- **Lenguaje**: consonantes comunes (M, P, S, L); juego con rimas.
+- **Matemática**: el rectángulo; calendario (días de la semana);
+  iniciación a la suma (juntar 2 grupos y contar el total).
+- **Ambiente**: trabajos del barrio (bombero, médico, panadero) y
+  comercios; medios de transporte.
+- **Ideas PDF**: unir trabajador con su herramienta/vehículo; suma gráfica
+  (2 manzanas + 3 manzanas = dibujar total y escribir "5").
+- **Ideas web**: rompecabezas de 6-8 piezas (camión de bomberos / escena
+  del barrio); elegir la palabra que rima con "Gato".
+
+#### Bimestre 4 — "Rumbo a primer grado"
+
+- **Lenguaje**: escritura espontánea de palabras simples (SOL, OSO, MAMÁ);
+  comprensión lectora básica (responder preguntas simples sobre un cuento).
+- **Matemática**: serie numérica 1-10 (¿quién está antes/después?); formas
+  en el espacio (esfera, cubo).
+- **Ambiente**: cuidado del medio ambiente (reciclaje: plástico, papel,
+  orgánico).
+- **Ideas PDF**: sopa de letras súper simple con 3 palabras cortas (con
+  dibujos de ayuda); completar el número que falta en la grilla.
+- **Ideas web**: arrastrar la basura al tacho correcto (reciclaje); "el
+  intruso numérico" — ¿cuál número está fuera de lugar en 1,2,3,9,5?
 
 ### Nivel Primario (1° a 7° grado / 6 a 12 años) — "Áreas Curriculares"
 
@@ -130,10 +239,76 @@ sentido del número.
 
 ## 2° Grado (7 años)
 
-> ⚠️ **PENDIENTE**: no se recibió el desglose bimestre a bimestre de 2° grado
-> — el mensaje que cubría "Bloque 2" tituló "2° y 3° grado" pero solo
-> desarrolló el contenido de 3°. Falta pedírselo a Pablo si se necesita para
-> ese año puntual.
+Eje del año: autonomía lectora, adquisición de la letra cursiva, dominio de
+la numeración hasta 1.000, inicio de las tablas de multiplicar de forma
+conceptual.
+
+### Bimestre 1 — "Reencuentro y números familiares"
+
+- **Prácticas del Lenguaje**: repaso de lectura fluida en imprenta; orden
+  alfabético y uso del diccionario; sustantivos comunes y propios (uso de
+  mayúsculas).
+- **Matemática**: números del 100 al 300 (regularidades de la serie);
+  suma/resta con "me llevo uno" / "le pido al compañero" vía descomposición
+  aditiva.
+- **Ciencias Naturales**: partes de las plantas y sus funciones; plantas
+  terrestres, acuáticas y epífitas.
+- **Ciencias Sociales**: vida familiar en distintos contextos culturales y
+  del pasado (familias coloniales vs. actuales).
+- **Ideas PDF**: texto corto para rodear sustantivos propios (rojo) y
+  comunes (azul); "la fábrica de números" — descomponer (245=200+40+5).
+- **Ideas web**: arrastrar el sustantivo a Comunes vs. Propios; rompecabezas
+  de sumas que den números redondos (150+50=200).
+
+### Bimestre 2 — "Presentando a la cursiva y los arreglos rectangulares"
+
+- **Prácticas del Lenguaje**: introducción a la cursiva (trazado, unión de
+  letras); poesías y coplas (rima, ritmo, estrofa); sinónimos y antónimos.
+- **Matemática**: números hasta 600; multiplicación vía sumas repetidas y
+  "arreglos rectangulares" (baldosas de un patio 3×4); tabla del 2 y del 5.
+- **Ciencias Naturales**: clasificación de animales por locomoción y
+  esqueleto (vertebrados/invertebrados, más detalle).
+- **Ciencias Sociales**: servicios públicos urbano/rural (agua, luz, gas,
+  transporte).
+- **Ideas PDF**: grafomotricidad en cursiva uniendo oraciones cortas con su
+  dibujo; problema gráfico de filas/columnas (cine 4×5 butacas, introduce ×).
+- **Ideas web**: unir sinónimos/antónimos; asociar suma repetida con su
+  multiplicación (2+2+2+2 → 2×4).
+
+### Bimestre 3 — "Aventuras de lectura y reparto"
+
+- **Prácticas del Lenguaje**: comprensión de cuentos tradicionales (lobos y
+  brujas, comparar versiones); familias de palabras (pan, panadería,
+  panadero); uso de la coma en enumeraciones.
+- **Matemática**: números hasta 800; tablas del 3, 4 y 10; reparto
+  equitativo (iniciación a la división, caramelos gráficos); triángulos,
+  cuadrados, rectángulos (vértices, lados, diagonales).
+- **Ciencias Naturales**: materiales conductores y aislantes térmicos (por
+  qué las ollas tienen mango de plástico).
+- **Ciencias Sociales**: circuito productivo de una materia prima (vaca →
+  leche en sachet; algodón → remera).
+- **Ideas PDF**: esquema del circuito productivo de la leche para ordenar en
+  flechas + epígrafe; ficha de reparto (12 huesos entre 3 perros).
+- **Ideas web**: simulador de cocina — clasificar materiales por si se
+  calientan rápido (metal) o no (madera/plástico); completar palabra con su
+  familia correcta.
+
+### Bimestre 4 — "Historias que viajan y cálculos veloces"
+
+- **Prácticas del Lenguaje**: leyendas populares argentinas (pueblos
+  originarios); cartas o mails cortos; ortografía MP, MB, NV.
+- **Matemática**: números hasta 1.000; algoritmo estándar de multiplicación
+  por una cifra; medidas de longitud/capacidad/peso (metro, litro, kilo,
+  estimativo: ¿con qué se mide cada cosa?).
+- **Ciencias Naturales**: cielo diurno y nocturno (Sol, Luna, estrellas);
+  movimiento aparente del Sol.
+- **Ciencias Sociales**: medios de comunicación pasado/presente (carta a
+  caballo → WhatsApp).
+- **Ideas PDF**: ficha ortográfica M/N antes de consonante (ca_pana,
+  bo_ba, i_vierno); "el supermercado" — unir producto con su unidad de
+  medida.
+- **Ideas web**: trivia espacial (día/noche/ambos); cálculo mental
+  contrarreloj con tablas del 2, 5 y 10.
 
 ---
 
@@ -445,6 +620,7 @@ esto (por ejemplo, antes de invertir mucho contenido en un año puntual):
 
 ## Pendientes de este insumo
 
-1. Sala de 4 y Sala de 5 años — desglose bimestre a bimestre (nunca llegó).
-2. 2° grado — desglose bimestre a bimestre (nunca llegó).
-3. 4° grado — desglose bimestre a bimestre (nunca llegó).
+1. ~~Sala de 4 y Sala de 5 años~~ — completado 14-jul-2026.
+2. ~~2° grado~~ — completado 14-jul-2026.
+3. **4° grado — desglose bimestre a bimestre (falta).** Es el único año que
+   queda sin detalle propio de los 9 años de escolaridad.

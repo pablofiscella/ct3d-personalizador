@@ -102,19 +102,20 @@ edad" (roadmap 14-jul-2026). NO improvisar la mezcla — usar esta tabla:
 
 | Orden | Edad/grado | Estado (14-jul-2026) | Tipo de trabajo |
 |---|---|---|---|
-| 1 | Sala de 4 años | 🔜 Próximo — ver diseño en el informe §5 | Curación (bajo esfuerzo) |
-| 2 | Sala de 5 años | Pendiente — falta desglose bimestral de Pablo | Curación |
-| 3 | 1° grado | Pendiente | Curación + ampliar rango numérico + sílabas CV |
-| 4 | 2° grado | Pendiente — falta desglose bimestral de Pablo | Curación + banda propia (hoy comparte con 12 años) |
-| 5 | 3° grado | Pendiente | Construcción (tabla pitagórica, miles, geometría) |
+| 1 | Sala de 4 años | 🔜 Próximo — mapeo bimestre a bimestre ya hecho, informe §5: 11/11 contenidos matemáticos ya tienen juego | Curación (bajo esfuerzo) |
+| 2 | Sala de 5 años | Mapeo ya hecho, informe §5 — mitad matemática lista, mitad fonética sin construir | Curación (matemática) + construcción (audio/fonética) |
+| 3 | 1° grado | Desglose disponible en el currículum | Curación + ampliar rango numérico + sílabas CV (reusa el audio de Sala 5) |
+| 4 | 2° grado | Desglose disponible en el currículum (completado 14-jul) | Curación + banda propia (hoy comparte con 12 años) + cursiva + multiplicación conceptual |
+| 5 | 3° grado | Desglose disponible en el currículum | Construcción (tabla pitagórica, miles, geometría) |
 | 6 | 4°-5° grado | Pendiente — 4° sin desglose de Pablo | Construcción (fracciones CPA, decimales, historia real) |
-| 7 | 6°-7° grado | Pendiente | Construcción (porcentaje, álgebra informal, ciencias avanzadas) |
+| 7 | 6°-7° grado | Desglose disponible en el currículum | Construcción (porcentaje, álgebra informal, ciencias avanzadas) |
 
 ## 5. Antes de diseñar contenido nuevo para un año — checklist
 
 1. Releer la sección de ese grado en `docs/CURRICULUM-NAP-ARGENTINA.md`. Si
-   dice "⚠️ PENDIENTE" (Sala 4/5, 2°, 4° grado), pedirle el desglose a Pablo
-   ANTES de inventar contenido — no rellenar el hueco con suposición propia.
+   dice "⚠️ PENDIENTE" (solo 4° grado al 14-jul-2026), pedirle el desglose a
+   Pablo ANTES de inventar contenido — no rellenar el hueco con suposición
+   propia.
 2. Confirmar la banda de edad en el motor: ¿existe ya una banda separada para
    este grado, o hay que crear una (ver hallazgo de la banda `"grande"` sin
    tope, sección 0)?

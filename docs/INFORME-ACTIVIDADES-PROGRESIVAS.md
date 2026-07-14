@@ -114,10 +114,10 @@ Maestra / Mamá ocupada" (30 minutos según edad) — ya queda lista para usar.
 
 | Orden | Edad/grado | Tipo de trabajo | Esfuerzo relativo |
 |---|---|---|---|
-| 1 | Sala de 4 años | Curar + etiquetar lo existente contra los 3 ejes NAP | Bajo — ver diseño abajo |
-| 2 | Sala de 5 años | Ídem + pedirle a Pablo el desglose bimestral que falta (ver pendientes en el doc de currículum) | Bajo |
-| 3 | 1° grado | Ampliar rango numérico real (hoy tope ~7-8, NAP pide hasta 100) + agregar mecánica de sílabas CV (juego nuevo: "armar palabras arrastrando sílabas", idea que el propio Pablo ya trajo) | Medio |
-| 4 | 2° grado | Separar de la banda "grande" (hoy comparte banda con 1° y con 12 años); sílabas complejas; números hasta 50-80; pedirle a Pablo el desglose bimestral que falta | Medio |
+| 1 | Sala de 4 años | Curación pura sobre bimestres reales del NAP — ver diseño abajo (§5): 11/11 contenidos matemáticos ya tienen juego | Bajo |
+| 2 | Sala de 5 años | Mitad curación (matemática) + primer trabajo de audio/fonética (conciencia fonológica) — ver §5 | Bajo (matemática) / Medio (fonética, mecánica nueva) |
+| 3 | 1° grado | Ampliar rango numérico real (hoy tope ~7-8, NAP pide hasta 100) + agregar mecánica de sílabas CV (juego nuevo: "armar palabras arrastrando sílabas", idea que el propio Pablo ya trajo) — reusa el trabajo de audio de Sala de 5 | Medio |
+| 4 | 2° grado | Separar de la banda "grande" (hoy comparte banda con 1° y con 12 años); sílabas complejas, cursiva, multiplicación conceptual (arreglos rectangulares), números hasta 1.000 — desglose bimestral ya disponible en `docs/CURRICULUM-NAP-ARGENTINA.md` | Medio |
 | 5 | 3° grado | Construir de cero: tabla pitagórica interactiva, números de 4 cifras, cuerpos geométricos, primeras nociones de ciencias naturales/sociales curriculares | Alto |
 | 6 | 4°-5° grado | Fracciones (con apoyo visual — tiras, CPA), decimales, geometría con compás, primera historia argentina real (colonia, Revolución de Mayo) | Alto |
 | 7 | 6°-7° grado | Porcentaje, proporcionalidad, álgebra informal, estadística, ciencias naturales avanzadas (célula, sistema nervioso/endocrino), historia/geografía argentina contemporánea | Alto |
@@ -126,29 +126,83 @@ Los pasos 5-7 comparten un patrón: necesitan tipos de actividad NUEVOS (no
 extender parámetros de los 23 que ya existen), así que conviene diseñarlos
 recién cuando 1-4 estén validados y haya aprendido de esa primera ronda real.
 
-## 5. Diseño concreto del primer paso: Sala de 4 años
+## 5. Diseño concreto del primer paso: Sala de 4 y Sala de 5 años
 
-Con los 3 ejes NAP (Comunicación y Lenguajes / Indagación del Ambiente /
-Desarrollo Personal y Social) y el catálogo real del motor:
+Actualizado 14-jul-2026 con el desglose bimestral real que mandó Pablo (ver
+`docs/CURRICULUM-NAP-ARGENTINA.md`). Cruzado contra el menú EXACTO de la
+banda `"media"` de `actividades_web._menu()` (línea 96-115) — 14 juegos base
++ `sumas` desde los 5 años.
 
-| Eje NAP | Juegos del motor que ya sirven | Qué falta |
-|---|---|---|
-| Comunicación y Lenguajes | colorear, trazos (motricidad fina — pre-escritura) | Nada de "expresión oral" ni "iniciación a la literatura" — son ejes que no se prestan a una actividad autocorregible, mejor dejarlos fuera del producto digital y no forzarlos |
-| Indagación del Ambiente | memotest/agrupar con personajes del tema (animales, objetos) puede reetiquetarse como "el cuerpo", "los animales" si se cura el set de imágenes por sub-eje | Nada específico de "objetos cotidianos" o "tecnología simple" hoy |
-| Desarrollo Personal y Social | patrón, tamaño, iguales, sombra (motricidad fina/gruesa indirecta) | El eje de "juego compartido" no aplica a un producto de un jugador — dejar fuera |
+### Sala de 4 años — mapeo bimestre a bimestre
 
-**Conclusión para Sala de 4**: no hace falta ni un juego nuevo — hace falta
-CURAR cuáles de los 18 juegos de la banda "media" se muestran y con qué
-personajes/etiqueta, para que el pack de 30 minutos elegido no se sienta
-"genérico" sino directamente relacionado a lo que el chico ve en el jardín.
-Es exactamente el tipo de trabajo bajo-esfuerzo/alto-impacto ideal para
-arrancar y aprender el proceso antes de meterse en los años donde hay que
-construir contenido nuevo de cero.
+| Bimestre | Contenido NAP | Juego del motor que sirve | Estado |
+|---|---|---|---|
+| 1 | Conteo oral hasta 5 | `contar` (hoy `max=6`, acotar a 5 en la config del bimestre) | ✅ Listo, solo ajustar parámetro |
+| 1 | Tamaños grande/chico | `tamano` | ✅ Listo tal cual |
+| 1 | Noción espacial (arriba/abajo, adentro/afuera) | — | ❌ No existe ningún juego de posición espacial |
+| 2 | Clasificación por un atributo (color/forma) | `agrupar` (2 canastas — encaja literal) | ✅ Listo, curar qué se clasifica por bimestre |
+| 2 | Número y cantidad hasta 3 | `contar` (max=3) | ✅ Listo |
+| 3 | Formas círculo y cuadrado | `agrupar`/`diferente` con set curado de esas 2 formas | ⚠️ Necesita curar contenido visual, no motor nuevo |
+| 3 | Conteo hasta 10 | `puntos`, `contar` (max ajustado) | ✅ Listo |
+| 3 | Longitud largo/corto | `tamano` (mismo mecanismo que grande/chico, reetiquetado) | ⚠️ Reusar el juego con otro par de atributos |
+| 4 | El triángulo | mismo criterio que círculo/cuadrado | ⚠️ Curar set visual |
+| 4 | Correspondencia uno a uno (un plato por oso) | `sombra` (empareja 1 a 1, pero por SILUETA no por "reparto") | ⚠️ Se acerca conceptualmente, no es idéntico — evaluar si alcanza o hace falta variante |
+| 4 | Cuantificadores muchos/pocos | `mas_menos` (`max=6`, YA disponible desde los 4 años en el código — no tiene el gate `e>=5` que sí tiene `sumas`) | ✅ Listo |
+
+**11 de 11 contenidos matemáticos/lógicos de Sala de 4 tienen un juego que ya
+sirve o casi sirve — CERO juegos nuevos que construir.** El único contenido
+sin ningún camino hoy es la noción espacial arriba/abajo/adentro/afuera
+(Bimestre 1) — evaluar si vale la pena un juego chico nuevo o si se puede
+dejar fuera de la primera versión.
+
+**Nota de diseño explícita del propio material de Pablo, que hay que
+respetar literal:** *"Las actividades interactivas a esta edad deben ser
+visualmente limpias, con audio-guía (los chicos no leen todavía) y basadas
+en arrastrar, tocar o emparejar."* — el motor hoy NO tiene audio-guía en
+ningún juego (confirmado en la auditoría: cero componente de sonido más allá
+de efectos de feedback). Antes de vender esto como "para 4 años" con
+seriedad pedagógica, agregar consigna leída en voz alta es más importante
+que agregar juegos nuevos.
+
+### Sala de 5 años — mapeo bimestre a bimestre
+
+| Bimestre | Contenido NAP | Juego del motor que sirve | Estado |
+|---|---|---|---|
+| 1 | Conteo oral hasta 15, comparación de colecciones | `contar`, `mas_menos` (rango a ampliar — hoy tope 6) | ⚠️ Necesita ampliar el `max` para esta banda |
+| 1 | Escritura del nombre propio, sonido inicial de vocales | — | ❌ No existe (fonética/escritura — confirma el hueco de mecánica que ya señaló la investigación pedagógica) |
+| 2 | Conciencia fonológica — sílabas (aplaudirlas) | — | ❌ No existe — necesita audio, es la pieza más nueva a construir |
+| 2 | Registro escrito hasta 10 | `contar`/`puntos` con rango ampliado | ⚠️ Ajuste de parámetro |
+| 3 | Iniciación a la suma | `sumas` (`max=5`, YA existe específicamente desde los 5 años — `if e>=5` en el código) | ✅ Listo, coincide exacto con el NAP |
+| 3 | Consonantes M/P/S/L y rimas | — | ❌ No existe |
+| 4 | Escritura espontánea de palabras simples | — | ❌ No existe |
+| 4 | Serie numérica 1-10, antes/después | `patron`, `puntos` | ⚠️ Se acerca, curar consigna específica de "antes/después" |
+
+**Sala de 5 es la mitad y mitad**: todo lo MATEMÁTICO ya tiene un juego que
+sirve o casi sirve (curación + ajuste de rango, igual que Sala de 4). Todo lo
+de LENGUAJE es la introducción real de la conciencia fonológica — y ahí sí
+hace falta construcción nueva, con audio, no solo curación. Es exactamente
+el patrón que anticipó la investigación pedagógica (sección 2): la
+alfabetización necesita mecánica de sonido que hoy no existe en el motor.
+
+### Conclusión y recomendación de secuencia
+
+No arrancar por "Sala de 4 y Sala de 5" como un solo bloque parejo — son dos
+tipos de trabajo distintos:
+
+1. **Primero, Sala de 4 completa + la mitad matemática de Sala de 5**: pura
+   curación de parámetros y contenido visual sobre los 14 juegos que ya
+   existen. Bajo esfuerzo, se puede shippear rápido y aprender el proceso.
+2. **Después, el componente de audio/fonética** (conciencia fonológica de
+   Sala de 5, y por extensión las sílabas CV de 1° grado que ya estaban en
+   el roadmap): esto es un tipo de trabajo nuevo para el motor — el primer
+   juego con componente de AUDIO real, no solo visual. Vale la pena tratarlo
+   como su propio hito, no colarlo dentro del trabajo de curación.
 
 ## 6. Pendientes que dependen de Pablo (no técnicos)
 
-1. Desglose bimestral de Sala de 4, Sala de 5, 2° grado y 4° grado — nunca
-   llegaron a pasarse (ver `docs/CURRICULUM-NAP-ARGENTINA.md`).
+1. Desglose bimestral de 4° grado — es el único año de los 9 que sigue sin
+   detalle propio (Sala 4, Sala 5 y 2° grado ya se completaron 14-jul-2026 —
+   ver `docs/CURRICULUM-NAP-ARGENTINA.md`).
 2. Decisión de alcance: ¿el feature "Modo Maestra" (30 min) es un producto
    nuevo con su propio precio, o una forma nueva de comprar/generar lo que
    ya existe (actividades imprimibles / actividades-web)?
