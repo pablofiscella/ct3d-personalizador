@@ -2011,6 +2011,11 @@ const MATERIALES_BANCO = [
   { obj: "🪟", material: "Vidrio" }, { obj: "🍷", material: "Vidrio" },
   { obj: "🪑", material: "Madera" }, { obj: "🚪", material: "Madera" },
   { obj: "🔔", material: "Metal" }, { obj: "🥄", material: "Metal" },
+  // agregados 14-jul-2026 (banco ampliado de 6 a 10). MATS es una lista
+  // fija de 3 botones (Vidrio/Madera/Metal) — cualquier ítem nuevo tiene
+  // que usar exactamente uno de esos 3.
+  { obj: "🔑", material: "Metal" }, { obj: "🪞", material: "Vidrio" },
+  { obj: "🎻", material: "Madera" }, { obj: "🍾", material: "Vidrio" },
 ];
 GAMES.materiales = {
   crear(ctx) {
@@ -2259,6 +2264,11 @@ const SINANT_BANCO = [
   { p: "Caliente", rel: "ant", correcta: "Frío", distractoras: ["Tibio", "Ardiente"] },
   { p: "Lindo", rel: "sin", correcta: "Hermoso", distractoras: ["Feo", "Raro"] },
   { p: "Alto", rel: "ant", correcta: "Bajo", distractoras: ["Grande", "Ancho"] },
+  // agregados 14-jul-2026 (banco ampliado de 6 a 10).
+  { p: "Fuerte", rel: "sin", correcta: "Potente", distractoras: ["Débil", "Suave"] },
+  { p: "Cerca", rel: "ant", correcta: "Lejos", distractoras: ["Cercano", "Próximo"] },
+  { p: "Difícil", rel: "sin", correcta: "Complicado", distractoras: ["Fácil", "Simple"] },
+  { p: "Empezar", rel: "ant", correcta: "Terminar", distractoras: ["Comenzar", "Iniciar"] },
 ];
 GAMES.sinonimos_antonimos = {
   crear(ctx) {
@@ -2488,6 +2498,10 @@ GAMES.familia_palabras = {
 const ESPACIAL_BANCO = [
   { e: "☀️", cuando: "Día" }, { e: "🌙", cuando: "Noche" }, { e: "⭐", cuando: "Noche" },
   { e: "☁️", cuando: "Ambos" }, { e: "🌤️", cuando: "Día" }, { e: "🌌", cuando: "Noche" },
+  // agregados 14-jul-2026 (banco ampliado de 6 a 10). OPS es una lista
+  // fija de 3 botones (Día/Noche/Ambos).
+  { e: "🌧️", cuando: "Ambos" }, { e: "🌈", cuando: "Día" },
+  { e: "🦉", cuando: "Noche" }, { e: "🌫️", cuando: "Ambos" },
 ];
 GAMES.trivia_espacial = {
   crear(ctx) {
@@ -3793,6 +3807,11 @@ const SINTACTICO_BANCO = [
   { oracion: "Mi mamá <b>cocina</b> todos los días.", tipo: "predicado" },
   { oracion: "El <b>sol</b> brilla en el cielo.", tipo: "sujeto" },
   { oracion: "El gato <b>duerme</b> en el sillón.", tipo: "predicado" },
+  // agregados 14-jul-2026 (banco ampliado de 6 a 10).
+  { oracion: "La <b>maestra</b> explica la lección.", tipo: "sujeto" },
+  { oracion: "Los pájaros <b>cantan</b> en la mañana.", tipo: "predicado" },
+  { oracion: "El <b>auto</b> rojo pasa rápido.", tipo: "sujeto" },
+  { oracion: "Nosotros <b>estudiamos</b> para el examen.", tipo: "predicado" },
 ];
 GAMES.analisis_sintactico = {
   crear(ctx) {
@@ -3950,6 +3969,9 @@ const ECONOMIA_BANCO = [
   { p: "Vino", region: "Cuyo" }, { p: "Ganado", region: "Pampeana" },
   { p: "Azúcar", region: "NOA" }, { p: "Yerba mate", region: "NEA" },
   { p: "Petróleo", region: "Patagonia" }, { p: "Trigo", region: "Pampeana" },
+  // agregados 14-jul-2026 (banco ampliado de 6 a 10).
+  { p: "Aceitunas", region: "Cuyo" }, { p: "Algodón", region: "NEA" },
+  { p: "Lana", region: "Patagonia" }, { p: "Tabaco", region: "NOA" },
 ];
 GAMES.actividad_economica = {
   crear(ctx) {
@@ -4200,6 +4222,11 @@ const HECHOS_OPINIONES_BANCO = [
   { texto: "Esa película fue aburrida", tipo: "opinion" },
   { texto: "La reunión empieza a las 10", tipo: "hecho" },
   { texto: "Creo que va a llover mañana", tipo: "opinion" },
+  // agregados 14-jul-2026 (banco ampliado de 6 a 10).
+  { texto: "El río Paraná es el más largo de Argentina", tipo: "hecho" },
+  { texto: "La música de ese grupo es la mejor", tipo: "opinion" },
+  { texto: "La reunión terminó a las 5 de la tarde", tipo: "hecho" },
+  { texto: "Ese cuadro es feísimo", tipo: "opinion" },
 ];
 GAMES.hechos_opiniones = {
   crear(ctx) {
@@ -4566,6 +4593,9 @@ GAMES.energia_renovable = {
 const POLIGONOS_BANCO = [
   { nombre: "Triángulo", lados: 3 }, { nombre: "Cuadrado", lados: 4 }, { nombre: "Pentágono", lados: 5 },
   { nombre: "Hexágono", lados: 6 }, { nombre: "Heptágono", lados: 7 }, { nombre: "Octágono", lados: 8 },
+  // agregados 14-jul-2026 (banco ampliado de 6 a 10).
+  { nombre: "Eneágono", lados: 9 }, { nombre: "Decágono", lados: 10 },
+  { nombre: "Rectángulo", lados: 4 }, { nombre: "Rombo", lados: 4 },
 ];
 GAMES.poligonos_lados = {
   crear(ctx) {
@@ -4631,6 +4661,11 @@ const ALGEBRA_BANCO = [
   { texto: "La mitad de un número", correcta: "x/2", d1: "2x", d2: "x-2" },
   { texto: "El siguiente de un número", correcta: "x+1", d1: "x-1", d2: "2x" },
   { texto: "El triple menos dos", correcta: "3x-2", d1: "3x+2", d2: "3(x-2)" },
+  // agregados 14-jul-2026 (banco ampliado de 6 a 10).
+  { texto: "La mitad más dos", correcta: "x/2+2", d1: "x/2-2", d2: "(x+2)/2" },
+  { texto: "El cuádruple de un número", correcta: "4x", d1: "x/4", d2: "x+4" },
+  { texto: "El anterior de un número", correcta: "x-1", d1: "x+1", d2: "-x" },
+  { texto: "El doble del siguiente de un número", correcta: "2(x+1)", d1: "2x+1", d2: "x+2" },
 ];
 GAMES.traductor_algebraico = {
   crear(ctx) {
@@ -4874,6 +4909,11 @@ const ESTADISTICA_BANCO = [
   { texto: "3, 5, 7", correcta: 5 },
   { texto: "1, 2, 3, 4, 5", correcta: 3 },
   { texto: "6, 8, 10, 12", correcta: 9 },
+  // agregados 14-jul-2026 (banco ampliado de 6 a 10).
+  { texto: "5, 10, 15", correcta: 10 },
+  { texto: "2, 4, 6", correcta: 4 },
+  { texto: "8, 10, 12, 14", correcta: 11 },
+  { texto: "9, 12, 15", correcta: 12 },
 ];
 GAMES.estadistica_datos = {
   crear(ctx) {
