@@ -5196,6 +5196,165 @@ GAMES.escape_room_egreso = {
   },
 };
 
+/* ── PROGRAMÁ EL CAMINO (14-jul-2026, prototipo de pensamiento
+   computacional — idea de Pablo: "armar instrucciones, apretar play, ver
+   la animación completa"). Primera mecánica del motor de "armar programa
+   → ejecutar" — reusa el generador de laberintos YA VERIFICADO por BFS
+   (mismo `_lab_json` que usa el laberinto normal, acá con un tamaño
+   propio bien chico — `D.laberintosChicos`, 3-4 celdas — porque escribir
+   la secuencia completa a mano en un laberinto de 9-12 celdas sería
+   larguísimo). Estilo Logo/turtle graphics: el chico arma una lista de
+   instrucciones (avanzar/girar) tocando botones, después mira la
+   ejecución animada paso a paso. Sin loops/repetición todavía — es un
+   prototipo para validar la mecánica antes de pensar en escalarla por
+   edad (loops para años más grandes, menos instrucciones para más
+   chicos). "Cero fail states": chocar contra una pared no termina la
+   ronda, solo la reinicia — el programa armado queda igual para poder
+   corregirlo con "Deshacer" en vez de reescribirlo entero. ── */
+GAMES.programar_camino = {
+  crear(ctx) {
+    const labs = (D.laberintos_chicos || []).slice(0, 3);
+    if (!labs.length) { ctx.rondas(0); ctx.win(); return; }
+    ctx.rondas(labs.length);
+    const ORDEN = ["E", "S", "W", "N"];
+    const DELTA = { E: [1, 0], S: [0, 1], W: [-1, 0], N: [0, -1] };
+    const DEG = { N: 0, E: 90, S: 180, W: 270 };
+    const BIT = { N: 1, S: 2, E: 4, W: 8 };
+    let nivel = 0;
+    const arrancar = () => {
+      ctx.ronda(nivel);
+      ctx.consigna("Armá el programa y apretá Jugar para ver el recorrido");
+      ctx.juego.innerHTML = "";
+      const lab = labs[nivel];
+      const n = lab.n, C = 64, M = 10, S = n * C + M * 2;
+      const NS = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(NS, "svg");
+      svg.setAttribute("viewBox", `0 0 ${S} ${S}`);
+      svg.setAttribute("class", "svgJuego lienzo");
+      let d = "";
+      const X = (x) => M + x * C, Y = (y) => M + y * C;
+      for (let y = 0; y < n; y++)
+        for (let x = 0; x < n; x++) {
+          const b = lab.celdas[y][x];
+          if (b & 1) d += `M${X(x)} ${Y(y)}h${C}`;
+          if (b & 8) d += `M${X(x)} ${Y(y)}v${C}`;
+          if (y === n - 1 && (b & 2)) d += `M${X(x)} ${Y(y + 1)}h${C}`;
+          if (x === n - 1 && (b & 4)) d += `M${X(x + 1)} ${Y(y)}v${C}`;
+        }
+      const muros = document.createElementNS(NS, "path");
+      muros.setAttribute("d", d);
+      muros.setAttribute("stroke", D.paleta.ink);
+      muros.setAttribute("stroke-width", 9);
+      muros.setAttribute("stroke-linecap", "round");
+      muros.setAttribute("fill", "none");
+      const meta = document.createElementNS(NS, "text");
+      meta.textContent = "⭐";
+      meta.setAttribute("font-size", C * 0.62);
+      meta.setAttribute("text-anchor", "middle");
+      meta.setAttribute("x", X(n - 1) + C / 2);
+      meta.setAttribute("y", Y(n - 1) + C * 0.72);
+      const turtle = document.createElementNS(NS, "text");
+      turtle.textContent = "▲";
+      turtle.setAttribute("font-size", C * 0.6);
+      turtle.setAttribute("text-anchor", "middle");
+      turtle.setAttribute("fill", D.paleta.ac);
+      turtle.style.transition = "transform .45s ease";
+      turtle.style.transformOrigin = "center";
+      turtle.style.transformBox = "fill-box";
+      let cur = { x: 0, y: 0, dir: "E" };
+      const ubicar = () => {
+        turtle.setAttribute("x", X(cur.x) + C / 2);
+        turtle.setAttribute("y", Y(cur.y) + C * 0.7);
+        turtle.style.transform = `rotate(${DEG[cur.dir]}deg)`;
+      };
+      ubicar();
+      svg.append(muros, meta, turtle);
+      const tab = el("div", "tablero");
+      tab.appendChild(svg);
+      ctx.juego.appendChild(tab);
+
+      const abierta = (x, y, dir) => !(lab.celdas[y][x] & BIT[dir]);
+
+      let programa = [];
+      let jugando = false;
+      const ICONOS = { F: "⬆️", L: "↩️", R: "↪️" };
+      const cola = el("div", "programaCola");
+      const pintarCola = () => {
+        cola.innerHTML = programa.length
+          ? programa.map((p) => `<span class="programaChip">${ICONOS[p]}</span>`).join("")
+          : `<span class="programaVacio">Tocá los botones para armar tu programa</span>`;
+      };
+      pintarCola();
+      ctx.juego.appendChild(cola);
+
+      const filaInstr = el("div", "filaSprites");
+      [["F", "⬆️ Avanzar"], ["L", "↩️ Girar izq."], ["R", "↪️ Girar der."]].forEach(([codigo, label]) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:15px;font-family:'Baloo',sans-serif">${label}</span>`);
+        b.addEventListener("click", () => {
+          if (jugando) return;
+          programa.push(codigo);
+          pintarCola();
+        });
+        filaInstr.appendChild(b);
+      });
+      ctx.juego.appendChild(filaInstr);
+
+      const filaAcciones = el("div", "filaSprites");
+      const btnDeshacer = el("button", "btn suave", "⌫ Deshacer");
+      btnDeshacer.addEventListener("click", () => {
+        if (jugando) return;
+        programa.pop();
+        pintarCola();
+      });
+      const btnJugar = el("button", "btn verde", "▶️ ¡Jugar!");
+      filaAcciones.append(btnDeshacer, btnJugar);
+      ctx.juego.appendChild(filaAcciones);
+
+      btnJugar.addEventListener("click", async () => {
+        if (jugando || !programa.length) return;
+        jugando = true;
+        cur = { x: 0, y: 0, dir: "E" };
+        ubicar();
+        await espera(300);
+        let choco = false;
+        for (const instr of programa) {
+          await espera(500);
+          if (instr === "L") cur.dir = ORDEN[(ORDEN.indexOf(cur.dir) + 3) % 4];
+          else if (instr === "R") cur.dir = ORDEN[(ORDEN.indexOf(cur.dir) + 1) % 4];
+          else if (instr === "F") {
+            const [dx, dy] = DELTA[cur.dir];
+            const nx = cur.x + dx, ny = cur.y + dy;
+            if (nx < 0 || ny < 0 || nx >= n || ny >= n || !abierta(cur.x, cur.y, cur.dir)) {
+              choco = true;
+              ubicar();
+              break;
+            }
+            cur = { x: nx, y: ny, dir: cur.dir };
+          }
+          ubicar();
+        }
+        jugando = false;
+        if (choco) {
+          turtle.style.animation = "sacudir .4s ease";
+          setTimeout(() => (turtle.style.animation = ""), 450);
+          ctx.casi();
+          return;
+        }
+        if (cur.x === n - 1 && cur.y === n - 1) {
+          ctx.bien();
+          nivel++;
+          await espera(700);
+          if (nivel >= labs.length) ctx.win();
+          else arrancar();
+        } else {
+          ctx.casi();
+        }
+      });
+    };
+    arrancar();
+  },
+};
+
 GAMES.serie = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 6;

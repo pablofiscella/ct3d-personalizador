@@ -454,6 +454,18 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 .armarPalabraSlot:empty { animation: latido 1.8s ease infinite; }
 .armarPalabraSilabas .spriteBtn:disabled { opacity: .35; cursor: default; }
 
+/* programá el camino (14-jul-2026, prototipo pensamiento computacional):
+   la "cola" muestra el programa armado como chips en orden. */
+.programaCola {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  flex-wrap: wrap; min-height: 46px; margin: 10px 0 16px;
+}
+.programaChip {
+  font-size: 22px; background: var(--soft); border-radius: 12px;
+  padding: 6px 10px; line-height: 1;
+}
+.programaVacio { font-size: 13px; color: var(--ink); opacity: .55; font-family: "Baloo", sans-serif; }
+
 /* grilla 1-100 (14-jul-2026, 1° grado NAP Bimestre 4): una decena por
    ronda en layout 2×5, ".hueco" (genérica) marca la celda a completar. */
 .grilla100 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
