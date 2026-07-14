@@ -141,3 +141,22 @@ def test_certificado_logro_token_invalido():
     assert aw.certificado_logro("no-existe-xx") is None
     assert aw.certificado_logro("../../etc") is None
     assert aw.certificado_logro("") is None
+
+
+def test_certificado_logro_nombre_del_perfil_pisa_al_de_la_compra(token):
+    """actividades-web NO pide nombre al comprar y el player soporta VARIOS
+    perfiles por token (14-jul-2026, Pablo: "pueden ser 2 chicos los que
+    juegan en la misma casa") — el nombre real viaja del perfil activo del
+    player (query param), no del manifest de la compra."""
+    im_a = aw.certificado_logro(token, nombre="Valentina")
+    im_b = aw.certificado_logro(token, nombre="Benjamín")
+    assert im_a is not None and im_b is not None
+    assert im_a.tobytes() != im_b.tobytes()
+
+
+def test_certificado_logro_sin_nombre_cae_al_de_la_compra(token, data):
+    """El fixture 'token' del módulo se creó con nombre='Sofía' (línea 24) —
+    sin nombre explícito, no debe quedar en blanco de la nada."""
+    con_nombre_compra = aw.certificado_logro(token)
+    con_nombre_explicito = aw.certificado_logro(token, nombre="Sofía")
+    assert con_nombre_compra.tobytes() == con_nombre_explicito.tobytes()

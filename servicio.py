@@ -939,8 +939,11 @@ class Handler(BaseHTTPRequestHandler):
             if arch == "certificado.png":
                 # diploma de logro: renderizado EN VIVO, recién cuando el player
                 # lo pide (ganó 3 estrellas en TODOS los juegos) — no se
-                # pre-genera con el resto de los assets del token.
-                im = aw.certificado_logro(token)
+                # pre-genera con el resto de los assets del token. El nombre
+                # viaja del PERFIL activo del player (actividades-web soporta
+                # varios chicos por token, no se pide nombre al comprar).
+                nombre_q = urllib.parse.parse_qs(u.query).get("nombre", [None])[0]
+                im = aw.certificado_logro(token, nombre=nombre_q)
                 if im is None:
                     return self._json(404, {"ok": False, "error": "no existe"})
                 buf = io.BytesIO()
