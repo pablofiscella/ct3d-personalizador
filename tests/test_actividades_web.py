@@ -186,6 +186,31 @@ def test_laberintos_transitables(data):
             assert not celdas[y][x] & BIT[dir_], "pared en el camino"
 
 
+def test_laberintos_chicos_transitables(data):
+    """laberintos_chicos (14-jul-2026, prototipo "programá el camino"):
+    mismo generador/verificación que los laberintos normales, tamaño propio
+    (3-4 celdas) para que la secuencia de instrucciones sea corta."""
+    BIT = {"E": 4, "W": 8, "N": 1, "S": 2}
+    assert len(data["laberintos_chicos"]) == 3
+    for lab in data["laberintos_chicos"]:
+        assert lab["n"] <= 4, "tienen que quedarse chicos: el chico arma la secuencia a mano"
+        n, celdas, cam = lab["n"], lab["celdas"], lab["camino"]
+        assert cam[0] == [0, 0] and cam[-1] == [n - 1, n - 1]
+        for (x, y), (nx, ny) in zip(cam, cam[1:]):
+            dx, dy = nx - x, ny - y
+            dir_ = {(1, 0): "E", (-1, 0): "W", (0, 1): "S", (0, -1): "N"}[(dx, dy)]
+            assert not celdas[y][x] & BIT[dir_], "pared en el camino"
+
+
+def test_programar_camino_registrado():
+    """Prototipo de pensamiento computacional (14-jul-2026, idea de Pablo) —
+    provisorio en la banda base de TODAS las edades grande (1°-7°) mientras
+    se valida la mecánica."""
+    for edad in (6, 7, 8, 9, 10, 11, 12):
+        ids = {m["id"] for m in aw._menu("grande", edad)}
+        assert "programar_camino" in ids, f"falta en edad {edad}"
+
+
 def test_sopas_verificadas(data):
     assert data["sopas"], "banda grande sin sopas"
     for s in data["sopas"]:

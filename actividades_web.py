@@ -143,6 +143,11 @@ def _menu(banda, edad):
     g = [
         {"id": "memotest",  "titulo": "Memotest",         "icono": "🧠", "cfg": {"pares": 8}},
         {"id": "laberinto", "titulo": "El laberinto",     "icono": "🌀", "cfg": {"desde": 0}},
+        # PROTOTIPO 14-jul-2026 (idea de Pablo: pensamiento computacional,
+        # armar instrucciones y apretar Play para animar el recorrido).
+        # Provisorio en la banda base mientras se valida la mecánica — no
+        # es una decisión final de quedarse en las 7 edades.
+        {"id": "programar_camino", "titulo": "Programá el camino", "icono": "🤖", "cfg": {}},
         {"id": "sopa",      "titulo": "Sopa de letras",   "icono": "🔤", "cfg": {}},
         {"id": "sudoku",    "titulo": "Sudoku",           "icono": "🧩", "cfg": {}},
         {"id": "sumas",     "titulo": "Sumas",            "icono": "➕", "cfg": {"max": 10, "rondas": 6}},
@@ -667,6 +672,15 @@ def _armar_data(tema, nombre, edad, seed):
         tams = [6, 7, 8, 9] if banda == "media" else [9, 10, 11, 12]
         laberintos = [_lab_json(n, seed + i * 17) for i, n in enumerate(tams)]
 
+    # laberintos CHICOS para "programá el camino" (14-jul-2026, prototipo de
+    # pensamiento computacional): los de arriba (9-12 celdas en "grande") son
+    # enormes para armar una secuencia de instrucciones a mano — acá van 3
+    # de 3-4 celdas, mismo generador verificado por BFS, tamaño propio.
+    laberintos_chicos = []
+    if banda == "grande":
+        tams_chicos = [3, 4, 4]
+        laberintos_chicos = [_lab_json(n, seed + 900 + i * 23) for i, n in enumerate(tams_chicos)]
+
     titulo = ("Las actividades de %s" % nombre) if nombre else "Cuaderno de actividades"
     return {
         "v": 1, "tema": tema, "tema_nombre": _tema_nombre(tema),
@@ -674,6 +688,7 @@ def _armar_data(tema, nombre, edad, seed):
         "paleta": _paleta(tema),
         "menu": _menu(banda, edad),
         "sopas": sopas, "sudokus": sudokus, "laberintos": laberintos,
+        "laberintos_chicos": laberintos_chicos,
         "figuras": {"estrella": _figura_pts("estrella", 10),
                     "corazon": _figura_pts("corazon", 14)},
     }
