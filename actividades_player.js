@@ -2428,6 +2428,12 @@ const FAMILIA_BANCO = [
   { raiz: "LIBRO", correcta: "LIBRERÍA", distractoras: ["PELOTA", "VENTANA"] },
   { raiz: "LECHE", correcta: "LECHERO", distractoras: ["SILLA", "CAMINO"] },
   { raiz: "PESCADO", correcta: "PESCADERÍA", distractoras: ["MESA", "JARDÍN"] },
+  // agregados 14-jul-2026 (banco ampliado de 5 a 10).
+  { raiz: "ZAPATO", correcta: "ZAPATERÍA", distractoras: ["MESA", "PERRO"] },
+  { raiz: "DIENTE", correcta: "DENTISTA", distractoras: ["SILLA", "RÍO"] },
+  { raiz: "CARTA", correcta: "CARTERO", distractoras: ["SOL", "GATO"] },
+  { raiz: "JARDÍN", correcta: "JARDINERO", distractoras: ["LUNA", "MESA"] },
+  { raiz: "RELOJ", correcta: "RELOJERÍA", distractoras: ["PATO", "NUBE"] },
 ];
 GAMES.familia_palabras = {
   crear(ctx) {
@@ -2620,6 +2626,9 @@ GAMES.tablas_contrarreloj = {
 const ANIMAL_COMIDA_BANCO = [
   { animal: "🦁", comida: "🥩" }, { animal: "🐰", comida: "🥕" }, { animal: "🐝", comida: "🌸" },
   { animal: "🐼", comida: "🎋" }, { animal: "🦉", comida: "🐭" },
+  // agregados 14-jul-2026 (banco ampliado de 5 a 10).
+  { animal: "🐵", comida: "🍌" }, { animal: "🐘", comida: "🥜" }, { animal: "🐻", comida: "🍯" },
+  { animal: "🐮", comida: "🌾" }, { animal: "🐿️", comida: "🌰" },
 ];
 GAMES.animal_comida = {
   crear(ctx) {
@@ -3594,6 +3603,12 @@ const COLONIAL_BANCO = [
   { afirmacion: "La pulpería era una tienda donde se vendía de todo", val: true },
   { afirmacion: "Los criollos eran hijos de españoles nacidos en América", val: true },
   { afirmacion: "El monopolio permitía comerciar libremente con cualquier país", val: false },
+  // agregados 14-jul-2026 (banco ampliado de 5 a 10).
+  { afirmacion: "El Virreinato del Río de la Plata se creó en 1776", val: true },
+  { afirmacion: "Los mestizos eran hijos de españoles e indígenas", val: true },
+  { afirmacion: "Existió esclavitud africana durante la época colonial en el Río de la Plata", val: true },
+  { afirmacion: "El Cabildo Abierto era una reunión secreta a la que nadie podía asistir", val: false },
+  { afirmacion: "Durante la colonia, los indígenas y los criollos tenían los mismos derechos que los españoles peninsulares", val: false },
 ];
 GAMES.trivia_colonial = {
   crear(ctx) {
@@ -4056,6 +4071,12 @@ const DERECHOS_BANCO = [
   { afirmacion: "Argentina es una república federal y democrática", val: true },
   { afirmacion: "Los niños no tienen derecho a jugar ni a descansar", val: false },
   { afirmacion: "Todos los niños tienen derecho a la salud", val: true },
+  // agregados 14-jul-2026 (banco ampliado de 5 a 10).
+  { afirmacion: "La Convención sobre los Derechos del Niño protege a los chicos en todo el mundo", val: true },
+  { afirmacion: "Los niños no tienen derecho a expresar su opinión", val: false },
+  { afirmacion: "La Constitución Argentina garantiza la libertad de expresión", val: true },
+  { afirmacion: "En Argentina, los derechos solo valen para los adultos, no para los niños", val: false },
+  { afirmacion: "Los niños tienen derecho a la protección contra el maltrato", val: true },
 ];
 GAMES.derechos_constitucion = {
   crear(ctx) {
@@ -4239,6 +4260,12 @@ const NERVIOSO_BANCO = [
   { afirmacion: "Las neuronas transmiten información por impulsos eléctricos", val: true },
   { afirmacion: "El sistema nervioso periférico no cumple ninguna función", val: false },
   { afirmacion: "Un reflejo es una respuesta automática y rápida ante un estímulo", val: true },
+  // agregados 14-jul-2026 (banco ampliado de 5 a 10).
+  { afirmacion: "El cerebro controla el pensamiento, el movimiento y las emociones", val: true },
+  { afirmacion: "Las neuronas se conectan entre sí a través de las sinapsis", val: true },
+  { afirmacion: "El cerebelo se encarga del equilibrio y la coordinación de los movimientos", val: true },
+  { afirmacion: "Todos los reflejos pasan primero por el cerebro antes de actuar", val: false },
+  { afirmacion: "La médula espinal no cumple ninguna función en los reflejos", val: false },
 ];
 GAMES.sistema_nervioso = {
   crear(ctx) {
@@ -4352,6 +4379,12 @@ const FRACCION_CANTIDAD_BANCO = [
   { texto: "1/3 de 9", correcta: 3 },
   { texto: "3/4 de 8", correcta: 6 },
   { texto: "2/5 de 10", correcta: 4 },
+  // agregados 14-jul-2026 (banco ampliado de 5 a 10).
+  { texto: "1/5 de 15", correcta: 3 },
+  { texto: "2/3 de 12", correcta: 8 },
+  { texto: "3/5 de 20", correcta: 12 },
+  { texto: "1/6 de 18", correcta: 3 },
+  { texto: "5/6 de 12", correcta: 10 },
 ];
 GAMES.fraccion_de_cantidad = {
   crear(ctx) {
@@ -4773,6 +4806,14 @@ const REPRODUCTOR_BANCO = [
   { parte: "Útero", correcta: "Es donde se desarrolla el bebé", d1: "Es donde se producen los óvulos", d2: "Es donde se digieren los alimentos" },
   { parte: "Trompas de Falopio", correcta: "Conducen el óvulo hacia el útero", d1: "Producen espermatozoides", d2: "Almacenan la orina" },
   { parte: "Pene", correcta: "Órgano reproductor externo masculino", d1: "Órgano reproductor externo femenino", d2: "Glándula del crecimiento" },
+  // agregados 14-jul-2026 (banco ampliado de 5 a 10). Mismo registro
+  // clínico/textual, distractores por confusión real con otra parte del
+  // banco (nunca al azar).
+  { parte: "Vagina", correcta: "Canal de conexión con el exterior", d1: "Órgano donde se producen los óvulos", d2: "Órgano reproductor externo masculino" },
+  { parte: "Glándula mamaria", correcta: "Produce leche para alimentar al bebé", d1: "Produce los óvulos", d2: "Produce los espermatozoides" },
+  { parte: "Escroto", correcta: "Protege y regula la temperatura de los testículos", d1: "Produce los óvulos", d2: "Es donde se desarrolla el bebé" },
+  { parte: "Cuello uterino", correcta: "Conecta el útero con la vagina", d1: "Produce los espermatozoides", d2: "Filtra la sangre" },
+  { parte: "Placenta", correcta: "Nutre al bebé durante el embarazo", d1: "Protege a los testículos", d2: "Produce los óvulos" },
 ];
 GAMES.sistema_reproductor = {
   crear(ctx) {
@@ -4959,6 +5000,12 @@ const AREA_BANCO = [
   { texto: "Rectángulo A: 6m × 2m.<br>Rectángulo B: 4m × 1m.", correcta: 16 },
   { texto: "Rectángulo A: 3m × 3m.<br>Rectángulo B: 2m × 4m.", correcta: 17 },
   { texto: "Rectángulo A: 7m × 2m.<br>Rectángulo B: 3m × 2m.", correcta: 20 },
+  // agregados 14-jul-2026 (banco ampliado de 5 a 10).
+  { texto: "Rectángulo A: 8m × 3m.<br>Rectángulo B: 2m × 5m.", correcta: 34 },
+  { texto: "Rectángulo A: 4m × 4m.<br>Rectángulo B: 3m × 2m.", correcta: 22 },
+  { texto: "Rectángulo A: 5m × 3m.<br>Rectángulo B: 4m × 2m.", correcta: 23 },
+  { texto: "Rectángulo A: 6m × 3m.<br>Rectángulo B: 2m × 2m.", correcta: 22 },
+  { texto: "Rectángulo A: 9m × 2m.<br>Rectángulo B: 3m × 3m.", correcta: 27 },
 ];
 GAMES.area_perimetro = {
   crear(ctx) {
