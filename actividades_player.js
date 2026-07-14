@@ -1943,6 +1943,14 @@ const PLANTA_FRUTO_BANCO = [
   { planta: "🌴", fruto: "🥥" },   // palmera — coco
   { planta: "🌿", fruto: "🍓" },   // planta baja — frutilla
   { planta: "🌱", fruto: "🥕" },   // brote — zanahoria
+  // agregados 14-jul-2026 (banco ampliado de 4 a 6, NO a 10: es un juego
+  // 100% de emoji sin texto — Unicode no tiene suficientes emoji de
+  // "planta" distinguibles con un fruto real y correcto detrás para
+  // llegar a 10 sin repetir símbolo o inventar una pareja botánicamente
+  // falsa. 6 es el techo honesto de este juego puntual hasta que tenga
+  // ilustración propia en vez de solo emoji).
+  { planta: "🌸", fruto: "🍒" },   // cerezo en flor — cereza
+  { planta: "🪴", fruto: "🌶️" },   // planta en maceta — ají
 ];
 GAMES.planta_fruto = {
   crear(ctx) {
@@ -2839,12 +2847,19 @@ GAMES.tiempos_verbales = {
 const ESTACIONES_BANCO = [
   { e: "☀️", estacion: "Verano" }, { e: "🍂", estacion: "Otoño" },
   { e: "⛄", estacion: "Invierno" }, { e: "🌷", estacion: "Primavera" },
+  // agregados 14-jul-2026 (banco ampliado de 4 a 10 — más de un símbolo
+  // por estación, no estaciones nuevas: solo hay 4). Los botones de
+  // respuesta se dedupan en el propio juego (Set sobre "estacion").
+  { e: "🏖️", estacion: "Verano" }, { e: "🕶️", estacion: "Verano" },
+  { e: "🍁", estacion: "Otoño" }, { e: "🧣", estacion: "Otoño" },
+  { e: "🧤", estacion: "Invierno" },
+  { e: "🌸", estacion: "Primavera" },
 ];
 GAMES.estaciones = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 4;
     ctx.rondas(rondas);
-    const OPS = ESTACIONES_BANCO.map((x) => x.estacion);
+    const OPS = [...new Set(ESTACIONES_BANCO.map((x) => x.estacion))];
     let usados = [];
     let ronda = 0;
     const jugar = () => {
@@ -2961,6 +2976,15 @@ const MEZCLAS_BANCO = [
   { mezcla: "Limaduras de hierro y arena", herramienta: "Imán" },
   { mezcla: "Café molido y agua", herramienta: "Filtro" },
   { mezcla: "Papas hervidas y agua", herramienta: "Colador" },
+  // agregados 14-jul-2026 (banco ampliado de 4 a 10). HERRAMIENTAS es una
+  // lista fija de 3 botones (Colador/Imán/Filtro) — cualquier ítem nuevo
+  // tiene que usar exactamente una de esas 3, nunca una categoría nueva.
+  { mezcla: "Arroz cocido y agua", herramienta: "Colador" },
+  { mezcla: "Verduras hervidas y agua", herramienta: "Colador" },
+  { mezcla: "Clavos de metal y arena", herramienta: "Imán" },
+  { mezcla: "Tachuelas y aserrín", herramienta: "Imán" },
+  { mezcla: "Agua turbia con tierra fina", herramienta: "Filtro" },
+  { mezcla: "Té y agua", herramienta: "Filtro" },
 ];
 GAMES.separador_mezclas = {
   crear(ctx) {
@@ -4088,6 +4112,15 @@ const CELULA_BANCO = [
   { parte: "Membrana", correcta: "Protege y controla lo que entra y sale", d1: "Controla las actividades", d2: "Genera energía" },
   { parte: "Mitocondria", correcta: "Genera la energía de la célula", d1: "Protege a la célula", d2: "Guarda la información genética" },
   { parte: "Citoplasma", correcta: "Ocupa el espacio entre el núcleo y la membrana", d1: "Genera energía", d2: "Controla las actividades" },
+  // agregados 14-jul-2026 (banco ampliado de 4 a 10 — Pablo: "agrandar el
+  // banco de preguntas... preparar el terreno"). Distractores = función
+  // REAL de otra parte del banco (confusión genuina), nunca al azar.
+  { parte: "Ribosomas", correcta: "Fabrican las proteínas", d1: "Generan la energía de la célula", d2: "Controlan las actividades de la célula" },
+  { parte: "Vacuola", correcta: "Almacena agua, nutrientes y desechos", d1: "Fabrica las proteínas", d2: "Protege y controla lo que entra y sale" },
+  { parte: "Cloroplasto", correcta: "Realiza la fotosíntesis y produce el alimento", d1: "Genera la energía de la célula", d2: "Almacena agua y nutrientes" },
+  { parte: "Pared celular", correcta: "Le da rigidez y protección extra a la célula vegetal", d1: "Protege y controla lo que entra y sale", d2: "Genera la energía de la célula" },
+  { parte: "Aparato de Golgi", correcta: "Empaqueta y distribuye las proteínas", d1: "Fabrica las proteínas", d2: "Guarda la información genética" },
+  { parte: "Retículo endoplasmático", correcta: "Transporta sustancias dentro de la célula", d1: "Ocupa el espacio entre el núcleo y la membrana", d2: "Genera la energía de la célula" },
 ];
 GAMES.celula_partes = {
   crear(ctx) {
@@ -4381,6 +4414,15 @@ const SUFRAGIO_BANCO = [
   { afirmacion: "Antes de 1912 todos los hombres podían votar libremente y en secreto", val: false },
   { afirmacion: "Hipólito Yrigoyen fue elegido presidente en 1916 con la nueva ley", val: true },
   { afirmacion: "Las mujeres podían votar desde 1912", val: false },
+  // agregados 14-jul-2026 (banco ampliado de 4 a 10). Hechos verificados:
+  // Ley 13.010 (1947) y voto femenino real en 1951; "voto cantado" es el
+  // término histórico correcto para el voto público pre-1912.
+  { afirmacion: "El sufragio femenino en Argentina se logró en 1947, con la Ley 13.010", val: true },
+  { afirmacion: "Antes de la Ley Sáenz Peña, el voto se llamaba \"voto cantado\" porque se decía en voz alta y no era secreto", val: true },
+  { afirmacion: "Roque Sáenz Peña fue el presidente que impulsó la ley del voto secreto y obligatorio", val: true },
+  { afirmacion: "La Ley Sáenz Peña de 1912 les dio el derecho a votar a las mujeres", val: false },
+  { afirmacion: "El voto es obligatorio en Argentina desde la Ley Sáenz Peña de 1912", val: true },
+  { afirmacion: "En Argentina votar es opcional: cada persona elige si quiere hacerlo", val: false },
 ];
 GAMES.sufragio_argentina = {
   crear(ctx) {
