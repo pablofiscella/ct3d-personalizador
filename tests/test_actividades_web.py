@@ -114,6 +114,66 @@ def test_tokens_invalidos():
     assert aw.archivo("no-existe-xx", "data.json") is None
 
 
+# ─────────────────────────────────────────────────────────────────────────
+# Audio-guía (14-jul-2026): "es la brecha de UX más urgente para 4-5 años,
+# más urgente que sumar juegos nuevos" (investigación §2b) — consignas
+# grabadas UNA vez (texto fijo del player, no personalizado), servidas como
+# asset del repo igual que player.js/las fuentes.
+def test_texto_para_tts_quita_emoji_conserva_el_resto():
+    assert aw._texto_para_tts("Llevá a tu amigo hasta la estrella ⭐") == \
+        "Llevá a tu amigo hasta la estrella"
+    assert aw._texto_para_tts("Sin emoji acá") == "Sin emoji acá"
+
+
+def test_slug_audio_deterministico_y_distinto_por_texto():
+    a1 = aw._slug_audio("Tocá el que es DISTINTO")
+    a2 = aw._slug_audio("Tocá el que es DISTINTO")
+    b = aw._slug_audio("Otro texto")
+    assert a1 == a2
+    assert a1 != b
+    assert a1.startswith("c_") and a1.endswith(".mp3")
+
+
+def test_generar_audio_consignas_idempotente_y_sirve_por_archivo(tmp_path, monkeypatch, token):
+    """Mockea el TTS (no llama a ElevenLabs de verdad) para probar: genera lo
+    nuevo, NO regenera lo que ya existe, el manifest mergea viejo+nuevo, y
+    archivo() sirve tanto el manifest como cada mp3 a través del token."""
+    monkeypatch.setattr(aw, "AUDIO_DIR", str(tmp_path))
+    llamadas = []
+
+    class FakeAudiolibro:
+        @staticmethod
+        def tts_mp3(api_key, texto):
+            llamadas.append(texto)
+            return b"FAKE-MP3-BYTES"
+
+    import sys
+    monkeypatch.setitem(sys.modules, "audiolibro", FakeAudiolibro)
+
+    m1 = aw.generar_audio_consignas(["Texto A", "Texto B"])
+    assert len(llamadas) == 2
+    assert set(m1) == {"Texto A", "Texto B"}
+
+    # volver a pedir "Texto A" (ya existe) + un texto nuevo: NO regenera A
+    m2 = aw.generar_audio_consignas(["Texto A", "Texto C"])
+    assert llamadas == ["Texto A", "Texto B", "Texto C"]   # A no se repitió
+    assert set(m2) == {"Texto A", "Texto B", "Texto C"}     # el manifest mergeó
+
+    # archivo() sirve el manifest y cada mp3 a través del token real
+    body, ct = aw.archivo(token, "audio_manifest.json")
+    assert ct == "application/json; charset=utf-8"
+    assert json.loads(body) == m2
+    fn = m2["Texto A"]
+    body2, ct2 = aw.archivo(token, fn)
+    assert ct2 == "audio/mpeg" and body2 == b"FAKE-MP3-BYTES"
+
+
+def test_archivo_rechaza_mp3_con_nombre_invalido(token):
+    assert aw.archivo(token, "c_notahexvalue.mp3") is None
+    assert aw.archivo(token, "../../etc/passwd.mp3") is None
+    assert aw.archivo(token, "c_deadbeef00.mp3") is None  # nombre válido pero no existe
+
+
 def test_archivo_whitelist(token):
     assert aw.archivo(token, "manifest.json") is None      # no expuesto
     assert aw.archivo(token, "../secreto.txt") is None

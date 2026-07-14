@@ -40,6 +40,29 @@ let D = null;            // data.json
 let P = [];              // personajes (filenames)
 const GAMES = {};        // registro de juegos
 
+/* ── audio-guía (14-jul-2026): consignas grabadas — texto fijo del player,
+   no personalizado, así que es UN solo archivo por frase para TODOS los
+   tokens (mismo criterio que player.js/las fuentes: mejora una vez, llega
+   a todos los links ya vendidos). Best-effort: si el manifest no existe
+   (producto sin audio todavía) o el archivo puntual no está grabado, el
+   player sigue andando en silencio — nunca bloquea la actividad. */
+let AudioManifest = {};
+let vozActual = null;
+async function cargarAudioManifest() {
+  try {
+    const r = await fetch("audio_manifest.json");
+    if (r.ok) AudioManifest = await r.json();
+  } catch (e) { /* sin audio-guía para este token: se juega en silencio */ }
+}
+function reproducirConsigna(txt) {
+  if (vozActual) { vozActual.pause(); vozActual = null; }
+  if (!Sfx.on) return;
+  const archivo = AudioManifest[txt];
+  if (!archivo) return;
+  vozActual = new Audio(archivo);
+  vozActual.play().catch(() => {});   // autoplay bloqueado hasta el primer toque: no rompe nada
+}
+
 /* ── persistencia (perfiles + estrellas + sonido) por token ── */
 /* Perfiles (14-jul-2026, Pablo: "pueden ser 2 chicos los que juegan en la
    misma casa" — el link/token es UNO solo por compra, pero cada hermano
@@ -204,6 +227,7 @@ const Shell = {
         const p = $("#consignaPista");
         if (pistaSrc) { p.src = pistaSrc; p.style.display = ""; }
         else p.style.display = "none";
+        reproducirConsigna(txt);
       },
       rondas(n) {
         self._rondas = n;
@@ -342,6 +366,7 @@ async function boot() {
   Sfx.on = Store.data.sound !== false;
   $("#btnSonido").textContent = Sfx.on ? "🔊" : "🔇";
   Confeti.init();
+  cargarAudioManifest();   // en paralelo, no bloquea el arranque
   // precarga de personajes (los juegos los usan al instante)
   await Promise.all(P.map((src) => new Promise((res) => {
     const im = new Image(); im.onload = im.onerror = res; im.src = src;
@@ -364,6 +389,7 @@ async function boot() {
     Sfx.on = !Sfx.on;
     Store.data.sound = Sfx.on; Store.save();
     $("#btnSonido").textContent = Sfx.on ? "🔊" : "🔇";
+    if (!Sfx.on && vozActual) { vozActual.pause(); vozActual = null; }
     if (Sfx.on) Sfx.pop();
   });
   $("#btnSeguir").addEventListener("click", () => {

@@ -290,33 +290,56 @@ actividades que hicimos podés hacerlo")
    4 pide "conteo oral hasta el 5" (NAP); hasta ahora 4 y 5 años
    compartían el mismo `max=6`. Mismo patrón que ya usaba `sumas`
    (`if e >= 5`), extendido con `if e == 4`.
-4. Probado en vivo con Playwright (no solo tests unitarios): las 3 mejoras
+4. ✅ **Audio-guía construido — resultó MUCHO más chico de lo estimado.**
+   Las consignas son texto FIJO del player (nunca personalizado por
+   compra), así que no hace falta generar audio por token: se graban UNA
+   vez, se sirven como asset del repo (igual criterio que `player.js`/las
+   fuentes). `actividades_web.generar_audio_consignas()` reusa
+   `audiolibro.tts_mp3()` (ElevenLabs Lizy, acento argentino) tal cual
+   estaba planeado. Grabadas las 22 consignas de los 15 juegos de la banda
+   `media` (924KB total). El player las reproduce automáticamente al
+   mostrar cada consigna, respetando el mute que ya existía — best-effort:
+   si un texto no tiene grabación, sigue en silencio, nunca bloquea.
+   Bug real encontrado y corregido en el camino: el emoji ⭐ (laberinto) no
+   entraba en el rango Unicode que se limpiaba antes de mandar el texto a
+   la voz — la primera grabación intentaba "leer" el símbolo.
+5. Probado en vivo con Playwright (no solo tests unitarios): las 4 mejoras
    funcionan de punta a punta en un navegador real, capturas en la
    conversación.
 
 ### Deliberadamente NO hecho en esta pasada (decisión consciente, no olvido)
 
-1. **Audio-guía** — sigue siendo la brecha de UX más urgente identificada
-   (§2b), pero es un trabajo grande de verdad (integrar TTS, generar/cachear
-   audio por consigna, cambios de UI del player) que merece su propio
-   hito enfocado, no una tarea more agregada a esta tanda. `audiolibro.py`
-   ya tiene el motor de voz (ElevenLabs, acento argentino) — reusar ese
-   mismo camino cuando se aborde.
-2. **Auditoría visual completa de las 11 piezas de Sala de 4 contra el
-   "detalle seductor"** (§2b) — no se revisó imagen por imagen todavía si
-   hay decoración tangencial en `agrupar`/`diferente`/etc. Queda para la
-   próxima pasada.
-3. **Parametrización real por bimestre** — no se construyó un selector de
+1. ✅ **Auditoría visual completa contra el "detalle seductor"** — hecha
+   14-jul-2026 (los 15 juegos de la banda `media`, uno por uno, código
+   real). **Resultado: no hay violaciones reales del principio.** El
+   engine ya evita el problema por diseño — en todos los juegos, el sprite
+   mostrado es el CONTENIDO directo de la tarea (lo que hay que contar,
+   emparejar, clasificar, comparar), no decoración alrededor. Único uso de
+   fondo de escena (`D.escena` en `contar`) es funcional (superficie donde
+   se apoyan los objetos a contar), no decorativo. `contar` además ya tiene
+   un mecanismo de "distractor" DELIBERADO (otro personaje que NO hay que
+   contar, con pista visual clara de cuál sí) — discriminación visual
+   legítima, no ruido al azar. No hace falta ningún cambio; se confirma
+   como fortaleza existente, no como deuda.
+2. **Parametrización real por bimestre** — no se construyó un selector de
    bimestre porque hoy NO existe ningún flujo (compra o "Modo Maestra") que
    pida esa información; hacerlo ahora sería plomería sin nada que la use
-   todavía. El ajuste del punto 3 de arriba (edad exacta, no bimestre) es
+   todavía. El ajuste de `contar` por edad exacta (punto 3 de arriba) es
    la versión que SÍ tiene un consumidor real hoy — el bimestre exacto
    espera a que "Modo Maestra" exista como feature real.
-4. **Equivalente impreso (PDF) de `posicion`** — el juego nuevo hoy es
+3. **Equivalente impreso (PDF) de `posicion`** — el juego nuevo hoy es
    solo interactivo web; `cuaderno.py` no tiene un generador `_a_posicion`
    todavía. Verificado que esto NO rompe nada (la card de la galería cae a
    un fallback genérico), pero es trabajo pendiente si se quiere paridad
    completa PDF/web.
+4. **Audio-guía solo cubre Sala de 4 (banda `media`)** — las otras bandas
+   (`mini`, `grande`) y sus juegos propios (sopa, sudoku, restas, etc.) NO
+   tienen consignas grabadas todavía. Extender es mecánico (agregar los
+   textos nuevos a `generar_audio_consignas()`, que es idempotente — no
+   regenera lo que ya existe) pero hay que hacerlo cuando se aborden esas
+   edades. El festejo ("¡Muy bien, {nombre}!") tampoco tiene voz — incluye
+   el nombre del perfil, que varía por chico, no es texto fijo grabable de
+   la misma manera.
 
 ## 6. Pendientes que dependen de Pablo (no técnicos)
 

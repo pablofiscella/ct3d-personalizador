@@ -102,7 +102,7 @@ edad" (roadmap 14-jul-2026). NO improvisar la mezcla — usar esta tabla:
 
 | Orden | Edad/grado | Estado (14-jul-2026) | Tipo de trabajo |
 |---|---|---|---|
-| 1 | Sala de 4 años | ✅ Primer incremento shippeado 14-jul-2026 — ver informe §5b. Faltan: audio-guía (su propio hito), auditoría visual completa, `posicion` en el cuaderno impreso | Curación (bajo esfuerzo) |
+| 1 | Sala de 4 años | ✅ Shippeado 14-jul-2026 (ver informe §5b): mejoras + juego nuevo + audio-guía + auditoría visual, todo hecho. Falta: `posicion` en el cuaderno impreso | Curación (bajo esfuerzo) |
 | 2 | Sala de 5 años | Mapeo ya hecho, informe §5 — mitad matemática lista, mitad fonética sin construir | Curación (matemática) + construcción (audio/fonética) |
 | 3 | 1° grado | Desglose disponible en el currículum | Curación + ampliar rango numérico + sílabas CV (reusa el audio de Sala 5) |
 | 4 | 2° grado | Desglose disponible en el currículum (completado 14-jul) | Curación + banda propia (hoy comparte con 12 años) + cursiva + multiplicación conceptual |
@@ -145,9 +145,13 @@ el informe para las fuentes completas).
    usadas efectivamente tengan formas de una sola vía en minúscula.
 5. **Una sola acción clara por pantalla para 4-6 años, con audio-guía
    SIEMPRE presente** — nunca depender de que el chico lea la consigna
-   solo. El motor hoy NO tiene audio-guía en ningún juego (confirmado en la
-   auditoría) — es la brecha de diseño gráfico/UX más urgente para Sala de
-   4-5, más urgente que sumar juegos nuevos.
+   solo. ✅ Construido 14-jul-2026 para la banda `media` (`actividades_web
+   .generar_audio_consignas()`, reusa `audiolibro.tts_mp3` — las consignas
+   son texto FIJO del player, se graban UNA vez y se sirven como asset del
+   repo, NO por token). Al agregar un juego nuevo o una banda nueva,
+   agregar sus textos de consigna a esa función (es idempotente, no
+   regastás en lo ya grabado) — no lanzar contenido nuevo para 4-7 años
+   sin su audio.
 6. **Targets táctiles ≥48×48dp con ≥64px de separación** entre elementos
    interactivos — a los 4-7 años el control motor fino todavía falla.
 7. **El estilo de ilustración se elige según el OBJETIVO de esa pieza
@@ -221,5 +225,8 @@ el primer intento = se puede completar sin aprender.
    resto del motor: lo que tiene respuesta correcta se VERIFICA por código —
    ver `tests/test_actividades_web.py`/`tests/test_certificado.py` como
    ejemplo de estilo).
-9. Actualizar la tabla de la sección 4 de ESTA skill cuando el año quede
-   validado — que no quede desactualizada para la próxima sesión.
+9. Para 4-7 años: agregar los textos de consigna NUEVOS a
+   `actividades_web.generar_audio_consignas()` (sección 4b, punto 5) — no
+   lanzar contenido sin su audio grabado en esa franja.
+10. Actualizar la tabla de la sección 4 de ESTA skill cuando el año quede
+    validado — que no quede desactualizada para la próxima sesión.
