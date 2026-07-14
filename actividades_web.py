@@ -188,7 +188,8 @@ def _menu(banda, edad):
         g.append({"id": "planta_fruto", "titulo": "¿Qué fruto da?", "icono": "🌳", "cfg": {"rondas": 6}})
         # NAP 1° grado Bimestre 4 "Ideas web": "trivia de materiales" y
         # "rompecabezas numérico de la grilla 1-100".
-        g.append({"id": "materiales", "titulo": "¿De qué material es?", "icono": "🪟", "cfg": {"rondas": 5}})
+        # rondas=10 (14-jul-2026): MATERIALES_BANCO creció de 6 a 10.
+        g.append({"id": "materiales", "titulo": "¿De qué material es?", "icono": "🪟", "cfg": {"rondas": 10}})
         g.append({"id": "grilla100", "titulo": "La grilla numérica", "icono": "🧮", "cfg": {"rondas": 6}})
     if e == 7:
         # 2° grado (14-jul-2026): mismo criterio que 1° grado — un juego
@@ -198,14 +199,16 @@ def _menu(banda, edad):
         g.append({"id": "sustantivos", "titulo": "Común o propio", "icono": "📛", "cfg": {"rondas": 10}})
         g.append({"id": "sumas_redondas", "titulo": "Sumas redondas", "icono": "🔟", "cfg": {"rondas": 5}})
         # Bimestre 2: sinónimos/antónimos + suma repetida → multiplicación.
-        g.append({"id": "sinonimos_antonimos", "titulo": "Sinónimos y antónimos", "icono": "🔀", "cfg": {"rondas": 5}})
+        # rondas=10 (14-jul-2026): SINANT_BANCO creció de 6 a 10.
+        g.append({"id": "sinonimos_antonimos", "titulo": "Sinónimos y antónimos", "icono": "🔀", "cfg": {"rondas": 10}})
         g.append({"id": "multiplicacion_concepto", "titulo": "De la suma a la multiplicación", "icono": "✖️", "cfg": {"rondas": 5}})
         # Bimestre 3: conductor/aislante + familia de palabras.
         g.append({"id": "conductor_aislante", "titulo": "¿Se calienta rápido?", "icono": "🍳", "cfg": {"rondas": 6}})
         # rondas=10 (14-jul-2026): FAMILIA_BANCO creció de 5 a 10.
         g.append({"id": "familia_palabras", "titulo": "Familia de palabras", "icono": "👪", "cfg": {"rondas": 10}})
         # Bimestre 4: trivia espacial + tablas contrarreloj.
-        g.append({"id": "trivia_espacial", "titulo": "Día, noche o ambos", "icono": "🌗", "cfg": {"rondas": 5}})
+        # rondas=10 (14-jul-2026): ESPACIAL_BANCO creció de 6 a 10.
+        g.append({"id": "trivia_espacial", "titulo": "Día, noche o ambos", "icono": "🌗", "cfg": {"rondas": 10}})
         g.append({"id": "tablas_contrarreloj", "titulo": "Tablas contrarreloj", "icono": "⏱️", "cfg": {"rondas": 6}})
     if e == 8:
         # 3° grado (14-jul-2026): mismo criterio — un juego por cada "Idea
@@ -259,10 +262,12 @@ def _menu(banda, edad):
         # Bimestre 2: fracciones nivel 2 + análisis sintáctico contrarreloj.
         # rondas=10 (14-jul-2026): FRACCIONES_AVANZADO_BANCO tiene 20 ítems, de sobra.
         g.append({"id": "fracciones_avanzado", "titulo": "Fracciones equivalentes II", "icono": "🥧", "cfg": {"rondas": 10}})
-        g.append({"id": "analisis_sintactico", "titulo": "Núcleo del sujeto o predicado", "icono": "✏️", "cfg": {"rondas": 6}})
+        # rondas=10 (14-jul-2026): SINTACTICO_BANCO creció de 6 a 10.
+        g.append({"id": "analisis_sintactico", "titulo": "Núcleo del sujeto o predicado", "icono": "✏️", "cfg": {"rondas": 10}})
         # Bimestre 3: pago exacto + actividad económica por región.
         g.append({"id": "pago_exacto", "titulo": "Pago exacto", "icono": "🪙", "cfg": {"rondas": 5}})
-        g.append({"id": "actividad_economica", "titulo": "¿Qué se produce acá?", "icono": "🌾", "cfg": {"rondas": 6}})
+        # rondas=10 (14-jul-2026): ECONOMIA_BANCO creció de 6 a 10.
+        g.append({"id": "actividad_economica", "titulo": "¿Qué se produce acá?", "icono": "🌾", "cfg": {"rondas": 10}})
         # Bimestre 4: planta potabilizadora + derechos y constitución.
         g.append({"id": "planta_potabilizadora", "titulo": "Planta potabilizadora", "icono": "💧", "cfg": {"rondas": 4}})
         # rondas=10 (14-jul-2026): DERECHOS_BANCO creció de 5 a 10.
@@ -273,7 +278,8 @@ def _menu(banda, edad):
         # Bimestre 1: partes de la célula + hechos vs. opiniones.
         # rondas=10 (14-jul-2026): CELULA_BANCO creció de 4 a 10.
         g.append({"id": "celula_partes", "titulo": "Partes de la célula", "icono": "🔬", "cfg": {"rondas": 10}})
-        g.append({"id": "hechos_opiniones", "titulo": "Hecho u opinión", "icono": "📰", "cfg": {"rondas": 6}})
+        # rondas=10 (14-jul-2026): HECHOS_OPINIONES_BANCO creció de 6 a 10.
+        g.append({"id": "hechos_opiniones", "titulo": "Hecho u opinión", "icono": "📰", "cfg": {"rondas": 10}})
         # Bimestre 2: sistema nervioso + viaje del inmigrante.
         # rondas=10 (14-jul-2026): NERVIOSO_BANCO creció de 5 a 10.
         g.append({"id": "sistema_nervioso", "titulo": "Sistema nervioso", "icono": "🫨", "cfg": {"rondas": 10}})
@@ -285,19 +291,22 @@ def _menu(banda, edad):
         g.append({"id": "sufragio_argentina", "titulo": "El voto en Argentina", "icono": "🗳️", "cfg": {"rondas": 10}})
         # Bimestre 4: energía renovable + polígonos.
         g.append({"id": "energia_renovable", "titulo": "¿Renovable o no?", "icono": "⚡", "cfg": {"rondas": 6}})
-        g.append({"id": "poligonos_lados", "titulo": "¿Cuántos lados tiene?", "icono": "⬡", "cfg": {"rondas": 6}})
+        # rondas=10 (14-jul-2026): POLIGONOS_BANCO creció de 6 a 10.
+        g.append({"id": "poligonos_lados", "titulo": "¿Cuántos lados tiene?", "icono": "⬡", "cfg": {"rondas": 10}})
     if e == 12:
         # 7° grado (14-jul-2026, año de egreso, fin del NAP) — mismo
         # criterio: un juego por cada "Idea web" del NAP.
         # Bimestre 1: traductor algebraico + sistema solar (terrestre/gaseoso).
-        g.append({"id": "traductor_algebraico", "titulo": "Traductor algebraico", "icono": "🧮", "cfg": {"rondas": 5}})
+        # rondas=10 (14-jul-2026): ALGEBRA_BANCO creció de 6 a 10.
+        g.append({"id": "traductor_algebraico", "titulo": "Traductor algebraico", "icono": "🧮", "cfg": {"rondas": 10}})
         g.append({"id": "planetas_tipo", "titulo": "¿Terrestre o gaseoso?", "icono": "🪐", "cfg": {"rondas": 6}})
         # Bimestre 2: línea de tiempo de la democracia + aparato reproductor.
         g.append({"id": "linea_democracia", "titulo": "Línea de tiempo: la democracia", "icono": "🕊️", "cfg": {"rondas": 4}})
         # rondas=10 (14-jul-2026): REPRODUCTOR_BANCO creció de 5 a 10.
         g.append({"id": "sistema_reproductor", "titulo": "Aparato reproductor", "icono": "🧬", "cfg": {"rondas": 10}})
         # Bimestre 3: estadística (media) + red trófica.
-        g.append({"id": "estadistica_datos", "titulo": "Media, moda o mediana", "icono": "📊", "cfg": {"rondas": 5}})
+        # rondas=10 (14-jul-2026): ESTADISTICA_BANCO creció de 6 a 10.
+        g.append({"id": "estadistica_datos", "titulo": "Media, moda o mediana", "icono": "📊", "cfg": {"rondas": 10}})
         g.append({"id": "red_trofica", "titulo": "Red trófica", "icono": "🕸️", "cfg": {"rondas": 6}})
         # Bimestre 4: área de figuras compuestas + escape room de egreso.
         # rondas=10 (14-jul-2026): AREA_BANCO creció de 5 a 10.
