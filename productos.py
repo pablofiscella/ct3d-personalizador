@@ -833,10 +833,13 @@ TIPOS = {
     },
     "actividades-web": {
         "nombre": "Cuaderno de actividades interactivo (web)",
-        # SIN nombre (Pablo 12-jul-2026, mismo criterio que rompecabezas/
-        # rompecabezas-web): compra directa, sin nada para completar.
-        "descripcion": "Las actividades del cuaderno, pero JUGABLES: una web donde pinta, juega al memotest, resuelve laberintos, sopas de letras, sumas y más — con corrección automática, estrellas y festejos. Los juegos se adaptan a la edad y se pueden jugar mil veces. Para celu, tablet o compu; link que dura años.",
-        "campos": ["edad"],
+        # Nombre de vuelta (Pablo 14-jul-2026, revierte 452be39 del
+        # 12-jul-2026): pasa a ser el nombre POR DEFECTO del primer perfil
+        # del link (actividades_player.js prefillea el selector con él), no
+        # una personalización dura — si juega más de un chico en la misma
+        # casa, el selector de perfil ya soporta agregar otro nombre.
+        "descripcion": "Las actividades del cuaderno, pero JUGABLES: una web con el nombre del peque donde pinta, juega al memotest, resuelve laberintos, sopas de letras, sumas y más — con corrección automática, estrellas y festejos. Los juegos se adaptan a la edad y se pueden jugar mil veces. Para celu, tablet o compu; link que dura años.",
+        "campos": ["nombre", "edad"],
         "preview": "actividades-web",
         "piezas": _piezas_actividades_web,
     },
@@ -1127,7 +1130,7 @@ PERSONALIZADAS = {
     "milestone":      {"*": ["nombre"]},
     "video-invitacion": {"*": ["nombre", "edad", "fecha", "hora", "lugar"]},
     "invitacion-web": {"*": ["nombre", "edad", "fecha", "hora", "lugar", "direccion"]},
-    "actividades-web": {"*": ["edad"]},
+    "actividades-web": {"*": ["nombre", "edad"]},
     "mandalas":        {"00_portada": ["nombre"]},   # solo la portada usa el nombre; las mándalas son fijas
     "mandalas-media":         {"00_portada": ["nombre"]},
     "mandalas-media-pdf":     {"00_portada": ["nombre"]},
