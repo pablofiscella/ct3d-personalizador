@@ -40,6 +40,29 @@ let D = null;            // data.json
 let P = [];              // personajes (filenames)
 const GAMES = {};        // registro de juegos
 
+/* ── audio-guía (14-jul-2026): consignas grabadas — texto fijo del player,
+   no personalizado, así que es UN solo archivo por frase para TODOS los
+   tokens (mismo criterio que player.js/las fuentes: mejora una vez, llega
+   a todos los links ya vendidos). Best-effort: si el manifest no existe
+   (producto sin audio todavía) o el archivo puntual no está grabado, el
+   player sigue andando en silencio — nunca bloquea la actividad. */
+let AudioManifest = {};
+let vozActual = null;
+async function cargarAudioManifest() {
+  try {
+    const r = await fetch("audio_manifest.json");
+    if (r.ok) AudioManifest = await r.json();
+  } catch (e) { /* sin audio-guía para este token: se juega en silencio */ }
+}
+function reproducirConsigna(txt) {
+  if (vozActual) { vozActual.pause(); vozActual = null; }
+  if (!Sfx.on) return;
+  const archivo = AudioManifest[txt];
+  if (!archivo) return;
+  vozActual = new Audio(archivo);
+  vozActual.play().catch(() => {});   // autoplay bloqueado hasta el primer toque: no rompe nada
+}
+
 /* ── persistencia (perfiles + estrellas + sonido) por token ── */
 /* Perfiles (14-jul-2026, Pablo: "pueden ser 2 chicos los que juegan en la
    misma casa" — el link/token es UNO solo por compra, pero cada hermano
@@ -204,6 +227,7 @@ const Shell = {
         const p = $("#consignaPista");
         if (pistaSrc) { p.src = pistaSrc; p.style.display = ""; }
         else p.style.display = "none";
+        reproducirConsigna(txt);
       },
       rondas(n) {
         self._rondas = n;
@@ -342,6 +366,7 @@ async function boot() {
   Sfx.on = Store.data.sound !== false;
   $("#btnSonido").textContent = Sfx.on ? "🔊" : "🔇";
   Confeti.init();
+  cargarAudioManifest();   // en paralelo, no bloquea el arranque
   // precarga de personajes (los juegos los usan al instante)
   await Promise.all(P.map((src) => new Promise((res) => {
     const im = new Image(); im.onload = im.onerror = res; im.src = src;
@@ -364,6 +389,7 @@ async function boot() {
     Sfx.on = !Sfx.on;
     Store.data.sound = Sfx.on; Store.save();
     $("#btnSonido").textContent = Sfx.on ? "🔊" : "🔇";
+    if (!Sfx.on && vozActual) { vozActual.pause(); vozActual = null; }
     if (Sfx.on) Sfx.pop();
   });
   $("#btnSeguir").addEventListener("click", () => {
@@ -1462,9 +1488,12 @@ GAMES.mas_menos = {
       const [s1, s2] = sample(P, 2);
       const cont = el("div"); cont.id = "dosGrupos";
       let resuelto = false;
-      [[a, s1], [b, s2]].forEach(([nCant, src], idx) => {
+      const grupos = [];
+      [[a, s1], [b, s2]].forEach(([nCant, src]) => {
         const g = el("button", "grupo");
         for (let i = 0; i < nCant; i++) g.appendChild(el("img")).src = src;
+        const num = el("span", "grupo__num", String(nCant));
+        g.appendChild(num);
         g.addEventListener("click", async () => {
           if (resuelto) return;
           const gana = buscaMas ? Math.max(a, b) : Math.min(a, b);
@@ -1482,11 +1511,74 @@ GAMES.mas_menos = {
             g.style.animation = "sacudir .4s ease";
             setTimeout(() => (g.style.animation = ""), 450);
             ctx.casi();
+            // feedback elaborado: mostrar la cantidad de CADA grupo un
+            // instante para que pueda volver a contar y comparar, en vez
+            // de solo saber "esta no era" por descarte.
+            grupos.forEach((gr) => gr.querySelector(".grupo__num").classList.add("ver"));
+            await espera(1400);
+            grupos.forEach((gr) => gr.querySelector(".grupo__num").classList.remove("ver"));
           }
         });
+        grupos.push(g);
         cont.appendChild(g);
       });
       ctx.juego.appendChild(cont);
+    };
+    jugar();
+  },
+};
+
+/* ── ¿DÓNDE ESTÁ? — noción espacial (14-jul-2026, Sala de 4 Bimestre 1:
+   arriba/abajo/adentro/afuera). Una caja de referencia fija + 2 sprites en
+   posiciones CONTRASTANTES del MISMO eje (arriba↔abajo o adentro↔afuera,
+   nunca mezclados) — el distractor siempre es el opuesto conceptual, igual
+   criterio que el resto del motor: nunca al azar puro. ── */
+GAMES.posicion = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 5;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const PARES = [
+      { pos: "arriba", op: "abajo", txt: "ARRIBA de la caja" },
+      { pos: "abajo", op: "arriba", txt: "ABAJO de la caja" },
+      { pos: "adentro", op: "afuera", txt: "ADENTRO de la caja" },
+      { pos: "afuera", op: "adentro", txt: "AFUERA de la caja" },
+    ];
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const par = PARES[rint(0, PARES.length - 1)];
+      ctx.consigna(`Tocá lo que está ${par.txt}`);
+      ctx.juego.innerHTML = "";
+      const s = P[rint(0, P.length - 1)];
+      const cont = el("div", "cajaPosicion");
+      cont.appendChild(el("div", "cajaPosicion__caja"));
+      let resuelto = false;
+      // orden al azar para que la posición en pantalla no delate la respuesta
+      shuffle([par.pos, par.op]).forEach((p) => {
+        const b = el("button", `spriteBtn cajaPosicion__${p}`, `<img src="${s}" alt="">`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (p === par.pos) {
+            resuelto = true;
+            b.querySelector("img").classList.add("anim-brinco");
+            ctx.bien();
+            ronda++;
+            await espera(900);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            // en la img, no en el botón: el botón usa transform para su
+            // posición absoluta (arriba/abajo/adentro/afuera) y una
+            // animación que también setea transform se la pisaría.
+            const im = b.querySelector("img");
+            im.style.animation = "sacudir .4s ease";
+            setTimeout(() => (im.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+        cont.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(cont);
     };
     jugar();
   },

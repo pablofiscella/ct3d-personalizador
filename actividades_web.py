@@ -28,6 +28,7 @@ BASEDIR = os.path.dirname(os.path.abspath(__file__))
 ACT_DIR = os.path.join(BASEDIR, "actividades")
 TEMPLATE_HTML = os.path.join(BASEDIR, "actividades_player.html")
 TEMPLATE_JS = os.path.join(BASEDIR, "actividades_player.js")
+AUDIO_DIR = os.path.join(BASEDIR, "audio_consignas")
 VIGENCIA_DIAS = 7300         # igual que el audiolibro: respalda "Mis compras"
 _TOKEN_RE = r"[A-Za-z0-9_-]{8,32}"
 
@@ -103,6 +104,10 @@ def _menu(banda, edad):
             {"id": "puntos",    "titulo": "Uní los puntos",   "icono": "✨", "cfg": {"figuras": ["estrella"]}},
             {"id": "patron",    "titulo": "Seguí el patrón",  "icono": "🔁", "cfg": {"nivel": 2, "rondas": 5}},
             {"id": "mas_menos", "titulo": "¿Dónde hay más?",  "icono": "⚖️", "cfg": {"max": 6, "rondas": 5}},
+            # Sala de 4 Bimestre 1 (NAP): noción espacial arriba/abajo/
+            # adentro/afuera — único contenido de ese bimestre sin ningún
+            # juego hasta el 14-jul-2026 (ver docs/INFORME-ACTIVIDADES-PROGRESIVAS.md §5).
+            {"id": "posicion",  "titulo": "¿Dónde está?",     "icono": "📦", "cfg": {"rondas": 5}},
             {"id": "diferente", "titulo": "El distinto",      "icono": "🔍", "cfg": {"opciones": 4, "rondas": 5}},
             {"id": "tamano",    "titulo": "El más grande",    "icono": "📏", "cfg": {"rondas": 5}},
             {"id": "simon",     "titulo": "Escuchá y repetí", "icono": "🎵", "cfg": {"colores": 4, "rondas": 5}},
@@ -112,6 +117,13 @@ def _menu(banda, edad):
         ]
         if e >= 5:
             m.append({"id": "sumas", "titulo": "Sumas", "icono": "➕", "cfg": {"max": 5, "rondas": 5}})
+        if e == 4:
+            # NAP Sala de 4 (docs/CURRICULUM-NAP-ARGENTINA.md): "conteo oral
+            # hasta el 5" — hasta el 14-jul-2026 "contar" tenía el mismo
+            # max=6 sin distinguir 4 de 5 años dentro de la banda "media".
+            for item in m:
+                if item["id"] == "contar":
+                    item["cfg"] = {**item["cfg"], "max": 5}
         return m
     return [
         {"id": "memotest",  "titulo": "Memotest",         "icono": "🧠", "cfg": {"pares": 8}},
@@ -964,6 +976,56 @@ def _player_version():
         return "1"
 
 
+def _slug_audio(texto):
+    import hashlib
+    return "c_" + hashlib.md5(texto.encode("utf-8")).hexdigest()[:10] + ".mp3"
+
+
+_EMOJI_RE = re.compile(
+    "[\U0001F300-\U0001FAFF\U00002600-\U000027BF\U0001F000-\U0001F0FF"
+    "\U00002B00-\U00002BFF\U0000FE0F]+")
+
+
+def _texto_para_tts(texto):
+    """La consigna que se MUESTRA puede llevar emoji (⭐, 🧺...) — la voz no
+    tiene que intentar leerlos. El manifest queda indexado por el texto
+    ORIGINAL (lo que el player realmente pinta en pantalla)."""
+    return _EMOJI_RE.sub("", texto).strip()
+
+
+def generar_audio_consignas(textos):
+    """Audio-guía (14-jul-2026, investigación §2b: "es la brecha de UX más
+    urgente para 4-5 años, más urgente que sumar juegos nuevos" — a esa edad
+    no se puede depender de que el chico lea la consigna solo). Las
+    consignas son texto FIJO del player (nunca personalizado por compra), así
+    que se graban UNA VEZ acá y se sirven como asset del repo — igual
+    criterio que player.js/las fuentes, NO se regeneran por token. Reusa el
+    mismo motor de voz del audiolibro (ElevenLabs Lizy, acento argentino).
+
+    Idempotente: solo genera el .mp3 que todavía no existe (podés volver a
+    llamarla agregando textos nuevos sin regastar en los que ya están).
+    Devuelve el manifest {texto: archivo} completo (viejo + nuevo)."""
+    import audiolibro
+    os.makedirs(AUDIO_DIR, exist_ok=True)
+    manifest_path = os.path.join(AUDIO_DIR, "manifest.json")
+    try:
+        manifest = json.load(open(manifest_path, encoding="utf-8"))
+    except Exception:
+        manifest = {}
+    for texto in textos:
+        fn = _slug_audio(texto)
+        manifest[texto] = fn
+        path = os.path.join(AUDIO_DIR, fn)
+        if os.path.isfile(path):
+            continue
+        mp3 = audiolibro.tts_mp3(None, _texto_para_tts(texto))
+        with open(path, "wb") as f:
+            f.write(mp3)
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False)
+    return manifest
+
+
 def html(token):
     """El visor (HTML). Rutas RELATIVAS → servirlo SIEMPRE bajo /act/<token>/
     (con barra final). None si el token no está listo."""
@@ -977,15 +1039,18 @@ def html(token):
 
 
 _ASSET_RE = re.compile(
-    r"^(data\.json|player\.js|f[12]\.ttf|[ps]\d{2}\.png|colorear_\d\.png|escena\.jpg|portada\.jpg)$")
+    r"^(data\.json|player\.js|f[12]\.ttf|[ps]\d{2}\.png|colorear_\d\.png|escena\.jpg|portada\.jpg"
+    r"|audio_manifest\.json|c_[a-f0-9]{10}\.mp3)$")
 _CT = {".json": "application/json; charset=utf-8", ".js": "text/javascript; charset=utf-8",
-       ".ttf": "font/ttf", ".png": "image/png", ".jpg": "image/jpeg"}
+       ".ttf": "font/ttf", ".png": "image/png", ".jpg": "image/jpeg", ".mp3": "audio/mpeg"}
 
 
 def archivo(token, nombre):
-    """(bytes, content_type) de un asset del token, o None. El player y las
-    fuentes salen del REPO (mejoras llegan a links ya vendidos); el resto, de
-    la carpeta del token."""
+    """(bytes, content_type) de un asset del token, o None. El player, las
+    fuentes y el audio de las consignas salen del REPO (mejoras/grabaciones
+    nuevas llegan a links ya vendidos, mismo criterio que player.js — la
+    voz es fija, no personalizada por compra); el resto, de la carpeta del
+    token."""
     if not _cargar(token) or not _ASSET_RE.fullmatch(nombre or ""):
         return None
     if nombre == "player.js":
@@ -994,6 +1059,8 @@ def archivo(token, nombre):
         p = os.path.join(BASEDIR, "fonts", "Baloo2-VF.ttf")
     elif nombre == "f2.ttf":
         p = os.path.join(BASEDIR, "fonts", "Nunito-VF.ttf")
+    elif nombre == "audio_manifest.json" or nombre.endswith(".mp3"):
+        p = os.path.join(AUDIO_DIR, "manifest.json" if nombre == "audio_manifest.json" else nombre)
     else:
         p = os.path.join(ACT_DIR, token, nombre)
     if not os.path.isfile(p):

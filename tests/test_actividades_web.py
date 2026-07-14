@@ -52,6 +52,18 @@ def test_bandas_de_edad():
     assert "sopa" not in ids_mini and "sudoku" not in ids_mini
     ids_grande = {m["id"] for m in aw._menu("grande", 7)}
     assert {"sopa", "sudoku", "sumas", "restas"} <= ids_grande
+    # "posicion" (noción espacial arriba/abajo/adentro/afuera, Sala de 4
+    # Bimestre 1 NAP, 14-jul-2026): banda media (4-5 años), no en mini ni grande
+    ids_media4 = {m["id"] for m in aw._menu("media", 4)}
+    assert "posicion" in ids_media4
+    assert "posicion" not in ids_mini and "posicion" not in ids_grande
+    # NAP Sala de 4: "conteo oral hasta el 5" — antes del 14-jul-2026 4 y 5
+    # años compartían el mismo max=6 en "contar", sin distinguir dentro de
+    # la banda "media".
+    contar4 = next(m for m in aw._menu("media", 4) if m["id"] == "contar")
+    contar5 = next(m for m in aw._menu("media", 5) if m["id"] == "contar")
+    assert contar4["cfg"]["max"] == 5
+    assert contar5["cfg"]["max"] == 6
 
 
 def test_laberintos_transitables(data):
@@ -100,6 +112,66 @@ def test_tokens_invalidos():
     assert aw.estado("../../etc") is None
     assert aw.html("no-existe-xx") is None
     assert aw.archivo("no-existe-xx", "data.json") is None
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Audio-guía (14-jul-2026): "es la brecha de UX más urgente para 4-5 años,
+# más urgente que sumar juegos nuevos" (investigación §2b) — consignas
+# grabadas UNA vez (texto fijo del player, no personalizado), servidas como
+# asset del repo igual que player.js/las fuentes.
+def test_texto_para_tts_quita_emoji_conserva_el_resto():
+    assert aw._texto_para_tts("Llevá a tu amigo hasta la estrella ⭐") == \
+        "Llevá a tu amigo hasta la estrella"
+    assert aw._texto_para_tts("Sin emoji acá") == "Sin emoji acá"
+
+
+def test_slug_audio_deterministico_y_distinto_por_texto():
+    a1 = aw._slug_audio("Tocá el que es DISTINTO")
+    a2 = aw._slug_audio("Tocá el que es DISTINTO")
+    b = aw._slug_audio("Otro texto")
+    assert a1 == a2
+    assert a1 != b
+    assert a1.startswith("c_") and a1.endswith(".mp3")
+
+
+def test_generar_audio_consignas_idempotente_y_sirve_por_archivo(tmp_path, monkeypatch, token):
+    """Mockea el TTS (no llama a ElevenLabs de verdad) para probar: genera lo
+    nuevo, NO regenera lo que ya existe, el manifest mergea viejo+nuevo, y
+    archivo() sirve tanto el manifest como cada mp3 a través del token."""
+    monkeypatch.setattr(aw, "AUDIO_DIR", str(tmp_path))
+    llamadas = []
+
+    class FakeAudiolibro:
+        @staticmethod
+        def tts_mp3(api_key, texto):
+            llamadas.append(texto)
+            return b"FAKE-MP3-BYTES"
+
+    import sys
+    monkeypatch.setitem(sys.modules, "audiolibro", FakeAudiolibro)
+
+    m1 = aw.generar_audio_consignas(["Texto A", "Texto B"])
+    assert len(llamadas) == 2
+    assert set(m1) == {"Texto A", "Texto B"}
+
+    # volver a pedir "Texto A" (ya existe) + un texto nuevo: NO regenera A
+    m2 = aw.generar_audio_consignas(["Texto A", "Texto C"])
+    assert llamadas == ["Texto A", "Texto B", "Texto C"]   # A no se repitió
+    assert set(m2) == {"Texto A", "Texto B", "Texto C"}     # el manifest mergeó
+
+    # archivo() sirve el manifest y cada mp3 a través del token real
+    body, ct = aw.archivo(token, "audio_manifest.json")
+    assert ct == "application/json; charset=utf-8"
+    assert json.loads(body) == m2
+    fn = m2["Texto A"]
+    body2, ct2 = aw.archivo(token, fn)
+    assert ct2 == "audio/mpeg" and body2 == b"FAKE-MP3-BYTES"
+
+
+def test_archivo_rechaza_mp3_con_nombre_invalido(token):
+    assert aw.archivo(token, "c_notahexvalue.mp3") is None
+    assert aw.archivo(token, "../../etc/passwd.mp3") is None
+    assert aw.archivo(token, "c_deadbeef00.mp3") is None  # nombre válido pero no existe
 
 
 def test_archivo_whitelist(token):
