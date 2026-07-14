@@ -883,11 +883,19 @@ GAMES.colorear = {
         cx.drawImage(im, 0, 0, cv.width, cv.height);
         historia = [];
         // que canvas + paleta + botones entren juntos en la pantalla (el CSS
-        // escala el canvas; acá el tope exacto midiendo la botonera real)
+        // escala el canvas; acá el tope exacto midiendo la botonera real).
+        // 14-jul-2026 (Pablo: "verificá que todas entren en el alto de
+        // pantalla"): el buffer fijo "-42" no conocía el padding-bottom real
+        // de #stage en mobile (calc(64px + safe-area-inset-bottom), regla
+        // @media max-width:560px) — se leía el padding de #stage al vuelo
+        // en vez de adivinar un número fijo, así no se desincroniza si ese
+        // CSS cambia de nuevo.
         requestAnimationFrame(() => {
+          const stage = document.getElementById("stage");
+          const pb = stage ? parseFloat(getComputedStyle(stage).paddingBottom) || 0 : 0;
           const libre = innerHeight - wrap.getBoundingClientRect().top
-            - paleta.offsetHeight - botones.offsetHeight - 42;
-          cv.style.maxHeight = Math.max(210, libre) + "px";
+            - paleta.offsetHeight - botones.offsetHeight - pb - 24;
+          cv.style.maxHeight = Math.max(180, libre) + "px";
         });
       };
       im.src = D.colorear[idx];
@@ -5231,6 +5239,12 @@ GAMES.programar_camino = {
       const svg = document.createElementNS(NS, "svg");
       svg.setAttribute("viewBox", `0 0 ${S} ${S}`);
       svg.setAttribute("class", "svgJuego lienzo");
+      // laberinto CHICO (3-4 celdas): no hace falta que ocupe todo el ancho
+      // como el laberinto normal — abajo hay 2 filas más de botones, y a
+      // ancho completo la altura total no entraba en la pantalla (Pablo,
+      // 14-jul-2026: "la de robótica no entra").
+      svg.style.maxWidth = "230px";
+      svg.style.margin = "0 auto";
       let d = "";
       const X = (x) => M + x * C, Y = (y) => M + y * C;
       for (let y = 0; y < n; y++)
