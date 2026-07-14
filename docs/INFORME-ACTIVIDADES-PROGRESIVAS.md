@@ -188,7 +188,7 @@ corta del porqué, no solo "¡mal! probá de nuevo".
 | 2 | Sala de 5 años | ✅ Primer incremento shippeado 14-jul-2026 (§5c): `contar`/`mas_menos` con rango ampliado, juego nuevo `silabas` (primera mecánica de audio real del motor). Falta: sonido inicial de vocales, consonantes M/P/S/L, escritura del nombre — quedan fuera de esta primera pasada | Bajo (matemática) / Medio (fonética, mecánica nueva) |
 | 3 | 1° grado | ✅ Cerrado 14-jul-2026 (§5d-§5e): 7 juegos nuevos/curados cubriendo un "Idea web" del NAP por bimestre (`serie`+tope, `armar_palabra`, `abecedario`, `suma_rapida`, `campo_ciudad`, `planta_fruto`, `materiales`, `grilla100`). Falta a propósito: "la tiendita" con dinero (única "Idea PDF" priorizada igual) + contenido sin "Idea web" sugerida por el NAP (cuerpo humano, escuela, barrio, efemérides, comprensión lectora, escritura real) — candidatos para pasada aparte, no deuda de esta | Medio |
 | 4 | 2° grado | ✅ Cerrado 14-jul-2026 (§5f): mismo criterio que 1° grado — un juego por cada "Idea web" del NAP en los 4 bimestres (8 juegos nuevos: `sustantivos`, `sumas_redondas`, `sinonimos_antonimos`, `multiplicacion_concepto`, `conductor_aislante`, `familia_palabras`, `trivia_espacial`, `tablas_contrarreloj` — primera mecánica de TIMER del motor). No hizo falta separar de la banda "grande": edad exacta 7 alcanza, mismo patrón `if e == 7` que ya usan Sala de 5/1° grado | Medio |
-| 5 | 3° grado | Construir de cero: tabla pitagórica interactiva, números de 4 cifras, cuerpos geométricos, primeras nociones de ciencias naturales/sociales curriculares | Alto |
+| 5 | 3° grado | ✅ Cerrado 14-jul-2026 (§5g): mismo criterio "Ideas web" — 8 juegos nuevos (`animal_comida`, `partes_oracion`, `tabla_pitagorica`, `tiempos_verbales`, `estaciones`, `cuerpos_geometricos`, `separador_mezclas`, `cajero_automatico`). Resultó más "Medio" que "Alto" gracias a la reutilización de patrones ya probados (clasificar 2/3 categorías, matching 3 opciones, tocar 2 que sumen). Simplificado a propósito: sin rotación 3D real (no hay render 3D en el motor) | Medio |
 | 6 | 4°-5° grado | Fracciones (con apoyo visual — tiras, CPA), decimales, geometría con compás, primera historia argentina real (colonia, Revolución de Mayo) | Alto |
 | 7 | 6°-7° grado | Porcentaje, proporcionalidad, álgebra informal, estadística, ciencias naturales avanzadas (célula, sistema nervioso/endocrino), historia/geografía argentina contemporánea | Alto |
 
@@ -613,6 +613,78 @@ Mismo criterio que 1° grado: todo lo del NAP de 2° grado que NO tenía una
 motor no tiene; comprensión de cuentos tradicionales; circuito productivo;
 leyendas populares argentinas; cartas/mails; ortografía MB/MP/NV) queda para
 una pasada de diseño aparte, no es deuda de este incremento.
+
+## 5g. Cierre de 3° grado (mismo día, Pablo: "queres seguir. Después chequeo todo")
+
+Fin del Primer Ciclo NAP. El roadmap original (§4) marcaba este año como
+esfuerzo "Alto" ("construir de cero"), pero siguiendo el mismo criterio de
+"Ideas web" + reutilización agresiva de patrones ya probados en 1°/2° grado,
+terminó siendo más "Medio" — de los 8 juegos, 6 reusan un patrón EXISTENTE
+con banco de contenido nuevo, y solo 2 necesitaron una forma nueva de verdad.
+
+| Bimestre | "Idea web" del NAP | Juego | Patrón reusado |
+|---|---|---|---|
+| 1 | "unir cráneo/pico del animal con su comida" | `animal_comida` | matching 3 opciones (`planta_fruto`) |
+| 1 | "clasificar sustantivo/adjetivo/verbo" | `partes_oracion` | clasificar (`campo_ciudad`, extendido a 3 categorías) |
+| 2 | "búsqueda del tesoro en la tabla pitagórica" | `tabla_pitagorica` | **nuevo**: grilla de 9 celdas clicables (variante de `grilla100`) |
+| 2 | "clasificar verbos por tiempo verbal" | `tiempos_verbales` | clasificar (3 categorías) |
+| 3 | "simular movimiento de la Tierra para estaciones" | `estaciones` | trivia 3+ opciones (`trivia_espacial`) |
+| 3 | "rotar cuerpos 3D y contar caras/aristas/vértices" | `cuerpos_geometricos` | trivia, simplificado (ver abajo) |
+| 4 | "separador de mezclas virtual" | `separador_mezclas` | trivia 3 opciones, adaptado de drag a tap |
+| 4 | "cajero automático — retirar combinación exacta" | `cajero_automatico` | **nuevo en contenido, no en mecánica**: tocar 2 que sumen (`sumas_redondas`) con billetes — de paso resuelve "la tiendita" que había quedado pendiente del backlog de 1° grado |
+
+### Decisiones de diseño y bugs reales
+
+1. **`cuerpos_geometricos` — simplificación deliberada y documentada, no
+   una promesa incumplida.** El NAP pide "rotar cuerpos 3D" — el motor NO
+   tiene ningún render 3D (todo es sprites 2D/emoji), y construir uno desde
+   cero para un solo juego sería una inversión de infraestructura
+   desproporcionada. Se sustituyó por conteo de caras/vértices/aristas
+   sobre una imagen FIJA (🧊/📦/🔺) con 3 cuerpos geométricos reales
+   (cubo, prisma rectangular, pirámide — no formas curvas como esferas,
+   que no tienen "aristas" bien definidas). La consigna de audio quedó
+   FIJA y genérica ("Contá y elegí la respuesta correcta") con la pregunta
+   específica (qué cuerpo, qué propiedad) como texto en pantalla — mismo
+   patrón que "Formá {objetivo}" de `sumas_redondas`, porque son 3 cuerpos
+   × 3 propiedades = 9 combinaciones posibles, demasiadas consignas fijas
+   para grabar todas.
+2. **Bug real encontrado ANTES de generar el audio (no en vivo esta vez)**:
+   `tabla_pitagorica` inicialmente tenía la consigna `` `Buscá el resultado
+   de ${tabla} × ${factor}` `` — texto DINÁMICO (cambia cada ronda), el
+   mismo error de diseño que ya se había evitado en `sumas_redondas`. Un
+   texto que cambia por ronda nunca va a coincidir con ningún archivo del
+   manifest de audio — el juego hubiera quedado mudo en la práctica.
+   Corregido antes de grabar nada: consigna fija ("Buscá el resultado de
+   la multiplicación") + el "6 × 7" específico como texto en pantalla.
+3. **Distractores de `tabla_pitagorica` por producto REAL, no al azar** —
+   los 8 números incorrectos de la grilla son productos genuinos de OTRAS
+   combinaciones de tablas 2-9 (nunca un número que no aparece en ninguna
+   tabla, lo cual sería obviamente falso a simple vista y no mediría nada).
+4. **`GAMES.tabla_pitagorica` es el primer juego con celdas `<div>`
+   clicables en vez de `<button>`** (reusa `.grilla100Celda`, que no tenía
+   `cursor:pointer` porque en `grilla100` esas celdas NO son clicables,
+   solo lo son las `.ops` de abajo) — se agregó `.tablaPitagoricaCelda`
+   como clase aparte con su propio `cursor:pointer` en vez de tocar el
+   comportamiento de `grilla100`.
+5. **No hizo falta banda propia para 3° grado** — el hallazgo original del
+   informe (§1) sobre la banda `"grande"` sin tope sigue siendo cierto
+   como observación, pero solo importa el día que un año necesite CAMBIAR
+   o RETIRAR contenido base compartido con edades mayores — hasta ahora
+   (Sala 5, 1°, 2° y 3° grado) cada año solo AGREGA contenido propio via
+   `if e == X`, lo cual convive sin problema con la banda sin tope. Revisar
+   esto de nuevo recién si 4°+ grado necesita quitarle algo a un chico de
+   12 años que hoy ya tiene.
+
+### Deliberadamente NO hecho
+
+Mismo criterio que 1°/2° grado: todo lo del NAP de 3° grado sin una "Idea
+web" sugerida (comprensión de novelas cortas, descripción detallada,
+textos instructivos, GE-GI/GUE-GUI/GÜE-GÜI, textos informativos,
+párrafo/idea principal, pueblos originarios, gobiernos locales, espacios
+geográficos de Argentina, problemas ambientales) queda para una pasada de
+diseño aparte. La rotación 3D real de cuerpos geométricos (ver arriba)
+también queda pendiente si en algún momento se justifica invertir en un
+motor de render 3D — hoy no hay ningún otro juego que lo necesite.
 
 ## 6. Pendientes que dependen de Pablo (no técnicos)
 
