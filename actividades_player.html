@@ -508,7 +508,11 @@ button.pill:active, a.pill:active { transform: scale(.94); }
    acarreo VISIBLE, Pictórico no negociable (skill §2.3): cada columna
    rotulada con su potencia de 10, nunca solo el resultado final. */
 .sumaColTablero { text-align: center; }
-.sumaColGrid { display: flex; justify-content: center; gap: 6px; }
+.sumaColGrid { display: flex; align-items: center; justify-content: center; gap: 6px; }
+/* gutter: celda de ancho FIJO, primera de las 5 filas por igual — el "+"
+   de la fila B vive acá, así ninguna fila se corre respecto de las otras
+   al centrarse (bug real 15-jul-2026, ver comentario en el JS). */
+.sumaColGutter { width: 20px; flex: none; font-size: 24px; font-family: "Baloo", sans-serif; }
 .sumaColEncabezado__col { width: 42px; display: flex; flex-direction: column; align-items: center;
   font-family: "Baloo", sans-serif; line-height: 1.15; }
 .sumaColEncabezado__nombre { font-size: 15px; font-weight: 700; }
@@ -516,8 +520,6 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 .sumaColAcarreos { min-height: 22px; margin-top: 4px; }
 .sumaColAcarreo { width: 42px; font-size: 13px; font-weight: 700; color: var(--ac); text-align: center; }
 .sumaColAcarreo--oculto { visibility: hidden; }
-.sumaColOperando { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 2px; }
-.sumaColMas { font-size: 24px; font-family: "Baloo", sans-serif; width: 20px; text-align: center; }
 .sumaDigito { width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
   font-size: 24px; font-family: "Baloo", sans-serif; }
 .sumaDigito--vacio { visibility: hidden; }
@@ -527,9 +529,19 @@ button.pill:active, a.pill:active { transform: scale(.94); }
   font-size: 24px; font-family: "Baloo", sans-serif; background: var(--soft); }
 .sumaResultado__slot:empty { animation: latido 1.8s ease infinite; }
 .sumaResultado__slot.activo { border-style: solid; border-color: var(--ac); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ac) 25%, transparent); }
+/* resaltado de la "lección" (15-jul-2026, Pablo: si se equivoca 2 veces,
+   explicarle sumando paso a paso con animación marcando los números) —
+   reusa "latido" (mismo keyframe que el hueco vacío pulsa) para no sumar
+   una animación nueva, con el color de acento para que se note. */
+.sumaResaltado { animation: latido 1s ease infinite; background: var(--ac); color: #fff; border-radius: 10px; }
+.sumaColAcarreo.sumaResaltado { border-radius: 6px; padding: 0 4px; }
+.sumaColLeccion { margin: 14px auto 0; max-width: 320px; min-height: 28px; padding: 10px 14px;
+  background: var(--soft); border-radius: 12px; font-family: "Baloo", sans-serif; font-size: 20px; }
+.sumaColLeccion--oculto { display: none; }
 .sumaColAyuda { margin: 14px auto 4px; display: block; }
 .sumaColKeypad { gap: 8px; max-width: 380px; margin: 12px auto 0; }
 .sumaColDigitBtn { width: 44px; height: 44px; padding: 0; font-size: 20px; font-family: "Baloo", sans-serif; }
+.sumaColDigitBtn:disabled, .sumaColAyuda:disabled { opacity: .4; }
 
 /* ángulos — dos líneas desde un vértice común (14-jul-2026, 4° grado):
    la base queda fija, el lado gira por transform:rotate() según el

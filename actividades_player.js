@@ -3517,10 +3517,16 @@ GAMES.suma_columnas = {
     const rondas = ctx.cfg.rondas || 6;
     ctx.rondas(rondas);
     let ronda = 0;
+    // gutter: celda IGUAL en las 5 filas (ancho fijo) — el "+" de la fila B
+    // vive ADENTRO de esta celda como cualquier otra, no como hermano extra
+    // que desalinea el centrado del resto (bug real 15-jul-2026: Pablo
+    // "los números de sumas no están alineados" — el "+" empujaba SOLO la
+    // fila B unos px a la derecha del resto al centrarse cada fila sola).
+    const gutter = (txt) => el("div", "sumaColGutter", txt || "");
     const jugar = () => {
       ctx.ronda(ronda);
       ctx.juego.innerHTML = "";
-      ctx.consigna('Sumá las dos cifras: empezá por las UNIDADES (a la derecha) y andá columna por columna. Si te trabás, "Ayuda" te da esa cifra.');
+      ctx.consigna('Sumá las dos cifras: empezá por las UNIDADES (a la derecha) y andá columna por columna. Si te trabás dos veces, te lo explico paso a paso.');
       // dificultad: últimas rondas van a 5 cifras (NAP: "hasta 10.000-50.000").
       const dif = (ronda + 1) / rondas;
       const cifras = dif <= 0.5 ? 4 : 5;
@@ -3540,44 +3546,44 @@ GAMES.suma_columnas = {
         acarreo[i] = c;
       }
       const tablero = el("div", "tablero sumaColTablero");
+      const encabezado = el("div", "sumaColGrid sumaColEncabezado");
       const filaAcarreos = el("div", "sumaColGrid sumaColAcarreos");
       const filaA = el("div", "sumaColGrid");
       const filaB = el("div", "sumaColGrid");
       const filaResultado = el("div", "sumaColGrid");
-      const acarreoBadges = [], slots = [];
+      encabezado.appendChild(gutter());
+      filaAcarreos.appendChild(gutter());
+      filaA.appendChild(gutter());
+      filaB.appendChild(gutter("+"));
+      filaResultado.appendChild(gutter());
+      const acarreoBadges = [], slots = [], digitosA = [], digitosB = [];
       for (let i = ancho - 1; i >= 0; i--) {
-        const nombre = el("div", "sumaColAcarreo sumaColAcarreo--oculto", "+1");
-        acarreoBadges[i] = nombre;
-        filaAcarreos.appendChild(nombre);
+        const col = el("div", "sumaColEncabezado__col",
+          `<span class="sumaColEncabezado__nombre">${SUMA_COL_NOMBRE[i]}</span><span class="sumaColEncabezado__potencia">${SUMA_COL_POTENCIA[i]}</span>`);
+        encabezado.appendChild(col);
+        const badge = el("div", "sumaColAcarreo sumaColAcarreo--oculto", "+1");
+        acarreoBadges[i] = badge;
+        filaAcarreos.appendChild(badge);
         const digA = el("div", "sumaDigito" + (i >= String(a).length ? " sumaDigito--vacio" : ""),
           i < String(a).length ? String(cifraEn(a, i)) : "");
+        digitosA[i] = digA;
         filaA.appendChild(digA);
         const digB = el("div", "sumaDigito" + (i >= String(b).length ? " sumaDigito--vacio" : ""),
           i < String(b).length ? String(cifraEn(b, i)) : "");
+        digitosB[i] = digB;
         filaB.appendChild(digB);
         const slot = el("div", "sumaResultado__slot", "");
         slots[i] = slot;
         filaResultado.appendChild(slot);
       }
-      // encabezado de columnas (potencia de 10) — la fila se arma de MSD a LSD
-      // (como se lee el número), igual que las filas de cifras de arriba.
-      const encabezado = el("div", "sumaColGrid sumaColEncabezado");
-      for (let i = ancho - 1; i >= 0; i--) {
-        const col = el("div", "sumaColEncabezado__col",
-          `<span class="sumaColEncabezado__nombre">${SUMA_COL_NOMBRE[i]}</span><span class="sumaColEncabezado__potencia">${SUMA_COL_POTENCIA[i]}</span>`);
-        encabezado.appendChild(col);
-      }
       tablero.appendChild(encabezado);
       tablero.appendChild(filaAcarreos);
-      const filaAConOp = el("div", "sumaColOperando");
-      filaAConOp.appendChild(filaA);
-      tablero.appendChild(filaAConOp);
-      const filaBConOp = el("div", "sumaColOperando");
-      filaBConOp.appendChild(el("span", "sumaColMas", "+"));
-      filaBConOp.appendChild(filaB);
-      tablero.appendChild(filaBConOp);
+      tablero.appendChild(filaA);
+      tablero.appendChild(filaB);
       tablero.appendChild(el("div", "sumaColLinea"));
       tablero.appendChild(filaResultado);
+      const leccionBox = el("div", "sumaColLeccion sumaColLeccion--oculto", "");
+      tablero.appendChild(leccionBox);
       const btnAyuda = el("button", "btn suave sumaColAyuda", "💡 Ayuda");
       btnAyuda.type = "button";
       tablero.appendChild(btnAyuda);
@@ -3593,12 +3599,18 @@ GAMES.suma_columnas = {
 
       let activa = 0;   // índice de columna activa (0 = unidades, sube hacia la izquierda)
       let resuelto = false;
+      let fallosCol = 0;   // se resetea al cambiar de columna o tras dar la lección
       const marcarActiva = () => {
         slots.forEach((s, i) => s.classList.toggle("activo", i === activa && !resuelto));
       };
       marcarActiva();
+      const habilitarControles = (on) => {
+        botones.forEach((b) => (b.disabled = !on));
+        btnAyuda.disabled = !on;
+      };
       const resolverColumna = async (digito) => {
         if (resuelto) return;
+        fallosCol = 0;
         slots[activa].textContent = String(digito);
         slots[activa].classList.add("anim-pop");
         if (acarreo[activa] && activa + 1 < ancho) acarreoBadges[activa + 1].classList.remove("sumaColAcarreo--oculto");
@@ -3615,6 +3627,42 @@ GAMES.suma_columnas = {
           marcarActiva();
         }
       };
+      // "Lección" (15-jul-2026, Pablo: si se equivoca 2 veces en la misma
+      // columna, explicarle CÓMO se suma esa columna, con animación
+      // marcando los números — no solo darle la respuesta, que aprenda
+      // el mecanismo). Resalta cada dígito que entra en juego, en el
+      // orden en que se suman de verdad, con el texto narrando el paso.
+      const leccion = async (col) => {
+        habilitarControles(false);
+        const da = cifraEn(a, col), db = cifraEn(b, col), ac = col > 0 ? acarreo[col - 1] : 0;
+        const total = da + db + ac;
+        leccionBox.classList.remove("sumaColLeccion--oculto");
+        leccionBox.textContent = "";
+        ctx.consigna(`Vamos paso a paso con las ${SUMA_COL_LARGO[col]}.`);
+        await espera(1200);
+        digitosA[col].classList.add("sumaResaltado");
+        leccionBox.textContent = `${da}`;
+        await espera(1300);
+        digitosB[col].classList.add("sumaResaltado");
+        leccionBox.textContent = ac ? `${da} + ${db} + 1 (que llevábamos)` : `${da} + ${db}`;
+        await espera(1600);
+        leccionBox.textContent = `${da} + ${db}${ac ? " + 1" : ""} = ${total}`;
+        await espera(1600);
+        if (total >= 10) {
+          leccionBox.textContent = `Anotamos el ${total % 10} y llevamos 1 a la próxima columna`;
+          if (activa + 1 < ancho) acarreoBadges[activa + 1].classList.add("sumaResaltado");
+        } else {
+          leccionBox.textContent = `Anotamos el ${total}`;
+        }
+        await espera(2000);
+        digitosA[col].classList.remove("sumaResaltado");
+        digitosB[col].classList.remove("sumaResaltado");
+        if (activa + 1 < ancho) acarreoBadges[activa + 1].classList.remove("sumaResaltado");
+        leccionBox.classList.add("sumaColLeccion--oculto");
+        fallosCol = 0;
+        ctx.consigna("Ahora probá vos: tocá el número que va en esta columna.");
+        habilitarControles(true);
+      };
       botones.forEach((btn, d) => {
         btn.addEventListener("click", () => {
           if (resuelto) return;
@@ -3624,6 +3672,8 @@ GAMES.suma_columnas = {
             btn.style.animation = "sacudir .4s ease";
             setTimeout(() => (btn.style.animation = ""), 450);
             ctx.casi();
+            fallosCol++;
+            if (fallosCol >= 2) leccion(activa);
           }
         });
       });
