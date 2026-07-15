@@ -54,13 +54,25 @@ async function cargarAudioManifest() {
     if (r.ok) AudioManifest = await r.json();
   } catch (e) { /* sin audio-guía para este token: se juega en silencio */ }
 }
+// Devuelve una Promise<boolean> (true = terminó de sonar de verdad) — los
+// llamadores "fire and forget" de siempre (ctx.consigna) simplemente no la
+// esperan, cero cambio de comportamiento para ellos. La lección de suma en
+// columnas SÍ la espera (ver decirYesperar) para encadenar frases sin
+// atropellarse: antes usaba pausas fijas "a ojo" y, si la frase real duraba
+// más que la pausa, la siguiente la cortaba en seco (Pablo 15-jul-2026:
+// "entre cuando explica 0 + 4 no hace pausa y queda el audio muy junto").
 function reproducirConsigna(txt) {
   if (vozActual) { vozActual.pause(); vozActual = null; }
-  if (!Sfx.on) return;
+  if (!Sfx.on) return Promise.resolve(false);
   const archivo = AudioManifest[txt];
-  if (!archivo) return;
-  vozActual = new Audio(archivo);
-  vozActual.play().catch(() => {});   // autoplay bloqueado hasta el primer toque: no rompe nada
+  if (!archivo) return Promise.resolve(false);
+  const audio = new Audio(archivo);
+  vozActual = audio;
+  return new Promise((resolve) => {
+    audio.addEventListener("ended", () => resolve(true), { once: true });
+    audio.addEventListener("error", () => resolve(false), { once: true });
+    audio.play().catch(() => resolve(false));   // autoplay bloqueado hasta el primer toque: no rompe nada
+  });
 }
 // Desbloqueo de audio (15-jul-2026): algunos navegadores móviles (sobre todo
 // iOS) solo permiten reproducir audio con sonido si el .play() ocurre cerca
@@ -3659,6 +3671,14 @@ GAMES.suma_columnas = {
       // voz argentina de siempre, NO speechSynthesis del navegador —
       // frases CHICAS y fijas encadenadas, no se puede pre-grabar
       // "3 + 6 = 9" para cada combinación posible de dos números).
+      // decirYesperar: espera a que la frase TERMINE DE SONAR de verdad (no
+      // una pausa fija a ojo) antes de seguir — si no hay audio (mute, sin
+      // manifest, etc.) usa `pausaSinAudio` como respaldo para que el texto
+      // solo también tenga tiempo de leerse.
+      const decirYesperar = async (txt, pausaSinAudio) => {
+        const sonó = await reproducirConsigna(txt);
+        await espera(sonó ? 450 : pausaSinAudio);
+      };
       const leccion = async (col) => {
         habilitarControles(false);
         const da = cifraEn(a, col), db = cifraEn(b, col), ac = col > 0 ? acarreo[col - 1] : 0;
@@ -3669,26 +3689,20 @@ GAMES.suma_columnas = {
         await espera(1200);
         digitosA[col].classList.add("sumaResaltado");
         leccionBox.textContent = `${da}`;
-        reproducirConsigna(`Primero, ${NUM_PALABRA[da]}.`);
-        await espera(1300);
+        await decirYesperar(`Primero, ${NUM_PALABRA[da]}.`, 1300);
         digitosB[col].classList.add("sumaResaltado");
         leccionBox.textContent = ac ? `${da} + ${db} + 1 (que llevábamos)` : `${da} + ${db}`;
-        reproducirConsigna(ac ? `Más ${NUM_PALABRA[db]}, y el uno que llevábamos.` : `Más ${NUM_PALABRA[db]}.`);
-        await espera(1800);
+        await decirYesperar(ac ? `Más ${NUM_PALABRA[db]}, y el uno que llevábamos.` : `Más ${NUM_PALABRA[db]}.`, 1800);
         leccionBox.textContent = `${da} + ${db}${ac ? " + 1" : ""} = ${total}`;
-        reproducirConsigna(`Son ${NUM_PALABRA[total]}.`);
-        await espera(1600);
+        await decirYesperar(`Son ${NUM_PALABRA[total]}.`, 1600);
         if (total >= 10) {
           leccionBox.textContent = `Anotamos el ${total % 10} y llevamos 1 a la próxima columna`;
-          reproducirConsigna(`Anotamos el ${NUM_PALABRA[total % 10]}.`);
           if (activa + 1 < ancho) acarreoBadges[activa + 1].classList.add("sumaResaltado");
-          await espera(1600);
-          reproducirConsigna("Y llevamos uno a la próxima columna.");
-          await espera(1800);
+          await decirYesperar(`Anotamos el ${NUM_PALABRA[total % 10]}.`, 1600);
+          await decirYesperar("Y llevamos uno a la próxima columna.", 1800);
         } else {
           leccionBox.textContent = `Anotamos el ${total}`;
-          reproducirConsigna(`Anotamos el ${NUM_PALABRA[total]}.`);
-          await espera(1800);
+          await decirYesperar(`Anotamos el ${NUM_PALABRA[total]}.`, 1800);
         }
         digitosA[col].classList.remove("sumaResaltado");
         digitosB[col].classList.remove("sumaResaltado");
