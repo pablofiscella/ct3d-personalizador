@@ -1291,7 +1291,16 @@ def _a_trazos(b, rows):
         for i in range(0, len(pts) - 1, 2):
             b.dr.line([pts[i], pts[i + 1]], fill=NAVY, width=7)
         if b.mons:
-            _paste_h(b.im, _IM(b.mon(r)), x0 - 80, yy, min(140, int(pitch * 0.6)))
+            # 15-jul-2026: bug real encontrado (test_cuaderno_margenes) — b.mon(i)
+            # es SIEMPRE mons[i % len(mons)], así que esta actividad (que se llama
+            # 2 VECES a propósito en la banda 2-3 años) usaba los MISMOS 4
+            # personajes las dos veces. Con solo el shuffle de estilos como
+            # diferenciador, un cambio de orden en `mons` (ver dedup de
+            # personajes) hizo que 2 instancias quedaran visualmente parecidas
+            # bajo el hash perceptual grueso — página duplicada de verdad. Offset
+            # por `b.act` (el número de actividad, YA distinto entre instancias)
+            # para que cada repetición de "líneas" rote a otro tramo de personajes.
+            _paste_h(b.im, _IM(b.mon(r + b.act)), x0 - 80, yy, min(140, int(pitch * 0.6)))
         _goal_torta(b.dr, x1 + 70, yy, 54)
     b.y = BOT
 
