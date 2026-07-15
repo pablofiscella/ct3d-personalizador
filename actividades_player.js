@@ -761,29 +761,31 @@ GAMES.laberinto = {
           y: Math.floor(((ev.clientY - r.top) * escY - M) / C),
         };
       };
-      // 15-jul-2026 (Pablo, tercera vuelta de la misma historia): la línea
-      // recta (Bresenham) se frena en la PRIMERA pared que cruza y se queda
-      // pegada en los giros reales del pasillo ("el mouse no acompaña al
-      // personaje"). El BFS puro (dobla esquinas, versión anterior de este
-      // mismo fix) sí resuelve eso, pero encuentra CUALQUIER camino abierto
-      // — incluida la vuelta larga por OTRO pasillo para llegar a una celda
-      // que está cruzando una pared en línea recta. Eso es exactamente lo
-      // que reportó: "apenas lo toqué recorrió un tramo grande... si el
-      // mouse pasa al otro lado de una pared no tiene que llevarlo" — el
-      // BFS lo estaba rodeando. Fix: el camino solo puede avanzar si CADA
-      // paso acerca en distancia Manhattan al objetivo (nunca se aleja) —
-      // esto deja pasar los giros normales de un mismo pasillo (siempre son
-      // monótonos hacia el objetivo) pero PODA cualquier desvío que
-      // necesite alejarse primero para rodear una pared. Si el objetivo
-      // está del otro lado de una pared (sin camino monótono), rutaCorta
-      // no encuentra nada y el personaje simplemente no se mueve hacia ahí
-      // — mismo comportamiento de "frenarse en la pared" que Bresenham,
-      // pero sin quedarse pegado en los giros reales.
+      // 15-jul-2026 (Pablo, cuarta vuelta de la misma historia): la línea
+      // recta (Bresenham) se quedaba pegada en los giros reales del pasillo
+      // ("el mouse no acompaña al personaje"). El BFS puro (dobla esquinas)
+      // arregló eso pero rodeaba paredes por OTRO pasillo lejano ("si el
+      // mouse pasa al otro lado de una pared no tiene que llevarlo"). El
+      // fix de "nunca alejarse ni un solo paso" (distancia Manhattan
+      // estrictamente monótona) arregló ESO, pero resultó DEMASIADO
+      // estricto: un pasillo real casi nunca es una línea recta perfecta,
+      // así que hasta un giro chico y normal (esquivar UNA sola pared)
+      // necesita alejarse 1-2 celdas antes de poder acercarse — con la
+      // regla estricta, esos giros normales tampoco encontraban camino:
+      // "ahora casi no se mueve".
+      // Fix final: BFS SIN podar durante la búsqueda (encuentra el camino
+      // MÁS CORTO real, sea cual sea), y recién DESPUÉS se compara ese largo
+      // contra la distancia Manhattan en línea recta — si el camino real no
+      // es mucho más largo que la línea recta (tolerancia chica, esquivar
+      // una pared puntual), se usa; si es MUCHO más largo (la vuelta larga
+      // por otro pasillo), se descarta. Distingue "un giro normal" de
+      // "rodear una pared" por CUÁNTO más largo es el camino, no por si se
+      // aleja ni un solo paso.
       const TOPE_PASOS_POR_EVENTO = 4;
+      const TOLERANCIA_DESVIO = 4;   // pasos de más permitidos sobre la línea recta antes de considerarlo "rodeo"
       const rutaCorta = (x0, y0, x1, y1, tope) => {
         if (x0 === x1 && y0 === y1) return [];
         const key = (x, y) => y * n + x;
-        const dist = (x, y) => Math.abs(x - x1) + Math.abs(y - y1);
         const prev = new Array(n * n).fill(-1);
         const visitado = new Array(n * n).fill(false);
         visitado[key(x0, y0)] = true;
@@ -792,18 +794,16 @@ GAMES.laberinto = {
         while (cola.length) {
           const [x, y] = cola.shift();
           if (x === x1 && y === y1) break;
-          const dActual = dist(x, y);
           for (const [dx, dy, dir] of DIRS) {
             const nx = x + dx, ny = y + dy;
             if (nx < 0 || ny < 0 || nx >= n || ny >= n) continue;
             if (!abierta(x, y, dir) || visitado[key(nx, ny)]) continue;
-            if (dist(nx, ny) >= dActual) continue;   // nunca alejarse del objetivo — no rodea paredes
             visitado[key(nx, ny)] = true;
             prev[key(nx, ny)] = key(x, y);
             cola.push([nx, ny]);
           }
         }
-        if (!visitado[key(x1, y1)]) return null;   // sin camino monótono — está "del otro lado de la pared"
+        if (!visitado[key(x1, y1)]) return null;   // celda no conectada por pasillos abiertos
         const camino = [];
         let k = key(x1, y1);
         while (k !== key(x0, y0)) {
@@ -813,6 +813,8 @@ GAMES.laberinto = {
           camino.unshift([cx - px, cy - py]);
           k = kAnt;
         }
+        const manhattan = Math.abs(x1 - x0) + Math.abs(y1 - y0);
+        if (camino.length > manhattan + TOLERANCIA_DESVIO) return null;   // desvío grande -> "rodea una pared"
         return camino.slice(0, tope);
       };
       let llegando = false;   // guard: dos eventos de puntero casi simultáneos
