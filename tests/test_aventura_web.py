@@ -4,13 +4,15 @@ bloquea lo demás."""
 import json
 import os
 
+import pytest
+
 import aventura
 import aventura_web as avw
 
 
-def _crear(tmp_path, nombre="Sofía", genero=None):
+def _crear(tmp_path, nombre="Sofía", genero=None, tema="safari"):
     avw.AV_DIR = str(tmp_path)          # aislar del disco real
-    data = {"nombre": nombre, "tema": "safari"}
+    data = {"nombre": nombre, "tema": tema}
     if genero:
         data["genero"] = genero
     return avw.crear(data)
@@ -29,10 +31,12 @@ def test_crear_arma_token_con_manifest(tmp_path):
     assert avw.estado("noexiste_zzz") is None
 
 
-def test_grafo_llega_siempre_a_un_final(tmp_path):
+@pytest.mark.parametrize("tema", aventura.temas_disponibles())
+def test_grafo_llega_siempre_a_un_final(tmp_path, tema):
     """Recorre TODOS los caminos posibles desde el inicio: ninguno debe quedar colgado
-    (nodo sin 'final' y sin 'opciones') y todos deben terminar en un nodo final."""
-    tok = _crear(tmp_path, "Tomás")
+    (nodo sin 'final' y sin 'opciones') y todos deben terminar en un nodo final.
+    Corre para CADA tema armado, no solo safari."""
+    tok = _crear(tmp_path, "Tomás", tema=tema)
     d = os.path.join(str(tmp_path), tok)
     with open(os.path.join(d, "manifest.json"), encoding="utf-8") as f:
         nodos = json.load(f)["nodos"]
@@ -51,12 +55,13 @@ def test_grafo_llega_siempre_a_un_final(tmp_path):
     visitar("hook", set())
 
 
-def test_todo_camino_dura_unas_20_postas(tmp_path):
+@pytest.mark.parametrize("tema", aventura.temas_disponibles())
+def test_todo_camino_dura_unas_20_postas(tmp_path, tema):
     """Pedido de Pablo: cualquier camino elegido tiene que durar lo mismo que un
     libro/audiolibro de 20 páginas. Recorre cada rama real (tomando SIEMPRE la opción
     0 o SIEMPRE la 1 en cada decisión) y verifica que cada camino completo totaliza
-    ~20 nodos, no menos."""
-    tok = _crear(tmp_path, "Mila")
+    ~20 nodos, no menos. Corre para CADA tema armado, no solo safari."""
+    tok = _crear(tmp_path, "Mila", tema=tema)
     d = os.path.join(str(tmp_path), tok)
     with open(os.path.join(d, "manifest.json"), encoding="utf-8") as f:
         nodos = json.load(f)["nodos"]
@@ -120,13 +125,16 @@ def test_arte_propio_tiene_prioridad_sobre_placeholder(tmp_path):
 
 
 def test_tema_sin_aventura_armada_falla_claro(tmp_path):
+    """Usa un tema inventado (no un tema real "todavía sin aventura"): con los 12
+    temas del catálogo ya armados, no queda ninguno real para este caso — y este
+    test no debería volver a romperse cada vez que se termina el último que faltaba."""
     avw.AV_DIR = str(tmp_path)
     try:
-        avw.crear({"nombre": "X", "tema": "circo"})
-        assert False, "debería fallar: circo no tiene aventura en aventura.AVENTURAS"
+        avw.crear({"nombre": "X", "tema": "acuario-inexistente"})
+        assert False, "debería fallar: acuario-inexistente no tiene aventura en aventura.AVENTURAS"
     except ValueError:
         pass
 
 
 def test_temas_disponibles():
-    assert aventura.temas_disponibles() == ["safari"]
+    assert aventura.temas_disponibles() == sorted(aventura.AVENTURAS)
