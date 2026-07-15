@@ -5781,15 +5781,19 @@ GAMES.serie = {
 /* ── ESCUCHÁ Y REPETÍ — memoria auditiva/visual tipo Simon: la secuencia crece
    un color por nivel; un error nunca hace perder nada, solo repite la secuencia
    completa y deja reintentar (cero fail states). ── */
+// Ampliado de 5 a 9 colores (15-jul-2026, Pablo: "6to y 7mo 9 botones en 3
+// filas... 4 y 5to 2 filas de 4... 3ro 2 filas de 3... 2do 5 botones y 1ro 4").
 const SIMON_COLORES = [
   { c: "#E25555", nota: 392 }, { c: "#4F86C6", nota: 330 }, { c: "#F2C94C", nota: 262 },
-  { c: "#4CAF7D", nota: 440 }, { c: "#9B6BD6", nota: 494 },
+  { c: "#4CAF7D", nota: 440 }, { c: "#9B6BD6", nota: 494 }, { c: "#F2994A", nota: 349 },
+  { c: "#E17DC2", nota: 294 }, { c: "#2FB6B6", nota: 523 }, { c: "#8BC34A", nota: 466 },
 ];
 const SIMON_MIRA_CORTAS = ["Mirá bien…", "Prestá atención…", "Otra vez, mirá…"];
 const SIMON_REPETI_CORTAS = ["Ahora repetí", "Tu turno, tocalos en orden", "¿Te acordás? Repetí"];
 GAMES.simon = {
   crear(ctx) {
     const nColores = Math.min(ctx.cfg.colores || 4, SIMON_COLORES.length);
+    const filas = Math.max(1, ctx.cfg.filas || 1);
     const rondas = ctx.cfg.rondas || 5;
     const colores = SIMON_COLORES.slice(0, nColores);
     ctx.rondas(rondas);
@@ -5813,9 +5817,14 @@ GAMES.simon = {
     };
     const construir = () => {
       ctx.juego.innerHTML = "";
+      // grilla de `filas` filas × columnas (columnas = nColores/filas hacia
+      // arriba) en vez de una sola fila que se apretaba con muchos botones —
+      // filas=1 (default, 1°/2° grado) se ve exactamente igual que antes.
+      const cols = Math.ceil(nColores / filas);
       const fila = el("div", "filaSprites");
-      fila.style.maxWidth = "480px";
-      const TAM = nColores > 4 ? 84 : 100;
+      fila.style.cssText = `max-width:${Math.min(480, cols * 112)}px;margin:0 auto;display:grid;` +
+        `grid-template-columns:repeat(${cols},1fr);gap:14px;justify-items:center`;
+      const TAM = cols >= 5 ? 76 : cols === 4 ? 88 : 100;
       botones = colores.map((col, i) => {
         const b = el("button", "spriteBtn");
         b.style.cssText = `width:${TAM}px;height:${TAM}px;background:${col.c};border-radius:26px`;

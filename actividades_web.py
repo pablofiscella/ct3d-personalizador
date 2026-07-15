@@ -168,9 +168,14 @@ def _menu(banda, edad):
         # posterior" — "serie" ya hacía justo esto (¿qué número falta en la
         # secuencia?) pero con techo fijo ~16; con cfg.tope explícito llega
         # a 30 sin tocar la mecánica (14-jul-2026).
+        # "Escuchá y repetí" con menos botones para el año más chico de esta
+        # banda (15-jul-2026, Pablo: escala de dificultad por grado — ver
+        # también e==7/8/9/10/11/12 más abajo).
         for item in g:
             if item["id"] == "serie":
                 item["cfg"] = {**item["cfg"], "tope": 30}
+            if item["id"] == "simon":
+                item["cfg"] = {**item["cfg"], "colores": 4}
         # NAP 1° grado Bimestre 2: "sílabas directas (consonante+vocal)...
         # construir palabras arrastrando sílabas desordenadas" — Pablo ya
         # había traído esta idea. Reusa el pipeline de audio de silabas
@@ -223,6 +228,10 @@ def _menu(banda, edad):
         # del informe §1 sobre la banda sin tope sigue vigente, pero recién
         # importa cuando un año necesite CAMBIAR contenido base compartido,
         # no solo AGREGAR contenido propio con `if e == X` — ver informe §5g).
+        # "Escuchá y repetí" 2 filas de 3 (15-jul-2026, Pablo).
+        for item in g:
+            if item["id"] == "simon":
+                item["cfg"] = {**item["cfg"], "colores": 6, "filas": 2}
         # Bimestre 1: unir animal con su comida + sustantivo/adjetivo/verbo.
         # rondas=10 (14-jul-2026): ANIMAL_COMIDA_BANCO creció de 5 a 10.
         g.append({"id": "animal_comida", "titulo": "¿Qué come?", "icono": "🦁", "cfg": {"rondas": 10}})
@@ -246,6 +255,10 @@ def _menu(banda, edad):
         # con mapa real, transportador interactivo) se simplificaron a
         # trivia por necesitar assets/mecánicas que el motor no tiene hoy
         # — ver informe §5h.
+        # "Escuchá y repetí" 2 filas de 4 (15-jul-2026, Pablo — igual en 5°).
+        for item in g:
+            if item["id"] == "simon":
+                item["cfg"] = {**item["cfg"], "colores": 8, "filas": 2}
         # Bimestre 1: abstracto/concreto + provincia → región.
         # rondas=10 (14-jul-2026): ABSTRACTOS_BANCO creció de 8 a 10.
         g.append({"id": "abstractos_concretos", "titulo": "Abstracto o concreto", "icono": "💭", "cfg": {"rondas": 10}})
@@ -281,6 +294,10 @@ def _menu(banda, edad):
     if e == 10:
         # 5° grado (14-jul-2026): mismo criterio — un juego por cada "Idea
         # web" del NAP.
+        # "Escuchá y repetí" 2 filas de 4, igual que 4° (15-jul-2026, Pablo).
+        for item in g:
+            if item["id"] == "simon":
+                item["cfg"] = {**item["cfg"], "colores": 8, "filas": 2}
         # Bimestre 1: trivia colonial + camino digestivo.
         # rondas=10 (14-jul-2026): COLONIAL_BANCO creció de 5 a 10.
         g.append({"id": "trivia_colonial", "titulo": "Vida colonial", "icono": "🏛️", "cfg": {"rondas": 10}})
@@ -301,6 +318,10 @@ def _menu(banda, edad):
     if e == 11:
         # 6° grado (14-jul-2026): mismo criterio — un juego por cada "Idea
         # web" del NAP.
+        # "Escuchá y repetí" 3 filas de 3, igual que 7° (15-jul-2026, Pablo).
+        for item in g:
+            if item["id"] == "simon":
+                item["cfg"] = {**item["cfg"], "colores": 9, "filas": 3}
         # Bimestre 1: partes de la célula + hechos vs. opiniones.
         # rondas=10 (14-jul-2026): CELULA_BANCO creció de 4 a 10.
         g.append({"id": "celula_partes", "titulo": "Partes de la célula", "icono": "🔬", "cfg": {"rondas": 10}})
@@ -323,6 +344,10 @@ def _menu(banda, edad):
     if e == 12:
         # 7° grado (14-jul-2026, año de egreso, fin del NAP) — mismo
         # criterio: un juego por cada "Idea web" del NAP.
+        # "Escuchá y repetí" 3 filas de 3, igual que 6° (15-jul-2026, Pablo).
+        for item in g:
+            if item["id"] == "simon":
+                item["cfg"] = {**item["cfg"], "colores": 9, "filas": 3}
         # Bimestre 1: traductor algebraico + sistema solar (terrestre/gaseoso).
         # rondas=10 (14-jul-2026): ALGEBRA_BANCO creció de 6 a 10.
         g.append({"id": "traductor_algebraico", "titulo": "Traductor algebraico", "icono": "🧮", "cfg": {"rondas": 10}})
