@@ -965,7 +965,16 @@ class Handler(BaseHTTPRequestHandler):
                 data_b, ct = r
                 self.send_response(200)
                 self.send_header("Content-Type", ct)
-                self.send_header("Cache-Control", "public, max-age=86400")
+                # audio_manifest.json es la EXCEPCIÓN: a diferencia de las piezas
+                # c_<hash>.mp3 (content-addressed, el nombre cambia si el
+                # contenido cambia — 24h de caché es correcto), este archivo
+                # cambia de contenido con el MISMO nombre cada vez que se graba
+                # una consigna nueva. Con 24h de caché el navegador seguía
+                # sirviendo la lista vieja y una consigna recién grabada quedaba
+                # "sin audio" hasta que esa caché expirara (Pablo 15-jul-2026:
+                # "en esa actividad no hay audio, en otras sí").
+                cache = "public, max-age=300" if arch == "audio_manifest.json" else "public, max-age=86400"
+                self.send_header("Cache-Control", cache)
                 self.send_header("Content-Length", str(len(data_b)))
                 self.end_headers(); self.wfile.write(data_b)
                 return
