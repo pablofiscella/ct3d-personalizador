@@ -3494,6 +3494,145 @@ GAMES.fracciones_equivalentes = {
   },
 };
 
+/* ── SUMA EN COLUMNAS (15-jul-2026, 4° grado NAP Bimestre 1: "números hasta
+   10.000-50.000... propiedades de suma y resta"). Reemplaza acá el `sumas`
+   genérico (conteo de sprites, tope=10 fijo para TODOS los grados 1°-7°) —
+   Pablo probándolo en vivo: "las sumas en 4° grado son de 4 a 5 cifras y
+   parecen muy fáciles para esa edad". Contar iconitos no escala a 4-5
+   cifras (nadie toca 12.345 sprites) — hace falta el algoritmo ESCRITO.
+   Representación Pictórica no negociable (skill §2.3, Singapore Math CPA):
+   columnas rotuladas con su potencia de 10 (U/D/C/UM/DM = ×1/×10/.../
+   ×10.000, el eje curricular exacto del bimestre) y el acarreo se VE como
+   insignia "+1" sobre la columna siguiente, nunca un cálculo invisible.
+   Se resuelve de derecha a izquierda (unidades primero, como el algoritmo
+   real) aunque el número se lea de izquierda a derecha. Andamiaje = botón
+   "Ayuda" a pedido (tabla de dosificación skill §3, banda 8-9 años:
+   "pista solo a pedido"), no automática. Cero fail states: un toque
+   incorrecto sacude y deja reintentar la MISMA columna, sin límite. ── */
+const SUMA_COL_NOMBRE = ["U", "D", "C", "UM", "DM"];
+const SUMA_COL_LARGO = ["unidades", "decenas", "centenas", "unidades de mil", "decenas de mil"];
+const SUMA_COL_POTENCIA = ["×1", "×10", "×100", "×1.000", "×10.000"];
+GAMES.suma_columnas = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 6;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.juego.innerHTML = "";
+      ctx.consigna('Sumá las dos cifras: empezá por las UNIDADES (a la derecha) y andá columna por columna. Si te trabás, "Ayuda" te da esa cifra.');
+      // dificultad: últimas rondas van a 5 cifras (NAP: "hasta 10.000-50.000").
+      const dif = (ronda + 1) / rondas;
+      const cifras = dif <= 0.5 ? 4 : 5;
+      const piso = cifras === 4 ? 1000 : 10000;
+      const tope = cifras === 4 ? 9999 : 49999;
+      const a = rint(piso, tope);
+      const b = rint(piso, tope);
+      const suma = a + b;
+      const ancho = Math.max(String(a).length, String(b).length, String(suma).length);
+      const cifraEn = (n, i) => Math.floor(n / 10 ** i) % 10;   // i-ésima cifra desde la derecha (0=U)
+      // precalcula acarreos: acarreo[i] = lo que se lleva DE la columna i A la i+1
+      const acarreo = [];
+      let c = 0;
+      for (let i = 0; i < ancho; i++) {
+        const total = cifraEn(a, i) + cifraEn(b, i) + c;
+        c = total >= 10 ? 1 : 0;
+        acarreo[i] = c;
+      }
+      const tablero = el("div", "tablero sumaColTablero");
+      const filaAcarreos = el("div", "sumaColGrid sumaColAcarreos");
+      const filaA = el("div", "sumaColGrid");
+      const filaB = el("div", "sumaColGrid");
+      const filaResultado = el("div", "sumaColGrid");
+      const acarreoBadges = [], slots = [];
+      for (let i = ancho - 1; i >= 0; i--) {
+        const nombre = el("div", "sumaColAcarreo sumaColAcarreo--oculto", "+1");
+        acarreoBadges[i] = nombre;
+        filaAcarreos.appendChild(nombre);
+        const digA = el("div", "sumaDigito" + (i >= String(a).length ? " sumaDigito--vacio" : ""),
+          i < String(a).length ? String(cifraEn(a, i)) : "");
+        filaA.appendChild(digA);
+        const digB = el("div", "sumaDigito" + (i >= String(b).length ? " sumaDigito--vacio" : ""),
+          i < String(b).length ? String(cifraEn(b, i)) : "");
+        filaB.appendChild(digB);
+        const slot = el("div", "sumaResultado__slot", "");
+        slots[i] = slot;
+        filaResultado.appendChild(slot);
+      }
+      // encabezado de columnas (potencia de 10) — la fila se arma de MSD a LSD
+      // (como se lee el número), igual que las filas de cifras de arriba.
+      const encabezado = el("div", "sumaColGrid sumaColEncabezado");
+      for (let i = ancho - 1; i >= 0; i--) {
+        const col = el("div", "sumaColEncabezado__col",
+          `<span class="sumaColEncabezado__nombre">${SUMA_COL_NOMBRE[i]}</span><span class="sumaColEncabezado__potencia">${SUMA_COL_POTENCIA[i]}</span>`);
+        encabezado.appendChild(col);
+      }
+      tablero.appendChild(encabezado);
+      tablero.appendChild(filaAcarreos);
+      const filaAConOp = el("div", "sumaColOperando");
+      filaAConOp.appendChild(filaA);
+      tablero.appendChild(filaAConOp);
+      const filaBConOp = el("div", "sumaColOperando");
+      filaBConOp.appendChild(el("span", "sumaColMas", "+"));
+      filaBConOp.appendChild(filaB);
+      tablero.appendChild(filaBConOp);
+      tablero.appendChild(el("div", "sumaColLinea"));
+      tablero.appendChild(filaResultado);
+      const btnAyuda = el("button", "btn suave sumaColAyuda", "💡 Ayuda");
+      btnAyuda.type = "button";
+      tablero.appendChild(btnAyuda);
+      const keypad = el("div", "filaSprites sumaColKeypad");
+      const botones = [];
+      for (let d = 0; d <= 9; d++) {
+        const btn = el("button", "spriteBtn sumaColDigitBtn", String(d));
+        botones.push(btn);
+        keypad.appendChild(btn);
+      }
+      tablero.appendChild(keypad);
+      ctx.juego.appendChild(tablero);
+
+      let activa = 0;   // índice de columna activa (0 = unidades, sube hacia la izquierda)
+      let resuelto = false;
+      const marcarActiva = () => {
+        slots.forEach((s, i) => s.classList.toggle("activo", i === activa && !resuelto));
+      };
+      marcarActiva();
+      const resolverColumna = async (digito) => {
+        if (resuelto) return;
+        slots[activa].textContent = String(digito);
+        slots[activa].classList.add("anim-pop");
+        if (acarreo[activa] && activa + 1 < ancho) acarreoBadges[activa + 1].classList.remove("sumaColAcarreo--oculto");
+        Sfx.tick(activa + 1);
+        activa++;
+        if (activa >= ancho) {
+          resuelto = true;
+          ctx.bien();
+          ronda++;
+          await espera(1100);
+          if (ronda >= rondas) ctx.win();
+          else jugar();
+        } else {
+          marcarActiva();
+        }
+      };
+      botones.forEach((btn, d) => {
+        btn.addEventListener("click", () => {
+          if (resuelto) return;
+          const correcta = cifraEn(suma, activa);
+          if (d === correcta) resolverColumna(d);
+          else {
+            btn.style.animation = "sacudir .4s ease";
+            setTimeout(() => (btn.style.animation = ""), 450);
+            ctx.casi();
+          }
+        });
+      });
+      btnAyuda.addEventListener("click", () => resolverColumna(cifraEn(suma, activa)));
+    };
+    jugar();
+  },
+};
+
 /* ── AGUDO, RECTO U OBTUSO (14-jul-2026, 4° grado NAP Bimestre 4 "Ideas
    web": "transportador interactivo para medir ángulos de rampas de
    skate" — simplificado de medición libre con transportador a

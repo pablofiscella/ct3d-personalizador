@@ -504,6 +504,33 @@ button.pill:active, a.pill:active { transform: scale(.94); }
    bug real encontrado en vivo (14-jul-2026). */
 .fraccionBtn .fraccionBarra { width: 130px; height: 36px; }
 
+/* suma en columnas (15-jul-2026, 4° grado) — algoritmo escrito con
+   acarreo VISIBLE, Pictórico no negociable (skill §2.3): cada columna
+   rotulada con su potencia de 10, nunca solo el resultado final. */
+.sumaColTablero { text-align: center; }
+.sumaColGrid { display: flex; justify-content: center; gap: 6px; }
+.sumaColEncabezado__col { width: 42px; display: flex; flex-direction: column; align-items: center;
+  font-family: "Baloo", sans-serif; line-height: 1.15; }
+.sumaColEncabezado__nombre { font-size: 15px; font-weight: 700; }
+.sumaColEncabezado__potencia { font-size: 11px; opacity: .6; }
+.sumaColAcarreos { min-height: 22px; margin-top: 4px; }
+.sumaColAcarreo { width: 42px; font-size: 13px; font-weight: 700; color: var(--ac); text-align: center; }
+.sumaColAcarreo--oculto { visibility: hidden; }
+.sumaColOperando { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 2px; }
+.sumaColMas { font-size: 24px; font-family: "Baloo", sans-serif; width: 20px; text-align: center; }
+.sumaDigito { width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-family: "Baloo", sans-serif; }
+.sumaDigito--vacio { visibility: hidden; }
+.sumaColLinea { height: 3px; background: var(--ink); margin: 8px auto 6px; max-width: 320px; }
+.sumaResultado__slot { width: 42px; height: 46px; display: flex; align-items: center; justify-content: center;
+  border: 3px dashed color-mix(in srgb, var(--ink) 30%, transparent); border-radius: 10px;
+  font-size: 24px; font-family: "Baloo", sans-serif; background: var(--soft); }
+.sumaResultado__slot:empty { animation: latido 1.8s ease infinite; }
+.sumaResultado__slot.activo { border-style: solid; border-color: var(--ac); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ac) 25%, transparent); }
+.sumaColAyuda { margin: 14px auto 4px; display: block; }
+.sumaColKeypad { gap: 8px; max-width: 380px; margin: 12px auto 0; }
+.sumaColDigitBtn { width: 44px; height: 44px; padding: 0; font-size: 20px; font-family: "Baloo", sans-serif; }
+
 /* ángulos — dos líneas desde un vértice común (14-jul-2026, 4° grado):
    la base queda fija, el lado gira por transform:rotate() según el
    ángulo real de la ronda. */

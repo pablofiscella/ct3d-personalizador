@@ -264,6 +264,20 @@ def _menu(banda, edad):
         # rondas=10 (14-jul-2026): ANGULOS_BANCO creció de 7 a 10.
         g.append({"id": "angulos", "titulo": "Agudo, recto u obtuso", "icono": "📐", "cfg": {"rondas": 10}})
         g.append({"id": "prefijos_sufijos", "titulo": "Palabras nuevas", "icono": "🔗", "cfg": {"rondas": 5}})
+        # Pablo 15-jul-2026, probando el link en vivo: "las sumas en 4°
+        # grado son de 4 a 5 cifras y en las actividades parecen muy
+        # fáciles para esa edad". El `sumas` genérico (conteo de sprites,
+        # tope=10 FIJO para 1° a 7° grado por igual) no puede representar
+        # 4-5 cifras — reemplazado acá por el algoritmo escrito en
+        # columnas (NAP Bimestre 1: "números hasta 10.000-50.000...
+        # propiedades de suma y resta"), único año hasta ahora que
+        # reemplaza un juego base en vez de solo agregar — mismo criterio
+        # que informe §5g (banda "grande" sin tope, recién importa cuando
+        # un año necesita CAMBIAR contenido compartido, no solo sumar).
+        # Alcance acordado con Pablo: solo 4° grado por ahora — 3°/5°-7°
+        # siguen con el `sumas`/`restas` genérico hasta la próxima pasada.
+        g[:] = [item for item in g if item["id"] != "sumas"]
+        g.append({"id": "suma_columnas", "titulo": "Suma con cifras grandes", "icono": "🧮", "cfg": {"rondas": 6}})
     if e == 10:
         # 5° grado (14-jul-2026): mismo criterio — un juego por cada "Idea
         # web" del NAP.
