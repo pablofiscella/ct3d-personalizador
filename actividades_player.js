@@ -5808,8 +5808,16 @@ GAMES.simon = {
     };
     const reproducir = async () => {
       reproduciendo = true;
-      ctx.consigna(nivel === 0 ? "Mirá y escuchá…" : sacarDeBolsa(ctx, "mira", SIMON_MIRA_CORTAS));
-      await espera(400);
+      // Pablo 15-jul-2026: "mira y escucha" se cortaba en seco — el mismo bug
+      // ya arreglado en suma_columnas (reproducirConsigna() pausa el audio
+      // anterior apenas arranca uno nuevo; acá el flash de la secuencia
+      // empezaba a los 400ms fijos, sin esperar a que la frase realmente
+      // terminara de sonar). Ahora se espera el audio real + una pausa de
+      // respiro antes de arrancar la secuencia.
+      const mira = nivel === 0 ? "Mirá y escuchá…" : sacarDeBolsa(ctx, "mira", SIMON_MIRA_CORTAS);
+      $("#consignaTexto").innerHTML = mira;
+      const sonó = await reproducirConsigna(mira);
+      await espera(sonó ? 500 : 400);
       for (let i = 0; i < seq.length; i++) { flash(seq[i], 380); await espera(480); }
       reproduciendo = false;
       entrada = [];
