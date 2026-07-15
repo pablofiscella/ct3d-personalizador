@@ -297,6 +297,7 @@ def _personajes_paths(tema, n=2, variedad_estricta=False, incluir_objetos=False)
     # limpio llena bien su recuadro; un recorte MEZCLADO (varios stickers pegados con
     # huecos transparentes en medio) tiene densidad baja → se descarta, así las piezas
     # no salen con amasijos. También se filtran objetos chicos (hojas/íconos) y tiras.
+    import piezas
     cand = []
     for p in paths:
         try:
@@ -317,6 +318,13 @@ def _personajes_paths(tema, n=2, variedad_estricta=False, incluir_objetos=False)
             if w >= h and w / max(1, h) > 1.9:
                 continue
             if asp_v > 2.6 or (asp_v > 1.9 and opacos / area < 0.55):
+                continue
+            # recorte COMPUESTO: dos figuras densas pegadas (la nena bombera con
+            # un pedazo del camión arriba — Pablo 15-jul-2026). El interactivo ya
+            # lo filtraba con un_solo_blob; acá NO, así que salía en el memory
+            # IMPRESO y demás piezas. Densidad/aspecto no lo agarran (las dos son
+            # densas y el conjunto no es una tira). skill §3 "figuras separadas".
+            if not piezas.un_solo_blob(im.crop(im.getbbox() or (0, 0, w, h))):
                 continue
             cand.append((area, p, im))
         except Exception:
@@ -1278,7 +1286,13 @@ def _a_trazos(b, rows):
     estilos = ["recta", "zigzag", "curva", "onda", "lazo"]; b.rnd.shuffle(estilos)
     for r in range(rows):
         yy, pitch = _slot(b.y, rows, r); amp = min(70, pitch * 0.28)
-        est = estilos[r % len(estilos)]; x0, x1 = 250, Wp - 230
+        # +b.act: esta actividad se repite 2 veces en la banda 2-3 años (skill §19,
+        # "SIN páginas duplicadas como relleno"). Sin el offset, las dos apariciones
+        # podían salir IGUALES (con más variedad de personajes desde el fix de dedup
+        # del 15-jul, el estilo de línea + el personaje coincidían y la página se
+        # duplicaba — test_cuaderno_margenes en rojo). b.act siempre difiere entre
+        # invocaciones, así que sala forma de trazo y personaje pegado.
+        est = estilos[(r + b.act) % len(estilos)]; x0, x1 = 250, Wp - 230
         pts = []
         for i in range(81):
             t = i / 80; x = x0 + (x1 - x0) * t
@@ -1291,7 +1305,7 @@ def _a_trazos(b, rows):
         for i in range(0, len(pts) - 1, 2):
             b.dr.line([pts[i], pts[i + 1]], fill=NAVY, width=7)
         if b.mons:
-            _paste_h(b.im, _IM(b.mon(r)), x0 - 80, yy, min(140, int(pitch * 0.6)))
+            _paste_h(b.im, _IM(b.mon(r + b.act)), x0 - 80, yy, min(140, int(pitch * 0.6)))
         _goal_torta(b.dr, x1 + 70, yy, 54)
     b.y = BOT
 

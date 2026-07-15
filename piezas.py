@@ -519,7 +519,16 @@ def es_recorte_duplicado(cand, elegidos):
     criterio calibrado del memotest: píxel muy parecido → dup siempre; misma
     etiqueta + matiz cerca (<40°) → dup (león vs león); sin etiqueta confiable,
     matiz cerca (<25°) + píxel parecido (<40) + misma silueta (IoU >0.75) → dup
-    (atrapa recolores/recortes sin etiquetar; deja pasar formas distintas)."""
+    (atrapa recolores/recortes sin etiquetar; deja pasar formas distintas).
+
+    Regla extra 15-jul-2026 (Pablo seguía viendo pares repetidos en bomberos y
+    construccion): en el caso SIN etiqueta, MISMO COLOR (matiz <10°) + MISMA
+    FORMA (IoU >0.75) → dup aunque el píxel diera un poco arriba del corte de 40.
+    Son "2 camiones rojos" o "2 palas amarillas" (matiz≈1-4, IoU≈0.80-0.83,
+    píxel≈42): el mismo dibujo para un chico. NO toca a los aviones de aviadores
+    (recolores REALES: matiz 20-46, quedan separados) ni fusiona personajes
+    etiquetados distintos que comparten paleta (elefante y nene con chaleco
+    naranja): esos los separa el clasificador."""
     def _dif_pixel(a, bpar):
         b, besp = bpar
         def dif(x, y):
@@ -545,9 +554,16 @@ def es_recorte_duplicado(cand, elegidos):
             return True
         dm = _dist_matiz(cand["matiz"], e["matiz"])
         if cand["etiqueta"] and e["etiqueta"]:
+            # dos personajes con etiqueta DISTINTA no son dup aunque compartan
+            # paleta y silueta (elefante y nene obrero, los dos con chaleco
+            # naranja: dm≈1, IoU≈0.86) — manda el clasificador, no el color.
             if cand["etiqueta"] == e["etiqueta"] and dm < 40:
                 return True
-        elif dm < 25 and dp < 40 and _iou_silueta(cand["sil"][0], e["sil"]) > 0.75:
+        elif _iou_silueta(cand["sil"][0], e["sil"]) > 0.75 and (
+                (dm < 25 and dp < 40) or (dm < 10 and dp < 50)):
+            # sin etiqueta confiable + misma forma, dup si: matiz cerca, o bien
+            # MISMO color (dm<10) aunque el píxel dé un poco arriba de 40 — los
+            # 2 camiones rojos / 2 palas amarillas (dm≈1-4, dp≈42, IoU≈0.8).
             return True
     return False
 
