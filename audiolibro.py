@@ -15,6 +15,7 @@ import os
 import re
 import secrets
 import time
+import urllib.parse
 import urllib.request
 import zlib
 
@@ -311,7 +312,8 @@ def crear(data, tema, api_key, escenas_dir=None, progress=None, token=None):
     with open(os.path.join(d, "manifest.json"), "w", encoding="utf-8") as f:
         json.dump({"tema": tema, "nombre": data.get("nombre", ""),
                    "titulo": _titulo_libro(data),
-                   "paginas": total, "creado": int(time.time())},
+                   "paginas": total, "creado": int(time.time()),
+                   "voz": voz or "lizy"},
                   f, ensure_ascii=False)
     _quitar_generando(token)
     _limpiar_vencidos()
@@ -554,4 +556,10 @@ pag.textContent='1 / '+N;
 </script></body></html>""" % {"titulo": e(titulo), "token": e(token),
                               "base": e(base_url), "n": n,
                               "v": int(reg.get("creado", 0)),
-                              "cta_url": "https://casatridimensional.com.ar/mi-cuenta/crear"}
+                              # voz en el link de "crear cuenta" (Pablo 15-jul-2026:
+                              # quiere saber con qué voz se creó cada cuenta nueva
+                              # que entra por este banner) — mi_cuenta_crear() en
+                              # la tienda lee este query param y dispara la
+                              # notificación al confirmarse el alta.
+                              "cta_url": "https://casatridimensional.com.ar/mi-cuenta/crear?voz=" +
+                                         urllib.parse.quote(reg.get("voz") or "lizy")}

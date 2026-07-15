@@ -48,6 +48,37 @@ def test_token_invalido_no_crea_nada(tmp_path, monkeypatch):
     assert not os.path.isdir(os.path.join(al.AUDIOLIBROS_DIR, "bad token!"))
 
 
+def _escribir_manifest(al, tok, **extra):
+    d = os.path.join(al.AUDIOLIBROS_DIR, tok)
+    os.makedirs(d, exist_ok=True)
+    base = {"tema": "safari", "nombre": "Sofía", "titulo": "El cuento", "paginas": 10}
+    base.update(extra)
+    with open(os.path.join(d, "manifest.json"), "w") as f:
+        json.dump(base, f)
+
+
+def test_html_cta_url_lleva_la_voz_del_manifest(tmp_path, monkeypatch):
+    """14-jul-2026: Pablo quiere saber con qué voz se creó cada cuenta nueva
+    que entra por el banner "guardar en cuenta" — el link tiene que llevar
+    la voz que efectivamente narró ESE audiolibro, no un valor fijo."""
+    al = _fresh_audiolibro(tmp_path, monkeypatch)
+    tok = "TokenVozMalena01"
+    _escribir_manifest(al, tok, voz="malena")
+    html = al.html(tok)
+    assert "cta_url=" not in html  # el % ya interpoló, no queda el placeholder
+    assert "mi-cuenta/crear?voz=malena" in html
+
+
+def test_html_cta_url_default_lizy_si_manifest_viejo_sin_voz(tmp_path, monkeypatch):
+    """Manifests generados ANTES de este cambio no tienen "voz" — no debe
+    romper, cae a lizy (el default histórico real)."""
+    al = _fresh_audiolibro(tmp_path, monkeypatch)
+    tok = "TokenSinVozViejo1"
+    _escribir_manifest(al, tok)  # sin "voz"
+    html = al.html(tok)
+    assert "mi-cuenta/crear?voz=lizy" in html
+
+
 def test_tts_mp3_rutea_voz_alternativa_elevenlabs(monkeypatch):
     """14-jul-2026: Malena (_EL_VOCES_ALT) tiene que pasar SU voice_id/
     settings a _tts_elevenlabs — nunca los de Lizy — y sin tocar OpenAI."""
