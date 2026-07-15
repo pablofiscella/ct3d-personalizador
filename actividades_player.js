@@ -761,24 +761,29 @@ GAMES.laberinto = {
           y: Math.floor(((ev.clientY - r.top) * escY - M) / C),
         };
       };
-      // 15-jul-2026 (Pablo, otra vuelta de la misma historia): la línea recta
-      // (Bresenham) se frena en la PRIMERA pared que cruza y ahí se queda
-      // pegada — en una esquina real, mientras el dedo sigue trazando el
-      // pasillo doblado, el personaje no vuelve a engancharse hasta que el
-      // dedo se aleja MUCHO en la nueva dirección ("el mouse no acompaña al
-      // personaje"). El BFS puro (versión vieja, ya descartada una vez)
-      // sí dobla esquinas, pero resuelve la ruta COMPLETA de un salto si el
-      // dedo apunta lejos en línea general — "si voy a donde quiero hace
-      // todo el camino". Híbrido: BFS real (respeta paredes, dobla en las
-      // esquinas del pasillo) pero ACOTADO a pocos pasos por evento — con el
-      // dedo trazando de verdad el pasillo, pointermove dispara seguido y el
-      // personaje avanza acompañando el ritmo real sin saltos; si el dedo
-      // apunta lejos sin trazar, sólo avanza el tope por evento, nunca
-      // resuelve el laberinto entero de un toque.
+      // 15-jul-2026 (Pablo, tercera vuelta de la misma historia): la línea
+      // recta (Bresenham) se frena en la PRIMERA pared que cruza y se queda
+      // pegada en los giros reales del pasillo ("el mouse no acompaña al
+      // personaje"). El BFS puro (dobla esquinas, versión anterior de este
+      // mismo fix) sí resuelve eso, pero encuentra CUALQUIER camino abierto
+      // — incluida la vuelta larga por OTRO pasillo para llegar a una celda
+      // que está cruzando una pared en línea recta. Eso es exactamente lo
+      // que reportó: "apenas lo toqué recorrió un tramo grande... si el
+      // mouse pasa al otro lado de una pared no tiene que llevarlo" — el
+      // BFS lo estaba rodeando. Fix: el camino solo puede avanzar si CADA
+      // paso acerca en distancia Manhattan al objetivo (nunca se aleja) —
+      // esto deja pasar los giros normales de un mismo pasillo (siempre son
+      // monótonos hacia el objetivo) pero PODA cualquier desvío que
+      // necesite alejarse primero para rodear una pared. Si el objetivo
+      // está del otro lado de una pared (sin camino monótono), rutaCorta
+      // no encuentra nada y el personaje simplemente no se mueve hacia ahí
+      // — mismo comportamiento de "frenarse en la pared" que Bresenham,
+      // pero sin quedarse pegado en los giros reales.
       const TOPE_PASOS_POR_EVENTO = 4;
       const rutaCorta = (x0, y0, x1, y1, tope) => {
         if (x0 === x1 && y0 === y1) return [];
         const key = (x, y) => y * n + x;
+        const dist = (x, y) => Math.abs(x - x1) + Math.abs(y - y1);
         const prev = new Array(n * n).fill(-1);
         const visitado = new Array(n * n).fill(false);
         visitado[key(x0, y0)] = true;
@@ -787,16 +792,18 @@ GAMES.laberinto = {
         while (cola.length) {
           const [x, y] = cola.shift();
           if (x === x1 && y === y1) break;
+          const dActual = dist(x, y);
           for (const [dx, dy, dir] of DIRS) {
             const nx = x + dx, ny = y + dy;
             if (nx < 0 || ny < 0 || nx >= n || ny >= n) continue;
             if (!abierta(x, y, dir) || visitado[key(nx, ny)]) continue;
+            if (dist(nx, ny) >= dActual) continue;   // nunca alejarse del objetivo — no rodea paredes
             visitado[key(nx, ny)] = true;
             prev[key(nx, ny)] = key(x, y);
             cola.push([nx, ny]);
           }
         }
-        if (!visitado[key(x1, y1)]) return null;   // celda no conectada por pasillos abiertos
+        if (!visitado[key(x1, y1)]) return null;   // sin camino monótono — está "del otro lado de la pared"
         const camino = [];
         let k = key(x1, y1);
         while (k !== key(x0, y0)) {
