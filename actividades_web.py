@@ -583,6 +583,10 @@ def _es_duplicado(cand, elegidos):
     - alguno SIN etiqueta: matiz cerca (<25°) + píxel <40 + MISMA FORMA
       (IoU silueta >0.75) → dup (atrapa al león sin etiquetar y a las dos
       monsteras; deja pasar hoja-vs-flor, que difieren en forma)
+    - MISMO COLOR (matiz <10°) + MISMA FORMA (IoU >0.75) → dup aunque el píxel
+      pase el corte de 40 (2 camiones rojos de bomberos, 2 palas amarillas de
+      construccion: Pablo 15-jul-2026 seguía viéndolos repetidos; los aviones
+      recoloreados de aviadores tienen matiz 20-46 y quedan separados)
     - píxel <24 → dup siempre (casi-idénticos)"""
     for e in elegidos:
         dp = _dif_pixel(cand["mini"][0], e["mini"])
@@ -590,10 +594,12 @@ def _es_duplicado(cand, elegidos):
             return True
         dm = _dist_matiz(cand["matiz"], e["matiz"])
         if cand["etiqueta"] and e["etiqueta"]:
+            # etiqueta distinta → NO dup aunque compartan color/silueta (elefante
+            # y nene con chaleco naranja): manda el clasificador, no el color.
             if cand["etiqueta"] == e["etiqueta"] and dm < 40:
                 return True
-        elif dm < 25 and dp < 40 \
-                and _iou_silueta(cand["sil"][0], e["sil"]) > 0.75:
+        elif _iou_silueta(cand["sil"][0], e["sil"]) > 0.75 and (
+                (dm < 25 and dp < 40) or (dm < 10 and dp < 50)):
             return True
     return False
 
