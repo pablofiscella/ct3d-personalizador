@@ -59,6 +59,21 @@ _EL_MODEL = "eleven_v3"
 _EL_SETTINGS = {"stability": 0.5}
 _EL_KEY_CACHE = {}
 
+# Voces ElevenLabs ALTERNATIVAS a Lizy (14-jul-2026): cada una tiene su propio
+# voice_id + voice_settings — nunca comparten los de Lizy. Malena elegida por
+# Pablo tras comparar varias candidatas ("malena_cierre_expresiva" contra
+# "malena_cierre_default" y variantes de Isabel — ver memoria
+# ct3d-audiolibro-voz). Settings "expresiva" (stability 0.25 / style 0.45)
+# INFERIDOS del mismo ajuste que ya probado y aprobado para Isabel en esa
+# ronda (mismo naming "_expresiva") — no encontré el script original que
+# generó la muestra que Pablo subió, así que se verificó por oído contra
+# esa muestra antes de dar esto por cerrado, no es un valor puesto a ciegas.
+_EL_VOCES_ALT = {
+    "malena": {"voice_id": "p7AwDmKvTdoHTBuueGvP",
+               "settings": {"stability": 0.25, "style": 0.45},
+               "label": "Voz cálida alternativa"},
+}
+
 # Etiquetas de emoción v3 automáticas y CONSERVADORAS (receta investigada:
 # 1 etiqueta por página máximo, whitelist dulce, al inicio del segmento; las
 # 2 páginas finales llevan el ritardando del cierre para dormir). Solo para la
@@ -105,17 +120,19 @@ def _elevenlabs_key():
     return k
 
 
-def _tts_elevenlabs(texto, timeout=120, seed=None):
+def _tts_elevenlabs(texto, timeout=120, seed=None, voice_id=None, settings=None):
+    """voice_id/settings opcionales para narrar con una voz ALTERNATIVA a
+    Lizy (ver _EL_VOCES_ALT) — default sin argumentos: Lizy de siempre."""
     key = _elevenlabs_key()
     if not key:
         return None
     payload = {"text": texto, "model_id": _EL_MODEL,
-               "voice_settings": _EL_SETTINGS}
+               "voice_settings": settings or _EL_SETTINGS}
     if seed is not None:
         payload["seed"] = int(seed) % (2 ** 31)
     body = json.dumps(payload).encode()
     req = urllib.request.Request(
-        "%s/%s?output_format=mp3_44100_128" % (_EL_URL, _EL_VOICE),
+        "%s/%s?output_format=mp3_44100_128" % (_EL_URL, voice_id or _EL_VOICE),
         data=body, method="POST",
         headers={"xi-api-key": key, "Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
@@ -151,22 +168,27 @@ def _tts_openai(api_key, texto, timeout=120, voz=None):
 
 def tts_mp3(api_key, texto, timeout=120, voz=None, seed=None):
     """MP3 de la narración de `texto`. Por default usa ElevenLabs (Lizy sobre
-    eleven_v3); si el cliente eligió una voz OpenAI usa esa; y si ElevenLabs
-    falla, cae a OpenAI como respaldo automático. Con `seed` (fijo por libro)
-    mantiene la consistencia entre páginas (v3 no tiene request stitching) y
-    reintenta con seed+1 si la toma sale con ritmo raro (QA de duración)."""
+    eleven_v3); si el cliente eligió una voz ElevenLabs ALTERNATIVA (ver
+    _EL_VOCES_ALT, ej. Malena) usa esa; si eligió una voz OpenAI usa esa; y
+    si ElevenLabs falla, cae a OpenAI como respaldo automático. Con `seed`
+    (fijo por libro) mantiene la consistencia entre páginas (v3 no tiene
+    request stitching) y reintenta con seed+1 si la toma sale con ritmo raro
+    (QA de duración)."""
     v = (str(voz or "").strip().lower())
-    if v not in VOCES:                    # default o 'lizy' → ElevenLabs
+    alt = _EL_VOCES_ALT.get(v)
+    if alt or v not in VOCES:             # default, 'lizy' o alt → ElevenLabs
         base = seed if seed is not None else 4242
         for intento in range(3):
             try:
-                mp3 = _tts_elevenlabs(texto, timeout, seed=base + intento)
+                mp3 = _tts_elevenlabs(texto, timeout, seed=base + intento,
+                                       voice_id=alt["voice_id"] if alt else None,
+                                       settings=alt["settings"] if alt else None)
                 if mp3 and _duracion_ok(texto, mp3):
                     return mp3
                 if mp3 and intento == 2:  # 3 tomas raras: devolver la última
                     return mp3
             except Exception as e:
-                print("[tts] ElevenLabs falló (%s)" % e, flush=True)
+                print("[tts] ElevenLabs (%s) falló (%s)" % (v or "lizy", e), flush=True)
                 break
         v = _VOZ
     return _tts_openai(api_key, texto, timeout, v)
