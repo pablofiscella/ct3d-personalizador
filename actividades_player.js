@@ -773,16 +773,35 @@ GAMES.laberinto = {
       // necesita alejarse 1-2 celdas antes de poder acercarse — con la
       // regla estricta, esos giros normales tampoco encontraban camino:
       // "ahora casi no se mueve".
-      // Fix final: BFS SIN podar durante la búsqueda (encuentra el camino
-      // MÁS CORTO real, sea cual sea), y recién DESPUÉS se compara ese largo
-      // contra la distancia Manhattan en línea recta — si el camino real no
-      // es mucho más largo que la línea recta (tolerancia chica, esquivar
-      // una pared puntual), se usa; si es MUCHO más largo (la vuelta larga
-      // por otro pasillo), se descarta. Distingue "un giro normal" de
-      // "rodear una pared" por CUÁNTO más largo es el camino, no por si se
-      // aleja ni un solo paso.
+      // Un ajuste más (misma tarde): comparar el camino real contra la
+      // tolerancia para CUALQUIER objetivo, sin importar qué tan lejos
+      // estuviera, terminó rechazando casi todos los arrastres normales —
+      // un objetivo lejos en un pasillo sinuoso tiene camino real mucho más
+      // largo que su línea recta SIN que eso signifique "rodeo de pared",
+      // así que hacía falta arrastrar mucho para que el puntero cayera en
+      // una celda "favorable": "tengo que llevar el puntero lejos para que
+      // se mueva". Fix final: BFS SIN podar (encuentra el camino MÁS CORTO
+      // real, sea cual sea) y la comparación contra Manhattan sólo se aplica
+      // cuando el objetivo está pegado al personaje (manhattan<=2) — ahí sí
+      // distingue "esquivar una pared puntual" de "rodear por el otro
+      // pasillo". Para cualquier objetivo más lejos no se objeta el
+      // desvío: se camina por el camino real tal cual, tope de pasos por
+      // evento mediante.
       const TOPE_PASOS_POR_EVENTO = 4;
-      const TOLERANCIA_DESVIO = 4;   // pasos de más permitidos sobre la línea recta antes de considerarlo "rodeo"
+      // la tolerancia comparaba el camino real contra la distancia Manhattan
+      // TOTAL entre personaje y puntero — en un laberinto real, un objetivo
+      // lejos (manhattan 8+) fácilmente tiene un camino real 4-5 veces más
+      // largo solo por lo sinuoso del trazado (no por rodear nada), así que
+      // casi cualquier arrastre normal quedaba rechazado salvo que el
+      // puntero cayera justo sobre una celda "favorable" — de ahí "tengo que
+      // llevar el puntero lejos para que se mueva". El caso real a evitar
+      // ("si el mouse pasa al otro lado de una pared no tiene que llevarlo")
+      // es puntual: el puntero quedó en una celda VECINA separada por una
+      // sola pared. Por eso el filtro ahora solo aplica cerca (manhattan<=2);
+      // para cualquier objetivo más lejos, se camina por el camino real sin
+      // objetar cuán sinuoso sea — el tope de pasos por evento ya evita el
+      // salto brusco, y el seguimiento se corrige solo evento a evento.
+      const TOLERANCIA_CERCANA = 2;   // pasos de más permitidos cuando el objetivo está pegado al personaje
       const rutaCorta = (x0, y0, x1, y1, tope) => {
         if (x0 === x1 && y0 === y1) return [];
         const key = (x, y) => y * n + x;
@@ -814,7 +833,7 @@ GAMES.laberinto = {
           k = kAnt;
         }
         const manhattan = Math.abs(x1 - x0) + Math.abs(y1 - y0);
-        if (camino.length > manhattan + TOLERANCIA_DESVIO) return null;   // desvío grande -> "rodea una pared"
+        if (manhattan <= 2 && camino.length > manhattan + TOLERANCIA_CERCANA) return null;   // vecino del otro lado de una pared
         return camino.slice(0, tope);
       };
       let llegando = false;   // guard: dos eventos de puntero casi simultáneos
