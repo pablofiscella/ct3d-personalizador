@@ -20,6 +20,22 @@ import zlib
 import audiolibro
 
 
+def _etiquetar(nid, texto):
+    """Reusa audiolibro._etiqueta_pagina (etiquetas v3 de emoción) — SIN esto,
+    ElevenLabs v3 tiene que adivinar la emoción del texto crudo (sobre todo en
+    diálogo entre comillas) y puede salir plano o sobreactuado/distorsionado
+    (feedback real de Pablo, 15-jul-2026: "suena saturado y falta de
+    entonación" en la primera muestra sin etiquetar). `hook` (siempre el primer
+    nodo de cualquier aventura) recibe el mismo trato de "tapa" que la portada
+    del audiolibro lineal ([warmly]); el resto usa solo las reglas por
+    CONTENIDO de _etiqueta_pagina (no hay pos/total: el grafo no es lineal)."""
+    if nid == "hook":
+        # total tiene que ser > 2: con total=2, pos==total-2 (0==0) coincide
+        # ANTES de llegar a pos==0 y gana "[slows down]" en vez de "[warmly]".
+        return audiolibro._etiqueta_pagina(texto, pos=0, total=3)
+    return audiolibro._etiqueta_pagina(texto)
+
+
 def generar(token, nodos, dest_dir, api_key=None, tts=audiolibro.tts_mp3, progress=None,
            voz="malena"):
     """nodos: dict nodo_id -> {"texto": ...} (el grafo YA personalizado, tal cual sale
@@ -37,7 +53,7 @@ def generar(token, nodos, dest_dir, api_key=None, tts=audiolibro.tts_mp3, progre
             continue
         if progress:
             progress("Nodo %d de %d (%s)…" % (i + 1, len(items), nid))
-        mp3 = tts(api_key, n["texto"], seed=seed, voz=voz)
+        mp3 = tts(api_key, _etiquetar(nid, n["texto"]), seed=seed, voz=voz)
         with open(p, "wb") as f:
             f.write(mp3)
         out.append(p)

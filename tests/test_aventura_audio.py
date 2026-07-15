@@ -35,6 +35,20 @@ def test_generar_usa_malena_por_default(tmp_path):
     assert llamadas == ["malena"]
 
 
+def test_generar_etiqueta_el_hook_y_el_contenido():
+    """15-jul-2026: Pablo, sobre la primera muestra sin etiquetar: "está sonando
+    saturado y falta de entonación". Sin etiqueta v3, el modelo tiene que
+    adivinar la emoción — el hook (portada de la aventura) recibe el mismo
+    trato cálido que la tapa del audiolibro lineal, y el resto usa las reglas
+    por contenido (ya probadas) de audiolibro._etiqueta_pagina."""
+    assert aventura_audio._etiquetar("hook", "Un mapa viejo apareció.") == \
+        "[warmly] Un mapa viejo apareció."
+    assert aventura_audio._etiquetar("camino", "¡Qué sorpresa! ¡Vamos!") == \
+        "[excited] ¡Qué sorpresa! ¡Vamos!"
+    assert aventura_audio._etiquetar("camino", "Caminó tranquilo por el sendero.") == \
+        "Caminó tranquilo por el sendero."
+
+
 def test_generar_arma_un_mp3_por_nodo(tmp_path):
     llamadas = []
     nodos = {"hook": {"texto": "Sofía encontró un mapa."},
