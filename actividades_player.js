@@ -761,27 +761,52 @@ GAMES.laberinto = {
           y: Math.floor(((ev.clientY - r.top) * escY - M) / C),
         };
       };
-      // El BFS (dobla esquinas solo, aunque el mouse apunte lejos en línea
-      // general) resultó ser MÁS de lo que hacía falta: "si voy a donde
-      // quiero hace todo el camino" — no debe rutear alrededor de una
-      // pared, tiene que seguir literalmente la línea del mouse y frenarse
-      // ahí si esa línea cruza una pared. Bresenham en cuadrícula: la
-      // secuencia de pasos ortogonales (nunca diagonales — los pasillos no
-      // conectan en diagonal) que sigue la línea recta real entre dos
-      // celdas, tolerando el temblor natural de una mano sin rutear.
-      const pasosLinea = (x0, y0, x1, y1) => {
-        const pasos = [];
-        let x = x0, y = y0;
-        const adx = Math.abs(x1 - x0), ady = Math.abs(y1 - y0);
-        const sx = x1 > x0 ? 1 : -1, sy = y1 > y0 ? 1 : -1;
-        let err = adx - ady;
-        while (x !== x1 || y !== y1) {
-          const e2 = 2 * err;
-          if (e2 > -ady && x !== x1) { err -= ady; x += sx; pasos.push([sx, 0]); }
-          else if (e2 < adx && y !== y1) { err += adx; y += sy; pasos.push([0, sy]); }
-          else break;
+      // 15-jul-2026 (Pablo, otra vuelta de la misma historia): la línea recta
+      // (Bresenham) se frena en la PRIMERA pared que cruza y ahí se queda
+      // pegada — en una esquina real, mientras el dedo sigue trazando el
+      // pasillo doblado, el personaje no vuelve a engancharse hasta que el
+      // dedo se aleja MUCHO en la nueva dirección ("el mouse no acompaña al
+      // personaje"). El BFS puro (versión vieja, ya descartada una vez)
+      // sí dobla esquinas, pero resuelve la ruta COMPLETA de un salto si el
+      // dedo apunta lejos en línea general — "si voy a donde quiero hace
+      // todo el camino". Híbrido: BFS real (respeta paredes, dobla en las
+      // esquinas del pasillo) pero ACOTADO a pocos pasos por evento — con el
+      // dedo trazando de verdad el pasillo, pointermove dispara seguido y el
+      // personaje avanza acompañando el ritmo real sin saltos; si el dedo
+      // apunta lejos sin trazar, sólo avanza el tope por evento, nunca
+      // resuelve el laberinto entero de un toque.
+      const TOPE_PASOS_POR_EVENTO = 4;
+      const rutaCorta = (x0, y0, x1, y1, tope) => {
+        if (x0 === x1 && y0 === y1) return [];
+        const key = (x, y) => y * n + x;
+        const prev = new Array(n * n).fill(-1);
+        const visitado = new Array(n * n).fill(false);
+        visitado[key(x0, y0)] = true;
+        const cola = [[x0, y0]];
+        const DIRS = [[0, -1, "N"], [0, 1, "S"], [1, 0, "E"], [-1, 0, "W"]];
+        while (cola.length) {
+          const [x, y] = cola.shift();
+          if (x === x1 && y === y1) break;
+          for (const [dx, dy, dir] of DIRS) {
+            const nx = x + dx, ny = y + dy;
+            if (nx < 0 || ny < 0 || nx >= n || ny >= n) continue;
+            if (!abierta(x, y, dir) || visitado[key(nx, ny)]) continue;
+            visitado[key(nx, ny)] = true;
+            prev[key(nx, ny)] = key(x, y);
+            cola.push([nx, ny]);
+          }
         }
-        return pasos;
+        if (!visitado[key(x1, y1)]) return null;   // celda no conectada por pasillos abiertos
+        const camino = [];
+        let k = key(x1, y1);
+        while (k !== key(x0, y0)) {
+          const kAnt = prev[k];
+          const px = kAnt % n, py = Math.floor(kAnt / n);
+          const cx = k % n, cy = Math.floor(k / n);
+          camino.unshift([cx - px, cy - py]);
+          k = kAnt;
+        }
+        return camino.slice(0, tope);
       };
       let llegando = false;   // guard: dos eventos de puntero casi simultáneos
       // llegando a la meta no deben disparar llegada() dos veces (corrompía
@@ -799,7 +824,9 @@ GAMES.laberinto = {
         for (const e of eventos) {
           const objetivo = celdaDePuntero(e);
           if (objetivo.x < 0 || objetivo.y < 0 || objetivo.x >= n || objetivo.y >= n) continue;
-          for (const [dx, dy] of pasosLinea(cur.x, cur.y, objetivo.x, objetivo.y)) {
+          const camino = rutaCorta(cur.x, cur.y, objetivo.x, objetivo.y, TOPE_PASOS_POR_EVENTO);
+          if (!camino) continue;   // celda apuntada no conectada por pasillo — ignorar, no romper el seguimiento
+          for (const [dx, dy] of camino) {
             if (!paso(dx, dy)) break;
           }
           if (cur.x === n - 1 && cur.y === n - 1) { llegando = true; llegada(); return; }
