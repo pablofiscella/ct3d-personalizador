@@ -28,25 +28,38 @@ _TTS_URL = "https://api.openai.com/v1/audio/speech"
 _VOZ = "sage"        # la voz del preset oficial "Bedtime Story" de openai.fm
 VOCES = {"fable": "Voz de cuentacuentos", "nova": "Voz femenina cálida",
          "onyx": "Voz masculina profunda"}
+_VOCES_MASCULINAS = {"onyx"}   # ver _instrucciones(): Affect cambia según género
+
 # Estructura Affect/Tone/Pacing/... calcada de los presets oficiales "Bedtime
 # Story" + "Serene" de openai.fm (así recomienda OpenAI usar `instructions`;
 # en inglés siguen mejor). El acento rioplatense se ancla desde el TEXTO (voseo).
-_INSTRUCCIONES = (
-    "Affect: A warm, gentle female storyteller telling a bedtime story to a "
-    "small child (2 to 6 years old), in Latin American Spanish from Argentina "
-    "(Rioplatense accent).\n"
-    "Tone: Soft, magical, loving and reassuring, like a mother reading a "
-    "picture book at night; full of wonder, never loud or rushed.\n"
-    "Pacing: Slow and unhurried, around 120 to 130 words per minute. Brief "
-    "pause after every sentence; a longer, expectant pause before magical "
-    "moments.\n"
-    "Emotion: Tender warmth and quiet delight; gently playful in adventure "
-    "moments, hushed and sleepy toward the end.\n"
-    "Pronunciation: Clear, soft articulation with slightly elongated vowels. "
-    "Argentine Spanish: pronounce 'll' and 'y' with the soft 'sh' sound, and "
-    "read voseo forms ('mirá', 'tenés', 'dormite') naturally.\n"
-    "Pauses: Gentle pauses at commas and ellipses; let final sentences trail "
-    "off softly.")
+# 15-jul-2026 (pedido de Pablo, sobre onyx/las voces masculinas): "más entonación
+# y emoción" — reforzado el bloque Emotion para pedir variación explícita (antes
+# alcanzaba, pero sonaba plano/monótono) — y separado el Affect por GÉNERO real
+# de la voz: antes decía "female storyteller" para TODAS, onyx incluida (voz
+# "masculina profunda" narrada con instrucciones que dicen que es una mujer).
+def _instrucciones(voz=None):
+    genero = "male" if voz in _VOCES_MASCULINAS else "female"
+    quien = "father" if genero == "male" else "mother"
+    return (
+        "Affect: A warm, gentle %s storyteller telling a bedtime story to a "
+        "small child (2 to 6 years old), in Latin American Spanish from "
+        "Argentina (Rioplatense accent).\n"
+        "Tone: Soft, magical, loving and reassuring, like a %s reading a "
+        "picture book at night; full of wonder, never loud or rushed.\n"
+        "Pacing: Slow and unhurried, around 120 to 130 words per minute. "
+        "Brief pause after every sentence; a longer, expectant pause before "
+        "magical moments.\n"
+        "Emotion: Expressive and full of VARIED intonation — never flat or "
+        "monotone. Let the pitch rise with wonder and surprise, soften with "
+        "tenderness, and lift with playful excitement in adventure moments; "
+        "hushed and sleepy toward the end.\n"
+        "Pronunciation: Clear, soft articulation with slightly elongated "
+        "vowels. Argentine Spanish: pronounce 'll' and 'y' with the soft "
+        "'sh' sound, and read voseo forms ('mirá', 'tenés', 'dormite') "
+        "naturally.\n"
+        "Pauses: Gentle pauses at commas and ellipses; let final sentences "
+        "trail off softly." % (genero, quien))
 
 # ElevenLabs: voz por default del audiolibro (más natural que OpenAI). Lizy es una voz
 # nativa en español pensada para cuentos infantiles. La key se lee de config.json.
@@ -159,7 +172,7 @@ def _tts_openai(api_key, texto, timeout=120, voz=None):
     texto = re.sub(r"\[[a-z][a-z ]*\]\s*", "", texto)
     body = json.dumps({"model": "gpt-4o-mini-tts", "voice": v, "input": texto,
                        "response_format": "mp3",
-                       "instructions": _INSTRUCCIONES}).encode()
+                       "instructions": _instrucciones(v)}).encode()
     req = urllib.request.Request(_TTS_URL, data=body, method="POST", headers={
         "Authorization": "Bearer " + api_key, "Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as r:

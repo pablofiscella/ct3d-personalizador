@@ -27,12 +27,19 @@ def _etiquetar(nid, texto):
     (feedback real de Pablo, 15-jul-2026: "suena saturado y falta de
     entonación" en la primera muestra sin etiquetar). `hook` (siempre el primer
     nodo de cualquier aventura) recibe el mismo trato de "tapa" que la portada
-    del audiolibro lineal ([warmly]); el resto usa solo las reglas por
-    CONTENIDO de _etiqueta_pagina (no hay pos/total: el grafo no es lineal)."""
+    del audiolibro lineal ([warmly]) MÁS [slows down] — combinación confirmada
+    por Pablo tras escuchar 3 muestras (la sola [warmly] sonaba mejor pero
+    "le falta un poco más de entonación y un poco más lento o más pausado").
+    El resto usa solo las reglas por CONTENIDO de _etiqueta_pagina (no hay
+    pos/total: el grafo no es lineal)."""
     if nid == "hook":
         # total tiene que ser > 2: con total=2, pos==total-2 (0==0) coincide
         # ANTES de llegar a pos==0 y gana "[slows down]" en vez de "[warmly]".
-        return audiolibro._etiqueta_pagina(texto, pos=0, total=3)
+        # Orden [warmly] antes de [slows down]: es el orden exacto que Pablo
+        # escuchó y confirmó (muestra v3, 15-jul-2026) — no cambiar sin volver
+        # a probar, no hay garantía de que el orden le dé lo mismo al modelo.
+        return audiolibro._etiqueta_pagina(texto, pos=0, total=3).replace(
+            "[warmly] ", "[warmly] [slows down] ", 1)
     return audiolibro._etiqueta_pagina(texto)
 
 

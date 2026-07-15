@@ -107,3 +107,20 @@ def test_tts_mp3_rutea_voz_alternativa_elevenlabs(monkeypatch):
     llamadas.clear()
     al.tts_mp3(api_key="k", texto="Hola", voz="fable", seed=1)
     assert llamadas == [("openai", "fable")]    # voz OpenAI: ni pasa por ElevenLabs
+
+
+def test_instrucciones_openai_son_por_genero_de_voz():
+    """15-jul-2026, pedido de Pablo sobre onyx ("voz masculina profunda"): "hace
+    lo mismo con las voces de los hombres, mas entonacion y emocion". Antes,
+    _INSTRUCCIONES era un único texto fijo que decía "female storyteller" para
+    TODAS las voces, onyx incluida — bug real, no solo falta de emoción."""
+    import audiolibro as al
+    masc = al._instrucciones("onyx")
+    fem = al._instrucciones("nova")
+    assert "male storyteller" in masc
+    assert "female storyteller" not in masc
+    assert "female storyteller" in fem
+    # el refuerzo de emoción/entonación aplica a TODAS las voces, no solo onyx
+    for instr in (masc, fem):
+        assert "VARIED intonation" in instr
+        assert "flat or" in instr and "monotone" in instr

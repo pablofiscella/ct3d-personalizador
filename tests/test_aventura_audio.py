@@ -39,10 +39,12 @@ def test_generar_etiqueta_el_hook_y_el_contenido():
     """15-jul-2026: Pablo, sobre la primera muestra sin etiquetar: "está sonando
     saturado y falta de entonación". Sin etiqueta v3, el modelo tiene que
     adivinar la emoción — el hook (portada de la aventura) recibe el mismo
-    trato cálido que la tapa del audiolibro lineal, y el resto usa las reglas
-    por contenido (ya probadas) de audiolibro._etiqueta_pagina."""
+    trato cálido que la tapa del audiolibro lineal MÁS [slows down] (Pablo,
+    tras escuchar la v2 solo con [warmly]: "le falta ... un poco mas lento o
+    mas pausado" — confirmó la combinación en la v3), y el resto usa las
+    reglas por contenido (ya probadas) de audiolibro._etiqueta_pagina."""
     assert aventura_audio._etiquetar("hook", "Un mapa viejo apareció.") == \
-        "[warmly] Un mapa viejo apareció."
+        "[warmly] [slows down] Un mapa viejo apareció."
     assert aventura_audio._etiquetar("camino", "¡Qué sorpresa! ¡Vamos!") == \
         "[excited] ¡Qué sorpresa! ¡Vamos!"
     assert aventura_audio._etiquetar("camino", "Caminó tranquilo por el sendero.") == \
