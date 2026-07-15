@@ -67,7 +67,7 @@ def test_tts_mp3_rutea_voz_alternativa_elevenlabs(monkeypatch):
     monkeypatch.setattr(al, "_duracion_ok", lambda texto, mp3: True)
 
     al.tts_mp3(api_key="k", texto="Hola", voz="malena", seed=1)
-    assert llamadas[-1] == ("el", "p7AwDmKvTdoHTBuueGvP", {"stability": 0.25, "style": 0.45})
+    assert llamadas[-1] == ("el", "p7AwDmKvTdoHTBuueGvP", {"stability": 0.5})
 
     llamadas.clear()
     al.tts_mp3(api_key="k", texto="Hola", voz=None, seed=1)

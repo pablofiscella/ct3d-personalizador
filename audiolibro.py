@@ -63,14 +63,13 @@ _EL_KEY_CACHE = {}
 # voice_id + voice_settings — nunca comparten los de Lizy. Malena elegida por
 # Pablo tras comparar varias candidatas ("malena_cierre_expresiva" contra
 # "malena_cierre_default" y variantes de Isabel — ver memoria
-# ct3d-audiolibro-voz). Settings "expresiva" (stability 0.25 / style 0.45)
-# INFERIDOS del mismo ajuste que ya probado y aprobado para Isabel en esa
-# ronda (mismo naming "_expresiva") — no encontré el script original que
-# generó la muestra que Pablo subió, así que se verificó por oído contra
-# esa muestra antes de dar esto por cerrado, no es un valor puesto a ciegas.
+# ct3d-audiolibro-voz). Settings: stability 0.5 (Pablo confirmó 15-jul-2026
+# que la muestra que había elegido era con este valor, NO 0.25 como se había
+# inferido primero por el nombre "_expresiva" — la corrección vino después de
+# escuchar la primera integración y notarla parecida a la de Lizy).
 _EL_VOCES_ALT = {
     "malena": {"voice_id": "p7AwDmKvTdoHTBuueGvP",
-               "settings": {"stability": 0.25, "style": 0.45},
+               "settings": {"stability": 0.5},
                "label": "Voz cálida alternativa"},
 }
 
