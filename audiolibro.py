@@ -380,6 +380,23 @@ button { background:#6B5BD2; color:#fff; border:0; border-radius:50%%; width:52p
 button.sec { background:#453a66; width:44px; height:44px; font-size:16px; }
 .pag { color:#b8aede; font-size:14px; min-width:52px; text-align:center; }
 body.tv .controles, body.tv #diag { display:none; }
+/* CTA de guardar en cuenta: aparece al llegar a la última página — el momento
+   de mayor intención. No depende de que la pestaña de origen (/regalo) siga
+   abierta: mucho tráfico de ads llega por el navegador interno de Instagram/
+   Facebook, donde target="_blank" no siempre deja volver atrás (Pablo
+   15-jul-2026: "estoy publicitando y no está funcionando" — el reproductor
+   no tenía NINGÚN camino de vuelta a crear cuenta). */
+#ctaCuenta { position:fixed; left:0; right:0; bottom:0; background:#1f1a2e;
+  border-top:2px solid #6B5BD2; padding:12px 16px; display:none;
+  align-items:center; justify-content:center; gap:12px; flex-wrap:wrap;
+  z-index:20; box-shadow:0 -4px 16px rgba(0,0,0,.35); }
+#ctaCuenta.on { display:flex; }
+#ctaCuenta span { color:#e8e3f7; font-size:14px; }
+#ctaCuenta a { background:#6B5BD2; color:#fff; text-decoration:none; font-weight:700;
+  padding:9px 16px; border-radius:8px; font-size:14px; white-space:nowrap; }
+#ctaCuenta button { background:transparent; color:#9a8fc4; width:auto; height:auto;
+  border-radius:0; font-size:20px; padding:0 4px; }
+body.tv #ctaCuenta { display:none !important; }
 @media (max-width:520px){
   button { width:46px; height:46px; font-size:19px; }
   button.sec { width:40px; height:40px; font-size:14px; }
@@ -403,6 +420,11 @@ body.tv .controles, body.tv #diag { display:none; }
   <span class="pag" id="velval" style="min-width:38px">1.0x</span>
 </div>
 <div id="diag" style="color:#e0b0b0;font-size:12px;min-height:16px"></div>
+<div id="ctaCuenta">
+  <span>💾 ¿Te gustó? Guardalo en tu cuenta gratis y descubrí el resto del catálogo.</span>
+  <a href="%(cta_url)s" target="_top">Crear cuenta gratis</a>
+  <button id="ctaCerrar" title="Cerrar">✕</button>
+</div>
 <audio id="audio" preload="auto"></audio>
 <script src="https://unpkg.com/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 <script>
@@ -444,9 +466,12 @@ function visibles(){
   if (esPliego && actual > 0 && actual + 1 < N) return [actual, actual + 1];
   return [actual];
 }
+var ctaCuenta=document.getElementById('ctaCuenta'), ctaCerrada=false;
+document.getElementById('ctaCerrar').onclick=function(){ ctaCerrada=true; ctaCuenta.classList.remove('on'); };
 function mostrarPag(){
   var v = visibles();
   pag.textContent = (v.length === 2 ? (v[0]+1)+'-'+(v[1]+1) : (v[0]+1)) + ' / ' + N;
+  if (!ctaCerrada && v[v.length-1] >= N-1) ctaCuenta.classList.add('on');
 }
 function narrarVisibles(){
   cola = visibles().slice();
@@ -528,4 +553,5 @@ if (/[?&]tv=1/.test(location.search)) {
 pag.textContent='1 / '+N;
 </script></body></html>""" % {"titulo": e(titulo), "token": e(token),
                               "base": e(base_url), "n": n,
-                              "v": int(reg.get("creado", 0))}
+                              "v": int(reg.get("creado", 0)),
+                              "cta_url": "https://casatridimensional.com.ar/mi-cuenta/crear"}
