@@ -851,12 +851,10 @@ GAMES.laberinto = {
         else { toast("¡Lo lograste! Ahora uno más grande…"); await espera(1100); arrancar(); }
       };
       svg.addEventListener("pointerdown", (ev) => {
-        // agarrar = apoyar el dedo cerca del personaje (con margen de una
-        // celda: un dedo real nunca apoya pixel-perfecto arriba de él) —
-        // un toque cualquiera lejos, en otra parte del tablero, no debería
-        // arrastrarlo desde ahí.
-        const c = celdaDePuntero(ev);
-        if (Math.abs(c.x - cur.x) > 1 || Math.abs(c.y - cur.y) > 1) return;
+        // cualquier toque en el tablero arranca el seguimiento — no hace
+        // falta apoyar el dedo justo sobre el personaje. rutaCorta() ya
+        // limita cuánto se mueve por evento y descarta objetivos del otro
+        // lado de una pared, así que tocar lejos no lo teletransporta.
         arrastrando = true; svg.setPointerCapture(ev.pointerId); seguir(ev);
       });
       svg.addEventListener("pointermove", (ev) => { if (arrastrando) seguir(ev); });
