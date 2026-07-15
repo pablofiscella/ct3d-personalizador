@@ -3512,6 +3512,12 @@ GAMES.fracciones_equivalentes = {
 const SUMA_COL_NOMBRE = ["U", "D", "C", "UM", "DM"];
 const SUMA_COL_LARGO = ["unidades", "decenas", "centenas", "unidades de mil", "decenas de mil"];
 const SUMA_COL_POTENCIA = ["×1", "×10", "×100", "×1.000", "×10.000"];
+// números en palabra (0-18, el resultado de sumar dos cifras + acarreo nunca
+// pasa de 18) — para narrar la lección con audio grabado (generar_audio_
+// consignas en actividades_web.py tiene las frases EXACTAS que arman con
+// estas palabras, no se puede cambiar una lista sin regenerar la otra).
+const NUM_PALABRA = ["cero", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve",
+  "diez", "once", "doce", "trece", "catorce", "quince", "dieciséis", "diecisiete", "dieciocho"];
 GAMES.suma_columnas = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 6;
@@ -3629,9 +3635,12 @@ GAMES.suma_columnas = {
       };
       // "Lección" (15-jul-2026, Pablo: si se equivoca 2 veces en la misma
       // columna, explicarle CÓMO se suma esa columna, con animación
-      // marcando los números — no solo darle la respuesta, que aprenda
-      // el mecanismo). Resalta cada dígito que entra en juego, en el
-      // orden en que se suman de verdad, con el texto narrando el paso.
+      // marcando los números Y AUDIO — "el audio además de la explicación
+      // visual le va a dar más tiempo de entender". Resalta cada dígito en
+      // el orden en que se suman de verdad, con narración grabada (misma
+      // voz argentina de siempre, NO speechSynthesis del navegador —
+      // frases CHICAS y fijas encadenadas, no se puede pre-grabar
+      // "3 + 6 = 9" para cada combinación posible de dos números).
       const leccion = async (col) => {
         habilitarControles(false);
         const da = cifraEn(a, col), db = cifraEn(b, col), ac = col > 0 ? acarreo[col - 1] : 0;
@@ -3642,19 +3651,27 @@ GAMES.suma_columnas = {
         await espera(1200);
         digitosA[col].classList.add("sumaResaltado");
         leccionBox.textContent = `${da}`;
+        reproducirConsigna(`Primero, ${NUM_PALABRA[da]}.`);
         await espera(1300);
         digitosB[col].classList.add("sumaResaltado");
         leccionBox.textContent = ac ? `${da} + ${db} + 1 (que llevábamos)` : `${da} + ${db}`;
-        await espera(1600);
+        reproducirConsigna(ac ? `Más ${NUM_PALABRA[db]}, y el uno que llevábamos.` : `Más ${NUM_PALABRA[db]}.`);
+        await espera(1800);
         leccionBox.textContent = `${da} + ${db}${ac ? " + 1" : ""} = ${total}`;
+        reproducirConsigna(`Son ${NUM_PALABRA[total]}.`);
         await espera(1600);
         if (total >= 10) {
           leccionBox.textContent = `Anotamos el ${total % 10} y llevamos 1 a la próxima columna`;
+          reproducirConsigna(`Anotamos el ${NUM_PALABRA[total % 10]}.`);
           if (activa + 1 < ancho) acarreoBadges[activa + 1].classList.add("sumaResaltado");
+          await espera(1600);
+          reproducirConsigna("Y llevamos uno a la próxima columna.");
+          await espera(1800);
         } else {
           leccionBox.textContent = `Anotamos el ${total}`;
+          reproducirConsigna(`Anotamos el ${NUM_PALABRA[total]}.`);
+          await espera(1800);
         }
-        await espera(2000);
         digitosA[col].classList.remove("sumaResaltado");
         digitosB[col].classList.remove("sumaResaltado");
         if (activa + 1 < ancho) acarreoBadges[activa + 1].classList.remove("sumaResaltado");
