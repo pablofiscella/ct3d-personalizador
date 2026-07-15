@@ -46,3 +46,33 @@ def test_token_invalido_no_crea_nada(tmp_path, monkeypatch):
     assert al.estado("con espacios!") is None
     al.marcar_generando("bad token!")        # inválido → no-op
     assert not os.path.isdir(os.path.join(al.AUDIOLIBROS_DIR, "bad token!"))
+
+
+def test_tts_mp3_rutea_voz_alternativa_elevenlabs(monkeypatch):
+    """14-jul-2026: Malena (_EL_VOCES_ALT) tiene que pasar SU voice_id/
+    settings a _tts_elevenlabs — nunca los de Lizy — y sin tocar OpenAI."""
+    import audiolibro as al
+    llamadas = []
+
+    def fake_el(texto, timeout=120, seed=None, voice_id=None, settings=None):
+        llamadas.append(("el", voice_id, settings))
+        return b"x" * 20000  # bytes suficientes para pasar _duracion_ok
+
+    def fake_openai(api_key, texto, timeout, voz):
+        llamadas.append(("openai", voz))
+        return b"y" * 20000
+
+    monkeypatch.setattr(al, "_tts_elevenlabs", fake_el)
+    monkeypatch.setattr(al, "_tts_openai", fake_openai)
+    monkeypatch.setattr(al, "_duracion_ok", lambda texto, mp3: True)
+
+    al.tts_mp3(api_key="k", texto="Hola", voz="malena", seed=1)
+    assert llamadas[-1] == ("el", "p7AwDmKvTdoHTBuueGvP", {"stability": 0.25, "style": 0.45})
+
+    llamadas.clear()
+    al.tts_mp3(api_key="k", texto="Hola", voz=None, seed=1)
+    assert llamadas[-1] == ("el", None, None)   # default → Lizy (sin override)
+
+    llamadas.clear()
+    al.tts_mp3(api_key="k", texto="Hola", voz="fable", seed=1)
+    assert llamadas == [("openai", "fable")]    # voz OpenAI: ni pasa por ElevenLabs
