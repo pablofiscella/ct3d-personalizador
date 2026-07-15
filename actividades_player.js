@@ -3412,6 +3412,13 @@ const ELECTRICO_BANCO = [
   // agregados 14-jul-2026 (banco ampliado de 8 a 10).
   { e: "🥫", cat: "conduce" }, { e: "🎋", cat: "noconduce" },
 ];
+// Consigna corta alternada (15-jul-2026, Pablo: "quizás estaría bueno que
+// diga el texto solo una vez y las otras diga y este?... para que no se
+// repita siempre el mensaje porque termina molestando" — el juego repite
+// la MISMA pregunta hasta 10 veces por partida, decirla completa cada vez
+// se siente repetitivo). La ronda 0 dice la consigna completa (contexto);
+// de ahí en más alterna variantes cortas al azar.
+const ELECTRICO_CORTAS = ["¿Y este?", "¿Y este otro?", "¿Y esto?"];
 GAMES.laboratorio_electrico = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 6;
@@ -3420,7 +3427,8 @@ GAMES.laboratorio_electrico = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Este material conduce electricidad?");
+      ctx.consigna(ronda === 0 ? "¿Este material conduce electricidad?"
+        : ELECTRICO_CORTAS[rint(0, ELECTRICO_CORTAS.length - 1)]);
       ctx.juego.innerHTML = "";
       let disp = ELECTRICO_BANCO.filter((x) => !usados.includes(x.e));
       if (!disp.length) { usados = []; disp = ELECTRICO_BANCO; }
