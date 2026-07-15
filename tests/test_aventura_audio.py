@@ -20,6 +20,21 @@ def _crear(tmp_path, nombre="Sofía"):
     return avw.crear({"nombre": nombre, "tema": "safari"})
 
 
+def test_generar_usa_malena_por_default(tmp_path):
+    """15-jul-2026: generar() no pasaba `voz` a tts_mp3 y caía siempre en Lizy pese
+    a que Malena ya es la voz default elegida por Pablo — el default de la tienda
+    solo afecta lo que la tienda ENVÍA, no el default interno de tts_mp3."""
+    llamadas = []
+
+    def tts(api_key, texto, timeout=120, voz=None, seed=None):
+        llamadas.append(voz)
+        return b"MP3FAKE"
+
+    aventura_audio.generar("tok123", {"hook": {"texto": "Hola"}}, str(tmp_path / "audio"),
+                           tts=tts)
+    assert llamadas == ["malena"]
+
+
 def test_generar_arma_un_mp3_por_nodo(tmp_path):
     llamadas = []
     nodos = {"hook": {"texto": "Sofía encontró un mapa."},

@@ -1,7 +1,10 @@
 """aventura_audio.py — narración por nodo del prototipo "Elegí tu aventura": un MP3 por
 nodo del grafo YA PERSONALIZADO (el texto trae el nombre del chico adentro), con el
-mismo motor de voz que el audiolibro (audiolibro.tts_mp3 — ElevenLabs Lizy, acento
-argentino, resguardo a OpenAI si falla).
+mismo motor de voz que el audiolibro (audiolibro.tts_mp3 — ElevenLabs, acento argentino,
+resguardo a OpenAI si falla). Voz default: Malena (15-jul-2026, pedido de Pablo — la
+misma voz elegida como default para el audiolibro; antes de esto, `generar()` no pasaba
+`voz` a tts_mp3 y caía siempre en Lizy pese al cambio de default del lado de la tienda,
+porque ese cambio solo vive en lo que la tienda ENVÍA, no en el default de tts_mp3).
 
 A diferencia del arte (temas/<tema>/overrides/aventura/, cacheado por TEMA porque no
 lleva texto), el audio se genera POR COMPRA en aventura_web/<token>/audio/<nodo_id>.mp3:
@@ -17,7 +20,8 @@ import zlib
 import audiolibro
 
 
-def generar(token, nodos, dest_dir, api_key=None, tts=audiolibro.tts_mp3, progress=None):
+def generar(token, nodos, dest_dir, api_key=None, tts=audiolibro.tts_mp3, progress=None,
+           voz="malena"):
     """nodos: dict nodo_id -> {"texto": ...} (el grafo YA personalizado, tal cual sale
     del manifest). Genera dest_dir/<nodo_id>.mp3 para cada uno — saltea los que ya
     existen, así una corrida cortada a mitad de camino se puede reintentar sin repetir
@@ -33,7 +37,7 @@ def generar(token, nodos, dest_dir, api_key=None, tts=audiolibro.tts_mp3, progre
             continue
         if progress:
             progress("Nodo %d de %d (%s)…" % (i + 1, len(items), nid))
-        mp3 = tts(api_key, n["texto"], seed=seed)
+        mp3 = tts(api_key, n["texto"], seed=seed, voz=voz)
         with open(p, "wb") as f:
             f.write(mp3)
         out.append(p)

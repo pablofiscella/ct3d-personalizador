@@ -189,7 +189,7 @@ AVENTURAS = {
         # propia cuando se encare la gráfica.
         # ── espina compartida (1-4): el gancho hasta la primera decisión ──────
         "hook": _seguir(
-            "Esa tarde llegó a nombre de {nombre} un sobre dorado con letras que "
+            "Esa tarde le llegó a {nombre} un sobre dorado con letras que "
             "brillaban: «Esta noche sos Ayudante de Pista Honorario en la Gran "
             "Función». Faltaban solo unas horas para el show.", "carpa"),
         "carpa": _seguir(
