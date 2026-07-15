@@ -48,13 +48,49 @@ const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 // afirmación), "n" (neutro, "esto") cuando el ítem mostrado varía de
 // género ronda a ronda (un emoji de objeto/animal cualquiera) — "esto" no
 // fuerza concordancia con nada, es la opción segura ahí.
-const CONSIGNA_CORTA_MASC = ["¿Y este?", "¿Y este otro?", "¿Este también?"];
-const CONSIGNA_CORTA_FEM = ["¿Y esta?", "¿Y esta otra?", "¿Esta también?"];
-const CONSIGNA_CORTA_NEUTRO = ["¿Y esto?", "¿Y esto otro?", "¿Esto también?"];
+const CONSIGNA_CORTA_MASC = ["¿Y este?", "¿Y este otro?", "¿Este también?", "¿Y ahora este?", "¿Qué decís de este?"];
+const CONSIGNA_CORTA_FEM = ["¿Y esta?", "¿Y esta otra?", "¿Esta también?", "¿Y ahora esta?", "¿Qué decís de esta?"];
+const CONSIGNA_CORTA_NEUTRO = ["¿Y esto?", "¿Y esto otro?", "¿Esto también?", "¿Y ahora esto?", "¿Qué decís de esto?"];
+// "Bolsa" sin repetir (15-jul-2026, Pablo: "después del tercero dijo 'y
+// este?' siempre lo mismo... que no se repita tanto" — con puro azar sobre
+// pocas opciones el mismo texto podía salir 2 veces seguidas fácil).
+// Estado por INSTANCIA de juego Y por `key` (WeakMap<ctx, {[key]: {bolsa,
+// anterior}}> — `ctx` es un objeto nuevo cada vez que se entra a un juego,
+// se libera solo al salir; `key` separa "bolsas" independientes dentro del
+// MISMO juego, ej. mas_menos necesita una bolsa para MÁS y otra para MENOS
+// sin que se mezclen). Se baraja el set completo, se saca SIN reponer hasta
+// vaciarla (no repite ninguna hasta agotar las demás) y al rebarajar se
+// evita que la primera que toque sea la misma que la última usada, para
+// que tampoco repita justo en el borde entre una bolsa y la siguiente.
+const _bolsaEstado = new WeakMap();
+function sacarDeBolsa(ctx, key, set) {
+  let porJuego = _bolsaEstado.get(ctx);
+  if (!porJuego) { porJuego = {}; _bolsaEstado.set(ctx, porJuego); }
+  let b = porJuego[key];
+  if (!b) { b = { bolsa: [], anterior: null }; porJuego[key] = b; }
+  if (!b.bolsa.length) {
+    b.bolsa = shuffle(set);
+    const ultimo = b.bolsa.length - 1;
+    if (ultimo > 0 && b.bolsa[ultimo] === b.anterior) {
+      [b.bolsa[0], b.bolsa[ultimo]] = [b.bolsa[ultimo], b.bolsa[0]];
+    }
+  }
+  b.anterior = b.bolsa.pop();
+  return b.anterior;
+}
+// consignaVariada: ronda 0 dice la consigna completa (da contexto); de ahí
+// en más alterna entre variantes CORTAS reutilizables — nunca contenido a
+// medida por juego (76 juegos, no escala escribir cada uno a mano).
+// Concordancia de género real (Pablo: "si es una palabra en femenino, esta
+// otra... que tenga sentido"): "m" para masculino (este material/animal/
+// ángulo/planeta), "f" para femenino (esta provincia/palabra/planta/
+// afirmación), "n" (neutro, "esto") cuando el ítem mostrado varía de
+// género ronda a ronda (un emoji de objeto/animal cualquiera) — "esto" no
+// fuerza concordancia con nada, es la opción segura ahí.
 function consignaVariada(ctx, ronda, textoLargo, genero) {
-  if (ronda === 0) { ctx.consigna(textoLargo); return; }
+  if (ronda === 0) { _bolsaEstado.delete(ctx); ctx.consigna(textoLargo); return; }
   const set = genero === "f" ? CONSIGNA_CORTA_FEM : genero === "n" ? CONSIGNA_CORTA_NEUTRO : CONSIGNA_CORTA_MASC;
-  ctx.consigna(set[rint(0, set.length - 1)]);
+  ctx.consigna(sacarDeBolsa(ctx, "generica", set));
 }
 
 let D = null;            // data.json
@@ -1021,6 +1057,10 @@ GAMES.colorear = {
 };
 
 /* ── ¿CUÁNTOS HAY? — contá tocando: cada toque numera y suena (do-re-mi) ── */
+// Pablo 15-jul-2026: "cuantos hay, donde hay mas hay varios que deberian
+// mejorar esto" — mismo mecanismo de variedad que el resto, con frases
+// propias (contar cantidades no encaja en el patrón este/esta/esto).
+const CONTAR_CORTAS = ["¿Y ahora cuántos hay?", "¿Cuántos hay acá?", "¿Y estos, cuántos son?", "¿Contamos de nuevo?"];
 GAMES.contar = {
   crear(ctx) {
     const max = ctx.cfg.max || 5, rondas = ctx.cfg.rondas || 5;
@@ -1043,7 +1083,8 @@ GAMES.contar = {
       ctx.juego.innerHTML = "";
       const nBichos = cantidades[ronda];
       const objetivo = P[rint(0, Math.min(5, P.length - 1))];
-      ctx.consigna(`¿Cuántos hay? ¡Tocalos para contarlos!`, objetivo);
+      if (ronda === 0) ctx.consigna(`¿Cuántos hay? ¡Tocalos para contarlos!`, objetivo);
+      else ctx.consigna(sacarDeBolsa(ctx, "contar", CONTAR_CORTAS), objetivo);
       const esc = el("div", "escena");
       if (D.escena) {
         const f = el("img", "fondo"); f.src = D.escena; f.alt = "";
@@ -1206,7 +1247,7 @@ GAMES.puntos = {
     let nivel = 0;
     const jugar = () => {
       ctx.ronda(nivel);
-      ctx.consigna("Uní los puntos en orden: 1, 2, 3…");
+      consignaVariada(ctx, nivel, "Uní los puntos en orden: 1, 2, 3…", "f");
       ctx.juego.innerHTML = "";
       const pts = D.figuras[figuras[nivel]];
       const S = 640;
@@ -1288,7 +1329,7 @@ GAMES.sombra = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("Llevá a cada amigo hasta su sombra");
+      consignaVariada(ctx, ronda, "Llevá a cada amigo hasta su sombra", "m");
       ctx.juego.innerHTML = "";
       const idxs = sample(P.map((_, i) => i), pares);
       const tab = el("div", "tablero lienzo");
@@ -1380,7 +1421,7 @@ GAMES.patron = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Qué sigue? Seguí el patrón");
+      consignaVariada(ctx, ronda, "¿Qué sigue? Seguí el patrón", "m");
       ctx.juego.innerHTML = "";
       const molde = MOLDES[rint(0, MOLDES.length - 1)];
       const kinds = sample(P, new Set(molde.split("")).size);
@@ -1455,7 +1496,7 @@ GAMES.diferente = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("Tocá el que es DISTINTO");
+      consignaVariada(ctx, ronda, "Tocá el que es DISTINTO", "m");
       ctx.juego.innerHTML = "";
       const [base, raro] = sample(P, 2);
       const pos = rint(0, opciones - 1);
@@ -1492,6 +1533,8 @@ GAMES.diferente = {
 };
 
 /* ── EL MÁS GRANDE — noción de tamaño (alterna grande/chico) ── */
+const TAMANO_GRANDE_CORTAS = ["¿Y ahora, el MÁS GRANDE?", "Tocá el MÁS GRANDE otra vez", "¿Cuál es más GRANDE?"];
+const TAMANO_CHICO_CORTAS = ["¿Y ahora, el MÁS CHICO?", "Tocá el MÁS CHICO otra vez", "¿Cuál es más CHICO?"];
 GAMES.tamano = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 5;
@@ -1503,7 +1546,11 @@ GAMES.tamano = {
       // alternar por paridad de ronda hacía que, jugado dos veces, ya se
       // supiera sin mirar que la ronda 2 siempre pedía "el más chico".
       const grande = D.banda === "mini" || rint(0, 1) === 0;
-      ctx.consigna(grande ? "Tocá el MÁS GRANDE" : "Ahora tocá el MÁS CHICO");
+      if (ronda === 0) {
+        ctx.consigna(grande ? "Tocá el MÁS GRANDE" : "Ahora tocá el MÁS CHICO");
+      } else {
+        ctx.consigna(sacarDeBolsa(ctx, grande ? "grande" : "chico", grande ? TAMANO_GRANDE_CORTAS : TAMANO_CHICO_CORTAS));
+      }
       ctx.juego.innerHTML = "";
       const s = P[rint(0, P.length - 1)];
       const escalas = shuffle([0.42, 0.62, 0.82, 1.05]);
@@ -1542,6 +1589,13 @@ GAMES.tamano = {
 };
 
 /* ── ¿DÓNDE HAY MÁS? — comparación de cantidades (alterna más/menos) ── */
+// Pablo 15-jul-2026: mismo mecanismo de variedad, con frases propias por
+// dirección — acá lo que varía no es un objeto (este/esta/esto), es la
+// DIRECCIÓN de la pregunta (MÁS o MENOS), así que cada bolsa es independiente
+// (sacarDeBolsa con `key` distinta) para no mezclar variantes de una con la
+// otra a mitad de partida.
+const MAS_CORTAS = ["Tocá el grupo que tiene MÁS", "¿Cuál tiene MÁS?", "¿Y ahora, dónde hay MÁS?"];
+const MENOS_CORTAS = ["Tocá el grupo que tiene MENOS", "¿Cuál tiene MENOS?", "¿Y ahora, dónde hay MENOS?"];
 GAMES.mas_menos = {
   crear(ctx) {
     const max = ctx.cfg.max || 6, rondas = ctx.cfg.rondas || 5;
@@ -1552,7 +1606,11 @@ GAMES.mas_menos = {
       // mini: siempre "más" (más simple); el resto: al azar de verdad — igual
       // bug que en tamano, alternar por paridad se aprendía de memoria.
       const buscaMas = D.banda === "mini" || rint(0, 1) === 0;
-      ctx.consigna(buscaMas ? "¿Dónde hay MÁS? Tocá el grupo" : "¿Dónde hay MENOS? Tocá el grupo");
+      if (ronda === 0) {
+        ctx.consigna(buscaMas ? "¿Dónde hay MÁS? Tocá el grupo" : "¿Dónde hay MENOS? Tocá el grupo");
+      } else {
+        ctx.consigna(sacarDeBolsa(ctx, buscaMas ? "mas" : "menos", buscaMas ? MAS_CORTAS : MENOS_CORTAS));
+      }
       ctx.juego.innerHTML = "";
       let a = rint(1, max), b = rint(1, max);
       while (a === b) b = rint(1, max);
@@ -1682,7 +1740,7 @@ GAMES.silabas = {
       if (!disp.length) { usadas = []; disp = BANCO; }
       const palabra = disp[rint(0, disp.length - 1)];
       usadas.push(palabra.p);
-      ctx.consigna("Escuchá la palabra y elegí cuántas partes tiene");
+      consignaVariada(ctx, ronda, "Escuchá la palabra y elegí cuántas partes tiene", "f");
       ctx.juego.innerHTML = "";
       const tablero = el("div", "tablero silabasTablero");
       const zonaEmoji = el("div", "silabasEmoji", "❓");
@@ -1758,7 +1816,7 @@ GAMES.armar_palabra = {
       if (!disp.length) { usadas = []; disp = BANCO; }
       const palabra = disp[rint(0, disp.length - 1)];
       usadas.push(palabra.p);
-      ctx.consigna("Escuchá la palabra y tocá las sílabas en orden para armarla");
+      consignaVariada(ctx, ronda, "Escuchá la palabra y tocá las sílabas en orden para armarla", "f");
       ctx.juego.innerHTML = "";
       const tablero = el("div", "tablero armarPalabraTablero");
       tablero.appendChild(el("div", "armarPalabraEmoji", palabra.e));
@@ -1823,7 +1881,7 @@ GAMES.abecedario = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("Tocá las letras en orden del abecedario");
+      consignaVariada(ctx, ronda, "Tocá las letras en orden del abecedario", "n");
       ctx.juego.innerHTML = "";
       const idxs = new Set();
       while (idxs.size < nLetras) idxs.add(rint(0, ABECEDARIO.length - 1));
@@ -2520,7 +2578,7 @@ GAMES.familia_palabras = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Qué palabra es de la misma familia?");
+      consignaVariada(ctx, ronda, "¿Qué palabra es de la misma familia?", "f");
       ctx.juego.innerHTML = "";
       let disp = FAMILIA_BANCO.filter((x) => !usados.includes(x.raiz));
       if (!disp.length) { usados = []; disp = FAMILIA_BANCO; }
@@ -2579,7 +2637,7 @@ GAMES.trivia_espacial = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Se ve de día, de noche o en ambos?");
+      consignaVariada(ctx, ronda, "¿Se ve de día, de noche o en ambos?", "n");
       ctx.juego.innerHTML = "";
       let disp = ESPACIAL_BANCO.filter((x) => !usados.includes(x.e));
       if (!disp.length) { usados = []; disp = ESPACIAL_BANCO; }
@@ -2625,6 +2683,7 @@ GAMES.trivia_espacial = {
    shell no tiene hook de "juego cerrado") — se autodetecta chequeando si
    su propio nodo sigue conectado al documento, y si no, se apaga solo en
    vez de seguir de fondo mutando el fallos/ctx de OTRO juego ya abierto. ── */
+const RAPIDO_CORTAS = ["¡Otra vez, rápido!", "¡Vamos, rápido!", "¡Dale, rápido!"];
 GAMES.tablas_contrarreloj = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 6;
@@ -2636,7 +2695,7 @@ GAMES.tablas_contrarreloj = {
     const jugar = () => {
       if (intervalId) { clearInterval(intervalId); intervalId = null; }
       ctx.ronda(ronda);
-      ctx.consigna("Elegí rápido: ¿cuánto es?");
+      ctx.consigna(ronda === 0 ? "Elegí rápido: ¿cuánto es?" : sacarDeBolsa(ctx, "rapido", RAPIDO_CORTAS));
       ctx.juego.innerHTML = "";
       const tabla = TABLAS[rint(0, TABLAS.length - 1)];
       const factor = rint(1, 10);
@@ -3012,7 +3071,7 @@ GAMES.cuerpos_geometricos = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("Contá y elegí la respuesta correcta");
+      consignaVariada(ctx, ronda, "Contá y elegí la respuesta correcta", "f");
       ctx.juego.innerHTML = "";
       const item = CUERPOS_BANCO[rint(0, CUERPOS_BANCO.length - 1)];
       const propKey = ["caras", "vertices", "aristas"][rint(0, 2)];
@@ -3087,7 +3146,7 @@ GAMES.separador_mezclas = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Con qué herramienta separás esta mezcla?");
+      consignaVariada(ctx, ronda, "¿Con qué herramienta separás esta mezcla?", "f");
       ctx.juego.innerHTML = "";
       let disp = MEZCLAS_BANCO.filter((x) => !usados.includes(x.mezcla));
       if (!disp.length) { usados = []; disp = MEZCLAS_BANCO; }
@@ -3385,7 +3444,7 @@ GAMES.fotosintesis = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Cuál de estos NO necesita la planta para hacer la fotosíntesis?");
+      consignaVariada(ctx, ronda, "¿Cuál de estos NO necesita la planta para hacer la fotosíntesis?", "n");
       ctx.juego.innerHTML = "";
       let disp = FOTOSINTESIS_INTRUSOS.filter((x) => !usados.includes(x));
       if (!disp.length) { usados = []; disp = FOTOSINTESIS_INTRUSOS; }
@@ -3509,7 +3568,7 @@ GAMES.fracciones_equivalentes = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Cuál de estas barras muestra la misma fracción?");
+      consignaVariada(ctx, ronda, "¿Cuál de estas barras muestra la misma fracción?", "f");
       ctx.juego.innerHTML = "";
       let disp = FRACCIONES_BANCO.filter((x) => !usados.includes(x.num + "/" + x.den));
       if (!disp.length) { usados = []; disp = FRACCIONES_BANCO; }
@@ -3572,6 +3631,7 @@ const SUMA_COL_POTENCIA = ["×1", "×10", "×100", "×1.000", "×10.000"];
 // estas palabras, no se puede cambiar una lista sin regenerar la otra).
 const NUM_PALABRA = ["cero", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve",
   "diez", "once", "doce", "trece", "catorce", "quince", "dieciséis", "diecisiete", "dieciocho"];
+const SUMA_COL_CORTAS = ["Empezá por las unidades", "¿Y esta cuenta?", "Otra vez, por las unidades", "¿Y esta suma?"];
 GAMES.suma_columnas = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 6;
@@ -3586,7 +3646,11 @@ GAMES.suma_columnas = {
     const jugar = () => {
       ctx.ronda(ronda);
       ctx.juego.innerHTML = "";
-      ctx.consigna('Sumá las dos cifras: empezá por las UNIDADES (a la derecha) y andá columna por columna. Si te trabás dos veces, te lo explico paso a paso.');
+      if (ronda === 0) {
+        ctx.consigna('Sumá las dos cifras: empezá por las UNIDADES (a la derecha) y andá columna por columna. Si te trabás dos veces, te lo explico paso a paso.');
+      } else {
+        ctx.consigna(sacarDeBolsa(ctx, "sumacol", SUMA_COL_CORTAS));
+      }
       // dificultad: últimas rondas van a 5 cifras (NAP: "hasta 10.000-50.000").
       const dif = (ronda + 1) / rondas;
       const cifras = dif <= 0.5 ? 4 : 5;
@@ -3837,6 +3901,12 @@ GAMES.angulos = {
    propósito en vez de simular mal la regla. Sin audio por palabra — a
    esta edad ya hay autonomía lectora consolidada (2°-3° grado), a
    diferencia de Sala 5/1° grado que sí la necesitaban. ── */
+// Compartido por los juegos de "tocá en el orden correcto" (15-jul-2026,
+// Pablo: barrido completo de consignas repetitivas) — el chico arma una
+// secuencia DISTINTA cada ronda, pero la instrucción en sí es la misma
+// acción siempre: "tocá en orden". Genérico a propósito, sin referirse a
+// ningún contenido puntual (sirve igual para órganos, pasos, prefijos...).
+const ORDEN_CORTAS = ["¿Y ahora, en orden?", "Tocá en orden otra vez", "¿Y este orden?", "De nuevo, en orden"];
 GAMES.prefijos_sufijos = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 5;
@@ -3852,7 +3922,8 @@ GAMES.prefijos_sufijos = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("Tocá el prefijo y la palabra en orden para formar la palabra nueva");
+      if (ronda === 0) ctx.consigna("Tocá el prefijo y la palabra en orden para formar la palabra nueva");
+      else ctx.consigna(sacarDeBolsa(ctx, "orden", ORDEN_CORTAS));
       ctx.juego.innerHTML = "";
       let disp = BANCO.filter((x) => !usados.includes(x.resultado));
       if (!disp.length) { usados = []; disp = BANCO; }
@@ -3975,7 +4046,8 @@ GAMES.camino_digestivo = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("Tocá los órganos en el orden correcto del camino digestivo");
+      if (ronda === 0) ctx.consigna("Tocá los órganos en el orden correcto del camino digestivo");
+      else ctx.consigna(sacarDeBolsa(ctx, "orden", ORDEN_CORTAS));
       ctx.juego.innerHTML = "";
       const tablero = el("div", "tablero armarPalabraTablero");
       const filaSlots = el("div", "armarPalabraSlots");
@@ -4047,7 +4119,7 @@ GAMES.fracciones_avanzado = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Cuál de estas barras muestra la misma fracción?");
+      consignaVariada(ctx, ronda, "¿Cuál de estas barras muestra la misma fracción?", "f");
       ctx.juego.innerHTML = "";
       let disp = FRACCIONES_AVANZADO_BANCO.filter((x) => !usados.includes(x.num + "/" + x.den));
       if (!disp.length) { usados = []; disp = FRACCIONES_AVANZADO_BANCO; }
@@ -4117,7 +4189,7 @@ GAMES.analisis_sintactico = {
     const jugar = () => {
       if (intervalId) { clearInterval(intervalId); intervalId = null; }
       ctx.ronda(ronda);
-      ctx.consigna("Elegí rápido: ¿es núcleo del sujeto o del predicado?");
+      ctx.consigna(ronda === 0 ? "Elegí rápido: ¿es núcleo del sujeto o del predicado?" : sacarDeBolsa(ctx, "rapido", RAPIDO_CORTAS));
       ctx.juego.innerHTML = "";
       let disp = SINTACTICO_BANCO.filter((x) => !usados.includes(x.oracion));
       if (!disp.length) { usados = []; disp = SINTACTICO_BANCO; }
@@ -4275,7 +4347,7 @@ GAMES.actividad_economica = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿En qué región se produce esto?");
+      consignaVariada(ctx, ronda, "¿En qué región se produce esto?", "n");
       ctx.juego.innerHTML = "";
       let disp = ECONOMIA_BANCO.filter((x) => !usados.includes(x.p));
       if (!disp.length) { usados = []; disp = ECONOMIA_BANCO; }
@@ -4332,7 +4404,8 @@ GAMES.planta_potabilizadora = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("Tocá los pasos de la potabilización en el orden correcto");
+      if (ronda === 0) ctx.consigna("Tocá los pasos de la potabilización en el orden correcto");
+      else ctx.consigna(sacarDeBolsa(ctx, "orden", ORDEN_CORTAS));
       ctx.juego.innerHTML = "";
       const tablero = el("div", "tablero armarPalabraTablero");
       const filaSlots = el("div", "armarPalabraSlots");
@@ -4466,7 +4539,7 @@ GAMES.celula_partes = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Para qué sirve esta parte de la célula?");
+      consignaVariada(ctx, ronda, "¿Para qué sirve esta parte de la célula?", "f");
       ctx.juego.innerHTML = "";
       let disp = CELULA_BANCO.filter((x) => !usados.includes(x.parte));
       if (!disp.length) { usados = []; disp = CELULA_BANCO; }
@@ -4644,7 +4717,8 @@ GAMES.viaje_inmigrante = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("Tocá las etapas del viaje del inmigrante en el orden correcto");
+      if (ronda === 0) ctx.consigna("Tocá las etapas del viaje del inmigrante en el orden correcto");
+      else ctx.consigna(sacarDeBolsa(ctx, "orden", ORDEN_CORTAS));
       ctx.juego.innerHTML = "";
       const tablero = el("div", "tablero armarPalabraTablero");
       const filaSlots = el("div", "armarPalabraSlots");
@@ -4714,7 +4788,7 @@ GAMES.fraccion_de_cantidad = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Cuánto es esta fracción de la cantidad?");
+      consignaVariada(ctx, ronda, "¿Cuánto es esta fracción de la cantidad?", "f");
       ctx.juego.innerHTML = "";
       let disp = FRACCION_CANTIDAD_BANCO.filter((x) => !usados.includes(x.texto));
       if (!disp.length) { usados = []; disp = FRACCION_CANTIDAD_BANCO; }
@@ -4900,7 +4974,7 @@ GAMES.poligonos_lados = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Cuántos lados tiene esta figura?");
+      consignaVariada(ctx, ronda, "¿Cuántos lados tiene esta figura?", "f");
       ctx.juego.innerHTML = "";
       let disp = POLIGONOS_BANCO.filter((x) => !usados.includes(x.nombre));
       if (!disp.length) { usados = []; disp = POLIGONOS_BANCO; }
@@ -4970,7 +5044,7 @@ GAMES.traductor_algebraico = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("Elegí la fórmula que representa la frase");
+      consignaVariada(ctx, ronda, "Elegí la fórmula que representa la frase", "f");
       ctx.juego.innerHTML = "";
       let disp = ALGEBRA_BANCO.filter((x) => !usados.includes(x.texto));
       if (!disp.length) { usados = []; disp = ALGEBRA_BANCO; }
@@ -5083,7 +5157,8 @@ GAMES.linea_democracia = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("Tocá los hechos históricos en el orden en que pasaron");
+      if (ronda === 0) ctx.consigna("Tocá los hechos históricos en el orden en que pasaron");
+      else ctx.consigna(sacarDeBolsa(ctx, "orden", ORDEN_CORTAS));
       ctx.juego.innerHTML = "";
       const tablero = el("div", "tablero armarPalabraTablero");
       const filaSlots = el("div", "armarPalabraSlots");
@@ -5158,7 +5233,7 @@ GAMES.sistema_reproductor = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Para qué sirve esta parte del aparato reproductor?");
+      consignaVariada(ctx, ronda, "¿Para qué sirve esta parte del aparato reproductor?", "f");
       ctx.juego.innerHTML = "";
       let disp = REPRODUCTOR_BANCO.filter((x) => !usados.includes(x.parte));
       if (!disp.length) { usados = []; disp = REPRODUCTOR_BANCO; }
@@ -5223,7 +5298,7 @@ GAMES.estadistica_datos = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Cuál es el promedio de estos números?");
+      consignaVariada(ctx, ronda, "¿Cuál es el promedio de estos números?", "n");
       ctx.juego.innerHTML = "";
       let disp = ESTADISTICA_BANCO.filter((x) => !usados.includes(x.texto));
       if (!disp.length) { usados = []; disp = ESTADISTICA_BANCO; }
@@ -5357,7 +5432,7 @@ GAMES.area_perimetro = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Cuál es el área total de la habitación?");
+      consignaVariada(ctx, ronda, "¿Cuál es el área total de la habitación?", "f");
       ctx.juego.innerHTML = "";
       let disp = AREA_BANCO.filter((x) => !usados.includes(x.texto));
       if (!disp.length) { usados = []; disp = AREA_BANCO; }
@@ -5433,7 +5508,7 @@ GAMES.escape_room_egreso = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("Elegí la respuesta correcta");
+      consignaVariada(ctx, ronda, "Elegí la respuesta correcta", "n");
       ctx.juego.innerHTML = "";
       let disp = ESCAPE_ROOM_BANCO.filter((x) => !usados.includes(x.texto));
       if (!disp.length) { usados = []; disp = ESCAPE_ROOM_BANCO; }
@@ -5645,7 +5720,7 @@ GAMES.serie = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Qué número falta?");
+      consignaVariada(ctx, ronda, "¿Qué número falta?", "m");
       ctx.juego.innerHTML = "";
       // sube la dificultad, pero sin un corte fijo en la mitad exacta (que
       // hacía adivinable CUÁNDO cambia el tipo de patrón): más probable +1
@@ -5710,6 +5785,8 @@ const SIMON_COLORES = [
   { c: "#E25555", nota: 392 }, { c: "#4F86C6", nota: 330 }, { c: "#F2C94C", nota: 262 },
   { c: "#4CAF7D", nota: 440 }, { c: "#9B6BD6", nota: 494 },
 ];
+const SIMON_MIRA_CORTAS = ["Mirá bien…", "Prestá atención…", "Otra vez, mirá…"];
+const SIMON_REPETI_CORTAS = ["Ahora repetí", "Tu turno, tocalos en orden", "¿Te acordás? Repetí"];
 GAMES.simon = {
   crear(ctx) {
     const nColores = Math.min(ctx.cfg.colores || 4, SIMON_COLORES.length);
@@ -5727,12 +5804,12 @@ GAMES.simon = {
     };
     const reproducir = async () => {
       reproduciendo = true;
-      ctx.consigna("Mirá y escuchá…");
+      ctx.consigna(nivel === 0 ? "Mirá y escuchá…" : sacarDeBolsa(ctx, "mira", SIMON_MIRA_CORTAS));
       await espera(400);
       for (let i = 0; i < seq.length; i++) { flash(seq[i], 380); await espera(480); }
       reproduciendo = false;
       entrada = [];
-      ctx.consigna("Ahora repetí vos, tocando en el mismo orden");
+      ctx.consigna(nivel === 0 ? "Ahora repetí vos, tocando en el mismo orden" : sacarDeBolsa(ctx, "repeti", SIMON_REPETI_CORTAS));
     };
     const construir = () => {
       ctx.juego.innerHTML = "";
@@ -5789,7 +5866,7 @@ GAMES.agrupar = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿A qué canasta va?");
+      consignaVariada(ctx, ronda, "¿A qué canasta va?", "n");
       ctx.juego.innerHTML = "";
       const item = refs[rint(0, canastas - 1)];
       const arriba = el("div", "tablero");
@@ -5830,6 +5907,8 @@ GAMES.agrupar = {
 
 /* ── ¿QUÉ FALTA? — atención y memoria a corto plazo: se muestran los amigos, se
    tapa uno y hay que reconocerlo entre las opciones (sin escribir/leer). ── */
+const QUEFALTA_MIRA_CORTAS = ["Mirá otra vez…", "Fijate bien quiénes están…", "Prestá atención…"];
+const QUEFALTA_QUIEN_CORTAS = ["¿Y ahora, quién falta?", "¿Quién no está?", "¿Quién se fue?"];
 GAMES.quefalta = {
   minP: 3,
   crear(ctx) {
@@ -5842,7 +5921,7 @@ GAMES.quefalta = {
       const grupo = sample(P, n);
       const faltaIdx = rint(0, n - 1);
       const falta = grupo[faltaIdx];
-      ctx.consigna("Mirá bien quiénes están…");
+      ctx.consigna(ronda === 0 ? "Mirá bien quiénes están…" : sacarDeBolsa(ctx, "mira", QUEFALTA_MIRA_CORTAS));
       ctx.juego.innerHTML = "";
       const fila = el("div", "filaSprites");
       const TAM = Math.min(120, Math.floor((Math.min(innerWidth, 1000) - 80) / n) - 12);
@@ -5853,7 +5932,7 @@ GAMES.quefalta = {
       });
       ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
       await espera(2200);
-      ctx.consigna("¿Quién se escondió?");
+      ctx.consigna(ronda === 0 ? "¿Quién se escondió?" : sacarDeBolsa(ctx, "quien", QUEFALTA_QUIEN_CORTAS));
       celdas[faltaIdx].innerHTML = `<div class="hueco" style="width:${TAM}px;height:${TAM}px">?</div>`;
       const ops = el("div", "ops");
       let resuelto = false;
@@ -5886,6 +5965,7 @@ GAMES.quefalta = {
 
 /* ── BINGO DE AMIGOS — escaneo visual, sin necesidad de leer: se pide un amigo
    por vez (con imagen de pista) y hay que encontrarlo en la grilla. ── */
+const BINGO_CORTAS = ["¿Y ahora, a quién buscamos?", "Encontrá a:", "¿Dónde está:"];
 GAMES.bingo = {
   minP: 4,
   crear(ctx) {
@@ -5912,7 +5992,7 @@ GAMES.bingo = {
           ctx.ronda(encontrados);
           if (encontrados >= tam) { await espera(500); ctx.win(); return; }
           objetivo = orden[encontrados];
-          ctx.consigna("Buscá a:", objetivo);
+          ctx.consigna(sacarDeBolsa(ctx, "bingo", BINGO_CORTAS), objetivo);
         } else {
           b.style.animation = "sacudir .4s ease";
           setTimeout(() => (b.style.animation = ""), 450);
