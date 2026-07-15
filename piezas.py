@@ -483,6 +483,75 @@ def un_solo_blob(im, min_frac=0.18):
     return len(areas) < 2 or areas[1] < areas[0] * min_frac
 
 
+def firma_recorte(im, etiqueta=""):
+    """Firma comparable de un recorte (miniatura+espejo, matiz, silueta+espejo,
+    etiqueta del clasificador de visión) para detectar casi-duplicados entre
+    figuras de un mismo tema — ver es_recorte_duplicado. Puerto de la lógica
+    calibrada 10-jul-2026 en actividades_web._es_duplicado para el memotest
+    (2 leones diff-píxel 38, 2 monsteras 31 — el hash perceptual simple con
+    umbral fijo dejaba pasar estos casi-duplicados). Reusada acá para que
+    memoria/rompecabezas/cápsula/certificado... (cuaderno.personajes_decorativos)
+    tengan la misma protección — bug real 15-jul-2026: bomberos/construccion/
+    aviadores repetían el mismo camión/excavadora/avión recoloreado como si
+    fueran 2 personajes distintos."""
+    import colorsys, math
+    from PIL import ImageOps
+    bg = Image.new("RGBA", im.size, (255, 255, 255, 255))
+    bg.alpha_composite(im)
+    mini = bg.convert("RGB").resize((24, 24), Image.LANCZOS)
+    S = 28
+    sil = im.getchannel("A").point(lambda v: 255 if v > 40 else 0).resize((S, S))
+    m = im.copy(); m.thumbnail((64, 64))
+    hx = hy = n = 0.0
+    for r, g, b, a in m.convert("RGBA").getdata():
+        if a < 60 or (r > 225 and g > 225 and b > 225):
+            continue
+        h, sat, v = colorsys.rgb_to_hsv(r / 255.0, g / 255.0, b / 255.0)
+        if sat > 0.12 and v > 0.15:
+            hx += math.cos(h * 2 * math.pi); hy += math.sin(h * 2 * math.pi); n += 1
+    matiz = math.degrees(math.atan2(hy, hx)) % 360 if n else None
+    return {"mini": (mini, ImageOps.mirror(mini)), "sil": (sil, ImageOps.mirror(sil)),
+            "matiz": matiz, "etiqueta": (etiqueta or "").strip().lower()}
+
+
+def es_recorte_duplicado(cand, elegidos):
+    """¿`cand` (firma_recorte) se confunde con alguna firma ya elegida? Mismo
+    criterio calibrado del memotest: píxel muy parecido → dup siempre; misma
+    etiqueta + matiz cerca (<40°) → dup (león vs león); sin etiqueta confiable,
+    matiz cerca (<25°) + píxel parecido (<40) + misma silueta (IoU >0.75) → dup
+    (atrapa recolores/recortes sin etiquetar; deja pasar formas distintas)."""
+    def _dif_pixel(a, bpar):
+        b, besp = bpar
+        def dif(x, y):
+            px, py = list(x.getdata()), list(y.getdata())
+            return sum(abs(u[0] - v[0]) + abs(u[1] - v[1]) + abs(u[2] - v[2])
+                       for u, v in zip(px, py)) / (len(px) * 3)
+        return min(dif(a, b), dif(a, besp))
+    def _dist_matiz(a, b):
+        if a is None or b is None:
+            return 0.0
+        d = abs(a - b) % 360
+        return min(d, 360 - d)
+    def _iou_silueta(a, bpar):
+        def iou(x, y):
+            px, py = list(x.getdata()), list(y.getdata())
+            inter = sum(1 for u, v in zip(px, py) if u and v)
+            union = sum(1 for u, v in zip(px, py) if u or v)
+            return inter / max(1, union)
+        return max(iou(a, bpar[0]), iou(a, bpar[1]))
+    for e in elegidos:
+        dp = _dif_pixel(cand["mini"][0], e["mini"])
+        if dp < 24:
+            return True
+        dm = _dist_matiz(cand["matiz"], e["matiz"])
+        if cand["etiqueta"] and e["etiqueta"]:
+            if cand["etiqueta"] == e["etiqueta"] and dm < 40:
+                return True
+        elif dm < 25 and dp < 40 and _iou_silueta(cand["sil"][0], e["sil"]) > 0.75:
+            return True
+    return False
+
+
 def hoja_stickers(tema, lado=2400):
     """Hoja de stickers RECOMPUESTA con troquel uniforme: recortes de la hoja
     IA (cuaderno._extraer_monstruos) → quitar_halo → agregar_halo parejo con
