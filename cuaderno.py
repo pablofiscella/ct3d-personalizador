@@ -271,9 +271,12 @@ def _personajes_paths(tema, n=2, variedad_estricta=False, incluir_objetos=False)
     _extraer_monstruos; SIN fallback genérico — si el tema no tiene stickers, lista vacía
     (nunca mezcla personajes de un tema con otro). Selección: figuras grandes y densas,
     filtradas por un clasificador de visión personaje-vs-objeto (cacheado — sin él, la
-    mesa y el frasco de artistas salían de 'personajes'), y DEDUPLICADAS por hash
-    perceptual (la misma figura aparece varias veces en la hoja y salían 2-3 monitos
-    idénticos en una pieza).
+    mesa y el frasco de artistas salían de 'personajes'), y DEDUPLICADAS con
+    piezas.es_recorte_duplicado (píxel + matiz + silueta + etiqueta — bug real
+    15-jul-2026: en temas con pocos tipos de personaje, como bomberos/construccion/
+    aviadores, el hash perceptual simple dejaba pasar el mismo camión/excavadora/avión
+    recoloreado como si fueran 2 figuras distintas, y el memory salía con pares
+    repetidos; mismo criterio ya calibrado para el memotest interactivo).
 
     variedad_estricta=True: SOLO un personaje por tipo (puede devolver menos de n).
     Lo usa el juego de la memoria — con la segunda pasada, dos leones apenas
@@ -315,7 +318,7 @@ def _personajes_paths(tema, n=2, variedad_estricta=False, incluir_objetos=False)
                 continue
             if asp_v > 2.6 or (asp_v > 1.9 and opacos / area < 0.55):
                 continue
-            cand.append((area, p, _ahash(im)))
+            cand.append((area, p, im))
         except Exception:
             pass
     if not cand:
@@ -335,21 +338,25 @@ def _personajes_paths(tema, n=2, variedad_estricta=False, incluir_objetos=False)
             cand = con_cara
     cand.sort(key=lambda t: -t[0])
     # Variedad: primero un personaje de cada TIPO distinto (nena, mono, león...);
-    # si hacen falta más, recién ahí repite tipo (el más grande no usado). El hash
-    # perceptual queda de red de seguridad para copias casi idénticas sin visión.
-    out, tipos_usados, hashes, usados = [], set(), [], set()
+    # si hacen falta más, recién ahí repite tipo (el más grande no usado). Dedup por
+    # firma multi-señal (piezas.es_recorte_duplicado) — ver docstring.
+    import piezas
+    out, tipos_usados, firmas, usados = [], set(), [], set()
     def _pasada(exigir_tipo_nuevo):
-        for _area, p, h in cand:
+        for _area, p, im in cand:
             if len(out) >= n:
                 return
-            if p in usados or any(_hamming(h, hu) <= 5 for hu in hashes):
+            if p in usados:
                 continue
             t = tipos.get(os.path.basename(p)) if tipos else None
             if exigir_tipo_nuevo and t is not None and t in tipos_usados:
                 continue
+            firma = piezas.firma_recorte(im, t or "")
+            if piezas.es_recorte_duplicado(firma, firmas):
+                continue
             out.append(p)
             usados.add(p)
-            hashes.append(h)
+            firmas.append(firma)
             if t is not None:
                 tipos_usados.add(t)
     _pasada(exigir_tipo_nuevo=True)
@@ -360,14 +367,17 @@ def _personajes_paths(tema, n=2, variedad_estricta=False, incluir_objetos=False)
         # personaje), deduplicados contra lo ya elegido
         objetos = sorted((c for c in cand_todos
                           if os.path.basename(c[1]) not in tipos), key=lambda t: -t[0])
-        for _area, p, h in objetos:
+        for _area, p, im in objetos:
             if len(out) >= n:
                 break
-            if p in usados or any(_hamming(h, hu) <= 5 for hu in hashes):
+            if p in usados:
+                continue
+            firma = piezas.firma_recorte(im, "")
+            if piezas.es_recorte_duplicado(firma, firmas):
                 continue
             out.append(p)
             usados.add(p)
-            hashes.append(h)
+            firmas.append(firma)
     return out
 
 def lineart_valido(img, min_cerrado=0.04):
