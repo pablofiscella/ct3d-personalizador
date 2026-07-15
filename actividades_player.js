@@ -3402,7 +3402,10 @@ GAMES.fotosintesis = {
 /* ── LABORATORIO ELÉCTRICO (14-jul-2026, 4° grado NAP Bimestre 3 "Ideas
    web": "conectar cables a materiales para ver qué enciende una
    lamparita" — simplificado a clasificar, mismo patrón que
-   conductor_aislante de 2° grado, banco de contenido nuevo). ── */
+   conductor_aislante de 2° grado, banco de contenido nuevo).
+   Consigna reescrita 15-jul-2026 (Pablo: "en lugar de esto enciende la
+   lamparita o no, que diga este es material que conduce electricidad")
+   — nombra el concepto curricular directo en vez de la metáfora. ── */
 const ELECTRICO_BANCO = [
   { e: "🔑", cat: "conduce" }, { e: "🥄", cat: "conduce" }, { e: "🪙", cat: "conduce" }, { e: "🔩", cat: "conduce" },
   { e: "📖", cat: "noconduce" }, { e: "🧦", cat: "noconduce" }, { e: "🪵", cat: "noconduce" }, { e: "🎈", cat: "noconduce" },
@@ -3417,7 +3420,7 @@ GAMES.laboratorio_electrico = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Esto enciende la lamparita o no?");
+      ctx.consigna("¿Este material conduce electricidad?");
       ctx.juego.innerHTML = "";
       let disp = ELECTRICO_BANCO.filter((x) => !usados.includes(x.e));
       if (!disp.length) { usados = []; disp = ELECTRICO_BANCO; }
@@ -3429,7 +3432,7 @@ GAMES.laboratorio_electrico = {
       ctx.juego.appendChild(arriba);
       const fila = el("div", "filaSprites");
       let resuelto = false;
-      [{ cat: "conduce", label: "💡 Enciende" }, { cat: "noconduce", label: "🚫 No enciende" }].forEach(({ cat, label }) => {
+      [{ cat: "conduce", label: "⚡ Conduce" }, { cat: "noconduce", label: "🚫 No conduce" }].forEach(({ cat, label }) => {
         const b = el("button", "spriteBtn", `<span style="font-size:17px;font-family:'Baloo',sans-serif">${label}</span>`);
         b.addEventListener("click", async () => {
           if (resuelto) return;
