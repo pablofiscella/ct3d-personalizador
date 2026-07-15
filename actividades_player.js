@@ -3685,8 +3685,14 @@ GAMES.suma_columnas = {
         const total = da + db + ac;
         leccionBox.classList.remove("sumaColLeccion--oculto");
         leccionBox.textContent = "";
-        ctx.consigna(`Vamos paso a paso con las ${SUMA_COL_LARGO[col]}.`);
-        await espera(1200);
+        // mismo texto que ctx.consigna pondría arriba, pero SIN pasar por
+        // ella — así se puede esperar el audio real con decirYesperar en
+        // vez de la pausa fija vieja (Pablo 15-jul-2026: quedaba una pausa
+        // rara entre "vamos paso a paso" y "primero...").
+        const intro = `Vamos paso a paso con las ${SUMA_COL_LARGO[col]}.`;
+        $("#consignaTexto").innerHTML = intro;
+        $("#consignaPista").style.display = "none";
+        await decirYesperar(intro, 1200);
         digitosA[col].classList.add("sumaResaltado");
         leccionBox.textContent = `${da}`;
         await decirYesperar(`Primero, ${NUM_PALABRA[da]}.`, 1300);
