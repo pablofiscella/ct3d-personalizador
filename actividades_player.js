@@ -62,6 +62,24 @@ function reproducirConsigna(txt) {
   vozActual = new Audio(archivo);
   vozActual.play().catch(() => {});   // autoplay bloqueado hasta el primer toque: no rompe nada
 }
+// Desbloqueo de audio (15-jul-2026): algunos navegadores móviles (sobre todo
+// iOS) solo permiten reproducir audio con sonido si el .play() ocurre cerca
+// de un toque real — la lección de suma en columnas encadena varias voces
+// con pausas de 1-2s entre cada una (para leer/escuchar cómodo), y esas
+// llamadas tardías podían quedar mudas aunque el primer sonido del juego sí
+// se escuchara. Reproduce (mute) un clip real en el primer toque de verdad
+// para "activar" el audio del resto de la sesión.
+let _audioDesbloqueado = false;
+function desbloquearAudio() {
+  if (_audioDesbloqueado) return;
+  const archivo = Object.values(AudioManifest)[0];
+  if (!archivo) return;   // el manifest todavía no cargó — se reintenta en el próximo toque
+  _audioDesbloqueado = true;
+  const a = new Audio(archivo);
+  a.volume = 0;
+  a.play().then(() => { a.pause(); a.currentTime = 0; }).catch(() => { _audioDesbloqueado = false; });
+}
+document.addEventListener("click", desbloquearAudio, { capture: true });
 
 /* ── persistencia (perfiles + estrellas + sonido) por token ── */
 /* Perfiles (14-jul-2026, Pablo: "pueden ser 2 chicos los que juegan en la
