@@ -36,6 +36,27 @@ const shuffle = (arr) => {
 const sample = (arr, n) => shuffle(arr).slice(0, n);
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// Consigna variada (15-jul-2026, Pablo: "esto repetitivo se da en varias,
+// hay que tratar de que sea más natural" — la mayoría de los juegos de
+// clasificación repiten LITERALMENTE la misma consigna hasta 10 veces por
+// partida). Ronda 0 dice la consigna completa (da contexto); de ahí en más
+// alterna al azar entre variantes CORTAS reutilizables — nunca contenido a
+// medida por juego (76 juegos, no escala escribir cada uno a mano).
+// Concordancia de género real (Pablo: "si es una palabra en femenino, esta
+// otra... que tenga sentido"): "m" para masculino (este material/animal/
+// ángulo/planeta), "f" para femenino (esta provincia/palabra/planta/
+// afirmación), "n" (neutro, "esto") cuando el ítem mostrado varía de
+// género ronda a ronda (un emoji de objeto/animal cualquiera) — "esto" no
+// fuerza concordancia con nada, es la opción segura ahí.
+const CONSIGNA_CORTA_MASC = ["¿Y este?", "¿Y este otro?", "¿Este también?"];
+const CONSIGNA_CORTA_FEM = ["¿Y esta?", "¿Y esta otra?", "¿Esta también?"];
+const CONSIGNA_CORTA_NEUTRO = ["¿Y esto?", "¿Y esto otro?", "¿Esto también?"];
+function consignaVariada(ctx, ronda, textoLargo, genero) {
+  if (ronda === 0) { ctx.consigna(textoLargo); return; }
+  const set = genero === "f" ? CONSIGNA_CORTA_FEM : genero === "n" ? CONSIGNA_CORTA_NEUTRO : CONSIGNA_CORTA_MASC;
+  ctx.consigna(set[rint(0, set.length - 1)]);
+}
+
 let D = null;            // data.json
 let P = [];              // personajes (filenames)
 const GAMES = {};        // registro de juegos
@@ -1862,7 +1883,7 @@ GAMES.suma_rapida = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("Tocá dos burbujas que sumen 10");
+      consignaVariada(ctx, ronda, "Tocá dos burbujas que sumen 10", "n");
       ctx.juego.innerHTML = "";
       const a = rint(1, objetivo - 1);
       const b = objetivo - a;
@@ -1939,7 +1960,7 @@ GAMES.campo_ciudad = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Es del campo o de la ciudad?");
+      consignaVariada(ctx, ronda, "¿Es del campo o de la ciudad?", "n");
       ctx.juego.innerHTML = "";
       let disp = CAMPO_CIUDAD_BANCO.filter((x) => !usados.includes(x.e));
       if (!disp.length) { usados = []; disp = CAMPO_CIUDAD_BANCO; }
@@ -2002,7 +2023,7 @@ GAMES.planta_fruto = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Qué fruto da esta planta?");
+      consignaVariada(ctx, ronda, "¿Qué fruto da esta planta?", "f");
       ctx.juego.innerHTML = "";
       let disp = PLANTA_FRUTO_BANCO.filter((x) => !usados.includes(x.planta));
       if (!disp.length) { usados = []; disp = PLANTA_FRUTO_BANCO; }
@@ -2068,7 +2089,7 @@ GAMES.materiales = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿De qué material es?");
+      consignaVariada(ctx, ronda, "¿De qué material es?", "n");
       ctx.juego.innerHTML = "";
       let disp = MATERIALES_BANCO.filter((x) => !usados.includes(x.obj));
       if (!disp.length) { usados = []; disp = MATERIALES_BANCO; }
@@ -2183,7 +2204,7 @@ GAMES.sustantivos = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Es un sustantivo común o propio?");
+      consignaVariada(ctx, ronda, "¿Es un sustantivo común o propio?", "f");
       ctx.juego.innerHTML = "";
       let disp = SUSTANTIVOS_BANCO.filter((x) => !usados.includes(x.p));
       if (!disp.length) { usados = []; disp = SUSTANTIVOS_BANCO; }
@@ -2235,7 +2256,7 @@ GAMES.sumas_redondas = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("Tocá dos números que sumen el número redondo");
+      consignaVariada(ctx, ronda, "Tocá dos números que sumen el número redondo", "n");
       ctx.juego.innerHTML = "";
       const objetivo = OBJETIVOS[rint(0, OBJETIVOS.length - 1)];
       const arriba = el("div", "tablero");
@@ -2371,7 +2392,7 @@ GAMES.multiplicacion_concepto = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Qué multiplicación es esta suma?");
+      consignaVariada(ctx, ronda, "¿Qué multiplicación es esta suma?", "n");
       ctx.juego.innerHTML = "";
       const sumando = rint(2, 5);
       const veces = rint(2, 4);
@@ -2438,7 +2459,7 @@ GAMES.conductor_aislante = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Se calienta rápido o no?");
+      consignaVariada(ctx, ronda, "¿Se calienta rápido o no?", "n");
       ctx.juego.innerHTML = "";
       let disp = CONDUCTOR_BANCO.filter((x) => !usados.includes(x.e));
       if (!disp.length) { usados = []; disp = CONDUCTOR_BANCO; }
@@ -2698,7 +2719,7 @@ GAMES.animal_comida = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Qué come este animal?");
+      consignaVariada(ctx, ronda, "¿Qué come este animal?", "m");
       ctx.juego.innerHTML = "";
       let disp = ANIMAL_COMIDA_BANCO.filter((x) => !usados.includes(x.animal));
       if (!disp.length) { usados = []; disp = ANIMAL_COMIDA_BANCO; }
@@ -2758,7 +2779,7 @@ GAMES.partes_oracion = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Es sustantivo, adjetivo o verbo?");
+      consignaVariada(ctx, ronda, "¿Es sustantivo, adjetivo o verbo?", "f");
       ctx.juego.innerHTML = "";
       let disp = PARTES_ORACION_BANCO.filter((x) => !usados.includes(x.p));
       if (!disp.length) { usados = []; disp = PARTES_ORACION_BANCO; }
@@ -2816,7 +2837,7 @@ GAMES.tabla_pitagorica = {
       const correcta = tabla * factor;
       // consigna de audio FIJA (el "6 × 7" cambia cada ronda — no puede
       // grabarse, mismo criterio que "Formá {objetivo}" en sumas_redondas)
-      ctx.consigna("Buscá el resultado de la multiplicación");
+      consignaVariada(ctx, ronda, "Buscá el resultado de la multiplicación", "n");
       const arribaOp = el("div", "tablero");
       arribaOp.appendChild(el("div", "spriteQuieto",
         `<span style="font-size:34px;font-family:'Baloo',sans-serif">${tabla} × ${factor}</span>`));
@@ -2873,7 +2894,7 @@ GAMES.tiempos_verbales = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Pasado, presente o futuro?");
+      consignaVariada(ctx, ronda, "¿Pasado, presente o futuro?", "f");
       ctx.juego.innerHTML = "";
       let disp = TIEMPOS_BANCO.filter((x) => !usados.includes(x.p));
       if (!disp.length) { usados = []; disp = TIEMPOS_BANCO; }
@@ -2935,7 +2956,7 @@ GAMES.estaciones = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Qué estación del año es?");
+      consignaVariada(ctx, ronda, "¿Qué estación del año es?", "f");
       ctx.juego.innerHTML = "";
       let disp = ESTACIONES_BANCO.filter((x) => !usados.includes(x.e));
       if (!disp.length) { usados = []; disp = ESTACIONES_BANCO; }
@@ -3117,7 +3138,7 @@ GAMES.cajero_automatico = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("Tocá los billetes que sumen el monto exacto");
+      consignaVariada(ctx, ronda, "Tocá los billetes que sumen el monto exacto", "n");
       ctx.juego.innerHTML = "";
       const idxA = rint(0, BILLETES.length - 1);
       let idxB = rint(0, BILLETES.length - 1);
@@ -3197,7 +3218,7 @@ GAMES.abstractos_concretos = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Es abstracto o concreto?");
+      consignaVariada(ctx, ronda, "¿Es abstracto o concreto?", "f");
       ctx.juego.innerHTML = "";
       let disp = ABSTRACTOS_BANCO.filter((x) => !usados.includes(x.p));
       if (!disp.length) { usados = []; disp = ABSTRACTOS_BANCO; }
@@ -3255,7 +3276,7 @@ GAMES.provincias_region = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿A qué región pertenece esta provincia?");
+      consignaVariada(ctx, ronda, "¿A qué región pertenece esta provincia?", "f");
       ctx.juego.innerHTML = "";
       let disp = PROVINCIAS_BANCO.filter((x) => !usados.includes(x.p));
       if (!disp.length) { usados = []; disp = PROVINCIAS_BANCO; }
@@ -3310,7 +3331,7 @@ GAMES.acentuacion = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Es aguda, grave o esdrújula?");
+      consignaVariada(ctx, ronda, "¿Es aguda, grave o esdrújula?", "f");
       ctx.juego.innerHTML = "";
       let disp = ACENTUACION_BANCO.filter((x) => !usados.includes(x.p));
       if (!disp.length) { usados = []; disp = ACENTUACION_BANCO; }
@@ -3420,7 +3441,7 @@ GAMES.laboratorio_electrico = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Este material conduce electricidad?");
+      consignaVariada(ctx, ronda, "¿Este material conduce electricidad?", "m");
       ctx.juego.innerHTML = "";
       let disp = ELECTRICO_BANCO.filter((x) => !usados.includes(x.e));
       if (!disp.length) { usados = []; disp = ELECTRICO_BANCO; }
@@ -3764,7 +3785,7 @@ GAMES.angulos = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Es agudo, recto u obtuso?");
+      consignaVariada(ctx, ronda, "¿Es agudo, recto u obtuso?", "m");
       ctx.juego.innerHTML = "";
       let disp = ANGULOS_BANCO.filter((x) => !usados.includes(x.grados));
       if (!disp.length) { usados = []; disp = ANGULOS_BANCO; }
@@ -3904,7 +3925,7 @@ GAMES.trivia_colonial = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Es verdadero o falso?");
+      consignaVariada(ctx, ronda, "¿Es verdadero o falso?", "f");
       ctx.juego.innerHTML = "";
       let disp = COLONIAL_BANCO.filter((x) => !usados.includes(x.afirmacion));
       if (!disp.length) { usados = []; disp = COLONIAL_BANCO; }
@@ -4172,7 +4193,7 @@ GAMES.pago_exacto = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("Tocá las monedas que sumen el pago exacto");
+      consignaVariada(ctx, ronda, "Tocá las monedas que sumen el pago exacto", "n");
       ctx.juego.innerHTML = "";
       const idxA = rint(0, MONEDAS.length - 1);
       let idxB = rint(0, MONEDAS.length - 1);
@@ -4380,7 +4401,7 @@ GAMES.derechos_constitucion = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Es verdadero o falso?");
+      consignaVariada(ctx, ronda, "¿Es verdadero o falso?", "f");
       ctx.juego.innerHTML = "";
       let disp = DERECHOS_BANCO.filter((x) => !usados.includes(x.afirmacion));
       if (!disp.length) { usados = []; disp = DERECHOS_BANCO; }
@@ -4508,7 +4529,7 @@ GAMES.hechos_opiniones = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Es un hecho o una opinión?");
+      consignaVariada(ctx, ronda, "¿Es un hecho o una opinión?", "f");
       ctx.juego.innerHTML = "";
       let disp = HECHOS_OPINIONES_BANCO.filter((x) => !usados.includes(x.texto));
       if (!disp.length) { usados = []; disp = HECHOS_OPINIONES_BANCO; }
@@ -4574,7 +4595,7 @@ GAMES.sistema_nervioso = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Es verdadero o falso?");
+      consignaVariada(ctx, ronda, "¿Es verdadero o falso?", "f");
       ctx.juego.innerHTML = "";
       let disp = NERVIOSO_BANCO.filter((x) => !usados.includes(x.afirmacion));
       if (!disp.length) { usados = []; disp = NERVIOSO_BANCO; }
@@ -4764,7 +4785,7 @@ GAMES.sufragio_argentina = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Es verdadero o falso?");
+      consignaVariada(ctx, ronda, "¿Es verdadero o falso?", "f");
       ctx.juego.innerHTML = "";
       let disp = SUFRAGIO_BANCO.filter((x) => !usados.includes(x.afirmacion));
       if (!disp.length) { usados = []; disp = SUFRAGIO_BANCO; }
@@ -4820,7 +4841,7 @@ GAMES.energia_renovable = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Es una energía renovable o no renovable?");
+      consignaVariada(ctx, ronda, "¿Es una energía renovable o no renovable?", "n");
       ctx.juego.innerHTML = "";
       let disp = ENERGIA_BANCO.filter((x) => !usados.includes(x.e));
       if (!disp.length) { usados = []; disp = ENERGIA_BANCO; }
@@ -5013,7 +5034,7 @@ GAMES.planetas_tipo = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Es un planeta terrestre o gaseoso?");
+      consignaVariada(ctx, ronda, "¿Es un planeta terrestre o gaseoso?", "m");
       ctx.juego.innerHTML = "";
       let disp = PLANETAS_BANCO.filter((x) => !usados.includes(x.nombre));
       if (!disp.length) { usados = []; disp = PLANETAS_BANCO; }
@@ -5269,7 +5290,7 @@ GAMES.red_trofica = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      ctx.consigna("¿Es productor, consumidor o descomponedor?");
+      consignaVariada(ctx, ronda, "¿Es productor, consumidor o descomponedor?", "n");
       ctx.juego.innerHTML = "";
       let disp = RED_TROFICA_BANCO.filter((x) => !usados.includes(x.e));
       if (!disp.length) { usados = []; disp = RED_TROFICA_BANCO; }
