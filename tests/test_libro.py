@@ -20,6 +20,35 @@ def test_piezas_procedurales_se_generan():
         assert img.size == (libro.Wp, libro.Hp)
 
 
+def test_sin_pie_saca_la_url_sin_tocar_el_resto(tmp_path, monkeypatch):
+    """15-jul-2026: las fotos de Mercado Libre de los audiolibros reusaban
+    páginas del PDF del producto imprimible (con "casatridimensional.com.ar"
+    al pie) — ML las tomó como derivación fuera de la plataforma y puso en
+    revisión las 22 publicaciones desde el 10-jul. sin_pie=True saca SOLO el
+    pie, sin afectar el resto de la página (portada, dedicatoria, historia,
+    fin — los 4 tipos de página)."""
+    monkeypatch.setattr(temas, "TEMAS_DIR", str(tmp_path))
+    for idx in (0, 1, 4, 9):   # portada, dedicatoria, historia, fin
+        con_pie = libro.pagina_libro(idx, DATA, "safari", catalogo=True, sin_pie=False)
+        sin_pie = libro.pagina_libro(idx, DATA, "safari", catalogo=True, sin_pie=True)
+        assert con_pie.size == sin_pie.size
+        assert list(con_pie.getdata()) != list(sin_pie.getdata())  # el pie cambió algo
+    # chequeo directo en dedicatoria (fondo CREAM liso ahí, sin otros elementos
+    # cerca del pie): el texto "c" de casatridimensional empieza cerca del
+    # borde izquierdo de esa franja — con pie, ese pixel NO es fondo; sin pie,
+    # sí lo es.
+    con_pie = libro.pagina_libro(1, DATA, "safari", catalogo=True, sin_pie=False)
+    sin_pie = libro.pagina_libro(1, DATA, "safari", catalogo=True, sin_pie=True)
+    y = libro.Hp - 52
+    fondo = con_pie.getpixel((30, y))   # esquina de la franja, nunca tiene texto
+    con_algo_de_texto = any(con_pie.getpixel((x, y)) != fondo
+                            for x in range(int(libro.Wp * 0.35), int(libro.Wp * 0.65)))
+    sin_nada_de_texto = all(sin_pie.getpixel((x, y)) == fondo
+                            for x in range(int(libro.Wp * 0.35), int(libro.Wp * 0.65)))
+    assert con_algo_de_texto
+    assert sin_nada_de_texto
+
+
 def test_override_es_la_ilustracion_y_el_texto_sigue_vivo(tmp_path, monkeypatch):
     """En el libro el override NO tapa la página completa: es el ARTE de la escena.
     La página sigue siendo A4 y el texto personalizado lo sigue escribiendo el motor."""

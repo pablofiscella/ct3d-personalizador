@@ -950,7 +950,7 @@ def _fit_fs(nombre, fs, maxw):
 
 
 # ── páginas ──────────────────────────────────────────────────────────────────
-def portada(data, tema="safari"):
+def portada(data, tema="safari", sin_pie=False):
     acc = _accent(tema)
     nombre = (str(data.get("nombre") or "").strip()) or "Alex"
     edad = str(data.get("edad") or "").strip()
@@ -981,11 +981,12 @@ def portada(data, tema="safari"):
     _estrella(dr, Wp / 2, Hp - 165, 34, GOLD)
     # la portada tiene marco doble hasta Hp-55 (las demás páginas no) — el pie
     # sube para no quedar tapado por esa línea
-    _pie(dr, acc, y=Hp - 100)
+    if not sin_pie:
+        _pie(dr, acc, y=Hp - 100)
     return im
 
 
-def dedicatoria(data, tema="safari"):
+def dedicatoria(data, tema="safari", sin_pie=False):
     acc = _accent(tema)
     nombre = (str(data.get("nombre") or "").strip()) or "Alex"
     dedic = (str(data.get("dedicatoria") or "").strip()) or \
@@ -1007,11 +1008,12 @@ def dedicatoria(data, tema="safari"):
         mons = _personajes(tema, 1)
         if mons:
             _paste_h(im, mons[0], Wp / 2, Hp - 460, 320)
-    _pie(dr, acc)
+    if not sin_pie:
+        _pie(dr, acc)
     return im
 
 
-def pagina_historia(n, data, tema="safari", catalogo=False):
+def pagina_historia(n, data, tema="safari", catalogo=False, sin_pie=False):
     """Página n del cuento: escena ilustrada arriba + texto abajo + número."""
     acc = _accent(tema)
     textos = cuento(data, tema, catalogo)
@@ -1025,11 +1027,12 @@ def pagina_historia(n, data, tema="safari", catalogo=False):
     # número de página (portada y dedicatoria no cuentan)
     dr.ellipse([Wp / 2 - 44, Hp - 190, Wp / 2 + 44, Hp - 102], fill=acc)
     dr.text((Wp / 2, Hp - 146), str(n + 1), font=_font(44), fill="white", anchor="mm")
-    _pie(dr, acc)
+    if not sin_pie:
+        _pie(dr, acc)
     return im
 
 
-def fin(data, tema="safari", catalogo=False):
+def fin(data, tema="safari", catalogo=False, sin_pie=False):
     acc = _accent(tema)
     nombre = (str(data.get("nombre") or "").strip()) or "Alex"
     im = Image.new("RGBA", (Wp, Hp), (255, 255, 255, 255))
@@ -1062,19 +1065,25 @@ def fin(data, tema="safari", catalogo=False):
              Wp / 2, int(Hp * 0.48), _font(44, False), (238, 234, 255), Wp - 360, lh=1.45)
     dr.text((Wp / 2, Hp - 130), "Un cuento hecho especialmente para vos",
             font=_font(30, False), fill=(210, 204, 240), anchor="mm")
-    _pie(dr, acc)
+    if not sin_pie:
+        _pie(dr, acc)
     return im
 
 
-def pagina_libro(idx, data, tema="safari", catalogo=False):
-    """Página idx del libro: 0=portada, 1=dedicatoria, 2..N=historia, última=fin."""
+def pagina_libro(idx, data, tema="safari", catalogo=False, sin_pie=False):
+    """Página idx del libro: 0=portada, 1=dedicatoria, 2..N=historia, última=fin.
+    sin_pie=True omite el "casatridimensional.com.ar" al pie de la página — para
+    fotos de catálogo externo (ej. Mercado Libre) donde una URL en la imagen
+    viola las políticas de la plataforma (bug real, publicaciones de audiolibro
+    dadas de baja/en revisión desde el 10-jul-2026 por esto). El PDF del
+    producto imprimible sigue usando el pie normal (sin_pie=False, default)."""
     if idx == 0:
-        return portada(data, tema)
+        return portada(data, tema, sin_pie=sin_pie)
     if idx == 1:
-        return dedicatoria(data, tema)
+        return dedicatoria(data, tema, sin_pie=sin_pie)
     if idx == total_paginas(tema, data.get("edad"), data.get("historia"), catalogo) - 1:
-        return fin(data, tema, catalogo)
-    return pagina_historia(idx - 2, data, tema, catalogo)
+        return fin(data, tema, catalogo, sin_pie=sin_pie)
+    return pagina_historia(idx - 2, data, tema, catalogo, sin_pie=sin_pie)
 
 
 def paginas_libro(data, tema="safari", catalogo=False):
