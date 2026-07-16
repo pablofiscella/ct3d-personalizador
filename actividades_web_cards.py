@@ -8,11 +8,12 @@ impreso: se genera un token de PRUEBA, se abre en un browser headless
 `Shell.abrir(<juego>)` (la misma función que usa el player al tocar una
 carta) y se saca una captura — pixel a pixel lo que ve el comprador.
 
-Se genera UNA VEZ por tema (no por venta): 19 PNGs en
-temas/<tema>/actividades_cards/<juego_id>.png (gitignored, como ia_maestra.png
-— se regenera con este script, no se edita a mano). El bloqueo por edad se
-sigue pintando ENCIMA de la captura real al servir (actividades_web._apagar_bloqueado),
-no hace falta una captura por edad.
+Se genera UNA VEZ por tema (no por venta): un PNG por juego del catálogo (19
+al armar esto el 13-jul-2026; 63 desde el 16-jul-2026 al sumarse el contenido
+NAP de 9-12 años) en temas/<tema>/actividades_cards/<juego_id>.png (gitignored,
+como ia_maestra.png — se regenera con este script, no se edita a mano). El
+bloqueo por edad se sigue pintando ENCIMA de la captura real al servir
+(actividades_web._apagar_bloqueado), no hace falta una captura por edad.
 
 Uso:
   CLI:  python actividades_web_cards.py <tema> [--forzar]
@@ -27,9 +28,17 @@ from cuaderno import TEMAS
 
 CARDS_DIR_NOMBRE = "actividades_cards"
 _PUERTO_LOCAL = int(os.environ.get("ACTIVIDADES_CARDS_PUERTO", "8797"))
-# banda representativa por juego: la PRIMERA banda (mini→media→grande) que lo
-# incluye — mismo criterio de precedencia que actividades_web._catalogo_juegos().
-_BANDAS = (("mini", "2"), ("media", "5"), ("grande", "8"))
+# banda/edad representativa por juego: la PRIMERA que lo incluye, recorriendo
+# mini→media→grande y, dentro de "grande", cada edad de menor a mayor —
+# mismo criterio de precedencia que actividades_web._catalogo_juegos().
+# 16-jul-2026: extendido de (2, 5, 8) a también 9-12 — los juegos NAP
+# exclusivos de esas edades (laboratorio_electrico, fracciones_equivalentes,
+# traductor_algebraico, etc.) nunca encontraban banda con el rango viejo,
+# así que _banda_de() devolvía (None, None) y la card se saltaba para
+# siempre (caía al fallback de solo-título — Pablo: "puse laboratorio y
+# fracciones... la previa muestra solo el título y no las imágenes reales").
+_BANDAS = (("mini", "2"), ("media", "5"), ("grande", "8"), ("grande", "9"),
+           ("grande", "10"), ("grande", "11"), ("grande", "12"))
 # minP real del player (actividades_player.js GAMES.<id>.minP) — si el tema
 # no junta suficientes personajes, el MENÚ REAL ya oculta esa carta (real:
 # "un-espacio-de-locura" solo detecta 3 personajes → sudoku/bingo, que piden
@@ -77,7 +86,8 @@ def _asegurar_token(tema, banda, edad):
 
 
 def generar_tema(tema, forzar=False, progress=None):
-    """Genera las 19 cards del tema. Devuelve la lista de juegos generados."""
+    """Genera las cards del tema (una por juego del catálogo). Devuelve la
+    lista de juegos generados."""
     from playwright.sync_api import sync_playwright
     import servicio
     import http.server
@@ -89,7 +99,7 @@ def generar_tema(tema, forzar=False, progress=None):
     pendientes = juegos if forzar else [
         j for j in juegos if not os.path.isfile(card_path(tema, j["id"]))]
     if not pendientes:
-        log("%s: las 19 cards ya existen (usá forzar=True para regenerar)" % tema)
+        log("%s: las cards ya existen (usá forzar=True para regenerar)" % tema)
         return []
 
     os.makedirs(_cards_dir(tema), exist_ok=True)
