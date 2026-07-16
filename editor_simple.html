@@ -89,7 +89,17 @@
   var edadQS = parseInt(qs.get('edad'), 10);
   var EDAD = (edadQS >= EDAD_MIN && edadQS <= EDAD_MAX) ? String(edadQS) : String(EDAD_DEFAULT);
   selEdad.value = EDAD;
-  selEdad.addEventListener('change', function(){ EDAD = selEdad.value; refrescar(); });
+  selEdad.addEventListener('change', function(){ EDAD = selEdad.value; pintarTabs(); refrescar(); });
+
+  // Filtro de pestañas por edad (16-jul-2026, Pablo: "ponga la edad que
+  // ponga muestra todas las actividades posibles... aparecen las
+  // actividades de todas las edades juntas") — SOLO actividades-web tiene
+  // el concepto de "esta pieza no corresponde a esta edad" (el resto de
+  // los tipos con campo edad, como cartel o libro, siempre tienen las
+  // mismas piezas; edad solo cambia el CONTENIDO de cada una). Reusa
+  // /actividades-incluidos, el mismo endpoint que ya usa la galería
+  // "Qué incluye" de la ficha para des/bloquear por edad.
+  var INCLUIDOS_POR_EDAD = null;
 
   // Campos propios del tipo más allá de nombre/edad/año (ej. menu_entrada/menu_plato del
   // menú infantil) — se piden a /tipos y se arman inputs solos, sin tocar este archivo
@@ -126,17 +136,32 @@
   // cantidad (actividades puede tener 13-29 según la edad, corona 2, antifaces 3,
   // certificado 1…). Antes esto estaba hardcodeado a 2 fijas ("actividades") o 1
   // ("el resto"), así que el editor no mostraba las piezas reales de un tipo nuevo.
-  var PAGINAS = [{i:0,t:''}];   // placeholder mientras carga / si falla el fetch
-  var pagina = 0;
+  var PAGINAS = [{i:0,t:''}];   // placeholder mientras carga / si falla el fetch — lista COMPLETA
+  var piezaActiva = 0;          // idx (p.i) de la pieza elegida, NO posición en el array
+
+  function piezasVisibles(){
+    if(TIPO !== 'actividades-web' || !INCLUIDOS_POR_EDAD) return PAGINAS;
+    var titulos = INCLUIDOS_POR_EDAD[EDAD];
+    if(!titulos) return PAGINAS;
+    var permitidos = {};
+    titulos.forEach(function(t){ permitidos[t] = 1; });
+    // las primeras 3 piezas (portada/colorear/escena) no son "juegos" —
+    // no tienen concepto de incluido/bloqueado por edad, siempre se ven.
+    return PAGINAS.filter(function(p, idx){ return idx < 3 || permitidos[p.t]; });
+  }
 
   function pintarTabs(){
+    var visibles = piezasVisibles();
+    if(!visibles.some(function(p){ return p.i === piezaActiva; })){
+      piezaActiva = visibles.length ? visibles[0].i : 0;
+    }
     tabsBox.innerHTML = '';
-    if(PAGINAS.length > 1){
+    if(visibles.length > 1){
       tabsBox.style.display = 'flex';
-      PAGINAS.forEach(function(p,idx){
+      visibles.forEach(function(p){
         var b=document.createElement('button');
-        b.className='tab'+(idx===pagina?' active':''); b.textContent=p.t||('Página '+(idx+1)); b.type='button';
-        b.onclick=function(){ pagina=idx; [].forEach.call(tabsBox.children,function(c){c.classList.remove('active');}); b.classList.add('active'); refrescar(); };
+        b.className='tab'+(p.i===piezaActiva?' active':''); b.textContent=p.t||('Página '+(p.i+1)); b.type='button';
+        b.onclick=function(){ piezaActiva=p.i; [].forEach.call(tabsBox.children,function(c){c.classList.remove('active');}); b.classList.add('active'); refrescar(); };
         tabsBox.appendChild(b);
       });
     } else {
@@ -148,7 +173,7 @@
     var nombre = (inp.value||'').trim() || 'Tomás';
     var q = 'tipo='+encodeURIComponent(TIPO)+'&tema='+encodeURIComponent(TEMA)
           + '&nombre='+encodeURIComponent(nombre)+'&edad='+encodeURIComponent(EDAD)
-          + '&pieza='+PAGINAS[pagina].i+'&max=820&cb='+Date.now();
+          + '&pieza='+piezaActiva+'&max=820&cb='+Date.now();
     var extra = valoresCamposExtra();
     for(var k in extra) q += '&'+encodeURIComponent(k)+'='+encodeURIComponent(extra[k]);
     return '/preview?'+q;
@@ -192,6 +217,13 @@
     })
     .catch(function(){});
 
+  var pIncluidos = (TIPO === 'actividades-web')
+    ? fetch('/actividades-incluidos')
+        .then(function(r){ return r.json(); })
+        .then(function(d){ if(d && d.ok) INCLUIDOS_POR_EDAD = d.incluidos; })
+        .catch(function(){})
+    : Promise.resolve();
+
   var pTipos = fetch('/tipos')
     .then(function(r){ return r.json(); })
     .then(function(d){
@@ -206,7 +238,7 @@
     })
     .catch(function(){});
 
-  Promise.all([pPiezas, pTipos]).then(function(){
+  Promise.all([pPiezas, pTipos, pIncluidos]).then(function(){
     pintarTabs();
     pintarCamposExtra();
     cargarPreview();
