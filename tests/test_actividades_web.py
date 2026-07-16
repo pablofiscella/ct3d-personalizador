@@ -175,6 +175,22 @@ def test_bandas_de_edad():
     assert len(iconos12) == len(set(iconos12)), "íconos repetidos en el menú de 12 años"
 
 
+def test_incluidos_por_edad_llega_hasta_12():
+    """16-jul-2026: incluidos_por_edad() estaba fija en 2-8 (el dropdown de
+    la ficha de la tienda también) aunque _menu() ya tenía el contenido NAP
+    de 9 a 12 armado — Pablo no podía elegir esas edades para ver qué
+    actividades trae. La tienda usa este dict para desbloquear/reordenar la
+    galería "Qué incluye" según la edad elegida."""
+    inc = aw.incluidos_por_edad()
+    assert set(inc.keys()) == {str(e) for e in range(2, 13)}
+    # cada edad nueva (9-12) trae contenido curricular real, no una copia
+    # del menú de 8 años — mismo criterio que el resto del archivo (ids
+    # nuevos por grado, ver test_bandas_de_edad).
+    for e in ("9", "10", "11", "12"):
+        assert inc[e] != inc["8"]
+        assert inc[e]  # nunca vacío
+
+
 def test_laberintos_transitables(data):
     BIT = {"E": 4, "W": 8, "N": 1, "S": 2}
     for lab in data["laberintos"]:

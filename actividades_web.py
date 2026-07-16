@@ -879,16 +879,19 @@ def _catalogo_juegos():
 
 
 def incluidos_por_edad():
-    """{edad: [títulos incluidos]} para las 7 edades del dropdown (2 a 8) —
+    """{edad: [títulos incluidos]} para las edades del dropdown (2 a 12) —
     Pablo 13-jul-2026: "cuando cambio de edad... creo que no cambian las
     imágenes". El bloqueo SÍ cambia (verificado), pero 8 de los 19 juegos
     están en TODAS las bandas y esas cards nunca se ven distintas — el resto
     queda mezclado entre ellas, así que el cambio real es fácil de no notar
     en el scroll. La tienda usa esto para REORDENAR la galería (desbloqueados
     primero) cuando cambia la edad, no solo repintar cada card en el mismo
-    lugar. Independiente del tema: el menú de _menu() no varía por tema."""
+    lugar. Independiente del tema: el menú de _menu() no varía por tema.
+    16-jul-2026: extendido de 8 a 12 — el contenido NAP progresivo para 9-12
+    (grados 4to-7mo) ya estaba armado en _menu() pero la ficha de la tienda
+    nunca lo exponía (dropdown de edad fijo en 2-8, bug real de Pablo)."""
     return {e: sorted({m["titulo"] for m in _menu(_banda(e), e)})
-            for e in ("2", "3", "4", "5", "6", "7", "8")}
+            for e in ("2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")}
 
 
 def _personajes_para_cards(tema, n=8):
