@@ -761,102 +761,38 @@ GAMES.laberinto = {
           y: Math.floor(((ev.clientY - r.top) * escY - M) / C),
         };
       };
-      // 15-jul-2026 (Pablo, cuarta vuelta de la misma historia): la línea
-      // recta (Bresenham) se quedaba pegada en los giros reales del pasillo
-      // ("el mouse no acompaña al personaje"). El BFS puro (dobla esquinas)
-      // arregló eso pero rodeaba paredes por OTRO pasillo lejano ("si el
-      // mouse pasa al otro lado de una pared no tiene que llevarlo"). El
-      // fix de "nunca alejarse ni un solo paso" (distancia Manhattan
-      // estrictamente monótona) arregló ESO, pero resultó DEMASIADO
-      // estricto: un pasillo real casi nunca es una línea recta perfecta,
-      // así que hasta un giro chico y normal (esquivar UNA sola pared)
-      // necesita alejarse 1-2 celdas antes de poder acercarse — con la
-      // regla estricta, esos giros normales tampoco encontraban camino:
-      // "ahora casi no se mueve".
-      // Un ajuste más (misma tarde): comparar el camino real contra la
-      // tolerancia para CUALQUIER objetivo, sin importar qué tan lejos
-      // estuviera, terminó rechazando casi todos los arrastres normales —
-      // un objetivo lejos en un pasillo sinuoso tiene camino real mucho más
-      // largo que su línea recta SIN que eso signifique "rodeo de pared",
-      // así que hacía falta arrastrar mucho para que el puntero cayera en
-      // una celda "favorable": "tengo que llevar el puntero lejos para que
-      // se mueva". Fix final: BFS SIN podar (encuentra el camino MÁS CORTO
-      // real, sea cual sea) y la comparación contra Manhattan sólo se aplica
-      // cuando el objetivo está pegado al personaje (manhattan<=2) — ahí sí
-      // distingue "esquivar una pared puntual" de "rodear por el otro
-      // pasillo". Para cualquier objetivo más lejos no se objeta el
-      // desvío: se camina por el camino real tal cual, tope de pasos por
-      // evento mediante.
-      const TOPE_PASOS_POR_EVENTO = 4;
-      // la tolerancia comparaba el camino real contra la distancia Manhattan
-      // TOTAL entre personaje y puntero — en un laberinto real, un objetivo
-      // lejos (manhattan 8+) fácilmente tiene un camino real 4-5 veces más
-      // largo solo por lo sinuoso del trazado (no por rodear nada), así que
-      // casi cualquier arrastre normal quedaba rechazado salvo que el
-      // puntero cayera justo sobre una celda "favorable" — de ahí "tengo que
-      // llevar el puntero lejos para que se mueva". El caso real a evitar
-      // ("si el mouse pasa al otro lado de una pared no tiene que llevarlo")
-      // es puntual: el puntero quedó en una celda VECINA separada por una
-      // sola pared. Por eso el filtro ahora solo aplica cerca (manhattan<=2);
-      // para cualquier objetivo más lejos, se camina por el camino real sin
-      // objetar cuán sinuoso sea — el tope de pasos por evento ya evita el
-      // salto brusco, y el seguimiento se corrige solo evento a evento.
-      const TOLERANCIA_CERCANA = 2;   // pasos de más permitidos cuando el objetivo está pegado al personaje
-      const rutaCorta = (x0, y0, x1, y1, tope) => {
-        if (x0 === x1 && y0 === y1) return [];
-        const key = (x, y) => y * n + x;
-        const prev = new Array(n * n).fill(-1);
-        const visitado = new Array(n * n).fill(false);
-        visitado[key(x0, y0)] = true;
-        const cola = [[x0, y0]];
-        const DIRS = [[0, -1, "N"], [0, 1, "S"], [1, 0, "E"], [-1, 0, "W"]];
-        while (cola.length) {
-          const [x, y] = cola.shift();
-          if (x === x1 && y === y1) break;
-          for (const [dx, dy, dir] of DIRS) {
-            const nx = x + dx, ny = y + dy;
-            if (nx < 0 || ny < 0 || nx >= n || ny >= n) continue;
-            if (!abierta(x, y, dir) || visitado[key(nx, ny)]) continue;
-            visitado[key(nx, ny)] = true;
-            prev[key(nx, ny)] = key(x, y);
-            cola.push([nx, ny]);
-          }
-        }
-        if (!visitado[key(x1, y1)]) return null;   // celda no conectada por pasillos abiertos
-        const camino = [];
-        let k = key(x1, y1);
-        while (k !== key(x0, y0)) {
-          const kAnt = prev[k];
-          const px = kAnt % n, py = Math.floor(kAnt / n);
-          const cx = k % n, cy = Math.floor(k / n);
-          camino.unshift([cx - px, cy - py]);
-          k = kAnt;
-        }
-        const manhattan = Math.abs(x1 - x0) + Math.abs(y1 - y0);
-        if (manhattan <= 2 && camino.length > manhattan + TOLERANCIA_CERCANA) return null;   // vecino del otro lado de una pared
-        return camino.slice(0, tope);
-      };
+      // 16-jul-2026 (Pablo, quinta vuelta de la misma historia): todos los
+      // intentos anteriores (línea recta, BFS libre, BFS con tolerancia,
+      // BFS con ritmo de caminata) tenían la MISMA raíz: calculaban un
+      // camino HACIA donde estaba el puntero y lo recorrían, aunque fuera
+      // larguísimo o cruzara al otro lado de una pared por otro pasillo.
+      // Pablo lo aclaró del todo: "el mouse tiene que quedar siempre arriba
+      // del dibujo [el personaje pegado al cursor], pero si pasa al otro
+      // lado de la pared no tiene que seguir recorriendo hasta ahí, tiene
+      // que quedar donde estaba" — no es "encontrale un camino a donde
+      // apunto", es seguimiento LOCAL: el personaje solo avanza si la
+      // posición del puntero es la celda vecina directa (una sola, abierta)
+      // de donde está PARADO ahora mismo. Si el puntero cae en cualquier
+      // otra celda (lejos, o vecina pero con pared en el medio), no pasa
+      // nada — el personaje se queda exactamente donde estaba, sin buscarle
+      // la vuelta por ningún otro pasillo. getCoalescedEvents() sigue
+      // siendo necesario: como el trazo real del mouse/dedo recorre el
+      // pasillo dibujado punto a punto, cada muestra intermedia SÍ cae en
+      // una celda vecina de la anterior — así el personaje queda pegado al
+      // cursor durante todo el arrastre, sin pathfinding de por medio.
       let llegando = false;   // guard: dos eventos de puntero casi simultáneos
       // llegando a la meta no deben disparar llegada() dos veces (corrompía
       // "nivel" y rompía el nivel siguiente — bug real visto en pruebas)
       const seguir = (ev) => {
         if (llegando) return;
-        // getCoalescedEvents: el navegador agrupa varios movimientos reales
-        // del mouse/dedo en un solo evento "pointermove" por rendimiento —
-        // sin esto solo veíamos el ÚLTIMO punto de cada tanda, perdiendo
-        // pasos intermedios (sentía "poco sensible", y en una esquina
-        // rápida el personaje se quedaba atrás del mouse sin reconectar).
-        // Con los eventos agrupados seguimos el trazo real punto a punto.
         const eventos = (ev.getCoalescedEvents && ev.getCoalescedEvents().length)
           ? ev.getCoalescedEvents() : [ev];
         for (const e of eventos) {
           const objetivo = celdaDePuntero(e);
           if (objetivo.x < 0 || objetivo.y < 0 || objetivo.x >= n || objetivo.y >= n) continue;
-          const camino = rutaCorta(cur.x, cur.y, objetivo.x, objetivo.y, TOPE_PASOS_POR_EVENTO);
-          if (!camino) continue;   // celda apuntada no conectada por pasillo — ignorar, no romper el seguimiento
-          for (const [dx, dy] of camino) {
-            if (!paso(dx, dy)) break;
-          }
+          const dx = objetivo.x - cur.x, dy = objetivo.y - cur.y;
+          if (Math.abs(dx) + Math.abs(dy) === 1) paso(dx, dy);   // vecino directo: paso() ya rechaza si hay pared
+          // cualquier otro caso (misma celda, o lejos) no mueve nada — se queda donde estaba
           if (cur.x === n - 1 && cur.y === n - 1) { llegando = true; llegada(); return; }
         }
       };
@@ -871,9 +807,9 @@ GAMES.laberinto = {
       };
       svg.addEventListener("pointerdown", (ev) => {
         // cualquier toque en el tablero arranca el seguimiento — no hace
-        // falta apoyar el dedo justo sobre el personaje. rutaCorta() ya
-        // limita cuánto se mueve por evento y descarta objetivos del otro
-        // lado de una pared, así que tocar lejos no lo teletransporta.
+        // falta apoyar el dedo justo sobre el personaje. seguir() de por sí
+        // solo mueve si el puntero cae justo en una celda vecina abierta,
+        // así que tocar lejos no hace nada (no busca un camino hasta ahí).
         arrastrando = true; svg.setPointerCapture(ev.pointerId); seguir(ev);
       });
       svg.addEventListener("pointermove", (ev) => { if (arrastrando) seguir(ev); });
