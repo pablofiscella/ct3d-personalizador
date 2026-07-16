@@ -65,6 +65,46 @@ def test_personajes_decorativos_filtra_objetos_por_vision(tmp_path, monkeypatch)
     assert 0 < len(imgs) <= len(tipos)                        # el "objeto" no entra
 
 
+def test_personajes_decorativos_excluye_compuestos(tmp_path, monkeypatch):
+    """15-jul-2026, Pablo: "las imágenes tienen que ser de un solo dibujo, no
+    quedan bien c008/c009/c010" — un recorte etiquetado 'compuesto' (2+
+    elementos pegados en la misma celda) tiene que quedar afuera de TODO, ni
+    como personaje ni como relleno de objeto (antes solo se lo sacaba de la
+    lista de personajes, pero podía colarse igual como "objeto sin etiqueta").
+    Las 6 celdas quedan TODAS etiquetadas (como responde la visión real) para
+    no disparar el fallback de "sin ningún personaje, no filtrar nada"."""
+    monkeypatch.setattr(cuaderno, "TEMAS", str(tmp_path))
+    _mk_tema(tmp_path)
+    paths = cuaderno._extraer_monstruos("circo")
+    nombres = [os.path.basename(p) for p in paths]
+    tipos = {nombres[0]: "compuesto", nombres[1]: "payaso1", nombres[2]: "payaso2",
+             nombres[3]: "compuesto", nombres[4]: "compuesto", nombres[5]: "compuesto"}
+    monkeypatch.setattr(cuaderno, "_es_personaje_vision", lambda *a: tipos)
+    imgs = cuaderno.personajes_decorativos("circo", n=6, incluir_objetos=True)
+    assert len(imgs) <= 2                     # el 'compuesto' nunca entra, ni de relleno
+
+
+def test_personajes_decorativos_objetos_no_repiten_tipo_con_variedad_estricta(tmp_path, monkeypatch):
+    """15-jul-2026, Pablo sobre espacio: "estrellas deja 2, no 4" — con
+    variedad_estricta, el relleno de objetos tampoco puede repetir el MISMO
+    tipo dos veces (antes 5 estrellas de distinto color tapaban el cohete/
+    luna que también estaban disponibles, dando 2+ pares de estrella). Un
+    personaje real real (payaso) para que el caso sea realista — un tema
+    real siempre tiene AL MENOS un personaje, el fallback de "cero
+    personajes, no filtrar nada" es para cuando la visión falla del todo,
+    no el caso que este test cubre."""
+    monkeypatch.setattr(cuaderno, "TEMAS", str(tmp_path))
+    _mk_tema(tmp_path)
+    paths = cuaderno._extraer_monstruos("circo")
+    nombres = [os.path.basename(p) for p in paths]
+    tipos = {nombres[0]: "payaso1"}
+    tipos.update({nm: "objeto:estrella" for nm in nombres[1:]})
+    monkeypatch.setattr(cuaderno, "_es_personaje_vision", lambda *a: tipos)
+    imgs = cuaderno.personajes_decorativos("circo", n=6, variedad_estricta=True,
+                                           incluir_objetos=True)
+    assert len(imgs) == 2                     # 1 payaso + 1 estrella (nunca 2+ estrellas)
+
+
 def test_personajes_decorativos_sin_stickers_lista_vacia(tmp_path, monkeypatch):
     monkeypatch.setattr(cuaderno, "TEMAS", str(tmp_path))
     d = tmp_path / "vacio"; d.mkdir()
