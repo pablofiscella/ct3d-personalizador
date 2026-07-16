@@ -23,8 +23,8 @@
   h1{font-size:1.05rem;margin:0 0 4px}
   .sub{font-size:.85rem;color:#6b6580;margin:0 0 14px}
   label{display:block;font-weight:600;font-size:.86rem;margin:12px 0 5px}
-  input[type=text]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fcfbff}
-  input[type=text]:focus{outline:none;border-color:var(--violet)}
+  input[type=text],select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fcfbff}
+  input[type=text]:focus,select:focus{outline:none;border-color:var(--violet)}
   .tabs{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
   .tab{padding:7px 12px;border:1px solid var(--line);border-radius:9px;background:#fff;cursor:pointer;font:inherit;font-size:.82rem;font-weight:600;color:#6b6580}
   .tab.active{background:var(--violet);border-color:var(--violet);color:#fff}
@@ -49,6 +49,10 @@
     <p class="sub">Escribí el nombre y mirá la vista previa actualizarse.</p>
     <label for="nombre">Nombre</label>
     <input type="text" id="nombre" placeholder="Ej.: Catalina" autocomplete="off">
+    <div id="campo-edad" style="display:none">
+      <label for="edad">Edad</label>
+      <select id="edad"></select>
+    </div>
     <div id="campos-extra"></div>
     <button class="btn" id="confirmar" type="button">Confirmar diseño</button>
     <p class="hint" id="hint"></p>
@@ -59,7 +63,6 @@
   var qs = new URLSearchParams(location.search);
   var TIPO = (qs.get('tipo')||'milestone').toLowerCase();
   var TEMA = (qs.get('tema')||'safari').toLowerCase();
-  var EDAD = qs.get('edad')||'1';
   var pv = document.getElementById('pv');
   var pvLoading = document.getElementById('pv-loading');
   var inp = document.getElementById('nombre');
@@ -67,6 +70,26 @@
   var titulo = document.getElementById('titulo');
   var tabsBox = document.getElementById('tabs');
   var camposBox = document.getElementById('campos-extra');
+
+  // Selector de edad (16-jul-2026, Pablo: "si voy al editor solo muestra
+  // nombre") — EDAD se leía UNA vez de la URL y quedaba congelada: no había
+  // ningún control para cambiarla acá, aunque el tipo la declarara en sus
+  // campos (actividades-web y otros). "edad" quedaba afuera de CAMPOS_EXTRA
+  // a propósito (ver ESTRUCTURALES) asumiendo un control estructural propio
+  // que nunca se construyó. Rango 3-12 (pedido de Pablo) — se muestra SOLO
+  // si el tipo declara "edad" entre sus campos (chequeo tras /tipos).
+  var EDAD_MIN = 3, EDAD_MAX = 12, EDAD_DEFAULT = 5;
+  var campoEdadBox = document.getElementById('campo-edad');
+  var selEdad = document.getElementById('edad');
+  (function(){
+    var opts = '';
+    for(var e=EDAD_MIN; e<=EDAD_MAX; e++){ opts += '<option value="'+e+'">'+e+' años</option>'; }
+    selEdad.innerHTML = opts;
+  })();
+  var edadQS = parseInt(qs.get('edad'), 10);
+  var EDAD = (edadQS >= EDAD_MIN && edadQS <= EDAD_MAX) ? String(edadQS) : String(EDAD_DEFAULT);
+  selEdad.value = EDAD;
+  selEdad.addEventListener('change', function(){ EDAD = selEdad.value; refrescar(); });
 
   // Campos propios del tipo más allá de nombre/edad/año (ej. menu_entrada/menu_plato del
   // menú infantil) — se piden a /tipos y se arman inputs solos, sin tocar este archivo
@@ -174,6 +197,9 @@
     .then(function(d){
       var info = d && d.ok && d.tipos && d.tipos[TIPO];
       if(!info) return;
+      if((info.campos || []).indexOf('edad') !== -1){
+        campoEdadBox.style.display = '';
+      }
       var labels = info.campos_labels || {};
       CAMPOS_EXTRA = (info.campos || []).filter(function(c){ return !ESTRUCTURALES[c]; })
         .map(function(c){ return {nombre:c, label: labels[c] || (c.charAt(0).toUpperCase()+c.slice(1).replace(/_/g,' '))}; });
