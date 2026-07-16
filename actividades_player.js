@@ -750,15 +750,28 @@ GAMES.laberinto = {
       let arrastrando = false;
       const celdaDePuntero = (ev) => {
         const r = svg.getBoundingClientRect();
-        // escala X e Y por separado: el tablero no siempre renderiza
-        // perfectamente cuadrado (el CSS lo cap a un alto máximo), y usar
-        // una sola escala (basada solo en el ancho) para las dos corría el
-        // cálculo del eje vertical — "el cursor siempre queda más abajo
-        // del ícono para que llegue ahí" era exactamente este bug.
-        const escX = S / r.width, escY = S / r.height;
+        // el SVG no tiene preserveAspectRatio explícito -> usa el default
+        // "xMidYMid meet": el contenido CUADRADO (viewBox S×S) se escala
+        // UNIFORME por el lado más chico del recuadro CSS y se centra,
+        // dejando margen vacío en el otro eje. .svgJuego tiene max-height
+        // (capa el alto en pantallas anchas y bajas) con width:100% -> en
+        // esos casos el recuadro NO es cuadrado. Escalar X e Y por separado
+        // contra el recuadro COMPLETO (ancho/alto tal cual, sin restar ese
+        // margen) fue el fix anterior para el eje vertical, pero rompe el
+        // eje horizontal apenas el ancho excede al alto: el margen quedaba
+        // sumado adentro del cálculo, mapeando el puntero varias celdas más
+        // a la derecha de donde tocabas — "tengo que poner el puntero del
+        // lado izquierdo para que se mueva, si voy para la derecha no se
+        // mueve" (con el seguimiento estrictamente local, ni un pixel de
+        // error tolera). Fix: reproducir "meet" tal cual — una sola escala
+        // (el mínimo de ancho/alto) y restar el margen de centrado de cada
+        // eje antes de convertir a celda.
+        const escala = Math.min(r.width, r.height) / S;
+        const margenX = (r.width - S * escala) / 2;
+        const margenY = (r.height - S * escala) / 2;
         return {
-          x: Math.floor(((ev.clientX - r.left) * escX - M) / C),
-          y: Math.floor(((ev.clientY - r.top) * escY - M) / C),
+          x: Math.floor(((ev.clientX - r.left - margenX) / escala - M) / C),
+          y: Math.floor(((ev.clientY - r.top - margenY) / escala - M) / C),
         };
       };
       // 16-jul-2026 (Pablo, quinta vuelta de la misma historia): todos los
