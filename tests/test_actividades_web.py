@@ -175,6 +175,38 @@ def test_bandas_de_edad():
     assert len(iconos12) == len(set(iconos12)), "íconos repetidos en el menú de 12 años"
 
 
+def test_incluidos_por_edad_llega_hasta_12():
+    """16-jul-2026: incluidos_por_edad() estaba fija en 2-8 (el dropdown de
+    la ficha de la tienda también) aunque _menu() ya tenía el contenido NAP
+    de 9 a 12 armado — Pablo no podía elegir esas edades para ver qué
+    actividades trae. La tienda usa este dict para desbloquear/reordenar la
+    galería "Qué incluye" según la edad elegida."""
+    inc = aw.incluidos_por_edad()
+    assert set(inc.keys()) == {str(e) for e in range(2, 13)}
+    # cada edad nueva (9-12) trae contenido curricular real, no una copia
+    # del menú de 8 años — mismo criterio que el resto del archivo (ids
+    # nuevos por grado, ver test_bandas_de_edad).
+    for e in ("9", "10", "11", "12"):
+        assert inc[e] != inc["8"]
+        assert inc[e]  # nunca vacío
+
+
+def test_catalogo_juegos_incluye_9_a_12():
+    """16-jul-2026: _catalogo_juegos() (arma las pestañas de /editor-simple
+    y las cards de la galería "Qué incluye") solo sampleaba edades 2, 5 y 8
+    — los juegos exclusivos de 9-12 (grados 4to-7mo) nunca aparecían sin
+    importar qué edad se eligiera. Pablo: "pongo 8 años se actualiza pero
+    no muestra las actividades distintas"."""
+    ids = {j["id"] for j in aw._catalogo_juegos()}
+    # un juego de cada grado nuevo: 9="abstractos_concretos" (4to), 10=
+    # "trivia_colonial" (5to), 11="celula_partes" (6to), 12="traductor_algebraico"
+    # (7mo/egreso) — ver test_bandas_de_edad.
+    for exclusivo in ("abstractos_concretos", "trivia_colonial",
+                       "celula_partes", "traductor_algebraico"):
+        assert exclusivo in ids, f"{exclusivo} no está en el catálogo"
+    assert len(ids) > 30  # antes del fix: 30 (solo hasta 8 años)
+
+
 def test_laberintos_transitables(data):
     BIT = {"E": 4, "W": 8, "N": 1, "S": 2}
     for lab in data["laberintos"]:

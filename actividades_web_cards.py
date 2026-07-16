@@ -8,11 +8,12 @@ impreso: se genera un token de PRUEBA, se abre en un browser headless
 `Shell.abrir(<juego>)` (la misma función que usa el player al tocar una
 carta) y se saca una captura — pixel a pixel lo que ve el comprador.
 
-Se genera UNA VEZ por tema (no por venta): 19 PNGs en
-temas/<tema>/actividades_cards/<juego_id>.png (gitignored, como ia_maestra.png
-— se regenera con este script, no se edita a mano). El bloqueo por edad se
-sigue pintando ENCIMA de la captura real al servir (actividades_web._apagar_bloqueado),
-no hace falta una captura por edad.
+Se genera UNA VEZ por tema (no por venta): un PNG por juego del catálogo (19
+al armar esto el 13-jul-2026; 63 desde el 16-jul-2026 al sumarse el contenido
+NAP de 9-12 años) en temas/<tema>/actividades_cards/<juego_id>.png (gitignored,
+como ia_maestra.png — se regenera con este script, no se edita a mano). El
+bloqueo por edad se sigue pintando ENCIMA de la captura real al servir
+(actividades_web._apagar_bloqueado), no hace falta una captura por edad.
 
 Uso:
   CLI:  python actividades_web_cards.py <tema> [--forzar]
@@ -27,9 +28,17 @@ from cuaderno import TEMAS
 
 CARDS_DIR_NOMBRE = "actividades_cards"
 _PUERTO_LOCAL = int(os.environ.get("ACTIVIDADES_CARDS_PUERTO", "8797"))
-# banda representativa por juego: la PRIMERA banda (mini→media→grande) que lo
-# incluye — mismo criterio de precedencia que actividades_web._catalogo_juegos().
-_BANDAS = (("mini", "2"), ("media", "5"), ("grande", "8"))
+# banda/edad representativa por juego: la PRIMERA que lo incluye, recorriendo
+# mini→media→grande y, dentro de "grande", cada edad de menor a mayor —
+# mismo criterio de precedencia que actividades_web._catalogo_juegos().
+# 16-jul-2026: extendido de (2, 5, 8) a también 9-12 — los juegos NAP
+# exclusivos de esas edades (laboratorio_electrico, fracciones_equivalentes,
+# traductor_algebraico, etc.) nunca encontraban banda con el rango viejo,
+# así que _banda_de() devolvía (None, None) y la card se saltaba para
+# siempre (caía al fallback de solo-título — Pablo: "puse laboratorio y
+# fracciones... la previa muestra solo el título y no las imágenes reales").
+_BANDAS = (("mini", "2"), ("media", "5"), ("grande", "8"), ("grande", "9"),
+           ("grande", "10"), ("grande", "11"), ("grande", "12"))
 # minP real del player (actividades_player.js GAMES.<id>.minP) — si el tema
 # no junta suficientes personajes, el MENÚ REAL ya oculta esa carta (real:
 # "un-espacio-de-locura" solo detecta 3 personajes → sudoku/bingo, que piden
@@ -55,21 +64,26 @@ def _banda_de(game_id):
     return None, None
 
 
-def _token_preview(tema, banda):
+def _token_preview(tema, banda, edad):
     # corto y determinístico a propósito: _TOKEN_RE de actividades_web tolera
     # hasta 32 chars, y "preview-cards-un-espacio-de-locura-grande" (41) lo
     # pasaba de largo — crear() lo detectaba y generaba un token AL AZAR en
     # su lugar (bug real: la card pedía la URL fija de siempre, que nunca se
     # había creado, y tiraba 404).
+    # 16-jul-2026: incluye la EDAD, no solo la banda — "grande" ahora agrupa
+    # 5 edades distintas (8 a 12) con contenido NAP propio cada una; antes de
+    # esto todas compartían el mismo token "pvcgr-..." creado con la PRIMERA
+    # edad que lo pedía, y las demás quedaban con ese token viejo/incorrecto
+    # (_asegurar_token solo regenera si el token no existe todavía).
     h = zlib.crc32(tema.encode()) & 0xffffffff
     codigo = {"mini": "mi", "media": "me", "grande": "gr"}[banda]
-    return "pvc%s-%08x" % (codigo, h)
+    return "pvc%s%s-%08x" % (codigo, edad, h)
 
 
 def _asegurar_token(tema, banda, edad):
     """Token de PRUEBA para capturar screenshots (no es una venta real) —
     regenera solo si no existe, así correr el script de nuevo es barato."""
-    token = _token_preview(tema, banda)
+    token = _token_preview(tema, banda, edad)
     d = os.path.join(actividades_web.ACT_DIR, token)
     if not os.path.isfile(os.path.join(d, "data.json")):
         actividades_web.crear({"edad": edad}, tema, token=token)
@@ -77,7 +91,8 @@ def _asegurar_token(tema, banda, edad):
 
 
 def generar_tema(tema, forzar=False, progress=None):
-    """Genera las 19 cards del tema. Devuelve la lista de juegos generados."""
+    """Genera las cards del tema (una por juego del catálogo). Devuelve la
+    lista de juegos generados."""
     from playwright.sync_api import sync_playwright
     import servicio
     import http.server
@@ -89,16 +104,19 @@ def generar_tema(tema, forzar=False, progress=None):
     pendientes = juegos if forzar else [
         j for j in juegos if not os.path.isfile(card_path(tema, j["id"]))]
     if not pendientes:
-        log("%s: las 19 cards ya existen (usá forzar=True para regenerar)" % tema)
+        log("%s: las cards ya existen (usá forzar=True para regenerar)" % tema)
         return []
 
     os.makedirs(_cards_dir(tema), exist_ok=True)
-    por_banda = {}
+    # agrupar por (banda, edad) — NO solo por banda: "grande" ahora cubre 5
+    # edades distintas (8 a 12), cada una con su propio token/menú real
+    # (16-jul-2026, ver _token_preview).
+    por_grupo = {}
     for j in pendientes:
         banda, edad = _banda_de(j["id"])
         if banda is None:
             continue
-        por_banda.setdefault(banda, []).append(j["id"])
+        por_grupo.setdefault((banda, edad), []).append(j["id"])
 
     srv = http.server.HTTPServer(("127.0.0.1", _PUERTO_LOCAL), servicio.Handler)
     th = threading.Thread(target=srv.serve_forever, daemon=True)
@@ -110,12 +128,21 @@ def generar_tema(tema, forzar=False, progress=None):
             browser = p.chromium.launch(headless=True)
             page = browser.new_page(viewport={"width": 700, "height": 1000},
                                      device_scale_factor=2)
-            for banda, ids in por_banda.items():
-                edad = dict(_BANDAS)[banda]
+            for (banda, edad), ids in por_grupo.items():
                 token = _asegurar_token(tema, banda, edad)
                 page.goto("http://127.0.0.1:%d/act/%s/" % (_PUERTO_LOCAL, token),
                           wait_until="networkidle")
                 page.wait_for_function("typeof D !== 'undefined' && D !== null", timeout=8000)
+                # token nuevo = sin perfil activo → el player tapa TODO con el
+                # modal "¿Quién juega?" (14-jul-2026, soporte multi-chico) y
+                # Shell.abrir() no lo saca de encima — sin esto, las 44 cards
+                # NAP quedaron todas mostrando el modal en vez del juego real
+                # (Pablo: "en los dos casos la previa muestra solo el título
+                # y no las imágenes reales" — bug DISTINTO al de la banda,
+                # descubierto recién al regenerar por primera vez desde que
+                # existe el modal; las cards viejas ya estaban cacheadas de
+                # antes y por eso no lo mostraban).
+                page.evaluate("elegirPerfil('Muestra')")
                 n_personajes = page.evaluate("P.length")
                 for gid in ids:
                     if n_personajes < _MINP.get(gid, 0):

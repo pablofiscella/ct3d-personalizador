@@ -865,12 +865,20 @@ def _render_portada(dj, pers_imgs):
 
 
 def _catalogo_juegos():
-    """Los juegos DISTINTOS de todo el catálogo (id + título), uniendo las 3
-    bandas de edad (mini/media/grande) — un chico puntual no ve los 19 (cada
-    banda tiene los suyos, algunos se "gradúan" según la edad), pero es el
-    total real que ofrece el producto entre los 2 y los 8 años."""
+    """Los juegos DISTINTOS de todo el catálogo (id + título), uniendo TODAS
+    las bandas/edades — un chico puntual no los ve todos (cada banda/edad
+    tiene los suyos, algunos se "gradúan" según la edad), pero es el total
+    real que ofrece el producto entre los 2 y los 12 años.
+    16-jul-2026: extendido de (2, 5, 8) a también 9-12 — el contenido NAP
+    progresivo de esas edades (grados 4to-7mo) existía en _menu() pero
+    quedaba afuera de este catálogo, así que sus juegos nunca aparecían
+    como pestaña en el editor ni como card en la galería "Qué incluye" de
+    la tienda, sin importar qué edad se eligiera (Pablo: "pongo 8 años se
+    actualiza pero no muestra las actividades distintas")."""
     vistos, out = set(), []
-    for banda, edad in (("mini", "2"), ("media", "5"), ("grande", "8")):
+    muestras = (("mini", "2"), ("media", "5"), ("grande", "8"), ("grande", "9"),
+                ("grande", "10"), ("grande", "11"), ("grande", "12"))
+    for banda, edad in muestras:
         for m in _menu(banda, edad):
             if m["id"] not in vistos:
                 vistos.add(m["id"])
@@ -879,16 +887,19 @@ def _catalogo_juegos():
 
 
 def incluidos_por_edad():
-    """{edad: [títulos incluidos]} para las 7 edades del dropdown (2 a 8) —
+    """{edad: [títulos incluidos]} para las edades del dropdown (2 a 12) —
     Pablo 13-jul-2026: "cuando cambio de edad... creo que no cambian las
     imágenes". El bloqueo SÍ cambia (verificado), pero 8 de los 19 juegos
     están en TODAS las bandas y esas cards nunca se ven distintas — el resto
     queda mezclado entre ellas, así que el cambio real es fácil de no notar
     en el scroll. La tienda usa esto para REORDENAR la galería (desbloqueados
     primero) cuando cambia la edad, no solo repintar cada card en el mismo
-    lugar. Independiente del tema: el menú de _menu() no varía por tema."""
+    lugar. Independiente del tema: el menú de _menu() no varía por tema.
+    16-jul-2026: extendido de 8 a 12 — el contenido NAP progresivo para 9-12
+    (grados 4to-7mo) ya estaba armado en _menu() pero la ficha de la tienda
+    nunca lo exponía (dropdown de edad fijo en 2-8, bug real de Pablo)."""
     return {e: sorted({m["titulo"] for m in _menu(_banda(e), e)})
-            for e in ("2", "3", "4", "5", "6", "7", "8")}
+            for e in ("2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")}
 
 
 def _personajes_para_cards(tema, n=8):
@@ -1396,12 +1407,14 @@ def preview_mock_extra(data, tema, indice):
     muestran contenido REAL del tema (una página para colorear + la escena
     de fondo que usan varios juegos), no un mockup sintético.
 
-    Índices 3 a 21: una card por CADA juego del catálogo (19 en total,
-    Pablo 12-jul-2026: "prefiero ver las 19 imágenes de lo que contiene la
-    actividad" en vez de una sola imagen con la lista en texto). Cada card
-    lee `data["edad"]` y se pinta "bloqueada" si ese juego puntual no está
-    en la banda de esa edad ("y que cambien viendo cambio la edad") — así la
-    galería responde de verdad al dropdown de edad del producto, no queda
+    Índice 3 en adelante: una card por CADA juego de `_catalogo_juegos()`
+    (19 al armar esto el 12-jul-2026, Pablo: "prefiero ver las 19 imágenes
+    de lo que contiene la actividad" en vez de una sola imagen con la lista
+    en texto; 63 desde el 16-jul-2026 al sumarse el contenido NAP de 9-12
+    años al catálogo). Cada card lee `data["edad"]` y se pinta "bloqueada"
+    si ese juego puntual no está en la banda de esa edad ("y que cambien
+    viendo cambio la edad") — así la galería responde de verdad al dropdown
+    de edad del producto, no queda
     fija.
 
     Nunca devuelve None — preview_pieza() no tolera un None (rompería la
