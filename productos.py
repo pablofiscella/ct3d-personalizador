@@ -671,12 +671,30 @@ def stl3d_muestra(tema, pieza):
     return data
 
 def _stl3d_preview_cortante(tema):
+    """Preview de 1 solo cortante (el personaje principal) — lo usa stl-pack,
+    que sigue trayendo un único cortante junto con medalla/topper/trofeo."""
     path = _stl3d_cache_path(tema, "cortante")
     from PIL import Image as _Image
     if os.path.exists(path):
         return _Image.open(path).convert("RGB")
     import stl3d
     _, png_bytes = stl3d.generar_cortante(tema, con_preview=True)
+    import io as _io
+    img = _Image.open(_io.BytesIO(png_bytes)).convert("RGB")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    img.save(path)
+    return img
+
+def _stl3d_preview_cortante_kit(tema, idx, n_total):
+    """Preview del cortante idx-ésimo del KIT (3-5 personajes distintos del
+    tema) — cacheado por índice, mismo patrón que _stl3d_preview_cortante."""
+    path = _stl3d_cache_path(tema, "cortante_kit_%d" % idx)
+    from PIL import Image as _Image
+    if os.path.exists(path):
+        return _Image.open(path).convert("RGB")
+    import cuaderno, stl3d
+    personajes = cuaderno.personajes_decorativos(tema, n_total, variedad_estricta=True)
+    _, png_bytes = stl3d._generar_cortante_desde_personaje(personajes[idx], con_preview=True)
     import io as _io
     img = _Image.open(_io.BytesIO(png_bytes)).convert("RGB")
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -693,7 +711,10 @@ def _piezas_stl_trofeo(tema):
     return [("1_trofeo", lambda d: _stl3d_preview(tema, "trofeo"), False)]
 
 def _piezas_stl_cortante(tema):
-    return [("1_cortante", lambda d: _stl3d_preview_cortante(tema), False)]
+    import cuaderno
+    n = len(cuaderno.personajes_decorativos(tema, 5, variedad_estricta=True))
+    return [("%d_cortante" % (i + 1), lambda d, i=i: _stl3d_preview_cortante_kit(tema, i, n), False)
+            for i in range(n)]
 
 def _piezas_stl_pack(tema):
     return [("1_medalla", lambda d: _stl3d_preview(tema, "medalla"), False),
@@ -980,8 +1001,8 @@ TIPOS = {
         "piezas": _piezas_stl_trofeo,
     },
     "stl-cortante": {
-        "nombre": "Cortante de galletitas 3D imprimible",
-        "descripcion": "El contorno del personaje del tema convertido en cortante de masa, con asa para empujar. Sin personalización (es el mismo por temática). Archivo STL para imprimir en 3D.",
+        "nombre": "Kit de cortantes de galletitas 3D imprimibles",
+        "descripcion": "Kit de 3 a 5 cortantes de galletitas DISTINTOS, cada uno el contorno de un personaje real del tema, con asa para empujar. Sin personalización (son los mismos por temática). Archivos STL en un ZIP, listos para imprimir.",
         "campos": [],
         "preview": "stl-cortante",
         "piezas": _piezas_stl_cortante,
@@ -1239,10 +1260,18 @@ def generar(data, dest_dir, tema="safari", tipo=DEFAULT_TIPO):
             with open(zip_path, "wb") as f:
                 f.write(stl3d.generar_pack_cumple(tema, nombre, edad))
             return zip_path
+        if tipo == "stl-cortante":
+            # Kit de 3-5 cortantes DISTINTOS del tema (no 1 solo) — Pablo
+            # 17-jul-2026: "quiero que los cortantes... tengan un kit de 3 a 5
+            # cortantes en cada kit".
+            stls = stl3d.generar_cortante_kit(tema)
+            with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+                for i, stl_bytes in enumerate(stls, start=1):
+                    z.writestr("%02d_cortante.stl" % i, stl_bytes)
+            return zip_path
         gen = {"stl-medalla": ("medalla.stl", lambda: stl3d.generar_medalla(tema, texto)[0]),
                "stl-topper": ("topper.stl", lambda: stl3d.generar_topper(tema, texto)[0]),
-               "stl-trofeo": ("trofeo.stl", lambda: stl3d.generar_trofeo(tema, texto)[0]),
-               "stl-cortante": ("cortante.stl", lambda: stl3d.generar_cortante(tema)[0])}
+               "stl-trofeo": ("trofeo.stl", lambda: stl3d.generar_trofeo(tema, texto)[0])}
         nombre_archivo, fn = gen[tipo]
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
             z.writestr(nombre_archivo, fn())
