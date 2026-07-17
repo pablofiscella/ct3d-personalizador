@@ -210,15 +210,41 @@ def generar_trofeo(tema, texto, altura=100, base_d=46, incluir_personaje=True,
     return stl, png
 
 
-def generar_cortante(tema, ancho_objetivo=80, alto_pared=20, grosor_pared=1.4,
-                      incluir_asa=True, con_preview=False):
-    silueta = _silueta_modulo(_personaje_tema(tema), alto_ref_mm=ancho_objetivo)
+def _generar_cortante_desde_personaje(personaje_img, ancho_objetivo=80, alto_pared=20,
+                                       grosor_pared=1.4, incluir_asa=True, con_preview=False):
+    silueta = _silueta_modulo(personaje_img, alto_ref_mm=ancho_objetivo)
     scad = _armar_scad("cortante.scad", silueta)
     defines = {"ANCHO_OBJETIVO": ancho_objetivo, "ALTO_PARED": alto_pared,
                "GROSOR_PARED": grosor_pared, "INCLUIR_ASA": "true" if incluir_asa else "false"}
     stl = _run_openscad(scad, "stl", defines)
     png = _run_openscad(scad, "png", defines, camera="0,0,10,55,0,20,320") if con_preview else None
     return stl, png
+
+
+def generar_cortante(tema, ancho_objetivo=80, alto_pared=20, grosor_pared=1.4,
+                      incluir_asa=True, con_preview=False):
+    return _generar_cortante_desde_personaje(_personaje_tema(tema), ancho_objetivo, alto_pared,
+                                              grosor_pared, incluir_asa, con_preview)
+
+
+def generar_cortante_kit(tema, n=5, ancho_objetivo=80, alto_pared=20, grosor_pared=1.4,
+                          incluir_asa=True):
+    """Kit de hasta `n` cortantes DISTINTOS del mismo tema — uno por personaje
+    real (cuaderno.personajes_decorativos con variedad_estricta=True, para no
+    repetir la misma figura recoloreada como si fueran 2 cortantes diferentes).
+    Puede devolver menos de `n` si el tema no tiene tantos personajes propios
+    distintos (probado: los 12 temas actuales del catálogo dan 5/5) — nunca
+    menos de 3, si no alcanza levanta ValueError (no se vende un "kit" de 1-2
+    piezas). Devuelve una lista de bytes STL, uno por cortante."""
+    import cuaderno
+    personajes = cuaderno.personajes_decorativos(tema, n, variedad_estricta=True)
+    if len(personajes) < 3:
+        raise ValueError(
+            "el tema %r no tiene suficientes personajes distintos para un kit "
+            "de cortantes (mínimo 3, encontrados %d)" % (tema, len(personajes)))
+    return [_generar_cortante_desde_personaje(p, ancho_objetivo, alto_pared, grosor_pared,
+                                               incluir_asa, con_preview=False)[0]
+            for p in personajes]
 
 
 # ---------------------------------------------------------------------------
