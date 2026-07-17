@@ -707,10 +707,17 @@ def _armar_data(tema, nombre, edad, seed):
 
     sopas, sudokus, laberintos = [], [], []
     if banda == "grande":
+        # Filtrar por largo ANTES de samplear: la sopa es 10×10, las palabras de más
+        # de 10 letras no entran (_sopa_json las descarta). Si el sample caía en
+        # palabras largas, la sopa salía pobre o vacía. Y descartamos sopas con menos
+        # de 4 palabras colocadas (no vale la pena mostrarlas).
+        validas = [p for p in palabras if 3 <= len(str(p).strip()) <= 10]
         for i in range(4):
-            sub = rnd.sample(palabras, min(6, len(palabras)))
+            if len(validas) < 4:
+                break
+            sub = rnd.sample(validas, min(6, len(validas)))
             s = _sopa_json(sub, 10, seed + i * 101)
-            if s:
+            if s and len(s.get("palabras", [])) >= 4:
                 sopas.append(s)
         sudokus = [_sudoku_json(seed + i * 13) for i in range(4)]
     if banda != "mini":
@@ -1319,6 +1326,10 @@ def generar_audio_consignas(textos):
         mejor = None
         for intento in range(4):
             mp3 = audiolibro._tts_elevenlabs(limpio, seed=4242 + intento * 137)
+            if not mp3:
+                # Sin ElevenLabs (falta la key o falló el TTS) _tts_elevenlabs devuelve
+                # None y _dur_mp3_128(None) tiraba "len(None)". Error claro en su lugar.
+                raise RuntimeError("generar_audio_consignas: falta ELEVENLABS_API_KEY o el TTS falló")
             dur = audiolibro._dur_mp3_128(mp3)
             dist = max(0.0, minimo - dur, dur - maximo)
             if mejor is None or dist < mejor[2]:
