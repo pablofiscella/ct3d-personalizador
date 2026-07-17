@@ -32,8 +32,14 @@ const bust = (src) => src + "?v=" + DV;
    URL demo → los links vendidos (/armar/<token-aleatorio>/) NO se ven afectados. */
 const ES_DEMO = /\/armar\/demo-/.test(location.pathname);
 const DEMO_MAX_PIEZAS = 6;
-const URL_COMPRAR = "https://imprimibles.casatridimensional.com.ar/?q=rompecabezas";
 const nivelBloqueado = (t) => ES_DEMO && t > DEMO_MAX_PIEZAS;
+/* Link directo a la ficha del rompecabezas que se está demostrando (no a un
+   buscador genérico — Pablo 17-jul-2026: "?q=rompecabezas" tiraba a una
+   grilla de 25 productos mezclados, indistinguible del feed normal). D.tema
+   siempre viene seteado en la demo (crear() del tema, nunca crear_desde_foto) —
+   el fallback a rompecabezas-foto es solo defensivo. */
+const urlComprar = () => "https://imprimibles.casatridimensional.com.ar/producto/" +
+  (D.tema ? "kit-rompecabezas-web-" + D.tema : "kit-rompecabezas-foto");
 
 /* ── persistencia (estrellas + progreso + sonido) por token ── */
 const Store = {
@@ -185,7 +191,7 @@ function pintarMenu() {
       `🎮 <b>Demo:</b> armá 1 rompecabezas gratis, hasta ${DEMO_MAX_PIEZAS} piezas. ` +
       `Comprá el completo —con la foto de tu peque y guardado en tu biblioteca— para armar ` +
       `los ${D.puzzles.length} rompecabezas, con más piezas cada uno. ` +
-      `<a href="${URL_COMPRAR}">Comprarlo →</a>`));
+      `<a href="${urlComprar()}">Comprarlo →</a>`));
   }
   const menu = el("div"); menu.id = "menu";
   D.puzzles.forEach((p, i) => {
@@ -195,7 +201,7 @@ function pintarMenu() {
       <div class="nombre">Rompecabezas ${i + 1}</div>
       <div class="mini-est">${bloq ? 'Comprá para armar' : estrellitas(Math.min(3, Math.round(starsPuzzle(i) / D.targets.length)))}</div>`);
     c.addEventListener("click", () => {
-      if (bloq) { location.href = URL_COMPRAR; }
+      if (bloq) { location.href = urlComprar(); }
       else { Sfx.pop(); pintarNiveles(i); }
     });
     menu.appendChild(c);
@@ -231,7 +237,7 @@ function pintarNiveles(pi) {
       : `<div class="n">${c * f}</div><div class="t">piezas</div>
          <div class="est">${estrellitas(Store.stars(pi + "|" + t))}</div>`);
     b.addEventListener("click", () => {
-      if (bloq) { location.href = URL_COMPRAR; return; }
+      if (bloq) { location.href = urlComprar(); return; }
       Sfx.pop(); jugar(pi, t);
     });
     btns.appendChild(b);
