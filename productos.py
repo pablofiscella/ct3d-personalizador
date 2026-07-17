@@ -693,7 +693,7 @@ def _stl3d_preview_cortante_kit(tema, idx, n_total):
     if os.path.exists(path):
         return _Image.open(path).convert("RGB")
     import cuaderno, stl3d
-    personajes = cuaderno.personajes_decorativos(tema, n_total, variedad_estricta=True)
+    personajes = cuaderno.personajes_decorativos(tema, n_total, variedad_estricta=True, incluir_objetos=True)
     _, png_bytes = stl3d._generar_cortante_desde_personaje(personajes[idx], con_preview=True)
     import io as _io
     img = _Image.open(_io.BytesIO(png_bytes)).convert("RGB")
@@ -712,7 +712,7 @@ def _piezas_stl_trofeo(tema):
 
 def _piezas_stl_cortante(tema):
     import cuaderno
-    n = len(cuaderno.personajes_decorativos(tema, 5, variedad_estricta=True))
+    n = len(cuaderno.personajes_decorativos(tema, 5, variedad_estricta=True, incluir_objetos=True))
     return [("%d_cortante" % (i + 1), lambda d, i=i: _stl3d_preview_cortante_kit(tema, i, n), False)
             for i in range(n)]
 

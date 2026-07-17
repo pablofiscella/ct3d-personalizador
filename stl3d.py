@@ -232,12 +232,17 @@ def generar_cortante_kit(tema, n=5, ancho_objetivo=80, alto_pared=20, grosor_par
     """Kit de hasta `n` cortantes DISTINTOS del mismo tema — uno por personaje
     real (cuaderno.personajes_decorativos con variedad_estricta=True, para no
     repetir la misma figura recoloreada como si fueran 2 cortantes diferentes).
-    Puede devolver menos de `n` si el tema no tiene tantos personajes propios
-    distintos (probado: los 12 temas actuales del catálogo dan 5/5) — nunca
-    menos de 3, si no alcanza levanta ValueError (no se vende un "kit" de 1-2
-    piezas). Devuelve una lista de bytes STL, uno por cortante."""
+    incluir_objetos=True: temas con pocos TIPOS de personaje (probado contra
+    el checkout real, no el de un worktree recién clonado con caché fresca:
+    futbol/princesas/un-espacio-de-locura daban apenas 1, artistas/aviadores/
+    bomberos/construccion/superheroes 2) completan con objetos del tema
+    (corona, pelota, varita…) — mismo flag que ya usa cuaderno.py para el
+    memory en temas de un solo personaje. Con incluir_objetos, los 12 temas
+    actuales dan 5/5 (verificado contra el checkout real). Nunca menos de 3,
+    si no alcanza levanta ValueError (no se vende un "kit" de 1-2 piezas).
+    Devuelve una lista de bytes STL, uno por cortante."""
     import cuaderno
-    personajes = cuaderno.personajes_decorativos(tema, n, variedad_estricta=True)
+    personajes = cuaderno.personajes_decorativos(tema, n, variedad_estricta=True, incluir_objetos=True)
     if len(personajes) < 3:
         raise ValueError(
             "el tema %r no tiene suficientes personajes distintos para un kit "
