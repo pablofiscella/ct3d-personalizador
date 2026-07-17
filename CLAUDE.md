@@ -9,7 +9,7 @@ Motor procedural de **10 tipos de piezas imprimibles:**
 - Kit completo (invitación, cartel, actividades, etc.)
 - Productos individuales: certificado, corona, antifaces, menú, rompecabezas, cápsula, calendario, papertoys, memoria
 - **Cuaderno de actividades interactivo** (`actividades_web.py`): las actividades del cuaderno pero JUGABLES en el navegador (memotest, sopa, laberinto, pintar, contar…), entregado como link vivo `/act/<token>/` igual que el audiolibro. Player en `actividades_player.html/.js` (se sirve del repo → mejoras llegan a links ya vendidos). Doc: `docs/ACTIVIDADES-WEB.md`.
-- **Rompecabezas interactivo** (`rompecabezas_web.py`): las escenas del tema hechas rompecabezas JUGABLES en el navegador (drag con imán, piezas con knobs Bézier reales — la MISMA receta del imprimible exportada a data.json), entregado como link vivo `/armar/<token>/`. Player en `rompecabezas_player.html/.js` (se sirve del repo → mejoras llegan a links ya vendidos). Doc: `docs/ROMPECABEZAS-WEB.md`.
+- **Rompecabezas interactivo** (`rompecabezas_web.py`): las escenas del tema hechas rompecabezas JUGABLES en el navegador (drag con imán, piezas con knobs Bézier reales — la MISMA receta del imprimible exportada a data.json), entregado como link vivo `/armar/<token>/`. Player en `rompecabezas_player.html/.js` (se sirve del repo → mejoras llegan a links ya vendidos). **Demo pública "Probalo gratis" (17-jul-2026):** ruta `GET /probar/rompecabezas/<tema>` (sin admin) que sirve el rompecabezas de MUESTRA del tema (token fijo `demo-<tema>`, sin la foto del cliente) — la abre el botón "Probalo gratis" de la ficha en la tienda. En modo demo (URL `/armar/demo-`) el player deja armar solo la MITAD de los rompecabezas (el resto con candado + CTA de compra); gateado a la URL → los links vendidos no se ven afectados. Doc: `docs/ROMPECABEZAS-WEB.md`.
 - **Libro de cuento personalizado** (`libro.py`): 10 páginas donde el chico es el protagonista — portada, dedicatoria, 7 páginas de historia (cada una con escena procedural que ILUSTRA lo que cuenta el texto: cama+invitación → luces mágicas → fiesta → problema → solución → tesoro → casita de noche) y FIN. Historia ambientada por temática (`libro.HISTORIAS`, con fallback genérico). Campos: nombre, edad, dedicatoria.
 - **"Elegí tu aventura" — PROTOTIPO** (`aventura.py` + `aventura_web.py`, 11-jul-2026): a diferencia de `libro.py` (100% lineal), acá el chico ELIGE el camino en un grafo de nodos con decisiones (por ahora solo tema `safari`: 2 puntos de decisión, 2 finales, 28 nodos únicos — cualquier camino elegido dura ~20 postas, igual que un libro/audiolibro lineal), entregado como link vivo `/leer/<token>/`. Ilustración PROPIA por nodo (`temas/<tema>/overrides/aventura/<nodo_id>.png`, generada con `aventura_ia.py` — protagonista con vestimenta y mochila fijas, encadenando una imagen de referencia entre nodos para consistencia real, no solo texto). Player en `aventura_player.html/.js`. **Narración por nodo (opcional, 12-jul-2026):** `aventura_audio.py` genera un MP3 por nodo (texto ya personalizado con el nombre del chico) con el mismo motor de voz del audiolibro (`audiolibro.tts_mp3` — ElevenLabs Lizy, acento argentino); a diferencia del arte, el audio se genera POR COMPRA en `aventura_web/<token>/audio/<nodo_id>.mp3` (no se puede cachear por tema: el texto lleva el nombre adentro). El player narra automáticamente al mostrar cada nodo y sigue frenado esperando el click del chico para avanzar (ya era el comportamiento del player, no cambió) — si el token no tiene audio generado, el visor lee igual, en silencio. Sin integración a tienda todavía: es solo para validar el mecanismo antes de invertir en más temas/contenido.
   - **Ilustraciones (2 caminos, mismo destino):** el override `temas/{tema}/overrides/libro/{idx}.png` es SOLO el arte de la escena (NO la página completa: el texto personalizado siempre lo escribe el motor — por eso `productos.piezas_tipo` saltea el override genérico para `libro`). (1) Subida manual: botón 📤 de cada página en la galería del dash. (2) IA: botón «✨ Generar 10 con IA» en el dash (`POST /dash/libro-ia?tema=X[&pieza=N]`, job + polling con `/dash/ia-estado`) o CLI `OPENAI_API_KEY=... python libro_ia.py <tema> [pagina]`. Prompts en `libro_ia.py` (usan la ambientación de `libro.HISTORIAS`; referencia de estilo: `ia_maestra.png` o stickers del tema; arte SIN texto). Se genera una vez por tema, no por venta.
@@ -95,6 +95,31 @@ pytest tests/ -v
    jobs viven en memoria y mueren sin rastro). Antes de cualquier restart:
    `curl -s "http://127.0.0.1:8787/dash/ia-estado" -H "X-API-Key: $(cat .api_key)"`
    → si `activos > 0`, esperar a que termine.
+
+## Performance — caché de previews (`/preview`) (17-jul-2026)
+
+Las miniaturas de la tienda las genera `/preview` en vivo con Pillow. La mayoría
+rinde en ~0.7s, pero el **compuesto del rompecabezas-web arma el rompecabezas
+entero → cold render de 40-70s**. Tres capas para que eso NO enlentezca la tienda:
+
+1. **Caché en disco** (`.cache/preview/`, `servicio.py:PREVIEW_CACHE_TTL`): **7 días**
+   (era 6h). La frescura NO depende del TTL — se invalida por tema con
+   `_preview_cache_clear` al regenerar arte. Una vez renderizado, se sirve de disco
+   en ~0.002s.
+2. **Cloudflare** cachea `/preview` en el borde: Cache Rule en el panel CF →
+   `starts_with(uri.path,"/preview") and host eq "kit.casatridimensional.com.ar"` →
+   Eligible for cache (respeta el Cache-Control del origen). Sin esta regla, CF
+   marcaba `cf-cache-status: DYNAMIC` (no cacheaba, porque `/preview` no tiene
+   extensión de archivo) y cada request pegaba al motor.
+3. **Re-warm de madrugada** (`/opt/ct3d/infra/ct3d-preview-warm.py` +
+   `ct3d-preview-warm.timer`, Lun y Jue 04:30 ART): borra el caché de los pesados
+   (rompecabezas) y los regenera frescos ANTES de que venzan los 7 días, en horario
+   sin tráfico → ningún usuario se come nunca el cold render. Ver corrida:
+   `journalctl -u ct3d-preview-warm.service`.
+
+**GOTCHA:** el render del compuesto sigue siendo lento (40-70s); no se reescribió.
+Si algún preview tarda de golpe, es un cold render (cache vencido/borrado): warmealo
+pidiendo la URL, o corré `systemctl start ct3d-preview-warm.service`.
 
 ## Mi responsabilidad (Claude)
 

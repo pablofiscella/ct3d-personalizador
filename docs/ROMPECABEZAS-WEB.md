@@ -62,13 +62,23 @@ hasta 6. Todo arte YA REVISADO que vive en el repo — acá no se genera IA.
 Los 12 temas del catálogo generan OK (validado 11-jul-2026: 6 puzzles y
 mascota cada uno, data.json 33-65KB, ~1.3MB por token).
 
-## Demo por tema (dash)
+## Demo por tema (dash + PÚBLICO)
 
 Cada tema tiene un rompecabezas de MUESTRA con token fijo `demo-<tema>`
 (edad 3 → lista todos los niveles): lo crea/actualiza el botón **🎮
 Rompecabezas web** de la tarjeta del tema (`POST /dash/rompe-demo?tema=X`,
 síncrono, sin IA) y también se refresca solo al final del job de **⚡ Armar
 TODO el tema** (así el demo siempre refleja el arte vigente).
+
+**Demo PÚBLICA "Probalo gratis" (17-jul-2026):** ruta pública `GET
+/probar/rompecabezas/<tema>` (helper `servicio._demo_rompecabezas_token`, sin
+admin) que crea el `demo-<tema>` si falta y redirige a `/armar/demo-<tema>/`.
+La abre el botón **"🧩 Probalo gratis"** de la ficha en la tienda (aparece en
+`rompecabezas-web` y `rompecabezas-foto`, apunta al tema del producto). En
+**modo demo** (el player detecta `location.pathname` con `/armar/demo-`) se
+deja armar solo la **MITAD** de los rompecabezas (`ceil(n/2)`); el resto van
+con candado 🔒 + CTA de compra + un banner. **Gateado a la URL demo** → los
+links YA VENDIDOS (`/armar/<token-aleatorio>/`) quedan idénticos (sin candado).
 
 ## Probar local
 
@@ -78,7 +88,11 @@ python3 -c "import rompecabezas_web as rw; print(rw.crear({'nombre':'Sofía','ed
 # abrir http://localhost:8791/armar/<token>/
 ```
 
-## Pendiente para VENDERLO (tienda, repo /opt/ct3d) — patch exacto
+## Integración a la tienda — ✅ HECHO (ya se vende, $9.500)
+
+El rompecabezas-web ya está EN VENTA (SKUs `KIT-ROMPECABEZAS-WEB-<TEMA>`, con
+ficha, precio, editor de foto y el botón "Probalo gratis"). El patch de abajo
+quedó como referencia histórica de lo que se aplicó.
 
 La entrega motor→tienda ya funciona sola (la orden guarda el `download_url`
 que devuelve `/api/generar`). Falta que la tienda lo trate como visor —
