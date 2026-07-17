@@ -289,6 +289,22 @@ def slug(s):
     s = re.sub(r"[^a-zA-Z0-9]+", "-", str(s)).strip("-").lower()
     return s or "kit"
 
+
+def _demo_rompecabezas_token(tema):
+    """Token del rompecabezas de MUESTRA de un tema (demo-<tema>), creándolo si
+    falta. Devuelve el token, o None si el tema no existe. Lo usa la ruta pública
+    /probar/rompecabezas/<tema> (botón "Probalo gratis" de la tienda). crear() es
+    síncrono y rápido; si el demo ya existe, no regenera → hits repetidos son
+    baratos y no se puede abusar para regenerar en loop."""
+    import rompecabezas_web as rw
+    tema = slug(tema or "")
+    if not tema or not temas.existe(tema):
+        return None
+    token = ("demo-" + tema)[:32]
+    if not os.path.exists(os.path.join(rw.ROMPE_DIR, token, "data.json")):
+        rw.crear({"nombre": ""}, tema, token=token)
+    return token
+
 # Headers de seguridad en TODA respuesta (A4). frame-ancestors permite que la tienda
 # (apex + subdominios) embeba el editor por iframe; cualquier otro sitio no puede.
 _SEC_HEADERS = [
@@ -988,6 +1004,23 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(body)))
             self.end_headers(); self.wfile.write(body)
             return
+        # ---- DEMO PÚBLICA "Probalo gratis" del rompecabezas interactivo ----
+        # Sin admin y sin la foto del cliente: usa el rompecabezas de MUESTRA del
+        # tema (token fijo demo-<tema>, las mismas escenas que el botón 🎮 del dash).
+        # Lo abre el botón "Probalo gratis" de la ficha en la tienda.
+        m = re.match(r"^/probar/rompecabezas/([A-Za-z0-9_-]+)/?$", path)
+        if m:
+            try:
+                token = _demo_rompecabezas_token(m.group(1))
+            except Exception as e:
+                return self._json(500, {"ok": False, "error": str(e)[:200]})
+            if not token:
+                return self._json(404, {"ok": False, "error": "tema inválido"})
+            self.send_response(302)
+            self.send_header("Location", "/armar/%s/" % token)
+            self.end_headers()
+            return
+
         # ---- rompecabezas interactivo (link con token) ----
         # Igual que /act: rutas RELATIVAS -> servir SIEMPRE bajo /armar/<tok>/.
         m = re.match(r"^/armar/([A-Za-z0-9_-]+)(?:/([a-z_0-9.]*))?$", path)
