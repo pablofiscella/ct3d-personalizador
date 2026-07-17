@@ -38,8 +38,12 @@ BASE_URL = os.environ.get("CT3D_BASE_URL", f"http://localhost:{PORT}")
 # resultado y se sirve del disco por PREVIEW_CACHE_TTL. TTL corto (10 min) para que al
 # regenerar el arte de un tema la tienda lo refleje enseguida (igual que el Cache-Control).
 PREVIEW_CACHE_DIR = os.path.join(os.path.dirname(__file__), ".cache", "preview")
-PREVIEW_CACHE_TTL = 21600        # 6h: cache estable (no re-render cada 10 min). Se invalida
-                                 # por tema al editar un layout / regenerar arte (ver _preview_cache_clear).
+PREVIEW_CACHE_TTL = 604800       # 7 días: algunos previews (rompecabezas-web compuesto) tardan
+                                 # 40-70s en el cold render y con 6h se re-renderizaban seguido,
+                                 # pegando el motor al 100% de CPU y enlenteciendo TODA la tienda.
+                                 # La frescura NO depende del TTL: se invalida por tema al editar un
+                                 # layout / regenerar arte (ver _preview_cache_clear). 7 días = render
+                                 # una vez y listo hasta que cambie el arte.
 os.makedirs(PREVIEW_CACHE_DIR, exist_ok=True)
 # Límite de renders Pillow CONCURRENTES: aunque la tienda pida cientos de miniaturas a la
 # vez (cache frío), nunca corren más de N a la vez → la CPU no se satura ni la memoria explota.
@@ -288,6 +292,22 @@ def _openai_client():
 def slug(s):
     s = re.sub(r"[^a-zA-Z0-9]+", "-", str(s)).strip("-").lower()
     return s or "kit"
+
+
+def _demo_rompecabezas_token(tema):
+    """Token del rompecabezas de MUESTRA de un tema (demo-<tema>), creándolo si
+    falta. Devuelve el token, o None si el tema no existe. Lo usa la ruta pública
+    /probar/rompecabezas/<tema> (botón "Probalo gratis" de la tienda). crear() es
+    síncrono y rápido; si el demo ya existe, no regenera → hits repetidos son
+    baratos y no se puede abusar para regenerar en loop."""
+    import rompecabezas_web as rw
+    tema = slug(tema or "")
+    if not tema or not temas.existe(tema):
+        return None
+    token = ("demo-" + tema)[:32]
+    if not os.path.exists(os.path.join(rw.ROMPE_DIR, token, "data.json")):
+        rw.crear({"nombre": ""}, tema, token=token)
+    return token
 
 # Headers de seguridad en TODA respuesta (A4). frame-ancestors permite que la tienda
 # (apex + subdominios) embeba el editor por iframe; cualquier otro sitio no puede.
@@ -988,6 +1008,23 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(body)))
             self.end_headers(); self.wfile.write(body)
             return
+        # ---- DEMO PÚBLICA "Probalo gratis" del rompecabezas interactivo ----
+        # Sin admin y sin la foto del cliente: usa el rompecabezas de MUESTRA del
+        # tema (token fijo demo-<tema>, las mismas escenas que el botón 🎮 del dash).
+        # Lo abre el botón "Probalo gratis" de la ficha en la tienda.
+        m = re.match(r"^/probar/rompecabezas/([A-Za-z0-9_-]+)/?$", path)
+        if m:
+            try:
+                token = _demo_rompecabezas_token(m.group(1))
+            except Exception as e:
+                return self._json(500, {"ok": False, "error": str(e)[:200]})
+            if not token:
+                return self._json(404, {"ok": False, "error": "tema inválido"})
+            self.send_response(302)
+            self.send_header("Location", "/armar/%s/" % token)
+            self.end_headers()
+            return
+
         # ---- rompecabezas interactivo (link con token) ----
         # Igual que /act: rutas RELATIVAS -> servir SIEMPRE bajo /armar/<tok>/.
         m = re.match(r"^/armar/([A-Za-z0-9_-]+)(?:/([a-z_0-9.]*))?$", path)

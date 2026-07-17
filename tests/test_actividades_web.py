@@ -499,3 +499,23 @@ def test_certificado_logro_sin_nombre_cae_al_de_la_compra(token, data):
     con_nombre_compra = aw.certificado_logro(token)
     con_nombre_explicito = aw.certificado_logro(token, nombre="Sofía")
     assert con_nombre_compra.tobytes() == con_nombre_explicito.tobytes()
+
+
+def test_sopa_no_sale_pobre_ni_vacia():
+    """Auditoría B6: se filtra por largo ANTES de samplear (la sopa es 10×10) y se
+    descartan sopas con <4 palabras. Antes, si el sample caía en palabras largas,
+    la sopa salía pobre o vacía."""
+    import actividades_web as aw
+    for tema in ("safari", "circo", "monstruos"):
+        dj = aw._armar_data(tema, "Test", "10", 123)
+        for s in dj.get("sopas", []):
+            assert len(s.get("palabras", [])) >= 4, f"{tema}: sopa pobre {s.get('palabras')}"
+
+
+def test_generar_audio_consignas_error_claro_sin_key(monkeypatch):
+    """Auditoría B7: sin ElevenLabs, _tts_elevenlabs devuelve None y _dur_mp3_128(None)
+    tiraba 'len(None)'. Ahora es un RuntimeError claro."""
+    import pytest, actividades_web as aw, audiolibro
+    monkeypatch.setattr(audiolibro, "_tts_elevenlabs", lambda *a, **k: None)
+    with pytest.raises(RuntimeError, match="ELEVENLABS"):
+        aw.generar_audio_consignas(["Encontrá las palabras escondidas."])
