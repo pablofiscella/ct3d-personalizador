@@ -102,6 +102,12 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 .carta .foto img { width: 100%; height: 100%; object-fit: cover; }
 .carta .nombre { font-family: "Baloo", sans-serif; font-size: 19px; line-height: 1.1; text-align: center; }
 .carta .mini-est { font-size: 15px; letter-spacing: 2px; min-height: 20px; }
+/* MODO DEMO: rompecabezas bloqueados (mitad) + banner de compra */
+.carta--lock .foto { position: relative; filter: grayscale(.55); }
+.carta--lock .lock-ov { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 40px; background: rgba(0,0,0,.28); }
+.carta--lock .mini-est { color: var(--ac, #7a5cd0); font-weight: 700; letter-spacing: 0; }
+.demo-banner { background: #fff8e1; border: 2px solid #ffd54f; border-radius: 14px; padding: 10px 14px; margin: 0 auto 16px; max-width: 640px; font-size: 15px; line-height: 1.4; text-align: center; color: #5b4a00; }
+.demo-banner a { font-weight: 800; white-space: nowrap; color: #7a5cd0; }
 
 /* elección de nivel (cantidad de piezas) */
 #niveles { display: flex; flex-direction: column; gap: 18px; align-items: center; }
