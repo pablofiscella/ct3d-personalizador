@@ -25,6 +25,16 @@ const ESC = 0.9;           // escala del knob (idéntica a rompecabezas._dibujar
 const DV = window.DV || "1";
 const bust = (src) => src + "?v=" + DV;
 
+/* MODO DEMO ("Probalo gratis"): la URL es /armar/demo-<tema>/. Pablo 17-jul-2026,
+   bajado de "mitad de las escenas, sin límite de piezas" (permitía jugar horas
+   gratis) a "1 sola escena, hasta 6 piezas" — el resto (más escenas, más piezas
+   dentro de la única escena libre) va con candado + CTA de compra. Gateado a la
+   URL demo → los links vendidos (/armar/<token-aleatorio>/) NO se ven afectados. */
+const ES_DEMO = /\/armar\/demo-/.test(location.pathname);
+const DEMO_MAX_PIEZAS = 6;
+const URL_COMPRAR = "https://imprimibles.casatridimensional.com.ar/?q=rompecabezas";
+const nivelBloqueado = (t) => ES_DEMO && t > DEMO_MAX_PIEZAS;
+
 /* ── persistencia (estrellas + progreso + sonido) por token ── */
 const Store = {
   key: "ct3d_rompe::" + location.pathname.replace(/\/$/, ""),
@@ -169,16 +179,12 @@ function pintarMenu() {
   const bienv = el("div", "", `<h1>${D.titulo}</h1><p>Elegí una foto, armala y ganá estrellas ⭐</p>`);
   bienv.id = "bienvenida";
   stage.appendChild(bienv);
-  // MODO DEMO ("Probalo gratis"): la URL es /armar/demo-<tema>/. Se deja armar solo
-  // la MITAD de los rompecabezas; el resto va con candado + CTA de compra. Gateado a
-  // la URL demo → los links vendidos (/armar/<token-aleatorio>/) NO se ven afectados.
-  const ES_DEMO = /\/armar\/demo-/.test(location.pathname);
-  const LIBRES = ES_DEMO ? Math.ceil(D.puzzles.length / 2) : D.puzzles.length;
-  const URL_COMPRAR = "https://imprimibles.casatridimensional.com.ar/?q=rompecabezas";
+  const LIBRES = ES_DEMO ? 1 : D.puzzles.length;
   if (ES_DEMO) {
     stage.appendChild(el("div", "demo-banner",
-      `🎮 <b>Demo:</b> armá ${LIBRES} de ${D.puzzles.length} rompecabezas gratis. ` +
-      `Comprá el completo —con la foto de tu peque y guardado en tu biblioteca— para armarlos todos. ` +
+      `🎮 <b>Demo:</b> armá 1 rompecabezas gratis, hasta ${DEMO_MAX_PIEZAS} piezas. ` +
+      `Comprá el completo —con la foto de tu peque y guardado en tu biblioteca— para armar ` +
+      `los ${D.puzzles.length} rompecabezas, con más piezas cada uno. ` +
       `<a href="${URL_COMPRAR}">Comprarlo →</a>`));
   }
   const menu = el("div"); menu.id = "menu";
@@ -219,10 +225,15 @@ function pintarNiveles(pi) {
     // conteo REAL de la grilla (el tope "48" puede ser 6x8=48 o 7x7=49 según
     // la proporción de la foto — siempre piezas cuadradas)
     const [c, f] = p.grillas[String(t)].split("x").map(Number);
-    const b = el("button", "nivelBtn", `
-      <div class="n">${c * f}</div><div class="t">piezas</div>
-      <div class="est">${estrellitas(Store.stars(pi + "|" + t))}</div>`);
-    b.addEventListener("click", () => { Sfx.pop(); jugar(pi, t); });
+    const bloq = nivelBloqueado(t);
+    const b = el("button", "nivelBtn" + (bloq ? " nivelBtn--lock" : ""), bloq
+      ? `<div class="n">🔒</div><div class="t">${c * f} piezas</div><div class="est">Comprá</div>`
+      : `<div class="n">${c * f}</div><div class="t">piezas</div>
+         <div class="est">${estrellitas(Store.stars(pi + "|" + t))}</div>`);
+    b.addEventListener("click", () => {
+      if (bloq) { location.href = URL_COMPRAR; return; }
+      Sfx.pop(); jugar(pi, t);
+    });
     btns.appendChild(b);
   });
   cont.appendChild(btns);
@@ -516,6 +527,7 @@ const Juego = {
     const pi = this.pi, target = this.target;
     setTimeout(() => festejar(3, () => {
       const sig = D.targets[D.targets.indexOf(target) + 1];
+      if (sig && nivelBloqueado(sig)) { pintarNiveles(pi); return; }
       if (sig) jugar(pi, sig);
       else pintarMenu();
     }), 650);
