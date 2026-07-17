@@ -37,7 +37,8 @@ _PUERTO_LOCAL = int(os.environ.get("ACTIVIDADES_CARDS_PUERTO", "8797"))
 # así que _banda_de() devolvía (None, None) y la card se saltaba para
 # siempre (caía al fallback de solo-título — Pablo: "puse laboratorio y
 # fracciones... la previa muestra solo el título y no las imágenes reales").
-_BANDAS = (("mini", "2"), ("media", "5"), ("grande", "8"), ("grande", "9"),
+_BANDAS = (("mini", "2"), ("media", "5"), ("grande", "6"), ("grande", "7"),
+           ("grande", "8"), ("grande", "9"),
            ("grande", "10"), ("grande", "11"), ("grande", "12"))
 # minP real del player (actividades_player.js GAMES.<id>.minP) — si el tema
 # no junta suficientes personajes, el MENÚ REAL ya oculta esa carta (real:

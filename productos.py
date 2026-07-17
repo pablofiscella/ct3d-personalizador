@@ -21,7 +21,7 @@ Tipos:
 - libro         → libro de cuento personalizado (10 páginas, el chico es el protagonista).
 - calendario    → 12 meses personalizados con la temática.
 - papertoys     → cubo 3D con letras del nombre para armar.
-- memoria       → juego de memoria con 24 cartas (12 pares).
+- memoria       → juego de memoria con 12 cartas (6 pares).
 
 Las piezas nuevas se arman 100% procedurales (Pillow), reutilizando la paleta y
 tipografía de cada temática (bloque "kit" del tema.json).
@@ -577,10 +577,15 @@ def _piezas_calendario(tema):
     arma Pablo por temática (temas/<tema>/calendario/{fondo.png,layout.json}) +
     la grilla de días que dibuja el motor encima. Sin nombre ni año a elección
     del cliente — el año lo fija el layout.json de cada tema."""
-    import calendario
+    import calendario, datetime
     acc = calendario._accent(tema)
+    # Año por defecto DINÁMICO (antes 2026 fijo → vendía calendarios 2026 en 2027).
+    # El layout.json de cada tema lo pisa con su campo "anyo" (mes_hoja, calendario.py);
+    # este fallback solo aplica a temas sin ese campo. Ojo: si conviene el año SIGUIENTE
+    # al comprar cerca de fin de año, definir "anyo" en el layout.json del tema.
+    anyo_fallback = datetime.date.today().year
     return [("%02d_%s" % (m, _MESES_NOMBRE[m - 1]),
-             (lambda m: (lambda d: calendario.mes_hoja(m, 2026, acc, tema)))(m), True)
+             (lambda m: (lambda d: calendario.mes_hoja(m, anyo_fallback, acc, tema)))(m), True)
             for m in range(1, 13)]
 
 def _piezas_papertoys(tema):
@@ -899,7 +904,7 @@ TIPOS = {
     },
     "memoria": {
         "nombre": "Juego de la Memoria",
-        "descripcion": "24 cartas (12 pares) con emojis y dorsos decorados. Para recortar y jugar.",
+        "descripcion": "12 cartas (6 pares) con los personajes del tema y dorsos decorados. Para recortar y jugar.",
         "campos": ["nombre"],
         "preview": "memoria",
         "piezas": _piezas_memoria,
