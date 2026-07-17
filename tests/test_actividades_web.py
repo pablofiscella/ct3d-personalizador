@@ -207,6 +207,21 @@ def test_catalogo_juegos_incluye_9_a_12():
     assert len(ids) > 30  # antes del fix: 30 (solo hasta 8 años)
 
 
+def test_catalogo_juegos_cubre_todas_las_edades():
+    """Invariante anti-regresión (auditoría 16-jul-2026): _catalogo_juegos()
+    debe incluir la UNIÓN de los menús reales de TODAS las edades del dropdown
+    (2 a 12). El fix de 9-12 había salteado 6 y 7 (banda "grande"), así que sus
+    15 juegos NAP nunca aparecían en la galería ni en el editor. Este test falla
+    si CUALQUIER edad aporta un juego que el catálogo no lista — no solo 6-7."""
+    catalogo = {j["id"] for j in aw._catalogo_juegos()}
+    union = set()
+    for edad in range(2, 13):
+        banda = aw._banda(edad)
+        union |= {m["id"] for m in aw._menu(banda, str(edad))}
+    faltantes = union - catalogo
+    assert not faltantes, f"el catálogo se saltea juegos de alguna edad: {sorted(faltantes)}"
+
+
 def test_laberintos_transitables(data):
     BIT = {"E": 4, "W": 8, "N": 1, "S": 2}
     for lab in data["laberintos"]:

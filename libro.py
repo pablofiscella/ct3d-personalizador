@@ -45,6 +45,12 @@ def paginas_historia(tema, edad=None, historia=None, catalogo=False):
     adelante. Cualquier otro caso (libro de kit, previews) mantiene el largo legado:
     7 en los temas ya vendidos, 12 en los nuevos. El flag catalogo lo prende SOLO el
     audiolibro, para no cambiarle el largo al libro de kit aunque comparta tema."""
+    # Normalizar igual que cuento() (libro.py: historia_raw = ...strip().lower()):
+    # si el caller manda "Tesoro"/"tesoro "/"AVENTURA" (bot de ML por chat, etc.),
+    # sin esto el `in ARGUMENTOS_LARGO` fallaba y la paginación caía al largo legado
+    # mientras cuento() devolvía el arco de 17 → audiolibro truncado y narración
+    # desfasada (los textos se indexan por posición).
+    historia = str(historia or "").strip().lower()
     if catalogo and historia and historia in ARGUMENTOS_LARGO:
         e = _edad_int(edad)
         return PAGINAS_HISTORIA_CORTA if (e is not None and e <= 3) else PAGINAS_HISTORIA_LARGO

@@ -883,7 +883,8 @@ def _catalogo_juegos():
     la tienda, sin importar qué edad se eligiera (Pablo: "pongo 8 años se
     actualiza pero no muestra las actividades distintas")."""
     vistos, out = set(), []
-    muestras = (("mini", "2"), ("media", "5"), ("grande", "8"), ("grande", "9"),
+    muestras = (("mini", "2"), ("media", "5"), ("grande", "6"), ("grande", "7"),
+                ("grande", "8"), ("grande", "9"),
                 ("grande", "10"), ("grande", "11"), ("grande", "12"))
     for banda, edad in muestras:
         for m in _menu(banda, edad):
