@@ -501,3 +501,310 @@ ARGUMENTOS_LARGO = {
 assert all(len(v) == 17 for v in ARGUMENTOS_LARGO.values()), \
     {k: len(v) for k, v in ARGUMENTOS_LARGO.items() if len(v) != 17}
 assert len(CORTO_IDX) == 9 and max(CORTO_IDX) < 17
+
+
+# ================================================================
+# Historias del LIBRO-kit, movidas desde libro.py (unificación 17-jul-2026:
+# todas las historias en un solo lugar). ARGUMENTOS_EXT usa ARGUMENTOS → va después.
+# ================================================================
+
+HISTORIAS = {
+    "safari": {
+        "mundo": "la sabana dorada del safari",
+        "amigos": "los animales de la selva",
+        "desafio": "el pequeño león no encontraba el camino a su casa",
+        "solucion": "trepó al árbol más alto y descubrió el sendero escondido",
+        "tesoro": "una brújula dorada de exploración",
+    },
+    "circo": {
+        "mundo": "el gran circo de colores",
+        "amigos": "los artistas del circo",
+        "desafio": "el mago no encontraba su sombrero mágico por ningún lado",
+        "solucion": "siguió las huellas de purpurina y encontró el sombrero detrás de la carpa",
+        "tesoro": "una entrada mágica para volver al circo cuando quiera",
+    },
+    "superheroes": {
+        "mundo": "la ciudad de los superhéroes",
+        "amigos": "los superhéroes de la ciudad",
+        "desafio": "un viento travieso se había llevado todas las capas",
+        "solucion": "descubrió las capas en la torre más alta y las rescató una por una",
+        "tesoro": "una capa brillante hecha a su medida",
+    },
+    "construccion": {
+        "mundo": "la gran obra en construcción",
+        "amigos": "los constructores y sus máquinas",
+        "desafio": "la grúa no encontraba la última pieza del puente",
+        "solucion": "encontró la pieza perdida y guió a la grúa para colocarla",
+        "tesoro": "un casco dorado de constructor",
+    },
+    "bomberos": {
+        "mundo": "la estación de bomberos",
+        "amigos": "los bomberos valientes",
+        "desafio": "un gatito había quedado atrapado en lo alto de un árbol",
+        "solucion": "subió por la escalera del camión y lo rescató con mucho cuidado",
+        "tesoro": "una medalla de bombero honorario",
+    },
+    "aviadores": {
+        "mundo": "el cielo de los aviadores",
+        "amigos": "los pilotos y sus aviones",
+        "desafio": "una nube gigante tapaba el camino de vuelta al aeropuerto",
+        "solucion": "guió a todos los aviones con la brújula del avión más pequeño",
+        "tesoro": "unas alas doradas de piloto",
+    },
+    "campamento": {
+        "mundo": "el bosque del campamento",
+        "amigos": "los amigos del campamento",
+        "desafio": "la fogata que alumbraba el campamento se había apagado",
+        "solucion": "juntó las ramitas más secas y la fogata volvió a brillar",
+        "tesoro": "una linterna que guarda luz de estrellas",
+    },
+    "artistas": {
+        "mundo": "el taller de los artistas",
+        "amigos": "los pequeños artistas del taller",
+        "desafio": "los colores se habían mezclado y todo se había vuelto gris",
+        "solucion": "pintó un arcoíris enorme que devolvió cada color a su lugar",
+        "tesoro": "un pincel mágico que nunca se queda sin color",
+    },
+    "monstruos": {
+        "mundo": "el país de los monstruos divertidos",
+        "amigos": "los monstruos más simpáticos",
+        "desafio": "el monstruo más chiquito tenía miedo de la oscuridad",
+        "solucion": "le enseñó que en la oscuridad también viven las estrellas",
+        "tesoro": "un frasquito con luciérnagas de luz",
+    },
+    "princesas": {
+        "mundo": "el reino encantado de las princesas",
+        "amigos": "los amigos del reino encantado",
+        "desafio": "la corona real se había perdido antes del gran baile",
+        "solucion": "siguió los destellos dorados y encontró la corona en el jardín del castillo",
+        "tesoro": "una coronita brillante del reino, hecha a su medida",
+    },
+    "futbol": {
+        "mundo": "el gran estadio de fútbol",
+        "amigos": "los jugadores del equipo",
+        "desafio": "la pelota dorada se había perdido antes del gran partido",
+        "solucion": "encontró la pelota escondida detrás del arco y la trajo de vuelta",
+        "tesoro": "una copa dorada de campeón",
+    },
+    "un-espacio-de-locura": {
+        "mundo": "el espacio infinito",
+        "amigos": "los astronautas y las estrellas",
+        "desafio": "un cometa travieso había escondido la luna",
+        "solucion": "persiguió al cometa en su nave y trajo la luna de vuelta",
+        "tesoro": "una estrella que brilla de verdad",
+    },
+}
+HISTORIAS["superhéroes"] = HISTORIAS["superheroes"]
+HISTORIA_DEFAULT = {
+    "mundo": "un mundo mágico",
+    "amigos": "sus nuevos amigos",
+    "desafio": "el camino de regreso había desaparecido",
+    "solucion": "siguió las estrellas más brillantes y encontró el sendero",
+    "tesoro": "una estrella de la suerte",
+}
+
+ARGUMENTOS = {
+    "aventura": None,   # el clásico (invitación mágica) — textos abajo, en cuento()
+    "tesoro": [
+        "Esa mañana, {nombre} encontró un mapa antiguo enrollado en su mochila. "
+        "Marcaba un camino secreto hacia {mundo}.",
+        "Al seguir la primera pista y {conteo}, ¡el mapa empezó a brillar! "
+        "La búsqueda del tesoro había comenzado.",
+        "En {mundo}, {amigos} conocían las pistas: cada uno le contó a {nombre} "
+        "un secreto del camino.",
+        "Pero la última pista estaba del otro lado de un río enorme, y nadie "
+        "sabía cómo cruzarlo... nadie, excepto {nombre}.",
+        "{nombre} armó un puente con troncos y sogas, ¡y cruzaron todos juntos "
+        "cantando! Ahí estaba: un cofre dorado.",
+        "Adentro brillaba {tesoro}. {amigos} aplaudieron: «¡{nombre} es quien "
+        "mejor sigue las pistas en todo {mundo}!»",
+        "De vuelta en casa, {nombre} guardó el mapa bajo la almohada. Los "
+        "mejores tesoros se encuentran con paciencia y buenos amigos.",
+    ],
+    "rescate": [
+        "Una noche, una lucecita golpeó la ventana de {nombre}: era un mensaje "
+        "urgente desde {mundo}. ¡Necesitaban ayuda!",
+        "{nombre} no lo dudó: cerró los ojos, empezó a {conteo}... y el viento "
+        "lo llevó volando hasta {mundo}.",
+        "{amigos} estaban muy preocupados: el más pequeño del grupo se había "
+        "perdido y ya estaba oscureciendo.",
+        "Buscaron por todos lados sin suerte. Entonces {nombre} tuvo una idea: "
+        "«¡Sigamos las huellas más chiquitas!»",
+        "Las huellas llevaron a una cueva. {nombre} entró con su linterna, "
+        "tomó al pequeño de la mano y lo trajo de vuelta. ¡Qué valiente!",
+        "Como agradecimiento, {amigos} le regalaron {tesoro}: la marca de los "
+        "héroes de {mundo}.",
+        "Esa noche {nombre} durmió con una sonrisa gigante. Ayudar a un amigo "
+        "es la aventura más importante de todas.",
+    ],
+    "gran-dia": [
+        "¡Llegó una noticia increíble! En {mundo} se hacía la Gran Fiesta del "
+        "año, y {nombre} estaba en la lista de invitados especiales.",
+        "{nombre} preparó su mochila, contó hasta {conteo_num} para darse "
+        "valor... ¡y salió rumbo a la aventura!",
+        "{amigos} lo recibieron ensayando: había juegos, música y un gran "
+        "desfile para preparar. ¡Faltaba tan poco!",
+        "Pero de pronto, ¡PUM!, una tormenta desarmó todo lo que habían "
+        "preparado. Todos se miraron sin saber qué hacer.",
+        "«¡No nos rindamos!», dijo {nombre}, y organizó a todos: unos ataban, "
+        "otros pintaban... ¡y la fiesta quedó más linda que antes!",
+        "La Gran Fiesta fue inolvidable, y {amigos} le entregaron a {nombre} "
+        "{tesoro}, el premio al invitado más especial.",
+        "Al volver a casa, {nombre} entendió el secreto: los grandes días se "
+        "construyen entre todos, con manos que ayudan.",
+    ],
+}
+
+ARGUMENTO_LABELS = {"aventura": "La invitación mágica (clásico)",
+                    "tesoro": "El mapa del tesoro",
+                    "rescate": "El gran rescate",
+                    "gran-dia": "El gran día",
+                    "noche-estrellas": "La noche de las estrellas",
+                    "cumple-sorpresa": "El cumpleaños sorpresa",
+                    "pequeno-maestro": "El pequeño maestro",
+                    "ayudar-a-todos": "El día de ayudar a todos"}
+
+ARGUMENTOS_EXT = {
+    "tesoro": ARGUMENTOS["tesoro"][:6] + [
+        # OJO gramática de arcos ({tesoro} puede ser fem/masc y largo): nunca
+        # referirlo con pronombres (lo/la) ni colgarle adverbios detrás
+        "Todos se sentaron en ronda para mirar de cerca {tesoro}. {amigos} le "
+        "contaron a {nombre} la leyenda del tesoro, escondido hace tantos años.",
+        "De pronto, el mapa volvió a brillar: ¡tenía una segunda cara! Mostraba un "
+        "camino nuevo, más corto, de vuelta a casa a través de {mundo}.",
+        "En el camino encontraron una piedra enorme bloqueando el paso. Entre "
+        "todos, empujando juntos y contando hasta tres, lograron correrla.",
+        "Como festejo por el trabajo en equipo, armaron una merienda bajo un "
+        "árbol, y {nombre} repartió un pedacito de aventura para cada amigo.",
+        "Antes de despedirse, {amigos} le prometieron a {nombre} que el mapa "
+        "tendría siempre una pista nueva esperando para la próxima vez.",
+    ] + ARGUMENTOS["tesoro"][6:],
+    "rescate": ARGUMENTOS["rescate"][:6] + [
+        "El pequeño rescatado abrazó fuerte a {nombre} y le contó que se había "
+        "perdido siguiendo una mariposa brillante que quería atrapar.",
+        "«¿Y si la buscamos juntos, pero esta vez sin separarnos?», propuso "
+        "{nombre}. Todos se tomaron de la mano y salieron a explorar {mundo}.",
+        "La mariposa los llevó hasta un lugar precioso que nadie en {mundo} "
+        "conocía: un rincón lleno de luces que parecían pequeñas estrellas caídas.",
+        "{amigos} decidieron que ese sería su nuevo lugar de encuentro secreto, "
+        "y todos prometieron cuidarlo entre todos.",
+        "Ya de noche, cantaron juntos alrededor de las lucecitas, felices de que "
+        "la aventura hubiera terminado bien para todos.",
+    ] + ARGUMENTOS["rescate"][6:],
+    "gran-dia": ARGUMENTOS["gran-dia"][:6] + [
+        "Con {tesoro} bien puesto, {nombre} fue el encargado de dar la "
+        "bienvenida a cada invitado que llegaba a {mundo}.",
+        "A mitad de la fiesta, la música se cortó de repente. ¡El equipo de "
+        "sonido se había quedado sin pilas!",
+        "{nombre} tuvo una idea genial: organizó a {amigos} para hacer música "
+        "con las manos, los pies y lo que tenían a mano.",
+        "La banda improvisada sonó tan bien que todos terminaron bailando más "
+        "fuerte que antes, ¡y nadie extrañó la música original!",
+        "Cuando el sol empezó a esconderse, {amigos} armaron una ronda final "
+        "para agradecerle a {nombre} por no dejar que nada arruinara el gran día.",
+    ] + ARGUMENTOS["gran-dia"][6:],
+    "noche-estrellas": [
+        "Una noche, {nombre} miraba el cielo desde la ventana cuando vio caer "
+        "una estrella fugaz directo hacia {mundo}.",
+        "Sin pensarlo dos veces, se puso las pantuflas y salió a buscarla, "
+        "contando los pasos hasta {conteo_num} para no perderse.",
+        "En {mundo}, {amigos} también habían visto la estrella caer y ya "
+        "estaban buscando entre las sombras.",
+        "Pero la noche era muy oscura, y {desafio}. Nadie encontraba el "
+        "camino... nadie, excepto {nombre}.",
+        "Con valentía, {nombre} {solucion}, y así encontraron la luz que los "
+        "guiaba.",
+        "Siguiendo el brillo, llegaron hasta la estrella fugaz: estaba cansada "
+        "de tanto viajar y solo quería un lugar donde descansar.",
+        "{amigos} le armaron una camita de nubes suaves, y {nombre} le cantó "
+        "una canción bajito para que se sintiera en casa.",
+        "La estrella, agradecida, empezó a brillar tan fuerte que iluminó todo "
+        "{mundo} como si fuera de día.",
+        "Con esa luz mágica, todos jugaron a las escondidas entre las sombras "
+        "que ya no daban miedo.",
+        "Antes de despedirse, la estrella le regaló a {nombre} {tesoro}, para "
+        "recordar esa noche para siempre.",
+        "{amigos} prometieron cuidar el cielo de {mundo} cada noche, por si "
+        "otra estrella necesitaba ayuda.",
+        "De vuelta en su cama, {nombre} se durmió mirando las estrellas, "
+        "sabiendo que ahora tenía una amiga ahí arriba.",
+    ],
+    "cumple-sorpresa": [
+        "{nombre} descubrió un secreto: ¡mañana era el cumpleaños de su mejor "
+        "amigo en {mundo}, y nadie lo sabía!",
+        "Emocionado, empezó a {conteo} para calmar los nervios y se puso manos "
+        "a la obra con el plan más secreto de todos.",
+        "Primero necesitaba ayuda, así que fue a buscar a {amigos} y les contó "
+        "la misión, susurrando para que nadie escuchara.",
+        "Todos se pusieron a preparar la sorpresa, pero {desafio}, y el plan "
+        "estuvo a punto de arruinarse.",
+        "Por suerte, {nombre} {solucion} justo a tiempo, y la fiesta sorpresa "
+        "se pudo salvar.",
+        "Decoraron cada rincón de {mundo} con globos y guirnaldas, escondidos "
+        "detrás de cada esquina, esperando el momento justo.",
+        "Cuando el cumpleañero se acercó sin sospechar nada, todos contuvieron "
+        "la risa lo más fuerte que pudieron.",
+        "«¡SORPRESA!», gritaron {amigos} a la vez, y el cumpleañero se llevó "
+        "el susto más lindo de su vida.",
+        "Hubo torta, juegos y muchas risas. {nombre} había pensado en cada "
+        "detalle para que fuera un día inolvidable.",
+        "Como regalo especial, todos juntos le entregaron {tesoro}, hecho con "
+        "mucho cariño entre todos.",
+        "El cumpleañero, con lágrimas de alegría, abrazó a {nombre} y le dijo "
+        "que nunca iba a olvidar ese día.",
+        "Esa noche, {nombre} se durmió pensando que las mejores sorpresas son "
+        "las que se preparan con el corazón.",
+    ],
+    "pequeno-maestro": [
+        "En {mundo}, {nombre} sabía hacer algo muy especial que nadie más "
+        "sabía hacer todavía.",
+        "Un día, {amigos} le pidieron: «¿Nos enseñás? ¡Queremos aprender igual "
+        "que vos!». {nombre} se puso a {conteo} de la emoción.",
+        "La primera clase empezó con muchas ganas, pero a nadie le salía bien "
+        "al principio.",
+        "Entonces pasó algo: {desafio}, y todos empezaron a desanimarse "
+        "pensando que nunca iban a aprender.",
+        "{nombre} no se rindió: {solucion}, y les mostró que equivocarse "
+        "también es parte de aprender.",
+        "Poco a poco, uno por uno, {amigos} empezaron a lograrlo, ¡y las caras "
+        "de orgullo no se podían esconder!",
+        "{nombre} festejaba cada intento, aunque no saliera perfecto: «¡Lo "
+        "importante es probar!», repetía siempre con una sonrisa.",
+        "Con el tiempo, cada amigo encontró su propia forma de hacerlo, un "
+        "poquito distinta y única a la vez.",
+        "Organizaron una muestra en {mundo} para mostrarle a todos lo que "
+        "habían aprendido juntos.",
+        "Todos aplaudieron fuerte, y {amigos} le agradecieron a {nombre} con "
+        "{tesoro}, por ser el mejor maestro que tuvieron.",
+        "{nombre} entendió que enseñar algo que uno ama es tan lindo como "
+        "aprenderlo por primera vez.",
+        "Esa noche, {nombre} se durmió pensando en la próxima cosa nueva que "
+        "le encantaría compartir con sus amigos.",
+    ],
+    "ayudar-a-todos": [
+        "Esa mañana, {nombre} se despertó con muchas ganas de hacer algo "
+        "bueno por todos en {mundo}.",
+        "Se puso las botas, empezó a {conteo} para tomar impulso, y salió a "
+        "caminar por {mundo} buscando a quién ayudar primero.",
+        "El primero en aparecer fue un amigo muy triste porque {desafio}, y "
+        "no sabía cómo resolverlo solo.",
+        "{nombre} pensó rápido y {solucion}. El amigo sonrió agradecido y se "
+        "sumó a la aventura.",
+        "Juntos siguieron caminando y encontraron a otro de {amigos} que se "
+        "había quedado sin merienda para compartir.",
+        "Sin dudarlo, {nombre} repartió lo que tenía en su mochila para que "
+        "nadie se quedara con hambre.",
+        "Más adelante, alguien había perdido un juguete muy querido en algún "
+        "rincón de {mundo}.",
+        "Todos se organizaron en equipos y, buscando entre risas, lo "
+        "encontraron escondido detrás de unas plantas.",
+        "Ya cansados pero felices, se cruzaron con el último amigo del día, "
+        "que necesitaba una mano para cargar algo pesado.",
+        "Entre todos lo cargaron como si nada, demostrando que las cosas "
+        "pesadas pesan menos cuando se ayudan entre varios.",
+        "Al caer la tarde, {amigos} se juntaron para agradecerle a {nombre} "
+        "regalándole {tesoro}, por un día lleno de buenas acciones.",
+        "{nombre} volvió a casa cansado pero con el corazón lleno, pensando "
+        "que ayudar a los demás es la mejor forma de jugar.",
+    ],
+}
