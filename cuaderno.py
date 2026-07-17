@@ -131,12 +131,21 @@ def _hamming(a, b):
 
 
 def _es_personaje_vision(tema, paths):
-    """Clasifica los recortes del tema con UNA llamada de visión (grilla numerada)
-    y devuelve {basename: tipo} SOLO para los que son personajes ('nena', 'mono',
-    'león'...), cacheado en actividades_mon/clasif.json. Bugs reales que motiva:
+    """Clasifica los recortes del tema con UNA llamada de visión (grilla numerada),
+    cacheado en actividades_mon/clasif.json. Devuelve {basename: tipo} donde tipo
+    es: una palabra (personaje, ej. 'nena'/'mono'/'león'), 'objeto:<algo>' (objeto
+    decorativo LIMPIO y solo, ej. 'objeto:cohete'), o 'compuesto' (2+ elementos
+    juntos en la celda — se descarta SIEMPRE, no sirve ni de personaje ni de
+    relleno). Bugs reales que motiva:
     (1) elegir por tamaño pegaba una MESA y un FRASCO como 'personajes' en
     certificado/cápsula/rompecabezas/corona de artistas; (2) salían 2-3 monitos
-    casi idénticos en la misma pieza (el tipo permite elegir personajes DISTINTOS).
+    casi idénticos en la misma pieza (el tipo permite elegir personajes DISTINTOS);
+    (3) 15-jul-2026, Pablo viendo el memory imprimible de monstruos/espacio: "no
+    tiene que ver con esa temática" (relleno de estrellas genéricas) y "las
+    imágenes tienen que ser de un solo dibujo, no quedan bien c008/c009/c010"
+    (recortes COMPUESTOS — ej. astronauta+planeta — colándose como si fueran una
+    sola figura limpia). La distinción objeto/compuesto es NUEVA (15-jul-2026);
+    antes ambos casos colapsaban a 'no' y se perdía la diferencia.
     Best-effort: sin API key o ante cualquier error devuelve None (el caller no
     filtra, comportamiento histórico)."""
     import base64 as _b64
@@ -190,13 +199,21 @@ def _es_personaje_vision(tema, paths):
                 {"type": "text", "text":
                  "Cada celda numerada es un sticker recortado de un kit infantil. "
                  "Respondé UNA línea por CADA celda, en el formato 'numero: tipo'. "
-                 "Si la celda muestra UN SOLO personaje (una persona, animal o "
-                 "criatura CON CARA, entera y sola), tipo = una palabra corta en "
-                 "minúscula que lo identifique (ej. 'nena', 'nene', 'mono', "
-                 "'león', 'monstruo verde'). Si muestra un objeto sin cara "
-                 "(mueble, frasco, herramienta, manguera, planta, flor, comida, "
-                 "pelota, globo, estrella) o 2+ personajes juntos, tipo = "
-                 "exactamente 'no'. Respondé TODAS las celdas, sin texto extra."},
+                 "PRIMERO fijate si la celda muestra UN SOLO dibujo, solo y "
+                 "limpio — nada más compartiendo la celda. Si hay 2 O MÁS "
+                 "elementos juntos (2+ personajes, un personaje CON un objeto, "
+                 "2+ objetos, una escena con varias cosas), sin importar cuál "
+                 "combinación, tipo = exactamente 'compuesto' — esto tiene "
+                 "prioridad sobre las reglas de abajo. "
+                 "Si es UN SOLO dibujo y es un personaje (una persona, animal o "
+                 "criatura CON CARA), tipo = una palabra corta en minúscula que "
+                 "lo identifique (ej. 'nena', 'nene', 'mono', 'león', 'monstruo "
+                 "verde'). Si es UN SOLO dibujo y es un objeto sin cara (mueble, "
+                 "frasco, herramienta, cohete, planeta, corona, estrella...), "
+                 "tipo = 'objeto:' seguido de una palabra corta que lo "
+                 "identifique (ej. 'objeto:cohete', 'objeto:corona', "
+                 "'objeto:estrella'). Respondé TODAS las celdas, sin texto "
+                 "extra."},
                 {"type": "image_url", "image_url": {"url":
                  "data:image/png;base64," + _b64.b64encode(buf.getvalue()).decode(),
                  "detail": "high"}}]}]}).encode()
@@ -332,18 +349,31 @@ def _personajes_paths(tema, n=2, variedad_estricta=False, incluir_objetos=False)
     if not cand:
         return []
     cand_todos = list(cand)              # con objetos incluidos (para incluir_objetos)
-    tipos = _es_personaje_vision(tema, paths)
-    if tipos:
+    tipos_raw = _es_personaje_vision(tema, paths)
+    tipos_objeto = {}
+    if tipos_raw:
+        # 'compuesto' (2+ elementos en la misma celda — Pablo 15-jul-2026: "las
+        # imágenes tienen que ser de un solo dibujo") se descarta de TODO, no
+        # solo del pool de personajes: ni sirve de personaje ni de relleno.
+        compuestos = {k for k, v in tipos_raw.items() if v == "compuesto"}
+        if compuestos:
+            cand = [c for c in cand if os.path.basename(c[1]) not in compuestos]
+            cand_todos = [c for c in cand_todos if os.path.basename(c[1]) not in compuestos]
+        tipos_objeto = {k: v for k, v in tipos_raw.items() if v.startswith("objeto:")}
         # el modelo a veces lista objetos igual (con tipo "objeto"/"globo"/"flor"…)
-        # aunque el prompt se lo prohíbe — lista negra sobre la etiqueta.
+        # aunque el prompt se lo prohíbe — lista negra sobre la etiqueta, además
+        # del prefijo 'objeto:' que ya los separa en la mayoría de los casos.
         no_pers = {"objeto", "objetos", "globo", "globos", "flor", "flores",
                    "estrella", "pelota", "planta", "mesa", "frasco", "nube",
                    "hoja", "corazon", "corazón", "torta", "regalo", "arbol",
                    "árbol", "pincel", "paleta", "casa", "auto", "bandera"}
-        tipos = {k: v for k, v in tipos.items() if v not in no_pers}
+        tipos = {k: v for k, v in tipos_raw.items()
+                if v not in no_pers and v != "compuesto" and not v.startswith("objeto:")}
         con_cara = [c for c in cand if os.path.basename(c[1]) in tipos]
         if con_cara:                     # si el filtro dejó algo, usarlo; si no, no filtrar
             cand = con_cara
+    else:
+        tipos = None
     cand.sort(key=lambda t: -t[0])
     # Variedad: primero un personaje de cada TIPO distinto (nena, mono, león...);
     # si hacen falta más, recién ahí repite tipo (el más grande no usado). Dedup por
@@ -371,16 +401,49 @@ def _personajes_paths(tema, n=2, variedad_estricta=False, incluir_objetos=False)
     if not variedad_estricta:
         _pasada(exigir_tipo_nuevo=False)
     if incluir_objetos and len(out) < n and tipos:
-        # completar con objetos del tema (recortes de calidad sin etiqueta de
-        # personaje), deduplicados contra lo ya elegido
-        objetos = sorted((c for c in cand_todos
-                          if os.path.basename(c[1]) not in tipos), key=lambda t: -t[0])
+        # completar con objetos del tema, deduplicados contra lo ya elegido.
+        # Preferí los tageados EXPLÍCITAMENTE 'objeto:X' por la visión (limpios,
+        # un solo dibujo confirmado) — si no hay suficientes, recién ahí cae a
+        # "cualquier candidato sin tipo de personaje" (comportamiento viejo,
+        # para cuando la visión no distinguió objeto de compuesto).
+        #
+        # VARIEDAD entre objetos (Pablo 15-jul-2026, sobre espacio: "estrellas
+        # deja 2, no 4" — la hoja tenía 5 estrellas de distinto color y por
+        # ordenar solo por tamaño llenaban casi todo el relleno, tapando al
+        # cohete/luna que también estaban disponibles). Mismo criterio de dos
+        # pasadas que los personajes: primero UN objeto de cada tipo distinto
+        # (objeto:cohete, objeto:planeta, objeto:estrella...); con
+        # variedad_estricta NUNCA se repite tipo (ni siquiera acá) — mejor un
+        # par de menos (que memoria.py completa con una forma geométrica) que
+        # DOS pares de estrella de colores distintos pero mismo tipo.
+        objetos_todos = sorted((c for c in cand_todos
+                                if os.path.basename(c[1]) in tipos_objeto), key=lambda t: -t[0])
+        tipos_obj_usados = set()
+        objetos = []
+        for c in objetos_todos:
+            t = tipos_objeto.get(os.path.basename(c[1]))
+            if t not in tipos_obj_usados:
+                objetos.append(c)
+                tipos_obj_usados.add(t)
+        if not variedad_estricta:
+            objetos += [c for c in objetos_todos if c not in objetos]
+        if len(objetos) < n - len(out):
+            objetos += sorted((c for c in cand_todos
+                              if os.path.basename(c[1]) not in tipos
+                              and os.path.basename(c[1]) not in tipos_objeto),
+                              key=lambda t: -t[0])
         for _area, p, im in objetos:
             if len(out) >= n:
                 break
             if p in usados:
                 continue
-            firma = piezas.firma_recorte(im, "")
+            # etiqueta real ('planeta', 'luna'...), no "" — sin esto, dos
+            # objetos de tipo DISTINTO pero silueta parecida (luna y tierra:
+            # los dos círculos) se confundían como duplicados por el chequeo
+            # de silueta/matiz, perdiendo la protección de "etiqueta distinta
+            # nunca es dup" (bug real 15-jul-2026, Pablo: "estrellas deja 2").
+            t_obj = tipos_objeto.get(os.path.basename(p), "")
+            firma = piezas.firma_recorte(im, t_obj.split(":", 1)[-1])
             if piezas.es_recorte_duplicado(firma, firmas):
                 continue
             out.append(p)

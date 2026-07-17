@@ -105,7 +105,12 @@ def _imagenes_pares(tema, n=6):
         imgs = []
     if len(imgs) < n:
         acc = _accent(tema)
-        formas = ["estrella", "corazon", "circulo", "triangulo", "diamante", "cuadrado"]
+        # sin "estrella" acá (Pablo 15-jul-2026: "estrellas deja 2, no 4") —
+        # varios temas (espacio, monstruos con fiesta...) ya usan una estrella
+        # REAL de la hoja de stickers como uno de los `imgs`; si este relleno
+        # sintético también empezara por estrella, terminaba en 2 pares de
+        # estrella (uno real + uno geométrico) en vez de 1 solo.
+        formas = ["corazon", "circulo", "triangulo", "diamante", "cuadrado"]
         combos = [(f, c) for c in (acc, _tint(acc, 0.45)) for f in formas]
         for f, c in combos[:max(0, n - len(imgs))]:
             imgs.append(_dibujar_forma(f, 600, c))
