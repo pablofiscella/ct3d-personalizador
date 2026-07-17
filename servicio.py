@@ -38,8 +38,12 @@ BASE_URL = os.environ.get("CT3D_BASE_URL", f"http://localhost:{PORT}")
 # resultado y se sirve del disco por PREVIEW_CACHE_TTL. TTL corto (10 min) para que al
 # regenerar el arte de un tema la tienda lo refleje enseguida (igual que el Cache-Control).
 PREVIEW_CACHE_DIR = os.path.join(os.path.dirname(__file__), ".cache", "preview")
-PREVIEW_CACHE_TTL = 21600        # 6h: cache estable (no re-render cada 10 min). Se invalida
-                                 # por tema al editar un layout / regenerar arte (ver _preview_cache_clear).
+PREVIEW_CACHE_TTL = 604800       # 7 días: algunos previews (rompecabezas-web compuesto) tardan
+                                 # 40-70s en el cold render y con 6h se re-renderizaban seguido,
+                                 # pegando el motor al 100% de CPU y enlenteciendo TODA la tienda.
+                                 # La frescura NO depende del TTL: se invalida por tema al editar un
+                                 # layout / regenerar arte (ver _preview_cache_clear). 7 días = render
+                                 # una vez y listo hasta que cambie el arte.
 os.makedirs(PREVIEW_CACHE_DIR, exist_ok=True)
 # Límite de renders Pillow CONCURRENTES: aunque la tienda pida cientos de miniaturas a la
 # vez (cache frío), nunca corren más de N a la vez → la CPU no se satura ni la memoria explota.
