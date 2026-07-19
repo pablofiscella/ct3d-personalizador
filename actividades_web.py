@@ -290,6 +290,11 @@ def _menu(banda, edad):
         g.append({"id": "estados_materia", "titulo": "Sólido, líquido o gas", "icono": "🌡️", "cfg": {"rondas": 10}})
         g.append({"id": "comprension_lectora", "titulo": "Detective de textos", "icono": "🔎", "cfg": {"rondas": 8}})
         g.append({"id": "recta_numerica", "titulo": "Recta gigante", "icono": "📍", "cfg": {"rondas": 10, "max1": 1000, "max2": 10000}})
+        # 2ª tanda 3° (19-jul-2026, nivelación): problemas de 1 paso (M13), orden
+        # alfabético (L4, mecánica ordenar) y ortografía (L3: -aba, z→ces, mb/nv).
+        g.append({"id": "problemas_3ro", "titulo": "Problemas", "icono": "🤔", "cfg": {"rondas": 10}})
+        g.append({"id": "orden_alfabetico", "titulo": "De la A a la Z", "icono": "🔡", "cfg": {"rondas": 8}})
+        g.append({"id": "ortografia_3ro", "titulo": "¿Cómo se escribe?", "icono": "✍️", "cfg": {"rondas": 10}})
         _drop3 = {"sumas", "restas", "contar", "colorear", "puntos", "mas_menos", "patron", "separador_mezclas"}
         g[:] = [it for it in g if it["id"] not in _drop3]
     if e == 9:
