@@ -125,10 +125,11 @@ def test_bandas_de_edad():
     # estados_materia). Se suman las 3 nuevas exclusivas de 3° (reparto con resto,
     # comparar números, estados de la materia). comprension_lectora/recta_numerica
     # NO van acá: se comparten con 4° (no son exclusivas de 3°).
+    # comparar_numeros pasó a compartirse con 2° (rollout 1°/2°, 19-jul), como
+    # comprension_lectora/recta_numerica → sale del set de EXCLUSIVAS de 3°.
     nuevos_3grado = {"animal_comida", "partes_oracion", "tabla_pitagorica",
                       "tiempos_verbales", "estaciones", "cuerpos_geometricos",
-                      "cajero_automatico", "reparto_con_resto", "comparar_numeros",
-                      "estados_materia"}
+                      "cajero_automatico", "reparto_con_resto", "estados_materia"}
     assert nuevos_3grado <= ids_grande8
     assert not (nuevos_3grado & ids_grande6)
     assert not (nuevos_3grado & ids_grande7)

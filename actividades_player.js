@@ -2945,7 +2945,8 @@ GAMES.recta_numerica = {
       const prog = rondas > 1 ? ronda / (rondas - 1) : 1;
       const max = prog > 0.5 ? (ctx.cfg.max2 || 100000) : (ctx.cfg.max1 || 10000);
       const paso = max / 10;
-      const target = rint(1, 99) * (max / 100);      // en (0, max), número "redondo"
+      const g100 = Math.max(1, Math.round(max / 100));       // paso "redondo" que escala con el rango
+      const target = rint(1, Math.floor(max / g100) - 1) * g100;   // en (0, max); entero también si max<100 (1°/2°)
       const zonaOK = Math.min(9, Math.floor(target / paso));
       ctx.item("recta#" + max + "_" + target);
       ctx.consigna("¿Dónde está el " + fmt(target) + "?  (de 0 a " + fmt(max) + ")");
@@ -3127,8 +3128,9 @@ GAMES.comparar_numeros = {
     const jugar = () => {
       ctx.ronda(ronda);
       const prog = rondas > 1 ? ronda / (rondas - 1) : 1;
-      const maxN = prog > 0.5 ? 9999 : 999;
-      const minN = prog > 0.5 ? 100 : 10;
+      const topeMax = ctx.cfg.max || 9999;                 // 3° default 4 cifras; 1°=20, 2°=999
+      const maxN = prog > 0.5 ? topeMax : Math.max(9, Math.round(topeMax / 10));
+      const minN = Math.max(1, Math.round(topeMax / (prog > 0.5 ? 100 : 1000)));
       let nums = [];
       while (nums.length < 3) { const x = rint(minN, maxN); if (!nums.includes(x)) nums.push(x); }
       const sorted = [...nums].sort((a, b) => a - b);
@@ -3250,6 +3252,56 @@ GAMES.conectores = {
       ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
     };
     jugar();
+  },
+};
+
+/* ── ORDENÁ LOS NÚMEROS (1°/2° grado — docs/auditoria-dc-caba/): ordenar de menor
+   a mayor, con la mecánica ORDENAR (tocar en orden, commit-then-check). Rango y
+   cantidad por cfg (1°: 3 números ≤20; 2°: 4 números ≤100). Escala a grados
+   mayores subiendo cfg.max/cfg.cant. Explicación C3 al errar. ── */
+GAMES.ordenar_numeros = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    const cant = ctx.cfg.cant || 3;
+    const max = ctx.cfg.max || 20;
+    const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const render = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("Ordená de MENOR a MAYOR. Tocá los números en orden.");
+      ctx.juego.innerHTML = "";
+      let nums = [];
+      while (nums.length < cant) { const x = rint(1, max); if (!nums.includes(x)) nums.push(x); }
+      const correcto = nums.slice().sort((a, b) => a - b);
+      ctx.item("ordnum#" + correcto.join("_"));
+      const mezcla = shuffle(correcto.map((n, i) => ({ n: n, pos: i })));
+      const seq = [];
+      const cont = el("div", "");
+      cont.style.cssText = "display:flex;flex-wrap:wrap;gap:12px;justify-content:center;max-width:520px;margin:0 auto";
+      const chequear = () => {
+        const ok = seq.every((p, k) => p === k);
+        if (ok) { ctx.bien(); ronda++; setTimeout(() => { if (ronda >= rondas) ctx.win(); else render(); }, 1100); }
+        else { ctx.casi("Buscá primero el más CHICO, después el que sigue, hasta el más grande."); setTimeout(render, 2000); }
+      };
+      mezcla.forEach((o) => {
+        const b = el("button", "op", fmt(o.n));
+        b.style.cssText = "min-width:74px;font-size:23px;position:relative";
+        b.addEventListener("click", () => {
+          if (b.dataset.puesto) return;
+          seq.push(o.pos);
+          b.dataset.puesto = String(seq.length);
+          b.style.opacity = "0.55";
+          const badge = el("span", "", String(seq.length));
+          badge.style.cssText = "position:absolute;right:-6px;top:-6px;background:#2b2b3a;color:#fff;border-radius:50%;width:24px;height:24px;display:grid;place-items:center;font-size:13px;font-weight:700";
+          b.appendChild(badge);
+          if (seq.length === correcto.length) chequear();
+        });
+        cont.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(cont);
+    };
+    render();
   },
 };
 
