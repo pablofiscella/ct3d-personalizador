@@ -1,0 +1,455 @@
+<title>Auditoría curricular 1°–7° · Cuaderno de actividades interactivo</title>
+<style>
+  :root{
+    --paper:#F4F6F4; --card:#FFFFFF; --ink:#18262A; --ink-soft:#4A5B5E;
+    --line:#DCE3DF; --line-strong:#C3CEC8;
+    --accent:#2E6E5E; --accent-ink:#1E5546; --accent-wash:#E7F0EC;
+    --good:#2F7D55; --good-wash:#E4F2E8;
+    --warn:#9A6410; --warn-wash:#F6ECD8;
+    --crit:#B23A3A; --crit-wash:#F6E2E1;
+    --muted:#93A29D;
+    --grade:#2E6E5E;
+    --shadow:0 1px 2px rgba(24,38,42,.06),0 8px 24px -12px rgba(24,38,42,.18);
+    --serif:"Iowan Old Style","Charter","Bitstream Charter",Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,system-ui,sans-serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#111A19; --card:#182421; --ink:#E7EEEA; --ink-soft:#A7B6B0;
+      --line:#26332F; --line-strong:#33443E;
+      --accent:#6FC7AC; --accent-ink:#8ED7BF; --accent-wash:#1A2A26;
+      --good:#5FBE86; --good-wash:#16281F;
+      --warn:#D9A44E; --warn-wash:#2A2213;
+      --crit:#E07A72; --crit-wash:#2C1918;
+      --muted:#5E6F69;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="light"]{
+    --paper:#F4F6F4; --card:#FFFFFF; --ink:#18262A; --ink-soft:#4A5B5E;
+    --line:#DCE3DF; --line-strong:#C3CEC8;
+    --accent:#2E6E5E; --accent-ink:#1E5546; --accent-wash:#E7F0EC;
+    --good:#2F7D55; --good-wash:#E4F2E8; --warn:#9A6410; --warn-wash:#F6ECD8;
+    --crit:#B23A3A; --crit-wash:#F6E2E1; --muted:#93A29D;
+    --shadow:0 1px 2px rgba(24,38,42,.06),0 8px 24px -12px rgba(24,38,42,.18);
+  }
+  :root[data-theme="dark"]{
+    --paper:#111A19; --card:#182421; --ink:#E7EEEA; --ink-soft:#A7B6B0;
+    --line:#26332F; --line-strong:#33443E;
+    --accent:#6FC7AC; --accent-ink:#8ED7BF; --accent-wash:#1A2A26;
+    --good:#5FBE86; --good-wash:#16281F; --warn:#D9A44E; --warn-wash:#2A2213;
+    --crit:#E07A72; --crit-wash:#2C1918; --muted:#5E6F69;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px -14px rgba(0,0,0,.6);
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:var(--sans);line-height:1.6;
+    font-size:16px;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+
+  /* ---- hero ---- */
+  header.hero{
+    border-bottom:1px solid var(--line);
+    background:
+      radial-gradient(120% 140% at 88% -20%,var(--accent-wash) 0%,transparent 55%),
+      var(--paper);
+  }
+  .hero-inner{max-width:1080px;margin:0 auto;padding:64px 24px 44px}
+  .eyebrow{
+    font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--accent-ink);margin:0 0 20px;font-weight:600;
+  }
+  h1{
+    font-family:var(--serif);font-weight:700;
+    font-size:clamp(30px,5.2vw,52px);line-height:1.04;letter-spacing:-.015em;
+    margin:0;max-width:20ch;text-wrap:balance;
+  }
+  .verdict{
+    margin:26px 0 0;font-size:clamp(18px,2.4vw,22px);line-height:1.4;color:var(--ink-soft);
+    max-width:60ch;
+  }
+  .verdict b{color:var(--crit);font-weight:700}
+  .meta-row{
+    display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:30px;
+    font-size:13.5px;color:var(--ink-soft);align-items:center;
+  }
+  .meta-row .k{font-family:var(--mono);color:var(--accent-ink);font-weight:600}
+  .gradechips{display:flex;gap:6px;margin-top:26px;flex-wrap:wrap}
+  .gradechips span{
+    font-family:var(--mono);font-weight:600;font-size:13px;
+    width:38px;height:38px;display:grid;place-items:center;border-radius:9px;
+    background:var(--card);border:1px solid var(--line-strong);color:var(--accent-ink);
+    box-shadow:var(--shadow);
+  }
+
+  /* ---- sticky nav ---- */
+  nav.toc{
+    position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 88%,transparent);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+  }
+  .toc-inner{max-width:1080px;margin:0 auto;padding:11px 24px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+  .toc-inner::-webkit-scrollbar{display:none}
+  .toc a{
+    white-space:nowrap;font-size:13px;color:var(--ink-soft);text-decoration:none;
+    padding:6px 12px;border-radius:7px;font-weight:500;transition:background .15s,color .15s;
+  }
+  .toc a:hover{background:var(--accent-wash);color:var(--accent-ink)}
+  .toc a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+
+  /* ---- sections ---- */
+  section{padding:52px 0;border-bottom:1px solid var(--line)}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 8px}
+  .sec-num{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent);letter-spacing:.05em}
+  h2{
+    font-family:var(--serif);font-weight:700;font-size:clamp(23px,3.4vw,32px);
+    line-height:1.12;letter-spacing:-.01em;margin:0;text-wrap:balance;
+  }
+  .lede{color:var(--ink-soft);max-width:66ch;margin:14px 0 28px;font-size:16.5px}
+  h3{font-family:var(--sans);font-weight:700;font-size:16px;letter-spacing:.01em;margin:30px 0 12px;color:var(--accent-ink)}
+  p{max-width:68ch}
+  a.inline{color:var(--accent-ink);text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px}
+
+  /* ---- answer cards ---- */
+  .cards{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 22px 20px;
+    box-shadow:var(--shadow);
+  }
+  .card .q{font-weight:700;font-size:15px;margin:0 0 10px;color:var(--ink)}
+  .card .a{font-size:14.5px;color:var(--ink-soft);margin:0;line-height:1.55}
+  .card .big{font-family:var(--serif);font-size:30px;font-weight:700;color:var(--accent-ink);display:block;line-height:1;margin:2px 0 8px}
+  .card.warn-card{border-color:color-mix(in srgb,var(--crit) 40%,var(--line))}
+  .card.warn-card .big{color:var(--crit)}
+
+  /* ---- tables ---- */
+  .tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);background:var(--card)}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:620px}
+  caption{caption-side:top;text-align:left;font-weight:700;font-size:15px;padding:16px 16px 4px;color:var(--accent-ink);font-family:var(--sans)}
+  thead th{
+    position:sticky;top:0;background:var(--card);text-align:left;font-weight:700;
+    padding:12px 12px;border-bottom:2px solid var(--line-strong);color:var(--ink);
+    font-size:12.5px;white-space:nowrap;
+  }
+  thead th.grade{text-align:center;font-family:var(--mono);color:var(--accent);width:1%}
+  tbody th{text-align:left;font-weight:600;padding:11px 12px;border-bottom:1px solid var(--line);color:var(--ink);white-space:nowrap;position:sticky;left:0;background:var(--card)}
+  tbody td{padding:11px 12px;border-bottom:1px solid var(--line);color:var(--ink-soft);vertical-align:top}
+  tbody tr:last-child td,tbody tr:last-child th{border-bottom:none}
+  td.num,th.num{font-variant-numeric:tabular-nums;font-family:var(--mono);text-align:center;color:var(--ink)}
+  td.mut{color:var(--muted);text-align:center;font-family:var(--mono)}
+  td.start{color:var(--good);font-weight:600}
+  tbody tr:hover td,tbody tr:hover th{background:color-mix(in srgb,var(--accent-wash) 55%,transparent)}
+  .flag{color:var(--crit);font-weight:600}
+  .fnote{font-size:12.5px;color:var(--muted);margin:10px 2px 0;max-width:70ch}
+
+  /* status pills */
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;
+    padding:3px 9px;border-radius:999px;font-family:var(--sans);white-space:nowrap;line-height:1.3}
+  .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+  .pill.ok{color:var(--good);background:var(--good-wash)}
+  .pill.mid{color:var(--warn);background:var(--warn-wash)}
+  .pill.bad{color:var(--crit);background:var(--crit-wash)}
+
+  /* ---- callout ---- */
+  .callout{
+    background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px 26px 22px;
+    box-shadow:var(--shadow);border-top:4px solid var(--crit);
+  }
+  .callout h3{margin-top:0;color:var(--crit);font-size:15px}
+  .callout ol{margin:14px 0 0;padding-left:20px}
+  .callout li{margin:0 0 12px;color:var(--ink-soft);max-width:74ch}
+  .callout li b{color:var(--ink)}
+  .callout code{font-family:var(--mono);font-size:12.5px;background:var(--accent-wash);color:var(--accent-ink);padding:1px 6px;border-radius:5px}
+
+  /* ---- steps ---- */
+  .steps{display:grid;gap:14px;counter-reset:s;margin-top:22px}
+  .step{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start;
+    background:var(--card);border:1px solid var(--line);border-radius:13px;padding:18px 20px;box-shadow:var(--shadow)}
+  .step .n{counter-increment:s;font-family:var(--mono);font-weight:700;color:var(--accent);
+    width:32px;height:32px;display:grid;place-items:center;border-radius:9px;background:var(--accent-wash);font-size:15px}
+  .step .n::before{content:counter(s)}
+  .step .b{margin:0}
+  .step .b b{color:var(--ink)}
+  .step .b{color:var(--ink-soft);font-size:14.5px}
+
+  .qw{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:20px}
+  .qw .item{background:var(--good-wash);border:1px solid color-mix(in srgb,var(--good) 30%,var(--line));
+    border-radius:12px;padding:16px 18px}
+  .qw .item .t{font-weight:700;font-size:14.5px;color:var(--ink);margin:0 0 6px;display:flex;gap:8px;align-items:center}
+  .qw .item .t .tag{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--good);
+    background:var(--card);padding:2px 7px;border-radius:5px;border:1px solid color-mix(in srgb,var(--good) 30%,var(--line))}
+  .qw .item p{margin:0;font-size:13.5px;color:var(--ink-soft)}
+
+  footer{padding:40px 0 64px;color:var(--muted);font-size:13px}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center}
+  footer code{font-family:var(--mono);color:var(--ink-soft)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin:0 2px 16px;font-size:12.5px;color:var(--ink-soft);align-items:center}
+
+  @media (max-width:640px){
+    .hero-inner{padding:44px 20px 32px}
+    section{padding:40px 0}
+    .wrap,.toc-inner,.hero-inner{padding-left:18px;padding-right:18px}
+  }
+</style>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">Auditoría · Diseño Curricular CABA 2024 · 1° a 7° grado</p>
+    <h1>¿Las actividades de cada año son acordes al Diseño Curricular?</h1>
+    <p class="verdict"><b>No todavía.</b> Un chico de 6° grado recibe hoy 17 de sus 25 juegos <em>idénticos</em> a los de 1°. La queja de los chicos de 4° —"algunas son muy fáciles"— está confirmada en el código, no es percepción. Acá está el mapa completo para llevarlo a excelencia, grado por grado.</p>
+    <div class="meta-row">
+      <span><span class="k">62</span> análisis independientes</span>
+      <span><span class="k">11</span> extractores del DC</span>
+      <span><span class="k">21</span> revisores en panel · maestra, alumno, auditor externo</span>
+      <span><span class="k">7</span> dossiers por grado</span>
+    </div>
+    <div class="gradechips" aria-label="Grados cubiertos">
+      <span>1°</span><span>2°</span><span>3°</span><span>4°</span><span>5°</span><span>6°</span><span>7°</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Secciones">
+  <div class="toc-inner">
+    <a href="#respuestas">Respuestas directas</a>
+    <a href="#matriz">Matriz vertical</a>
+    <a href="#auditoria">Auditoría por grado</a>
+    <a href="#dosificacion">Cuántas actividades</a>
+    <a href="#motor">Motor de dominio</a>
+    <a href="#quickwins">Quick wins</a>
+    <a href="#plan">Plan de construcción</a>
+  </div>
+</nav>
+
+<main>
+
+<section id="respuestas">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">00</span><h2>Respuestas directas a lo que preguntaste</h2></div>
+    <p class="lede">Lo esencial primero. El detalle que sostiene cada número está en las secciones siguientes y en los siete dossiers por grado.</p>
+    <div class="cards">
+      <div class="card">
+        <p class="q">¿Cuántas actividades por año?</p>
+        <span class="big">45 → 70</span>
+        <p class="a">De 45 en 1° a ~70 en 6°-7°. Pero lo que importa es el <b>núcleo garantizado</b>: ~25-40 por año que el chico <b>realmente domina</b>. El resto es exposición.</p>
+      </div>
+      <div class="card">
+        <p class="q">¿Cuántos ejercicios para entender un tema?</p>
+        <span class="big">30–50</span>
+        <p class="a">Unas 3 a 5 sesiones de 8-10 rondas, desde un banco de <b>24-40 ítems distintos</b> (o un generador infinito para pura práctica). Menos de ~30 no fija.</p>
+      </div>
+      <div class="card warn-card">
+        <p class="q">¿Está alineado hoy al DC?</p>
+        <span class="big">5–24%</span>
+        <p class="a">El anclaje curricular real por grado: 4° tiene <b>5 de 25</b> juegos, 5° el 8%, 6° el ~12%. La causa es una sola: la banda "grande" del motor es <b>6 años sin tope</b>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="matriz">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">01</span><h2>Matriz vertical: cada contenido a lo largo de 1°→7°</h2></div>
+    <p class="lede">Tu pregunta literal — "qué tipo de sumas según la edad, desde qué grado divisiones, así con todo". Una fila por hilo curricular, una columna por grado. Sale del DC de CABA cruzado con la propuesta de diseño de cada grado.</p>
+
+    <div class="legend">
+      <span class="pill ok">arranca acá</span>
+      <span style="color:var(--muted);font-family:var(--mono)">—&nbsp;&nbsp;todavía no corresponde</span>
+      <span class="flag">▲ señalado para corregir</span>
+    </div>
+
+    <div class="tscroll" style="margin-bottom:26px">
+      <table>
+        <caption>Matemática</caption>
+        <thead><tr><th>Hilo</th><th class="grade">1°</th><th class="grade">2°</th><th class="grade">3°</th><th class="grade">4°</th><th class="grade">5°</th><th class="grade">6°</th><th class="grade">7°</th></tr></thead>
+        <tbody>
+          <tr><th>Numeración (hasta)</th><td class="num">100</td><td class="num">1.000</td><td class="num">10.000</td><td class="num">100.000</td><td class="num">1.000.000</td><td class="num">sin tope</td><td>sist. num. / sexagesimal</td></tr>
+          <tr><th>Suma / resta</th><td>≤18 pictórico</td><td>reagrup. a 1.000</td><td>llevada/préstamo a 10.000</td><td>canje en cadena a 100.000</td><td>dentro de racionales</td><td>con fracc. y decimales</td><td>integrado a potencias</td></tr>
+          <tr><th>Multiplicación</th><td class="mut">—</td><td class="start">concepto de ×</td><td>tabla pitagórica</td><td>× por 2 cifras</td><td>repaso + propiedades</td><td>primos, permutaciones</td><td>potencias, × de fracc.</td></tr>
+          <tr><th>División</th><td class="mut">—</td><td class="mut">—</td><td class="start">reparto con resto</td><td>algoritmo "por partes"</td><td>por aproximaciones + divisibilidad</td><td>por 2 cifras (cuenta larga)</td><td>racionales, ÷ de fracc.</td></tr>
+          <tr><th>Fracciones</th><td class="mut">—</td><td class="mut">—</td><td class="mut">—</td><td class="start">arranque (reparto/medida)</td><td>equivalencias, +/− simple</td><td>+/− distinto denom. + producto</td><td>× y ÷</td></tr>
+          <tr><th>Decimales</th><td class="mut">—</td><td class="mut">—</td><td class="mut">—</td><td class="start">1er contacto (dinero)</td><td>décimos/centésimos</td><td>operaciones</td><td>proporcionalidad, %</td></tr>
+          <tr><th>Geometría</th><td>formas básicas</td><td>figuras + atributos</td><td>cuerpos + desarrollos</td><td>ángulos + transportador</td><td>construcciones + desig. triangular</td><td>polígonos, círculo</td><td>área/perímetro</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tscroll" style="margin-bottom:26px">
+      <table>
+        <caption>Lengua</caption>
+        <thead><tr><th>Hilo</th><th class="grade">1°</th><th class="grade">2°</th><th class="grade">3°</th><th class="grade">4°</th><th class="grade">5°</th><th class="grade">6°</th><th class="grade">7°</th></tr></thead>
+        <tbody>
+          <tr><th>Comprensión (largo de texto)</th><td>palabra→4 oraciones</td><td class="num">60–100</td><td class="num">60–150</td><td class="num">100–150</td><td class="num">200–350</td><td class="flag">▲ hoy 120–180</td><td>1–2 páginas</td></tr>
+          <tr><th>Acentuación</th><td class="mut">(fonemas)</td><td class="mut">—</td><td class="start">agudas/graves/esdrújulas</td><td>+ regla de tilde</td><td>tilde diacrítica</td><td>+ hiato, −mente</td><td>homófonos</td></tr>
+          <tr><th>Gramática</th><td class="mut">—</td><td>separación de palabras</td><td>clases de palabra</td><td class="start">sujeto / predicado</td><td>OD/OI (introduce)</td><td>OD/OI + transitividad</td><td>análisis completo</td></tr>
+          <tr><th>Conectores</th><td class="mut">—</td><td class="start">copulativos</td><td>+ temporales</td><td>adversativos</td><td>causales</td><td>consecutivos</td><td>argumentativos</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="fnote"><span class="flag">▲</span> <b>Regresión a corregir:</b> en 6° el chico lee textos más cortos (120–180) que en 5° (200–350). Es el quiebre vertical más serio del corpus — 6° debería estar en ≥350.</p>
+
+    <div class="tscroll" style="margin:26px 0">
+      <table>
+        <caption>Ciencias — Conocimiento del Mundo (1°–3°) → Naturales + Sociales (4°–7°)</caption>
+        <thead><tr><th>Hilo</th><th class="grade">1°</th><th class="grade">2°</th><th class="grade">3°</th><th class="grade">4°</th><th class="grade">5°</th><th class="grade">6°</th><th class="grade">7°</th></tr></thead>
+        <tbody>
+          <tr><th>Historia argentina</th><td>zonas / antes-hoy</td><td>roles y trabajos</td><td>pasado cercano</td><td>originarios, colonia</td><td>1806–1853</td><td>1862–1930</td><td>s.XX: peronismo, democracia</td></tr>
+          <tr><th>Astronomía</th><td>día / noche</td><td class="mut">—</td><td>el cielo, el Sol</td><td class="mut">—</td><td>fases, eclipses</td><td>heliocéntrico</td><td>rotación / traslación</td></tr>
+          <tr><th>Cuerpo humano</th><td>partes</td><td>cuidados</td><td>digestivo</td><td class="mut">—</td><td>sistemas integrados</td><td>reproducción (ESI)</td><td>nervioso, inmune, célula</td></tr>
+          <tr><th>Seres vivos</th><td>animales/plantas</td><td>germinación</td><td>clasificación</td><td>ambientes</td><td>fotosíntesis</td><td>redes tróficas (roles)</td><td>construir la red</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tscroll">
+      <table>
+        <caption>Programación (Tecnología, Diseño y Programación) — línea corregida, un hito por año</caption>
+        <thead><tr><th>Hilo</th><th class="grade">1°</th><th class="grade">2°</th><th class="grade">3°</th><th class="grade">4°</th><th class="grade">5°</th><th class="grade">6°</th><th class="grade">7°</th></tr></thead>
+        <tbody>
+          <tr><th>Pensamiento computacional</th><td class="start">secuencia</td><td>condicional si/entonces</td><td>bucle repetir ×N</td><td>bucle + depuración</td><td>variable</td><td>eventos</td><td>paralelismo</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="fnote">Hoy los dossiers re-presentan "repetir + depurar" como novedad en 3°, 4° <em>y</em> 5° (meseta). Arriba está la línea corregida: cada concepto asignado a un solo grado.</p>
+  </div>
+</section>
+
+<section id="auditoria">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">02</span><h2>Auditoría: estado actual grado por grado</h2></div>
+    <p class="lede">Veredicto duro sobre lo que hay hoy en el menú de cada edad, contra lo que pide el DC de ese grado.</p>
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>Grado</th><th class="num">Juegos hoy</th><th class="num">Con anclaje real</th><th>Estado</th><th>Diagnóstico central</th></tr></thead>
+        <tbody>
+          <tr><th>1° · 6 años</th><td class="num">~11–16</td><td class="num">parcial</td><td><span class="pill mid">mezclado</span></td><td>Base de inicial razonable pero mezclada; sobra "colorear/puntos" sin currículum.</td></tr>
+          <tr><th>2° · 7 años</th><td class="num">25</td><td class="num">6</td><td><span class="pill mid">24%</span></td><td>Mayoría binarios de inicial; falta multiplicación como concepto y comprensión real.</td></tr>
+          <tr><th>3° · 8 años</th><td class="num">25</td><td class="num">~8</td><td><span class="pill mid">bug</span></td><td>Falta división y tabla pitagórica. <span class="flag">Bug real:</span> <code style="font-family:var(--mono);font-size:12px">serie</code> invertida (tope 30 a los 6, 16 a los mayores).</td></tr>
+          <tr><th>4° · 9 años</th><td class="num">25</td><td class="num">5</td><td><span class="pill bad">"muy fácil"</span></td><td>16 juegos son evergreen de 1°/inicial. <b>Acá está la queja — confirmada en código.</b></td></tr>
+          <tr><th>5° · 10 años</th><td class="num">25</td><td class="num">2</td><td><span class="pill bad">8%</span></td><td>Techo aritmético en 16 contra un rango del millón. Casi nada alineado.</td></tr>
+          <tr><th>6° · 11 años</th><td class="num">25</td><td class="num">3</td><td><span class="pill bad">12%</span></td><td><b>17 de 25 juegos idénticos a 1° grado</b> (<code style="font-family:var(--mono);font-size:12px">actividades_web.py</code> L318).</td></tr>
+          <tr><th>7° · 12 años</th><td class="num">25</td><td class="num">pocos</td><td><span class="pill bad">gaps</span></td><td>Falta álgebra inicial, s.XX e Inglés (no estaba ni en el catálogo).</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="fnote"><b>Causa raíz común:</b> la banda de edad <code style="font-family:var(--mono);font-size:12px">"grande"</code> es <code style="font-family:var(--mono);font-size:12px">edad ≥ 6 sin tope</code> — un chico de 12 recibe el mismo menú que uno de 6. Hasta abrir bandas por grado, ningún contenido nuevo tiene forma de mostrarse solo a quien corresponde.</p>
+  </div>
+</section>
+
+<section id="dosificacion">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">03</span><h2>Cuántas actividades y ejercicios por año</h2></div>
+    <p class="lede">La dosificación completa. El total no es lo importante: el núcleo garantizado es lo que el chico realmente domina en un año de uso real (1-2 sesiones por semana).</p>
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>&nbsp;</th><th class="grade">1°</th><th class="grade">2°</th><th class="grade">3°</th><th class="grade">4°</th><th class="grade">5°</th><th class="grade">6°</th><th class="grade">7°</th></tr></thead>
+        <tbody>
+          <tr><th>Actividades curriculares</th><td class="num">45</td><td class="num">51</td><td class="num">53</td><td class="num">58</td><td class="num">56</td><td class="num">70*</td><td class="num">68</td></tr>
+          <tr><th>· Matemática</th><td class="num">14</td><td class="num">18</td><td class="num">18</td><td class="num">19</td><td class="num">18</td><td class="num">23</td><td class="num">16</td></tr>
+          <tr><th>· Lengua</th><td class="num">13</td><td class="num">19</td><td class="num">17</td><td class="num">17</td><td class="num">16</td><td class="num">16</td><td class="num">15</td></tr>
+          <tr><th>· Ciencias (Nat+Soc / CdM)</th><td class="num">9</td><td class="num">7</td><td class="num">10</td><td class="num">16</td><td class="num">17</td><td class="num">21</td><td class="num">20</td></tr>
+          <tr><th>· Tec + Transv. (+Inglés 7°)</th><td class="num">9</td><td class="num">7</td><td class="num">8</td><td class="num">6</td><td class="num">5</td><td class="num">10</td><td class="num">17</td></tr>
+          <tr style="background:var(--accent-wash)"><th style="background:var(--accent-wash);color:var(--accent-ink)">Núcleo garantizado (domina)</th><td class="num">~20</td><td class="num">~24</td><td class="num">20</td><td class="num">26</td><td class="num">39</td><td class="num">~40</td><td class="num">~50</td></tr>
+          <tr><th>Juegos de recreo (sin sello)</th><td class="num">7</td><td class="num">7</td><td class="num">6</td><td class="num">5</td><td class="num">6</td><td class="num">3</td><td class="num">1</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="fnote">* 6° está sobredimensionado (70) para el tiempo real de un año; hay que recortarle el núcleo a ~40 y mandar el resto a exposición, como ya hacen 4°, 5° y 7°.</p>
+
+    <h3>Ítems por banco, según para qué sirve el juego</h3>
+    <div class="cards">
+      <div class="card"><p class="q">Drill de núcleo</p><p class="a">Aritmética, ortografía, tablas → <b>generador paramétrico infinito</b>. Imposible de memorizar.</p></div>
+      <div class="card"><p class="q">Conceptual nodal</p><p class="a">Trivia / clasificar de alto uso → <b>24–40 ítems</b> escritos a mano, distractores por error real.</p></div>
+      <div class="card"><p class="q">Exposición</p><p class="a">Menor uso → <b>16–20 ítems</b>. Alcanza para 1-2 pasadas sin certificar dominio.</p></div>
+      <div class="card"><p class="q">Techo epistémico</p><p class="a">Hay 27 letras, 6 cuerpos, 8 planetas: la realidad fija el número. Banco chico <b>declarado "de exposición"</b>, sin disimular.</p></div>
+    </div>
+    <p style="margin-top:24px;font-size:16.5px;color:var(--ink);max-width:70ch"><b>En una línea:</b> apuntá a ~50 actividades por año, con un núcleo de ~30 que el chico realmente domina; cada tema se entiende con 3–5 sesiones (30–50 ejercicios) de un banco de 24–40 ítems, o de un generador infinito para lo que es pura práctica.</p>
+  </div>
+</section>
+
+<section id="motor">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">04</span><h2>La condición previa para los 7 grados: el motor de dominio</h2></div>
+    <p class="lede">El hallazgo de mayor impacto de toda la auditoría. Verificado en código, no supuesto.</p>
+    <div class="callout">
+      <h3>⚠ Hoy el motor no verifica que el chico aprenda</h3>
+      <ol>
+        <li><b>No hay compuerta de dominio:</b> <code>win()</code> se dispara por <code>ronda &gt;= rondas</code>, no por acierto sostenido. El chico "gana" por completar, aunque no entienda.</li>
+        <li><b>No hay explicación del porqué:</b> hay 82 llamadas a la función de error (<code>casi()</code>), <b>ninguna</b> explica qué estuvo mal. Solo sacude.</li>
+        <li><b>Los distractores son al azar</b> (<code>rint()</code>), no errores conceptuales reales. Un juego con pocas opciones se gana por eliminación.</li>
+      </ol>
+      <p style="margin:18px 0 0;color:var(--ink-soft);max-width:74ch">Las reglas pedagógicas que proponen los 7 dossiers son <b style="color:var(--ink)">aspiracionales hasta construir esta "Capa 0"</b>. Es <b style="color:var(--ink)">un solo desarrollo que desbloquea los 7 grados a la vez</b> — no siete. Va <b style="color:var(--ink)">antes</b> que el contenido: no tiene sentido escribir 6.000 ítems para un motor que no mide si se aprenden.</p>
+    </div>
+  </div>
+</section>
+
+<section id="quickwins">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">05</span><h2>Quick wins: matar el "muy fácil" esta semana</h2></div>
+    <p class="lede">Curación de horas, no rebuild. Deployables ya, en toda la banda — cambian la percepción mientras se construye el resto.</p>
+    <div class="qw">
+      <div class="item"><p class="t">Bug <code style="font-family:var(--mono);font-size:12.5px">serie</code> invertida <span class="tag">minutos</span></p><p>A los 6 años el tope es 30, a los mayores 16. Está al revés. Fix inmediato.</p></div>
+      <div class="item"><p class="t">Retirar juegos de inicial <span class="tag">config</span></p><p>Los ~10 juegos de inicial (contar, más/menos, patrón, colorear…) aparecen idénticos a los 6 y a los 12. Sacarlos del menú de los grandes es configuración, no código.</p></div>
+      <div class="item"><p class="t">Abrir bandas por grado <span class="tag">1 función</span></p><p>Hoy "grande" = 6 sin tope, en <code style="font-family:var(--mono);font-size:12.5px">_banda()</code>. Sin esto nada nuevo se puede segmentar por edad.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="plan" style="border-bottom:none">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Plan de construcción: cómo armarlo, en qué orden</h2></div>
+    <p class="lede">El volumen honesto: ~1.000 ítems por grado × 7 ≈ <b>6.000–7.000 ítems</b> a escribir y validar a mano, más ~15-20 mecánicas interactivas nuevas, más la Capa 0. El orden importa más que la velocidad.</p>
+    <div class="steps">
+      <div class="step"><div class="n"></div><p class="b"><b>Capa 0 — motor de dominio.</b> Compuerta de dominio, explicación del porqué, distractores por misconception, telemetría por ítem. Una vez, desbloquea todo.</p></div>
+      <div class="step"><div class="n"></div><p class="b"><b>Quick wins en paralelo.</b> Los tres arreglos de la sección anterior — deployables ya.</p></div>
+      <div class="step"><div class="n"></div><p class="b"><b>4° grado primero, como MVP de contenido.</b> Es donde está la queja viva y real. Probar el modelo completo (auditoría→propuesta→construcción→validación docente) en un grado antes de escalar.</p></div>
+      <div class="step"><div class="n"></div><p class="b"><b>Bajar por vecindad:</b> 3° y 5° (comparten mecánicas con 4°), después 2° y 6°, después 1° y 7°.</p></div>
+      <div class="step"><div class="n"></div><p class="b"><b>Pipeline de autoría.</b> Decidir generar→revisar→cachear (como los audiolibros) vs. escritura 100% a mano, y <b>quién valida</b>: idealmente una docente real por grado. Hoy el panel es simulado; la QA humana sigue pendiente y es condición del claim de "excelencia".</p></div>
+    </div>
+
+    <h3>Mecánicas interactivas nuevas (reutilizables entre grados)</h3>
+    <p style="max-width:74ch">Lo que pediste como "propuestas para las interactivas". Cada una se construye una vez y sirve a varios grados: barras de fracciones CPA · cajero / contador de billetes · tokens tocables · reloj con agujas arrastrables · plano cartesiano · árbol de probabilidad · chat ramificado · nodos-y-enlaces (redes tróficas) · tap-zonas sobre lámina · estimar→verificar · repetir×N + depurador.</p>
+
+    <h3>Lo que queda honestamente afuera</h3>
+    <p style="max-width:74ch">Escritura libre, cursiva, oralidad y lectura en voz alta quedan fuera de lo digital en todos los grados — el motor no corrige texto abierto ni evalúa voz. Eso lo completa el <b>cuaderno imprimible</b>. Hay que cuantificar qué cubre lo digital vs. el papel y decirlo de frente: es tu primer argumento de posicionamiento, no una debilidad a esconder.</p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Documentos detallados por grado:</span>
+    <code>grado-1.md … grado-7.md</code>
+    <span>·</span>
+    <code>dosificacion-global.md</code>
+    <span>·</span>
+    <code>faltantes.md</code>
+    <span>·</span>
+    <span>Fuente: Diseño Curricular Nivel Primario, CABA 2024 (1er + 2do ciclo).</span>
+  </div>
+</footer>
+
+<script>
+  // resalta la sección activa en la navegación
+  (function(){
+    var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+    var map = {};
+    links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          links.forEach(function(l){ l.style.background=''; l.style.color=''; });
+          var a = map[e.target.id];
+          if(a){ a.style.background='var(--accent-wash)'; a.style.color='var(--accent-ink)'; }
+        }
+      });
+    },{rootMargin:'-45% 0px -50% 0px'});
+    document.querySelectorAll('section[id]').forEach(function(s){ obs.observe(s); });
+  })();
+</script>
