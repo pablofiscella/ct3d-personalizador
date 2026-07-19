@@ -57,3 +57,6 @@ temas/*/audiolibro_demo_*.txt
 # prebuild_pdfs; ~120MB que no van al repo)
 libros_pdf/
 .claude/worktrees/
+
+# cache runtime de TTS on-demand (voz argentina de explicaciones/consignas dinámicas)
+audio_dinamico/
