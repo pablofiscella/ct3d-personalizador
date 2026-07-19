@@ -416,6 +416,12 @@ def _menu(banda, edad):
         g.append({"id": "duelo_decimales", "titulo": "Duelo de decimales", "icono": "💲", "cfg": {"rondas": 10}})
         g.append({"id": "duelo_fracciones", "titulo": "Duelo de fracciones", "icono": "🍫", "cfg": {"rondas": 10}})
         g.append({"id": "recta_numerica", "titulo": "Recta gigante", "icono": "📍", "cfg": {"rondas": 10, "max1": 100000, "max2": 1000000}})
+        # 2ª tanda 5° (19-jul-2026): actividades PROPIAS del dossier de 5° (no
+        # moldes reusados), para nivelar 5° hacia su núcleo siguiendo la curva
+        # creciente del DC (análisis de balance de actividades).
+        g.append({"id": "equivalencias_medida", "titulo": "Equivalencias de medida", "icono": "📏", "cfg": {"rondas": 10}})
+        g.append({"id": "verbos_pasado", "titulo": "¿Cantó o cantaba?", "icono": "⏪", "cfg": {"rondas": 10}})
+        g.append({"id": "buenos_aires", "titulo": "Mi Buenos Aires querido", "icono": "🏙️", "cfg": {"rondas": 10}})
     if e == 11:
         # 6° grado (14-jul-2026): mismo criterio — un juego por cada "Idea
         # web" del NAP.
