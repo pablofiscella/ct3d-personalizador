@@ -163,6 +163,25 @@ def _menu(banda, edad):
         {"id": "quefalta",  "titulo": "¿Qué falta?",      "icono": "❓", "cfg": {"items": 5, "rondas": 6}},
         {"id": "bingo",     "titulo": "Bingo de amigos",  "icono": "🎯", "cfg": {"tam": 9}},
     ]
+    # ── Fase 0A quick-win (19-jul-2026, docs/auditoria-dc-caba/) ──────────
+    # Tope de "serie" creciente por grado. Antes SOLO e==6 subía el tope a 30
+    # (NAP 1°) y el resto caía al default 16 del player → un chico de 6 años
+    # recibía números MÁS ALTOS que uno de 12 (bug de dificultad invertida).
+    # e==6 sigue puesto en su propio bloque más abajo (junto con simon).
+    _SERIE_TOPE = {7: 50, 8: 80, 9: 120, 10: 200, 11: 300, 12: 500}
+    if e in _SERIE_TOPE:
+        for item in g:
+            if item["id"] == "serie":
+                item["cfg"] = {**item["cfg"], "tope": _SERIE_TOPE[e]}
+    # Retirar de 4°-7° (e>=9) los juegos clavados en dificultad de inicial que
+    # NO escalan con la edad y son el origen de la queja "muy fácil" de 4°:
+    # sumas/restas cuentan sprites en pantalla (max 10, mecánica concreta de
+    # nenes), contar/mas_menos ≤9, colorear/puntos sin anclaje curricular.
+    # Cada grado conserva su contenido NAP propio (bloques if e==9..12).
+    if e >= 9:
+        _DROP_INICIAL = {"sumas", "restas", "contar", "mas_menos", "colorear", "puntos"}
+        g = [it for it in g if it["id"] not in _DROP_INICIAL]
+    # ─────────────────────────────────────────────────────────────────────
     if e == 6:
         # NAP 1° grado Bimestre 1: "números del 1 al 30", "anterior y
         # posterior" — "serie" ya hacía justo esto (¿qué número falta en la
