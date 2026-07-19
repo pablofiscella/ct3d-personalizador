@@ -318,6 +318,13 @@ def _menu(banda, edad):
         # el arranque del eje nodal de fracciones de 4° con duelo_fracciones.
         g.append({"id": "reparto_fracciones", "titulo": "Reparto justo", "icono": "🍰", "cfg": {"rondas": 10}})
         g.append({"id": "completar_entero", "titulo": "Completar el entero", "icono": "🥛", "cfg": {"rondas": 10}})
+        # M11 decimales + M7 problemas + L10 plurales-z (19-jul-2026, rollout DC
+        # CABA): decimales en uso social (misconception 12,45>12,5), problemas
+        # aplicados de ×/÷ (operación equivocada como distractor), y plurales de
+        # palabras con -z (z→c). Todas con misconception distractors + C3.
+        g.append({"id": "duelo_decimales", "titulo": "Duelo de decimales", "icono": "💲", "cfg": {"rondas": 10}})
+        g.append({"id": "problemas_mult_div", "titulo": "Problemas de verdad", "icono": "🤔", "cfg": {"rondas": 10}})
+        g.append({"id": "plurales_z", "titulo": "Plurales con Z", "icono": "📝", "cfg": {"rondas": 10}})
         # Bimestre 4: ángulos + prefijos.
         # rondas=10 (14-jul-2026): ANGULOS_BANCO creció de 7 a 10.
         g.append({"id": "angulos", "titulo": "Agudo, recto u obtuso", "icono": "📐", "cfg": {"rondas": 10}})

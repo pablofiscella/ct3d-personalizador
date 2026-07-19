@@ -2663,6 +2663,179 @@ GAMES.completar_entero = {
   },
 };
 
+/* ── DUELO DE DECIMALES (M11, 4° grado — docs/auditoria-dc-caba/grado-4.md):
+   decimales en uso social (precios/medidas). Ataca LA misconception de decimales:
+   "12,45 > 12,5 porque 45 > 5" (leer los decimales como enteros). Comparar dos
+   decimales con distinta cantidad de cifras. Explicación: igualar los decimales
+   (Capa 0 · C3). ── */
+GAMES.duelo_decimales = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const ent = rint(1, 24);
+      let a = rint(1, 9);                 // A = ent,a   (1 decimal → a0 centésimos)
+      let b = rint(11, 99);               // B = ent,b   (2 decimales)
+      while (a * 10 === b) b = rint(11, 99);
+      const A = { s: ent + "," + a, v: ent + a / 10, cent: a * 10 };
+      const B = { s: ent + "," + b, v: ent + b / 100, cent: b };
+      const mayor = A.v > B.v ? "a" : "b";
+      const contexto = rint(0, 1) === 0
+        ? { pre: "¿Qué precio es MÁS caro?", u: "$" }
+        : { pre: "¿Qué medida es MÁS grande?", u: "" };
+      ctx.item("decimales#" + A.s + "_" + B.s);
+      ctx.consigna(contexto.pre);
+      ctx.juego.innerHTML = "";
+      const motivo = "Igualá los decimales: " + A.s + " es " + ent + "," + a + "0. Compará " + A.cent + " con " + B.cent + " centésimos, no la cantidad de números.";
+      const cards = [{ key: "a", o: A }, { key: "b", o: B }];
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(cards).forEach((c) => {
+        const btn = el("button", "op", contexto.u + c.o.s);
+        btn.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (c.key === mayor) {
+            resuelto = true; btn.classList.add("anim-pop"); ctx.bien();
+            ronda++; await espera(950);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          } else {
+            btn.classList.add("casi"); setTimeout(() => btn.classList.remove("casi"), 450);
+            ctx.casi(motivo);
+          }
+        });
+        fila.appendChild(btn);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── PROBLEMAS DE VERDAD (M7, 4° grado — docs/auditoria-dc-caba/grado-4.md):
+   problemas aplicados de multiplicación y división (la operatoria en contexto).
+   Generador de plantillas. Distractores por misconception: elegir la operación
+   equivocada (sumar en vez de multiplicar, etc.). Explicación C3. ── */
+GAMES.problemas_mult_div = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const tipo = rint(0, 1);
+      let texto, correcto, cand;
+      if (tipo === 0) {
+        // multiplicación: cajas × por caja
+        const cajas = rint(3, 9), cada = rint(4, 12);
+        correcto = cajas * cada;
+        texto = "Hay " + cajas + " cajas con " + cada + " figuritas cada una. ¿Cuántas figuritas hay en total?";
+        cand = [
+          { v: cajas + cada, m: "Sumaste. Son " + cajas + " cajas de " + cada + " cada una: hay que multiplicar." },
+          { v: cajas * cada - cada, m: "Contá TODAS las cajas: son " + cajas + ", no " + (cajas - 1) + "." },
+          { v: cada - cajas, m: "Eso es restar. Cada caja aporta " + cada + " figuritas." },
+        ];
+      } else {
+        // división: total ÷ grupos
+        const grupos = rint(3, 8), cada = rint(3, 9);
+        const total = grupos * cada;
+        correcto = cada;
+        texto = "Reparto " + total + " caramelos en " + grupos + " bolsas iguales. ¿Cuántos caramelos van en cada bolsa?";
+        cand = [
+          { v: total - grupos, m: "Eso es restar. Repartir en partes iguales es dividir " + total + " entre " + grupos + "." },
+          { v: total + grupos, m: "Sumaste. Hay que repartir " + total + " entre " + grupos + " bolsas." },
+          { v: cada + 1, m: "Fijate: " + grupos + " × " + (cada + 1) + " se pasa de " + total + "." },
+        ];
+      }
+      ctx.item("problema#" + tipo + "_" + correcto);
+      ctx.consigna(texto);
+      ctx.juego.innerHTML = "";
+      const opciones = [{ v: correcto, ok: true }];
+      shuffle(cand).forEach((d) => {
+        if (opciones.length >= 3) return;
+        if (d.v > 0 && d.v !== correcto && !opciones.some((o) => o.v === d.v)) opciones.push(d);
+      });
+      let intento = 0;
+      while (opciones.length < 3 && intento++ < 20) {
+        const v = correcto + rint(1, 6) * (rint(0, 1) ? 1 : -1);
+        if (v > 0 && !opciones.some((o) => o.v === v)) opciones.push({ v: v, m: "Volvé a leer el problema con cuidado." });
+      }
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const btn = el("button", "op", o.v);
+        btn.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) {
+            resuelto = true; btn.classList.add("anim-pop"); ctx.bien();
+            ronda++; await espera(950);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          } else {
+            btn.classList.add("casi"); setTimeout(() => btn.classList.remove("casi"), 450);
+            ctx.casi(o.m);
+          }
+        });
+        fila.appendChild(btn);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── PLURALES CON Z (L10, 4° grado — docs/auditoria-dc-caba/grado-4.md): plurales
+   de palabras terminadas en -z (la z cambia a c). Banco fijo (memorizar el ítem
+   ES el objetivo). Distractor por misconception: no cambiar la z (luz→luzes).
+   Explicación con la regla (Capa 0 · C3). ── */
+const PLURALES_Z_BANCO = [
+  "luz", "pez", "nuez", "lápiz", "cruz", "voz", "raíz", "feliz", "capaz", "nariz", "arroz", "juez",
+];
+GAMES.plurales_z = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    const plural = (w) => w.slice(0, -1) + "ces";
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      let disp = PLURALES_Z_BANCO.filter((w) => !usados.includes(w));
+      if (!disp.length) { usados = []; disp = PLURALES_Z_BANCO.slice(); }
+      const w = disp[rint(0, disp.length - 1)];
+      usados.push(w);
+      const correcto = plural(w);
+      ctx.item("plural_z#" + w);
+      ctx.consigna("El plural de «" + w + "» es…");
+      ctx.juego.innerHTML = "";
+      const opciones = [
+        { t: correcto, ok: true },
+        { t: w + "es", m: "Las palabras con Z cambian la z por C en plural: " + w + " → " + correcto + "." },
+        { t: w, m: "En plural hay que agregar la terminación: " + w + " → " + correcto + "." },
+      ];
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const btn = el("button", "op", o.t);
+        btn.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) {
+            resuelto = true; btn.classList.add("anim-pop"); ctx.bien();
+            ronda++; await espera(950);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          } else {
+            btn.classList.add("casi"); setTimeout(() => btn.classList.remove("casi"), 450);
+            ctx.casi(o.m);
+          }
+        });
+        fila.appendChild(btn);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 /* ── ¿DE QUÉ MATERIAL ES? — trivia (14-jul-2026, 1° grado NAP Bimestre 4
    "Ideas web": "trivia de materiales — ¿vidrio, madera o metal para una
    ventana?"). Opciones de TEXTO (no emoji — no hay glifo distintivo por
