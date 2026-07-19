@@ -4071,6 +4071,112 @@ GAMES.problemas_3ro = {
   },
 };
 
+/* ── ¿CON QUÉ LETRA EMPIEZA? (1° grado — docs/auditoria-dc-caba/grado-1.md):
+   conciencia fonológica — reconocer el sonido/letra inicial. La consigna se LEE
+   en voz alta (voz argentina, ya funciona) → el chico ESCUCHA la palabra. Trivia
+   con la letra correcta + distractores. Explicación con el sonido (C3). ── */
+const LETRA_INICIAL_BANCO = [
+  { q: "¿Con qué letra empieza «sol»?", ok: "S", d: ["L", "O"], m: "«sol» empieza con el sonido /s/: la letra S." },
+  { q: "¿Con qué letra empieza «luna»?", ok: "L", d: ["N", "U"], m: "«luna» empieza con el sonido /l/: la letra L." },
+  { q: "¿Con qué letra empieza «pato»?", ok: "P", d: ["B", "T"], m: "«pato» empieza con el sonido /p/: la letra P." },
+  { q: "¿Con qué letra empieza «mesa»?", ok: "M", d: ["N", "S"], m: "«mesa» empieza con el sonido /m/: la letra M." },
+  { q: "¿Con qué letra empieza «casa»?", ok: "C", d: ["S", "A"], m: "«casa» empieza con el sonido /k/: la letra C." },
+  { q: "¿Con qué letra empieza «dedo»?", ok: "D", d: ["B", "T"], m: "«dedo» empieza con el sonido /d/: la letra D." },
+  { q: "¿Con qué letra empieza «rana»?", ok: "R", d: ["L", "N"], m: "«rana» empieza con el sonido /r/: la letra R." },
+  { q: "¿Con qué letra empieza «foca»?", ok: "F", d: ["V", "C"], m: "«foca» empieza con el sonido /f/: la letra F." },
+  { q: "¿Con qué letra empieza «gato»?", ok: "G", d: ["J", "C"], m: "«gato» empieza con el sonido /g/: la letra G." },
+  { q: "¿Con qué letra empieza «nube»?", ok: "N", d: ["M", "U"], m: "«nube» empieza con el sonido /n/: la letra N." },
+  { q: "¿Con qué letra empieza «bota»?", ok: "B", d: ["P", "D"], m: "«bota» empieza con el sonido /b/: la letra B." },
+  { q: "¿Con qué letra empieza «tren»?", ok: "T", d: ["D", "R"], m: "«tren» empieza con el sonido /t/: la letra T." },
+];
+GAMES.letra_inicial = juegoTriviaBanco(LETRA_INICIAL_BANCO, "letraini");
+
+/* ── ANTERIOR Y SIGUIENTE (1°/2° grado — docs/auditoria-dc-caba/): el anterior y
+   el posterior de un número (NAP nodal). GENERADA, rango por cfg.max (1°=100,
+   2°=1000). Explicación con "uno más / uno menos" (C3). ── */
+GAMES.anterior_siguiente = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    const max = ctx.cfg.max || 100;
+    ctx.rondas(rondas);
+    const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const n = rint(2, max - 1);
+      const dir = rint(0, 1);   // 0 = después/siguiente, 1 = antes/anterior
+      const correcto = dir === 0 ? n + 1 : n - 1;
+      ctx.item("antsig#" + dir + "_" + n);
+      ctx.consigna(dir === 0 ? "¿Qué número va JUSTO DESPUÉS del " + fmt(n) + "?" : "¿Qué número va JUSTO ANTES del " + fmt(n) + "?");
+      ctx.juego.innerHTML = "";
+      const motivo = dir === 0 ? "Después del " + fmt(n) + " viene el " + fmt(n + 1) + " (uno más)." : "Antes del " + fmt(n) + " está el " + fmt(n - 1) + " (uno menos).";
+      const cand = [
+        { v: dir === 0 ? n - 1 : n + 1, m: "Ese es el de al lado, pero para el OTRO lado. " + motivo },
+        { v: n, m: "Ese es el MISMO número " + fmt(n) + ". " + motivo },
+      ];
+      const opciones = [{ v: correcto, ok: true }];
+      shuffle(cand).forEach((d) => { if (opciones.length < 3 && d.v > 0 && d.v !== correcto && !opciones.some((o) => o.v === d.v)) opciones.push(d); });
+      let intento = 0;
+      while (opciones.length < 3 && intento++ < 20) { const v = correcto + rint(2, 5) * (rint(0, 1) ? 1 : -1); if (v > 0 && !opciones.some((o) => o.v === v)) opciones.push({ v: v, m: motivo }); }
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const b = el("button", "op", fmt(o.v));
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── CONTAR SALTANDO (2° grado — docs/auditoria-dc-caba/grado-2.md): contar de a
+   2, de a 5, de a 10 (NAP nodal de 2°). GENERADA. Muestra 3 números de la serie
+   y pide el que sigue. Explicación con el salto (C3). ── */
+GAMES.contar_saltando = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const paso = [2, 5, 10][rint(0, 2)];
+      const inicio = rint(1, 8) * paso;
+      const serie = [inicio, inicio + paso, inicio + 2 * paso];
+      const correcto = inicio + 3 * paso;
+      ctx.item("saltar#" + paso + "_" + inicio);
+      ctx.consigna("Contando de a " + paso + ":  " + serie.join(", ") + ", …  ¿qué número sigue?");
+      ctx.juego.innerHTML = "";
+      const motivo = "Vas sumando " + paso + " cada vez: " + serie[2] + " + " + paso + " = " + correcto + ".";
+      const cand = [
+        { v: correcto - paso, m: "Ese ya lo dijiste. " + motivo },
+        { v: correcto + 1, m: "El salto es de " + paso + ", no de 1. " + motivo },
+        { v: serie[2] + 1, m: "Hay que sumar " + paso + ", no 1. " + motivo },
+      ];
+      const opciones = [{ v: correcto, ok: true }];
+      shuffle(cand).forEach((d) => { if (opciones.length < 3 && d.v > 0 && d.v !== correcto && !opciones.some((o) => o.v === d.v)) opciones.push(d); });
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const b = el("button", "op", o.v);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 /* ── ¿DE QUÉ MATERIAL ES? — trivia (14-jul-2026, 1° grado NAP Bimestre 4
    "Ideas web": "trivia de materiales — ¿vidrio, madera o metal para una
    ventana?"). Opciones de TEXTO (no emoji — no hay glifo distintivo por
