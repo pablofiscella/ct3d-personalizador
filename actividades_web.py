@@ -307,6 +307,24 @@ def _menu(banda, edad):
         g.append({"id": "laboratorio_electrico", "titulo": "Laboratorio eléctrico", "icono": "🔌", "cfg": {"rondas": 10}})
         # rondas=10 (14-jul-2026): FRACCIONES_BANCO tiene 20 ítems, de sobra.
         g.append({"id": "fracciones_equivalentes", "titulo": "Fracciones equivalentes", "icono": "🍕", "cfg": {"rondas": 10}})
+        # M10 "Duelo de fracciones" (19-jul-2026, rollout DC CABA): comparación
+        # de fracciones CON BARRAS (CPA), ataca la misconception #1 (1/4 > 1/2
+        # porque 4>2). Es el eje NODAL de fracciones de 4° que faltaba
+        # (fracciones_equivalentes es solo "ampliación"). C3/C4.
+        g.append({"id": "duelo_fracciones", "titulo": "Duelo de fracciones", "icono": "🍫", "cfg": {"rondas": 10}})
+        # M8 "Reparto justo" + M9 "Completar el entero" (19-jul-2026, rollout DC
+        # CABA): fracción como resultado de repartir, y fracciones en la medida
+        # (litros/kilos, qué falta para 1). Ambas con barras CPA + C3/C4. Completan
+        # el arranque del eje nodal de fracciones de 4° con duelo_fracciones.
+        g.append({"id": "reparto_fracciones", "titulo": "Reparto justo", "icono": "🍰", "cfg": {"rondas": 10}})
+        g.append({"id": "completar_entero", "titulo": "Completar el entero", "icono": "🥛", "cfg": {"rondas": 10}})
+        # M11 decimales + M7 problemas + L10 plurales-z (19-jul-2026, rollout DC
+        # CABA): decimales en uso social (misconception 12,45>12,5), problemas
+        # aplicados de ×/÷ (operación equivocada como distractor), y plurales de
+        # palabras con -z (z→c). Todas con misconception distractors + C3.
+        g.append({"id": "duelo_decimales", "titulo": "Duelo de decimales", "icono": "💲", "cfg": {"rondas": 10}})
+        g.append({"id": "problemas_mult_div", "titulo": "Problemas de verdad", "icono": "🤔", "cfg": {"rondas": 10}})
+        g.append({"id": "plurales_z", "titulo": "Plurales con Z", "icono": "📝", "cfg": {"rondas": 10}})
         # Bimestre 4: ángulos + prefijos.
         # rondas=10 (14-jul-2026): ANGULOS_BANCO creció de 7 a 10.
         g.append({"id": "angulos", "titulo": "Agudo, recto u obtuso", "icono": "📐", "cfg": {"rondas": 10}})

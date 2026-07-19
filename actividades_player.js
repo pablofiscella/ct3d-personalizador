@@ -2435,6 +2435,407 @@ GAMES.dividir = {
   },
 };
 
+/* ── DUELO DE FRACCIONES (M10, 4° grado — docs/auditoria-dc-caba/grado-4.md):
+   comparación de fracciones CON BARRAS (Singapore CPA, no negociable para
+   fracciones — skill §2). Ataca la misconception #1 de fracciones: "1/4 es mayor
+   que 1/2 porque 4 > 2". Genera 3 tipos: mismo denominador (mandan los de
+   arriba), mismo numerador y distinto denominador (la trampa: más pedazos = más
+   chicos) y equivalentes (pintan lo mismo). Explicación por misconception
+   apuntando a las barras (Capa 0 · C3). Reusa el render de barra de
+   fracciones_equivalentes. ── */
+GAMES.duelo_fracciones = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    const barra = (num, den) => {
+      const cont = el("div", "fraccionBarra");
+      for (let i = 0; i < den; i++) cont.appendChild(el("div", "fraccionBarra__seg" + (i < num ? " lleno" : "")));
+      return cont;
+    };
+    const val = (f) => f.n / f.d;
+    const equiv = [[1, 2, 2, 4], [1, 2, 3, 6], [1, 3, 2, 6], [1, 4, 2, 8], [2, 3, 4, 6], [3, 4, 6, 8], [1, 2, 4, 8]];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const prog = rondas > 1 ? ronda / (rondas - 1) : 1;
+      const tipo = prog > 0.66 ? 2 : (prog > 0.33 ? 1 : 0);
+      let A, B, iguales = false;
+      if (tipo === 2 && rint(0, 2) === 0) {
+        const e = equiv[rint(0, equiv.length - 1)];
+        A = { n: e[0], d: e[1] }; B = { n: e[2], d: e[3] }; iguales = true;
+      } else {
+        const modo = tipo === 1 ? 1 : (tipo === 0 ? 0 : rint(0, 1));  // 0=mismo den, 1=mismo num (trampa)
+        if (modo === 1) {
+          const n = rint(1, 3);
+          let d1 = rint(2, 8), d2 = rint(2, 8);
+          while (d2 === d1) d2 = rint(2, 8);
+          A = { n: n, d: d1 }; B = { n: n, d: d2 };
+        } else {
+          const d = rint(3, 8);
+          let n1 = rint(1, d - 1), n2 = rint(1, d - 1);
+          while (n2 === n1) n2 = rint(1, d - 1);
+          A = { n: n1, d: d }; B = { n: n2, d: d };
+        }
+      }
+      const mayor = iguales ? "iguales" : (val(A) > val(B) ? "a" : "b");
+      ctx.item("duelo_fracciones#" + A.n + "/" + A.d + "_" + B.n + "/" + B.d);
+      ctx.consigna("¿Cuál pinta MÁS?");
+      ctx.juego.innerHTML = "";
+      const explicaChica = (chica, grande) => {
+        if (chica.n === grande.n && chica.d !== grande.d)
+          return "Partiste en más pedazos (" + chica.d + "): cada pedazo es más CHICO. Mirá las barras.";
+        if (chica.d === grande.d)
+          return "Con el mismo denominador manda el de arriba: " + grande.n + " es más que " + chica.n + ".";
+        return "Mirá las barras: una pinta más que la otra.";
+      };
+      const cards = [{ key: "a", frac: A }, { key: "b", frac: B }, { key: "iguales", frac: null }];
+      const fila = el("div", "filaSprites fraccionesOpciones");
+      let resuelto = false;
+      shuffle(cards).forEach((c) => {
+        const b = el("button", "spriteBtn fraccionBtn");
+        if (c.frac) {
+          b.appendChild(barra(c.frac.n, c.frac.d));
+          const lbl = el("div", "", c.frac.n + "/" + c.frac.d);
+          lbl.style.cssText = "font-weight:700;font-size:20px;margin-top:6px";
+          b.appendChild(lbl);
+        } else {
+          const lbl = el("div", "", "Son iguales");
+          lbl.style.cssText = "font-weight:700;font-size:18px;padding:18px 6px";
+          b.appendChild(lbl);
+        }
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (c.key === mayor) {
+            resuelto = true; b.classList.add("anim-brinco"); ctx.bien();
+            ronda++; await espera(950);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease"; setTimeout(() => (b.style.animation = ""), 450);
+            let motivo;
+            if (mayor === "iguales") motivo = "Fijate las barras: pintan lo MISMO. " + A.n + "/" + A.d + " y " + B.n + "/" + B.d + " son iguales.";
+            else if (c.key === "iguales") motivo = "No pintan lo mismo: mirá las barras, una llena más que la otra.";
+            else motivo = explicaChica(c.frac, mayor === "a" ? A : B);
+            ctx.casi(motivo);
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── REPARTO JUSTO (M8, 4° grado — docs/auditoria-dc-caba/grado-4.md): la
+   fracción como RESULTADO de repartir (dividir en partes iguales), con barra CPA.
+   Reparto ≤ 1 (N objetos entre M chicos, N<M → cada uno recibe N/M). Distractores
+   por misconception: dar 1/M (olvidar que hay N para repartir) o equivocar el
+   denominador (cantidad de chicos). Explicación por error (Capa 0 · C3). ── */
+GAMES.reparto_fracciones = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    const barra = (num, den) => {
+      const cont = el("div", "fraccionBarra");
+      for (let i = 0; i < den; i++) cont.appendChild(el("div", "fraccionBarra__seg" + (i < num ? " lleno" : "")));
+      return cont;
+    };
+    const OBJ = [["🍫", "chocolates"], ["🍕", "pizzas"], ["🎂", "tortas"], ["🥧", "tartas"]];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const M = rint(3, 6);              // chicos = denominador
+      const N = rint(1, M - 1);          // objetos = numerador (N<M → fracción < 1)
+      const obj = OBJ[rint(0, OBJ.length - 1)];
+      ctx.item("reparto#" + N + "e" + M);
+      ctx.consigna("Reparto " + N + " " + obj[1] + " " + obj[0] + " entre " + M + " chicos en partes iguales. ¿Cuánto le toca a cada uno?");
+      ctx.juego.innerHTML = "";
+      const cand = [];
+      if (N > 1) cand.push({ n: 1, d: M, m: "Hay " + N + " para repartir, no 1: a cada uno le tocan " + N + " pedazos de 1/" + M + "." });
+      cand.push({ n: N, d: M + 1, m: "El denominador es la cantidad de chicos: son " + M + ", no " + (M + 1) + "." });
+      if (N + 1 < M) cand.push({ n: N + 1, d: M, m: "Contá de nuevo: son " + N + " " + obj[1] + " entre " + M + " chicos." });
+      if (N - 1 >= 1) cand.push({ n: N - 1, d: M, m: "Contá de nuevo: son " + N + " " + obj[1] + " entre " + M + " chicos." });
+      const opciones = [{ n: N, d: M, ok: true }];
+      shuffle(cand).forEach((c) => {
+        if (opciones.length >= 3) return;
+        if (!opciones.some((o) => o.n === c.n && o.d === c.d)) opciones.push(c);
+      });
+      let pad = 1;
+      while (opciones.length < 3 && pad < M) {
+        const nn = ((N + pad - 1) % (M - 1)) + 1;   // 1..M-1, fracción propia
+        if (!opciones.some((o) => o.n === nn)) opciones.push({ n: nn, d: M, m: "Contá de nuevo: son " + N + " entre " + M + " chicos." });
+        pad++;
+      }
+      const fila = el("div", "filaSprites fraccionesOpciones");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const b = el("button", "spriteBtn fraccionBtn");
+        b.appendChild(barra(o.n, o.d));
+        const lbl = el("div", "", o.n + "/" + o.d); lbl.style.cssText = "font-weight:700;font-size:20px;margin-top:6px";
+        b.appendChild(lbl);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) {
+            resuelto = true; b.classList.add("anim-brinco"); ctx.bien();
+            ronda++; await espera(950);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease"; setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi(o.m);
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── COMPLETAR EL ENTERO (M9, 4° grado — docs/auditoria-dc-caba/grado-4.md):
+   fracciones en la MEDIDA (litros/kilos): ¿cuánto falta para 1 entero? Con barra
+   CPA que muestra lo que ya se tiene. Complemento a 1 = (den−num)/den. Distractor
+   estrella (misconception): devolver la MISMA fracción que ya se tiene. Explicación
+   por error (Capa 0 · C3). ── */
+GAMES.completar_entero = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    const barra = (num, den) => {
+      const cont = el("div", "fraccionBarra");
+      for (let i = 0; i < den; i++) cont.appendChild(el("div", "fraccionBarra__seg" + (i < num ? " lleno" : "")));
+      return cont;
+    };
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const d = rint(2, 6);
+      const num = rint(1, d - 1);              // lo que ya tengo (< 1)
+      const fn = d - num;                       // lo que falta (numerador correcto)
+      const med = ["litro", "kilo"][rint(0, 1)];
+      ctx.item("completar#" + num + "e" + d);
+      ctx.consigna("Tenés " + num + "/" + d + " de " + med + ". ¿Cuánto falta para 1 " + med + " entero?");
+      ctx.juego.innerHTML = "";
+      // muestra lo que YA se tiene (barra CPA)
+      const top = el("div", "tablero");
+      top.appendChild(el("div", "", "Ya tenés:")).style.cssText = "font-weight:600;margin-bottom:4px";
+      top.appendChild(barra(num, d));
+      ctx.juego.appendChild(top);
+      const faltanMsg = "Contá los pedazos vacíos: del " + num + "/" + d + " al " + d + "/" + d + " faltan " + fn + ".";
+      const cand = [];
+      if (num !== fn) cand.push({ n: num, d: d, m: "Eso es lo que YA tenés. Falta lo que va desde " + num + "/" + d + " hasta " + d + "/" + d + " (el entero)." });
+      if (fn + 1 <= d) cand.push({ n: fn + 1, d: d, m: faltanMsg });
+      if (fn - 1 >= 1) cand.push({ n: fn - 1, d: d, m: faltanMsg });
+      const opciones = [{ n: fn, d: d, ok: true }];
+      shuffle(cand).forEach((c) => {
+        if (opciones.length >= 3) return;
+        if (!opciones.some((o) => o.n === c.n && o.d === c.d)) opciones.push(c);
+      });
+      let pad = 1;
+      while (opciones.length < 3 && pad <= d) {
+        const nn = ((fn + pad - 1) % d) + 1;   // 1..d, distinto del resto
+        if (!opciones.some((o) => o.n === nn)) opciones.push({ n: nn, d: d, m: faltanMsg });
+        pad++;
+      }
+      const fila = el("div", "filaSprites fraccionesOpciones");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const b = el("button", "spriteBtn fraccionBtn");
+        b.appendChild(barra(o.n, o.d));
+        const lbl = el("div", "", o.n + "/" + o.d); lbl.style.cssText = "font-weight:700;font-size:20px;margin-top:6px";
+        b.appendChild(lbl);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) {
+            resuelto = true; b.classList.add("anim-brinco"); ctx.bien();
+            ronda++; await espera(950);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease"; setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi(o.m);
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── DUELO DE DECIMALES (M11, 4° grado — docs/auditoria-dc-caba/grado-4.md):
+   decimales en uso social (precios/medidas). Ataca LA misconception de decimales:
+   "12,45 > 12,5 porque 45 > 5" (leer los decimales como enteros). Comparar dos
+   decimales con distinta cantidad de cifras. Explicación: igualar los decimales
+   (Capa 0 · C3). ── */
+GAMES.duelo_decimales = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const ent = rint(1, 24);
+      let a = rint(1, 9);                 // A = ent,a   (1 decimal → a0 centésimos)
+      let b = rint(11, 99);               // B = ent,b   (2 decimales)
+      while (a * 10 === b) b = rint(11, 99);
+      const A = { s: ent + "," + a, v: ent + a / 10, cent: a * 10 };
+      const B = { s: ent + "," + b, v: ent + b / 100, cent: b };
+      const mayor = A.v > B.v ? "a" : "b";
+      const contexto = rint(0, 1) === 0
+        ? { pre: "¿Qué precio es MÁS caro?", u: "$" }
+        : { pre: "¿Qué medida es MÁS grande?", u: "" };
+      ctx.item("decimales#" + A.s + "_" + B.s);
+      ctx.consigna(contexto.pre);
+      ctx.juego.innerHTML = "";
+      const motivo = "Igualá los decimales: " + A.s + " es " + ent + "," + a + "0. Compará " + A.cent + " con " + B.cent + " centésimos, no la cantidad de números.";
+      const cards = [{ key: "a", o: A }, { key: "b", o: B }];
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(cards).forEach((c) => {
+        const btn = el("button", "op", contexto.u + c.o.s);
+        btn.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (c.key === mayor) {
+            resuelto = true; btn.classList.add("anim-pop"); ctx.bien();
+            ronda++; await espera(950);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          } else {
+            btn.classList.add("casi"); setTimeout(() => btn.classList.remove("casi"), 450);
+            ctx.casi(motivo);
+          }
+        });
+        fila.appendChild(btn);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── PROBLEMAS DE VERDAD (M7, 4° grado — docs/auditoria-dc-caba/grado-4.md):
+   problemas aplicados de multiplicación y división (la operatoria en contexto).
+   Generador de plantillas. Distractores por misconception: elegir la operación
+   equivocada (sumar en vez de multiplicar, etc.). Explicación C3. ── */
+GAMES.problemas_mult_div = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const tipo = rint(0, 1);
+      let texto, correcto, cand;
+      if (tipo === 0) {
+        // multiplicación: cajas × por caja
+        const cajas = rint(3, 9), cada = rint(4, 12);
+        correcto = cajas * cada;
+        texto = "Hay " + cajas + " cajas con " + cada + " figuritas cada una. ¿Cuántas figuritas hay en total?";
+        cand = [
+          { v: cajas + cada, m: "Sumaste. Son " + cajas + " cajas de " + cada + " cada una: hay que multiplicar." },
+          { v: cajas * cada - cada, m: "Contá TODAS las cajas: son " + cajas + ", no " + (cajas - 1) + "." },
+          { v: cada - cajas, m: "Eso es restar. Cada caja aporta " + cada + " figuritas." },
+        ];
+      } else {
+        // división: total ÷ grupos
+        const grupos = rint(3, 8), cada = rint(3, 9);
+        const total = grupos * cada;
+        correcto = cada;
+        texto = "Reparto " + total + " caramelos en " + grupos + " bolsas iguales. ¿Cuántos caramelos van en cada bolsa?";
+        cand = [
+          { v: total - grupos, m: "Eso es restar. Repartir en partes iguales es dividir " + total + " entre " + grupos + "." },
+          { v: total + grupos, m: "Sumaste. Hay que repartir " + total + " entre " + grupos + " bolsas." },
+          { v: cada + 1, m: "Fijate: " + grupos + " × " + (cada + 1) + " se pasa de " + total + "." },
+        ];
+      }
+      ctx.item("problema#" + tipo + "_" + correcto);
+      ctx.consigna(texto);
+      ctx.juego.innerHTML = "";
+      const opciones = [{ v: correcto, ok: true }];
+      shuffle(cand).forEach((d) => {
+        if (opciones.length >= 3) return;
+        if (d.v > 0 && d.v !== correcto && !opciones.some((o) => o.v === d.v)) opciones.push(d);
+      });
+      let intento = 0;
+      while (opciones.length < 3 && intento++ < 20) {
+        const v = correcto + rint(1, 6) * (rint(0, 1) ? 1 : -1);
+        if (v > 0 && !opciones.some((o) => o.v === v)) opciones.push({ v: v, m: "Volvé a leer el problema con cuidado." });
+      }
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const btn = el("button", "op", o.v);
+        btn.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) {
+            resuelto = true; btn.classList.add("anim-pop"); ctx.bien();
+            ronda++; await espera(950);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          } else {
+            btn.classList.add("casi"); setTimeout(() => btn.classList.remove("casi"), 450);
+            ctx.casi(o.m);
+          }
+        });
+        fila.appendChild(btn);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── PLURALES CON Z (L10, 4° grado — docs/auditoria-dc-caba/grado-4.md): plurales
+   de palabras terminadas en -z (la z cambia a c). Banco fijo (memorizar el ítem
+   ES el objetivo). Distractor por misconception: no cambiar la z (luz→luzes).
+   Explicación con la regla (Capa 0 · C3). ── */
+const PLURALES_Z_BANCO = [
+  "luz", "pez", "nuez", "lápiz", "cruz", "voz", "raíz", "feliz", "capaz", "nariz", "arroz", "juez",
+];
+GAMES.plurales_z = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    const plural = (w) => w.slice(0, -1) + "ces";
+    let usados = [];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      let disp = PLURALES_Z_BANCO.filter((w) => !usados.includes(w));
+      if (!disp.length) { usados = []; disp = PLURALES_Z_BANCO.slice(); }
+      const w = disp[rint(0, disp.length - 1)];
+      usados.push(w);
+      const correcto = plural(w);
+      ctx.item("plural_z#" + w);
+      ctx.consigna("El plural de «" + w + "» es…");
+      ctx.juego.innerHTML = "";
+      const opciones = [
+        { t: correcto, ok: true },
+        { t: w + "es", m: "Las palabras con Z cambian la z por C en plural: " + w + " → " + correcto + "." },
+        { t: w, m: "En plural hay que agregar la terminación: " + w + " → " + correcto + "." },
+      ];
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const btn = el("button", "op", o.t);
+        btn.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) {
+            resuelto = true; btn.classList.add("anim-pop"); ctx.bien();
+            ronda++; await espera(950);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          } else {
+            btn.classList.add("casi"); setTimeout(() => btn.classList.remove("casi"), 450);
+            ctx.casi(o.m);
+          }
+        });
+        fila.appendChild(btn);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 /* ── ¿DE QUÉ MATERIAL ES? — trivia (14-jul-2026, 1° grado NAP Bimestre 4
    "Ideas web": "trivia de materiales — ¿vidrio, madera o metal para una
    ventana?"). Opciones de TEXTO (no emoji — no hay glifo distintivo por
