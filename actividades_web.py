@@ -458,6 +458,12 @@ def _menu(banda, edad):
         g.append({"id": "duelo_decimales", "titulo": "Duelo de decimales", "icono": "💲", "cfg": {"rondas": 10}})
         g.append({"id": "recta_numerica", "titulo": "Recta gigante", "icono": "📍", "cfg": {"rondas": 10, "max1": 100000, "max2": 1000000}})
         g.append({"id": "conectores", "titulo": "El conector justo", "icono": "🔗", "cfg": {"rondas": 10}})
+        # 2ª tanda 6° (19-jul-2026, nivelación): actividades PROPIAS del dossier
+        # de 6° — los 3 gaps de matemática (primos, jerarquía de operaciones,
+        # porcentaje de una cantidad). Nodales de 6°.
+        g.append({"id": "numeros_primos", "titulo": "¿Cuál es primo?", "icono": "✳️", "cfg": {"rondas": 10}})
+        g.append({"id": "jerarquia_operaciones", "titulo": "Orden de las operaciones", "icono": "🧾", "cfg": {"rondas": 10}})
+        g.append({"id": "porcentajes", "titulo": "El porcentaje justo", "icono": "💯", "cfg": {"rondas": 10}})
     if e == 12:
         # 7° grado (14-jul-2026, año de egreso, fin del NAP) — mismo
         # criterio: un juego por cada "Idea web" del NAP.

@@ -3455,6 +3455,132 @@ GAMES.buenos_aires = {
   },
 };
 
+/* ── ¿CUÁL ES PRIMO? (M2, 6° grado — docs/auditoria-dc-caba/grado-6.md): primos y
+   compuestos, nodal de 6°. Elegir el primo entre 3 números; los distractores son
+   compuestos y la explicación NOMBRA un divisor (Capa 0 · C3/C4). ── */
+function _esPrimo(n) { if (n < 2) return false; for (let i = 2; i * i <= n; i++) if (n % i === 0) return false; return true; }
+GAMES.numeros_primos = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      let p; do { p = rint(2, 47); } while (!_esPrimo(p));
+      const opciones = [{ v: p, ok: true }];
+      let intento = 0;
+      while (opciones.length < 3 && intento++ < 60) {
+        const c = rint(4, 60);
+        if (!_esPrimo(c) && !opciones.some((o) => o.v === c)) {
+          let d = 2; while (c % d !== 0) d++;
+          opciones.push({ v: c, ok: false, m: c + " es compuesto: se divide por " + d + " (" + d + "×" + (c / d) + "). El primo solo se divide por 1 y por sí mismo." });
+        }
+      }
+      ctx.item("primo#" + p);
+      ctx.consigna("¿Cuál de estos números es PRIMO?");
+      ctx.juego.innerHTML = "";
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const b = el("button", "op", o.v);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── ORDEN DE LAS OPERACIONES (M4, 6° grado — docs/auditoria-dc-caba/grado-6.md):
+   jerarquía (primero × y ÷, después + y −), nodal de 6°. Ataca la misconception de
+   resolver de izquierda a derecha. GENERADA. Explicación con el orden (C3). ── */
+GAMES.jerarquia_operaciones = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const a = rint(2, 9), b = rint(2, 9), c = rint(2, 9);
+      const tipo = rint(0, 1);
+      let texto, correcto, malo, paso;
+      if (tipo === 0) { texto = a + " + " + b + " × " + c; correcto = a + b * c; malo = (a + b) * c; paso = b + "×" + c + "=" + (b * c) + ", y después " + a + "+" + (b * c) + "=" + correcto; }
+      else { texto = a + " × " + b + " + " + c; correcto = a * b + c; malo = a * (b + c); paso = a + "×" + b + "=" + (a * b) + ", y después " + (a * b) + "+" + c + "=" + correcto; }
+      ctx.item("jerarq#" + texto.replace(/ /g, ""));
+      ctx.consigna("¿Cuánto es   " + texto + "  ?");
+      ctx.juego.innerHTML = "";
+      const motivo = "Primero se multiplica, después se suma: " + paso + ".";
+      const opciones = [{ v: correcto, ok: true }];
+      if (malo !== correcto) opciones.push({ v: malo, m: motivo });
+      let intento = 0;
+      while (opciones.length < 3 && intento++ < 20) { const v = correcto + rint(1, 6) * (rint(0, 1) ? 1 : -1); if (v > 0 && !opciones.some((o) => o.v === v)) opciones.push({ v: v, m: motivo }); }
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const b = el("button", "op", o.v);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── EL PORCENTAJE JUSTO (M13b, 6° grado — docs/auditoria-dc-caba/grado-6.md):
+   porcentaje de una cantidad, nodal de 6°. GENERADA con resultados enteros.
+   Explicación relacionando el % con la fracción (C3). ── */
+GAMES.porcentajes = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    const PS = [10, 25, 50, 75, 100];
+    const MULT = { 10: 10, 25: 4, 50: 2, 75: 4, 100: 1 };
+    const NOMBRE = { 10: "la décima parte", 25: "la cuarta parte", 50: "la mitad", 75: "tres cuartos", 100: "el total" };
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const p = PS[rint(0, PS.length - 1)];
+      const N = rint(2, 12) * MULT[p];
+      const correcto = N * p / 100;
+      ctx.item("porc#" + p + "de" + N);
+      ctx.consigna("¿Cuánto es el " + p + "% de " + N + "?");
+      ctx.juego.innerHTML = "";
+      const motivo = "El " + p + "% es " + NOMBRE[p] + " de " + N + ", o sea " + correcto + ".";
+      const cand = [
+        { v: N * p / 10, m: motivo },
+        { v: N - p, m: "No es restar: el " + p + "% de " + N + " es tomar " + p + " de cada 100." },
+      ];
+      const opciones = [{ v: correcto, ok: true }];
+      shuffle(cand).forEach((d) => { if (opciones.length < 3 && d.v > 0 && d.v !== correcto && !opciones.some((o) => o.v === d.v)) opciones.push(d); });
+      let intento = 0;
+      while (opciones.length < 3 && intento++ < 20) { const v = correcto + rint(1, 5) * (rint(0, 1) ? 1 : -1); if (v > 0 && !opciones.some((o) => o.v === v)) opciones.push({ v: v, m: motivo }); }
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const b = el("button", "op", o.v);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 /* ── ¿DE QUÉ MATERIAL ES? — trivia (14-jul-2026, 1° grado NAP Bimestre 4
    "Ideas web": "trivia de materiales — ¿vidrio, madera o metal para una
    ventana?"). Opciones de TEXTO (no emoji — no hay glifo distintivo por
