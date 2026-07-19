@@ -2925,6 +2925,142 @@ const HISTORIA_ORDEN_BANCO = [
 ];
 GAMES.historia_orden = juegoOrdenar(HISTORIA_ORDEN_BANCO, "Ordená el cuento: ¿qué pasó primero? Tocá en orden.", "Pensá: primero cómo empieza, después el problema, y al final cómo se resuelve.", "historia_orden");
 
+/* ── MECÁNICA NUEVA: RECTA NUMÉRICA (M1 "Recta gigante", 4° grado) — 19-jul-2026,
+   otra mecánica que el motor no tenía (docs/auditoria-dc-caba/). Ubicar un número
+   en la recta: la recta se parte en 10 zonas y el chico toca la zona donde cae el
+   número (proporcionalidad/orden de magnitud). Rangos 0-10.000 → 0-100.000.
+   Explicación por error apuntando al tramo correcto (Capa 0 · C3). ── */
+GAMES.recta_numerica = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const prog = rondas > 1 ? ronda / (rondas - 1) : 1;
+      const max = prog > 0.5 ? 100000 : 10000;
+      const paso = max / 10;
+      const target = rint(1, 99) * (max / 100);      // en (0, max), número "redondo"
+      const zonaOK = Math.min(9, Math.floor(target / paso));
+      ctx.item("recta#" + max + "_" + target);
+      ctx.consigna("¿Dónde está el " + fmt(target) + "?  (de 0 a " + fmt(max) + ")");
+      ctx.juego.innerHTML = "";
+      const wrap = el("div", ""); wrap.style.cssText = "max-width:600px;margin:0 auto;width:100%";
+      const linea = el("div", ""); linea.style.cssText = "display:flex;gap:3px;width:100%";
+      let resuelto = false;
+      for (let i = 0; i < 10; i++) {
+        const z = el("button", "rectaZona");
+        z.style.cssText = "flex:1;height:48px;border:2px solid #8a8a99;background:rgba(140,140,160,.14);cursor:pointer;border-radius:7px";
+        z.addEventListener("click", () => {
+          if (resuelto) return;
+          if (i === zonaOK) {
+            resuelto = true; z.style.background = "#7bd88f"; ctx.bien();
+            ronda++;
+            setTimeout(() => { if (ronda >= rondas) ctx.win(); else jugar(); }, 1000);
+          } else {
+            z.style.background = "#e08a8a"; setTimeout(() => { z.style.background = "rgba(140,140,160,.14)"; }, 450);
+            ctx.casi("El " + fmt(target) + " está entre " + fmt(zonaOK * paso) + " y " + fmt((zonaOK + 1) * paso) + ". ¿Está más cerca del 0 o del " + fmt(max) + "?");
+          }
+        });
+        linea.appendChild(z);
+      }
+      wrap.appendChild(linea);
+      const labels = el("div", ""); labels.style.cssText = "display:flex;justify-content:space-between;margin-top:6px;font-weight:700";
+      labels.appendChild(el("span", "", "0"));
+      labels.appendChild(el("span", "", fmt(max / 2)));
+      labels.appendChild(el("span", "", fmt(max)));
+      wrap.appendChild(labels);
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(wrap);
+    };
+    jugar();
+  },
+};
+
+/* ── MECÁNICA NUEVA: COMPRENSIÓN LECTORA (L9/L17 "Detective de textos", 4° grado)
+   — 19-jul-2026, mecánica que el motor no tenía (docs/auditoria-dc-caba/): mostrar
+   un texto y hacer preguntas, incluidas las INFERENCIALES (la respuesta no está
+   literal, se deduce de pistas). El texto queda a la vista; la consigna (pregunta)
+   se lee en voz alta; el chico lee el texto. Explicación que remite al texto
+   (Capa 0 · C3). ── */
+const COMPRENSION_BANCO = [
+  {
+    texto: "Martín guardó la bici en el garaje y entró corriendo a la casa. Tenía las zapatillas llenas de barro y el pelo mojado. «No te olvides de secarte», le dijo la mamá desde la cocina.",
+    preguntas: [
+      { q: "¿Dónde guardó Martín la bici?", ops: ["En el garaje", "En la cocina", "En su cuarto"], ok: 0, m: "El texto lo dice: guardó la bici en el garaje." },
+      { q: "¿Qué tiempo hacía afuera?", ops: ["Estaba lloviendo", "Había mucho sol", "Estaba nevando"], ok: 0, m: "No lo dice directo, pero el pelo mojado y el barro son pistas de que llovía." },
+    ],
+  },
+  {
+    texto: "Lucía abrió la heladera y no encontró nada para el desayuno. Suspiró, agarró unas monedas del frasco y salió a la panadería de la esquina. Volvió con el pan calentito.",
+    preguntas: [
+      { q: "¿A dónde fue Lucía?", ops: ["A la panadería", "A la escuela", "A la casa de una amiga"], ok: 0, m: "El texto dice que salió a la panadería de la esquina." },
+      { q: "¿Por qué salió a comprar?", ops: ["No había nada para desayunar", "Quería pasear", "La mandó la mamá"], ok: 0, m: "Se deduce: abrió la heladera y no encontró nada para el desayuno." },
+    ],
+  },
+  {
+    texto: "El equipo de Joaquín perdió el partido por un gol. En el vestuario nadie hablaba y algunos tenían los ojos llorosos. El técnico les dijo: «La próxima ganamos».",
+    preguntas: [
+      { q: "¿Por cuánto perdieron?", ops: ["Por un gol", "Por tres goles", "Empataron"], ok: 0, m: "El texto dice que perdieron por un gol." },
+      { q: "¿Cómo se sentían los jugadores?", ops: ["Tristes", "Contentos", "Aburridos"], ok: 0, m: "No lo dice con esa palabra, pero nadie hablaba y tenían los ojos llorosos: estaban tristes." },
+    ],
+  },
+  {
+    texto: "Cuando sonó el timbre, todos los chicos guardaron los cuadernos y salieron corriendo al patio. Ana se quedó ordenando sus lápices con calma antes de salir.",
+    preguntas: [
+      { q: "¿Qué hicieron los chicos cuando sonó el timbre?", ops: ["Salieron corriendo al patio", "Siguieron escribiendo", "Se fueron a casa"], ok: 0, m: "El texto lo dice: guardaron los cuadernos y salieron corriendo al patio." },
+      { q: "¿Cómo es Ana comparada con los demás?", ops: ["Más tranquila y ordenada", "La más apurada", "La más ruidosa"], ok: 0, m: "Mientras todos corrían, Ana ordenaba sus lápices con calma: es más tranquila." },
+    ],
+  },
+];
+GAMES.comprension_lectora = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 8;
+    ctx.rondas(rondas);
+    let ronda = 0, usados = [], pIdx = -1, qi = 0;
+    const nuevoPasaje = () => {
+      let disp = COMPRENSION_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
+      if (!disp.length) { usados = []; disp = COMPRENSION_BANCO.map((_, i) => i); }
+      pIdx = disp[rint(0, disp.length - 1)]; usados.push(pIdx); qi = 0;
+    };
+    const render = () => {
+      ctx.ronda(ronda);
+      const pasaje = COMPRENSION_BANCO[pIdx];
+      const preg = pasaje.preguntas[qi];
+      ctx.item("comprension#" + pIdx + "_" + qi);
+      ctx.consigna(preg.q);
+      ctx.juego.innerHTML = "";
+      const box = el("div", "");
+      box.style.cssText = "max-width:600px;margin:0 auto 14px;padding:14px 16px;background:rgba(140,140,160,.12);border-radius:12px;font-size:17px;line-height:1.5;text-align:left";
+      box.textContent = pasaje.texto;
+      ctx.juego.appendChild(box);
+      const opts = preg.ops.map((t, i) => ({ t: t, ok: i === preg.ok, m: preg.m }));
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opts).forEach((o) => {
+        const b = el("button", "op", o.t);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) {
+            resuelto = true; b.classList.add("anim-pop"); ctx.bien();
+            ronda++; qi++;
+            await espera(950);
+            if (ronda >= rondas) { ctx.win(); return; }
+            if (qi >= pasaje.preguntas.length) nuevoPasaje();
+            render();
+          } else {
+            b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450);
+            ctx.casi(o.m);
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    nuevoPasaje(); render();
+  },
+};
+
 /* ── ¿DE QUÉ MATERIAL ES? — trivia (14-jul-2026, 1° grado NAP Bimestre 4
    "Ideas web": "trivia de materiales — ¿vidrio, madera o metal para una
    ventana?"). Opciones de TEXTO (no emoji — no hay glifo distintivo por

@@ -331,6 +331,14 @@ def _menu(banda, edad):
         # cuento (Lengua). Reusan la misma mecánica.
         g.append({"id": "linea_tiempo", "titulo": "Línea de tiempo", "icono": "🕰️", "cfg": {"rondas": 8}})
         g.append({"id": "historia_orden", "titulo": "Ordená el cuento", "icono": "📖", "cfg": {"rondas": 8}})
+        # M1 "Recta gigante" (19-jul-2026): MECÁNICA NUEVA de recta numérica —
+        # ubicar un número por zonas en la recta (0-10.000 → 0-100.000).
+        # Proporcionalidad/orden de magnitud, con explicación del tramo (C3).
+        g.append({"id": "recta_numerica", "titulo": "Recta gigante", "icono": "📍", "cfg": {"rondas": 10}})
+        # L9/L17 comprensión lectora (19-jul-2026): MECÁNICA NUEVA de leer un texto
+        # y responder, incluidas preguntas INFERENCIALES (deducir de pistas). Era
+        # el hueco de Lengua más grande de 4°. Banco de 4 textos × 2 preguntas.
+        g.append({"id": "comprension_lectora", "titulo": "Detective de textos", "icono": "🔎", "cfg": {"rondas": 8}})
         # Bimestre 4: ángulos + prefijos.
         # rondas=10 (14-jul-2026): ANGULOS_BANCO creció de 7 a 10.
         g.append({"id": "angulos", "titulo": "Agudo, recto u obtuso", "icono": "📐", "cfg": {"rondas": 10}})
