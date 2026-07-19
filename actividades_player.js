@@ -304,6 +304,34 @@ function toast(txt) {
   t.classList.add("ver");
 }
 
+/* ── Capa 0 · C3 (docs/auditoria-dc-caba/): explicación del PORQUÉ en el error.
+   El toast dura 1.1s (muy poco para leer); esto es una burbuja aparte que dura
+   ~4s y se va al acertar. Solo aparece si el juego pasa un motivo a ctx.casi();
+   los juegos que llaman casi() sin motivo (los viejos) no muestran nada. ── */
+let _explicaTimer = null;
+function mostrarExplicacion(txt) {
+  let e = document.getElementById("explica");
+  if (!e) {
+    e = document.createElement("div");
+    e.id = "explica";
+    e.setAttribute("role", "status");
+    e.style.cssText = "position:fixed;left:50%;bottom:88px;transform:translateX(-50%);"
+      + "max-width:min(92vw,520px);background:#2b2b3a;color:#fff;padding:13px 18px;"
+      + "border-radius:16px;font-size:17px;line-height:1.35;text-align:center;"
+      + "box-shadow:0 8px 30px rgba(0,0,0,.35);z-index:60;opacity:0;"
+      + "transition:opacity .2s;pointer-events:none";
+    document.body.appendChild(e);
+  }
+  e.textContent = "💡 " + txt;
+  requestAnimationFrame(() => { e.style.opacity = "1"; });
+  clearTimeout(_explicaTimer);
+  _explicaTimer = setTimeout(() => { e.style.opacity = "0"; }, 4200);
+}
+function ocultarExplicacion() {
+  const e = document.getElementById("explica");
+  if (e) e.style.opacity = "0";
+}
+
 /* ── diploma de logro (14-jul-2026): cuaderno COMPLETO, sin errores en
    ningún juego (3 estrellas = 0 fallos, mismo criterio que Shell.ctx().win).
    Progreso vive solo en localStorage (Store) — no hay servidor que lo
@@ -382,12 +410,13 @@ const Shell = {
       ronda(i) {
         self._rondaIdx = i;
         self._rondaResp = false;   // ronda nueva → la próxima respuesta es "primer intento"
+        ocultarExplicacion();
         document.querySelectorAll("#progreso i").forEach((d, j) => {
           d.className = j < i ? "hecho" : (j === i ? "actual" : "");
         });
       },
-      bien(txt) { registrar(true); Sfx.ok(); toast(txt || FRASES_BIEN[rint(0, FRASES_BIEN.length - 1)]); },
-      casi(motivo) { registrar(false, motivo); self.fallos++; Sfx.casi(); },
+      bien(txt) { registrar(true); ocultarExplicacion(); Sfx.ok(); toast(txt || FRASES_BIEN[rint(0, FRASES_BIEN.length - 1)]); },
+      casi(motivo) { registrar(false, motivo); self.fallos++; Sfx.casi(); if (motivo) mostrarExplicacion(motivo); },
       win(estrellas) {
         // Capa 0 · C2 (compuerta de dominio, docs/auditoria-dc-caba/): las
         // estrellas miden DOMINIO real —aciertos al PRIMER intento— no "completé
@@ -2194,6 +2223,78 @@ GAMES.planta_fruto = {
           }
         });
         fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── TABLAS NINJA (M17, 4° grado — docs/auditoria-dc-caba/grado-4.md): fluidez
+   de la tabla pitagórica, EL gatekeeper multiplicativo que a 4° le faltaba por
+   completo (pedido por los 3 revisores del panel). GENERADA (no banco fijo).
+   Distractores por MISCONCEPTION real (Capa 0 · C4), no al azar: tabla vecina
+   (a×(b±1), (a±1)×b) y suma en vez de producto (a+b). Cada error incorrecto trae
+   SU explicación del porqué (Capa 0 · C3). La dificultad sube dentro de la sesión:
+   tablas bajas → altas → mezcla. cfg.nivel fija un piso. ── */
+GAMES.tablas_ninja = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    const nivel = ctx.cfg.nivel || 1;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const rango = () => {
+      const prog = rondas > 1 ? ronda / (rondas - 1) : 1;
+      if (nivel >= 3 || prog > 0.66) return [rint(2, 9), rint(2, 9)];   // mezcla
+      if (nivel === 2 || prog > 0.33) return [rint(6, 9), rint(2, 9)];  // tablas altas
+      return [rint(2, 5), rint(2, 9)];                                   // tablas bajas
+    };
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const [a, b] = rango();
+      const correcto = a * b;
+      ctx.item("tablas_ninja#" + a + "x" + b);   // C1: telemetría por ítem real
+      ctx.consigna("¿Cuánto es " + a + " por " + b + "?");
+      ctx.juego.innerHTML = "";
+      // distractores por error típico, cada uno con SU explicación (C3/C4)
+      const cand = [];
+      if (b < 12) cand.push({ v: a * (b + 1), m: a + "×" + (b + 1) + " es " + (a * (b + 1)) + ". Te pasaste una tabla: " + a + "×" + b + " es una menos." });
+      if (b > 1)  cand.push({ v: a * (b - 1), m: a + "×" + (b - 1) + " es " + (a * (b - 1)) + ". Te faltó una tabla: " + a + "×" + b + " es una más." });
+      cand.push({ v: a + b, m: a + "+" + b + " es " + (a + b) + ", pero acá multiplicamos: " + a + " veces el " + b + "." });
+      if (a < 12) cand.push({ v: (a + 1) * b, m: (a + 1) + "×" + b + " es " + ((a + 1) * b) + ": esa es la tabla del " + (a + 1) + ", no la del " + a + " (" + a + "×" + b + ")." });
+      const opciones = [{ v: correcto, ok: true }];
+      shuffle(cand).forEach((d) => {
+        if (opciones.length >= 3) return;
+        if (d.v > 0 && !opciones.some((o) => o.v === d.v)) opciones.push(d);
+      });
+      // relleno defensivo si algún caso chico no dejó 2 distractores únicos
+      let intento = 0;
+      while (opciones.length < 3 && intento++ < 20) {
+        const v = correcto + rint(1, 4) * (rint(0, 1) ? 1 : -1);
+        if (v > 0 && !opciones.some((o) => o.v === v))
+          opciones.push({ v: v, m: "Contá de " + a + " en " + a + ": " + a + "×" + b + " es " + correcto + "." });
+      }
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const btn = el("button", "op", o.v);
+        btn.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) {
+            resuelto = true;
+            btn.classList.add("anim-pop");
+            ctx.bien();
+            ronda++;
+            await espera(950);
+            if (ronda >= rondas) ctx.win();
+            else jugar();
+          } else {
+            btn.classList.add("casi");
+            setTimeout(() => btn.classList.remove("casi"), 450);
+            ctx.casi(o.m);   // C3: explica ESTE error puntual
+          }
+        });
+        fila.appendChild(btn);
       });
       ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
     };

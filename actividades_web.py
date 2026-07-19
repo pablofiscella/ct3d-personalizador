@@ -259,6 +259,14 @@ def _menu(banda, edad):
         for item in g:
             if item["id"] == "simon":
                 item["cfg"] = {**item["cfg"], "colores": 8, "filas": 2}
+        # M17 "Tablas ninja" (19-jul-2026, docs/auditoria-dc-caba/grado-4.md):
+        # PRIMERA actividad del rollout de contenido de la auditoría DC CABA.
+        # Fluidez de la tabla pitagórica —el gap #1 de 4°: hoy no hay NINGÚN
+        # juego multiplicativo—. Generada, con distractores por misconception
+        # (tabla vecina, suma en vez de producto) y explicación del porqué
+        # (Capa 0 · C3/C4). Pedida por los 3 revisores del panel; "abre cada
+        # sesión de Matemática" (informe §5h / dossier de 4°).
+        g.append({"id": "tablas_ninja", "titulo": "Tablas ninja", "icono": "🥷", "cfg": {"rondas": 10, "nivel": 1}})
         # Bimestre 1: abstracto/concreto + provincia → región.
         # rondas=10 (14-jul-2026): ABSTRACTOS_BANCO creció de 8 a 10.
         g.append({"id": "abstractos_concretos", "titulo": "Abstracto o concreto", "icono": "💭", "cfg": {"rondas": 10}})
