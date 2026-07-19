@@ -1410,9 +1410,10 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def _act_interes(self, token):
-        """Activación escalable · CAPTURAR INTERÉS (público, desde el player, cuando
-        el chico toca 'quiero desbloquearla'). Registra token+actividad para que
-        Pablo lo vea en el panel y desbloquee. Rate-limitado."""
+        """Activación escalable por niveles · CAPTURAR EVENTO (público, desde el
+        player): el chico tocó el candado de un nivel (motivo='pidio') o dominó su
+        nivel (motivo='domino'). Registra token+nivel+motivo → la tienda le manda
+        el mail al comprador. Rate-limitado."""
         import actividades_web
         if not _rate_ok(self._client_ip()):
             return self._json(429, {"ok": False})
@@ -1420,28 +1421,35 @@ class Handler(BaseHTTPRequestHandler):
             ev = json.loads(self._body() or b"{}")
         except Exception:
             return self._json(400, {"ok": False})
-        act = str(ev.get("actividad", ""))[:60]
-        if not act or not os.path.isdir(os.path.join(actividades_web.ACT_DIR, token)):
+        try:
+            nivel = int(ev.get("nivel", 0))
+        except Exception:
+            nivel = 0
+        motivo = str(ev.get("motivo", "pidio"))[:16]
+        if nivel < 1 or not os.path.isdir(os.path.join(actividades_web.ACT_DIR, token)):
             return self._json(400, {"ok": False})
-        actividades_web.registrar_solicitud(token, act)
+        actividades_web.registrar_solicitud(token, nivel, motivo)
         return self._json(200, {"ok": True})
 
     def _act_desbloquear(self, token):
-        """Activación escalable · DESBLOQUEAR (ADMIN — lo hace Pablo desde el panel
-        o el futuro checkout tras cobrar). Agrega la actividad a las desbloqueadas
-        del token."""
+        """Activación escalable por niveles · DESBLOQUEAR NIVEL (ADMIN — lo hace
+        Pablo desde el panel o el futuro checkout de la tienda tras cobrar). Sube
+        el nivel_max del token."""
         if not self._admin_ok(urllib.parse.urlparse(self.path)):
             return self._json(401, {"ok": False, "error": "solo admin"})
         try:
             ev = json.loads(self._body() or b"{}")
         except Exception:
             return self._json(400, {"ok": False})
-        act = str(ev.get("actividad", ""))[:60]
+        try:
+            nivel = int(ev.get("nivel", 0))
+        except Exception:
+            nivel = 0
         import actividades_web
-        des = actividades_web.desbloquear_actividad(token, act)
-        if des is None:
+        nuevo = actividades_web.desbloquear_nivel(token, nivel)
+        if nuevo is None:
             return self._json(404, {"ok": False, "error": "token no encontrado"})
-        return self._json(200, {"ok": True, "desbloqueadas": des})
+        return self._json(200, {"ok": True, "nivel_max": nuevo})
 
     def do_POST(self):
         path = urllib.parse.urlparse(self.path).path

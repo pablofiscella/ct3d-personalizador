@@ -353,7 +353,7 @@ function certificadoUrl() {
 
 /* ── shell de juego: consigna + progreso + festejo ── */
 const Shell = {
-  actual: null, fallos: 0, _rondas: 0, _nuevoLogro: false,
+  actual: null, nivelActual: null, fallos: 0, _rondas: 0, _nuevoLogro: false,
   // Capa 0 · C1: estado de PRIMER INTENTO por ronda (lo consume la telemetría
   // Tel y, más adelante, la compuerta de dominio C2).
   _itemId: null, _rondaResp: false, _rondaIdx: 0, primerOk: 0, primerTotal: 0,
@@ -446,12 +446,18 @@ const Shell = {
         if (!yaEstabaCompleto && todoCompleto()) self._nuevoLogro = true;
         pintarHeader();
         festejar(e);
-        // activación escalable: si DOMINÓ (3★) una actividad libre y hay una
-        // premium bloqueada, ofrecerla al cerrar el festejo ("ya sabés esta,
-        // ¿querés la que sigue?"). Solo con premium_on → links normales, nada.
-        if (e >= 3 && item && !item.premium) {
-          const locked = D.menu.find((x) => estaBloqueada(x) && GAMES[x.id]);
-          if (locked) setTimeout(() => ofertaDesbloqueo(locked), 3200);
+        // activación escalable por niveles: si al ganar (3★) quedó DOMINADO el
+        // nivel de esta actividad (≥80% con 3★) y hay un nivel siguiente, avisar
+        // al adulto UNA vez (motivo='domino' → la tienda le manda el mail) y
+        // ofrecerle al chico desbloquearlo. Solo con premium_on → los links
+        // normales no ven nada de esto.
+        if (e >= 3 && D.premium_on && item) {
+          const n = item.nivel || 1;
+          const haySiguiente = (D.niveles || []).some((x) => x.nivel === n + 1);
+          if (haySiguiente && nivelDominado(n) && !yaAvisado("domino_" + n)) {
+            pedirDesbloqueo(n + 1, "domino");
+            if (nivelBloqueado(n + 1)) setTimeout(() => ofertaNivel(n + 1), 3200);
+          }
         }
       },
       confeti(n) { Confeti.tirar(n); },
@@ -535,62 +541,166 @@ function pintarHeader() {
   $("#mascoFestejo").src = P[0];
 }
 
-/* ── Activación escalable (19-jul-2026, docs/auditoria-dc-caba/): actividades
-   premium bloqueadas + oferta al dominar. Todo gateado por D.premium_on (los
-   links normales no lo tienen → nada bloqueado, cero cambio para ellos). ── */
-function estaBloqueada(m) {
-  return !!(D.premium_on && m.premium && !(D.desbloqueadas || []).includes(m.id));
+/* ── Activación escalable por NIVELES (19-jul-2026, docs/auditoria-dc-caba/):
+   las actividades se agrupan en niveles (1 = gratis del kit; 2 y 3 = premium con
+   candado). Todo gateado por D.premium_on: los links normales no lo tienen →
+   ven el menú plano de siempre, cero cambio. El chico nunca compra: pide/avisa
+   y el adulto desbloquea desde el mail (esa parte vive en la tienda). ── */
+function nivelMax() { return D.nivel_max || 1; }
+function nivelBloqueado(n) { return !!(D.premium_on && n > nivelMax()); }
+function itemsDeNivel(n) {
+  return D.menu.filter((m) => (m.nivel || 1) === n && GAMES[m.id] && P.length >= (GAMES[m.id].minP || 0));
 }
-function pedirDesbloqueo(actividad) {
+function nivelDominado(n) {
+  const items = itemsDeNivel(n);
+  if (!items.length) return false;
+  const dom = items.filter((m) => Store.stars(m.id) >= 3).length;
+  return dom / items.length >= 0.8;
+}
+// evita avisar más de una vez por (link, evento): el mail al adulto sale una vez.
+function yaAvisado(clave) {
   try {
-    fetch("quiero-desbloquear", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ actividad: actividad }) });
+    const k = "act_avisos_" + location.pathname + "_" + (Store.data.activeProfile || "");
+    const s = JSON.parse(localStorage.getItem(k) || "{}");
+    if (s[clave]) return true;
+    s[clave] = 1; localStorage.setItem(k, JSON.stringify(s));
+    return false;
+  } catch (e) { return false; }
+}
+function pedirDesbloqueo(nivel, motivo) {
+  try {
+    fetch("quiero-desbloquear", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nivel: nivel, motivo: motivo || "pidio" }) });
   } catch (e) { /* best-effort: si no llega, no rompe nada */ }
 }
-function ofertaDesbloqueo(m) {
+function ofertaNivel(n) {
+  const nv = (D.niveles || []).find((x) => x.nivel === n);
+  if (!nv) return;
   let ov = document.getElementById("oferta");
   if (!ov) { ov = el("div"); ov.id = "oferta"; ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;z-index:80;padding:16px"; document.body.appendChild(ov); }
   ov.innerHTML = "";
   const card = el("div");
   card.style.cssText = "background:var(--card,#fff);color:var(--ink,#222);max-width:340px;padding:24px 22px;border-radius:22px;text-align:center;box-shadow:0 14px 44px rgba(0,0,0,.45)";
-  card.innerHTML = "<div style='font-size:46px'>🔒✨</div><h2 style='margin:8px 0'>" + m.titulo + "</h2><p style='opacity:.85;font-size:15px;line-height:1.4'>Es una actividad EXTRA. ¿Querés desbloquearla?</p>";
-  const bSi = el("button", "", "🔓 ¡Quiero desbloquearla!");
+  card.innerHTML = "<div style='font-size:46px'>🌟</div><h2 style='margin:8px 0'>¡Dominaste tu nivel!</h2><p style='opacity:.85;font-size:15px;line-height:1.4'>Ya estás listo para el <b>Nivel " + n + " · " + nv.nombre + "</b>. ¿Le avisamos a tu adulto para que lo abra?</p>";
+  const bSi = el("button", "", "📩 ¡Avisarle a mi adulto!");
   bSi.style.cssText = "display:block;width:100%;padding:14px;margin-top:14px;border:none;border-radius:14px;background:var(--ac,#4a90d9);color:#fff;font-weight:700;font-size:16px;cursor:pointer";
   const bNo = el("button", "", "Ahora no");
   bNo.style.cssText = "display:block;width:100%;padding:10px;margin-top:8px;border:none;background:transparent;color:inherit;cursor:pointer;opacity:.7";
-  bSi.addEventListener("click", () => { pedirDesbloqueo(m.id); Sfx.fanfarria && Sfx.fanfarria(); card.innerHTML = "<div style='font-size:46px'>🎉</div><h2 style='margin:8px 0'>¡Genial!</h2><p style='opacity:.85;line-height:1.4'>Le avisamos a Casatridimensional. Muy pronto la vas a poder jugar.</p>"; setTimeout(() => ov.remove(), 2800); });
+  bSi.addEventListener("click", () => { pedirDesbloqueo(n, "pidio"); Sfx.fanfarria && Sfx.fanfarria(); card.innerHTML = "<div style='font-size:46px'>🎉</div><h2 style='margin:8px 0'>¡Listo!</h2><p style='opacity:.85;line-height:1.4'>Le avisamos a tu adulto. Cuando lo abra, vas a poder jugar el nivel nuevo.</p>"; setTimeout(() => ov.remove(), 2800); });
   bNo.addEventListener("click", () => ov.remove());
   card.appendChild(bSi); card.appendChild(bNo); ov.appendChild(card);
 }
 
+// ── navegación del menú ──────────────────────────────────────────────
+// premium_on → selector de niveles; si no, el menú plano de siempre.
 function pintarMenu() {
-  Shell.actual = null;
+  if (D.premium_on && (D.niveles || []).length > 1) return pintarNiveles();
+  return pintarMenuPlano(D.menu);
+}
+// "atrás" de un juego: si está en un nivel, vuelve a las actividades de ese
+// nivel; si no, al menú.
+function volverMenu() {
+  if (D.premium_on && Shell.nivelActual) return pintarNivel(Shell.nivelActual);
+  return pintarMenu();
+}
+
+function pintarNiveles() {
+  Shell.actual = null; Shell.nivelActual = null;
   $("#btnAtras").classList.remove("ver");
-  const stage = $("#stage");
-  stage.innerHTML = "";
-  const bienv = el("div", "", "");
-  bienv.id = "bienvenida";
-  bienv.innerHTML = `<h1>${D.titulo}</h1><p>Elegí un juego y ganá estrellas ⭐</p>
+  const stage = $("#stage"); stage.innerHTML = "";
+  const bienv = el("div"); bienv.id = "bienvenida";
+  bienv.innerHTML = `<h1>${D.titulo}</h1><p>Elegí tu nivel 🚀</p>
     <a id="pillLogro" class="${todoCompleto() ? "ver" : ""}" href="${certificadoUrl()}" target="_blank" rel="noopener">🏆 Ver mi diploma</a>`;
   stage.appendChild(bienv);
+  const cont = el("div"); cont.id = "niveles";
+  (D.niveles || []).forEach((nv) => {
+    const bloqueado = nivelBloqueado(nv.nivel);
+    const dominado = !bloqueado && nivelDominado(nv.nivel);
+    const c = el("button", "carta nivel");
+    if (bloqueado) c.classList.add("bloq");
+    c.innerHTML = `
+      <div class="icono">${bloqueado ? "🔒" : nv.icono}</div>
+      <div class="nombre">Nivel ${nv.nivel}<br>${nv.nombre}</div>
+      <div class="mini-est">${bloqueado ? "Pedí que lo abran 🔓" : (dominado ? "¡Dominado! 🌟" : "¡A jugar!")}</div>`;
+    c.addEventListener("click", () => { Sfx.pop(); if (bloqueado) pantallaCandado(nv); else pintarNivel(nv.nivel); });
+    cont.appendChild(c);
+  });
+  stage.appendChild(cont);
+}
+
+function pintarNivel(n) {
+  Shell.actual = null; Shell.nivelActual = n;
+  $("#btnAtras").classList.remove("ver");
+  const nv = (D.niveles || []).find((x) => x.nivel === n) || { nombre: "", icono: "🌱" };
+  const stage = $("#stage"); stage.innerHTML = "";
+  const bienv = el("div"); bienv.id = "bienvenida";
+  bienv.innerHTML = `<h1>${nv.icono} Nivel ${n}</h1><p>${nv.nombre} · elegí una actividad ⭐</p>`;
+  stage.appendChild(bienv);
+  const volver = el("button", "btn suave volver-niveles", "‹ Volver a los niveles");
+  volver.type = "button";
+  volver.addEventListener("click", () => { Sfx.pop(); pintarNiveles(); });
+  stage.appendChild(volver);
+  pintarMenuPlano(itemsDeNivel(n), stage);
+}
+
+// pinta una grilla de actividades (lista ya filtrada). Reusa la misma carta.
+function pintarMenuPlano(items, stage) {
+  Shell.actual = null;
+  if (!stage) {
+    Shell.nivelActual = null;
+    $("#btnAtras").classList.remove("ver");
+    stage = $("#stage"); stage.innerHTML = "";
+    const bienv = el("div"); bienv.id = "bienvenida";
+    bienv.innerHTML = `<h1>${D.titulo}</h1><p>Elegí un juego y ganá estrellas ⭐</p>
+      <a id="pillLogro" class="${todoCompleto() ? "ver" : ""}" href="${certificadoUrl()}" target="_blank" rel="noopener">🏆 Ver mi diploma</a>`;
+    stage.appendChild(bienv);
+  }
   const menu = el("div"); menu.id = "menu";
-  D.menu.forEach((m, i) => {
+  items.forEach((m, i) => {
     if (!GAMES[m.id]) return;
     if (P.length < (GAMES[m.id].minP || 0)) return;   // tema con pocos personajes
     const st = Store.stars(m.id);
-    const bloqueada = estaBloqueada(m);
     const c = el("button", "carta");
-    if (bloqueada) { c.style.opacity = "0.9"; c.style.borderStyle = "dashed"; }
     // las cartas alternan emoji y personajes del tema para que el menú viva
-    const conSprite = !bloqueada && i % 3 === 1 && P[(i / 3 | 0) + 1];
+    const conSprite = i % 3 === 1 && P[(i / 3 | 0) + 1];
     c.innerHTML = `
-      <div class="icono">${bloqueada ? "🔒" : (conSprite ? `<img src="${P[(i / 3 | 0) + 1]}" alt="">` : m.icono)}</div>
+      <div class="icono">${conSprite ? `<img src="${P[(i / 3 | 0) + 1]}" alt="">` : m.icono}</div>
       <div class="nombre">${m.titulo}</div>
-      <div class="mini-est">${bloqueada ? "Desbloqueá 🔓" : (st ? "⭐".repeat(st) : "&nbsp;")}</div>
+      <div class="mini-est">${st ? "⭐".repeat(st) : "&nbsp;"}</div>
       ${conSprite ? `<div class="chip">${m.icono}</div>` : ""}`;
-    c.addEventListener("click", () => { Sfx.pop(); if (bloqueada) ofertaDesbloqueo(m); else Shell.abrir(m.id); });
+    c.addEventListener("click", () => { Sfx.pop(); Shell.abrir(m.id); });
     menu.appendChild(c);
   });
   stage.appendChild(menu);
+}
+
+function pantallaCandado(nv) {
+  Shell.actual = null; Shell.nivelActual = null;
+  $("#btnAtras").classList.remove("ver");
+  const stage = $("#stage"); stage.innerHTML = "";
+  const box = el("div"); box.id = "candado";
+  const volverBtn = () => {
+    const v = el("button", "btn suave", "‹ Volver a los niveles");
+    v.type = "button";
+    v.addEventListener("click", () => { Sfx.pop(); pintarNiveles(); });
+    return v;
+  };
+  box.innerHTML = `
+    <div class="cand-ico">🔒</div>
+    <h1>Nivel ${nv.nivel} · ${nv.nombre}</h1>
+    <p>Este nivel está guardado. Pedile a tu grande que lo abra — le mandamos un mail para que pueda hacerlo.</p>`;
+  const bSi = el("button", "btn verde", "📩 Avisarle a mi adulto");
+  bSi.type = "button";
+  bSi.addEventListener("click", () => {
+    pedirDesbloqueo(nv.nivel, "pidio");
+    Sfx.fanfarria && Sfx.fanfarria();
+    box.innerHTML = `<div class="cand-ico">🎉</div><h1>¡Listo!</h1>
+      <p>Le avisamos a tu adulto. Cuando lo abra, vas a poder jugar el Nivel ${nv.nivel}.</p>`;
+    box.appendChild(volverBtn());
+  });
+  box.appendChild(bSi);
+  box.appendChild(el("div", "cand-nota", "💛 Vos no comprás nada — lo hace tu adulto desde su mail"));
+  box.appendChild(volverBtn());
+  stage.appendChild(box);
 }
 
 /* ── arranque ── */
@@ -621,7 +731,7 @@ async function boot() {
     abrirPerfil();   // primera vez con este link: preguntar quién juega
   }
 
-  $("#btnAtras").addEventListener("click", () => { Sfx.pop(); pintarMenu(); });
+  $("#btnAtras").addEventListener("click", () => { Sfx.pop(); volverMenu(); });
   $("#hdrTitulo").addEventListener("click", () => { Sfx.pop(); abrirPerfil(); });
   $("#perfilJugar").addEventListener("click", () => elegirPerfil($("#perfilInput").value));
   $("#perfilInput").addEventListener("keydown", (e) => {
@@ -636,7 +746,7 @@ async function boot() {
     if (Sfx.on) Sfx.pop();
   });
   $("#btnSeguir").addEventListener("click", () => {
-    cerrarFestejo(); pintarMenu();
+    cerrarFestejo(); volverMenu();
     if (Shell._nuevoLogro) { Shell._nuevoLogro = false; mostrarLogro(); }
   });
   $("#btnOtraVez").addEventListener("click", () => {

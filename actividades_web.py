@@ -866,43 +866,85 @@ def _escena(tema, d):
     return "escena.jpg"
 
 
-# ── Activación escalable de actividades (19-jul-2026, docs/auditoria-dc-caba/,
-# [[ct3d-actividades-activacion-escalable]]): algunas actividades son "premium"
-# (extra). En un token con premium_on=True se muestran bloqueadas hasta
-# desbloquearlas (una por una). El gate es POR TOKEN → los links vivos
-# (premium_on ausente/False) NO se ven afectados: todo sigue gratis como hoy.
-# Demo: Pablo define el set real; acá van 2 de 4° para probar el mecanismo.
-_PREMIUM_IDS = {"problemas_mult_div", "duelo_decimales"}
-def _marcar_premium(menu):
+# ── Activación escalable por NIVELES (19-jul-2026, docs/auditoria-dc-caba/,
+# [[ct3d-actividades-activacion-escalable]]): las actividades se agrupan en
+# niveles que profundizan los mismos temas. Nivel 1 = incluido en el kit
+# (gratis); niveles 2 y 3 = premium, con candado. En un token con
+# premium_on=True el player muestra el SELECTOR DE NIVELES y bloquea los
+# niveles > nivel_max. El gate es POR TOKEN → los links vivos (premium_on
+# ausente/False) NO se ven afectados: ven el menú plano de siempre, todo gratis.
+# Cuando el chico DOMINA su nivel, el player avisa (registrar_solicitud motivo=
+# 'domino') → la TIENDA le manda el mail al comprador para desbloquear el
+# siguiente con 50% off (esa parte vive en /opt/ct3d).
+# Demo: Pablo define el mapa real; acá van actividades de 4° como muestra.
+NIVEL_NOMBRES = {1: "Explorador", 2: "Aventurero", 3: "Experto"}
+NIVEL_ICONOS = {1: "🌱", 2: "🧭", 3: "🏆"}
+# actividad → nivel (las que NO figuran acá quedan en el nivel 1, gratis).
+_NIVEL_ACTIVIDAD = {
+    # Nivel 2 (intermedio): se abre cuando domina el Nivel 1
+    "fracciones_equivalentes": 2, "duelo_fracciones": 2, "reparto_fracciones": 2,
+    "completar_entero": 2, "recta_numerica": 2,
+    # Nivel 3 (avanzado): se abre cuando domina el Nivel 2
+    "problemas_mult_div": 3, "duelo_decimales": 3, "angulos": 3,
+    "comprension_lectora": 3, "prefijos_sufijos": 3,
+}
+def _nivel_de(actividad):
+    return _NIVEL_ACTIVIDAD.get(actividad, 1)
+
+def _marcar_niveles(menu):
+    """Taggea cada item del menú con su 'nivel' (1 por defecto). No filtra nada:
+    el player decide qué mostrar/bloquear según el nivel_max del token."""
     for it in menu:
-        if it["id"] in _PREMIUM_IDS:
-            it["premium"] = True
+        it["nivel"] = _nivel_de(it["id"])
     return menu
 
+def _niveles_meta(menu):
+    """Resumen de los niveles presentes en el menú (para el selector del player):
+    número, nombre, ícono y cuántas actividades tiene cada uno. Ordenado."""
+    presentes = sorted({it.get("nivel", 1) for it in menu})
+    return [
+        {"nivel": n, "nombre": NIVEL_NOMBRES.get(n, "Nivel %d" % n),
+         "icono": NIVEL_ICONOS.get(n, "⭐"),
+         "cantidad": sum(1 for it in menu if it.get("nivel", 1) == n)}
+        for n in presentes
+    ]
 
-def desbloquear_actividad(token, actividad):
-    """Agrega una actividad a las desbloqueadas del token (lo llama el desbloqueo
-    del admin / futuro checkout). Idempotente. Devuelve la lista nueva o None."""
+
+def desbloquear_nivel(token, nivel):
+    """Sube el nivel_max del token hasta 'nivel' (lo llama el desbloqueo del admin
+    o el futuro checkout de la tienda tras cobrar). Idempotente. Devuelve el
+    nivel_max nuevo, o None si el token no existe."""
+    try:
+        nivel = int(nivel)
+    except Exception:
+        return None
     p = os.path.join(ACT_DIR, token, "data.json")
     try:
         dj = json.load(open(p, encoding="utf-8"))
     except Exception:
         return None
-    des = list(dj.get("desbloqueadas") or [])
-    if actividad not in des:
-        des.append(actividad)
-        dj["desbloqueadas"] = des
+    actual = int(dj.get("nivel_max") or 1)
+    if nivel > actual:
+        dj["nivel_max"] = nivel
         with open(p, "w", encoding="utf-8") as f:
             json.dump(dj, f, ensure_ascii=False)
-    return des
+        return nivel
+    return actual
 
 
-def registrar_solicitud(token, actividad):
-    """Captura el interés: 'este chico (token) quiere desbloquear esta actividad'.
-    Append a datos_premium/solicitudes.jsonl para que Pablo lo vea en el panel."""
+def registrar_solicitud(token, nivel, motivo="pidio"):
+    """Captura el evento para que la TIENDA le mande el mail al comprador:
+    'este chico (token) quiere / está listo para el nivel N'.
+      motivo='domino' → dominó su nivel actual (mail: 'ya puede avanzar').
+      motivo='pidio'  → tocó el candado del nivel (mail: 'quiere el nivel N').
+    Append a datos_premium/solicitudes.jsonl. Best-effort."""
     dd = os.path.join(BASEDIR, "datos_premium")
     os.makedirs(dd, exist_ok=True)
-    linea = {"token": token, "actividad": actividad, "t": int(time.time())}
+    try:
+        nivel = int(nivel)
+    except Exception:
+        nivel = 0
+    linea = {"token": token, "nivel": nivel, "motivo": str(motivo)[:16], "t": int(time.time())}
     with open(os.path.join(dd, "solicitudes.jsonl"), "a", encoding="utf-8") as f:
         f.write(json.dumps(linea, ensure_ascii=False) + "\n")
     return linea
@@ -958,11 +1000,13 @@ def _armar_data(tema, nombre, edad, seed):
         laberintos_chicos = [_lab_json(n, seed + 900 + i * 23) for i, n in enumerate(tams_chicos)]
 
     titulo = ("Las actividades de %s" % nombre) if nombre else "Cuaderno de actividades"
+    menu_niv = _marcar_niveles(_menu(banda, edad))
     return {
         "v": 1, "tema": tema, "tema_nombre": _tema_nombre(tema),
         "nombre": nombre, "edad": edad, "banda": banda, "titulo": titulo,
         "paleta": _paleta(tema),
-        "menu": _marcar_premium(_menu(banda, edad)),
+        "menu": menu_niv,
+        "niveles": _niveles_meta(menu_niv),
         "sopas": sopas, "sudokus": sudokus, "laberintos": laberintos,
         "laberintos_chicos": laberintos_chicos,
         "figuras": {"estrella": _figura_pts("estrella", 10),
@@ -1420,16 +1464,16 @@ def crear(data, tema, token=None):
     dj["sombras"] = sombras
     dj["colorear"] = cols
     dj["escena"] = esc
-    # activación escalable: modo premium por token (default OFF → sin impacto en
-    # links vivos) + desbloqueadas (preservadas si el token se regenera, para no
-    # "perder" una compra al re-armar).
+    # activación escalable por niveles: modo premium por token (default OFF → sin
+    # impacto en links vivos) + nivel_max (el nivel más alto desbloqueado; se
+    # PRESERVA si el token se regenera, para no "perder" una compra al re-armar).
     dj["premium_on"] = bool(data.get("premium_on"))
     _prev = {}
     try:
         _prev = json.load(open(os.path.join(d, "data.json"), encoding="utf-8"))
     except Exception:
         pass
-    dj["desbloqueadas"] = list(data.get("desbloqueadas") or _prev.get("desbloqueadas") or [])
+    dj["nivel_max"] = int(data.get("nivel_max") or _prev.get("nivel_max") or 1)
     with open(os.path.join(d, "data.json"), "w", encoding="utf-8") as f:
         json.dump(dj, f, ensure_ascii=False)
 

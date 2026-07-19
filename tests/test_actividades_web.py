@@ -554,3 +554,59 @@ def test_generar_audio_consignas_error_claro_sin_key(monkeypatch):
     monkeypatch.setattr(audiolibro, "_tts_elevenlabs", lambda *a, **k: None)
     with pytest.raises(RuntimeError, match="ELEVENLABS"):
         aw.generar_audio_consignas(["Encontrá las palabras escondidas."])
+
+
+def test_niveles_activacion_escalable(tmp_path, monkeypatch):
+    """Activación escalable por NIVELES (19-jul-2026): un token premium agrupa el
+    menú en niveles (1 gratis, 2/3 con candado), desbloquear_nivel sube el
+    nivel_max de forma monótona y registrar_solicitud captura el evento para el
+    mail al comprador. Gateado por token → los links normales no cambian."""
+    tok = "test-niv-11223344"
+    d = os.path.join(aw.ACT_DIR, tok)
+    shutil.rmtree(d, ignore_errors=True)
+    try:
+        aw.crear({"nombre": "Sofía", "edad": "9", "premium_on": True}, TEMA, token=tok)
+        dj = json.load(open(os.path.join(d, "data.json"), encoding="utf-8"))
+        # el token premium expone el modelo de niveles
+        assert dj.get("premium_on") is True
+        assert dj.get("nivel_max") == 1
+        assert len(dj.get("niveles") or []) > 1, "un token de 4° tiene varios niveles"
+        assert all("nivel" in m for m in dj["menu"]), "cada item del menú lleva su nivel"
+        assert {m["nivel"] for m in dj["menu"]} >= {1, 2}, "hay actividades más allá del nivel 1"
+
+        # desbloquear_nivel: sube, es monótono (no baja) y falla claro si no existe
+        assert aw.desbloquear_nivel(tok, 2) == 2
+        assert json.load(open(os.path.join(d, "data.json"))).get("nivel_max") == 2
+        assert aw.desbloquear_nivel(tok, 1) == 2, "bajar no baja el nivel_max"
+        assert aw.desbloquear_nivel("no-existe-xyz", 2) is None
+
+        # el nivel_max desbloqueado se PRESERVA al regenerar el token (no se
+        # "pierde" la compra al re-armar)
+        aw.crear({"nombre": "Sofía", "edad": "9", "premium_on": True}, TEMA, token=tok)
+        assert json.load(open(os.path.join(d, "data.json"))).get("nivel_max") == 2
+
+        # registrar_solicitud / solicitudes_pendientes (aislado a tmp)
+        monkeypatch.setattr(aw, "BASEDIR", str(tmp_path))
+        aw.registrar_solicitud(tok, 2, "domino")
+        aw.registrar_solicitud(tok, 3, "pidio")
+        sols = aw.solicitudes_pendientes()
+        assert len(sols) == 2
+        assert sols[0]["nivel"] == 2 and sols[0]["motivo"] == "domino"
+        assert sols[1]["nivel"] == 3 and sols[1]["motivo"] == "pidio"
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+def test_token_normal_sin_niveles_no_bloquea():
+    """El gate es por token: sin premium_on, el token no queda en modo premium
+    (el player muestra el menú plano de siempre). Los links vivos no cambian."""
+    tok = "test-normal-55667788"
+    d = os.path.join(aw.ACT_DIR, tok)
+    shutil.rmtree(d, ignore_errors=True)
+    try:
+        aw.crear({"nombre": "Sofía", "edad": "9"}, TEMA, token=tok)
+        dj = json.load(open(os.path.join(d, "data.json"), encoding="utf-8"))
+        assert not dj.get("premium_on")
+        assert dj.get("nivel_max") == 1
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
