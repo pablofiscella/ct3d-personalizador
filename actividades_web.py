@@ -325,6 +325,12 @@ def _menu(banda, edad):
         g.append({"id": "duelo_decimales", "titulo": "Duelo de decimales", "icono": "💲", "cfg": {"rondas": 10}})
         g.append({"id": "problemas_mult_div", "titulo": "Problemas de verdad", "icono": "🤔", "cfg": {"rondas": 10}})
         g.append({"id": "plurales_z", "titulo": "Plurales con Z", "icono": "📝", "cfg": {"rondas": 10}})
+        # S3 línea de tiempo + L15 historia en orden (19-jul-2026): primeras
+        # actividades sobre la MECÁNICA NUEVA "ordenar" (commit-then-check), que
+        # el motor no tenía. Línea de tiempo colonial (Sociales) y ordenar el
+        # cuento (Lengua). Reusan la misma mecánica.
+        g.append({"id": "linea_tiempo", "titulo": "Línea de tiempo", "icono": "🕰️", "cfg": {"rondas": 8}})
+        g.append({"id": "historia_orden", "titulo": "Ordená el cuento", "icono": "📖", "cfg": {"rondas": 8}})
         # Bimestre 4: ángulos + prefijos.
         # rondas=10 (14-jul-2026): ANGULOS_BANCO creció de 7 a 10.
         g.append({"id": "angulos", "titulo": "Agudo, recto u obtuso", "icono": "📐", "cfg": {"rondas": 10}})

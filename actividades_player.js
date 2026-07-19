@@ -2836,6 +2836,95 @@ GAMES.plurales_z = {
   },
 };
 
+/* ── MECÁNICA NUEVA: ORDENAR (commit-then-check) — 19-jul-2026, mecánica que el
+   motor no tenía (docs/auditoria-dc-caba/). El chico toca las tarjetas en el
+   orden correcto; cada toque le pone su número; al completar TODAS se chequea
+   junto (no de a una). Si se equivoca, explica el porqué (Capa 0 · C3) y vuelve
+   a mezclar la MISMA tanda para reintentar (cero fail state). Reusable: línea de
+   tiempo, ordenar el cuento, secuencias de proceso, etc. ── */
+function juegoOrdenar(BANCO, consignaTxt, explicaTxt, idPrefijo) {
+  return {
+    crear(ctx) {
+      const rondas = ctx.cfg.rondas || Math.min(8, BANCO.length);
+      ctx.rondas(rondas);
+      let usados = [], ronda = 0;
+      const nuevoSet = () => {
+        let disp = BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
+        if (!disp.length) { usados = []; disp = BANCO.map((_, i) => i); }
+        const idx = disp[rint(0, disp.length - 1)];
+        usados.push(idx);
+        return idx;
+      };
+      const render = (setIdx) => {
+        ctx.ronda(ronda);
+        ctx.consigna(consignaTxt);
+        ctx.item(idPrefijo + "#" + setIdx);
+        ctx.juego.innerHTML = "";
+        const correcto = BANCO[setIdx].items;                 // en ORDEN correcto
+        const mezcla = shuffle(correcto.map((t, i) => ({ t: t, pos: i })));
+        const seq = [];
+        const cont = el("div", "");
+        cont.style.cssText = "display:flex;flex-direction:column;gap:8px;max-width:560px;margin:0 auto;width:100%";
+        const chequear = () => {
+          const ok = seq.every((p, k) => p === k);
+          if (ok) {
+            ctx.bien();
+            ronda++;
+            setTimeout(() => { if (ronda >= rondas) ctx.win(); else render(nuevoSet()); }, 1150);
+          } else {
+            ctx.casi(explicaTxt);
+            setTimeout(() => render(setIdx), 2000);            // reintenta la MISMA tanda, re-mezclada
+          }
+        };
+        mezcla.forEach((o) => {
+          const b = el("button", "op");
+          b.style.cssText = "text-align:left;position:relative;padding-left:16px;width:100%";
+          b.textContent = o.t;
+          b.addEventListener("click", () => {
+            if (b.dataset.puesto) return;
+            seq.push(o.pos);
+            b.dataset.puesto = String(seq.length);
+            b.style.paddingLeft = "48px";
+            b.style.opacity = "0.65";
+            const badge = el("span", "", String(seq.length));
+            badge.style.cssText = "position:absolute;left:10px;top:50%;transform:translateY(-50%);background:#2b2b3a;color:#fff;border-radius:50%;width:28px;height:28px;display:grid;place-items:center;font-weight:700";
+            b.appendChild(badge);
+            if (seq.length === correcto.length) chequear();
+          });
+          cont.appendChild(b);
+        });
+        ctx.juego.appendChild(cont);
+      };
+      render(nuevoSet());
+    },
+  };
+}
+
+/* ── LÍNEA DE TIEMPO (S3, 4° grado): ordenar hitos históricos (conquista, colonia,
+   virreinatos) del más antiguo al más nuevo. Usa la mecánica ORDENAR. Los años
+   quedan a la vista como andamiaje. ── */
+const LINEA_TIEMPO_BANCO = [
+  { items: ["Colón llega a América (1492)", "Primera fundación de Buenos Aires (1536)", "Segunda fundación de Buenos Aires (1580)"] },
+  { items: ["Primera fundación de Buenos Aires (1536)", "Se crea el Virreinato del Perú (1542)", "Se crea el Virreinato del Río de la Plata (1776)"] },
+  { items: ["Vivían los pueblos originarios en América", "Llegan los españoles a América (1492)", "Se funda el Virreinato del Río de la Plata (1776)"] },
+  { items: ["Colón llega a América (1492)", "Segunda fundación de Buenos Aires (1580)", "Se crea el Virreinato del Río de la Plata (1776)"] },
+  { items: ["Primera fundación de Buenos Aires (1536)", "Se crea el Virreinato del Perú (1542)", "Segunda fundación de Buenos Aires (1580)"] },
+  { items: ["Colón llega a América (1492)", "Se crea el Virreinato del Perú (1542)", "Se crea el Virreinato del Río de la Plata (1776)"] },
+];
+GAMES.linea_tiempo = juegoOrdenar(LINEA_TIEMPO_BANCO, "Ordená del más ANTIGUO al más nuevo. Tocá en orden.", "Ordená por año: el más viejo (el número más chico) va primero.", "linea_tiempo");
+
+/* ── HISTORIA EN ORDEN (L15, 4° grado): ordenar las partes de un cuento (situación
+   inicial → conflicto → resolución). Usa la mecánica ORDENAR. Sin años: es lógica
+   narrativa (qué pasó primero). ── */
+const HISTORIA_ORDEN_BANCO = [
+  { items: ["Un chico encontró un huevo raro en el bosque", "Del huevo salió un dragón que crecía sin parar", "Se hicieron amigos y volaron juntos por el cielo"] },
+  { items: ["María quería aprender a andar en bici", "Se caía y se caía, y le dolían las rodillas", "Después de practicar toda la semana, ya andaba sola"] },
+  { items: ["A Tomás se le perdió el perro en la plaza", "Lo buscó por todos lados y no aparecía", "Un vecino lo había guardado y se lo devolvió"] },
+  { items: ["Los amigos plantaron una semilla en una maceta", "Pasaban los días y la semilla no crecía", "Con agua y sol, al fin brotó una plantita"] },
+  { items: ["Sofía empezó a preparar una torta", "Se dio cuenta de que faltaba el azúcar", "Fue a comprarla, la terminó y quedó riquísima"] },
+];
+GAMES.historia_orden = juegoOrdenar(HISTORIA_ORDEN_BANCO, "Ordená el cuento: ¿qué pasó primero? Tocá en orden.", "Pensá: primero cómo empieza, después el problema, y al final cómo se resuelve.", "historia_orden");
+
 /* ── ¿DE QUÉ MATERIAL ES? — trivia (14-jul-2026, 1° grado NAP Bimestre 4
    "Ideas web": "trivia de materiales — ¿vidrio, madera o metal para una
    ventana?"). Opciones de TEXTO (no emoji — no hay glifo distintivo por
