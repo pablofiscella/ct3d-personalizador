@@ -389,8 +389,25 @@ const Shell = {
       bien(txt) { registrar(true); Sfx.ok(); toast(txt || FRASES_BIEN[rint(0, FRASES_BIEN.length - 1)]); },
       casi(motivo) { registrar(false, motivo); self.fallos++; Sfx.casi(); },
       win(estrellas) {
-        const e = estrellas !== undefined ? estrellas
-          : (self.fallos === 0 ? 3 : (self.fallos <= 2 ? 2 : 1));
+        // Capa 0 · C2 (compuerta de dominio, docs/auditoria-dc-caba/): las
+        // estrellas miden DOMINIO real —aciertos al PRIMER intento— no "completé
+        // con pocos fallos" (que se lograba por eliminación / a la segunda). El
+        // festejo de COMPLETAR se mantiene igual (el chico siempre lo recibe);
+        // lo que cambia es cuántas estrellas.
+        //   - estrella explícita del juego (ctx.win(n): sopa, laberinto…) → se respeta
+        //   - juego con rondas registradas (C1) → por precisión de 1er intento
+        //   - juego sin rondas registradas (colorear, etc.) → fallback viejo por fallos
+        // El "sello de dominado sostenido en 2 sesiones" + diploma es el próximo
+        // incremento (necesita timestamps entre sesiones); esto ya deja el dato.
+        let e;
+        if (estrellas !== undefined) {
+          e = estrellas;
+        } else if (self.primerTotal > 0) {
+          const acc = self.primerOk / self.primerTotal;
+          e = acc >= 0.9 ? 3 : (acc >= 0.7 ? 2 : 1);
+        } else {
+          e = self.fallos === 0 ? 3 : (self.fallos <= 2 ? 2 : 1);
+        }
         const yaEstabaCompleto = todoCompleto();
         Store.setStars(self.actual, e);
         if (!yaEstabaCompleto && todoCompleto()) self._nuevoLogro = true;
