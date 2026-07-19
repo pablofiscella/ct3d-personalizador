@@ -3851,6 +3851,161 @@ GAMES.detectives_cielo = {
   },
 };
 
+/* ── Helper reusable de TRIVIA por BANCO (19-jul-2026): items {q, ok, d:[...], m}.
+   Consigna = q; opciones = ok + distractores mezclados; al errar explica m (C3). ── */
+function juegoTriviaBanco(BANCO, idPrefijo) {
+  return {
+    crear(ctx) {
+      const rondas = ctx.cfg.rondas || 10;
+      ctx.rondas(rondas);
+      let usados = [], ronda = 0;
+      const jugar = () => {
+        ctx.ronda(ronda);
+        let disp = BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
+        if (!disp.length) { usados = []; disp = BANCO.map((_, i) => i); }
+        const idx = disp[rint(0, disp.length - 1)]; usados.push(idx);
+        const it = BANCO[idx];
+        ctx.item(idPrefijo + "#" + idx);
+        ctx.consigna(it.q);
+        ctx.juego.innerHTML = "";
+        const opciones = shuffle([{ t: it.ok, ok: true }].concat(it.d.map((x) => ({ t: x, ok: false }))));
+        const fila = el("div", "ops");
+        let resuelto = false;
+        opciones.forEach((o) => {
+          const b = el("button", "op", o.t);
+          b.addEventListener("click", async () => {
+            if (resuelto) return;
+            if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+            else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(it.m); }
+          });
+          fila.appendChild(b);
+        });
+        ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+      };
+      jugar();
+    },
+  };
+}
+
+/* ── 6° grado (docs/auditoria-dc-caba/grado-6.md) — cuadriláteros (M15a) e
+   historia de la organización nacional 1862-1930. ── */
+const CUADRI_BANCO = [
+  { q: "¿Qué figura tiene 4 lados iguales Y 4 ángulos rectos?", ok: "El cuadrado", d: ["El rombo", "El rectángulo"], m: "El cuadrado tiene 4 lados iguales y 4 ángulos rectos. El rombo tiene lados iguales pero no ángulos rectos." },
+  { q: "El rectángulo tiene…", ok: "4 ángulos rectos", d: ["4 lados iguales", "3 lados"], m: "El rectángulo tiene 4 ángulos rectos; los lados son iguales de a pares (largos y cortos)." },
+  { q: "¿Qué figura tiene 4 lados iguales pero puede estar inclinada (sin ángulos rectos)?", ok: "El rombo", d: ["El cuadrado", "El trapecio"], m: "El rombo tiene los 4 lados iguales pero sus ángulos no son rectos." },
+  { q: "¿Cuántos lados tiene un cuadrilátero?", ok: "4", d: ["3", "5"], m: "Cuadri- significa cuatro: todos los cuadriláteros tienen 4 lados." },
+  { q: "El trapecio se reconoce porque…", ok: "Tiene un solo par de lados paralelos", d: ["Tiene todos los lados iguales", "Es redondo"], m: "El trapecio tiene un solo par de lados paralelos." },
+  { q: "¿Cuál NO es un cuadrilátero?", ok: "El triángulo", d: ["El cuadrado", "El rombo"], m: "El triángulo tiene 3 lados; los cuadriláteros tienen 4." },
+  { q: "El paralelogramo tiene…", ok: "Los lados opuestos paralelos", d: ["Un solo par paralelo", "Ningún lado paralelo"], m: "El paralelogramo tiene los dos pares de lados opuestos paralelos." },
+  { q: "Las diagonales del cuadrado…", ok: "Son iguales y se cruzan en el medio", d: ["Son de distinto largo", "No se cruzan"], m: "En el cuadrado las dos diagonales miden lo mismo y se cortan en el centro." },
+];
+GAMES.cuadrilateros = juegoTriviaBanco(CUADRI_BANCO, "cuadri");
+const ORG_NAC_BANCO = [
+  { q: "Después de 1853, ¿qué se sancionó para organizar el país?", ok: "La Constitución Nacional", d: ["Una ley de aduanas", "El himno"], m: "En 1853 se sancionó la Constitución Nacional, que organizó el país." },
+  { q: "Entre 1880 y 1930 llegaron a la Argentina muchos…", ok: "Inmigrantes de Europa", d: ["Turistas", "Soldados"], m: "En esa época llegaron millones de inmigrantes europeos buscando trabajo." },
+  { q: "El ferrocarril, en esa época, servía sobre todo para…", ok: "Llevar productos del campo al puerto", d: ["Pasear los domingos", "La guerra"], m: "El tren llevaba cereales y carne del campo al puerto para exportar." },
+  { q: "La Ley 1420 (1884) estableció que la primaria fuera…", ok: "Gratuita y obligatoria", d: ["Solo para ricos", "Solo religiosa"], m: "La Ley 1420 hizo la primaria gratuita, obligatoria y laica." },
+  { q: "La Ley Sáenz Peña (1912) estableció el voto…", ok: "Secreto y obligatorio", d: ["Solo para dueños de tierras", "Cantado en voz alta"], m: "La Ley Sáenz Peña estableció el voto secreto y obligatorio." },
+  { q: "A la Argentina de esa época se la llamaba…", ok: "El granero del mundo", d: ["El taller del mundo", "La isla del tesoro"], m: "Exportaba tanto grano y carne que la llamaban 'el granero del mundo'." },
+];
+GAMES.organizacion_nacional = juegoTriviaBanco(ORG_NAC_BANCO, "orgnac");
+
+/* ── 6° · PRODUCTO DE FRACCIONES (generada): a/b × c/d = (a·c)/(b·d). Ataca el
+   error de sumar en vez de multiplicar. Explicación con la regla (C3). ── */
+GAMES.multiplicar_fracciones = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const a = rint(1, 4), b = rint(2, 5), c = rint(1, 4), d = rint(2, 5);
+      const num = a * c, den = b * d;
+      ctx.item("mulfrac#" + a + b + c + d);
+      ctx.consigna("¿Cuánto es  " + a + "/" + b + " × " + c + "/" + d + "  ?");
+      ctx.juego.innerHTML = "";
+      const motivo = "Se multiplica arriba con arriba y abajo con abajo: " + a + "×" + c + "=" + num + " y " + b + "×" + d + "=" + den + " → " + num + "/" + den + ".";
+      const cand = [
+        { t: (a + c) + "/" + (b + d), m: "Acá se MULTIPLICA, no se suma. " + motivo },
+        { t: (a * c) + "/" + (b + d), m: "El de abajo también se multiplica: " + b + "×" + d + "=" + den + ". " + motivo },
+      ];
+      const opciones = [{ t: num + "/" + den, ok: true }];
+      shuffle(cand).forEach((x) => { if (opciones.length < 3 && !opciones.some((o) => o.t === x.t)) opciones.push(x); });
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const b2 = el("button", "op", o.t);
+        b2.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b2.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+          else { b2.classList.add("casi"); setTimeout(() => b2.classList.remove("casi"), 450); ctx.casi(o.m); }
+        });
+        fila.appendChild(b2);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── 7° grado (docs/auditoria-dc-caba/grado-7.md) — ecuaciones simples (álgebra
+   inicial), homófonos (ortografía) e historia del s.XX. ── */
+GAMES.ecuaciones_simples = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const tipo = rint(0, 2);
+      let texto, x, motivo, malo;
+      if (tipo === 0) { x = rint(2, 15); const a = rint(1, 9); texto = "x + " + a + " = " + (x + a); malo = (x + a) + a; motivo = "Para despejar x hacé la operación contraria: " + (x + a) + " − " + a + " = " + x + "."; }
+      else if (tipo === 1) { x = rint(4, 16); const a = rint(1, 9); texto = "x − " + a + " = " + (x - a); malo = (x - a) - a; motivo = "Para despejar x sumá: " + (x - a) + " + " + a + " = " + x + "."; }
+      else { const a = rint(2, 6); x = rint(2, 9); texto = a + " × x = " + (a * x); malo = a * x - a; motivo = "Para despejar x dividí: " + (a * x) + " ÷ " + a + " = " + x + "."; }
+      ctx.item("ecu#" + texto.replace(/ /g, ""));
+      ctx.consigna("Si  " + texto + " ,  ¿cuánto vale x?");
+      ctx.juego.innerHTML = "";
+      const opciones = [{ v: x, ok: true }];
+      if (malo > 0 && malo !== x) opciones.push({ v: malo, m: motivo });
+      let intento = 0;
+      while (opciones.length < 3 && intento++ < 20) { const v = x + rint(1, 5) * (rint(0, 1) ? 1 : -1); if (v > 0 && !opciones.some((o) => o.v === v)) opciones.push({ v: v, m: motivo }); }
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const b = el("button", "op", o.v);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+const HOMOFONOS_BANCO = [
+  { q: "Completá: Vamos … si llegó el paquete.", ok: "a ver", d: ["haber"], m: "«a ver» (mirar/comprobar) va separado; «haber» es el verbo (había, ha comido)." },
+  { q: "Completá: Tiene que … terminado la tarea.", ok: "haber", d: ["a ver"], m: "«haber» es el verbo (haber terminado); «a ver» es mirar." },
+  { q: "Completá: … un gato arriba del techo.", ok: "Hay", d: ["Ahí"], m: "«hay» es del verbo haber (existe); «ahí» señala un lugar." },
+  { q: "Completá: El libro está … , sobre la mesa.", ok: "ahí", d: ["hay"], m: "«ahí» señala un lugar; «hay» significa que existe." },
+  { q: "Completá: Ayer … un accidente en la esquina.", ok: "tuvo", d: ["tubo"], m: "«tuvo» es del verbo tener; «tubo» es un caño." },
+  { q: "Completá: El agua pasa por el … de la pileta.", ok: "tubo", d: ["tuvo"], m: "«tubo» es un caño; «tuvo» es del verbo tener." },
+  { q: "Completá: — ¿Venís? — ¡… , claro!", ok: "sí", d: ["si"], m: "«sí» (afirmación) lleva tilde; «si» (condición) no." },
+  { q: "Completá: No sé … voy a poder ir.", ok: "si", d: ["sí"], m: "«si» condicional va sin tilde; «sí» afirmación lleva tilde." },
+];
+GAMES.homofonos = juegoTriviaBanco(HOMOFONOS_BANCO, "homof");
+const SIGLOXX_BANCO = [
+  { q: "¿Quién fue presidente desde 1946, muy ligado a los derechos de los trabajadores?", ok: "Juan Domingo Perón", d: ["José de San Martín", "Manuel Belgrano"], m: "Perón fue presidente desde 1946; su gobierno impulsó derechos de los trabajadores." },
+  { q: "En 1976, en la Argentina, hubo…", ok: "Un golpe de Estado (dictadura)", d: ["Un mundial de fútbol", "La independencia"], m: "En 1976 un golpe militar interrumpió la democracia; fue una dictadura." },
+  { q: "¿En qué año volvió la democracia tras la última dictadura?", ok: "1983", d: ["1810", "1955"], m: "En 1983 se recuperó la democracia con elecciones libres." },
+  { q: "El 24 de marzo se recuerda…", ok: "El Día de la Memoria", d: ["El Día de la Bandera", "La independencia"], m: "El 24 de marzo es el Día Nacional de la Memoria por la Verdad y la Justicia." },
+  { q: "¿Qué derecho consiguieron las mujeres en 1947?", ok: "El voto femenino", d: ["Manejar autos", "Ir a la escuela"], m: "En 1947 se sancionó la ley del voto femenino; votaron por primera vez en 1951." },
+  { q: "En democracia, ¿quién elige a los gobernantes?", ok: "El pueblo, votando", d: ["Un rey", "El ejército"], m: "En democracia, la gente elige a sus representantes con el voto." },
+];
+GAMES.argentina_sigloXX = juegoTriviaBanco(SIGLOXX_BANCO, "sigloxx");
+
 /* ── ¿DE QUÉ MATERIAL ES? — trivia (14-jul-2026, 1° grado NAP Bimestre 4
    "Ideas web": "trivia de materiales — ¿vidrio, madera o metal para una
    ventana?"). Opciones de TEXTO (no emoji — no hay glifo distintivo por

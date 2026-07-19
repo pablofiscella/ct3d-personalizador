@@ -470,6 +470,11 @@ def _menu(banda, edad):
         g.append({"id": "numeros_primos", "titulo": "¿Cuál es primo?", "icono": "✳️", "cfg": {"rondas": 10}})
         g.append({"id": "jerarquia_operaciones", "titulo": "Orden de las operaciones", "icono": "🧾", "cfg": {"rondas": 10}})
         g.append({"id": "porcentajes", "titulo": "El porcentaje justo", "icono": "💯", "cfg": {"rondas": 10}})
+        # 3ª tanda 6° (19-jul-2026, nivelación): cuadriláteros (M15a), producto de
+        # fracciones, e historia de la organización nacional 1862-1930.
+        g.append({"id": "cuadrilateros", "titulo": "Cuadriláteros", "icono": "⬜", "cfg": {"rondas": 10}})
+        g.append({"id": "multiplicar_fracciones", "titulo": "Producto de fracciones", "icono": "✖️", "cfg": {"rondas": 10}})
+        g.append({"id": "organizacion_nacional", "titulo": "La organización nacional", "icono": "🚂", "cfg": {"rondas": 10}})
     if e == 12:
         # 7° grado (14-jul-2026, año de egreso, fin del NAP) — mismo
         # criterio: un juego por cada "Idea web" del NAP.
@@ -513,6 +518,11 @@ def _menu(banda, edad):
         g.append({"id": "potencias", "titulo": "Potencias", "icono": "🔺", "cfg": {"rondas": 10}})
         g.append({"id": "problemas_multipaso", "titulo": "Problemas de varios pasos", "icono": "📈", "cfg": {"rondas": 8}})
         g.append({"id": "ingles_basico", "titulo": "English time", "icono": "🇬🇧", "cfg": {"rondas": 10}})
+        # 3ª tanda 7° (19-jul-2026, nivelación): ecuaciones simples (álgebra
+        # inicial), homófonos (ortografía) e historia del s.XX.
+        g.append({"id": "ecuaciones_simples", "titulo": "Despejá la x", "icono": "🟰", "cfg": {"rondas": 10}})
+        g.append({"id": "homofonos", "titulo": "Homófonos", "icono": "✒️", "cfg": {"rondas": 10}})
+        g.append({"id": "argentina_sigloXX", "titulo": "Argentina en el siglo XX", "icono": "🎖️", "cfg": {"rondas": 10}})
     return g
 
 
