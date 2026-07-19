@@ -422,6 +422,12 @@ def _menu(banda, edad):
         g.append({"id": "equivalencias_medida", "titulo": "Equivalencias de medida", "icono": "📏", "cfg": {"rondas": 10}})
         g.append({"id": "verbos_pasado", "titulo": "¿Cantó o cantaba?", "icono": "⏪", "cfg": {"rondas": 10}})
         g.append({"id": "buenos_aires", "titulo": "Mi Buenos Aires querido", "icono": "🏙️", "cfg": {"rondas": 10}})
+        # 3ª tanda 5° (19-jul-2026, nivelación): más nodales del dossier —
+        # equivalencia decimal↔fracción, suma de fracciones (igual denom.) y
+        # astronomía (el Sol/la Luna).
+        g.append({"id": "decimales_fraccion", "titulo": "Del décimo a la coma", "icono": "🔟", "cfg": {"rondas": 10}})
+        g.append({"id": "suma_fracciones", "titulo": "Sumá fracciones", "icono": "➕", "cfg": {"rondas": 10}})
+        g.append({"id": "detectives_cielo", "titulo": "Detectives del cielo", "icono": "🌙", "cfg": {"rondas": 10}})
     if e == 11:
         # 6° grado (14-jul-2026): mismo criterio — un juego por cada "Idea
         # web" del NAP.
