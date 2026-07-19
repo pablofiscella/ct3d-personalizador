@@ -268,6 +268,17 @@ def _menu(banda, edad):
         # rondas=10 (14-jul-2026): MEZCLAS_BANCO creció de 4 a 10.
         g.append({"id": "separador_mezclas", "titulo": "Separá la mezcla", "icono": "🧪", "cfg": {"rondas": 10}})
         g.append({"id": "cajero_automatico", "titulo": "Cajero automático", "icono": "💵", "cfg": {"rondas": 5}})
+        # ── Rollout DC CABA · 3° grado (19-jul-2026, docs/auditoria-dc-caba/
+        # grado-3.md): réplica del modelo de 4°. 3 actividades nuevas + 2 reusadas
+        # de los moldes ya construidos, y limpieza de los juegos de inicial (como
+        # Fase 0A en 4°) + separador_mezclas (reemplazado por estados_materia).
+        g.append({"id": "reparto_con_resto", "titulo": "Reparto con resto", "icono": "➗", "cfg": {"rondas": 10}})
+        g.append({"id": "comparar_numeros", "titulo": "Tres en fila", "icono": "🥇", "cfg": {"rondas": 10}})
+        g.append({"id": "estados_materia", "titulo": "Sólido, líquido o gas", "icono": "🌡️", "cfg": {"rondas": 10}})
+        g.append({"id": "comprension_lectora", "titulo": "Detective de textos", "icono": "🔎", "cfg": {"rondas": 8}})
+        g.append({"id": "recta_numerica", "titulo": "Recta gigante", "icono": "📍", "cfg": {"rondas": 10, "max1": 1000, "max2": 10000}})
+        _drop3 = {"sumas", "restas", "contar", "colorear", "puntos", "mas_menos", "patron", "separador_mezclas"}
+        g[:] = [it for it in g if it["id"] not in _drop3]
     if e == 9:
         # 4° grado (14-jul-2026): mismo criterio — un juego por cada "Idea
         # web" del NAP. Dos "Ideas web" del año (rompecabezas geográfico

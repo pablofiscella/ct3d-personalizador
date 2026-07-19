@@ -2939,7 +2939,7 @@ GAMES.recta_numerica = {
     const jugar = () => {
       ctx.ronda(ronda);
       const prog = rondas > 1 ? ronda / (rondas - 1) : 1;
-      const max = prog > 0.5 ? 100000 : 10000;
+      const max = prog > 0.5 ? (ctx.cfg.max2 || 100000) : (ctx.cfg.max1 || 10000);
       const paso = max / 10;
       const target = rint(1, 99) * (max / 100);      // en (0, max), número "redondo"
       const zonaOK = Math.min(9, Math.floor(target / paso));
@@ -3058,6 +3058,144 @@ GAMES.comprension_lectora = {
       ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
     };
     nuevoPasaje(); render();
+  },
+};
+
+/* ── REPARTO CON RESTO (M11, 3° grado — docs/auditoria-dc-caba/grado-3.md): la
+   división con resto, EL nodal que estrena 3° y define el pasaje al 2° ciclo.
+   Trivia generada: repartir en partes iguales, decir cuántos a cada uno Y cuántos
+   sobran. Distractores por misconception real (Capa 0 · C4): resto mayor que la
+   cantidad de amigos (imposible), uno de más, ignorar el resto. Explicación C3. ── */
+GAMES.reparto_con_resto = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    const OBJ = [["🍬", "caramelos"], ["🍪", "galletitas"], ["⚽", "pelotas"], ["🎈", "globos"], ["🖍️", "crayones"]];
+    const fmt = (c, r) => c + " a cada uno" + (r > 0 ? ", sobran " + r : ", no sobra nada");
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const prog = rondas > 1 ? ronda / (rondas - 1) : 1;
+      const N = rint(2, prog > 0.5 ? 6 : 4);          // amigos = divisor
+      const coc = rint(2, prog > 0.5 ? 9 : 5);        // a cada uno = cociente
+      const resto = rint(0, N - 1);                    // sobran (siempre < amigos)
+      const total = N * coc + resto;
+      const obj = OBJ[rint(0, OBJ.length - 1)];
+      ctx.item("reparto_resto#" + total + "e" + N);
+      ctx.consigna("Reparto " + total + " " + obj[1] + " " + obj[0] + " entre " + N + " amigos, en partes iguales. ¿Cuántos a cada uno y cuántos sobran?");
+      ctx.juego.innerHTML = "";
+      const correcto = fmt(coc, resto);
+      const cand = [
+        { t: fmt(coc, resto + N), m: "Si sobran " + (resto + N) + " y hay " + N + " amigos, se puede dar uno más a cada uno. El resto tiene que ser MENOR que " + N + "." },
+        { t: fmt(coc + 1, resto), m: (coc + 1) + " a cada uno serían " + ((coc + 1) * N) + ", y hay solo " + total + "." },
+        { t: (resto > 0 ? fmt(coc, 0) : fmt(coc - 1, N - 1)), m: (resto > 0 ? total + " no se reparte justo entre " + N + ": sobran " + resto + "." : "Se reparte justo: " + coc + " a cada uno, no sobra nada.") },
+      ];
+      const opciones = [{ t: correcto, ok: true }];
+      shuffle(cand).forEach((d) => { if (opciones.length < 3 && !opciones.some((o) => o.t === d.t)) opciones.push(d); });
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const b = el("button", "op", o.t);
+        b.style.cssText = "text-align:left";
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(1000); if (ronda >= rondas) ctx.win(); else jugar(); }
+          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── TRES EN FILA (M2, 3° grado): leer, comparar y ordenar números de 3-4 cifras.
+   Consigna rotativa (mayor / menor / el del medio) sobre 3 numerales. Ataca la
+   trampa de comparar por "cuántos números tiene" o la primera cifra. Explicación
+   C3: contar cifras primero, después comparar de izquierda a derecha. ── */
+GAMES.comparar_numeros = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const prog = rondas > 1 ? ronda / (rondas - 1) : 1;
+      const maxN = prog > 0.5 ? 9999 : 999;
+      const minN = prog > 0.5 ? 100 : 10;
+      let nums = [];
+      while (nums.length < 3) { const x = rint(minN, maxN); if (!nums.includes(x)) nums.push(x); }
+      const sorted = [...nums].sort((a, b) => a - b);
+      const modo = rint(0, 2);
+      const correctoVal = modo === 0 ? sorted[2] : (modo === 1 ? sorted[0] : sorted[1]);
+      const preg = modo === 0 ? "¿Cuál es el MAYOR?" : (modo === 1 ? "¿Cuál es el MENOR?" : "¿Cuál está en el MEDIO?");
+      ctx.item("comparar#" + modo + "_" + correctoVal);
+      ctx.consigna(preg);
+      ctx.juego.innerHTML = "";
+      const motivo = "Fijate primero cuántas cifras tiene cada número; si tienen las mismas, compará cifra por cifra desde la izquierda.";
+      const opciones = nums.map((n) => ({ v: n, ok: n === correctoVal }));
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const b = el("button", "op", fmt(o.v));
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(motivo); }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── ESTADOS DE LA MATERIA (C1, 3° grado): clasificar sólido / líquido / gaseoso.
+   El gaseoso es lo NUEVO de 3° (2° trabaja sólido/líquido). Reemplaza a
+   separador_mezclas. Explicación C3 con la propiedad de cada estado. ── */
+const ESTADOS_BANCO = [
+  { cosa: "El hielo 🧊", r: "Sólido" }, { cosa: "El agua del vaso 💧", r: "Líquido" }, { cosa: "El vapor de la pava ♨️", r: "Gaseoso" },
+  { cosa: "Una piedra 🪨", r: "Sólido" }, { cosa: "La leche 🥛", r: "Líquido" }, { cosa: "El aire 💨", r: "Gaseoso" },
+  { cosa: "Un bloque de madera 🧱", r: "Sólido" }, { cosa: "El jugo 🧃", r: "Líquido" }, { cosa: "El humo 🌫️", r: "Gaseoso" },
+  { cosa: "Una moneda 🪙", r: "Sólido" }, { cosa: "El aceite 🫗", r: "Líquido" }, { cosa: "Las burbujas de aire 🫧", r: "Gaseoso" },
+];
+GAMES.estados_materia = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    const OPC = ["Sólido", "Líquido", "Gaseoso"];
+    const EXPL = {
+      "Sólido": "Los sólidos tienen forma propia y no se derraman (como el hielo o una piedra).",
+      "Líquido": "Los líquidos toman la forma del recipiente y se pueden verter (como el agua o el jugo).",
+      "Gaseoso": "Los gases no tienen forma y se esparcen por el aire (como el vapor o el humo).",
+    };
+    let usados = [], ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      let disp = ESTADOS_BANCO.filter((x) => !usados.includes(x.cosa));
+      if (!disp.length) { usados = []; disp = ESTADOS_BANCO.slice(); }
+      const it = disp[rint(0, disp.length - 1)]; usados.push(it.cosa);
+      ctx.item("estados#" + it.r);
+      ctx.consigna(it.cosa + ", ¿en qué estado está?");
+      ctx.juego.innerHTML = "";
+      const opciones = OPC.map((o) => ({ t: o, ok: o === it.r }));
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const b = el("button", "op", o.t);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(EXPL[it.r]); }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
   },
 };
 

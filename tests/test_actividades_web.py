@@ -87,15 +87,16 @@ def test_bandas_de_edad():
     # default 16 del player, así que un chico de 6 recibía números MÁS ALTOS
     # que uno de 12 (dificultad invertida). Ahora es monótono creciente.
     assert serie12["cfg"]["tope"] > serie6["cfg"]["tope"]
-    # Fase 0A (19-jul-2026): los juegos clavados en dificultad de inicial que
-    # NO escalan (sumas/restas cuentan sprites; contar/mas_menos ≤9; colorear/
-    # puntos sin anclaje) se retiran de 4°-7° (e>=9) — origen de la queja
-    # "muy fácil". Siguen presentes en 1°-3° (e<=8).
+    # Fase 0A (19-jul-2026) + rollout DC CABA 3° (19-jul-2026): los juegos clavados
+    # en dificultad de inicial que NO escalan (sumas/restas cuentan sprites;
+    # contar/mas_menos ≤9; colorear/puntos sin anclaje) se retiran de 3°-7° (e>=8).
+    # Fase 0A los sacó de 4°-7°; al construir el contenido de 3° se sacaron también
+    # de 3°. Siguen presentes en 1°-2° (e<=7).
     _inicial = {"sumas", "restas", "contar", "mas_menos", "colorear", "puntos"}
-    for e_grande in (9, 10, 11, 12):
+    for e_grande in (8, 9, 10, 11, 12):
         ids_e = {m["id"] for m in aw._menu("grande", e_grande)}
         assert not (_inicial & ids_e), f"juegos de inicial no retirados en edad {e_grande}"
-    assert {"sumas", "restas"} <= {m["id"] for m in aw._menu("grande", 8)}  # 3° aún los tiene
+    assert {"sumas", "restas"} <= {m["id"] for m in aw._menu("grande", 7)}  # 2° aún los tiene
     # resto de 1° grado (14-jul-2026, cierre del año — NAP "Ideas web" por
     # bimestre): ninguno debe filtrarse a los 12 años.
     nuevos_1grado = {"abecedario", "suma_rapida", "campo_ciudad", "planta_fruto", "materiales", "grilla100"}
@@ -120,9 +121,14 @@ def test_bandas_de_edad():
     # 3° grado (14-jul-2026, edad 8 — NAP "Ideas web" por bimestre):
     # ninguno se filtra a 6, 7 ni 12 años, sin íconos repetidos.
     ids_grande8 = {m["id"] for m in aw._menu("grande", 8)}
+    # separador_mezclas se retiró en el rollout DC CABA 3° (reemplazado por
+    # estados_materia). Se suman las 3 nuevas exclusivas de 3° (reparto con resto,
+    # comparar números, estados de la materia). comprension_lectora/recta_numerica
+    # NO van acá: se comparten con 4° (no son exclusivas de 3°).
     nuevos_3grado = {"animal_comida", "partes_oracion", "tabla_pitagorica",
                       "tiempos_verbales", "estaciones", "cuerpos_geometricos",
-                      "separador_mezclas", "cajero_automatico"}
+                      "cajero_automatico", "reparto_con_resto", "comparar_numeros",
+                      "estados_materia"}
     assert nuevos_3grado <= ids_grande8
     assert not (nuevos_3grado & ids_grande6)
     assert not (nuevos_3grado & ids_grande7)
