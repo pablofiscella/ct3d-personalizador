@@ -220,6 +220,12 @@ def _menu(banda, edad):
         # rondas=10 (14-jul-2026): MATERIALES_BANCO creció de 6 a 10.
         g.append({"id": "materiales", "titulo": "¿De qué material es?", "icono": "🪟", "cfg": {"rondas": 10}})
         g.append({"id": "grilla100", "titulo": "La grilla numérica", "icono": "🧮", "cfg": {"rondas": 6}})
+        # ── Rollout DC CABA · 1° grado (19-jul-2026, grado-1.md): numeración
+        # (recta con rango chico 0-20→0-100) + ordenar números de menor a mayor.
+        # Los moldes de 3°+ (fracciones, comprensión de 4°…) NO aplican a 6 años;
+        # el resto de 1° es contenido fonético/lector age-específico (fase engrosar).
+        g.append({"id": "recta_numerica", "titulo": "Recta gigante", "icono": "📍", "cfg": {"rondas": 8, "max1": 20, "max2": 100}})
+        g.append({"id": "ordenar_numeros", "titulo": "Ordená los números", "icono": "🪜", "cfg": {"rondas": 8, "max": 20, "cant": 3}})
     if e == 7:
         # 2° grado (14-jul-2026): mismo criterio que 1° grado — un juego
         # por cada "Idea web" que el propio NAP sugiere por bimestre.
@@ -240,6 +246,13 @@ def _menu(banda, edad):
         # rondas=10 (14-jul-2026): ESPACIAL_BANCO creció de 6 a 10.
         g.append({"id": "trivia_espacial", "titulo": "Día, noche o ambos", "icono": "🌗", "cfg": {"rondas": 10}})
         g.append({"id": "tablas_contrarreloj", "titulo": "Tablas contrarreloj", "icono": "⏱️", "cfg": {"rondas": 6}})
+        # ── Rollout DC CABA · 2° grado (19-jul-2026, grado-2.md): numeración y
+        # comparación de números hasta 1.000 (recta, comparar mayor/menor/medio,
+        # ordenar). Molds age-appropiados; el resto de 2° es lengua/ciencias
+        # age-específico (fase engrosar).
+        g.append({"id": "recta_numerica", "titulo": "Recta gigante", "icono": "📍", "cfg": {"rondas": 8, "max1": 100, "max2": 1000}})
+        g.append({"id": "comparar_numeros", "titulo": "Tres en fila", "icono": "🥇", "cfg": {"rondas": 10, "max": 999}})
+        g.append({"id": "ordenar_numeros", "titulo": "Ordená los números", "icono": "🪜", "cfg": {"rondas": 8, "max": 100, "cant": 4}})
     if e == 8:
         # 3° grado (14-jul-2026): mismo criterio — un juego por cada "Idea
         # web" del NAP, un bimestre a la vez. NO hizo falta separar la
