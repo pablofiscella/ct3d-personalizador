@@ -3718,6 +3718,139 @@ GAMES.ingles_basico = {
   },
 };
 
+/* ── DEL DÉCIMO A LA COMA (M11, 5° grado — docs/auditoria-dc-caba/grado-5.md):
+   equivalencia fracción decimal ↔ expresión decimal, nodal de 5°. Banco de
+   equivalencias comunes. Explicación con décimos/centésimos (Capa 0 · C3). ── */
+const DEC_FRAC_BANCO = [
+  { q: "0,5 es igual a la fracción…", ok: "1/2", d: ["1/5", "5/1"], m: "0,5 son 5 décimos = 5/10 = 1/2 (la mitad)." },
+  { q: "0,25 es igual a la fracción…", ok: "1/4", d: ["2/5", "1/25"], m: "0,25 son 25 centésimos = 25/100 = 1/4." },
+  { q: "1/2 escrito como decimal es…", ok: "0,5", d: ["0,2", "1,2"], m: "1/2 es la mitad = 0,5." },
+  { q: "3/10 escrito como decimal es…", ok: "0,3", d: ["0,03", "3,0"], m: "3/10 son 3 décimos = 0,3." },
+  { q: "0,75 es igual a la fracción…", ok: "3/4", d: ["7/5", "3/5"], m: "0,75 son 75 centésimos = 75/100 = 3/4." },
+  { q: "1/4 escrito como decimal es…", ok: "0,25", d: ["0,4", "1,4"], m: "1/4 es 25 centésimos = 0,25." },
+  { q: "7/10 escrito como decimal es…", ok: "0,7", d: ["0,07", "7,10"], m: "7/10 son 7 décimos = 0,7." },
+  { q: "0,1 es igual a la fracción…", ok: "1/10", d: ["1/100", "10/1"], m: "0,1 es un décimo = 1/10." },
+  { q: "0,50 y 0,5, ¿son iguales?", ok: "Sí, son iguales", d: ["No, 0,50 es más", "No, 0,5 es más"], m: "0,50 = 0,5: los ceros a la derecha después de la coma no cambian el valor." },
+  { q: "9/100 escrito como decimal es…", ok: "0,09", d: ["0,9", "9,00"], m: "9/100 son 9 centésimos = 0,09." },
+];
+GAMES.decimales_fraccion = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    let usados = [], ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      let disp = DEC_FRAC_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
+      if (!disp.length) { usados = []; disp = DEC_FRAC_BANCO.map((_, i) => i); }
+      const idx = disp[rint(0, disp.length - 1)]; usados.push(idx);
+      const it = DEC_FRAC_BANCO[idx];
+      ctx.item("decfrac#" + idx);
+      ctx.consigna(it.q);
+      ctx.juego.innerHTML = "";
+      const opciones = shuffle([{ t: it.ok, ok: true }].concat(it.d.map((x) => ({ t: x, ok: false }))));
+      const fila = el("div", "ops");
+      let resuelto = false;
+      opciones.forEach((o) => {
+        const b = el("button", "op", o.t);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(it.m); }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── SUMÁ FRACCIONES (5° grado — docs/auditoria-dc-caba/grado-5.md): suma de
+   fracciones de IGUAL denominador, nodal de 5°. GENERADA. Ataca la misconception
+   de sumar también los denominadores. Explicación con la regla (Capa 0 · C3). ── */
+GAMES.suma_fracciones = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const den = rint(4, 9);
+      const a = rint(1, den - 2);
+      const b = rint(1, den - 1 - a);            // a+b < den → resultado propio
+      const sum = a + b;
+      ctx.item("sumafrac#" + a + "_" + b + "_" + den);
+      ctx.consigna("¿Cuánto es  " + a + "/" + den + "  +  " + b + "/" + den + "  ?");
+      ctx.juego.innerHTML = "";
+      const motivo = "Con el MISMO denominador, se suman los de arriba y el de abajo queda igual: " + a + "+" + b + "=" + sum + ", entonces " + sum + "/" + den + ".";
+      const cand = [
+        { t: sum + "/" + (den + den), m: "El denominador NO se suma: queda " + den + ". " + motivo },
+        { t: (sum + 1) + "/" + den, m: motivo },
+      ];
+      const opciones = [{ t: sum + "/" + den, ok: true }];
+      shuffle(cand).forEach((d) => { if (opciones.length < 3 && !opciones.some((o) => o.t === d.t)) opciones.push(d); });
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const b2 = el("button", "op", o.t);
+        b2.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b2.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+          else { b2.classList.add("casi"); setTimeout(() => b2.classList.remove("casi"), 450); ctx.casi(o.m); }
+        });
+        fila.appendChild(b2);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── DETECTIVES DEL CIELO (C5, 5° grado — docs/auditoria-dc-caba/grado-5.md):
+   astros — el Sol como estrella, la Luna que refleja, fases y eclipses. Trivia
+   con explicación (Capa 0 · C3). ── */
+const ASTRO5_BANCO = [
+  { q: "¿La Luna tiene luz propia?", ok: "No, refleja la del Sol", d: ["Sí, es una estrella", "Solo cuando está llena"], m: "La Luna no brilla sola: refleja la luz del Sol." },
+  { q: "¿Qué es el Sol?", ok: "Una estrella", d: ["Un planeta", "Un satélite"], m: "El Sol es la estrella más cercana a la Tierra." },
+  { q: "¿Por qué de día no vemos las estrellas?", ok: "La luz del Sol las tapa", d: ["Se apagan de día", "Se van al otro lado"], m: "Las estrellas siguen ahí, pero la luz del Sol es tan fuerte que no las deja ver." },
+  { q: "¿Qué gira alrededor de la Tierra?", ok: "La Luna", d: ["El Sol", "Marte"], m: "La Luna es el satélite natural de la Tierra y gira a su alrededor." },
+  { q: "La Luna se ve distinta cada noche. Eso se llama…", ok: "Las fases de la Luna", d: ["Un eclipse", "Una estrella fugaz"], m: "Las fases (nueva, creciente, llena, menguante) son las formas en que vemos la Luna a lo largo del mes." },
+  { q: "Un eclipse de Sol pasa cuando…", ok: "La Luna se pone entre el Sol y la Tierra", d: ["El Sol se apaga un rato", "La Tierra choca la Luna"], m: "En un eclipse solar, la Luna tapa al Sol visto desde la Tierra." },
+  { q: "¿Qué planeta habitamos?", ok: "La Tierra", d: ["La Luna", "El Sol"], m: "Vivimos en el planeta Tierra, que gira alrededor del Sol." },
+  { q: "¿Qué está MÁS lejos de la Tierra?", ok: "El Sol", d: ["La Luna", "Las nubes"], m: "La Luna está mucho más cerca que el Sol." },
+];
+GAMES.detectives_cielo = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    let usados = [], ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      let disp = ASTRO5_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
+      if (!disp.length) { usados = []; disp = ASTRO5_BANCO.map((_, i) => i); }
+      const idx = disp[rint(0, disp.length - 1)]; usados.push(idx);
+      const it = ASTRO5_BANCO[idx];
+      ctx.item("astro5#" + idx);
+      ctx.consigna(it.q);
+      ctx.juego.innerHTML = "";
+      const opciones = shuffle([{ t: it.ok, ok: true }].concat(it.d.map((x) => ({ t: x, ok: false }))));
+      const fila = el("div", "ops");
+      let resuelto = false;
+      opciones.forEach((o) => {
+        const b = el("button", "op", o.t);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(it.m); }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 /* ── ¿DE QUÉ MATERIAL ES? — trivia (14-jul-2026, 1° grado NAP Bimestre 4
    "Ideas web": "trivia de materiales — ¿vidrio, madera o metal para una
    ventana?"). Opciones de TEXTO (no emoji — no hay glifo distintivo por
