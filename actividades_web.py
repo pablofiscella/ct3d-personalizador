@@ -226,6 +226,10 @@ def _menu(banda, edad):
         # el resto de 1° es contenido fonético/lector age-específico (fase engrosar).
         g.append({"id": "recta_numerica", "titulo": "Recta gigante", "icono": "📍", "cfg": {"rondas": 8, "max1": 20, "max2": 100}})
         g.append({"id": "ordenar_numeros", "titulo": "Ordená los números", "icono": "🪜", "cfg": {"rondas": 8, "max": 20, "cant": 3}})
+        # 2ª tanda 1° (19-jul-2026, nivelación age-específica): fonética (letra
+        # inicial, con AUDIO) + anterior/siguiente de un número (NAP nodal).
+        g.append({"id": "letra_inicial", "titulo": "¿Con qué letra empieza?", "icono": "🅰️", "cfg": {"rondas": 8}})
+        g.append({"id": "anterior_siguiente", "titulo": "Antes y después", "icono": "➡️", "cfg": {"rondas": 10, "max": 100}})
     if e == 7:
         # 2° grado (14-jul-2026): mismo criterio que 1° grado — un juego
         # por cada "Idea web" que el propio NAP sugiere por bimestre.
@@ -253,6 +257,10 @@ def _menu(banda, edad):
         g.append({"id": "recta_numerica", "titulo": "Recta gigante", "icono": "📍", "cfg": {"rondas": 8, "max1": 100, "max2": 1000}})
         g.append({"id": "comparar_numeros", "titulo": "Tres en fila", "icono": "🥇", "cfg": {"rondas": 10, "max": 999}})
         g.append({"id": "ordenar_numeros", "titulo": "Ordená los números", "icono": "🪜", "cfg": {"rondas": 8, "max": 100, "cant": 4}})
+        # 2ª tanda 2° (19-jul-2026, nivelación): contar de a 2/5/10 (NAP nodal) +
+        # anterior/siguiente con números hasta 1.000.
+        g.append({"id": "contar_saltando", "titulo": "Contar saltando", "icono": "🦘", "cfg": {"rondas": 10}})
+        g.append({"id": "anterior_siguiente", "titulo": "Antes y después", "icono": "➡️", "cfg": {"rondas": 10, "max": 1000}})
     if e == 8:
         # 3° grado (14-jul-2026): mismo criterio — un juego por cada "Idea
         # web" del NAP, un bimestre a la vez. NO hizo falta separar la
