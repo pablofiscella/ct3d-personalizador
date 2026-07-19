@@ -4006,6 +4006,71 @@ const SIGLOXX_BANCO = [
 ];
 GAMES.argentina_sigloXX = juegoTriviaBanco(SIGLOXX_BANCO, "sigloxx");
 
+/* ── 3° grado (docs/auditoria-dc-caba/grado-3.md) — orden alfabético (L4, con la
+   mecánica ORDENAR: palabras que empiezan igual, se desempata por la 2ª letra) y
+   ortografía (L3: -aba, z→ces, mb/nv). ── */
+const ALFAB_BANCO = [
+  { items: ["banana", "boca", "brazo", "burro"] },
+  { items: ["casa", "cielo", "codo", "cuna"] },
+  { items: ["mano", "mesa", "mono", "muela"] },
+  { items: ["pan", "perro", "pino", "pollo"] },
+  { items: ["rana", "reto", "risa", "rosa"] },
+  { items: ["sala", "selva", "silla", "sopa"] },
+  { items: ["tapa", "techo", "tiza", "toldo"] },
+  { items: ["dado", "dedo", "disco", "duende"] },
+];
+GAMES.orden_alfabetico = juegoOrdenar(ALFAB_BANCO, "Ordená de la A a la Z. Tocá las palabras en orden.", "Cuando empiezan con la misma letra, mirá la SEGUNDA letra para ordenar.", "alfab");
+const ORTO3_BANCO = [
+  { q: "El plural de «luz» es…", ok: "luces", d: ["luzes"], m: "Las palabras con Z cambian la z por C en plural: luz → luces." },
+  { q: "Yo antes … todos los días (jugar, en pasado).", ok: "jugaba", d: ["jugava"], m: "El pasado terminado en -aba se escribe con B: jugaba, cantaba." },
+  { q: "¿Cómo se escribe? «ta…ién»", ok: "también (mb)", d: ["tanbién (nb)"], m: "Antes de B y P va M, no N: también, campo." },
+  { q: "El plural de «lápiz» es…", ok: "lápices", d: ["lápizes"], m: "Con Z → C en plural: lápiz → lápices." },
+  { q: "Ella … una canción (cantar, en pasado).", ok: "cantaba", d: ["cantava"], m: "El imperfecto -aba va con B." },
+  { q: "¿Cómo se escribe? «i…vierno»", ok: "invierno (nv)", d: ["imvierno (mv)"], m: "Antes de V va N: invierno, envidia." },
+  { q: "El plural de «feliz» es…", ok: "felices", d: ["felizes"], m: "Z → C en plural: feliz → felices." },
+  { q: "Nosotros … en la plaza (caminar, en pasado).", ok: "caminábamos", d: ["caminávamos"], m: "El imperfecto -ábamos va con B." },
+];
+GAMES.ortografia_3ro = juegoTriviaBanco(ORTO3_BANCO, "orto3");
+
+/* ── 3° · PROBLEMAS (M13, generada): problemas de 1 paso (×, +, −) con números de
+   3° grado. Distractores por operación equivocada. Explicación (C3). ── */
+GAMES.problemas_3ro = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    const OBJ = [["figuritas"], ["caramelos"], ["lápices"], ["galletitas"], ["stickers"]];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const obj = OBJ[rint(0, OBJ.length - 1)][0];
+      const tipo = rint(0, 2);
+      let texto, correcto, motivo;
+      if (tipo === 0) { const c = rint(2, 9), n = rint(2, 6); correcto = c * n; texto = "En cada caja hay " + c + " " + obj + ". ¿Cuántas hay en " + n + " cajas?"; motivo = n + " cajas de " + c + " → " + n + "×" + c + "=" + correcto + "."; }
+      else if (tipo === 1) { const a = rint(10, 40), b = rint(5, 30); correcto = a + b; texto = "Tenía " + a + " " + obj + " y me regalaron " + b + ". ¿Cuántas tengo?"; motivo = "Me dieron más, así que sumo: " + a + "+" + b + "=" + correcto + "."; }
+      else { const a = rint(20, 50), b = rint(5, 19); correcto = a - b; texto = "Tenía " + a + " " + obj + " y regalé " + b + ". ¿Cuántas me quedaron?"; motivo = "Di algunas, así que resto: " + a + "−" + b + "=" + correcto + "."; }
+      ctx.item("prob3#" + tipo + "_" + correcto);
+      ctx.consigna(texto);
+      ctx.juego.innerHTML = "";
+      const opciones = [{ v: correcto, ok: true }];
+      let intento = 0;
+      while (opciones.length < 3 && intento++ < 30) { const v = correcto + rint(1, 8) * (rint(0, 1) ? 1 : -1); if (v > 0 && !opciones.some((o) => o.v === v)) opciones.push({ v: v, m: motivo }); }
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const b = el("button", "op", o.v);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 /* ── ¿DE QUÉ MATERIAL ES? — trivia (14-jul-2026, 1° grado NAP Bimestre 4
    "Ideas web": "trivia de materiales — ¿vidrio, madera o metal para una
    ventana?"). Opciones de TEXTO (no emoji — no hay glifo distintivo por
