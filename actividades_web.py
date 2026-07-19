@@ -307,6 +307,11 @@ def _menu(banda, edad):
         g.append({"id": "laboratorio_electrico", "titulo": "Laboratorio eléctrico", "icono": "🔌", "cfg": {"rondas": 10}})
         # rondas=10 (14-jul-2026): FRACCIONES_BANCO tiene 20 ítems, de sobra.
         g.append({"id": "fracciones_equivalentes", "titulo": "Fracciones equivalentes", "icono": "🍕", "cfg": {"rondas": 10}})
+        # M10 "Duelo de fracciones" (19-jul-2026, rollout DC CABA): comparación
+        # de fracciones CON BARRAS (CPA), ataca la misconception #1 (1/4 > 1/2
+        # porque 4>2). Es el eje NODAL de fracciones de 4° que faltaba
+        # (fracciones_equivalentes es solo "ampliación"). C3/C4.
+        g.append({"id": "duelo_fracciones", "titulo": "Duelo de fracciones", "icono": "🍫", "cfg": {"rondas": 10}})
         # Bimestre 4: ángulos + prefijos.
         # rondas=10 (14-jul-2026): ANGULOS_BANCO creció de 7 a 10.
         g.append({"id": "angulos", "titulo": "Agudo, recto u obtuso", "icono": "📐", "cfg": {"rondas": 10}})

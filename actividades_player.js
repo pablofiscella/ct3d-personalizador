@@ -2435,6 +2435,97 @@ GAMES.dividir = {
   },
 };
 
+/* ── DUELO DE FRACCIONES (M10, 4° grado — docs/auditoria-dc-caba/grado-4.md):
+   comparación de fracciones CON BARRAS (Singapore CPA, no negociable para
+   fracciones — skill §2). Ataca la misconception #1 de fracciones: "1/4 es mayor
+   que 1/2 porque 4 > 2". Genera 3 tipos: mismo denominador (mandan los de
+   arriba), mismo numerador y distinto denominador (la trampa: más pedazos = más
+   chicos) y equivalentes (pintan lo mismo). Explicación por misconception
+   apuntando a las barras (Capa 0 · C3). Reusa el render de barra de
+   fracciones_equivalentes. ── */
+GAMES.duelo_fracciones = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    const barra = (num, den) => {
+      const cont = el("div", "fraccionBarra");
+      for (let i = 0; i < den; i++) cont.appendChild(el("div", "fraccionBarra__seg" + (i < num ? " lleno" : "")));
+      return cont;
+    };
+    const val = (f) => f.n / f.d;
+    const equiv = [[1, 2, 2, 4], [1, 2, 3, 6], [1, 3, 2, 6], [1, 4, 2, 8], [2, 3, 4, 6], [3, 4, 6, 8], [1, 2, 4, 8]];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const prog = rondas > 1 ? ronda / (rondas - 1) : 1;
+      const tipo = prog > 0.66 ? 2 : (prog > 0.33 ? 1 : 0);
+      let A, B, iguales = false;
+      if (tipo === 2 && rint(0, 2) === 0) {
+        const e = equiv[rint(0, equiv.length - 1)];
+        A = { n: e[0], d: e[1] }; B = { n: e[2], d: e[3] }; iguales = true;
+      } else {
+        const modo = tipo === 1 ? 1 : (tipo === 0 ? 0 : rint(0, 1));  // 0=mismo den, 1=mismo num (trampa)
+        if (modo === 1) {
+          const n = rint(1, 3);
+          let d1 = rint(2, 8), d2 = rint(2, 8);
+          while (d2 === d1) d2 = rint(2, 8);
+          A = { n: n, d: d1 }; B = { n: n, d: d2 };
+        } else {
+          const d = rint(3, 8);
+          let n1 = rint(1, d - 1), n2 = rint(1, d - 1);
+          while (n2 === n1) n2 = rint(1, d - 1);
+          A = { n: n1, d: d }; B = { n: n2, d: d };
+        }
+      }
+      const mayor = iguales ? "iguales" : (val(A) > val(B) ? "a" : "b");
+      ctx.item("duelo_fracciones#" + A.n + "/" + A.d + "_" + B.n + "/" + B.d);
+      ctx.consigna("¿Cuál pinta MÁS?");
+      ctx.juego.innerHTML = "";
+      const explicaChica = (chica, grande) => {
+        if (chica.n === grande.n && chica.d !== grande.d)
+          return "Partiste en más pedazos (" + chica.d + "): cada pedazo es más CHICO. Mirá las barras.";
+        if (chica.d === grande.d)
+          return "Con el mismo denominador manda el de arriba: " + grande.n + " es más que " + chica.n + ".";
+        return "Mirá las barras: una pinta más que la otra.";
+      };
+      const cards = [{ key: "a", frac: A }, { key: "b", frac: B }, { key: "iguales", frac: null }];
+      const fila = el("div", "filaSprites fraccionesOpciones");
+      let resuelto = false;
+      shuffle(cards).forEach((c) => {
+        const b = el("button", "spriteBtn fraccionBtn");
+        if (c.frac) {
+          b.appendChild(barra(c.frac.n, c.frac.d));
+          const lbl = el("div", "", c.frac.n + "/" + c.frac.d);
+          lbl.style.cssText = "font-weight:700;font-size:20px;margin-top:6px";
+          b.appendChild(lbl);
+        } else {
+          const lbl = el("div", "", "Son iguales");
+          lbl.style.cssText = "font-weight:700;font-size:18px;padding:18px 6px";
+          b.appendChild(lbl);
+        }
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (c.key === mayor) {
+            resuelto = true; b.classList.add("anim-brinco"); ctx.bien();
+            ronda++; await espera(950);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease"; setTimeout(() => (b.style.animation = ""), 450);
+            let motivo;
+            if (mayor === "iguales") motivo = "Fijate las barras: pintan lo MISMO. " + A.n + "/" + A.d + " y " + B.n + "/" + B.d + " son iguales.";
+            else if (c.key === "iguales") motivo = "No pintan lo mismo: mirá las barras, una llena más que la otra.";
+            else motivo = explicaChica(c.frac, mayor === "a" ? A : B);
+            ctx.casi(motivo);
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 /* ── ¿DE QUÉ MATERIAL ES? — trivia (14-jul-2026, 1° grado NAP Bimestre 4
    "Ideas web": "trivia de materiales — ¿vidrio, madera o metal para una
    ventana?"). Opciones de TEXTO (no emoji — no hay glifo distintivo por
