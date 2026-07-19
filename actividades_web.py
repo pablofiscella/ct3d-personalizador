@@ -866,6 +866,62 @@ def _escena(tema, d):
     return "escena.jpg"
 
 
+# ── Activación escalable de actividades (19-jul-2026, docs/auditoria-dc-caba/,
+# [[ct3d-actividades-activacion-escalable]]): algunas actividades son "premium"
+# (extra). En un token con premium_on=True se muestran bloqueadas hasta
+# desbloquearlas (una por una). El gate es POR TOKEN → los links vivos
+# (premium_on ausente/False) NO se ven afectados: todo sigue gratis como hoy.
+# Demo: Pablo define el set real; acá van 2 de 4° para probar el mecanismo.
+_PREMIUM_IDS = {"problemas_mult_div", "duelo_decimales"}
+def _marcar_premium(menu):
+    for it in menu:
+        if it["id"] in _PREMIUM_IDS:
+            it["premium"] = True
+    return menu
+
+
+def desbloquear_actividad(token, actividad):
+    """Agrega una actividad a las desbloqueadas del token (lo llama el desbloqueo
+    del admin / futuro checkout). Idempotente. Devuelve la lista nueva o None."""
+    p = os.path.join(ACT_DIR, token, "data.json")
+    try:
+        dj = json.load(open(p, encoding="utf-8"))
+    except Exception:
+        return None
+    des = list(dj.get("desbloqueadas") or [])
+    if actividad not in des:
+        des.append(actividad)
+        dj["desbloqueadas"] = des
+        with open(p, "w", encoding="utf-8") as f:
+            json.dump(dj, f, ensure_ascii=False)
+    return des
+
+
+def registrar_solicitud(token, actividad):
+    """Captura el interés: 'este chico (token) quiere desbloquear esta actividad'.
+    Append a datos_premium/solicitudes.jsonl para que Pablo lo vea en el panel."""
+    dd = os.path.join(BASEDIR, "datos_premium")
+    os.makedirs(dd, exist_ok=True)
+    linea = {"token": token, "actividad": actividad, "t": int(time.time())}
+    with open(os.path.join(dd, "solicitudes.jsonl"), "a", encoding="utf-8") as f:
+        f.write(json.dumps(linea, ensure_ascii=False) + "\n")
+    return linea
+
+
+def solicitudes_pendientes():
+    """Lista de solicitudes de desbloqueo (para el panel). Best-effort."""
+    p = os.path.join(BASEDIR, "datos_premium", "solicitudes.jsonl")
+    out = []
+    try:
+        for l in open(p, encoding="utf-8"):
+            l = l.strip()
+            if l:
+                out.append(json.loads(l))
+    except Exception:
+        pass
+    return out
+
+
 def _armar_data(tema, nombre, edad, seed):
     """El data.json del token: paleta + menú + puzzles verificados."""
     from cuaderno import _tema_nombre, _tema_palabras, PALABRAS
@@ -906,7 +962,7 @@ def _armar_data(tema, nombre, edad, seed):
         "v": 1, "tema": tema, "tema_nombre": _tema_nombre(tema),
         "nombre": nombre, "edad": edad, "banda": banda, "titulo": titulo,
         "paleta": _paleta(tema),
-        "menu": _menu(banda, edad),
+        "menu": _marcar_premium(_menu(banda, edad)),
         "sopas": sopas, "sudokus": sudokus, "laberintos": laberintos,
         "laberintos_chicos": laberintos_chicos,
         "figuras": {"estrella": _figura_pts("estrella", 10),
@@ -1364,6 +1420,16 @@ def crear(data, tema, token=None):
     dj["sombras"] = sombras
     dj["colorear"] = cols
     dj["escena"] = esc
+    # activación escalable: modo premium por token (default OFF → sin impacto en
+    # links vivos) + desbloqueadas (preservadas si el token se regenera, para no
+    # "perder" una compra al re-armar).
+    dj["premium_on"] = bool(data.get("premium_on"))
+    _prev = {}
+    try:
+        _prev = json.load(open(os.path.join(d, "data.json"), encoding="utf-8"))
+    except Exception:
+        pass
+    dj["desbloqueadas"] = list(data.get("desbloqueadas") or _prev.get("desbloqueadas") or [])
     with open(os.path.join(d, "data.json"), "w", encoding="utf-8") as f:
         json.dump(dj, f, ensure_ascii=False)
 
