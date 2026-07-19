@@ -312,6 +312,12 @@ def _menu(banda, edad):
         # porque 4>2). Es el eje NODAL de fracciones de 4° que faltaba
         # (fracciones_equivalentes es solo "ampliación"). C3/C4.
         g.append({"id": "duelo_fracciones", "titulo": "Duelo de fracciones", "icono": "🍫", "cfg": {"rondas": 10}})
+        # M8 "Reparto justo" + M9 "Completar el entero" (19-jul-2026, rollout DC
+        # CABA): fracción como resultado de repartir, y fracciones en la medida
+        # (litros/kilos, qué falta para 1). Ambas con barras CPA + C3/C4. Completan
+        # el arranque del eje nodal de fracciones de 4° con duelo_fracciones.
+        g.append({"id": "reparto_fracciones", "titulo": "Reparto justo", "icono": "🍰", "cfg": {"rondas": 10}})
+        g.append({"id": "completar_entero", "titulo": "Completar el entero", "icono": "🥛", "cfg": {"rondas": 10}})
         # Bimestre 4: ángulos + prefijos.
         # rondas=10 (14-jul-2026): ANGULOS_BANCO creció de 7 a 10.
         g.append({"id": "angulos", "titulo": "Agudo, recto u obtuso", "icono": "📐", "cfg": {"rondas": 10}})

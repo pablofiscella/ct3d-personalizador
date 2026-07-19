@@ -2526,6 +2526,143 @@ GAMES.duelo_fracciones = {
   },
 };
 
+/* ── REPARTO JUSTO (M8, 4° grado — docs/auditoria-dc-caba/grado-4.md): la
+   fracción como RESULTADO de repartir (dividir en partes iguales), con barra CPA.
+   Reparto ≤ 1 (N objetos entre M chicos, N<M → cada uno recibe N/M). Distractores
+   por misconception: dar 1/M (olvidar que hay N para repartir) o equivocar el
+   denominador (cantidad de chicos). Explicación por error (Capa 0 · C3). ── */
+GAMES.reparto_fracciones = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    const barra = (num, den) => {
+      const cont = el("div", "fraccionBarra");
+      for (let i = 0; i < den; i++) cont.appendChild(el("div", "fraccionBarra__seg" + (i < num ? " lleno" : "")));
+      return cont;
+    };
+    const OBJ = [["🍫", "chocolates"], ["🍕", "pizzas"], ["🎂", "tortas"], ["🥧", "tartas"]];
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const M = rint(3, 6);              // chicos = denominador
+      const N = rint(1, M - 1);          // objetos = numerador (N<M → fracción < 1)
+      const obj = OBJ[rint(0, OBJ.length - 1)];
+      ctx.item("reparto#" + N + "e" + M);
+      ctx.consigna("Reparto " + N + " " + obj[1] + " " + obj[0] + " entre " + M + " chicos en partes iguales. ¿Cuánto le toca a cada uno?");
+      ctx.juego.innerHTML = "";
+      const cand = [];
+      if (N > 1) cand.push({ n: 1, d: M, m: "Hay " + N + " para repartir, no 1: a cada uno le tocan " + N + " pedazos de 1/" + M + "." });
+      cand.push({ n: N, d: M + 1, m: "El denominador es la cantidad de chicos: son " + M + ", no " + (M + 1) + "." });
+      if (N + 1 < M) cand.push({ n: N + 1, d: M, m: "Contá de nuevo: son " + N + " " + obj[1] + " entre " + M + " chicos." });
+      if (N - 1 >= 1) cand.push({ n: N - 1, d: M, m: "Contá de nuevo: son " + N + " " + obj[1] + " entre " + M + " chicos." });
+      const opciones = [{ n: N, d: M, ok: true }];
+      shuffle(cand).forEach((c) => {
+        if (opciones.length >= 3) return;
+        if (!opciones.some((o) => o.n === c.n && o.d === c.d)) opciones.push(c);
+      });
+      let pad = 1;
+      while (opciones.length < 3 && pad < M) {
+        const nn = ((N + pad - 1) % (M - 1)) + 1;   // 1..M-1, fracción propia
+        if (!opciones.some((o) => o.n === nn)) opciones.push({ n: nn, d: M, m: "Contá de nuevo: son " + N + " entre " + M + " chicos." });
+        pad++;
+      }
+      const fila = el("div", "filaSprites fraccionesOpciones");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const b = el("button", "spriteBtn fraccionBtn");
+        b.appendChild(barra(o.n, o.d));
+        const lbl = el("div", "", o.n + "/" + o.d); lbl.style.cssText = "font-weight:700;font-size:20px;margin-top:6px";
+        b.appendChild(lbl);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) {
+            resuelto = true; b.classList.add("anim-brinco"); ctx.bien();
+            ronda++; await espera(950);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease"; setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi(o.m);
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── COMPLETAR EL ENTERO (M9, 4° grado — docs/auditoria-dc-caba/grado-4.md):
+   fracciones en la MEDIDA (litros/kilos): ¿cuánto falta para 1 entero? Con barra
+   CPA que muestra lo que ya se tiene. Complemento a 1 = (den−num)/den. Distractor
+   estrella (misconception): devolver la MISMA fracción que ya se tiene. Explicación
+   por error (Capa 0 · C3). ── */
+GAMES.completar_entero = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    const barra = (num, den) => {
+      const cont = el("div", "fraccionBarra");
+      for (let i = 0; i < den; i++) cont.appendChild(el("div", "fraccionBarra__seg" + (i < num ? " lleno" : "")));
+      return cont;
+    };
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const d = rint(2, 6);
+      const num = rint(1, d - 1);              // lo que ya tengo (< 1)
+      const fn = d - num;                       // lo que falta (numerador correcto)
+      const med = ["litro", "kilo"][rint(0, 1)];
+      ctx.item("completar#" + num + "e" + d);
+      ctx.consigna("Tenés " + num + "/" + d + " de " + med + ". ¿Cuánto falta para 1 " + med + " entero?");
+      ctx.juego.innerHTML = "";
+      // muestra lo que YA se tiene (barra CPA)
+      const top = el("div", "tablero");
+      top.appendChild(el("div", "", "Ya tenés:")).style.cssText = "font-weight:600;margin-bottom:4px";
+      top.appendChild(barra(num, d));
+      ctx.juego.appendChild(top);
+      const faltanMsg = "Contá los pedazos vacíos: del " + num + "/" + d + " al " + d + "/" + d + " faltan " + fn + ".";
+      const cand = [];
+      if (num !== fn) cand.push({ n: num, d: d, m: "Eso es lo que YA tenés. Falta lo que va desde " + num + "/" + d + " hasta " + d + "/" + d + " (el entero)." });
+      if (fn + 1 <= d) cand.push({ n: fn + 1, d: d, m: faltanMsg });
+      if (fn - 1 >= 1) cand.push({ n: fn - 1, d: d, m: faltanMsg });
+      const opciones = [{ n: fn, d: d, ok: true }];
+      shuffle(cand).forEach((c) => {
+        if (opciones.length >= 3) return;
+        if (!opciones.some((o) => o.n === c.n && o.d === c.d)) opciones.push(c);
+      });
+      let pad = 1;
+      while (opciones.length < 3 && pad <= d) {
+        const nn = ((fn + pad - 1) % d) + 1;   // 1..d, distinto del resto
+        if (!opciones.some((o) => o.n === nn)) opciones.push({ n: nn, d: d, m: faltanMsg });
+        pad++;
+      }
+      const fila = el("div", "filaSprites fraccionesOpciones");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const b = el("button", "spriteBtn fraccionBtn");
+        b.appendChild(barra(o.n, o.d));
+        const lbl = el("div", "", o.n + "/" + o.d); lbl.style.cssText = "font-weight:700;font-size:20px;margin-top:6px";
+        b.appendChild(lbl);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) {
+            resuelto = true; b.classList.add("anim-brinco"); ctx.bien();
+            ronda++; await espera(950);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease"; setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi(o.m);
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 /* ── ¿DE QUÉ MATERIAL ES? — trivia (14-jul-2026, 1° grado NAP Bimestre 4
    "Ideas web": "trivia de materiales — ¿vidrio, madera o metal para una
    ventana?"). Opciones de TEXTO (no emoji — no hay glifo distintivo por
