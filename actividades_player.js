@@ -591,9 +591,16 @@ function ofertaNivel(n) {
 }
 
 // ── navegación del menú ──────────────────────────────────────────────
-// premium_on → selector de niveles; si no, el menú plano de siempre.
+// premium_on → entra directo a las actividades del nivel, con la BARRA DE
+// NIVELES fija arriba (el actual + los candados, siempre a la vista); si no,
+// el menú plano de siempre.
+function nivelInicial() {
+  // arranca en el nivel donde está el chico (el más alto que tenga desbloqueado)
+  const desbloq = (D.niveles || []).filter((x) => !nivelBloqueado(x.nivel)).map((x) => x.nivel);
+  return desbloq.length ? Math.max.apply(null, desbloq) : 1;
+}
 function pintarMenu() {
-  if (D.premium_on && (D.niveles || []).length > 1) return pintarNiveles();
+  if (D.premium_on && (D.niveles || []).length > 1) return pintarNivel(nivelInicial());
   return pintarMenuPlano(D.menu);
 }
 // "atrás" de un juego: si está en un nivel, vuelve a las actividades de ese
@@ -603,28 +610,23 @@ function volverMenu() {
   return pintarMenu();
 }
 
-function pintarNiveles() {
-  Shell.actual = null; Shell.nivelActual = null;
-  $("#btnAtras").classList.remove("ver");
-  const stage = $("#stage"); stage.innerHTML = "";
-  const bienv = el("div"); bienv.id = "bienvenida";
-  bienv.innerHTML = `<h1>${D.titulo}</h1><p>Elegí tu nivel 🚀</p>
-    <a id="pillLogro" class="${todoCompleto() ? "ver" : ""}" href="${certificadoUrl()}" target="_blank" rel="noopener">🏆 Ver mi diploma</a>`;
-  stage.appendChild(bienv);
-  const cont = el("div"); cont.id = "niveles";
-  (D.niveles || []).forEach((nv) => {
-    const bloqueado = nivelBloqueado(nv.nivel);
-    const dominado = !bloqueado && nivelDominado(nv.nivel);
-    const c = el("button", "carta nivel");
-    if (bloqueado) c.classList.add("bloq");
-    c.innerHTML = `
-      <div class="icono">${bloqueado ? "🔒" : nv.icono}</div>
-      <div class="nombre">Nivel ${nv.nivel}<br>${nv.nombre}</div>
-      <div class="mini-est">${bloqueado ? "Pedí que lo abran 🔓" : (dominado ? "¡Dominado! 🌟" : "¡A jugar!")}</div>`;
-    c.addEventListener("click", () => { Sfx.pop(); if (bloqueado) pantallaCandado(nv); else pintarNivel(nv.nivel); });
-    cont.appendChild(c);
+// la barra de niveles fija: chip por nivel (el actual resaltado, los bloqueados
+// con 🔒). Tocar otro nivel abierto lo abre; tocar uno con candado → avisar.
+function barraNiveles(actual) {
+  const bar = el("div"); bar.id = "nivelbar";
+  (D.niveles || []).forEach((x) => {
+    const bloq = nivelBloqueado(x.nivel);
+    const chip = el("button", "nivchip" + (x.nivel === actual ? " on" : "") + (bloq ? " bloq" : ""));
+    chip.type = "button";
+    chip.innerHTML = (bloq ? "🔒 " : x.icono + " ") + "Nivel " + x.nivel;
+    chip.addEventListener("click", () => {
+      Sfx.pop();
+      if (x.nivel === actual) return;
+      if (bloq) pantallaCandado(x); else pintarNivel(x.nivel);
+    });
+    bar.appendChild(chip);
   });
-  stage.appendChild(cont);
+  return bar;
 }
 
 function pintarNivel(n) {
@@ -632,13 +634,11 @@ function pintarNivel(n) {
   $("#btnAtras").classList.remove("ver");
   const nv = (D.niveles || []).find((x) => x.nivel === n) || { nombre: "", icono: "🌱" };
   const stage = $("#stage"); stage.innerHTML = "";
+  stage.appendChild(barraNiveles(n));         // ← barra fija arriba
   const bienv = el("div"); bienv.id = "bienvenida";
-  bienv.innerHTML = `<h1>${nv.icono} Nivel ${n}</h1><p>${nv.nombre} · elegí una actividad ⭐</p>`;
+  bienv.innerHTML = `<h1>${nv.icono} Nivel ${n} · ${nv.nombre}</h1><p>Elegí una actividad y ganá estrellas ⭐</p>
+    <a id="pillLogro" class="${todoCompleto() ? "ver" : ""}" href="${certificadoUrl()}" target="_blank" rel="noopener">🏆 Ver mi diploma</a>`;
   stage.appendChild(bienv);
-  const volver = el("button", "btn suave volver-niveles", "‹ Volver a los niveles");
-  volver.type = "button";
-  volver.addEventListener("click", () => { Sfx.pop(); pintarNiveles(); });
-  stage.appendChild(volver);
   pintarMenuPlano(itemsDeNivel(n), stage);
 }
 
@@ -674,14 +674,16 @@ function pintarMenuPlano(items, stage) {
 }
 
 function pantallaCandado(nv) {
+  const volverA = Shell.nivelActual || nivelInicial();
   Shell.actual = null; Shell.nivelActual = null;
   $("#btnAtras").classList.remove("ver");
   const stage = $("#stage"); stage.innerHTML = "";
+  stage.appendChild(barraNiveles(nv.nivel));   // barra fija arriba (candado actual resaltado)
   const box = el("div"); box.id = "candado";
   const volverBtn = () => {
-    const v = el("button", "btn suave", "‹ Volver a los niveles");
+    const v = el("button", "btn suave", "‹ Volver a jugar");
     v.type = "button";
-    v.addEventListener("click", () => { Sfx.pop(); pintarNiveles(); });
+    v.addEventListener("click", () => { Sfx.pop(); pintarNivel(volverA); });
     return v;
   };
   box.innerHTML = `
