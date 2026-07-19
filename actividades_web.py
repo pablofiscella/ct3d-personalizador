@@ -392,6 +392,17 @@ def _menu(banda, edad):
         g.append({"id": "planta_potabilizadora", "titulo": "Planta potabilizadora", "icono": "💧", "cfg": {"rondas": 4}})
         # rondas=10 (14-jul-2026): DERECHOS_BANCO creció de 5 a 10.
         g.append({"id": "derechos_constitucion", "titulo": "Derechos y Constitución", "icono": "📜", "cfg": {"rondas": 10}})
+        # ── Rollout DC CABA · 5° grado (19-jul-2026, docs/auditoria-dc-caba/
+        # grado-5.md): réplica del modelo. Ataca los 2 gaps más grandes del
+        # dossier —"cero lectura" y "cero multiplicación/división en 5°"— reusando
+        # moldes ya construidos, + 1 actividad nueva de Lengua (conectores, L16).
+        g.append({"id": "conectores", "titulo": "El conector justo", "icono": "🔗", "cfg": {"rondas": 10}})
+        g.append({"id": "tablas_ninja", "titulo": "Tablas ninja", "icono": "🥷", "cfg": {"rondas": 10, "nivel": 2}})
+        g.append({"id": "dividir", "titulo": "La división", "icono": "➗", "cfg": {"rondas": 10, "nivel": 2}})
+        g.append({"id": "comprension_lectora", "titulo": "Detective de textos", "icono": "🔎", "cfg": {"rondas": 8}})
+        g.append({"id": "duelo_decimales", "titulo": "Duelo de decimales", "icono": "💲", "cfg": {"rondas": 10}})
+        g.append({"id": "duelo_fracciones", "titulo": "Duelo de fracciones", "icono": "🍫", "cfg": {"rondas": 10}})
+        g.append({"id": "recta_numerica", "titulo": "Recta gigante", "icono": "📍", "cfg": {"rondas": 10, "max1": 100000, "max2": 1000000}})
     if e == 11:
         # 6° grado (14-jul-2026): mismo criterio — un juego por cada "Idea
         # web" del NAP.

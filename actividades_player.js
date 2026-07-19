@@ -3203,6 +3203,56 @@ GAMES.estados_materia = {
   },
 };
 
+/* ── EL CONECTOR JUSTO (L16, 5° grado — docs/auditoria-dc-caba/grado-5.md):
+   completar una oración con el conector correcto (cloze). Nodal de 5° señalado
+   por la maestra. Distractores = otros conectores que CAMBIAN el sentido; la
+   explicación dice qué relación marca el correcto (Capa 0 · C3). ── */
+const CONECTORES_BANCO = [
+  { f: "Quería salir a jugar … estaba lloviendo.", ok: "pero", d: ["porque", "así que"], m: "«pero» marca oposición: querés algo y aparece un obstáculo." },
+  { f: "Me quedé adentro … estaba lloviendo.", ok: "porque", d: ["pero", "aunque"], m: "«porque» da la causa: la lluvia es el motivo." },
+  { f: "Estudió toda la semana, … aprobó.", ok: "por eso", d: ["pero", "aunque"], m: "«por eso» marca la consecuencia de estudiar." },
+  { f: "Salió a la calle … hacía mucho frío.", ok: "aunque", d: ["porque", "por eso"], m: "«aunque» = algo pasa A PESAR de un obstáculo (el frío)." },
+  { f: "Es muy inteligente; …, no le gusta estudiar.", ok: "sin embargo", d: ["por eso", "porque"], m: "«sin embargo» contrasta: algo y otra cosa que no encaja." },
+  { f: "Llegó tarde … perdió el colectivo.", ok: "porque", d: ["aunque", "sin embargo"], m: "«porque» da la causa de llegar tarde." },
+  { f: "Practicó mucho, … todavía le cuesta.", ok: "pero", d: ["por eso", "porque"], m: "«pero» contrasta el esfuerzo con el resultado." },
+  { f: "Terminó de comer … se lavó los dientes.", ok: "y después", d: ["pero", "porque"], m: "«y después» ordena en el tiempo: primero una cosa, luego la otra." },
+  { f: "No trajo paraguas, … se mojó toda.", ok: "así que", d: ["aunque", "sin embargo"], m: "«así que» marca la consecuencia de no traer paraguas." },
+  { f: "Le gustan los perros … les tiene un poco de miedo.", ok: "aunque", d: ["porque", "por eso"], m: "«aunque» = le gustan A PESAR del miedo." },
+  { f: "Se hizo de noche, … encendieron las luces.", ok: "entonces", d: ["pero", "aunque"], m: "«entonces» marca qué pasó como consecuencia." },
+  { f: "El equipo jugó bien, … perdió el partido.", ok: "sin embargo", d: ["porque", "por eso"], m: "«sin embargo» contrasta: jugó bien y aun así perdió." },
+];
+GAMES.conectores = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    let usados = [], ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      let disp = CONECTORES_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
+      if (!disp.length) { usados = []; disp = CONECTORES_BANCO.map((_, i) => i); }
+      const idx = disp[rint(0, disp.length - 1)]; usados.push(idx);
+      const it = CONECTORES_BANCO[idx];
+      ctx.item("conector#" + idx);
+      ctx.consigna("Completá: " + it.f);
+      ctx.juego.innerHTML = "";
+      const opciones = shuffle([{ t: it.ok, ok: true }].concat(it.d.map((x) => ({ t: x, ok: false }))));
+      const fila = el("div", "ops");
+      let resuelto = false;
+      opciones.forEach((o) => {
+        const b = el("button", "op", o.t);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(it.m); }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 /* ── ¿DE QUÉ MATERIAL ES? — trivia (14-jul-2026, 1° grado NAP Bimestre 4
    "Ideas web": "trivia de materiales — ¿vidrio, madera o metal para una
    ventana?"). Opciones de TEXTO (no emoji — no hay glifo distintivo por
