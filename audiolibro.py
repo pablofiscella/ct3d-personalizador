@@ -72,6 +72,37 @@ _EL_VOCES_ALT = {
     "malena": {"voice_id": "p7AwDmKvTdoHTBuueGvP",
                "settings": {"stability": 0.5},
                "label": "Voz cálida alternativa"},
+
+    # Tanda "argentinas vs. neutras" (19-jul-2026, pedido de Pablo para poder
+    # escuchar y decidir el default): 5 candidatas rioplatenses nuevas de la
+    # Voice Library de ElevenLabs (Lionel ya venía anotado de una ronda vieja
+    # sin probar) + Jhenny/Gaby como alternativas NEUTRAS en ElevenLabs (no
+    # tienen acento argentino marcado, a diferencia de Lizy/Malena/estas 5 —
+    # cubren el mismo rol que fable/nova/onyx pero con mejor calidad de voz
+    # nativa). Todas con la misma settings base que Malena (stability 0.5,
+    # sin style) para comparar en igualdad de condiciones. Lalo y Mariana se
+    # probaron en la ronda anterior y Pablo las descartó — no se agregan.
+    "lionel": {"voice_id": "MjtZn5tagxL1RO6w9ER5",
+               "settings": {"stability": 0.5},
+               "label": "Voz masculina — cuentacuentos"},
+    "regis": {"voice_id": "zR7eV8hMFnxhSSAcCYW0",
+              "settings": {"stability": 0.5},
+              "label": "Voz masculina — suave, para dormir"},
+    "dante": {"voice_id": "DzZyY3xqjLUXGaT9wykC",
+              "settings": {"stability": 0.5},
+              "label": "Voz masculina — joven porteño"},
+    "valeria": {"voice_id": "9oPKasc15pfAbMr7N6Gs",
+                "settings": {"stability": 0.5},
+                "label": "Voz femenina — joven"},
+    "melanie": {"voice_id": "bN1bDXgDIGX5lw0rtY2B",
+                "settings": {"stability": 0.5},
+                "label": "Voz femenina — cálida profesional"},
+    "jhenny": {"voice_id": "EDitztUwd7lban76PAZs",
+               "settings": {"stability": 0.5},
+               "label": "Voz neutra — tierna, mágica"},
+    "gaby": {"voice_id": "yqTu7PvIL2rV3ubtjNlx",
+             "settings": {"stability": 0.5},
+             "label": "Voz neutra — dulce, juvenil"},
 }
 
 # Etiquetas de emoción v3 automáticas y CONSERVADORAS (receta investigada:

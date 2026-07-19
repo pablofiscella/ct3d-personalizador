@@ -72,7 +72,11 @@ Para que cualquier valor encaje en cualquier arco:
 - OJO v3: los clones profesionales (PVC) NO están optimizados para v3 — si se clona una locutora (plan de voz de marca), evaluar volver a `multilingual_v2` (settings viejos: stability 0.30, style 0.48, speed 0.88).
 - NO meter puntuación extra (`…`, `<break>`): entrecorta. Texto limpio de corrido.
 - **Verificar 44100 Hz** en el mp3 (= ElevenLabs). 24000 Hz = cayó al respaldo OpenAI → revisar key/timeout.
-- Voces argentinas candidatas de la library (A/B enviado a Pablo): Lionel `MjtZn5tagxL1RO6w9ER5` (M, storytelling), Valeria `9oPKasc15pfAbMr7N6Gs`, Malena `p7AwDmKvTdoHTBuueGvP`. Futuro: varias voces con previa (ver memoria ct3d-audiolibro-voz).
+- **Selector con 2 grupos en la tienda (19-jul-2026, `producto.html` dropdown `kf-voz`)**: "Voces argentinas" (acento rioplatense confirmado en la Voice Library) vs. "Voces neutras" (sin acento marcado) — cada opción tiene preview real en `tienda_static/voces/<key>.mp3` (mismo texto de referencia para las nuevas: "Che, vení que te cuento un secreto..."). Pedido de Pablo para poder escuchar y decidir el default con más libertad, no solo confiar en la descripción del catálogo de ElevenLabs.
+  - **Argentinas**: Malena `p7AwDmKvTdoHTBuueGvP` (default recomendado), Lionel `MjtZn5tagxL1RO6w9ER5` (M storytelling), Regis `zR7eV8hMFnxhSSAcCYW0` (M suave), Dante `DzZyY3xqjLUXGaT9wykC` (M joven porteño), Valeria `9oPKasc15pfAbMr7N6Gs` (F joven), Melanie `bN1bDXgDIGX5lw0rtY2B` (F cálida profesional).
+  - **Neutras**: Lizy `rrErIO88ehxTnspOjKvf` (default histórico — OJO: es voz nativa española/Latam genérica en el catálogo de ElevenLabs, NO está tageada como argentina, el acento se lograba antes solo por el texto en voseo), Jhenny `EDitztUwd7lban76PAZs`, Gaby `yqTu7PvIL2rV3ubtjNlx` (ElevenLabs) + fable/nova/onyx (OpenAI, respaldo/alternativa neutra histórica).
+  - Descartadas tras escuchar: Lalo `XmoCtjPCefjeLDu0eMSl`, Mariana `9rvdnhrYoXoUt4igKpBw`. También evaluadas y descartadas antes: Lucía `yA5jrK1S9cpCAojBYyMu`, Andrea `CDrROTHWaKY3O9vD3F3t`, Isabel `ChvF2eSRaJsHDVJhdmbG` (ver memoria ct3d-audiolibro-voz).
+  - Todas con `settings={"stability": 0.5}` (igual que Lizy/Malena) para comparar en igualdad de condiciones. Mecanismo: agregar la key a `_EL_VOCES_ALT` alcanza — `tts_mp3` la rutea sola.
 
 ## 6. LARGO POR EDAD y CATÁLOGO
 
