@@ -526,6 +526,47 @@ class Handler(BaseHTTPRequestHandler):
                 or self.client_address[0])
 
     # ---------------- GET ----------------
+    def _tts_dinamico(self, texto):
+        """Voz argentina ON-DEMAND para texto DINÁMICO — las explicaciones del
+        porqué (Capa 0 · C3) y las consignas GENERADAS no están en el manifest
+        fijo de audio_consignas (ese es para texto fijo, pregrabado). Genera con
+        la MISMA voz del audiolibro (ElevenLabs, acento argentino — NO la voz
+        robótica del navegador) y cachea por hash en audio_dinamico/, así cada
+        texto se genera UNA sola vez. Guardas anti-abuso: largo máx y tope de
+        archivos (bound de costo/almacenamiento). 19-jul-2026."""
+        import hashlib, actividades_web, audiolibro
+        texto = (texto or "").strip()
+        if not (1 <= len(texto) <= 220):
+            return self._json(400, {"ok": False})
+        din_dir = os.path.join(actividades_web.BASEDIR, "audio_dinamico")
+        os.makedirs(din_dir, exist_ok=True)
+        fn = "d_" + hashlib.sha1(texto.encode("utf-8")).hexdigest()[:16] + ".mp3"
+        path = os.path.join(din_dir, fn)
+        if not os.path.isfile(path):
+            try:
+                if len(os.listdir(din_dir)) > 8000:      # tope de costo/almacenamiento
+                    return self._json(429, {"ok": False})
+            except Exception:
+                pass
+            try:
+                limpio = actividades_web._texto_para_tts(texto)
+            except Exception:
+                limpio = texto
+            mp3 = audiolibro._tts_elevenlabs(limpio)
+            if not mp3:
+                return self._json(503, {"ok": False})     # sin key o falló el TTS: el player sigue en silencio
+            tmp = path + ".tmp"
+            with open(tmp, "wb") as f:
+                f.write(mp3)
+            os.replace(tmp, path)                          # escritura atómica (no servir un mp3 a medio escribir)
+        data = open(path, "rb").read()
+        self.send_response(200)
+        self.send_header("Content-Type", "audio/mpeg")
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "public, max-age=604800")
+        self.end_headers()
+        self.wfile.write(data)
+
     def do_GET(self):
         u = urllib.parse.urlparse(self.path)
         path = u.path
@@ -533,11 +574,13 @@ class Handler(BaseHTTPRequestHandler):
         # El admin (panel) queda EXENTO: carga muchas miniaturas (editor-bg.png) de una
         # sola vez al listar temáticas y no debe autobloquearse.
         if path.startswith(("/preview", "/mate/preview", "/cliente-bg.png",
-                            "/editor-bg.png", "/descarga/", "/piezas")) \
+                            "/editor-bg.png", "/descarga/", "/piezas", "/tts")) \
                 and not self._admin_ok(u) and not _rate_ok(self._client_ip()):
             return self._json(429, {"ok": False, "error": "demasiadas solicitudes, esperá un minuto"})
         if path == "/health":
             return self._json(200, {"ok": True, "servicio": "kit-anito-salvaje"})
+        if path == "/tts":
+            return self._tts_dinamico(urllib.parse.parse_qs(u.query).get("t", [""])[0])
         if path == "/":
             # Si sos admin (cookie/clave) → al panel de kits /dash; si no, a la tienda.
             dest = "/dash" if self._admin_ok(u) else "https://casatridimensional.com.ar"

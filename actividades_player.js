@@ -121,8 +121,11 @@ async function cargarAudioManifest() {
 function reproducirConsigna(txt) {
   if (vozActual) { vozActual.pause(); vozActual = null; }
   if (!Sfx.on) return Promise.resolve(false);
-  const archivo = AudioManifest[txt];
-  if (!archivo) return Promise.resolve(false);
+  // Texto FIJO → mp3 pregrabado del manifest (voz argentina, instantáneo).
+  // Texto DINÁMICO (consignas/explicaciones generadas, que no están en el
+  // manifest) → endpoint /tts on-demand, MISMA voz argentina, cacheado en el
+  // server. Antes el texto dinámico quedaba en silencio (19-jul-2026).
+  const archivo = AudioManifest[txt] || ("/tts?t=" + encodeURIComponent(txt));
   const audio = new Audio(archivo);
   vozActual = audio;
   return new Promise((resolve) => {
@@ -326,6 +329,7 @@ function mostrarExplicacion(txt) {
   requestAnimationFrame(() => { e.style.opacity = "1"; });
   clearTimeout(_explicaTimer);
   _explicaTimer = setTimeout(() => { e.style.opacity = "0"; }, 4200);
+  reproducirConsigna(txt);   // Capa 0 · C3: la explicación se LEE en voz alta (voz argentina vía /tts)
 }
 function ocultarExplicacion() {
   const e = document.getElementById("explica");
