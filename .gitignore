@@ -60,3 +60,6 @@ libros_pdf/
 
 # cache runtime de TTS on-demand (voz argentina de explicaciones/consignas dinámicas)
 audio_dinamico/
+
+# activación escalable: solicitudes de desbloqueo de nivel (datos runtime)
+datos_premium/
