@@ -3305,6 +3305,156 @@ GAMES.ordenar_numeros = {
   },
 };
 
+/* ── EQUIVALENCIAS DE MEDIDA (M17, 5° grado — docs/auditoria-dc-caba/grado-5.md):
+   nodal que estrena 5° (gap señalado por maestra y auditor). Convertir unidades
+   (m↔cm, km↔m, kg↔g, l↔ml…). GENERADA. Distractores por misconception: cantidad
+   de ceros equivocada. Explicación con la equivalencia base (Capa 0 · C3). ── */
+GAMES.equivalencias_medida = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    const CONV = [
+      { u1: "metro", u1p: "metros", u2: "centímetros", f: 100 },
+      { u1: "kilómetro", u1p: "kilómetros", u2: "metros", f: 1000 },
+      { u1: "kilo", u1p: "kilos", u2: "gramos", f: 1000 },
+      { u1: "litro", u1p: "litros", u2: "mililitros", f: 1000 },
+      { u1: "metro", u1p: "metros", u2: "milímetros", f: 1000 },
+      { u1: "centímetro", u1p: "centímetros", u2: "milímetros", f: 10 },
+    ];
+    const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const c = CONV[rint(0, CONV.length - 1)];
+      const N = rint(1, 9);
+      const correcto = N * c.f;
+      ctx.item("medida#" + N + "_" + c.u1 + "_" + c.u2);
+      ctx.consigna("¿Cuántos " + c.u2 + " hay en " + N + " " + (N === 1 ? c.u1 : c.u1p) + "?");
+      ctx.juego.innerHTML = "";
+      const cand = [
+        { v: N * (c.f / 10), m: "Faltan ceros: 1 " + c.u1 + " son " + fmt(c.f) + " " + c.u2 + "." },
+        { v: N * (c.f * 10), m: "Sobra un cero: 1 " + c.u1 + " son " + fmt(c.f) + " " + c.u2 + "." },
+      ];
+      if (N > 1) cand.push({ v: c.f, m: "Eso es 1 " + c.u1 + ". Acá son " + N + ": multiplicá por " + N + "." });
+      const opciones = [{ v: correcto, ok: true }];
+      shuffle(cand).forEach((d) => { if (opciones.length < 3 && d.v > 0 && d.v !== correcto && !opciones.some((o) => o.v === d.v)) opciones.push(d); });
+      let intento = 0;
+      while (opciones.length < 3 && intento++ < 20) { const v = correcto * (rint(2, 4)); if (!opciones.some((o) => o.v === v)) opciones.push({ v: v, m: "1 " + c.u1 + " son " + fmt(c.f) + " " + c.u2 + "." }); }
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const b = el("button", "op", fmt(o.v));
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── ¿CANTÓ O CANTABA? (L15, 5° grado — docs/auditoria-dc-caba/grado-5.md): pretérito
+   perfecto simple vs. imperfecto en la narración (la traba n°1 al escribir cuentos,
+   gap de la maestra). Cloze: completar con la forma correcta. Explicación con la
+   regla (Capa 0 · C3). ── */
+const VERBOS_PASADO_BANCO = [
+  { f: "Todos los veranos … a la playa con mis abuelos.", ok: "íbamos", d: "fuimos", m: "El imperfecto (íbamos) es para algo que pasaba SIEMPRE, una costumbre." },
+  { f: "Ayer … al cine una sola vez.", ok: "fui", d: "iba", m: "El perfecto (fui) es para algo que pasó UNA vez y terminó." },
+  { f: "Cuando era chico, … con autitos.", ok: "jugaba", d: "jugué", m: "El imperfecto (jugaba) describe una costumbre del pasado." },
+  { f: "El sábado pasado … un gol en el partido.", ok: "metí", d: "metía", m: "El perfecto (metí) es una acción puntual que terminó." },
+  { f: "La abuela … tortas todos los domingos.", ok: "hacía", d: "hizo", m: "El imperfecto (hacía) es para lo habitual, lo de siempre." },
+  { f: "De golpe … un ruido y todos se asustaron.", ok: "sonó", d: "sonaba", m: "El perfecto (sonó) marca algo que pasó de repente y terminó." },
+  { f: "Antes … en una casa con jardín.", ok: "vivíamos", d: "vivimos", m: "El imperfecto (vivíamos) describe cómo era la vida antes." },
+  { f: "El lunes … temprano para el examen.", ok: "estudié", d: "estudiaba", m: "El perfecto (estudié) es una acción concreta de un día." },
+  { f: "Mientras llovía, nosotros … adentro tranquilos.", ok: "jugábamos", d: "jugamos", m: "El imperfecto (jugábamos) es la acción de fondo mientras pasaba otra cosa." },
+  { f: "Esa mañana … el sol y salimos a pasear.", ok: "salió", d: "salía", m: "El perfecto (salió) es un hecho puntual de esa mañana." },
+  { f: "Todas las noches mi mamá me … un cuento.", ok: "leía", d: "leyó", m: "El imperfecto (leía) es una costumbre repetida." },
+  { f: "Cuando terminó la película, … las luces.", ok: "encendieron", d: "encendían", m: "El perfecto (encendieron) es lo que pasó al terminar, una vez." },
+];
+GAMES.verbos_pasado = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    let usados = [], ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      let disp = VERBOS_PASADO_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
+      if (!disp.length) { usados = []; disp = VERBOS_PASADO_BANCO.map((_, i) => i); }
+      const idx = disp[rint(0, disp.length - 1)]; usados.push(idx);
+      const it = VERBOS_PASADO_BANCO[idx];
+      ctx.item("verbopas#" + idx);
+      ctx.consigna("Completá: " + it.f);
+      ctx.juego.innerHTML = "";
+      const opciones = shuffle([{ t: it.ok, ok: true }, { t: it.d, ok: false }]);
+      const fila = el("div", "ops");
+      let resuelto = false;
+      opciones.forEach((o) => {
+        const b = el("button", "op", o.t);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(it.m); }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── MI BUENOS AIRES QUERIDO (S9, 5° grado — docs/auditoria-dc-caba/grado-5.md):
+   la ciudad — Plaza de Mayo, Cabildo, Casa Rosada, barrios (gap señalado por la
+   maestra: la salida al Cabildo se hace todos los años). Trivia con explicación
+   (Capa 0 · C3). ── */
+const BUENOS_AIRES_BANCO = [
+  { q: "¿Dónde se reunió el primer gobierno patrio en 1810?", ok: "El Cabildo", d: ["El Obelisco", "La Bombonera"], m: "En el Cabildo se formó la Primera Junta, el 25 de mayo de 1810." },
+  { q: "¿Dónde trabaja hoy el presidente de la Argentina?", ok: "La Casa Rosada", d: ["El Cabildo", "El Congreso"], m: "La Casa Rosada, frente a la Plaza de Mayo, es la sede del gobierno." },
+  { q: "¿Qué monumento alto está en el centro, sobre la 9 de Julio?", ok: "El Obelisco", d: ["El Cabildo", "La Catedral"], m: "El Obelisco se levantó en 1936 en la avenida 9 de Julio." },
+  { q: "¿Cómo se llama la plaza principal, frente a la Casa Rosada?", ok: "Plaza de Mayo", d: ["Plaza Francia", "Plaza Italia"], m: "La Plaza de Mayo es el corazón histórico de la Ciudad." },
+  { q: "¿Qué río tiene Buenos Aires en su costa?", ok: "El Río de la Plata", d: ["El Paraná", "El río Uruguay"], m: "Buenos Aires está a orillas del Río de la Plata." },
+  { q: "¿En qué barrio están las casas de colores y el Caminito?", ok: "La Boca", d: ["Palermo", "Recoleta"], m: "La Boca, con sus casas de chapa pintadas, fue un barrio de inmigrantes junto al Riachuelo." },
+  { q: "El Cabildo, en la época colonial, ¿qué era?", ok: "Como la municipalidad", d: ["Una iglesia", "Un mercado"], m: "El Cabildo era el gobierno de la ciudad en la colonia." },
+  { q: "¿Qué edificio religioso está al lado de la Plaza de Mayo?", ok: "La Catedral", d: ["El Cabildo", "El Obelisco"], m: "En la Catedral Metropolitana descansan los restos de San Martín." },
+  { q: "Las Madres de Plaza de Mayo, ¿dónde caminan cada jueves?", ok: "Alrededor de la Pirámide de Mayo", d: ["En el Obelisco", "En La Boca"], m: "Las Madres marchan alrededor de la Pirámide, en la Plaza de Mayo." },
+  { q: "¿Cómo llegaron muchas familias a Buenos Aires hace 100 años?", ok: "En barco, como inmigrantes", d: ["En avión", "En tren desde el sur"], m: "A fines del 1800 y principios del 1900 llegaron muchos inmigrantes en barco por el puerto." },
+];
+GAMES.buenos_aires = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    let usados = [], ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      let disp = BUENOS_AIRES_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
+      if (!disp.length) { usados = []; disp = BUENOS_AIRES_BANCO.map((_, i) => i); }
+      const idx = disp[rint(0, disp.length - 1)]; usados.push(idx);
+      const it = BUENOS_AIRES_BANCO[idx];
+      ctx.item("baires#" + idx);
+      ctx.consigna(it.q);
+      ctx.juego.innerHTML = "";
+      const opciones = shuffle([{ t: it.ok, ok: true }].concat(it.d.map((x) => ({ t: x, ok: false }))));
+      const fila = el("div", "ops");
+      let resuelto = false;
+      opciones.forEach((o) => {
+        const b = el("button", "op", o.t);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(it.m); }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 /* ── ¿DE QUÉ MATERIAL ES? — trivia (14-jul-2026, 1° grado NAP Bimestre 4
    "Ideas web": "trivia de materiales — ¿vidrio, madera o metal para una
    ventana?"). Opciones de TEXTO (no emoji — no hay glifo distintivo por
