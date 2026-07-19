@@ -122,6 +122,21 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 #candado .cand-nota {
   font-size: 14px; background: var(--soft); padding: 9px 14px; border-radius: 12px; opacity: .92;
 }
+/* barra de niveles FIJA arriba de las actividades (siempre a la vista) */
+#nivelbar {
+  position: sticky; top: var(--hdrH, 74px); z-index: 30;
+  display: flex; gap: 8px; padding: 8px 2px; margin-bottom: 6px;
+  overflow-x: auto; scrollbar-width: none; background: var(--bg);
+}
+#nivelbar::-webkit-scrollbar { display: none; }
+.nivchip {
+  flex: 0 0 auto; border: 2px solid var(--soft); background: var(--card); color: var(--ink);
+  border-radius: 999px; padding: 8px 15px; font-family: "Baloo", sans-serif; font-size: 15px;
+  line-height: 1; cursor: pointer; white-space: nowrap; transition: transform .1s ease;
+}
+.nivchip:active { transform: scale(.94); }
+.nivchip.on { background: var(--ac); color: #fff; border-color: var(--ac); }
+.nivchip.bloq { border-style: dashed; opacity: .82; }
 
 /* portada del menú */
 #bienvenida { text-align: center; padding: 14px 8px 22px; }
