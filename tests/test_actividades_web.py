@@ -82,7 +82,20 @@ def test_bandas_de_edad():
     serie6 = next(m for m in aw._menu("grande", 6) if m["id"] == "serie")
     serie12 = next(m for m in aw._menu("grande", 12) if m["id"] == "serie")
     assert serie6["cfg"]["tope"] == 30
-    assert "tope" not in serie12["cfg"]
+    # Fase 0A (19-jul-2026, docs/auditoria-dc-caba/): el tope de "serie" ahora
+    # CRECE con el grado. Antes solo e==6 lo subía a 30 y el resto caía al
+    # default 16 del player, así que un chico de 6 recibía números MÁS ALTOS
+    # que uno de 12 (dificultad invertida). Ahora es monótono creciente.
+    assert serie12["cfg"]["tope"] > serie6["cfg"]["tope"]
+    # Fase 0A (19-jul-2026): los juegos clavados en dificultad de inicial que
+    # NO escalan (sumas/restas cuentan sprites; contar/mas_menos ≤9; colorear/
+    # puntos sin anclaje) se retiran de 4°-7° (e>=9) — origen de la queja
+    # "muy fácil". Siguen presentes en 1°-3° (e<=8).
+    _inicial = {"sumas", "restas", "contar", "mas_menos", "colorear", "puntos"}
+    for e_grande in (9, 10, 11, 12):
+        ids_e = {m["id"] for m in aw._menu("grande", e_grande)}
+        assert not (_inicial & ids_e), f"juegos de inicial no retirados en edad {e_grande}"
+    assert {"sumas", "restas"} <= {m["id"] for m in aw._menu("grande", 8)}  # 3° aún los tiene
     # resto de 1° grado (14-jul-2026, cierre del año — NAP "Ideas web" por
     # bimestre): ninguno debe filtrarse a los 12 años.
     nuevos_1grado = {"abecedario", "suma_rapida", "campo_ciudad", "planta_fruto", "materiales", "grilla100"}
