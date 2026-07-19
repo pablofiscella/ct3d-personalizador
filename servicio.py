@@ -581,6 +581,11 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(200, {"ok": True, "servicio": "kit-anito-salvaje"})
         if path == "/tts":
             return self._tts_dinamico(urllib.parse.parse_qs(u.query).get("t", [""])[0])
+        if path == "/dash/desbloqueos":
+            if not self._admin_ok(u):
+                return self._deny()
+            import actividades_web
+            return self._json(200, {"ok": True, "solicitudes": actividades_web.solicitudes_pendientes()})
         if path == "/":
             # Si sos admin (cookie/clave) → al panel de kits /dash; si no, a la tienda.
             dest = "/dash" if self._admin_ok(u) else "https://casatridimensional.com.ar"
@@ -1404,6 +1409,40 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", "0")
         self.end_headers()
 
+    def _act_interes(self, token):
+        """Activación escalable · CAPTURAR INTERÉS (público, desde el player, cuando
+        el chico toca 'quiero desbloquearla'). Registra token+actividad para que
+        Pablo lo vea en el panel y desbloquee. Rate-limitado."""
+        import actividades_web
+        if not _rate_ok(self._client_ip()):
+            return self._json(429, {"ok": False})
+        try:
+            ev = json.loads(self._body() or b"{}")
+        except Exception:
+            return self._json(400, {"ok": False})
+        act = str(ev.get("actividad", ""))[:60]
+        if not act or not os.path.isdir(os.path.join(actividades_web.ACT_DIR, token)):
+            return self._json(400, {"ok": False})
+        actividades_web.registrar_solicitud(token, act)
+        return self._json(200, {"ok": True})
+
+    def _act_desbloquear(self, token):
+        """Activación escalable · DESBLOQUEAR (ADMIN — lo hace Pablo desde el panel
+        o el futuro checkout tras cobrar). Agrega la actividad a las desbloqueadas
+        del token."""
+        if not self._admin_ok(urllib.parse.urlparse(self.path)):
+            return self._json(401, {"ok": False, "error": "solo admin"})
+        try:
+            ev = json.loads(self._body() or b"{}")
+        except Exception:
+            return self._json(400, {"ok": False})
+        act = str(ev.get("actividad", ""))[:60]
+        import actividades_web
+        des = actividades_web.desbloquear_actividad(token, act)
+        if des is None:
+            return self._json(404, {"ok": False, "error": "token no encontrado"})
+        return self._json(200, {"ok": True, "desbloqueadas": des})
+
     def do_POST(self):
         path = urllib.parse.urlparse(self.path).path
         if not self._origin_ok():          # A5: rechaza POST cross-site de navegador
@@ -1411,6 +1450,12 @@ class Handler(BaseHTTPRequestHandler):
         m_tel = re.match(r"^/act/([A-Za-z0-9_-]+)/telemetria$", path)
         if m_tel:
             return self._act_telemetria(m_tel.group(1))
+        m_int = re.match(r"^/act/([A-Za-z0-9_-]+)/quiero-desbloquear$", path)
+        if m_int:
+            return self._act_interes(m_int.group(1))
+        m_des = re.match(r"^/act/([A-Za-z0-9_-]+)/desbloquear$", path)
+        if m_des:
+            return self._act_desbloquear(m_des.group(1))
         if path == "/editor/save":
             return self._editor_save()
         if path == "/dash/upload":

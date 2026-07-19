@@ -446,6 +446,13 @@ const Shell = {
         if (!yaEstabaCompleto && todoCompleto()) self._nuevoLogro = true;
         pintarHeader();
         festejar(e);
+        // activación escalable: si DOMINÓ (3★) una actividad libre y hay una
+        // premium bloqueada, ofrecerla al cerrar el festejo ("ya sabés esta,
+        // ¿querés la que sigue?"). Solo con premium_on → links normales, nada.
+        if (e >= 3 && item && !item.premium) {
+          const locked = D.menu.find((x) => estaBloqueada(x) && GAMES[x.id]);
+          if (locked) setTimeout(() => ofertaDesbloqueo(locked), 3200);
+        }
       },
       confeti(n) { Confeti.tirar(n); },
     };
@@ -528,6 +535,33 @@ function pintarHeader() {
   $("#mascoFestejo").src = P[0];
 }
 
+/* ── Activación escalable (19-jul-2026, docs/auditoria-dc-caba/): actividades
+   premium bloqueadas + oferta al dominar. Todo gateado por D.premium_on (los
+   links normales no lo tienen → nada bloqueado, cero cambio para ellos). ── */
+function estaBloqueada(m) {
+  return !!(D.premium_on && m.premium && !(D.desbloqueadas || []).includes(m.id));
+}
+function pedirDesbloqueo(actividad) {
+  try {
+    fetch("quiero-desbloquear", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ actividad: actividad }) });
+  } catch (e) { /* best-effort: si no llega, no rompe nada */ }
+}
+function ofertaDesbloqueo(m) {
+  let ov = document.getElementById("oferta");
+  if (!ov) { ov = el("div"); ov.id = "oferta"; ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;z-index:80;padding:16px"; document.body.appendChild(ov); }
+  ov.innerHTML = "";
+  const card = el("div");
+  card.style.cssText = "background:var(--card,#fff);color:var(--ink,#222);max-width:340px;padding:24px 22px;border-radius:22px;text-align:center;box-shadow:0 14px 44px rgba(0,0,0,.45)";
+  card.innerHTML = "<div style='font-size:46px'>🔒✨</div><h2 style='margin:8px 0'>" + m.titulo + "</h2><p style='opacity:.85;font-size:15px;line-height:1.4'>Es una actividad EXTRA. ¿Querés desbloquearla?</p>";
+  const bSi = el("button", "", "🔓 ¡Quiero desbloquearla!");
+  bSi.style.cssText = "display:block;width:100%;padding:14px;margin-top:14px;border:none;border-radius:14px;background:var(--ac,#4a90d9);color:#fff;font-weight:700;font-size:16px;cursor:pointer";
+  const bNo = el("button", "", "Ahora no");
+  bNo.style.cssText = "display:block;width:100%;padding:10px;margin-top:8px;border:none;background:transparent;color:inherit;cursor:pointer;opacity:.7";
+  bSi.addEventListener("click", () => { pedirDesbloqueo(m.id); Sfx.fanfarria && Sfx.fanfarria(); card.innerHTML = "<div style='font-size:46px'>🎉</div><h2 style='margin:8px 0'>¡Genial!</h2><p style='opacity:.85;line-height:1.4'>Le avisamos a Casatridimensional. Muy pronto la vas a poder jugar.</p>"; setTimeout(() => ov.remove(), 2800); });
+  bNo.addEventListener("click", () => ov.remove());
+  card.appendChild(bSi); card.appendChild(bNo); ov.appendChild(card);
+}
+
 function pintarMenu() {
   Shell.actual = null;
   $("#btnAtras").classList.remove("ver");
@@ -543,15 +577,17 @@ function pintarMenu() {
     if (!GAMES[m.id]) return;
     if (P.length < (GAMES[m.id].minP || 0)) return;   // tema con pocos personajes
     const st = Store.stars(m.id);
+    const bloqueada = estaBloqueada(m);
     const c = el("button", "carta");
+    if (bloqueada) { c.style.opacity = "0.9"; c.style.borderStyle = "dashed"; }
     // las cartas alternan emoji y personajes del tema para que el menú viva
-    const conSprite = i % 3 === 1 && P[(i / 3 | 0) + 1];
+    const conSprite = !bloqueada && i % 3 === 1 && P[(i / 3 | 0) + 1];
     c.innerHTML = `
-      <div class="icono">${conSprite ? `<img src="${P[(i / 3 | 0) + 1]}" alt="">` : m.icono}</div>
+      <div class="icono">${bloqueada ? "🔒" : (conSprite ? `<img src="${P[(i / 3 | 0) + 1]}" alt="">` : m.icono)}</div>
       <div class="nombre">${m.titulo}</div>
-      <div class="mini-est">${st ? "⭐".repeat(st) : "&nbsp;"}</div>
+      <div class="mini-est">${bloqueada ? "Desbloqueá 🔓" : (st ? "⭐".repeat(st) : "&nbsp;")}</div>
       ${conSprite ? `<div class="chip">${m.icono}</div>` : ""}`;
-    c.addEventListener("click", () => { Sfx.pop(); Shell.abrir(m.id); });
+    c.addEventListener("click", () => { Sfx.pop(); if (bloqueada) ofertaDesbloqueo(m); else Shell.abrir(m.id); });
     menu.appendChild(c);
   });
   stage.appendChild(menu);
