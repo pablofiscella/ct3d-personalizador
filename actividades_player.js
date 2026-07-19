@@ -2302,6 +2302,139 @@ GAMES.tablas_ninja = {
   },
 };
 
+/* ── FÁBRICA DE MULTIPLICAR (M5, 4° grado — docs/auditoria-dc-caba/grado-4.md):
+   multiplicación MÁS ALLÁ de las tablas —el corazón operatorio de 4°—. Fase mental
+   (trivia) de la secuencia CPA del dossier. GENERADA. Distractores por misconception
+   real (Capa 0 · C4): ceros de menos/de más en ×10/×100/×1000, y multiplicar solo
+   una parte del número en 2 cifras × 1 cifra. Explicación por error (Capa 0 · C3).
+   La dificultad sube: valor posicional (×10/100/1000) → 2 cifras × 1 cifra. ── */
+GAMES.multiplicar = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    const nivel = ctx.cfg.nivel || 1;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const prog = rondas > 1 ? ronda / (rondas - 1) : 1;
+      const fase = (nivel >= 2 || prog > 0.5) ? 2 : 1;
+      let a, b, correcto;
+      const cand = [];
+      if (fase === 1) {
+        const base = [10, 100, 1000][rint(0, prog > 0.66 ? 2 : (prog > 0.33 ? 1 : 0))];
+        a = rint(2, 99); b = base; correcto = a * b;
+        cand.push({ v: a * (base / 10), m: "Le faltan ceros. Por " + base + ", escribí el " + a + " y después TODOS los ceros del " + base + "." });
+        cand.push({ v: a * (base * 10), m: "Te sobra un cero. Contá los ceros del " + base + " y ponés justo esos." });
+        cand.push({ v: a + base, m: a + " más " + base + " es sumar; acá es " + a + " VECES el " + base + "." });
+      } else {
+        a = rint(12, 99); b = rint(3, 9); correcto = a * b;
+        const dec = Math.floor(a / 10) * 10, uni = a % 10;
+        cand.push({ v: (dec * b) + uni, m: "Multiplicaste las decenas pero dejaste la unidad suelta. TODO el " + a + " va por " + b + "." });
+        cand.push({ v: dec + (uni * b), m: "Multiplicaste solo la unidad. Las decenas del " + a + " también van por " + b + "." });
+        cand.push({ v: a * (b - 1), m: "Esa es " + a + " × " + (b - 1) + ". Acá es por " + b + "." });
+        cand.push({ v: a + b, m: a + " más " + b + " es sumar; acá multiplicamos." });
+      }
+      ctx.item("multiplicar#" + a + "x" + b);
+      ctx.consigna("¿Cuánto es " + a + " por " + b + "?");
+      ctx.juego.innerHTML = "";
+      const opciones = [{ v: correcto, ok: true }];
+      shuffle(cand).forEach((d) => {
+        if (opciones.length >= 3) return;
+        if (d.v > 0 && d.v !== correcto && !opciones.some((o) => o.v === d.v)) opciones.push(d);
+      });
+      let intento = 0;
+      while (opciones.length < 3 && intento++ < 25) {
+        const v = correcto + rint(1, 9) * (rint(0, 1) ? 10 : -10);
+        if (v > 0 && !opciones.some((o) => o.v === v)) opciones.push({ v: v, m: "Volvé a hacer la cuenta con cuidado." });
+      }
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const btn = el("button", "op", o.v);
+        btn.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) {
+            resuelto = true; btn.classList.add("anim-pop"); ctx.bien();
+            ronda++; await espera(950);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          } else {
+            btn.classList.add("casi"); setTimeout(() => btn.classList.remove("casi"), 450);
+            ctx.casi(o.m);
+          }
+        });
+        fila.appendChild(btn);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── LA DIVISIÓN (M6, 4° grado — docs/auditoria-dc-caba/grado-4.md): la OTRA
+   pared de 4° (con la multiplicación, el gap #1). Fase de trivia de la secuencia
+   del dossier: división como "cuántas veces entra". GENERADA, exacta (el resto es
+   fase posterior). Distractores por misconception (Capa 0 · C4): cociente vecino
+   (off-by-one) y confundir con la resta. Explicación por error (Capa 0 · C3).
+   Sube: cocientes de tabla → 2 cifras ÷ 1 cifra. ── */
+GAMES.dividir = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    const nivel = ctx.cfg.nivel || 1;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const prog = rondas > 1 ? ronda / (rondas - 1) : 1;
+      const fase = (nivel >= 2 || prog > 0.5) ? 2 : 1;
+      let divisor, cociente;
+      if (fase === 1) {
+        divisor = rint(2, 9); cociente = rint(2, 9);
+      } else {
+        divisor = rint(2, 6); cociente = rint(11, Math.max(12, Math.floor(99 / divisor)));
+      }
+      const dividendo = divisor * cociente;
+      const correcto = cociente;
+      const cand = [
+        { v: cociente + 1, m: divisor + " × " + (cociente + 1) + " es " + (divisor * (cociente + 1)) + ", se pasa de " + dividendo + "." },
+        { v: cociente - 1, m: divisor + " × " + (cociente - 1) + " es " + (divisor * (cociente - 1)) + ", no llega a " + dividendo + "." },
+        { v: dividendo - divisor, m: "Eso es restar. Dividir es buscar cuántas veces entra el " + divisor + " en " + dividendo + "." },
+      ];
+      ctx.item("dividir#" + dividendo + "e" + divisor);
+      ctx.consigna("¿Cuánto es " + dividendo + " dividido " + divisor + "?");
+      ctx.juego.innerHTML = "";
+      const opciones = [{ v: correcto, ok: true }];
+      shuffle(cand).forEach((d) => {
+        if (opciones.length >= 3) return;
+        if (d.v > 0 && d.v !== correcto && !opciones.some((o) => o.v === d.v)) opciones.push(d);
+      });
+      let intento = 0;
+      while (opciones.length < 3 && intento++ < 25) {
+        const v = correcto + rint(1, 4) * (rint(0, 1) ? 1 : -1);
+        if (v > 0 && !opciones.some((o) => o.v === v)) opciones.push({ v: v, m: "¿Cuántas veces entra el " + divisor + " en " + dividendo + "?" });
+      }
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const btn = el("button", "op", o.v);
+        btn.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) {
+            resuelto = true; btn.classList.add("anim-pop"); ctx.bien();
+            ronda++; await espera(950);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          } else {
+            btn.classList.add("casi"); setTimeout(() => btn.classList.remove("casi"), 450);
+            ctx.casi(o.m);
+          }
+        });
+        fila.appendChild(btn);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 /* ── ¿DE QUÉ MATERIAL ES? — trivia (14-jul-2026, 1° grado NAP Bimestre 4
    "Ideas web": "trivia de materiales — ¿vidrio, madera o metal para una
    ventana?"). Opciones de TEXTO (no emoji — no hay glifo distintivo por

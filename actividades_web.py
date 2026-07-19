@@ -286,6 +286,13 @@ def _menu(banda, edad):
         # (Capa 0 · C3/C4). Pedida por los 3 revisores del panel; "abre cada
         # sesión de Matemática" (informe §5h / dossier de 4°).
         g.append({"id": "tablas_ninja", "titulo": "Tablas ninja", "icono": "🥷", "cfg": {"rondas": 10, "nivel": 1}})
+        # M5 "Fábrica de multiplicar" + M6 "La división" (19-jul-2026, rollout
+        # de contenido DC CABA): las dos patas del gap #1 de 4° (multiplicación
+        # más allá de tablas + división), completan el corazón operatorio con
+        # Tablas ninja. Trivia generada con distractores por misconception (C4)
+        # y explicación del porqué (C3) — mismo molde que tablas_ninja.
+        g.append({"id": "multiplicar", "titulo": "Fábrica de multiplicar", "icono": "✖️", "cfg": {"rondas": 10, "nivel": 1}})
+        g.append({"id": "dividir", "titulo": "La división", "icono": "➗", "cfg": {"rondas": 10, "nivel": 1}})
         # Bimestre 1: abstracto/concreto + provincia → región.
         # rondas=10 (14-jul-2026): ABSTRACTOS_BANCO creció de 8 a 10.
         g.append({"id": "abstractos_concretos", "titulo": "Abstracto o concreto", "icono": "💭", "cfg": {"rondas": 10}})
