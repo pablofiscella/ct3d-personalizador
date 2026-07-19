@@ -429,6 +429,16 @@ def _menu(banda, edad):
         g.append({"id": "energia_renovable", "titulo": "¿Renovable o no?", "icono": "⚡", "cfg": {"rondas": 10}})
         # rondas=10 (14-jul-2026): POLIGONOS_BANCO creció de 6 a 10.
         g.append({"id": "poligonos_lados", "titulo": "¿Cuántos lados tiene?", "icono": "⬡", "cfg": {"rondas": 10}})
+        # ── Rollout DC CABA · 6° grado (19-jul-2026, docs/auditoria-dc-caba/
+        # grado-6.md): réplica del modelo. Cierra los gaps de lectura,
+        # mult/división y racionales reusando los moldes con dificultad de 6°.
+        g.append({"id": "tablas_ninja", "titulo": "Tablas ninja", "icono": "🥷", "cfg": {"rondas": 10, "nivel": 3}})
+        g.append({"id": "dividir", "titulo": "La división", "icono": "🧮", "cfg": {"rondas": 10, "nivel": 2}})
+        g.append({"id": "comprension_lectora", "titulo": "Detective de textos", "icono": "🔎", "cfg": {"rondas": 8}})
+        g.append({"id": "duelo_fracciones", "titulo": "Duelo de fracciones", "icono": "🍫", "cfg": {"rondas": 10}})
+        g.append({"id": "duelo_decimales", "titulo": "Duelo de decimales", "icono": "💲", "cfg": {"rondas": 10}})
+        g.append({"id": "recta_numerica", "titulo": "Recta gigante", "icono": "📍", "cfg": {"rondas": 10, "max1": 100000, "max2": 1000000}})
+        g.append({"id": "conectores", "titulo": "El conector justo", "icono": "🔗", "cfg": {"rondas": 10}})
     if e == 12:
         # 7° grado (14-jul-2026, año de egreso, fin del NAP) — mismo
         # criterio: un juego por cada "Idea web" del NAP.
@@ -456,6 +466,16 @@ def _menu(banda, edad):
         g.append({"id": "area_perimetro", "titulo": "Área de la habitación", "icono": "🏠", "cfg": {"rondas": 10}})
         # rondas=10 (14-jul-2026): ESCAPE_ROOM_BANCO creció de 8 a 10.
         g.append({"id": "escape_room_egreso", "titulo": "Escape room de egreso", "icono": "🔐", "cfg": {"rondas": 10}})
+        # ── Rollout DC CABA · 7° grado (19-jul-2026, docs/auditoria-dc-caba/
+        # grado-7.md): réplica del modelo. Cierra los gaps de lectura,
+        # mult/división y racionales reusando los moldes con la máxima dificultad.
+        g.append({"id": "tablas_ninja", "titulo": "Tablas ninja", "icono": "🥷", "cfg": {"rondas": 10, "nivel": 3}})
+        g.append({"id": "dividir", "titulo": "La división", "icono": "➗", "cfg": {"rondas": 10, "nivel": 2}})
+        g.append({"id": "comprension_lectora", "titulo": "Detective de textos", "icono": "🔎", "cfg": {"rondas": 8}})
+        g.append({"id": "duelo_fracciones", "titulo": "Duelo de fracciones", "icono": "🍫", "cfg": {"rondas": 10}})
+        g.append({"id": "duelo_decimales", "titulo": "Duelo de decimales", "icono": "💲", "cfg": {"rondas": 10}})
+        g.append({"id": "recta_numerica", "titulo": "Recta gigante", "icono": "📍", "cfg": {"rondas": 10, "max1": 100000, "max2": 1000000}})
+        g.append({"id": "conectores", "titulo": "El conector justo", "icono": "🔗", "cfg": {"rondas": 10}})
     return g
 
 
