@@ -1324,10 +1324,50 @@ class Handler(BaseHTTPRequestHandler):
         return self._json(404, {"ok": False, "error": "ruta no encontrada"})
 
     # ---------------- POST ----------------
+    def _act_telemetria(self, token):
+        """Capa 0 · C5 (docs/auditoria-dc-caba/CAPA-0-MOTOR-DOMINIO.md): recibe un
+        evento de primer-intento del player (best-effort, sendBeacon) y lo agrega a
+        actividades/<token>/telemetria.jsonl. Sirve para VER con datos qué actividad
+        quedó muy fácil/difícil por grado. Sin auth (mismo criterio que servir el
+        token), pero acotado: el token tiene que existir y el archivo tiene tope."""
+        import actividades_web as aw
+        d = os.path.join(aw.ACT_DIR, token)
+        if not os.path.isdir(d):
+            return self._json(404, {"ok": False})
+        try:
+            ev = json.loads(self._body() or b"{}")
+        except Exception:
+            return self._json(400, {"ok": False})
+        if not isinstance(ev, dict):
+            return self._json(400, {"ok": False})
+        rec = {
+            "j": str(ev.get("j", ""))[:40],
+            "it": str(ev.get("it", ""))[:80],
+            "edad": str(ev.get("edad", ""))[:4],
+            "ok": bool(ev.get("ok")),
+            "primer": bool(ev.get("primer")),
+            "motivo": (str(ev.get("motivo"))[:120] if ev.get("motivo") else None),
+            "t": int(ev.get("t") or 0) if str(ev.get("t") or "0").isdigit() else 0,
+        }
+        p = os.path.join(d, "telemetria.jsonl")
+        try:
+            # tope defensivo: no dejar crecer sin límite si alguien spamea con el token.
+            if not (os.path.isfile(p) and os.path.getsize(p) > 5 * 1024 * 1024):
+                with open(p, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+        except Exception:
+            pass
+        self.send_response(204)      # sendBeacon no lee el body
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
     def do_POST(self):
         path = urllib.parse.urlparse(self.path).path
         if not self._origin_ok():          # A5: rechaza POST cross-site de navegador
             return self._deny()
+        m_tel = re.match(r"^/act/([A-Za-z0-9_-]+)/telemetria$", path)
+        if m_tel:
+            return self._act_telemetria(m_tel.group(1))
         if path == "/editor/save":
             return self._editor_save()
         if path == "/dash/upload":

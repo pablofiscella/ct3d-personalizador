@@ -187,6 +187,39 @@ const Store = {
   },
 };
 
+/* ── Capa 0 · C1+C5 (19-jul-2026, docs/auditoria-dc-caba/CAPA-0-MOTOR-DOMINIO.md):
+   telemetría de PRIMER INTENTO por ítem. Aditivo: no cambia ninguna mecánica ni
+   lo que ve el chico — solo registra {juego, ítem, edad, primer intento, correcto}
+   para poder VER con datos qué actividad quedó muy fácil/difícil. Buffer local por
+   token (localStorage) + envío best-effort al motor; si el endpoint aún no existe
+   (se construye en el incremento C5-server), los datos quedan en el buffer local y
+   NO rompe nada. La compuerta de dominio que USA estos datos es C2, aparte. ── */
+const Tel = {
+  key() { return Store.key + "::tel"; },
+  buf: null,
+  _load() {
+    if (this.buf) return;
+    try { this.buf = JSON.parse(localStorage.getItem(this.key()) || "[]"); }
+    catch (e) { this.buf = []; }
+  },
+  push(ev) {
+    this._load();
+    this.buf.push(ev);
+    // cap defensivo: nunca dejar crecer el localStorage sin límite.
+    if (this.buf.length > 800) this.buf.splice(0, this.buf.length - 800);
+    try { localStorage.setItem(this.key(), JSON.stringify(this.buf)); } catch (e) {}
+    this._enviar(ev);
+  },
+  _enviar(ev) {
+    // best-effort, no bloquea el juego. sendBeacon no tira error si el endpoint
+    // todavía no existe (queda encolado); el sink del server es el próximo paso.
+    try {
+      if (navigator.sendBeacon)
+        navigator.sendBeacon("telemetria", new Blob([JSON.stringify(ev)], { type: "application/json" }));
+    } catch (e) { /* sin telemetría remota para este token: queda en el buffer local */ }
+  },
+};
+
 /* ── sonidos sintetizados (WebAudio — sin assets, latencia cero) ── */
 const Sfx = {
   ctx: null, on: true,
@@ -289,10 +322,15 @@ function certificadoUrl() {
 /* ── shell de juego: consigna + progreso + festejo ── */
 const Shell = {
   actual: null, fallos: 0, _rondas: 0, _nuevoLogro: false,
+  // Capa 0 · C1: estado de PRIMER INTENTO por ronda (lo consume la telemetría
+  // Tel y, más adelante, la compuerta de dominio C2).
+  _itemId: null, _rondaResp: false, _rondaIdx: 0, primerOk: 0, primerTotal: 0,
   abrir(id) {
     const item = D.menu.find((m) => m.id === id);
     if (!item || !GAMES[id]) return;
     this.actual = id; this.fallos = 0;
+    this._itemId = null; this._rondaResp = false; this._rondaIdx = 0;
+    this.primerOk = 0; this.primerTotal = 0;
     $("#btnAtras").classList.add("ver");
     const stage = $("#stage");
     stage.innerHTML = "";
@@ -306,6 +344,20 @@ const Shell = {
   },
   ctx(item) {
     const self = this;
+    // Capa 0 · C1+C5: registra el resultado de la PRIMERA respuesta de la ronda
+    // (closure, robusta ante cómo cada juego invoque bien/casi) y lo manda a Tel.
+    // No cambia ninguna mecánica ni lo que ve el chico.
+    const registrar = (ok, motivo) => {
+      const primer = !self._rondaResp;
+      self._rondaResp = true;
+      if (primer) { self.primerTotal++; if (ok) self.primerOk++; }
+      Tel.push({
+        j: self.actual,
+        it: self._itemId != null ? self._itemId : (self.actual + "#" + self._rondaIdx),
+        edad: (D && D.edad) || null,
+        ok: ok, primer: primer, motivo: motivo || null, t: Date.now(),
+      });
+    };
     return {
       cfg: item.cfg || {}, D, P,
       juego: $("#juego"),
@@ -323,13 +375,19 @@ const Shell = {
         for (let i = 0; i < n; i++) pr.appendChild(el("i"));
         this.ronda(0);
       },
+      // Capa 0 · C1: un juego puede declarar el id del ítem de la ronda para
+      // etiquetar la telemetría con precisión; si no lo hace, se usa un id
+      // sintético "<juego>#<ronda>". Aditivo: el que no lo llama anda igual.
+      item(id) { self._itemId = id; },
       ronda(i) {
+        self._rondaIdx = i;
+        self._rondaResp = false;   // ronda nueva → la próxima respuesta es "primer intento"
         document.querySelectorAll("#progreso i").forEach((d, j) => {
           d.className = j < i ? "hecho" : (j === i ? "actual" : "");
         });
       },
-      bien(txt) { Sfx.ok(); toast(txt || FRASES_BIEN[rint(0, FRASES_BIEN.length - 1)]); },
-      casi() { self.fallos++; Sfx.casi(); },
+      bien(txt) { registrar(true); Sfx.ok(); toast(txt || FRASES_BIEN[rint(0, FRASES_BIEN.length - 1)]); },
+      casi(motivo) { registrar(false, motivo); self.fallos++; Sfx.casi(); },
       win(estrellas) {
         const e = estrellas !== undefined ? estrellas
           : (self.fallos === 0 ? 3 : (self.fallos <= 2 ? 2 : 1));
