@@ -3581,6 +3581,143 @@ GAMES.porcentajes = {
   },
 };
 
+/* ── POTENCIAS (7° grado — docs/auditoria-dc-caba/grado-7.md): potenciación,
+   nodal de 7°. GENERADA. Ataca LA misconception: b² = b×2 (en vez de b×b).
+   Explicación desarrollando la potencia (Capa 0 · C3). ── */
+GAMES.potencias = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const base = rint(2, 9), exp = rint(2, 3);
+      const correcto = Math.pow(base, exp);
+      const es = exp === 2 ? "²" : "³";
+      const desarrollo = Array(exp).fill(base).join("×") + " = " + correcto;
+      ctx.item("pot#" + base + "e" + exp);
+      ctx.consigna("¿Cuánto es  " + base + es + "  ?");
+      ctx.juego.innerHTML = "";
+      const cand = [
+        { v: base * exp, m: base + es + " no es " + base + "×" + exp + ". Es " + base + " multiplicado por sí mismo: " + desarrollo + "." },
+        { v: correcto + base, m: base + es + " = " + desarrollo + "." },
+      ];
+      const opciones = [{ v: correcto, ok: true }];
+      shuffle(cand).forEach((d) => { if (opciones.length < 3 && d.v > 0 && d.v !== correcto && !opciones.some((o) => o.v === d.v)) opciones.push(d); });
+      let intento = 0;
+      while (opciones.length < 3 && intento++ < 20) { const v = correcto + rint(1, 6) * (rint(0, 1) ? 1 : -1); if (v > 0 && !opciones.some((o) => o.v === v)) opciones.push({ v: v, m: base + es + " = " + desarrollo + "." }); }
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const b = el("button", "op", o.v);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── PROBLEMAS DE VARIOS PASOS (7° grado — docs/auditoria-dc-caba/grado-7.md):
+   problemas de 2 pasos, nodal de 7° (el panel encontró el clúster vacío). Banco
+   con distractores por error de proceso (olvidar un paso, operación equivocada).
+   Explicación con los dos pasos (Capa 0 · C3). ── */
+const PROB_MULTI_BANCO = [
+  { t: "Compré 3 cajas de 12 alfajores y regalé 8. ¿Cuántos me quedaron?", ok: 28, d: [{ v: 36, m: "Te faltó restar los 8 regalados: 3×12=36, y 36−8=28." }, { v: 4, m: "Primero multiplicá (3×12=36), recién después restá 8." }] },
+  { t: "En el micro había 45 personas. Bajaron 12 y subieron 8. ¿Cuántas quedaron?", ok: 41, d: [{ v: 65, m: "Bajaron 12 (se restan) y subieron 8 (se suman): 45−12+8=41." }, { v: 25, m: "Los 8 que subieron se SUMAN: 45−12+8=41." }] },
+  { t: "Un libro tiene 200 páginas. Leí 60 el lunes y 45 el martes. ¿Cuántas me faltan?", ok: 95, d: [{ v: 305, m: "Lo leído se RESTA del total: 200−60−45=95." }, { v: 140, m: "Restá los dos días: 200−60−45=95." }] },
+  { t: "Hay 4 mesas con 6 sillas cada una. Se rompieron 5 sillas. ¿Cuántas sirven?", ok: 19, d: [{ v: 24, m: "Faltó restar las 5 rotas: 4×6=24, y 24−5=19." }, { v: 20, m: "4×6=24, después restá 5 → 19." }] },
+  { t: "Junté $500. Gasté $180 en un regalo y $120 en la torta. ¿Cuánto me quedó?", ok: 200, d: [{ v: 320, m: "Restá los DOS gastos: 500−180−120=200." }, { v: 800, m: "Los gastos se RESTAN: 500−180−120=200." }] },
+  { t: "Un cine tiene 8 filas de 15 butacas. Ya se ocuparon 90. ¿Cuántas quedan libres?", ok: 30, d: [{ v: 120, m: "Faltó restar las 90 ocupadas: 8×15=120, y 120−90=30." }, { v: 105, m: "8×15=120, después restá 90 → 30." }] },
+  { t: "Compré 6 paquetes de 8 figuritas. Repetidas tenía 12. ¿Cuántas nuevas quedaron?", ok: 36, d: [{ v: 48, m: "Restá las 12 repetidas: 6×8=48, y 48−12=36." }, { v: 26, m: "6×8=48, recién ahí restá 12 → 36." }] },
+  { t: "Tenía $250. Mi abuela me dio $100 y compré un libro de $130. ¿Cuánto me quedó?", ok: 220, d: [{ v: 480, m: "El libro se RESTA: 250+100−130=220." }, { v: 20, m: "Los $100 se SUMAN: 250+100−130=220." }] },
+];
+GAMES.problemas_multipaso = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    let usados = [], ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      let disp = PROB_MULTI_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
+      if (!disp.length) { usados = []; disp = PROB_MULTI_BANCO.map((_, i) => i); }
+      const idx = disp[rint(0, disp.length - 1)]; usados.push(idx);
+      const it = PROB_MULTI_BANCO[idx];
+      ctx.item("probmulti#" + idx);
+      ctx.consigna(it.t);
+      ctx.juego.innerHTML = "";
+      const opciones = [{ v: it.ok, ok: true }].concat(it.d.map((x) => ({ v: x.v, m: x.m })));
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(opciones).forEach((o) => {
+        const b = el("button", "op", o.v);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── ENGLISH TIME (Inglés, 7° grado — docs/auditoria-dc-caba/grado-7.md): área
+   NUEVA pedida por el panel (Lengua Extranjera). Vocabulario básico. Explicación
+   con el significado (Capa 0 · C3). ── */
+const INGLES_BANCO = [
+  { q: "¿Cómo se dice «perro» en inglés?", ok: "dog", d: ["cat", "cow"], m: "«dog» es perro; «cat» es gato." },
+  { q: "¿Cómo se dice «casa» en inglés?", ok: "house", d: ["horse", "mouse"], m: "«house» es casa; «horse» es caballo." },
+  { q: "¿Qué significa «red»?", ok: "rojo", d: ["verde", "azul"], m: "«red» es rojo; «green» es verde, «blue» es azul." },
+  { q: "¿Cómo se dice «gracias» en inglés?", ok: "thank you", d: ["please", "sorry"], m: "«thank you» es gracias; «please» es por favor." },
+  { q: "¿Qué número es «three»?", ok: "3", d: ["2", "4"], m: "«three» es 3; «two» es 2, «four» es 4." },
+  { q: "¿Cómo se dice «agua» en inglés?", ok: "water", d: ["milk", "juice"], m: "«water» es agua; «milk» es leche." },
+  { q: "¿Qué significa «book»?", ok: "libro", d: ["mesa", "silla"], m: "«book» es libro; «table» es mesa." },
+  { q: "¿Cómo saludás a la mañana en inglés?", ok: "good morning", d: ["good night", "goodbye"], m: "«good morning» es buenos días; «good night» es buenas noches." },
+  { q: "¿Qué color es «yellow»?", ok: "amarillo", d: ["negro", "blanco"], m: "«yellow» es amarillo; «black» es negro, «white» es blanco." },
+  { q: "¿Cómo se dice «familia» en inglés?", ok: "family", d: ["friend", "people"], m: "«family» es familia; «friend» es amigo." },
+  { q: "¿Qué significa «happy»?", ok: "feliz", d: ["triste", "cansado"], m: "«happy» es feliz; «sad» es triste." },
+  { q: "¿Cómo se dice «escuela» en inglés?", ok: "school", d: ["street", "store"], m: "«school» es escuela; «street» es calle." },
+];
+GAMES.ingles_basico = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    let usados = [], ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      let disp = INGLES_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
+      if (!disp.length) { usados = []; disp = INGLES_BANCO.map((_, i) => i); }
+      const idx = disp[rint(0, disp.length - 1)]; usados.push(idx);
+      const it = INGLES_BANCO[idx];
+      ctx.item("ingles#" + idx);
+      ctx.consigna(it.q);
+      ctx.juego.innerHTML = "";
+      const opciones = shuffle([{ t: it.ok, ok: true }].concat(it.d.map((x) => ({ t: x, ok: false }))));
+      const fila = el("div", "ops");
+      let resuelto = false;
+      opciones.forEach((o) => {
+        const b = el("button", "op", o.t);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(it.m); }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 /* ── ¿DE QUÉ MATERIAL ES? — trivia (14-jul-2026, 1° grado NAP Bimestre 4
    "Ideas web": "trivia de materiales — ¿vidrio, madera o metal para una
    ventana?"). Opciones de TEXTO (no emoji — no hay glifo distintivo por

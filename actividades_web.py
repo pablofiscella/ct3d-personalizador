@@ -501,6 +501,12 @@ def _menu(banda, edad):
         g.append({"id": "duelo_decimales", "titulo": "Duelo de decimales", "icono": "💲", "cfg": {"rondas": 10}})
         g.append({"id": "recta_numerica", "titulo": "Recta gigante", "icono": "📍", "cfg": {"rondas": 10, "max1": 100000, "max2": 1000000}})
         g.append({"id": "conectores", "titulo": "El conector justo", "icono": "🔗", "cfg": {"rondas": 10}})
+        # 2ª tanda 7° (19-jul-2026, nivelación): actividades PROPIAS del dossier
+        # de 7° — potenciación, problemas de varios pasos, e Inglés (área NUEVA
+        # que pidió el panel). Clústeres nodales que el 1er pase dejó vacíos.
+        g.append({"id": "potencias", "titulo": "Potencias", "icono": "🔺", "cfg": {"rondas": 10}})
+        g.append({"id": "problemas_multipaso", "titulo": "Problemas de varios pasos", "icono": "📈", "cfg": {"rondas": 8}})
+        g.append({"id": "ingles_basico", "titulo": "English time", "icono": "🇬🇧", "cfg": {"rondas": 10}})
     return g
 
 
