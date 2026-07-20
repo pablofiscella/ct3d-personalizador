@@ -6235,6 +6235,12 @@ const ESPACIAL_BANCO = [
   // fija de 3 botones (Día/Noche/Ambos).
   { e: "🌧️", cuando: "Ambos" }, { e: "🌈", cuando: "Día" },
   { e: "🦉", cuando: "Noche" }, { e: "🌫️", cuando: "Ambos" },
+  // ampliado 20-jul-2026 (de 10 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { e: "🌞", cuando: "Día" }, { e: "🌅", cuando: "Día" }, { e: "🐓", cuando: "Día" },
+  { e: "🪁", cuando: "Día" }, { e: "🌇", cuando: "Día" },
+  { e: "🌛", cuando: "Noche" }, { e: "🌟", cuando: "Noche" }, { e: "🌠", cuando: "Noche" },
+  { e: "🦇", cuando: "Noche" }, { e: "🌃", cuando: "Noche" }, { e: "🌜", cuando: "Noche" },
+  { e: "⛅", cuando: "Ambos" },
 ];
 GAMES.trivia_espacial = {
   crear(ctx) {
