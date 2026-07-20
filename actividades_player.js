@@ -4997,6 +4997,17 @@ const BUENOS_AIRES_BANCO = [
   { q: "¿Qué edificio religioso está al lado de la Plaza de Mayo?", ok: "La Catedral", d: ["El Cabildo", "El Obelisco"], m: "En la Catedral Metropolitana descansan los restos de San Martín." },
   { q: "Las Madres de Plaza de Mayo, ¿dónde caminan cada jueves?", ok: "Alrededor de la Pirámide de Mayo", d: ["En el Obelisco", "En La Boca"], m: "Las Madres marchan alrededor de la Pirámide, en la Plaza de Mayo." },
   { q: "¿Cómo llegaron muchas familias a Buenos Aires hace 100 años?", ok: "En barco, como inmigrantes", d: ["En avión", "En tren desde el sur"], m: "A fines del 1800 y principios del 1900 llegaron muchos inmigrantes en barco por el puerto." },
+  // ampliado 20-jul-2026 (de 10 a 20 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { q: "¿Cómo se llama la avenida más ancha de Buenos Aires?", ok: "La 9 de Julio", d: ["Corrientes", "Santa Fe"], m: "La 9 de Julio es conocida por ser una de las avenidas más anchas del mundo." },
+  { q: "¿Qué monumento está en el medio de la 9 de Julio?", ok: "El Obelisco", d: ["El Cabildo", "La Casa Rosada"], m: "El Obelisco está en el cruce de la 9 de Julio y Corrientes." },
+  { q: "¿Dónde trabaja el presidente argentino?", ok: "En la Casa Rosada", d: ["En el Obelisco", "En el Congreso"], m: "La Casa Rosada es la sede del Poder Ejecutivo." },
+  { q: "¿Qué barrio es famoso por sus casas de colores y el tango?", ok: "La Boca", d: ["Palermo", "Belgrano"], m: "La Boca, con el Caminito, es famoso por sus casas de chapa de colores." },
+  { q: "¿Qué río está al lado de la Ciudad de Buenos Aires?", ok: "El Río de la Plata", d: ["El Paraná", "El Uruguay"], m: "Buenos Aires está a orillas del Río de la Plata." },
+  { q: "¿Cómo se llama el transporte subterráneo de Buenos Aires?", ok: "El subte", d: ["El tranvía", "El colectivo"], m: "El subte de Buenos Aires fue el primero de América Latina." },
+  { q: "¿Qué edificio es la sede del Poder Legislativo?", ok: "El Congreso", d: ["La Casa Rosada", "El Cabildo"], m: "En el Congreso trabajan los diputados y senadores." },
+  { q: "¿Para qué sirve el puerto de Buenos Aires?", ok: "Para que entren y salgan barcos con mercadería", d: ["Para estacionar autos", "Para jugar al fútbol"], m: "Por el puerto entra y sale la mercadería que se importa y exporta." },
+  { q: "¿Qué es el Riachuelo?", ok: "Un río muy contaminado que limita la ciudad", d: ["Una avenida", "Un parque"], m: "El Riachuelo separa la Ciudad de Buenos Aires de la provincia y está muy contaminado." },
+  { q: "¿Qué se recuerda cada 25 de mayo en la Plaza de Mayo?", ok: "La Revolución de Mayo de 1810", d: ["El Día del Niño", "El Año Nuevo"], m: "El 25 de mayo de 1810 se formó la Primera Junta en el Cabildo, frente a esa plaza." },
 ];
 GAMES.buenos_aires = {
   crear(ctx) {
