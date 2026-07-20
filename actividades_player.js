@@ -6742,6 +6742,94 @@ GAMES.transportador = {
   },
 };
 
+/* ── ¿QUÉ HORA ES? (leer el reloj — docs/auditoria-dc-caba/: medida del tiempo,
+   2°-3°, mecánica nodal que faltaba entera). Reloj analógico SVG real con dos
+   punteros (el corto/grueso = hora, el largo/fino = minutos). Ataca las 2
+   misconceptions clásicas: (1) redondear mal la hora — leer el puntero corto como
+   el número más cercano cuando está entre dos (3:40 → "las 4"); (2) leer el
+   puntero largo CRUDO en vez de ×5 (marca el 8 → "8" en vez de 40). nivel 1 (2°):
+   en punto y y media. nivel 2 (3°): cuartos y de a 5/10. Capa 0 C2/C3: cada error
+   baja la estrella al primer intento y nombra el error. ── */
+GAMES.reloj = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 8;
+    const nivel = ctx.cfg.nivel || 1;
+    ctx.rondas(rondas);
+    let ronda = 0, previas = [];
+    const P = (cx, cy, r, a) => [cx + r * Math.cos(a * Math.PI / 180), cy - r * Math.sin(a * Math.PI / 180)];
+    const fmt = (h, m) => h + ":" + String(m).padStart(2, "0");
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Qué hora marca el reloj?");
+      ctx.juego.innerHTML = "";
+      const mins = nivel >= 2 ? [0, 10, 15, 20, 30, 40, 45, 50] : [0, 30];
+      let H, M, key, guard = 0;
+      do { H = rint(1, 12); M = mins[rint(0, mins.length - 1)]; key = fmt(H, M); guard++; }
+      while (previas.includes(key) && guard < 30);
+      previas.push(key); if (previas.length > 6) previas.shift();
+      ctx.item("reloj#" + key);
+
+      const cx = 150, cy = 150, R = 132;
+      let s = '<svg viewBox="0 0 300 300" class="reloj-svg" data-hora="' + key + '">';
+      s += '<circle cx="' + cx + '" cy="' + cy + '" r="' + R + '" class="reloj-cara"/>';
+      for (let i = 0; i < 60; i++) {
+        const a = 90 - i * 6, larga = i % 5 === 0;
+        const [x1, y1] = P(cx, cy, R - 4, a), [x2, y2] = P(cx, cy, R - (larga ? 16 : 9), a);
+        s += '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" class="reloj-tick' + (larga ? " larga" : "") + '"/>';
+      }
+      for (let n = 1; n <= 12; n++) {
+        const a = 90 - n * 30, [x, y] = P(cx, cy, R - 32, a);
+        s += '<text x="' + x.toFixed(1) + '" y="' + (y + 8).toFixed(1) + '" class="reloj-num">' + n + '</text>';
+      }
+      const ah = 90 - ((H % 12) + M / 60) * 30, am = 90 - M * 6;
+      const [hx, hy] = P(cx, cy, R * 0.52, ah), [mx, my] = P(cx, cy, R * 0.78, am);
+      s += '<line x1="' + cx + '" y1="' + cy + '" x2="' + hx.toFixed(1) + '" y2="' + hy.toFixed(1) + '" class="reloj-hora"/>';
+      s += '<line x1="' + cx + '" y1="' + cy + '" x2="' + mx.toFixed(1) + '" y2="' + my.toFixed(1) + '" class="reloj-min"/>';
+      s += '<circle cx="' + cx + '" cy="' + cy + '" r="7" class="reloj-centro"/>';
+      s += '</svg>';
+      const arriba = el("div", "tablero reloj-wrap"); arriba.innerHTML = s;
+      ctx.juego.appendChild(arriba);
+
+      const correcto = fmt(H, M);
+      const wrongHora = fmt(H === 12 ? 1 : H + 1, M);   // redondeó mal la hora (puntero corto)
+      const crudo = M / 5;                               // leyó el puntero largo crudo (÷5)
+      const wrongMin = fmt(H, crudo);                    // "3:08" en vez de 3:40
+      const ops = [{ v: correcto, ok: true }];
+      const add = (o) => { if (ops.length < 3 && !ops.some((x) => x.v === o.v)) ops.push(o); };
+      if (wrongMin !== correcto) add({ v: wrongMin, min: true });
+      add({ v: wrongHora, hora: true });
+      let tries = 0;
+      while (ops.length < 3 && tries++ < 30) {
+        const v = fmt(rint(1, 12), mins[rint(0, mins.length - 1)]);
+        if (!ops.some((x) => x.v === v)) add({ v: v });
+      }
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(ops).forEach((o) => {
+        const b = el("button", "op reloj-op", o.v);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) {
+            resuelto = true; b.classList.add("bien", "anim-pop"); ctx.bien();
+            ronda++; await espera(850); if (ronda >= rondas) ctx.win(); else jugar();
+          } else if (o.min) {
+            b.classList.add("casi");
+            ctx.casi("El puntero largo cuenta los minutos de a 5. Si marca el " + crudo + ", son " + M + " minutos.");
+          } else if (o.hora) {
+            b.classList.add("casi");
+            ctx.casi("El puntero corto es la hora, y todavía no llegó al " + (H === 12 ? 1 : H + 1) + ". Son las " + H + ".");
+          } else {
+            b.classList.add("casi"); ctx.casi("Mirá bien los dos punteros: el corto es la hora, el largo los minutos.");
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 /* ── PREFIJOS — FORMÁ LA PALABRA NUEVA (14-jul-2026, 4° grado NAP
    Bimestre 4 "Ideas web": "arrastrar prefijos y sufijos para formar
    palabras nuevas"). Mismo patrón tap-en-orden que armar_palabra/

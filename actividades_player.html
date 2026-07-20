@@ -241,6 +241,17 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 .transp-halo { fill: none; stroke: var(--ac2); stroke-width: 2.5; }
 .transp-vert { fill: var(--ink); }
 
+/* ── ¿Qué hora es? (leer el reloj, 2°-3°) ── */
+.reloj-wrap { display: flex; justify-content: center; padding: 6px; }
+.reloj-svg { width: 100%; max-width: 264px; height: auto; }
+.reloj-cara { fill: none; stroke: var(--ink); stroke-width: 3.5; }
+.reloj-tick { stroke: var(--ink); stroke-width: 1.5; opacity: .4; }
+.reloj-tick.larga { stroke-width: 2.6; opacity: .6; }
+.reloj-num { font-family: "Baloo", sans-serif; font-size: 22px; fill: var(--ink); text-anchor: middle; }
+.reloj-hora { stroke: var(--ink); stroke-width: 7; stroke-linecap: round; }
+.reloj-min { stroke: var(--ac); stroke-width: 4.5; stroke-linecap: round; }
+.reloj-centro { fill: var(--ac2); }
+
 /* ── animaciones ── */
 @keyframes pop     { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
 @keyframes brinco  { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-16%); } }
