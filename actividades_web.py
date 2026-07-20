@@ -386,6 +386,10 @@ def _menu(banda, edad):
         g.append({"id": "duelo_decimales", "titulo": "Duelo de decimales", "icono": "💲", "cfg": {"rondas": 10}})
         g.append({"id": "problemas_mult_div", "titulo": "Problemas de verdad", "icono": "🤔", "cfg": {"rondas": 10}})
         g.append({"id": "plurales_z", "titulo": "Plurales con Z", "icono": "📝", "cfg": {"rondas": 10}})
+        # Producción de Lengua (docs/auditoria-dc-caba/grado-4.md, gap #3): el
+        # diálogo con raya. Puntuar el diálogo (la raya abre lo dicho y la
+        # aclaración del narrador) — trivia "¿cuál está bien escrito?".
+        g.append({"id": "dialogo_raya", "titulo": "El diálogo con raya", "icono": "💬", "cfg": {"rondas": 8}})
         # S3 línea de tiempo + L15 historia en orden (19-jul-2026): primeras
         # actividades sobre la MECÁNICA NUEVA "ordenar" (commit-then-check), que
         # el motor no tenía. Línea de tiempo colonial (Sociales) y ordenar el

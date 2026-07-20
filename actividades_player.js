@@ -3395,6 +3395,102 @@ GAMES.historia_originarios = {
   },
 };
 
+/* ── Helper genérico de trivia de opción múltiple con opciones de TEXTO largo
+   (contenido: historia, gramática, ciencias). Banco de {q, ops, m}: ops[0] es la
+   correcta, se barajan al mostrar; el error muestra la explicación m (Capa 0 · C3)
+   con distractores por misconception (C4). Reusable para futuras actividades de
+   contenido en vez de duplicar el mismo esqueleto. ── */
+function juegoTriviaTexto(banco, consigna, idPrefix, rondasDefault) {
+  return {
+    crear(ctx) {
+      const rondas = ctx.cfg.rondas || rondasDefault || 8;
+      ctx.rondas(rondas);
+      let usados = [], ronda = 0;
+      const jugar = () => {
+        ctx.ronda(ronda);
+        ctx.consigna(consigna);
+        ctx.juego.innerHTML = "";
+        let libres = banco.map((_, i) => i).filter((i) => !usados.includes(i));
+        if (!libres.length) { usados = []; libres = banco.map((_, i) => i); }
+        const idx = libres[rint(0, libres.length - 1)];
+        usados.push(idx);
+        const item = banco[idx];
+        ctx.item(idPrefix + "#" + idx);
+        const arriba = el("div", "tablero");
+        arriba.appendChild(el("div", "spriteQuieto",
+          `<span style="font-size:21px;font-family:'Baloo',sans-serif">${item.q}</span>`));
+        ctx.juego.appendChild(arriba);
+        const correcta = item.ops[0];
+        const fila = el("div", "opsTexto");
+        fila.setAttribute("data-ok", correcta);
+        let resuelto = false;
+        shuffle(item.ops).forEach((op) => {
+          const b = el("button", "op-texto", op);
+          b.addEventListener("click", async () => {
+            if (resuelto) return;
+            if (op === correcta) {
+              resuelto = true; b.classList.add("bien", "anim-pop"); ctx.bien();
+              ronda++; await espera(950);
+              if (ronda >= rondas) ctx.win(); else jugar();
+            } else {
+              b.classList.add("casi"); ctx.casi(item.m);
+            }
+          });
+          fila.appendChild(b);
+        });
+        ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+      };
+      jugar();
+    },
+  };
+}
+
+/* ── EL DIÁLOGO CON RAYA (4° grado — docs/auditoria-dc-caba/grado-4.md, gap #3 de
+   Lengua: "sin sujeto/predicado (ya hecho), conectores, diálogo con raya,
+   estructura narrativa"). Enseña a puntuar el diálogo: la RAYA (—) abre lo que dice
+   el personaje y otra raya va antes de la aclaración del narrador (—dijo/—preguntó).
+   Trivia "¿cuál está bien escrito?": la correcta vs. errores reales (comillas en vez
+   de raya, falta la raya de apertura, falta la raya del narrador). Capa 0 C3/C4. ── */
+const DIALOGO_BANCO = [
+  { q: "Pedro dice que tiene hambre:",
+    ops: ["—Tengo hambre —dijo Pedro.", "\"Tengo hambre\", dijo Pedro.", "Tengo hambre —dijo Pedro."],
+    m: "El diálogo abre con raya (—) pegada a lo que dice el personaje. En español usamos raya, no comillas." },
+  { q: "Ana pregunta si van a jugar:",
+    ops: ["—¿Vamos a jugar? —preguntó Ana.", "¿Vamos a jugar? preguntó Ana.", "—¿Vamos a jugar? preguntó Ana."],
+    m: "Va una raya al inicio y OTRA raya antes de la aclaración del narrador (—preguntó Ana)." },
+  { q: "La maestra saluda a los chicos:",
+    ops: ["—¡Buen día, chicos! —dijo la maestra.", "\"¡Buen día, chicos!\" dijo la maestra.", "¡Buen día, chicos! dijo la maestra."],
+    m: "El diálogo se marca con raya (—): una abre lo que dice y otra abre la aclaración del narrador." },
+  { q: "Tomás pide ayuda:",
+    ops: ["—¿Me ayudás? —pidió Tomás.", "—¿Me ayudás? pidió Tomás.", "¿Me ayudás? —pidió Tomás."],
+    m: "Falta una raya: recordá que van DOS, una antes de lo dicho y otra antes de «pidió Tomás»." },
+  { q: "Mamá llama a cenar:",
+    ops: ["—¡A cenar! —llamó mamá.", "'¡A cenar!' llamó mamá.", "¡A cenar! —llamó mamá."],
+    m: "El diálogo abre con raya (—) al inicio, no con comillas ni sin nada." },
+  { q: "Sofía grita que ganó:",
+    ops: ["—¡Gané! —gritó Sofía.", "—¡Gané! gritó Sofía.", "\"¡Gané!\", gritó Sofía."],
+    m: "Antes de la aclaración del narrador (gritó Sofía) va otra raya: —gritó Sofía." },
+  { q: "El abuelo empieza un cuento:",
+    ops: ["—Había una vez… —empezó el abuelo.", "Había una vez… empezó el abuelo.", "—Había una vez… empezó el abuelo."],
+    m: "Van dos rayas: una abre lo que dice y otra abre «empezó el abuelo»." },
+  { q: "Lucía pregunta la hora:",
+    ops: ["—¿Qué hora es? —preguntó Lucía.", "\"¿Qué hora es?\" preguntó Lucía.", "¿Qué hora es? preguntó Lucía."],
+    m: "En un diálogo usamos raya (—), no comillas, y la raya abre lo que dice el personaje." },
+  { q: "El capitán da la orden:",
+    ops: ["—¡Todos a bordo! —ordenó el capitán.", "¡Todos a bordo! ordenó el capitán.", "—¡Todos a bordo! ordenó el capitán."],
+    m: "Falta la raya antes de la aclaración: —ordenó el capitán." },
+  { q: "Juan se despide:",
+    ops: ["—¡Hasta mañana! —dijo Juan.", "'¡Hasta mañana!' dijo Juan.", "¡Hasta mañana! —dijo Juan."],
+    m: "El diálogo abre con raya (—), no con comillas simples ni sin marca." },
+  { q: "La nena avisa que llueve:",
+    ops: ["—¡Está lloviendo! —avisó la nena.", "—¡Está lloviendo! avisó la nena.", "\"¡Está lloviendo!\" avisó la nena."],
+    m: "Antes de «avisó la nena» va otra raya: la aclaración del narrador también se abre con raya." },
+  { q: "El nene contesta que sí:",
+    ops: ["—Sí, quiero —contestó el nene.", "Sí, quiero contestó el nene.", "—Sí, quiero contestó el nene."],
+    m: "Van dos rayas: —Sí, quiero —contestó el nene." },
+];
+GAMES.dialogo_raya = juegoTriviaTexto(DIALOGO_BANCO, "¿Cuál está bien escrito?", "dialogo_raya");
+
 /* ── MECÁNICA NUEVA: RECTA NUMÉRICA (M1 "Recta gigante", 4° grado) — 19-jul-2026,
    otra mecánica que el motor no tenía (docs/auditoria-dc-caba/). Ubicar un número
    en la recta: la recta se parte en 10 zonas y el chico toca la zona donde cae el
