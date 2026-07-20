@@ -458,6 +458,10 @@ def _menu(banda, edad):
         # Bimestre 1: trivia colonial + camino digestivo.
         # rondas=10 (14-jul-2026): COLONIAL_BANCO creció de 5 a 10.
         g.append({"id": "trivia_colonial", "titulo": "Vida colonial", "icono": "🏛️", "cfg": {"rondas": 10}})
+        # Proceso 1810-1853 (docs/auditoria-dc-caba/grado-5.md, gap #3: el contenido
+        # de Sociales de 5°, ausente — solo había lo colonial de 4°). Revolución de
+        # Mayo → Independencia → San Martín → unitarios/federales → Constitución 1853.
+        g.append({"id": "independencia_arg", "titulo": "Camino a la independencia", "icono": "🇦🇷", "cfg": {"rondas": 10}})
         g.append({"id": "camino_digestivo", "titulo": "El camino digestivo", "icono": "🍽️", "cfg": {"rondas": 4}})
         # Bimestre 2: fracciones nivel 2 + análisis sintáctico contrarreloj.
         # rondas=10: FRACCIONES_AVANZADO_BANCO tiene 24 ítems verificados, de sobra.

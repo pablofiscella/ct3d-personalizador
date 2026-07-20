@@ -3544,6 +3544,62 @@ const CIELO_BANCO = [
 ];
 GAMES.cielo = juegoTriviaTexto(CIELO_BANCO, "Elegí la respuesta correcta.", "cielo");
 
+/* ── CAMINO A LA INDEPENDENCIA (5° grado — docs/auditoria-dc-caba/grado-5.md, gap
+   #3: "ausencia total del proceso 1810-1853 en Sociales — al alumno de 5° se le
+   ofrece el contenido de 4° [colonial] y nada del suyo"). Trivia de contenido (reusa
+   juegoTriviaTexto) sobre el proceso: Revolución de Mayo (1810), la bandera de
+   Belgrano (1812), la Declaración de la Independencia (1816, Tucumán), San Martín y
+   el cruce de los Andes, Güemes en el norte, unitarios vs federales, y la
+   Constitución (1853). Curado, correcto y a nivel 10 años. C4 + C3. ── */
+const INDEPENDENCIA_BANCO = [
+  { q: "¿Qué pasó el 25 de mayo de 1810?",
+    ops: ["Se formó la Primera Junta de gobierno (la Revolución de Mayo)", "Se declaró la Independencia", "Llegó Cristóbal Colón a América"],
+    m: "El 25 de mayo de 1810 se formó la Primera Junta: fue el primer gobierno patrio, la Revolución de Mayo." },
+  { q: "Antes de 1810, ¿quién gobernaba en el Río de la Plata?",
+    ops: ["Un virrey, que representaba al rey de España", "Un presidente elegido por el pueblo", "Los caudillos de cada provincia"],
+    m: "Gobernaba el virrey en nombre del rey de España; en 1810 una junta de criollos lo reemplazó." },
+  { q: "En el Cabildo Abierto del 22 de mayo de 1810 se discutió…",
+    ops: ["Si el virrey debía seguir gobernando o no", "A qué país venderle el trigo", "Dónde mudar la capital"],
+    m: "Los vecinos debatieron si el virrey debía seguir; se resolvió formar una junta de gobierno propia." },
+  { q: "¿Quién creó la bandera argentina, en 1812?",
+    ops: ["Manuel Belgrano", "José de San Martín", "Domingo Sarmiento"],
+    m: "Manuel Belgrano creó la bandera en 1812, a orillas del río Paraná." },
+  { q: "El 9 de julio de 1816, en Tucumán, se…",
+    ops: ["Declaró la Independencia de España", "Firmó la Constitución", "Fundó Buenos Aires"],
+    m: "El 9 de julio de 1816 el Congreso de Tucumán declaró la Independencia: dejamos de depender de España." },
+  { q: "¿Por qué fue importante declarar la Independencia?",
+    ops: ["Para gobernarnos solos, sin depender del rey de España", "Para volver a ser una colonia", "Para elegir un rey español"],
+    m: "Declarar la independencia significó decidir nuestro propio destino, sin depender de España." },
+  { q: "¿Qué hizo San Martín para liberar a Chile y a Perú?",
+    ops: ["Cruzó la cordillera de los Andes con su ejército", "Construyó barcos en Buenos Aires", "Se quedó gobernando en Tucumán"],
+    m: "San Martín cruzó los Andes con el Ejército de los Andes y liberó primero Chile y después Perú." },
+  { q: "El Ejército de los Andes cruzó…",
+    ops: ["La cordillera de los Andes", "El océano Atlántico", "El desierto del Sahara"],
+    m: "Cruzó la altísima cordillera de los Andes: una hazaña enorme por el frío y la altura." },
+  { q: "Mientras San Martín cruzaba los Andes, ¿quién defendía el norte con sus gauchos?",
+    ops: ["Martín Miguel de Güemes", "Cristóbal Colón", "Juan de Garay"],
+    m: "Güemes y sus gauchos frenaron a los españoles en el norte (Salta), protegiendo la retaguardia." },
+  { q: "Después de la independencia, hubo muchos años de…",
+    ops: ["Peleas internas entre las provincias (unitarios y federales)", "Paz total y acuerdo entre todos", "Gobierno de un rey"],
+    m: "Las provincias no se ponían de acuerdo en cómo organizar el país: unitarios contra federales." },
+  { q: "Los UNITARIOS querían que…",
+    ops: ["Buenos Aires tuviera un gobierno central fuerte sobre todo el país", "Cada provincia se gobernara sola", "Volviera el rey de España"],
+    m: "Los unitarios querían un gobierno central fuerte en Buenos Aires que mandara sobre las provincias." },
+  { q: "Los FEDERALES querían que…",
+    ops: ["Cada provincia se gobernara a sí misma", "Mandara solamente Buenos Aires", "Gobernara un virrey otra vez"],
+    m: "Los federales defendían la autonomía de cada provincia frente al poder central de Buenos Aires." },
+  { q: "¿Qué se sancionó en 1853?",
+    ops: ["La Constitución Nacional", "La primera bandera", "La Revolución de Mayo"],
+    m: "En 1853 se sancionó la Constitución Nacional, que organizó el país con sus leyes." },
+  { q: "¿Para qué sirve la Constitución?",
+    ops: ["Es la ley más importante: organiza el país y protege nuestros derechos", "Es un mapa de las provincias", "Es un impuesto que se paga"],
+    m: "La Constitución es la ley principal: dice cómo se gobierna el país y cuáles son nuestros derechos." },
+  { q: "¿Qué pasó PRIMERO?",
+    ops: ["La Revolución de Mayo (1810)", "La Declaración de la Independencia (1816)", "La Constitución Nacional (1853)"],
+    m: "El orden fue: 1810 la Revolución de Mayo, 1816 la Independencia y 1853 la Constitución." },
+];
+GAMES.independencia_arg = juegoTriviaTexto(INDEPENDENCIA_BANCO, "Elegí la respuesta correcta.", "independencia");
+
 /* ── LA MEJOR OFERTA (M12, 4° grado — docs/auditoria-dc-caba/grado-4.md, gap #5:
    proporcionalidad directa + Educación Financiera). 3 modos GENERADOS: (1) valor
    unitario (N cuestan $T → 1 cuesta T÷N), (2) doble/triple (1 cuesta $U → K cuestan
