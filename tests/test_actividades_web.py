@@ -610,3 +610,36 @@ def test_token_normal_sin_niveles_no_bloquea():
         assert dj.get("nivel_max") == 1
     finally:
         shutil.rmtree(d, ignore_errors=True)
+
+
+def test_gate_por_cuenta_flags_y_revocar():
+    """Acceso gateado (Fase 2): un token con requiere_cuenta expone el estado del
+    gate, revocar() lo corta, y ambos flags se PRESERVAN al regenerar el token.
+    Un token normal no queda gateado (público como siempre)."""
+    tok = "test-gate-aabbccdd"
+    d = os.path.join(aw.ACT_DIR, tok)
+    shutil.rmtree(d, ignore_errors=True)
+    try:
+        aw.crear({"nombre": "Sofía", "edad": "9", "requiere_cuenta": True}, TEMA, token=tok)
+        assert aw.estado_gate(tok) == (True, False)          # gateado, no revocado
+        assert aw.revocar(tok, True) is True                 # cortar acceso
+        assert aw.estado_gate(tok) == (True, True)
+        # regenerar preserva requiere_cuenta y revocado (no "des-gatea" ni "des-revoca")
+        aw.crear({"nombre": "Sofía", "edad": "9"}, TEMA, token=tok)
+        assert aw.estado_gate(tok) == (True, True)
+        assert aw.revocar(tok, False) is False               # restaurar
+        assert aw.estado_gate(tok) == (True, False)
+        assert aw.revocar("no-existe-xyz", True) is None
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+def test_token_normal_no_esta_gateado():
+    tok = "test-nogate-11223344"
+    d = os.path.join(aw.ACT_DIR, tok)
+    shutil.rmtree(d, ignore_errors=True)
+    try:
+        aw.crear({"nombre": "Sofía", "edad": "9"}, TEMA, token=tok)
+        assert aw.estado_gate(tok) == (False, False)         # público como siempre
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
