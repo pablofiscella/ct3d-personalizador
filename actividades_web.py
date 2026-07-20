@@ -265,6 +265,10 @@ def _menu(banda, edad):
         # #1: el contenido insignia de Lengua de 2°, ausente). ll/ch/qu/gu/rr, b/v,
         # mb/nv, s/c/z + separación de palabras. Elegir la palabra bien escrita.
         g.append({"id": "ortografia_2do", "titulo": "¿Cómo se escribe?", "icono": "✍️", "cfg": {"rondas": 10}})
+        # Comprensión lectora de textos cortos (docs/auditoria-dc-caba/grado-2.md, gap
+        # #3: el objetivo del grado es consolidar la lectura, sin nada más largo que
+        # una palabra). Usa comprension_lectora con COMPRENSION_2 (textos de 7 años).
+        g.append({"id": "comprension_lectora", "titulo": "Detective de textos", "icono": "🔎", "cfg": {"rondas": 6}})
         # Bimestre 4: trivia espacial + tablas contrarreloj.
         # rondas=10 (14-jul-2026): ESPACIAL_BANCO creció de 6 a 10.
         g.append({"id": "trivia_espacial", "titulo": "Día, noche o ambos", "icono": "🌗", "cfg": {"rondas": 10}})
