@@ -9126,6 +9126,11 @@ const FRACCION_CANTIDAD_BANCO = [
   { texto: "3/5 de 20", correcta: 12 },
   { texto: "1/6 de 18", correcta: 3 },
   { texto: "5/6 de 12", correcta: 10 },
+  // ampliado 20-jul-2026 (de 10 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { texto: "1/2 de 10", correcta: 5 }, { texto: "1/2 de 20", correcta: 10 }, { texto: "1/3 de 12", correcta: 4 },
+  { texto: "1/3 de 15", correcta: 5 }, { texto: "1/4 de 8", correcta: 2 }, { texto: "1/4 de 20", correcta: 5 },
+  { texto: "1/5 de 10", correcta: 2 }, { texto: "2/3 de 9", correcta: 6 }, { texto: "3/4 de 12", correcta: 9 },
+  { texto: "2/5 de 15", correcta: 6 }, { texto: "1/2 de 14", correcta: 7 }, { texto: "3/5 de 10", correcta: 6 },
 ];
 GAMES.fraccion_de_cantidad = {
   crear(ctx) {
