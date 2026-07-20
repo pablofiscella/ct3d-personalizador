@@ -9126,6 +9126,19 @@ const NERVIOSO_BANCO = [
   { afirmacion: "El cerebelo se encarga del equilibrio y la coordinación de los movimientos", val: true },
   { afirmacion: "Todos los reflejos pasan primero por el cerebro antes de actuar", val: false },
   { afirmacion: "La médula espinal no cumple ninguna función en los reflejos", val: false },
+  // ampliado 20-jul-2026 (de 10 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { afirmacion: "El cráneo es el hueso que protege al cerebro", val: true },
+  { afirmacion: "La médula espinal está protegida por la columna vertebral", val: true },
+  { afirmacion: "El corazón forma parte del sistema nervioso", val: false },
+  { afirmacion: "Los nervios llevan mensajes entre el cerebro y el resto del cuerpo", val: true },
+  { afirmacion: "Dormir bien ayuda al cerebro a recuperarse y a fijar lo aprendido", val: true },
+  { afirmacion: "El cerebro deja de funcionar mientras dormimos", val: false },
+  { afirmacion: "Usar casco al andar en bici ayuda a proteger el cerebro", val: true },
+  { afirmacion: "Los órganos de los sentidos envían información al sistema nervioso", val: true },
+  { afirmacion: "Las neuronas son las células del sistema nervioso", val: true },
+  { afirmacion: "El sistema nervioso coordina los movimientos del cuerpo", val: true },
+  { afirmacion: "El sistema nervioso no tiene ninguna relación con los sentidos", val: false },
+  { afirmacion: "Golpearse fuerte la cabeza no representa ningún riesgo", val: false },
 ];
 GAMES.sistema_nervioso = {
   crear(ctx) {
