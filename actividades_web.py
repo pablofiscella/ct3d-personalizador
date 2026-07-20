@@ -964,6 +964,32 @@ def solicitudes_pendientes():
     return out
 
 
+def estado_gate(token):
+    """Acceso gateado por cuenta (Fase 2): (requiere_cuenta, revocado) del token,
+    leídos de su data.json. (False, False) si no está gateado o no existe → el
+    visor /act/ se sirve público como siempre."""
+    try:
+        dj = json.load(open(os.path.join(ACT_DIR, token, "data.json"), encoding="utf-8"))
+    except Exception:
+        return (False, False)
+    return (bool(dj.get("requiere_cuenta")), bool(dj.get("revocado")))
+
+
+def revocar(token, on=True):
+    """Corta (o restaura) el acceso a un token gateado — lo llama el admin/tienda
+    cuando querés dar de baja un trial o quitar contenido. Devuelve el estado
+    nuevo de revocado, o None si el token no existe."""
+    p = os.path.join(ACT_DIR, token, "data.json")
+    try:
+        dj = json.load(open(p, encoding="utf-8"))
+    except Exception:
+        return None
+    dj["revocado"] = bool(on)
+    with open(p, "w", encoding="utf-8") as f:
+        json.dump(dj, f, ensure_ascii=False)
+    return dj["revocado"]
+
+
 def _armar_data(tema, nombre, edad, seed):
     """El data.json del token: paleta + menú + puzzles verificados."""
     from cuaderno import _tema_nombre, _tema_palabras, PALABRAS
@@ -1474,6 +1500,12 @@ def crear(data, tema, token=None):
     except Exception:
         pass
     dj["nivel_max"] = int(data.get("nivel_max") or _prev.get("nivel_max") or 1)
+    # acceso gateado por cuenta (Fase 2): con requiere_cuenta=True el visor /act/
+    # deja de ser público y pide un permiso firmado que emite la biblioteca
+    # logueada. Sin el flag → público como siempre (cero impacto en lo existente).
+    # revocado corta el acceso al instante. Ambos se PRESERVAN al regenerar.
+    dj["requiere_cuenta"] = bool(data.get("requiere_cuenta") or _prev.get("requiere_cuenta"))
+    dj["revocado"] = bool(data.get("revocado") or _prev.get("revocado"))
     with open(os.path.join(d, "data.json"), "w", encoding="utf-8") as f:
         json.dump(dj, f, ensure_ascii=False)
 

@@ -15,7 +15,7 @@ Config por variables de entorno:
   CT3D_DATA_DIR  dónde guardar los kits generados (default ./pedidos)
   CT3D_BASE_URL  URL pública del servicio (para armar el link de descarga)
 """
-import os, io, json, re, secrets, threading, time, collections, hashlib, urllib.parse, urllib.request, urllib.error, base64
+import os, io, json, re, secrets, threading, time, collections, hashlib, hmac, urllib.parse, urllib.request, urllib.error, base64
 import html as html_lib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -31,6 +31,40 @@ from PIL import Image
 
 API_KEY  = os.environ.get("CT3D_API_KEY", "cambiame-ya")
 PORT     = int(os.environ.get("CT3D_PORT", "8787"))
+
+
+# --- Acceso gateado por cuenta (Fase 2) ---------------------------------------
+# Un token de actividades con requiere_cuenta=True deja de ser link público: para
+# verlo hay que traer un "grant" firmado que emite la biblioteca de la familia
+# logueada (la tienda lo genera con el MISMO secreto, derivado del API key). El
+# grant es <exp>.<hmac(token.exp)>; corto de vida (el chico juega sin re-abrir por
+# ese tiempo) y revocable al instante con el flag `revocado` del token.
+ACT_GRANT_TTL = 30 * 24 * 3600   # 30 días
+
+
+def _act_grant_secret():
+    return hmac.new(API_KEY.encode(), b"act-grant", hashlib.sha256).hexdigest()
+
+
+def act_grant_make(token, ttl=ACT_GRANT_TTL, now=None):
+    exp = int((now if now is not None else time.time()) + ttl)
+    mac = hmac.new(_act_grant_secret().encode(), ("%s.%d" % (token, exp)).encode(),
+                   hashlib.sha256).hexdigest()
+    return "%d.%s" % (exp, mac)
+
+
+def act_grant_ok(token, grant, now=None):
+    """True si el grant es válido para ese token y no venció."""
+    try:
+        exp_s, mac = (grant or "").split(".", 1)
+        exp = int(exp_s)
+    except (ValueError, AttributeError):
+        return False
+    if exp < int(now if now is not None else time.time()):
+        return False
+    good = hmac.new(_act_grant_secret().encode(), ("%s.%d" % (token, exp)).encode(),
+                    hashlib.sha256).hexdigest()
+    return hmac.compare_digest(mac, good)
 DATA_DIR = os.environ.get("CT3D_DATA_DIR", os.path.join(os.path.dirname(__file__), "pedidos"))
 BASE_URL = os.environ.get("CT3D_BASE_URL", f"http://localhost:{PORT}")
 # Cache en disco de las miniaturas del catálogo: /preview NO personalizado (sin `over`)
@@ -519,6 +553,44 @@ class Handler(BaseHTTPRequestHandler):
         return ("%s=%s; Path=/; Max-Age=604800; HttpOnly; Secure; SameSite=Lax"
                 % (ADMIN_COOKIE, _new_session()))
 
+    def _read_cookie(self, name):
+        """Lee una cookie del request por nombre (o None)."""
+        for part in (self.headers.get("Cookie") or "").split(";"):
+            k, _, v = part.strip().partition("=")
+            if k == name:
+                return v
+        return None
+
+    def _act_deny(self, token, motivo):
+        """Página amable cuando falta el permiso (o el acceso fue revocado): el
+        contenido gateado se abre desde la biblioteca de la familia, no con un
+        link suelto."""
+        if motivo == "revocado":
+            titulo, sub, code = ("Este acceso ya no está disponible",
+                                 "Si creés que es un error, escribinos.", 410)
+        else:
+            titulo, sub, code = ("Abrí esto desde tu biblioteca",
+                                 "Pedile a tu adulto que lo abra desde su cuenta en Casatridimensional.", 403)
+        html = (
+            "<!doctype html><html lang=es><head><meta charset=utf-8>"
+            "<meta name=viewport content='width=device-width,initial-scale=1'>"
+            "<title>%s</title><style>body{font-family:system-ui,Arial,sans-serif;"
+            "background:#faf6ef;color:#2b2b2b;display:grid;place-items:center;min-height:100vh;margin:0;padding:24px}"
+            ".c{max-width:420px;text-align:center;background:#fff;border-radius:20px;padding:32px 26px;"
+            "box-shadow:0 14px 40px -22px rgba(0,0,0,.4)}h1{font-size:22px;margin:0 0 10px}"
+            "p{opacity:.8;line-height:1.5;margin:0 0 18px}a{display:inline-block;background:#6B5BD2;color:#fff;"
+            "text-decoration:none;font-weight:700;padding:12px 20px;border-radius:12px}</style></head>"
+            "<body><div class=c><div style='font-size:46px'>🔒</div><h1>%s</h1><p>%s</p>"
+            "<a href='https://casatridimensional.com.ar/mi-cuenta'>Ir a mi biblioteca</a></div></body></html>"
+            % (titulo, titulo, sub))
+        body = html.encode("utf-8")
+        self.send_response(code)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def _client_ip(self):
         """IP real del cliente detrás de Cloudflare (para rate limiting)."""
         return (self.headers.get("CF-Connecting-IP")
@@ -1004,9 +1076,33 @@ class Handler(BaseHTTPRequestHandler):
             token, arch = m.group(1), m.group(2)
             if arch is None:
                 self.send_response(301)
-                self.send_header("Location", "/act/%s/" % token)
+                loc = "/act/%s/" % token
+                if u.query:      # preservar ?g= al agregar la barra final
+                    loc += "?" + u.query
+                self.send_header("Location", loc)
                 self.end_headers()
                 return
+            # Fase 2 · gate por cuenta: un token gateado no es link público — pide un
+            # grant firmado (?g= de la biblioteca en el 1er ingreso → cookie del token).
+            req_cuenta, revocado = aw.estado_gate(token)
+            if req_cuenta:
+                if revocado:
+                    return self._act_deny(token, "revocado")
+                qg = urllib.parse.parse_qs(u.query).get("g", [None])[0]
+                if qg:
+                    if not act_grant_ok(token, qg):
+                        return self._act_deny(token, "invalido")
+                    self.send_response(302)   # cookie scopeada al token + URL limpia (sin ?g)
+                    self.send_header(
+                        "Set-Cookie",
+                        "act_grant=%s; Path=/act/%s/; Max-Age=%d; HttpOnly; Secure; SameSite=Lax"
+                        % (qg, token, ACT_GRANT_TTL))
+                    self.send_header("Location", "/act/%s/%s" % (token, arch))
+                    self.end_headers()
+                    return
+                cg = self._read_cookie("act_grant")
+                if not (cg and act_grant_ok(token, cg)):
+                    return self._act_deny(token, "sin-permiso")
             if arch == "certificado.png":
                 # diploma de logro: renderizado EN VIVO, recién cuando el player
                 # lo pide (ganó 3 estrellas en TODOS los juegos) — no se
@@ -1451,6 +1547,22 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(404, {"ok": False, "error": "token no encontrado"})
         return self._json(200, {"ok": True, "nivel_max": nuevo})
 
+    def _act_revocar(self, token):
+        """Acceso gateado (Fase 2) · REVOCAR/RESTAURAR (ADMIN — la tienda al dar de
+        baja un trial o quitar contenido). Corta el acceso al token al instante."""
+        if not self._admin_ok(urllib.parse.urlparse(self.path)):
+            return self._json(401, {"ok": False, "error": "solo admin"})
+        try:
+            ev = json.loads(self._body() or b"{}")
+        except Exception:
+            return self._json(400, {"ok": False})
+        on = bool(ev.get("revocado", True))
+        import actividades_web
+        r = actividades_web.revocar(token, on)
+        if r is None:
+            return self._json(404, {"ok": False, "error": "token no encontrado"})
+        return self._json(200, {"ok": True, "revocado": r})
+
     def do_POST(self):
         path = urllib.parse.urlparse(self.path).path
         if not self._origin_ok():          # A5: rechaza POST cross-site de navegador
@@ -1464,6 +1576,9 @@ class Handler(BaseHTTPRequestHandler):
         m_des = re.match(r"^/act/([A-Za-z0-9_-]+)/desbloquear$", path)
         if m_des:
             return self._act_desbloquear(m_des.group(1))
+        m_rev = re.match(r"^/act/([A-Za-z0-9_-]+)/revocar$", path)
+        if m_rev:
+            return self._act_revocar(m_rev.group(1))
         if path == "/editor/save":
             return self._editor_save()
         if path == "/dash/upload":
