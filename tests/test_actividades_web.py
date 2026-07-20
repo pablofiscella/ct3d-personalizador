@@ -924,3 +924,16 @@ def test_proporcionalidad_7mo():
     assert any(m["id"] == "proporcionalidad" for m in menu), "falta proporcionalidad en 7°"
     iconos = [m["icono"] for m in menu]
     assert len(iconos) == len(set(iconos)), "íconos repetidos en 7°"
+
+
+def test_ortografia_2do():
+    """Dígrafos y opacidades ortográficas en 2° (docs/auditoria-dc-caba/grado-2.md gap
+    #1: contenido insignia de Lengua de 2°, ausente). Debe estar en 2° (edad 7) y NO
+    en 1° ni 3°+, sin colisión de íconos."""
+    for edad in (6, 8, 9):
+        ids = {m["id"] for m in aw._menu(aw._banda(edad), edad)}
+        assert "ortografia_2do" not in ids, f"no debería estar en edad {edad}"
+    menu = aw._menu(aw._banda(7), 7)
+    assert any(m["id"] == "ortografia_2do" for m in menu), "falta ortografia_2do en 2°"
+    iconos = [m["icono"] for m in menu]
+    assert len(iconos) == len(set(iconos)), "íconos repetidos en 2°"
