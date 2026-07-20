@@ -946,3 +946,12 @@ def test_cerebro_defensas_7mo():
     menu = aw._menu(aw._banda(12), 12)
     assert any(m["id"] == "cerebro_defensas" for m in menu)
     assert len([m["icono"] for m in menu]) == len({m["icono"] for m in menu})
+
+
+def test_luz_materiales_2do():
+    """Luz y materiales en 2° (grado-2.md gap #5). Solo en 2° (edad 7)."""
+    for edad in (6, 8, 9):
+        assert not any(m["id"] == "luz_materiales" for m in aw._menu(aw._banda(edad), edad))
+    menu = aw._menu(aw._banda(7), 7)
+    assert any(m["id"] == "luz_materiales" for m in menu)
+    assert len([m["icono"] for m in menu]) == len({m["icono"] for m in menu})

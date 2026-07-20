@@ -253,6 +253,9 @@ def _menu(banda, edad):
         # Bimestre 3: conductor/aislante + familia de palabras.
         # rondas=10 (14-jul-2026): CONDUCTOR_BANCO creció de 8 a 10.
         g.append({"id": "conductor_aislante", "titulo": "¿Se calienta rápido?", "icono": "🍳", "cfg": {"rondas": 10}})
+        # Luz y materiales (docs/auditoria-dc-caba/grado-2.md, gap #5: eje de Naturales
+        # de 2° sin actividad). Fuentes de luz, sombras, transparente/opaco.
+        g.append({"id": "luz_materiales", "titulo": "Luz y sombras", "icono": "💡", "cfg": {"rondas": 10}})
         # rondas=10 (14-jul-2026): FAMILIA_BANCO creció de 5 a 10.
         g.append({"id": "familia_palabras", "titulo": "Familia de palabras", "icono": "👪", "cfg": {"rondas": 10}})
         # Dígrafos y opacidades ortográficas (docs/auditoria-dc-caba/grado-2.md, gap
