@@ -3290,6 +3290,19 @@ const LINEA_TIEMPO_BANCO = [
   { items: ["Colón llega a América (1492)", "Segunda fundación de Buenos Aires (1580)", "Se crea el Virreinato del Río de la Plata (1776)"] },
   { items: ["Primera fundación de Buenos Aires (1536)", "Se crea el Virreinato del Perú (1542)", "Segunda fundación de Buenos Aires (1580)"] },
   { items: ["Colón llega a América (1492)", "Se crea el Virreinato del Perú (1542)", "Se crea el Virreinato del Río de la Plata (1776)"] },
+  // ampliado 20-jul-2026 (de 6 a 18 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { items: ["Se crea el Virreinato del Río de la Plata (1776)", "Revolución de Mayo (1810)", "Declaración de la Independencia (1816)"] },
+  { items: ["Revolución de Mayo (1810)", "Creación de la bandera (1812)", "Declaración de la Independencia (1816)"] },
+  { items: ["Declaración de la Independencia (1816)", "Cruce de los Andes (1817)", "Se sanciona la Constitución (1853)"] },
+  { items: ["Se sanciona la Constitución (1853)", "Buenos Aires es declarada capital (1880)", "Ley 1420 de educación (1884)"] },
+  { items: ["Cruce de los Andes (1817)", "Se sanciona la Constitución (1853)", "Ley Sáenz Peña (1912)"] },
+  { items: ["Ley Sáenz Peña (1912)", "Voto femenino en Argentina (1951)", "Vuelta de la democracia (1983)"] },
+  { items: ["Colón llega a América (1492)", "Se crea el Virreinato del Río de la Plata (1776)", "Revolución de Mayo (1810)"] },
+  { items: ["Creación de la bandera (1812)", "Cruce de los Andes (1817)", "Buenos Aires es declarada capital (1880)"] },
+  { items: ["Primera fundación de Buenos Aires (1536)", "Segunda fundación de Buenos Aires (1580)", "Se crea el Virreinato del Río de la Plata (1776)"] },
+  { items: ["Voto femenino en Argentina (1951)", "Guerra de Malvinas (1982)", "Vuelta de la democracia (1983)"] },
+  { items: ["Revolución de Mayo (1810)", "Se sanciona la Constitución (1853)", "Vuelta de la democracia (1983)"] },
+  { items: ["Segunda fundación de Buenos Aires (1580)", "Revolución de Mayo (1810)", "Ley 1420 de educación (1884)"] },
 ];
 GAMES.linea_tiempo = juegoOrdenar(LINEA_TIEMPO_BANCO, "Ordená del más ANTIGUO al más nuevo. Tocá en orden.", "Ordená por año: el más viejo (el número más chico) va primero.", "linea_tiempo");
 
