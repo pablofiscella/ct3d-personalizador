@@ -6687,9 +6687,13 @@ GAMES.suma_columnas = {
       }
       // dificultad: últimas rondas van a 5 cifras (NAP: "hasta 10.000-50.000").
       const dif = (ronda + 1) / rondas;
-      const cifras = dif <= 0.5 ? 4 : 5;
-      const piso = cifras === 4 ? 1000 : 10000;
-      const tope = cifras === 4 ? 9999 : 49999;
+      // rango configurable por cfg — 3° usa 3→4 cifras (hasta 10.000, gap #1 del DC
+      // de 3°); 4° queda con el default 4→5 cifras. Sin cfg = comportamiento original.
+      const cifrasMin = ctx.cfg.cifrasMin || 4;
+      const cifrasMax = ctx.cfg.cifrasMax || 5;
+      const cifras = dif <= 0.5 ? cifrasMin : cifrasMax;
+      const piso = 10 ** (cifras - 1);
+      const tope = cifras >= 5 ? 49999 : (10 ** cifras - 1);
       const a = rint(piso, tope);
       const b = rint(piso, tope);
       const suma = a + b;
