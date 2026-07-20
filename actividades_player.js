@@ -8823,6 +8823,19 @@ const HECHOS_OPINIONES_BANCO = [
   { texto: "La música de ese grupo es la mejor", tipo: "opinion" },
   { texto: "La reunión terminó a las 5 de la tarde", tipo: "hecho" },
   { texto: "Ese cuadro es feísimo", tipo: "opinion" },
+  // ampliado 20-jul-2026 (de 10 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { texto: "El agua hierve a los 100 grados", tipo: "hecho" },
+  { texto: "Argentina limita con Chile", tipo: "hecho" },
+  { texto: "Un triángulo tiene tres lados", tipo: "hecho" },
+  { texto: "La Luna gira alrededor de la Tierra", tipo: "hecho" },
+  { texto: "En julio es invierno en Argentina", tipo: "hecho" },
+  { texto: "El corazón bombea la sangre por el cuerpo", tipo: "hecho" },
+  { texto: "El fútbol es el mejor deporte del mundo", tipo: "opinion" },
+  { texto: "Las vacaciones en la playa son aburridas", tipo: "opinion" },
+  { texto: "El helado de chocolate es más rico que el de vainilla", tipo: "opinion" },
+  { texto: "La matemática es la materia más difícil", tipo: "opinion" },
+  { texto: "Los perros son mejores mascotas que los gatos", tipo: "opinion" },
+  { texto: "Esa canción es espectacular", tipo: "opinion" },
 ];
 GAMES.hechos_opiniones = {
   crear(ctx) {
