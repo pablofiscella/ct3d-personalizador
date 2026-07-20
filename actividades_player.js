@@ -6000,10 +6000,10 @@ const SINANT_BANCO = [
   { p: "Empezar", rel: "ant", correcta: "Terminar", distractoras: ["Comenzar", "Iniciar"] },
   // ampliado 20-jul-2026 (de 10 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/)
   { p: "Bonito", rel: "sin", correcta: "Lindo", distractoras: ["Feo", "Grande"] },
-  { p: "Rápido", rel: "sin", correcta: "Veloz", distractoras: ["Lento", "Alto"] },
+  { p: "Cansado", rel: "sin", correcta: "Agotado", distractoras: ["Descansado", "Fuerte"] },
   { p: "Rico", rel: "sin", correcta: "Sabroso", distractoras: ["Feo", "Amargo"] },
-  { p: "Enojado", rel: "sin", correcta: "Furioso", distractoras: ["Tranquilo", "Cansado"] },
-  { p: "Difícil", rel: "sin", correcta: "Complicado", distractoras: ["Fácil", "Simple"] },
+  { p: "Enojado", rel: "sin", correcta: "Furioso", distractoras: ["Tranquilo", "Alegre"] },
+  { p: "Peligroso", rel: "sin", correcta: "Riesgoso", distractoras: ["Seguro", "Tranquilo"] },
   { p: "Valiente", rel: "sin", correcta: "Corajudo", distractoras: ["Miedoso", "Débil"] },
   { p: "Claro", rel: "ant", correcta: "Oscuro", distractoras: ["Brillante", "Limpio"] },
   { p: "Lleno", rel: "ant", correcta: "Vacío", distractoras: ["Completo", "Grande"] },
