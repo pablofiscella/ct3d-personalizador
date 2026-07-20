@@ -8061,6 +8061,19 @@ const COLONIAL_BANCO = [
   { afirmacion: "Existió esclavitud africana durante la época colonial en el Río de la Plata", val: true },
   { afirmacion: "El Cabildo Abierto era una reunión secreta a la que nadie podía asistir", val: false },
   { afirmacion: "Durante la colonia, los indígenas y los criollos tenían los mismos derechos que los españoles peninsulares", val: false },
+  // ampliado 20-jul-2026 (de 10 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { afirmacion: "Las carretas tiradas por bueyes eran un medio de transporte en la época colonial", val: true },
+  { afirmacion: "En la colonia ya andaban autos por las calles", val: false },
+  { afirmacion: "Los aguateros vendían agua por las calles de la ciudad", val: true },
+  { afirmacion: "Los esclavos africanos trabajaban sin cobrar y sin libertad", val: true },
+  { afirmacion: "En la época colonial las mujeres podían votar", val: false },
+  { afirmacion: "La Iglesia tenía mucho poder e influencia durante la colonia", val: true },
+  { afirmacion: "Las calles de la ciudad colonial eran de tierra, sin asfalto", val: true },
+  { afirmacion: "En la colonia las casas tenían luz eléctrica", val: false },
+  { afirmacion: "El mate ya se tomaba en la época colonial", val: true },
+  { afirmacion: "La plaza principal era el centro de la vida de la ciudad colonial", val: true },
+  { afirmacion: "El comercio con España estaba muy controlado por la Corona (monopolio)", val: true },
+  { afirmacion: "Los caminos entre las ciudades coloniales estaban todos asfaltados", val: false },
 ];
 GAMES.trivia_colonial = {
   crear(ctx) {
