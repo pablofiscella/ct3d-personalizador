@@ -845,3 +845,16 @@ def test_silaba_tonica_3ro():
     assert any(m["id"] == "silaba_tonica" for m in menu), "falta silaba_tonica en 3°"
     iconos = [m["icono"] for m in menu]
     assert len(iconos) == len(set(iconos)), "íconos repetidos en 3°"
+
+
+def test_cielo_observacion_3ro():
+    """Observación del cielo (3° grado — docs/auditoria-dc-caba/grado-3.md gap #5:
+    bloque nuevo de CdM, ausente). Trivia de contenido. Debe estar en 3° (edad 8) y
+    NO en 2° ni 4°+, sin colisión de íconos."""
+    for edad in (6, 7, 9, 10):
+        ids = {m["id"] for m in aw._menu(aw._banda(edad), edad)}
+        assert "cielo" not in ids, f"cielo no debería estar en edad {edad}"
+    menu = aw._menu(aw._banda(8), 8)
+    assert any(m["id"] == "cielo" for m in menu), "falta cielo en 3°"
+    iconos = [m["icono"] for m in menu]
+    assert len(iconos) == len(set(iconos)), "íconos repetidos en 3°"

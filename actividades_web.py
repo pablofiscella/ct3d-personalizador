@@ -315,6 +315,9 @@ def _menu(banda, edad):
         g.append({"id": "reparto_con_resto", "titulo": "Reparto con resto", "icono": "➗", "cfg": {"rondas": 10}})
         g.append({"id": "comparar_numeros", "titulo": "Tres en fila", "icono": "🥇", "cfg": {"rondas": 10}})
         g.append({"id": "estados_materia", "titulo": "Sólido, líquido o gas", "icono": "🌡️", "cfg": {"rondas": 10}})
+        # Observación del cielo (docs/auditoria-dc-caba/grado-3.md, gap #5: bloque
+        # nuevo de CdM de 3°, ausente). Día/noche, Sol, sombras, Luna, estrellas.
+        g.append({"id": "cielo", "titulo": "El cielo de día y de noche", "icono": "🔭", "cfg": {"rondas": 10}})
         g.append({"id": "comprension_lectora", "titulo": "Detective de textos", "icono": "🔎", "cfg": {"rondas": 8}})
         g.append({"id": "recta_numerica", "titulo": "Recta gigante", "icono": "📍", "cfg": {"rondas": 10, "max1": 1000, "max2": 10000}})
         # 2ª tanda 3° (19-jul-2026, nivelación): problemas de 1 paso (M13), orden

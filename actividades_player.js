@@ -3491,6 +3491,59 @@ const DIALOGO_BANCO = [
 ];
 GAMES.dialogo_raya = juegoTriviaTexto(DIALOGO_BANCO, "¿Cuál está bien escrito?", "dialogo_raya");
 
+/* ── EL CIELO DE DÍA Y DE NOCHE (3° grado — docs/auditoria-dc-caba/grado-3.md,
+   gap #5: "observación del cielo", uno de los dos bloques nuevos de CdM de 3°,
+   ausente; el slot de ciencias lo ocupaba `estaciones`, de inicial). Trivia de
+   contenido (reusa juegoTriviaTexto): día/noche y por qué, salida y puesta del Sol,
+   las sombras según la altura del Sol, la Luna (refleja al Sol, cambia de forma),
+   las estrellas (soles lejanos), el telescopio. Curado, correcto y a nivel 8 años.
+   Distractores por misconception (C4) + explicación (C3). ── */
+const CIELO_BANCO = [
+  { q: "¿Qué vemos en el cielo de DÍA?",
+    ops: ["El Sol", "La Luna llena y las estrellas", "No se ve nada"],
+    m: "De día vemos el Sol; la Luna y las estrellas se ven mucho mejor de noche." },
+  { q: "¿Por qué hay día y noche?",
+    ops: ["Porque la Tierra gira: a veces nuestra parte mira al Sol y a veces no", "Porque el Sol se apaga a la noche", "Porque la Luna tapa al Sol todas las noches"],
+    m: "La Tierra gira sobre sí misma. Cuando nuestra parte mira al Sol es de día; cuando mira al otro lado, es de noche." },
+  { q: "¿Por dónde SALE el Sol a la mañana?",
+    ops: ["Por el este", "Por el oeste", "Justo por arriba de nuestra cabeza"],
+    m: "El Sol sale por el este (donde amanece) y se esconde por el oeste al atardecer." },
+  { q: "¿Dónde está el Sol al MEDIODÍA?",
+    ops: ["Bien alto en el cielo", "Abajo, tocando el suelo", "No se ve al mediodía"],
+    m: "Al mediodía el Sol llega a su punto más alto en el cielo." },
+  { q: "¿Cuándo son más LARGAS las sombras?",
+    ops: ["A la mañana temprano y al atardecer", "Al mediodía", "De noche, con la Luna"],
+    m: "Cuando el Sol está bajito (mañana y tarde), las sombras se estiran largas. Al mediodía, con el Sol alto, son cortitas." },
+  { q: "Al MEDIODÍA de un día soleado, tu sombra…",
+    ops: ["Es corta, casi debajo tuyo", "Es larguísima", "Desaparece para siempre"],
+    m: "Con el Sol bien alto, la sombra queda corta y casi a tus pies." },
+  { q: "¿Qué vemos en el cielo de NOCHE, sin nubes?",
+    ops: ["La Luna y las estrellas", "El Sol", "Un arcoíris"],
+    m: "De noche vemos la Luna y las estrellas; el Sol está iluminando el otro lado de la Tierra." },
+  { q: "¿La Luna tiene luz propia?",
+    ops: ["No: nos refleja la luz del Sol", "Sí, es una estrella caliente", "Sí, tiene fuego adentro"],
+    m: "La Luna no brilla sola: como un espejo, nos refleja la luz del Sol." },
+  { q: "Las estrellas son…",
+    ops: ["Soles enormes que están muy muy lejos", "Lamparitas colgadas en el cielo", "Agujeritos en el cielo"],
+    m: "Cada estrella es un sol gigante, pero está tan lejos que la vemos chiquitita." },
+  { q: "Si mirás la Luna varias noches seguidas, ves que…",
+    ops: ["Cambia de forma con los días (fases)", "Es siempre exactamente igual", "Se apaga una semana entera"],
+    m: "La Luna va cambiando de forma: creciente, llena, menguante… son sus fases." },
+  { q: "¿Qué instrumento usan para ver mejor las estrellas y los planetas?",
+    ops: ["El telescopio", "El microscopio", "La brújula"],
+    m: "El telescopio acerca lo que está lejísimos, como las estrellas y los planetas. (El microscopio es para lo muy chiquito.)" },
+  { q: "Cuando en Argentina es de día, del otro lado de la Tierra…",
+    ops: ["Es de noche", "También es de día", "No hay nada"],
+    m: "Como la Tierra es redonda y gira, mientras de un lado es de día, del otro es de noche." },
+  { q: "Durante el día, el Sol parece moverse en el cielo…",
+    ops: ["Del este al oeste", "Del oeste al este", "No se mueve nada"],
+    m: "El Sol parece cruzar el cielo del este (a la mañana) al oeste (a la tarde)." },
+  { q: "¿Por qué de día casi no vemos las estrellas?",
+    ops: ["Porque la luz del Sol es tan fuerte que las tapa", "Porque de día se apagan", "Porque se van a otro país"],
+    m: "Las estrellas siguen ahí de día, pero la luz del Sol es tan brillante que no las deja ver." },
+];
+GAMES.cielo = juegoTriviaTexto(CIELO_BANCO, "Elegí la respuesta correcta.", "cielo");
+
 /* ── LA MEJOR OFERTA (M12, 4° grado — docs/auditoria-dc-caba/grado-4.md, gap #5:
    proporcionalidad directa + Educación Financiera). 3 modos GENERADOS: (1) valor
    unitario (N cuestan $T → 1 cuesta T÷N), (2) doble/triple (1 cuesta $U → K cuestan
