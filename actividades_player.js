@@ -6960,6 +6960,17 @@ const MEZCLAS_BANCO = [
   { mezcla: "Tachuelas y aserrín", herramienta: "Imán" },
   { mezcla: "Agua turbia con tierra fina", herramienta: "Filtro" },
   { mezcla: "Té y agua", herramienta: "Filtro" },
+  // ampliado 20-jul-2026 (de 10 a 20 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { mezcla: "Garbanzos cocidos y agua", herramienta: "Colador" },
+  { mezcla: "Alfileres y azúcar", herramienta: "Imán" },
+  { mezcla: "Arena fina y agua", herramienta: "Filtro" },
+  { mezcla: "Bolitas de vidrio y arena", herramienta: "Colador" },
+  { mezcla: "Tornillos y arroz", herramienta: "Imán" },
+  { mezcla: "Barro y agua", herramienta: "Filtro" },
+  { mezcla: "Monedas y harina", herramienta: "Colador" },
+  { mezcla: "Broches metálicos y algodón", herramienta: "Imán" },
+  { mezcla: "Yerba y agua", herramienta: "Colador" },
+  { mezcla: "Tierra en polvo y agua", herramienta: "Filtro" },
 ];
 GAMES.separador_mezclas = {
   crear(ctx) {
