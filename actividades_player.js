@@ -8997,6 +8997,17 @@ const CELULA_BANCO = [
   { parte: "Pared celular", correcta: "Le da rigidez y protección extra a la célula vegetal", d1: "Protege y controla lo que entra y sale", d2: "Genera la energía de la célula" },
   { parte: "Aparato de Golgi", correcta: "Empaqueta y distribuye las proteínas", d1: "Fabrica las proteínas", d2: "Guarda la información genética" },
   { parte: "Retículo endoplasmático", correcta: "Transporta sustancias dentro de la célula", d1: "Ocupa el espacio entre el núcleo y la membrana", d2: "Genera la energía de la célula" },
+  // ampliado 20-jul-2026 (de 10 a 20 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { parte: "Lisosoma", correcta: "Digiere y recicla sustancias dentro de la célula", d1: "Da rigidez a la célula", d2: "Fabrica la energía" },
+  { parte: "ADN", correcta: "Guarda la información genética", d1: "Transporta el oxígeno", d2: "Elimina los desechos" },
+  { parte: "Cromosomas", correcta: "Contienen los genes con la información hereditaria", d1: "Producen la energía", d2: "Forman la pared celular" },
+  { parte: "Nucléolo", correcta: "Fabrica los ribosomas", d1: "Digiere los alimentos", d2: "Rodea a toda la célula" },
+  { parte: "Membrana nuclear", correcta: "Rodea y protege el núcleo", d1: "Produce la energía", d2: "Fabrica las proteínas" },
+  { parte: "Citoesqueleto", correcta: "Da soporte y forma interna a la célula", d1: "Guarda la información genética", d2: "Digiere sustancias" },
+  { parte: "Vesícula", correcta: "Transporta y almacena sustancias", d1: "Produce la energía", d2: "Controla la célula" },
+  { parte: "Cilios", correcta: "Ayudan al movimiento de algunas células", d1: "Guardan agua", d2: "Fabrican proteínas" },
+  { parte: "Flagelo", correcta: "Impulsa a la célula para desplazarse", d1: "Digiere sustancias", d2: "Guarda la información genética" },
+  { parte: "Clorofila", correcta: "Es el pigmento verde que capta la luz del Sol", d1: "Digiere los alimentos", d2: "Guarda la información genética" },
 ];
 GAMES.celula_partes = {
   crear(ctx) {
