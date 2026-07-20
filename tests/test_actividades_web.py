@@ -80,13 +80,25 @@ def test_bandas_de_edad():
     assert "armar_palabra" in ids_grande6
     assert "armar_palabra" not in ids_grande12
     serie6 = next(m for m in aw._menu("grande", 6) if m["id"] == "serie")
-    serie12 = next(m for m in aw._menu("grande", 12) if m["id"] == "serie")
+    serie10 = next(m for m in aw._menu("grande", 10) if m["id"] == "serie")
     assert serie6["cfg"]["tope"] == 30
     # Fase 0A (19-jul-2026, docs/auditoria-dc-caba/): el tope de "serie" ahora
     # CRECE con el grado. Antes solo e==6 lo subía a 30 y el resto caía al
     # default 16 del player, así que un chico de 6 recibía números MÁS ALTOS
-    # que uno de 12 (dificultad invertida). Ahora es monótono creciente.
-    assert serie12["cfg"]["tope"] > serie6["cfg"]["tope"]
+    # que uno de 12 (dificultad invertida). Ahora es monótono creciente hasta
+    # 5° (edad 10), que es el último grado que conserva "serie": desde 6° se
+    # retira con el recorte del recreo (ver más abajo).
+    assert serie10["cfg"]["tope"] > serie6["cfg"]["tope"]
+    # Recorte de recreo en 6°-7° (20-jul-2026, docs/auditoria-dc-caba/: "17 de
+    # 25 juegos de 6° son iguales a 1°"): los juegos de recreo babyish
+    # (simon/patron/agrupar/quefalta/bingo/serie) se retiran de 6°-7° (e>=11).
+    # Quedan los rompecabezas universales + el contenido curricular del grado.
+    _recreo_baby = {"simon", "patron", "agrupar", "quefalta", "bingo", "serie"}
+    for e_alto in (11, 12):
+        ids_alto = {m["id"] for m in aw._menu("grande", e_alto)}
+        assert not (_recreo_baby & ids_alto), f"recreo babyish no retirado en edad {e_alto}"
+    # y siguen presentes en 5° (edad 10) — el recorte es SOLO para 6°-7°.
+    assert _recreo_baby & {m["id"] for m in aw._menu("grande", 10)}
     # Fase 0A (19-jul-2026) + rollout DC CABA 3° (19-jul-2026): los juegos clavados
     # en dificultad de inicial que NO escalan (sumas/restas cuentan sprites;
     # contar/mas_menos ≤9; colorear/puntos sin anclaje) se retiran de 3°-7° (e>=8).
