@@ -8763,6 +8763,19 @@ const DERECHOS_BANCO = [
   { afirmacion: "La Constitución Argentina garantiza la libertad de expresión", val: true },
   { afirmacion: "En Argentina, los derechos solo valen para los adultos, no para los niños", val: false },
   { afirmacion: "Los niños tienen derecho a la protección contra el maltrato", val: true },
+  // ampliado 20-jul-2026 (de 10 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { afirmacion: "Los niños tienen derecho a jugar y a descansar", val: true },
+  { afirmacion: "Los niños tienen derecho a tener un nombre y una nacionalidad", val: true },
+  { afirmacion: "Está bien que los niños trabajen en vez de ir a la escuela", val: false },
+  { afirmacion: "Los niños tienen derecho a la salud y a que los cuiden cuando están enfermos", val: true },
+  { afirmacion: "Los niños tienen derecho a expresar su opinión y a que los escuchen", val: true },
+  { afirmacion: "Los niños tienen derecho a una alimentación adecuada", val: true },
+  { afirmacion: "Es correcto dejar a un niño sin comer como castigo", val: false },
+  { afirmacion: "Todos los niños tienen los mismos derechos, sin importar de dónde vengan", val: true },
+  { afirmacion: "Los niños con discapacidad tienen derecho a ser incluidos y a una vida digna", val: true },
+  { afirmacion: "Los niños tienen derecho a vivir en un ambiente sano y limpio", val: true },
+  { afirmacion: "Solo algunos niños tienen derecho a ir a la escuela", val: false },
+  { afirmacion: "Los niños tienen derecho a que los respeten y no los discriminen", val: true },
 ];
 GAMES.derechos_constitucion = {
   crear(ctx) {
