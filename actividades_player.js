@@ -5771,6 +5771,11 @@ const MATERIALES_BANCO = [
   // que usar exactamente uno de esos 3.
   { obj: "🔑", material: "Metal" }, { obj: "🪞", material: "Vidrio" },
   { obj: "🎻", material: "Madera" }, { obj: "🍾", material: "Vidrio" },
+  // ampliado 20-jul-2026 (de 10 a 20 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { obj: "🥃", material: "Vidrio" }, { obj: "💡", material: "Vidrio" }, { obj: "🫙", material: "Vidrio" },
+  { obj: "🪵", material: "Madera" }, { obj: "✏️", material: "Madera" }, { obj: "🥢", material: "Madera" },
+  { obj: "🛶", material: "Madera" },
+  { obj: "🔧", material: "Metal" }, { obj: "🥫", material: "Metal" }, { obj: "🔨", material: "Metal" },
 ];
 GAMES.materiales = {
   crear(ctx) {
