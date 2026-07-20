@@ -8836,6 +8836,12 @@ const ECONOMIA_BANCO = [
   // agregados 14-jul-2026 (banco ampliado de 6 a 10).
   { p: "Aceitunas", region: "Cuyo" }, { p: "Algodón", region: "NEA" },
   { p: "Lana", region: "Patagonia" }, { p: "Tabaco", region: "NOA" },
+  // ampliado 20-jul-2026 (de 10 a 20 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { p: "Uva", region: "Cuyo" }, { p: "Ajo", region: "Cuyo" },
+  { p: "Maíz", region: "Pampeana" }, { p: "Soja", region: "Pampeana" },
+  { p: "Manzanas", region: "Patagonia" }, { p: "Peras", region: "Patagonia" },
+  { p: "Limones", region: "NOA" }, { p: "Poroto", region: "NOA" },
+  { p: "Té", region: "NEA" }, { p: "Arroz", region: "NEA" },
 ];
 GAMES.actividad_economica = {
   crear(ctx) {
