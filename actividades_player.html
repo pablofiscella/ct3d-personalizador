@@ -280,6 +280,15 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 .sujpred-leyenda .suj-lbl { color: var(--ac); }
 .sujpred-leyenda .pred-lbl { color: var(--ok); }
 
+/* ── Trivia de opciones largas de texto (historia, etc.) ── */
+.opsTexto { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; align-items: stretch; }
+.op-texto { font-family: "Baloo", sans-serif; font-size: 18px; padding: 13px 16px; border: none;
+  border-radius: 16px; background: var(--soft); color: var(--ink); box-shadow: var(--sombra);
+  cursor: pointer; line-height: 1.25; text-align: center; transition: transform .1s ease; }
+.op-texto:active { transform: scale(.97); }
+.op-texto.bien { background: var(--ok); color: #fff; }
+.op-texto.casi { animation: sacudir .4s ease; }
+
 /* ── animaciones ── */
 @keyframes pop     { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
 @keyframes brinco  { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-16%); } }

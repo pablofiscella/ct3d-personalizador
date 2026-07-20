@@ -743,3 +743,19 @@ def test_sujeto_predicado_analisis():
         assert len(iconos) == len(set(iconos)), f"íconos repetidos en edad {edad}"
     # 5° mantiene la fluidez (el núcleo ya en negrita) además de la división
     assert any(m["id"] == "analisis_sintactico" for m in aw._menu(aw._banda(10), 10))
+
+
+def test_historia_originarios_sociales_4():
+    """Ciencias Sociales histórico de 4° (docs/auditoria-dc-caba/grado-4.md, gap #4:
+    originarios→conquista→colonia→fundaciones = 'cero actividades'). Trivia de
+    contenido (complementa linea_tiempo que ordena la cronología). Debe estar en 4°
+    (edad 9) y NO en 3° ni 5°+, sin colisión de íconos."""
+    for edad in (7, 8, 10, 11):
+        ids = {m["id"] for m in aw._menu(aw._banda(edad), edad)}
+        assert "historia_originarios" not in ids, f"historia_originarios no debería estar en edad {edad}"
+    menu = aw._menu(aw._banda(9), 9)
+    assert any(m["id"] == "historia_originarios" for m in menu), "falta historia_originarios en 4°"
+    iconos = [m["icono"] for m in menu]
+    assert len(iconos) == len(set(iconos)), "íconos repetidos en 4°"
+    # 4° conserva la cronología (linea_tiempo) — son complementarios
+    assert any(m["id"] == "linea_tiempo" for m in menu)

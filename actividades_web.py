@@ -391,6 +391,11 @@ def _menu(banda, edad):
         # el motor no tenía. Línea de tiempo colonial (Sociales) y ordenar el
         # cuento (Lengua). Reusan la misma mecánica.
         g.append({"id": "linea_tiempo", "titulo": "Línea de tiempo", "icono": "🕰️", "cfg": {"rondas": 8}})
+        # Ciencias Sociales histórico (docs/auditoria-dc-caba/grado-4.md, gap #4:
+        # "cero actividades" de originarios→conquista→colonia→fundaciones). La
+        # línea de tiempo ORDENA la cronología; esto enseña el CONTENIDO (quiénes
+        # eran, qué pasó, por qué), trivia con distractores por misconception.
+        g.append({"id": "historia_originarios", "titulo": "Pueblos y colonia", "icono": "🪶", "cfg": {"rondas": 8}})
         g.append({"id": "historia_orden", "titulo": "Ordená el cuento", "icono": "📖", "cfg": {"rondas": 8}})
         # M1 "Recta gigante" (19-jul-2026): MECÁNICA NUEVA de recta numérica —
         # ubicar un número por zonas en la recta (0-10.000 → 0-100.000).
