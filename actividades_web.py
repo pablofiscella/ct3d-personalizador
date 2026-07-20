@@ -181,6 +181,15 @@ def _menu(banda, edad):
     if e >= 9:
         _DROP_INICIAL = {"sumas", "restas", "contar", "mas_menos", "colorear", "puntos"}
         g = [it for it in g if it["id"] not in _DROP_INICIAL]
+    # Recorte de recreo en 6°-7° (docs/auditoria-dc-caba/: "17 de 25 juegos de 6°
+    # son iguales a 1°" — el hallazgo headline). Un chico de 11-12 no debería
+    # recibir los mismos juegos de recreo babyish que uno de 1°: se sacan
+    # simon/patron/agrupar/quefalta/bingo/serie y quedan los rompecabezas
+    # universales (memotest, sopa, laberinto, sudoku) + programar_camino (ya
+    # escala con bucle/condicional) + el contenido curricular de cada grado.
+    if e >= 11:
+        _DROP_RECREO = {"simon", "patron", "agrupar", "quefalta", "bingo", "serie"}
+        g = [it for it in g if it["id"] not in _DROP_RECREO]
     # ─────────────────────────────────────────────────────────────────────
     if e == 6:
         # NAP 1° grado Bimestre 1: "números del 1 al 30", "anterior y
