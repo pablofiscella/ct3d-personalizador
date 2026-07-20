@@ -5430,6 +5430,19 @@ const ASTRO5_BANCO = [
   { q: "Un eclipse de Sol pasa cuando…", ok: "La Luna se pone entre el Sol y la Tierra", d: ["El Sol se apaga un rato", "La Tierra choca la Luna"], m: "En un eclipse solar, la Luna tapa al Sol visto desde la Tierra." },
   { q: "¿Qué planeta habitamos?", ok: "La Tierra", d: ["La Luna", "El Sol"], m: "Vivimos en el planeta Tierra, que gira alrededor del Sol." },
   { q: "¿Qué está MÁS lejos de la Tierra?", ok: "El Sol", d: ["La Luna", "Las nubes"], m: "La Luna está mucho más cerca que el Sol." },
+  // ampliado 20-jul-2026 (de 8 a 20 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { q: "¿Cuánto tarda la Tierra en dar una vuelta al Sol?", ok: "Un año", d: ["Un día", "Un mes"], m: "La Tierra tarda un año en dar una vuelta completa al Sol." },
+  { q: "¿Cuánto tarda la Tierra en girar sobre sí misma?", ok: "Un día", d: ["Un año", "Una semana"], m: "La Tierra gira sobre sí misma en un día (24 horas)." },
+  { q: "¿Qué produce el día y la noche?", ok: "La rotación de la Tierra sobre sí misma", d: ["La Luna tapando el Sol", "Las nubes"], m: "Al girar la Tierra, una parte queda iluminada (día) y la otra a oscuras (noche)." },
+  { q: "¿Qué produce las estaciones del año?", ok: "La traslación de la Tierra y la inclinación de su eje", d: ["La distancia a la Luna", "Las nubes"], m: "La Tierra gira alrededor del Sol con su eje inclinado: por eso hay estaciones." },
+  { q: "¿Qué es una estrella?", ok: "Una enorme esfera de gas que produce luz propia", d: ["Una roca fría", "Un satélite de la Tierra"], m: "Las estrellas son esferas de gas gigantes que brillan con luz propia." },
+  { q: "¿Qué es un satélite natural?", ok: "Un cuerpo que gira alrededor de un planeta, como la Luna", d: ["Una estrella fugaz", "Un cometa con cola"], m: "La Luna es el satélite natural de la Tierra." },
+  { q: "¿Cuántos planetas tiene el Sistema Solar?", ok: "8", d: ["5", "12"], m: "El Sistema Solar tiene 8 planetas, de Mercurio a Neptuno." },
+  { q: "¿Qué instrumento se usa para observar los astros?", ok: "El telescopio", d: ["El microscopio", "La brújula"], m: "El telescopio acerca lo que está lejísimos, como estrellas y planetas." },
+  { q: "¿Qué pasa en un eclipse de Luna?", ok: "La Tierra se interpone entre el Sol y la Luna", d: ["La Luna choca con el Sol", "La Luna desaparece para siempre"], m: "En el eclipse lunar la sombra de la Tierra tapa a la Luna." },
+  { q: "Las fases de la Luna se repiten aproximadamente cada…", ok: "29 días (alrededor de un mes)", d: ["24 horas", "un año"], m: "El ciclo completo de las fases dura casi un mes." },
+  { q: "¿Por qué la Luna se ve de distintas formas?", ok: "Porque vemos distintas partes iluminadas por el Sol", d: ["Porque cambia de tamaño", "Porque se rompe en pedazos"], m: "Según la posición, vemos más o menos de la cara iluminada de la Luna." },
+  { q: "¿Qué mantiene a los planetas girando alrededor del Sol?", ok: "La fuerza de gravedad", d: ["El viento", "Un imán gigante"], m: "La gravedad del Sol mantiene a los planetas en sus órbitas." },
 ];
 GAMES.detectives_cielo = {
   crear(ctx) {
