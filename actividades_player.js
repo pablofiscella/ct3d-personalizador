@@ -6945,6 +6945,13 @@ const ACENTUACION_BANCO = [
   { p: "Mesa", tipo: "grave" }, { p: "Lápiz", tipo: "grave" }, { p: "Árbol", tipo: "grave" },
   { p: "Música", tipo: "esdrújula" }, { p: "Teléfono", tipo: "esdrújula" }, { p: "Pájaro", tipo: "esdrújula" },
   { p: "Álbum", tipo: "grave" }, // agregado 14-jul-2026 (banco ampliado de 9 a 10)
+  // ampliado 20-jul-2026 (de 10 a 24 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { p: "Reloj", tipo: "aguda" }, { p: "Corazón", tipo: "aguda" }, { p: "Compás", tipo: "aguda" },
+  { p: "Sillón", tipo: "aguda" }, { p: "Feliz", tipo: "aguda" }, { p: "Canción", tipo: "aguda" },
+  { p: "Azúcar", tipo: "grave" }, { p: "Difícil", tipo: "grave" }, { p: "Cárcel", tipo: "grave" },
+  { p: "Útil", tipo: "grave" }, { p: "Goma", tipo: "grave" },
+  { p: "Brújula", tipo: "esdrújula" }, { p: "Sábana", tipo: "esdrújula" }, { p: "Matemática", tipo: "esdrújula" },
+  { p: "Relámpago", tipo: "esdrújula" }, { p: "Océano", tipo: "esdrújula" },
 ];
 GAMES.acentuacion = {
   crear(ctx) {
