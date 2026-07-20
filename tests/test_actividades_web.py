@@ -759,3 +759,16 @@ def test_historia_originarios_sociales_4():
     assert len(iconos) == len(set(iconos)), "íconos repetidos en 4°"
     # 4° conserva la cronología (linea_tiempo) — son complementarios
     assert any(m["id"] == "linea_tiempo" for m in menu)
+
+
+def test_dialogo_raya_lengua_4():
+    """El diálogo con raya (4° grado, docs/auditoria-dc-caba/grado-4.md gap #3 de
+    Lengua). Trivia de puntuación del diálogo. Debe estar en 4° (edad 9) y NO en 3°
+    ni 5°+, sin colisión de íconos."""
+    for edad in (7, 8, 10, 11):
+        ids = {m["id"] for m in aw._menu(aw._banda(edad), edad)}
+        assert "dialogo_raya" not in ids, f"dialogo_raya no debería estar en edad {edad}"
+    menu = aw._menu(aw._banda(9), 9)
+    assert any(m["id"] == "dialogo_raya" for m in menu), "falta dialogo_raya en 4°"
+    iconos = [m["icono"] for m in menu]
+    assert len(iconos) == len(set(iconos)), "íconos repetidos en 4°"
