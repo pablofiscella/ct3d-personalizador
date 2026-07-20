@@ -5632,6 +5632,17 @@ const ALFAB_BANCO = [
   { items: ["sala", "selva", "silla", "sopa"] },
   { items: ["tapa", "techo", "tiza", "toldo"] },
   { items: ["dado", "dedo", "disco", "duende"] },
+  // ampliado 20-jul-2026 (de 8 a 18 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { items: ["falda", "feria", "fino", "fuego"] },
+  { items: ["gato", "gente", "gira", "goma"] },
+  { items: ["lago", "leche", "libro", "luna"] },
+  { items: ["nada", "nene", "nido", "nube"] },
+  { items: ["ocho", "oeste", "ojo", "ola"] },
+  { items: ["edad", "elefante", "enero", "escuela"] },
+  { items: ["vaca", "vela", "vida", "volcán"] },
+  { items: ["zafiro", "zapato", "zorro", "zumo"] },
+  { items: ["hacha", "helado", "hilo", "hueso"] },
+  { items: ["jabón", "jefe", "jirafa", "jugo"] },
 ];
 GAMES.orden_alfabetico = juegoOrdenar(ALFAB_BANCO, "Ordená de la A a la Z. Tocá las palabras en orden.", "Cuando empiezan con la misma letra, mirá la SEGUNDA letra para ordenar.", "alfab");
 const ORTO3_BANCO = [
