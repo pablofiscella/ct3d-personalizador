@@ -3600,6 +3600,60 @@ const INDEPENDENCIA_BANCO = [
 ];
 GAMES.independencia_arg = juegoTriviaTexto(INDEPENDENCIA_BANCO, "Elegí la respuesta correcta.", "independencia");
 
+/* ── CRECER Y CAMBIAR — LA PUBERTAD (6° grado — docs/auditoria-dc-caba/grado-6.md,
+   gap #4: "reproducción humana / pubertad (Naturales + ESI) = 0", área troncal
+   ausente mientras se sirve contenido de 7°). Contenido escolar de Naturales/ESI de
+   6°, tratado de forma FACTUAL y respetuosa: los cambios de la pubertad (físicos y
+   emocionales, a distinto ritmo en cada persona), la higiene, la reproducción humana
+   en términos básicos (óvulo/espermatozoide/útero) y el eje ESI de cuidado del
+   propio cuerpo (tu cuerpo es tuyo; ante dudas, un adulto de confianza). Distractores
+   por misconception (C4) + explicación (C3). ── */
+const PUBERTAD_BANCO = [
+  { q: "¿Qué es la pubertad?",
+    ops: ["La etapa en que el cuerpo cambia de a poco, de niño/a a adulto/a", "Una enfermedad que hay que curar", "Algo que pasa en un solo día"],
+    m: "La pubertad es la etapa natural en que el cuerpo va cambiando, de niño/a hacia adulto/a." },
+  { q: "¿Todas las personas empiezan la pubertad a la misma edad?",
+    ops: ["No, cada cuerpo tiene su propio ritmo", "Sí, todos el mismo día", "Solo los varones tienen pubertad"],
+    m: "Cada persona empieza a una edad distinta: todos los ritmos son normales." },
+  { q: "Durante la pubertad, es normal que…",
+    ops: ["El cuerpo crezca más rápido y vaya cambiando", "No cambie nada nunca", "El cuerpo se achique"],
+    m: "En la pubertad el cuerpo pega un «estirón» y cambia: es lo esperable." },
+  { q: "Además de lo físico, en la pubertad también pueden cambiar…",
+    ops: ["Las emociones y el humor", "El color de los ojos para siempre", "La cantidad de dedos"],
+    m: "Es normal tener cambios de humor y nuevos intereses: también es parte de crecer." },
+  { q: "Como en la pubertad se transpira más, es importante…",
+    ops: ["Bañarse seguido y cuidar la higiene", "No lavarse nunca", "Taparse la nariz"],
+    m: "Con más transpiración, la higiene diaria (bañarse, desodorante) ayuda a sentirse bien." },
+  { q: "Al crecer, el cuerpo de la mujer empieza a producir…",
+    ops: ["Óvulos", "Semillas", "Plumas"],
+    m: "En la pubertad, el cuerpo de la mujer empieza a producir óvulos." },
+  { q: "Al crecer, el cuerpo del varón empieza a producir…",
+    ops: ["Espermatozoides", "Óvulos", "Hojas"],
+    m: "El cuerpo del varón empieza a producir espermatozoides." },
+  { q: "Para que se forme un bebé, se tienen que unir…",
+    ops: ["Un óvulo y un espermatozoide", "Dos óvulos", "Dos semillas"],
+    m: "Cuando se unen un óvulo y un espermatozoide, puede empezar a formarse un bebé." },
+  { q: "Antes de nacer, el bebé crece durante unos 9 meses en…",
+    ops: ["El útero de la mamá", "El estómago", "Un huevo"],
+    m: "El bebé se desarrolla en el útero de la mamá durante unos 9 meses." },
+  { q: "Si un compañero pasa por cambios distintos a los tuyos…",
+    ops: ["Es normal: cada uno tiene su ritmo, hay que respetarlo", "Hay que burlarse", "Algo anda mal con él"],
+    m: "Cada cuerpo cambia a su tiempo. Lo que corresponde es el respeto, no la burla." },
+  { q: "Tu cuerpo es tuyo, así que…",
+    ops: ["Nadie puede tocarte sin tu permiso", "Cualquiera puede hacer lo que quiera", "No importa lo que sientas"],
+    m: "Tu cuerpo es tuyo y nadie puede tocarte sin tu permiso. Si algo te incomoda, contale a un adulto de confianza." },
+  { q: "Si tenés dudas sobre los cambios de tu cuerpo, lo mejor es…",
+    ops: ["Preguntarle a un adulto de confianza (familia, docente, médico/a)", "No preguntar nunca", "Creer cualquier cosa que diga internet"],
+    m: "Ante las dudas, lo mejor es preguntar a un adulto de confianza o a un/a profesional de la salud." },
+  { q: "Los cambios de la pubertad son…",
+    ops: ["Una parte natural de crecer, le pasa a todo el mundo", "Algo de lo que avergonzarse", "Un castigo"],
+    m: "Crecer y cambiar es natural: le pasa a todas las personas." },
+  { q: "En los varones, durante la pubertad, es común que…",
+    ops: ["La voz se vuelva más grave", "Desaparezca la voz", "Les crezcan alas"],
+    m: "En la pubertad, la voz de los varones suele volverse más grave." },
+];
+GAMES.pubertad = juegoTriviaTexto(PUBERTAD_BANCO, "Elegí la respuesta correcta.", "pubertad");
+
 /* ── ¿SEGURO, POSIBLE O IMPOSIBLE? (6° grado — docs/auditoria-dc-caba/grado-6.md,
    gap #3: "probabilidad y estadística... sucesos posibles/imposibles/seguros",
    contenido que el DC hace nodal POR PRIMERA VEZ en 6°). El árbol de probabilidad
