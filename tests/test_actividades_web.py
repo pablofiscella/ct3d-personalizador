@@ -694,3 +694,21 @@ def test_transportador_medir_angulos():
         assert len(iconos) == len(set(iconos)), f"íconos repetidos en edad {edad}"
     # 4° conserva la clasificación de ángulos (no se pisó)
     assert any(m["id"] == "angulos" for m in aw._menu(aw._banda(9), 9))
+
+
+def test_reloj_leer_la_hora():
+    """Leer el reloj (medida del tiempo, docs/auditoria-dc-caba/): mecánica nodal
+    que faltaba entera. Debe estar en 2°-3° (edad 7-8) con el nivel correcto
+    (1 = en punto y media; 2 = cuartos y de a 5/10), y NO en 1° ni 4°+, sin
+    colisión de íconos en el menú."""
+    for edad in (6, 9, 10):   # 1° y 4°+: no lo tienen
+        ids = {m["id"] for m in aw._menu(aw._banda(edad), edad)}
+        assert "reloj" not in ids, f"reloj no debería estar en edad {edad}"
+    niveles = {7: 1, 8: 2}
+    for edad, niv in niveles.items():
+        menu = aw._menu(aw._banda(edad), edad)
+        rl = next((m for m in menu if m["id"] == "reloj"), None)
+        assert rl is not None, f"falta reloj en edad {edad}"
+        assert rl["cfg"]["nivel"] == niv, f"nivel de reloj en edad {edad}"
+        iconos = [m["icono"] for m in menu]
+        assert len(iconos) == len(set(iconos)), f"íconos repetidos en edad {edad}"
