@@ -3163,6 +3163,8 @@ GAMES.problemas_mult_div = {
    Explicación con la regla (Capa 0 · C3). ── */
 const PLURALES_Z_BANCO = [
   "luz", "pez", "nuez", "lápiz", "cruz", "voz", "raíz", "feliz", "capaz", "nariz", "arroz", "juez",
+  // ampliado 20-jul-2026 (de 12 a 24 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  "actriz", "cicatriz", "antifaz", "tapiz", "perdiz", "matiz", "avestruz", "maíz", "lombriz", "codorniz", "disfraz", "altavoz",
 ];
 GAMES.plurales_z = {
   crear(ctx) {
