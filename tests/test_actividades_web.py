@@ -789,3 +789,16 @@ def test_conectores_4to_nivel_simple():
     for edad in (10, 11, 12):
         c = next((m for m in aw._menu(aw._banda(edad), edad) if m["id"] == "conectores"), None)
         assert c is not None and "nivel" not in c["cfg"], f"conectores de edad {edad} no debe tener nivel"
+
+
+def test_mejor_oferta_proporcionalidad_4():
+    """La mejor oferta (M12, 4° grado — docs/auditoria-dc-caba/grado-4.md gap #5:
+    proporcionalidad + Ed. Financiera). Debe estar en 4° (edad 9) y NO en 3° ni 5°+,
+    sin colisión de íconos."""
+    for edad in (7, 8, 10, 11):
+        ids = {m["id"] for m in aw._menu(aw._banda(edad), edad)}
+        assert "mejor_oferta" not in ids, f"mejor_oferta no debería estar en edad {edad}"
+    menu = aw._menu(aw._banda(9), 9)
+    assert any(m["id"] == "mejor_oferta" for m in menu), "falta mejor_oferta en 4°"
+    iconos = [m["icono"] for m in menu]
+    assert len(iconos) == len(set(iconos)), "íconos repetidos en 4°"

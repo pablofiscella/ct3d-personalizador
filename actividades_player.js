@@ -3491,6 +3491,83 @@ const DIALOGO_BANCO = [
 ];
 GAMES.dialogo_raya = juegoTriviaTexto(DIALOGO_BANCO, "¿Cuál está bien escrito?", "dialogo_raya");
 
+/* ── LA MEJOR OFERTA (M12, 4° grado — docs/auditoria-dc-caba/grado-4.md, gap #5:
+   proporcionalidad directa + Educación Financiera). 3 modos GENERADOS: (1) valor
+   unitario (N cuestan $T → 1 cuesta T÷N), (2) doble/triple (1 cuesta $U → K cuestan
+   U×K), (3) mejor oferta (dos precios por cantidades distintas → cuál conviene por
+   unidad, incluso cuando el más barato tiene mayor total). Precios redondos.
+   Distractores por misconception (C4: sumar en vez de multiplicar, no dividir,
+   mirar el total en vez del precio unitario) + explicación del porqué (C3). ── */
+const OFERTA_COSAS = [
+  { s: "alfajor", p: "alfajores" }, { s: "figurita", p: "figuritas" }, { s: "manzana", p: "manzanas" },
+  { s: "lápiz", p: "lápices" }, { s: "chupetín", p: "chupetines" }, { s: "empanada", p: "empanadas" },
+  { s: "sticker", p: "stickers" }, { s: "globo", p: "globos" },
+];
+GAMES.mejor_oferta = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 8;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const U_SET = [50, 100, 150, 200, 250, 300];
+    const money = (n) => "$" + n;
+    const genItem = () => {
+      const cosa = OFERTA_COSAS[rint(0, OFERTA_COSAS.length - 1)];
+      const modo = ["unitario", "varios", "oferta"][rint(0, 2)];
+      if (modo === "unitario") {
+        const N = rint(2, 5), U = U_SET[rint(0, U_SET.length - 1)], T = N * U;
+        return { q: `${N} ${cosa.p} cuestan ${money(T)}. ¿Cuánto cuesta 1?`,
+                 ops: [money(U), money(T), money(N * T)],
+                 m: `Si ${N} cuestan ${money(T)}, dividís: ${T} ÷ ${N} = ${U}. Cada uno sale ${money(U)}.` };
+      }
+      if (modo === "varios") {
+        const U = U_SET[rint(0, U_SET.length - 1)], K = rint(2, 4);
+        return { q: `1 ${cosa.s} cuesta ${money(U)}. ¿Cuánto cuestan ${K}?`,
+                 ops: [money(U * K), money(U + K), money(U * (K + 1))],
+                 m: `Si 1 cuesta ${money(U)}, ${K} cuestan ${U} × ${K} = ${U * K} (se multiplica, no se suma).` };
+      }
+      const UU = [150, 180, 200, 250];
+      const uA = UU[rint(0, UU.length - 1)]; let uB = uA;
+      while (uB === uA) uB = UU[rint(0, UU.length - 1)];
+      const nA = rint(2, 5), nB = rint(2, 5);
+      const A = `${nA} por ${money(uA * nA)}`, B = `${nB} por ${money(uB * nB)}`;
+      const barato = uA < uB ? A : B, caro = uA < uB ? B : A;
+      return { q: `¿Qué oferta de ${cosa.p} conviene MÁS?`,
+               ops: [barato, caro, "Las dos cuestan lo mismo"],
+               m: `Fijate el precio de CADA uno: ${A} = ${money(uA)} c/u y ${B} = ${money(uB)} c/u. Conviene el más barato por unidad.` };
+    };
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const item = genItem();
+      ctx.item("oferta#" + ronda);
+      ctx.consigna("Leé el problema y elegí la respuesta.");
+      ctx.juego.innerHTML = "";
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:21px;font-family:'Baloo',sans-serif">${item.q}</span>`));
+      ctx.juego.appendChild(arriba);
+      const correcta = item.ops[0];
+      const fila = el("div", "opsTexto");
+      fila.setAttribute("data-ok", correcta);
+      let resuelto = false;
+      shuffle(item.ops).forEach((op) => {
+        const b = el("button", "op-texto", op);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (op === correcta) {
+            resuelto = true; b.classList.add("bien", "anim-pop"); ctx.bien();
+            ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar();
+          } else {
+            b.classList.add("casi"); ctx.casi(item.m);
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 /* ── MECÁNICA NUEVA: RECTA NUMÉRICA (M1 "Recta gigante", 4° grado) — 19-jul-2026,
    otra mecánica que el motor no tenía (docs/auditoria-dc-caba/). Ubicar un número
    en la recta: la recta se parte en 10 zonas y el chico toca la zona donde cae el
