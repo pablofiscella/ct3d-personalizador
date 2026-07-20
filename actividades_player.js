@@ -160,6 +160,21 @@ document.addEventListener("click", desbloquearAudio, { capture: true });
    uno gana su propio diploma. Formato viejo (antes de esto) guardaba
    {stars,sound} sueltos — se migra a un perfil placeholder para no perder
    el progreso ya juntado. */
+/* ── Capa 0 · SELLO DE DOMINIO SOSTENIDO + REPASO ESPACIADO (cierre de Capa 0,
+   docs/auditoria-dc-caba/): una actividad se "domina de verdad" no con 3★ de una
+   (que puede ser suerte de un día), sino SOSTENIÉNDOLO en 2 DÍAS distintos; ahí
+   queda "dominada" y vuelve en un REPASO a los pocos días — si lo pasa, queda
+   "consolidada" (y se re-agenda un repaso de mantenimiento). Aditivo: las
+   estrellas y el festejo de siempre no cambian; esto suma el sello real. ── */
+const REPASO_DIAS = 3;            // dominado → repaso a los 3 días
+const REPASO_LARGO_DIAS = 10;     // consolidado → repaso de mantenimiento a los 10
+const DIA_MS = 86400000;
+function _hoyStr(d) {
+  d = d || new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") +
+         "-" + String(d.getDate()).padStart(2, "0");
+}
+
 const Store = {
   key: "ct3d_act::" + location.pathname.replace(/\/$/, ""),
   data: { sound: true, activeProfile: null, profiles: {} },
@@ -187,6 +202,44 @@ const Store = {
   total() {
     const p = this._perfil();
     return p ? Object.values(p.stars).reduce((a, b) => a + b, 0) : 0;
+  },
+  // ── sello de dominio sostenido (Capa 0) ──
+  dom(id) {
+    const p = this._perfil();
+    return (p && p.dominio && p.dominio[id]) || null;
+  },
+  sello(id) {                       // 'practicando' | 'dominado' | 'consolidado'
+    const d = this.dom(id);
+    return d ? d.sello : "practicando";
+  },
+  repasoPendiente(id) {             // ya dominado/consolidado y le toca repaso
+    const d = this.dom(id);
+    return !!(d && (d.sello === "dominado" || d.sello === "consolidado") &&
+              d.repasarEn && Date.now() >= d.repasarEn);
+  },
+  repasosPendientes(menu) {
+    return (menu || []).filter((m) => this.repasoPendiente(m.id)).map((m) => m.id);
+  },
+  // se llama al ganar con e>=3 (nivel de dominio). Devuelve el evento nuevo:
+  // 'dominado' | 'consolidado' | null. `hoy` (YYYY-MM-DD) inyectable para tests.
+  registrarDominio(id, e, hoy) {
+    const p = this._perfil();
+    if (!p || e < 3) return null;
+    if (!p.dominio) p.dominio = {};
+    const d = p.dominio[id] || (p.dominio[id] = { dias: [], sello: "practicando", repasarEn: 0 });
+    const hoyS = hoy || _hoyStr();
+    if (d.dias.indexOf(hoyS) === -1) d.dias.push(hoyS);
+    const eraRepaso = this.repasoPendiente(id);
+    let evt = null;
+    if (d.sello === "practicando" && d.dias.length >= 2) {
+      d.sello = "dominado"; d.repasarEn = Date.now() + REPASO_DIAS * DIA_MS; evt = "dominado";
+    } else if (eraRepaso && d.sello === "dominado") {
+      d.sello = "consolidado"; d.repasarEn = Date.now() + REPASO_LARGO_DIAS * DIA_MS; evt = "consolidado";
+    } else if (eraRepaso && d.sello === "consolidado") {
+      d.repasarEn = Date.now() + REPASO_LARGO_DIAS * DIA_MS;   // mantenimiento OK, re-agenda
+    }
+    this.save();
+    return evt;
   },
 };
 
@@ -443,9 +496,12 @@ const Shell = {
         }
         const yaEstabaCompleto = todoCompleto();
         Store.setStars(self.actual, e);
+        // Capa 0 · sello de dominio sostenido: registra el día si fue nivel de
+        // dominio (3★) y avisa si recién ahora quedó 'dominado'/'consolidado'.
+        const evtDom = e >= 3 ? Store.registrarDominio(self.actual, e) : null;
         if (!yaEstabaCompleto && todoCompleto()) self._nuevoLogro = true;
         pintarHeader();
-        festejar(e);
+        festejar(e, evtDom);
         // activación escalable por niveles: si al ganar (3★) quedó DOMINADO el
         // nivel de esta actividad (≥80% con 3★) y hay un nivel siguiente, avisar
         // al adulto UNA vez (motivo='domino' → la tienda le manda el mail) y
@@ -465,11 +521,21 @@ const Shell = {
   },
 };
 
-function festejar(estrellas) {
+function festejar(estrellas, evtDom) {
   Sfx.fanfarria();
-  Confeti.tirar(140);
-  $("#festejoTitulo").textContent = Store.data.activeProfile ? `¡Muy bien, ${Store.data.activeProfile}!` : "¡Muy bien!";
-  $("#festejoFrase").textContent = FRASES_FESTEJO[rint(0, FRASES_FESTEJO.length - 1)];
+  Confeti.tirar(evtDom ? 220 : 140);   // extra confeti cuando quedó el sello
+  const nombre = Store.data.activeProfile;
+  // Capa 0 · el festejo del SELLO (dominado/consolidado) pisa el festejo común.
+  if (evtDom === "dominado") {
+    $("#festejoTitulo").textContent = nombre ? `🏅 ¡Lo dominaste, ${nombre}!` : "🏅 ¡Lo dominaste!";
+    $("#festejoFrase").textContent = "Te salió bien en dos días distintos: ya lo sabés de verdad.";
+  } else if (evtDom === "consolidado") {
+    $("#festejoTitulo").textContent = nombre ? `🌟 ¡Sos un crack, ${nombre}!` : "🌟 ¡Sos un crack!";
+    $("#festejoFrase").textContent = "Lo repasaste y te lo acordás perfecto. ¡Consolidado!";
+  } else {
+    $("#festejoTitulo").textContent = nombre ? `¡Muy bien, ${nombre}!` : "¡Muy bien!";
+    $("#festejoFrase").textContent = FRASES_FESTEJO[rint(0, FRASES_FESTEJO.length - 1)];
+  }
   const cont = $("#festejoEstrellas");
   cont.innerHTML = "";
   for (let i = 0; i < 3; i++) {
@@ -654,18 +720,31 @@ function pintarMenuPlano(items, stage) {
       <a id="pillLogro" class="${todoCompleto() ? "ver" : ""}" href="${certificadoUrl()}" target="_blank" rel="noopener">🏆 Ver mi diploma</a>`;
     stage.appendChild(bienv);
   }
+  // Capa 0 · nota de repaso del día (arriba del menú) si hay algo para repasar.
+  const repasos = items.filter((m) => GAMES[m.id] && Store.repasoPendiente(m.id));
+  if (repasos.length) {
+    stage.appendChild(el("div", "repaso-nota",
+      `🔁 Tenés ${repasos.length} ${repasos.length === 1 ? "repaso" : "repasos"} para hacer hoy — ¡a ver si te lo acordás!`));
+  }
   const menu = el("div"); menu.id = "menu";
   items.forEach((m, i) => {
     if (!GAMES[m.id]) return;
     if (P.length < (GAMES[m.id].minP || 0)) return;   // tema con pocos personajes
     const st = Store.stars(m.id);
-    const c = el("button", "carta");
+    const sello = Store.sello(m.id);           // Capa 0 · sello sostenido
+    const repaso = Store.repasoPendiente(m.id);
+    const c = el("button", "carta" + (repaso ? " repaso" : ""));
     // las cartas alternan emoji y personajes del tema para que el menú viva
     const conSprite = i % 3 === 1 && P[(i / 3 | 0) + 1];
+    let est;
+    if (repaso) est = "🔁 ¡Repasá!";
+    else if (sello === "consolidado") est = "🌟 ¡Lo sabés!";
+    else if (sello === "dominado") est = "🏅 Dominado";
+    else est = st ? "⭐".repeat(st) : "&nbsp;";
     c.innerHTML = `
       <div class="icono">${conSprite ? `<img src="${P[(i / 3 | 0) + 1]}" alt="">` : m.icono}</div>
       <div class="nombre">${m.titulo}</div>
-      <div class="mini-est">${st ? "⭐".repeat(st) : "&nbsp;"}</div>
+      <div class="mini-est">${est}</div>
       ${conSprite ? `<div class="chip">${m.icono}</div>` : ""}`;
     c.addEventListener("click", () => { Sfx.pop(); Shell.abrir(m.id); });
     menu.appendChild(c);

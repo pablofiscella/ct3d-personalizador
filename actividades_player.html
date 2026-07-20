@@ -98,6 +98,14 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 .carta .icono img { width: 70px; height: 70px; object-fit: contain; }
 .carta .nombre { font-family: "Baloo", sans-serif; font-size: 19px; line-height: 1.1; text-align: center; }
 .carta .mini-est { font-size: 15px; letter-spacing: 2px; min-height: 20px; }
+/* Capa 0 · sello sostenido: nota de repaso del día + resaltado de la carta a repasar */
+.repaso-nota {
+  background: var(--ac2); color: #fff; border-radius: 16px; padding: 11px 16px;
+  font-family: "Baloo", sans-serif; font-size: 16px; text-align: center; margin-bottom: 16px;
+  box-shadow: var(--sombra);
+}
+.carta.repaso { outline: 4px solid var(--ac2); outline-offset: 1px; }
+.carta.repaso .mini-est { color: var(--ac2); font-weight: 700; letter-spacing: 0; }
 .carta .chip {
   position: absolute; top: -8px; right: -6px; font-size: 24px;
   filter: drop-shadow(0 2px 3px rgba(0,0,0,.18));
