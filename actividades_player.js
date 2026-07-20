@@ -5428,11 +5428,11 @@ const CUADRI_BANCO = [
   { q: "El paralelogramo tiene…", ok: "Los lados opuestos paralelos", d: ["Un solo par paralelo", "Ningún lado paralelo"], m: "El paralelogramo tiene los dos pares de lados opuestos paralelos." },
   { q: "Las diagonales del cuadrado…", ok: "Son iguales y se cruzan en el medio", d: ["Son de distinto largo", "No se cruzan"], m: "En el cuadrado las dos diagonales miden lo mismo y se cortan en el centro." },
   // ampliado 20-jul-2026 (de 8 a 20 — engrosar bancos nodales, docs/auditoria-dc-caba/)
-  { q: "¿Cuántos lados tiene un cuadrilátero?", ok: "4", d: ["3", "5"], m: "«Cuadri» = cuatro: todo cuadrilátero tiene 4 lados." },
+  { q: "¿Cuántos vértices (puntas) tiene un cuadrilátero?", ok: "4", d: ["3", "6"], m: "Un cuadrilátero tiene 4 lados y también 4 vértices." },
   { q: "¿Cuánto suman los ángulos de cualquier cuadrilátero?", ok: "360°", d: ["180°", "90°"], m: "Los 4 ángulos de un cuadrilátero suman siempre 360°." },
   { q: "¿Cuál de estos NO es un cuadrilátero?", ok: "El triángulo", d: ["El cuadrado", "El trapecio"], m: "El triángulo tiene 3 lados, no 4: no es cuadrilátero." },
   { q: "Un cuadrilátero con un SOLO par de lados paralelos es un…", ok: "trapecio", d: ["cuadrado", "rombo"], m: "El trapecio tiene un solo par de lados paralelos." },
-  { q: "El paralelogramo tiene…", ok: "los lados opuestos paralelos e iguales", d: ["un solo par de lados paralelos", "3 lados"], m: "En el paralelogramo los dos pares de lados opuestos son paralelos e iguales." },
+  { q: "¿Qué figura tiene 2 pares de lados paralelos e iguales?", ok: "El paralelogramo", d: ["El trapecio", "El triángulo"], m: "El paralelogramo tiene los dos pares de lados opuestos paralelos e iguales." },
   { q: "El rombo tiene…", ok: "4 lados iguales, pero sus ángulos no siempre son rectos", d: ["3 lados", "siempre 4 ángulos rectos"], m: "El rombo tiene 4 lados iguales; sus ángulos son rectos solo si es un cuadrado." },
   { q: "Una figura con 4 lados iguales Y 4 ángulos rectos es un…", ok: "cuadrado", d: ["rombo", "rectángulo"], m: "Lados iguales + ángulos rectos = cuadrado." },
   { q: "El rectángulo y el cuadrado siempre tienen…", ok: "4 ángulos rectos", d: ["lados curvos", "3 lados"], m: "Ambos tienen sus 4 ángulos rectos (de 90°)." },
