@@ -7847,6 +7847,10 @@ GAMES.programar_camino = {
     const labs = (D.laberintos_chicos || []).slice(0, 3);
     if (!labs.length) { ctx.rondas(0); ctx.win(); return; }
     ctx.rondas(labs.length);
+    // Progresión de Programación por grado (docs/auditoria-dc-caba/): 1°-2°
+    // SECUENCIA (F/L/R); desde 3° (edad≥8) se habilita el BUCLE (repetir ×N) —
+    // el 1er hito de la progresión secuencia→bucle→condicional.
+    const conBucle = ((D.edad | 0) >= 8);
     const ORDEN = ["E", "S", "W", "N"];
     const DELTA = { E: [1, 0], S: [0, 1], W: [-1, 0], N: [0, -1] };
     const DEG = { N: 0, E: 90, S: 180, W: 270 };
@@ -7854,7 +7858,9 @@ GAMES.programar_camino = {
     let nivel = 0;
     const arrancar = () => {
       ctx.ronda(nivel);
-      ctx.consigna("Armá el programa y apretá Jugar para ver el recorrido");
+      ctx.consigna(conBucle
+        ? "Armá el programa (usá 🔁 para repetir sin escribir tanto) y apretá Jugar"
+        : "Armá el programa y apretá Jugar para ver el recorrido");
       ctx.juego.innerHTML = "";
       const lab = labs[nivel];
       const n = lab.n, C = 64, M = 10, S = n * C + M * 2;
@@ -7912,13 +7918,13 @@ GAMES.programar_camino = {
 
       const abierta = (x, y, dir) => !(lab.celdas[y][x] & BIT[dir]);
 
-      let programa = [];
+      let programa = [];   // items: { c: "F"|"L"|"R", n: veces }
       let jugando = false;
       const ICONOS = { F: "⬆️", L: "↩️", R: "↪️" };
       const cola = el("div", "programaCola");
       const pintarCola = () => {
         cola.innerHTML = programa.length
-          ? programa.map((p) => `<span class="programaChip">${ICONOS[p]}</span>`).join("")
+          ? programa.map((p) => `<span class="programaChip">${ICONOS[p.c]}${p.n > 1 ? "×" + p.n : ""}</span>`).join("")
           : `<span class="programaVacio">Tocá los botones para armar tu programa</span>`;
       };
       pintarCola();
@@ -7929,11 +7935,20 @@ GAMES.programar_camino = {
         const b = el("button", "spriteBtn", `<span style="font-size:15px;font-family:'Baloo',sans-serif">${label}</span>`);
         b.addEventListener("click", () => {
           if (jugando) return;
-          programa.push(codigo);
+          programa.push({ c: codigo, n: 1 });
           pintarCola();
         });
         filaInstr.appendChild(b);
       });
+      if (conBucle) {   // BUCLE: 🔁 repite la ÚLTIMA instrucción una vez más (F → F×2 → F×3…)
+        const bRep = el("button", "spriteBtn", `<span style="font-size:15px;font-family:'Baloo',sans-serif">🔁 Repetir</span>`);
+        bRep.addEventListener("click", () => {
+          if (jugando || !programa.length) return;
+          const ult = programa[programa.length - 1];
+          if (ult.n < 5) { ult.n++; pintarCola(); }
+        });
+        filaInstr.appendChild(bRep);
+      }
       ctx.juego.appendChild(filaInstr);
 
       const filaAcciones = el("div", "filaSprites");
@@ -7955,21 +7970,24 @@ GAMES.programar_camino = {
         ubicar();
         await espera(300);
         let choco = false;
+        prog:
         for (const instr of programa) {
-          await espera(500);
-          if (instr === "L") cur.dir = ORDEN[(ORDEN.indexOf(cur.dir) + 3) % 4];
-          else if (instr === "R") cur.dir = ORDEN[(ORDEN.indexOf(cur.dir) + 1) % 4];
-          else if (instr === "F") {
-            const [dx, dy] = DELTA[cur.dir];
-            const nx = cur.x + dx, ny = cur.y + dy;
-            if (nx < 0 || ny < 0 || nx >= n || ny >= n || !abierta(cur.x, cur.y, cur.dir)) {
-              choco = true;
-              ubicar();
-              break;
+          for (let k = 0; k < instr.n; k++) {      // el BUCLE: repite la instrucción n veces
+            await espera(500);
+            if (instr.c === "L") cur.dir = ORDEN[(ORDEN.indexOf(cur.dir) + 3) % 4];
+            else if (instr.c === "R") cur.dir = ORDEN[(ORDEN.indexOf(cur.dir) + 1) % 4];
+            else if (instr.c === "F") {
+              const [dx, dy] = DELTA[cur.dir];
+              const nx = cur.x + dx, ny = cur.y + dy;
+              if (nx < 0 || ny < 0 || nx >= n || ny >= n || !abierta(cur.x, cur.y, cur.dir)) {
+                choco = true;
+                ubicar();
+                break prog;
+              }
+              cur = { x: nx, y: ny, dir: cur.dir };
             }
-            cur = { x: nx, y: ny, dir: cur.dir };
+            ubicar();
           }
-          ubicar();
         }
         jugando = false;
         if (choco) {
