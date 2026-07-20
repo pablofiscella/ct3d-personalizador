@@ -322,6 +322,10 @@ def _menu(banda, edad):
         g.append({"id": "problemas_3ro", "titulo": "Problemas", "icono": "🤔", "cfg": {"rondas": 10}})
         g.append({"id": "orden_alfabetico", "titulo": "De la A a la Z", "icono": "🔡", "cfg": {"rondas": 8}})
         g.append({"id": "ortografia_3ro", "titulo": "¿Cómo se escribe?", "icono": "✍️", "cfg": {"rondas": 10}})
+        # Acentuación — sílaba tónica (docs/auditoria-dc-caba/grado-3.md, gap #2: el
+        # contenido estrella de Lengua 3°, sin actividad). Tocar la sílaba fuerte;
+        # la clasificación (aguda/grave/esdrújula) se nombra al acertar.
+        g.append({"id": "silaba_tonica", "titulo": "La sílaba fuerte", "icono": "🗣️", "cfg": {"rondas": 10}})
         # Medida del tiempo: leer la hora, nivel 2 = cuartos y de a 5/10 (sigue de 2°).
         g.append({"id": "reloj", "titulo": "¿Qué hora es?", "icono": "🕐", "cfg": {"rondas": 8, "nivel": 2}})
         _drop3 = {"sumas", "restas", "contar", "colorear", "puntos", "mas_menos", "patron", "separador_mezclas"}

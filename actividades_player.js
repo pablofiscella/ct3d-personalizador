@@ -6443,6 +6443,70 @@ GAMES.acentuacion = {
   },
 };
 
+/* ── LA SÍLABA TÓNICA (3° grado — docs/auditoria-dc-caba/grado-3.md, gap #2: la
+   acentuación es "el contenido estrella de Lengua 3°, con gamificables obvios
+   (tocar la sílaba tónica), sin una sola actividad"). A diferencia de acentuacion
+   (4°, que CLASIFICA la palabra dada), acá el chico IDENTIFICA dónde está la fuerza
+   tocando la sílaba tónica entre las sílabas de la palabra — la base antes de
+   clasificar. Al acertar se nombra el tipo (aguda/grave/esdrújula). Capa 0 C3: el
+   error dice dónde está la fuerza y por qué es de ese tipo. ── */
+const SILABA_TONICA_BANCO = [
+  { s: ["ca", "mión"], t: 1, tipo: "aguda" }, { s: ["ca", "fé"], t: 1, tipo: "aguda" },
+  { s: ["jar", "dín"], t: 1, tipo: "aguda" }, { s: ["re", "loj"], t: 1, tipo: "aguda" },
+  { s: ["pa", "red"], t: 1, tipo: "aguda" },
+  { s: ["me", "sa"], t: 0, tipo: "grave" }, { s: ["lá", "piz"], t: 0, tipo: "grave" },
+  { s: ["ár", "bol"], t: 0, tipo: "grave" }, { s: ["pe", "rro"], t: 0, tipo: "grave" },
+  { s: ["ven", "ta", "na"], t: 1, tipo: "grave" }, { s: ["cua", "der", "no"], t: 1, tipo: "grave" },
+  { s: ["mú", "si", "ca"], t: 0, tipo: "esdrújula" }, { s: ["te", "lé", "fo", "no"], t: 1, tipo: "esdrújula" },
+  { s: ["pá", "ja", "ro"], t: 0, tipo: "esdrújula" }, { s: ["brú", "ju", "la"], t: 0, tipo: "esdrújula" },
+  { s: ["sá", "ba", "na"], t: 0, tipo: "esdrújula" },
+];
+GAMES.silaba_tonica = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    let usados = [], ronda = 0;
+    const POS = { aguda: "la ÚLTIMA", grave: "la ANTEÚLTIMA", "esdrújula": "la ANTEPENÚLTIMA" };
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("Tocá la sílaba que suena MÁS FUERTE.");
+      ctx.juego.innerHTML = "";
+      let libres = SILABA_TONICA_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
+      if (!libres.length) { usados = []; libres = SILABA_TONICA_BANCO.map((_, i) => i); }
+      const idx = libres[rint(0, libres.length - 1)]; usados.push(idx);
+      const it = SILABA_TONICA_BANCO[idx];
+      ctx.item("tonica#" + idx);
+      const palabra = it.s.join("");
+      const arriba = el("div", "tablero");
+      const fila = el("div", "filaPalabras");
+      fila.setAttribute("data-t", it.t);
+      let resuelto = false;
+      it.s.forEach((sil, i) => {
+        const chip = el("button", "palabraChip", sil);
+        chip.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (i === it.t) {
+            resuelto = true; chip.classList.add("tonica");
+            ctx.bien(`¡Sí! «${palabra}» es ${it.tipo}.`);
+            ronda++; await espera(1050);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          } else {
+            chip.classList.add("casi-chip"); setTimeout(() => chip.classList.remove("casi-chip"), 450);
+            ctx.casi(`En «${palabra}» la fuerza está en «${it.s[it.t]}» (${POS[it.tipo]}): es ${it.tipo}.`);
+          }
+        });
+        fila.appendChild(chip);
+      });
+      arriba.appendChild(fila);
+      ctx.juego.appendChild(arriba);
+      const nota = el("div", "tonica-nota",
+        "Aguda = fuerza en la última · Grave = en la anteúltima · Esdrújula = en la antepenúltima");
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(nota);
+    };
+    jugar();
+  },
+};
+
 /* ── FOTOSÍNTESIS — EL INTRUSO (14-jul-2026, 4° grado NAP Bimestre 2
    "Ideas web": "simulador de fotosíntesis — colocar agua, sol, CO2 en una
    planta virtual"). Simplificado de simulación multi-paso a "odd one out"

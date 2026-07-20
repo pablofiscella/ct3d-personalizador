@@ -832,3 +832,16 @@ def test_resta_columnas_3ro():
     assert len(iconos) == len(set(iconos)), "íconos repetidos en 3°"
     for edad in (6, 7, 9, 10):
         assert not any(m["id"] == "resta_columnas" for m in aw._menu(aw._banda(edad), edad))
+
+
+def test_silaba_tonica_3ro():
+    """La sílaba tónica (3° grado — docs/auditoria-dc-caba/grado-3.md gap #2:
+    acentuación, el contenido estrella de Lengua 3°). Tocar la sílaba fuerte. Debe
+    estar en 3° (edad 8) y NO en 2° ni 4°+, sin colisión de íconos."""
+    for edad in (6, 7, 9, 10):
+        ids = {m["id"] for m in aw._menu(aw._banda(edad), edad)}
+        assert "silaba_tonica" not in ids, f"silaba_tonica no debería estar en edad {edad}"
+    menu = aw._menu(aw._banda(8), 8)
+    assert any(m["id"] == "silaba_tonica" for m in menu), "falta silaba_tonica en 3°"
+    iconos = [m["icono"] for m in menu]
+    assert len(iconos) == len(set(iconos)), "íconos repetidos en 3°"
