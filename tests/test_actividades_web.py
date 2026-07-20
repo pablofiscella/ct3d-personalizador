@@ -802,3 +802,20 @@ def test_mejor_oferta_proporcionalidad_4():
     assert any(m["id"] == "mejor_oferta" for m in menu), "falta mejor_oferta en 4°"
     iconos = [m["icono"] for m in menu]
     assert len(iconos) == len(set(iconos)), "íconos repetidos en 4°"
+
+
+def test_suma_columnas_3ro_rango():
+    """Suma con llevada en columna en 3° (docs/auditoria-dc-caba/grado-3.md gap #1:
+    algoritmo hasta 10.000, el corazón de Matemática 3°). Reusa suma_columnas con
+    rango propio (3→4 cifras). 4° conserva su rango (sin cifrasMin → default 4→5)."""
+    m3 = next((m for m in aw._menu(aw._banda(8), 8) if m["id"] == "suma_columnas"), None)
+    assert m3 is not None, "falta suma_columnas en 3°"
+    assert m3["cfg"].get("cifrasMin") == 3 and m3["cfg"].get("cifrasMax") == 4, "rango de 3° debe ser 3→4 cifras"
+    iconos3 = [m["icono"] for m in aw._menu(aw._banda(8), 8)]
+    assert len(iconos3) == len(set(iconos3)), "íconos repetidos en 3°"
+    # 4° conserva suma_columnas SIN cifrasMin (rango grande, sin regresión)
+    m4 = next((m for m in aw._menu(aw._banda(9), 9) if m["id"] == "suma_columnas"), None)
+    assert m4 is not None and "cifrasMin" not in m4["cfg"], "4° no debe tener cifrasMin (rango original)"
+    # 1°-2° no lo tienen
+    for edad in (6, 7):
+        assert not any(m["id"] == "suma_columnas" for m in aw._menu(aw._banda(edad), edad))

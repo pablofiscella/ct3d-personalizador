@@ -301,6 +301,10 @@ def _menu(banda, edad):
         # rondas=10 (14-jul-2026): MEZCLAS_BANCO creció de 4 a 10.
         g.append({"id": "separador_mezclas", "titulo": "Separá la mezcla", "icono": "🧪", "cfg": {"rondas": 10}})
         g.append({"id": "cajero_automatico", "titulo": "Cajero automático", "icono": "💵", "cfg": {"rondas": 5}})
+        # Suma con llevada en columna (docs/auditoria-dc-caba/grado-3.md, gap #1 —
+        # el corazón de Matemática 3°: algoritmo hasta 10.000, que no existía). Reusa
+        # el motor de suma_columnas con rango propio de 3° (3→4 cifras).
+        g.append({"id": "suma_columnas", "titulo": "Sumas con llevada", "icono": "➕", "cfg": {"rondas": 6, "cifrasMin": 3, "cifrasMax": 4}})
         # ── Rollout DC CABA · 3° grado (19-jul-2026, docs/auditoria-dc-caba/
         # grado-3.md): réplica del modelo de 4°. 3 actividades nuevas + 2 reusadas
         # de los moldes ya construidos, y limpieza de los juegos de inicial (como
