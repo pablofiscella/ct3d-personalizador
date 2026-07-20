@@ -9559,6 +9559,19 @@ const ALGEBRA_BANCO = [
   { texto: "El cuádruple de un número", correcta: "4x", d1: "x/4", d2: "x+4" },
   { texto: "El anterior de un número", correcta: "x-1", d1: "x+1", d2: "-x" },
   { texto: "El doble del siguiente de un número", correcta: "2(x+1)", d1: "2x+1", d2: "x+2" },
+  // ampliado 20-jul-2026 (de 10 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { texto: "El doble menos tres", correcta: "2x-3", d1: "2(x-3)", d2: "x/2-3" },
+  { texto: "El triple más cinco", correcta: "3x+5", d1: "3(x+5)", d2: "x/3+5" },
+  { texto: "La mitad menos uno", correcta: "x/2-1", d1: "2x-1", d2: "(x-1)/2" },
+  { texto: "El cuádruple más dos", correcta: "4x+2", d1: "4(x+2)", d2: "x/4+2" },
+  { texto: "Un número aumentado en siete", correcta: "x+7", d1: "7x", d2: "x-7" },
+  { texto: "Un número disminuido en cuatro", correcta: "x-4", d1: "4-x", d2: "4x" },
+  { texto: "El doble de la suma de un número y tres", correcta: "2(x+3)", d1: "2x+3", d2: "x+6" },
+  { texto: "El triple de la diferencia entre un número y dos", correcta: "3(x-2)", d1: "3x-2", d2: "x-6" },
+  { texto: "El cuadrado de un número", correcta: "x²", d1: "2x", d2: "x/2" },
+  { texto: "El siguiente del doble de un número", correcta: "2x+1", d1: "2(x+1)", d2: "x+2" },
+  { texto: "La quinta parte de un número", correcta: "x/5", d1: "5x", d2: "x-5" },
+  { texto: "Un número más su doble", correcta: "x+2x", d1: "2x", d2: "x·2x" },
 ];
 GAMES.traductor_algebraico = {
   crear(ctx) {
