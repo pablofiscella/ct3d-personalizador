@@ -6816,6 +6816,11 @@ const ESTACIONES_BANCO = [
   { e: "🍁", estacion: "Otoño" }, { e: "🧣", estacion: "Otoño" },
   { e: "🧤", estacion: "Invierno" },
   { e: "🌸", estacion: "Primavera" },
+  // ampliado 20-jul-2026 (de 10 a 20 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { e: "🍉", estacion: "Verano" }, { e: "🩳", estacion: "Verano" }, { e: "🏊", estacion: "Verano" },
+  { e: "🌰", estacion: "Otoño" }, { e: "🍄", estacion: "Otoño" },
+  { e: "❄️", estacion: "Invierno" }, { e: "☃️", estacion: "Invierno" },
+  { e: "🐝", estacion: "Primavera" }, { e: "🦋", estacion: "Primavera" }, { e: "🌼", estacion: "Primavera" },
 ];
 GAMES.estaciones = {
   crear(ctx) {
