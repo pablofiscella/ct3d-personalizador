@@ -3629,6 +3629,24 @@ const VALPOS_BANCO = [
 ];
 GAMES.valor_posicional = juegoTriviaTexto(VALPOS_BANCO, "Elegí la respuesta correcta.", "valpos");
 
+/* ── LOS SENTIDOS (1° — Conocimiento del Mundo, el cuerpo y los 5 sentidos).
+   Trivia con pista visual (emoji) y opciones cortas para 1° (juegoTriviaTexto). ── */
+const SENTIDOS_BANCO = [
+  { q: "👀 ¿Con qué parte del cuerpo VES?", ops: ["Los ojos", "Las orejas", "La nariz"], m: "Con los ojos vemos: es el sentido de la vista." },
+  { q: "👂 ¿Con qué OÍS los sonidos?", ops: ["Los oídos", "Los ojos", "La lengua"], m: "Con los oídos escuchamos: es el sentido del oído." },
+  { q: "👃 ¿Con qué OLÉS?", ops: ["La nariz", "La boca", "Los pies"], m: "Con la nariz olemos: es el sentido del olfato." },
+  { q: "👅 ¿Con qué sentís el GUSTO de la comida?", ops: ["La lengua", "Los ojos", "Las manos"], m: "Con la lengua sentimos los sabores: es el gusto." },
+  { q: "✋ ¿Con qué sentís si algo es suave o áspero?", ops: ["La piel", "Los oídos", "La nariz"], m: "Con la piel sentimos: es el sentido del tacto." },
+  { q: "🍋 Un limón es…", ops: ["ácido", "dulce como el azúcar", "salado como el mar"], m: "El limón es ácido: lo sentís con el gusto." },
+  { q: "🌸 Para saber si una flor huele rico usás…", ops: ["la nariz", "la lengua", "los pies"], m: "El olor lo sentís con la nariz (olfato)." },
+  { q: "🌈 Para ver los colores usás…", ops: ["los ojos", "los oídos", "las manos"], m: "Los colores los ves con los ojos (vista)." },
+  { q: "🧊 Si tocás un hielo, sentís que está…", ops: ["frío", "caliente", "dulce"], m: "El hielo está frío: lo sentís con el tacto." },
+  { q: "🍬 Un caramelo es…", ops: ["dulce", "amargo", "salado"], m: "El caramelo es dulce: lo sentís con el gusto." },
+  { q: "🔊 Un ruido muy fuerte lo escuchás con…", ops: ["los oídos", "los ojos", "la nariz"], m: "Los sonidos los oís con los oídos." },
+  { q: "🎵 La música la disfrutás con el sentido del…", ops: ["oído", "gusto", "olfato"], m: "La música se escucha con el oído." },
+];
+GAMES.sentidos = juegoTriviaTexto(SENTIDOS_BANCO, "Elegí la respuesta correcta.", "sentidos");
+
 /* ── CAMINO A LA INDEPENDENCIA (5° grado — docs/auditoria-dc-caba/grado-5.md, gap
    #3: "ausencia total del proceso 1810-1853 en Sociales — al alumno de 5° se le
    ofrece el contenido de 4° [colonial] y nada del suyo"). Trivia de contenido (reusa

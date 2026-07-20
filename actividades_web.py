@@ -228,6 +228,9 @@ def _menu(banda, edad):
         # "rompecabezas numérico de la grilla 1-100".
         # rondas=10 (14-jul-2026): MATERIALES_BANCO creció de 6 a 10.
         g.append({"id": "materiales", "titulo": "¿De qué material es?", "icono": "🪟", "cfg": {"rondas": 10}})
+        # Los sentidos (CdM 1°: el cuerpo y los 5 sentidos). Pista visual + opciones
+        # cortas para 1°.
+        g.append({"id": "sentidos", "titulo": "Los cinco sentidos", "icono": "👀", "cfg": {"rondas": 10}})
         g.append({"id": "grilla100", "titulo": "La grilla numérica", "icono": "🧮", "cfg": {"rondas": 6}})
         # ── Rollout DC CABA · 1° grado (19-jul-2026, grado-1.md): numeración
         # (recta con rango chico 0-20→0-100) + ordenar números de menor a mayor.

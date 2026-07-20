@@ -973,3 +973,12 @@ def test_valor_posicional_2do():
     menu = aw._menu(aw._banda(7), 7)
     assert any(m["id"] == "valor_posicional" for m in menu)
     assert len([m["icono"] for m in menu]) == len({m["icono"] for m in menu})
+
+
+def test_sentidos_1ro():
+    """Los cinco sentidos en 1° (CdM). Solo en 1° (edad 6)."""
+    for edad in (7, 8):
+        assert not any(m["id"] == "sentidos" for m in aw._menu(aw._banda(edad), edad))
+    menu = aw._menu(aw._banda(6), 6)
+    assert any(m["id"] == "sentidos" for m in menu)
+    assert len([m["icono"] for m in menu]) == len({m["icono"] for m in menu})
