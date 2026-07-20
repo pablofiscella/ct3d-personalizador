@@ -5571,6 +5571,19 @@ const ORTO3_BANCO = [
   { q: "¿Cómo se escribe? «i…vierno»", ok: "invierno (nv)", d: ["imvierno (mv)"], m: "Antes de V va N: invierno, envidia." },
   { q: "El plural de «feliz» es…", ok: "felices", d: ["felizes"], m: "Z → C en plural: feliz → felices." },
   { q: "Nosotros … en la plaza (caminar, en pasado).", ok: "caminábamos", d: ["caminávamos"], m: "El imperfecto -ábamos va con B." },
+  // ampliado 20-jul-2026 (de 8 a 20 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { q: "El plural de «pez» es…", ok: "peces", d: ["pezes"], m: "La Z cambia por C en plural: pez → peces." },
+  { q: "El plural de «nariz» es…", ok: "narices", d: ["narizes"], m: "La Z cambia por C en plural: nariz → narices." },
+  { q: "El diminutivo de «pez» es…", ok: "pececito", d: ["pezecito"], m: "La Z cambia por C también en el diminutivo: pececito." },
+  { q: "El diminutivo de «flor» es…", ok: "florcita", d: ["florsita"], m: "El diminutivo -cita va con C: florcita." },
+  { q: "Yo … la pelota lejos (tirar, en pasado).", ok: "tiraba", d: ["tirava"], m: "El pasado terminado en -aba va con B: tiraba." },
+  { q: "Ella … las plantas cada mañana (regar, en pasado).", ok: "regaba", d: ["regava"], m: "El pasado en -aba va con B: regaba." },
+  { q: "Se escribe: el que se golpea para hacer música…", ok: "tambor", d: ["tanbor"], m: "Antes de la B va M: tambor." },
+  { q: "Se escribe: una persona adulta varón…", ok: "hombre", d: ["honbre"], m: "Antes de la B va M: hombre." },
+  { q: "Se escribe: pelea o lucha…", ok: "combate", d: ["conbate"], m: "Antes de la B va M: combate." },
+  { q: "Se escribe: el frasco donde va un producto…", ok: "envase", d: ["embase"], m: "Antes de la V va N: envase." },
+  { q: "La vaca come pasto y…", ok: "hierba", d: ["ierba"], m: "«hierba» lleva H (muda) al principio." },
+  { q: "Para que suene la U en «pingüino» se usa…", ok: "la diéresis (ü)", d: ["la U sola"], m: "La diéresis (ü) hace sonar la U en güe/güi: pingüino, vergüenza." },
 ];
 GAMES.ortografia_3ro = juegoTriviaBanco(ORTO3_BANCO, "orto3");
 
