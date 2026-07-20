@@ -5562,7 +5562,7 @@ const SIGLOXX_BANCO = [
   { q: "¿En qué año votaron las mujeres por primera vez en Argentina?", ok: "En 1951", d: ["En 1810", "En 2001"], m: "En 1951 las mujeres votaron por primera vez, gracias a la ley de 1947." },
   { q: "¿Quién impulsó la ley del voto femenino?", ok: "Eva Perón", d: ["Manuel Belgrano", "Cristóbal Colón"], m: "Eva Perón fue clave para la ley de sufragio femenino (1947)." },
   { q: "La última dictadura militar en Argentina comenzó en…", ok: "1976", d: ["1810", "2010"], m: "El golpe de 1976 inició la última dictadura, que terminó en 1983." },
-  { q: "¿En qué año volvió la democracia tras la última dictadura?", ok: "En 1983", d: ["En 1930", "En 1955"], m: "En 1983 se recuperó la democracia con elecciones libres." },
+  { q: "¿Quién fue el primer presidente al volver la democracia en 1983?", ok: "Raúl Alfonsín", d: ["Juan Domingo Perón", "Manuel Belgrano"], m: "Raúl Alfonsín fue elegido presidente en 1983, al recuperarse la democracia." },
   { q: "La Guerra de Malvinas ocurrió en…", ok: "1982", d: ["1810", "2001"], m: "En 1982 Argentina y el Reino Unido se enfrentaron por las Islas Malvinas." },
   { q: "¿Quiénes reclamaron por sus hijos desaparecidos durante la dictadura?", ok: "Las Madres de Plaza de Mayo", d: ["Los conquistadores", "Los virreyes"], m: "Las Madres de Plaza de Mayo reclamaron por sus hijos desaparecidos." },
   { q: "El 24 de marzo se recuerda el Día de la Memoria por…", ok: "las víctimas de la última dictadura", d: ["la Revolución de Mayo", "el Descubrimiento de América"], m: "El 24 de marzo se conmemora a las víctimas del terrorismo de Estado." },
