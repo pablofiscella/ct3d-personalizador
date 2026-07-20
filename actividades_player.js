@@ -6393,6 +6393,12 @@ const PARTES_ORACION_BANCO = [
   { p: "Corre", tipo: "verbo" }, { p: "Salta", tipo: "verbo" }, { p: "Come", tipo: "verbo" },
   { p: "Grande", tipo: "adjetivo" }, { p: "Rápido", tipo: "adjetivo" }, { p: "Lindo", tipo: "adjetivo" },
   { p: "Feliz", tipo: "adjetivo" }, // agregado 14-jul-2026 (banco ampliado de 9 a 10)
+  // ampliado 20-jul-2026 (de 10 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { p: "Árbol", tipo: "sustantivo" }, { p: "Maestra", tipo: "sustantivo" }, { p: "Pelota", tipo: "sustantivo" },
+  { p: "Río", tipo: "sustantivo" },
+  { p: "Lee", tipo: "verbo" }, { p: "Escribe", tipo: "verbo" }, { p: "Canta", tipo: "verbo" },
+  { p: "Duerme", tipo: "verbo" }, { p: "Juega", tipo: "verbo" },
+  { p: "Alto", tipo: "adjetivo" }, { p: "Azul", tipo: "adjetivo" }, { p: "Suave", tipo: "adjetivo" },
 ];
 GAMES.partes_oracion = {
   crear(ctx) {
