@@ -339,6 +339,11 @@ def _menu(banda, edad):
         # y explicación del porqué (C3) — mismo molde que tablas_ninja.
         g.append({"id": "multiplicar", "titulo": "Fábrica de multiplicar", "icono": "✖️", "cfg": {"rondas": 10, "nivel": 1}})
         g.append({"id": "dividir", "titulo": "La división", "icono": "➗", "cfg": {"rondas": 10, "nivel": 1}})
+        # M6 fase "paso a paso" (docs/auditoria-dc-caba/grado-4.md): la división como
+        # PROCEDIMIENTO por aproximaciones (restar múltiplos amigables del divisor,
+        # resta acumulada visible, cociente cifra por cifra) — no solo la trivia
+        # "cuántas veces entra". Es LA pared de 4°. nivel 1 = ÷1 cifra, exacta.
+        g.append({"id": "cuenta_larga", "titulo": "La cuenta paso a paso", "icono": "🪜", "cfg": {"rondas": 8, "nivel": 1}})
         # Bimestre 1: abstracto/concreto + provincia → región.
         # rondas=10 (14-jul-2026): ABSTRACTOS_BANCO creció de 8 a 10.
         g.append({"id": "abstractos_concretos", "titulo": "Abstracto o concreto", "icono": "💭", "cfg": {"rondas": 10}})
@@ -435,6 +440,10 @@ def _menu(banda, edad):
         g.append({"id": "conectores", "titulo": "El conector justo", "icono": "🔗", "cfg": {"rondas": 10}})
         g.append({"id": "tablas_ninja", "titulo": "Tablas ninja", "icono": "🥷", "cfg": {"rondas": 10, "nivel": 2}})
         g.append({"id": "dividir", "titulo": "La división", "icono": "➗", "cfg": {"rondas": 10, "nivel": 2}})
+        # M7 "División por aproximaciones" (docs/auditoria-dc-caba/grado-5.md): modo
+        # guiado paso a paso, ahora CON resto + comprobación c×d+r=D (análisis del
+        # resto, nodal de 5°). nivel 2.
+        g.append({"id": "cuenta_larga", "titulo": "La cuenta paso a paso", "icono": "🪜", "cfg": {"rondas": 8, "nivel": 2}})
         g.append({"id": "comprension_lectora", "titulo": "Detective de textos", "icono": "🔎", "cfg": {"rondas": 8}})
         g.append({"id": "duelo_decimales", "titulo": "Duelo de decimales", "icono": "💲", "cfg": {"rondas": 10}})
         g.append({"id": "duelo_fracciones", "titulo": "Duelo de fracciones", "icono": "🍫", "cfg": {"rondas": 10}})
@@ -482,6 +491,7 @@ def _menu(banda, edad):
         # mult/división y racionales reusando los moldes con dificultad de 6°.
         g.append({"id": "tablas_ninja", "titulo": "Tablas ninja", "icono": "🥷", "cfg": {"rondas": 10, "nivel": 3}})
         g.append({"id": "dividir", "titulo": "La división", "icono": "🧮", "cfg": {"rondas": 10, "nivel": 2}})
+        g.append({"id": "cuenta_larga", "titulo": "La cuenta paso a paso", "icono": "🪜", "cfg": {"rondas": 8, "nivel": 2}})
         g.append({"id": "comprension_lectora", "titulo": "Detective de textos", "icono": "🔎", "cfg": {"rondas": 8}})
         g.append({"id": "duelo_fracciones", "titulo": "Duelo de fracciones", "icono": "🍫", "cfg": {"rondas": 10}})
         g.append({"id": "duelo_decimales", "titulo": "Duelo de decimales", "icono": "💲", "cfg": {"rondas": 10}})
@@ -530,6 +540,7 @@ def _menu(banda, edad):
         # mult/división y racionales reusando los moldes con la máxima dificultad.
         g.append({"id": "tablas_ninja", "titulo": "Tablas ninja", "icono": "🥷", "cfg": {"rondas": 10, "nivel": 3}})
         g.append({"id": "dividir", "titulo": "La división", "icono": "➗", "cfg": {"rondas": 10, "nivel": 2}})
+        g.append({"id": "cuenta_larga", "titulo": "La cuenta paso a paso", "icono": "🪜", "cfg": {"rondas": 8, "nivel": 2}})
         g.append({"id": "comprension_lectora", "titulo": "Detective de textos", "icono": "🔎", "cfg": {"rondas": 8}})
         g.append({"id": "duelo_fracciones", "titulo": "Duelo de fracciones", "icono": "🍫", "cfg": {"rondas": 10}})
         g.append({"id": "duelo_decimales", "titulo": "Duelo de decimales", "icono": "💲", "cfg": {"rondas": 10}})
