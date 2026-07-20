@@ -5221,6 +5221,19 @@ const INGLES_BANCO = [
   { q: "¿Cómo se dice «familia» en inglés?", ok: "family", d: ["friend", "people"], m: "«family» es familia; «friend» es amigo." },
   { q: "¿Qué significa «happy»?", ok: "feliz", d: ["triste", "cansado"], m: "«happy» es feliz; «sad» es triste." },
   { q: "¿Cómo se dice «escuela» en inglés?", ok: "school", d: ["street", "store"], m: "«school» es escuela; «street» es calle." },
+  // ampliado 20-jul-2026 (de 12 a 24 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { q: "¿Cómo se dice «gato» en inglés?", ok: "cat", d: ["dog", "fish"], m: "«cat» es gato; «dog» es perro." },
+  { q: "¿Cómo se dice «silla» en inglés?", ok: "chair", d: ["table", "bed"], m: "«chair» es silla; «table» es mesa." },
+  { q: "¿Cómo se dice «rojo» en inglés?", ok: "red", d: ["blue", "green"], m: "«red» es rojo; «blue» es azul." },
+  { q: "¿Cómo se dice «azul» en inglés?", ok: "blue", d: ["red", "yellow"], m: "«blue» es azul; «yellow» es amarillo." },
+  { q: "¿Cómo se dice «leche» en inglés?", ok: "milk", d: ["water", "juice"], m: "«milk» es leche; «water» es agua." },
+  { q: "¿Cómo se dice «sol» en inglés?", ok: "sun", d: ["moon", "star"], m: "«sun» es sol; «moon» es luna." },
+  { q: "¿Cómo se dice «libro» en inglés?", ok: "book", d: ["pen", "door"], m: "«book» es libro; «pen» es lapicera." },
+  { q: "¿Cómo se dice «manzana» en inglés?", ok: "apple", d: ["banana", "orange"], m: "«apple» es manzana; «banana» es banana." },
+  { q: "¿Cómo se dice «uno» en inglés?", ok: "one", d: ["two", "ten"], m: "«one» es uno; «two» es dos." },
+  { q: "¿Cómo se dice «adiós» en inglés?", ok: "goodbye", d: ["hello", "please"], m: "«goodbye» es adiós; «hello» es hola." },
+  { q: "¿Cómo se dice «amigo» en inglés?", ok: "friend", d: ["teacher", "family"], m: "«friend» es amigo; «teacher» es maestro." },
+  { q: "¿Cómo se dice «árbol» en inglés?", ok: "tree", d: ["flower", "grass"], m: "«tree» es árbol; «flower» es flor." },
 ];
 GAMES.ingles_basico = {
   crear(ctx) {
