@@ -518,6 +518,9 @@ def _menu(banda, edad):
         # fracciones, e historia de la organización nacional 1862-1930.
         g.append({"id": "cuadrilateros", "titulo": "Cuadriláteros", "icono": "⬜", "cfg": {"rondas": 10}})
         g.append({"id": "multiplicar_fracciones", "titulo": "Producto de fracciones", "icono": "✖️", "cfg": {"rondas": 10}})
+        # Azar y combinatoria (docs/auditoria-dc-caba/): diagrama de árbol +
+        # principio multiplicativo (¿sumar o multiplicar?). Faltaba entero.
+        g.append({"id": "arbol_probabilidad", "titulo": "Árbol de combinaciones", "icono": "🌳", "cfg": {"rondas": 8}})
         g.append({"id": "organizacion_nacional", "titulo": "La organización nacional", "icono": "🚂", "cfg": {"rondas": 10}})
     if e == 12:
         # 7° grado (14-jul-2026, año de egreso, fin del NAP) — mismo
@@ -564,6 +567,9 @@ def _menu(banda, edad):
         # que pidió el panel). Clústeres nodales que el 1er pase dejó vacíos.
         g.append({"id": "potencias", "titulo": "Potencias", "icono": "🔺", "cfg": {"rondas": 10}})
         g.append({"id": "problemas_multipaso", "titulo": "Problemas de varios pasos", "icono": "📈", "cfg": {"rondas": 8}})
+        # Azar y probabilidad (docs/auditoria-dc-caba/grado-7): diagrama de árbol,
+        # principio multiplicativo y probabilidad simple (1 en a×b). Sigue de 6°.
+        g.append({"id": "arbol_probabilidad", "titulo": "Árbol de combinaciones", "icono": "🌳", "cfg": {"rondas": 8}})
         g.append({"id": "ingles_basico", "titulo": "English time", "icono": "🇬🇧", "cfg": {"rondas": 10}})
         # 3ª tanda 7° (19-jul-2026, nivelación): ecuaciones simples (álgebra
         # inicial), homófonos (ortografía) e historia del s.XX.
