@@ -858,3 +858,16 @@ def test_cielo_observacion_3ro():
     assert any(m["id"] == "cielo" for m in menu), "falta cielo en 3°"
     iconos = [m["icono"] for m in menu]
     assert len(iconos) == len(set(iconos)), "íconos repetidos en 3°"
+
+
+def test_independencia_5to_sociales():
+    """Proceso 1810-1853 en 5° (docs/auditoria-dc-caba/grado-5.md gap #3: Sociales de
+    5° ausente, solo había lo colonial de 4°). Trivia de contenido. Debe estar en 5°
+    (edad 10) y NO en 4° ni 6°+, sin colisión de íconos."""
+    for edad in (8, 9, 11, 12):
+        ids = {m["id"] for m in aw._menu(aw._banda(edad), edad)}
+        assert "independencia_arg" not in ids, f"independencia_arg no debería estar en edad {edad}"
+    menu = aw._menu(aw._banda(10), 10)
+    assert any(m["id"] == "independencia_arg" for m in menu), "falta independencia_arg en 5°"
+    iconos = [m["icono"] for m in menu]
+    assert len(iconos) == len(set(iconos)), "íconos repetidos en 5°"
