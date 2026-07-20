@@ -5861,6 +5861,11 @@ const SUSTANTIVOS_BANCO = [
   { p: "silla", tipo: "comun" }, { p: "río", tipo: "comun" },
   { p: "Rex", tipo: "propio" }, { p: "Salta", tipo: "propio" }, { p: "María", tipo: "propio" },
   { p: "Argentina", tipo: "propio" }, { p: "Luna", tipo: "propio" },
+  // ampliado 20-jul-2026 (de 10 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { p: "mesa", tipo: "comun" }, { p: "gato", tipo: "comun" }, { p: "escuela", tipo: "comun" },
+  { p: "libro", tipo: "comun" }, { p: "montaña", tipo: "comun" }, { p: "flor", tipo: "comun" },
+  { p: "Sofía", tipo: "propio" }, { p: "Brasil", tipo: "propio" }, { p: "Firulais", tipo: "propio" },
+  { p: "Everest", tipo: "propio" }, { p: "Paraná", tipo: "propio" }, { p: "Andes", tipo: "propio" },
 ];
 GAMES.sustantivos = {
   crear(ctx) {
