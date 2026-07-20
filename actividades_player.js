@@ -7407,6 +7407,11 @@ const ELECTRICO_BANCO = [
   { e: "📖", cat: "noconduce" }, { e: "🧦", cat: "noconduce" }, { e: "🪵", cat: "noconduce" }, { e: "🎈", cat: "noconduce" },
   // agregados 14-jul-2026 (banco ampliado de 8 a 10).
   { e: "🥫", cat: "conduce" }, { e: "🎋", cat: "noconduce" },
+  // ampliado 20-jul-2026 (de 10 a 20 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { e: "⛓️", cat: "conduce" }, { e: "🔧", cat: "conduce" }, { e: "🔨", cat: "conduce" },
+  { e: "🍴", cat: "conduce" }, { e: "🪝", cat: "conduce" },
+  { e: "🧶", cat: "noconduce" }, { e: "🧸", cat: "noconduce" }, { e: "🪟", cat: "noconduce" },
+  { e: "🧣", cat: "noconduce" }, { e: "🩴", cat: "noconduce" },
 ];
 GAMES.laboratorio_electrico = {
   crear(ctx) {
