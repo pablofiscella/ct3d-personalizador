@@ -3564,6 +3564,27 @@ const SISNERV_BANCO = [
 ];
 GAMES.cerebro_defensas = juegoTriviaTexto(SISNERV_BANCO, "Elegí la respuesta correcta.", "cerebro");
 
+/* ── LUZ Y MATERIALES (2° — docs/auditoria-dc-caba/grado-2.md gap #5: el único eje
+   de Naturales del grado, sin actividad). Fuentes de luz, sombras, transparente/
+   opaco. Trivia (juegoTriviaTexto). ── */
+const LUZMAT_BANCO = [
+  { q: "¿Qué necesitamos para poder VER las cosas?", ops: ["Luz", "Silencio", "Frío"], m: "Sin luz no podemos ver: la luz nos deja ver las cosas." },
+  { q: "De día, la principal fuente de luz es…", ops: ["el Sol", "la Luna", "una vela"], m: "De día, la luz viene del Sol." },
+  { q: "¿Cuál da su PROPIA luz?", ops: ["Una lámpara encendida", "Un espejo", "Una piedra"], m: "La lámpara encendida es una fuente de luz; el espejo solo refleja." },
+  { q: "¿Cuál NO tiene luz propia?", ops: ["La Luna (refleja la del Sol)", "El Sol", "Una linterna encendida"], m: "La Luna no brilla sola: refleja la luz del Sol." },
+  { q: "Cuando la luz no puede pasar por un objeto, se forma…", ops: ["una sombra", "un arcoíris", "un ruido"], m: "Si un objeto tapa la luz, detrás se forma su sombra." },
+  { q: "Un material por el que la luz PASA y se ve bien es…", ops: ["el vidrio", "la madera", "el cartón"], m: "El vidrio es transparente: deja pasar la luz." },
+  { q: "Un material por el que la luz NO pasa es…", ops: ["la madera", "el vidrio limpio", "el agua clara"], m: "La madera es opaca: no deja pasar la luz." },
+  { q: "El vidrio transparente deja pasar la luz, entonces es…", ops: ["transparente", "opaco", "blando"], m: "Transparente = deja pasar la luz y se ve del otro lado." },
+  { q: "Si ponés tu mano entre una linterna y la pared, ves…", ops: ["la sombra de tu mano", "un color nuevo", "nada"], m: "Tu mano tapa la luz y se dibuja su sombra en la pared." },
+  { q: "¿De qué material suele ser una ventana para dejar entrar la luz?", ops: ["Vidrio", "Madera", "Metal"], m: "La ventana es de vidrio para que entre la luz." },
+  { q: "La madera es un material…", ops: ["opaco (no deja pasar la luz)", "transparente", "líquido"], m: "La madera es opaca: la luz no la atraviesa." },
+  { q: "Para hacer sombras chinas necesitás…", ops: ["una luz y un objeto que la tape", "mucho silencio", "agua"], m: "Con una luz y un objeto delante se arma la sombra." },
+  { q: "¿Cuál de estos es una fuente de luz?", ops: ["El fuego", "Una roca", "Una silla"], m: "El fuego da luz propia: es una fuente de luz." },
+  { q: "Un vaso de vidrio y una taza de cerámica: ¿por cuál pasa la luz?", ops: ["Por el vaso de vidrio", "Por la taza de cerámica", "Por ninguno"], m: "El vidrio es transparente; la cerámica es opaca." },
+];
+GAMES.luz_materiales = juegoTriviaTexto(LUZMAT_BANCO, "Elegí la respuesta correcta.", "luzmat");
+
 /* ── CAMINO A LA INDEPENDENCIA (5° grado — docs/auditoria-dc-caba/grado-5.md, gap
    #3: "ausencia total del proceso 1810-1853 en Sociales — al alumno de 5° se le
    ofrece el contenido de 4° [colonial] y nada del suyo"). Trivia de contenido (reusa
