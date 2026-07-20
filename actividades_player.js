@@ -3600,6 +3600,87 @@ const INDEPENDENCIA_BANCO = [
 ];
 GAMES.independencia_arg = juegoTriviaTexto(INDEPENDENCIA_BANCO, "Elegí la respuesta correcta.", "independencia");
 
+/* ── PROPORCIONALIDAD DIRECTA E INVERSA (7° grado — docs/auditoria-dc-caba/grado-7.md,
+   gap #5: "proporcionalidad directa e inversa = 0; la INVERSA es contenido nuevo y
+   nodal de 7°"). Juego GENERADO, 3 modos: (1) directa (más cosas → más plata, calcular),
+   (2) inversa (más obreros → menos días, calcular — el nodal nuevo), (3) clasificar
+   una situación como directa o inversa. Números enteros. El distractor clave de la
+   inversa es la respuesta que daría alguien que la trata como DIRECTA (multiplica en
+   vez de dividir). Explicación con la cuenta (C3). ── */
+const PROPORC_CLASIF = [
+  { s: "Cuantos más kilos de pan comprás, más plata pagás.", c: "Directa" },
+  { s: "Cuantos más obreros trabajan, menos días tarda la obra.", c: "Inversa" },
+  { s: "Cuanto más rápido va el auto, menos tiempo dura el viaje.", c: "Inversa" },
+  { s: "Cuantas más horas trabajás, más sueldo cobrás.", c: "Directa" },
+  { s: "Cuantas más canillas abrís, menos tarda en llenarse el tanque.", c: "Inversa" },
+  { s: "Cuantas más entradas comprás, más plata gastás.", c: "Directa" },
+  { s: "Cuantas más personas se reparten la pizza, menos porciones toca a cada una.", c: "Inversa" },
+  { s: "Cuantos más litros de nafta cargás, más pagás.", c: "Directa" },
+];
+GAMES.proporcionalidad = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 8;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const gen = () => {
+      const modo = ["directa", "inversa", "clasificar"][rint(0, 2)];
+      if (modo === "clasificar") {
+        const it = PROPORC_CLASIF[rint(0, PROPORC_CLASIF.length - 1)];
+        return { q: it.s + " ¿Es proporcionalidad directa o inversa?",
+                 ok: it.c, wrongs: [it.c === "Directa" ? "Inversa" : "Directa"],
+                 m: it.c === "Directa"
+                    ? "Es DIRECTA: si una cantidad aumenta, la otra también aumenta."
+                    : "Es INVERSA: si una cantidad aumenta, la otra DISMINUYE." };
+      }
+      if (modo === "directa") {
+        const u = [20, 25, 50, 100][rint(0, 3)], n1 = rint(2, 5), f = rint(2, 3), n2 = n1 * f, c1 = n1 * u, ans = n2 * u;
+        const cosa = ["lápices", "manzanas", "cuadernos", "alfajores", "figuritas"][rint(0, 4)];
+        return { q: n1 + " " + cosa + " cuestan $" + c1 + ". ¿Cuánto cuestan " + n2 + " " + cosa + "?",
+                 ok: "$" + ans, wrongs: ["$" + c1, "$" + (c1 + u)],
+                 m: "Es directa: cada uno sale $" + u + ", así que " + n2 + " cuestan " + n2 + " × " + u + " = $" + ans + "." };
+      }
+      const mult = rint(2, 3), A = rint(2, 6), B = A * mult, T = mult * rint(2, 6), ans = T / mult;
+      const ctxs = [
+        { who: "obreros", verb: "terminan una obra", unit: "días" },
+        { who: "canillas", verb: "llenan el tanque", unit: "horas" },
+        { who: "máquinas", verb: "arman el pedido", unit: "horas" },
+      ][rint(0, 2)];
+      return { q: A + " " + ctxs.who + " " + ctxs.verb + " en " + T + " " + ctxs.unit + ". ¿En cuánto lo hacen " + B + " " + ctxs.who + "?",
+               ok: ans + " " + ctxs.unit, wrongs: [(T * mult) + " " + ctxs.unit, T + " " + ctxs.unit],
+               m: "Es inversa: al haber MÁS " + ctxs.who + ", tardan MENOS. " + A + " × " + T + " = " + (A * T) + " de trabajo; " + (A * T) + " ÷ " + B + " = " + ans + " " + ctxs.unit + "." };
+    };
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const it = gen();
+      ctx.item("proporc#" + ronda);
+      ctx.consigna("Elegí la respuesta correcta.");
+      ctx.juego.innerHTML = "";
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:20px;font-family:'Baloo',sans-serif">${it.q}</span>`));
+      ctx.juego.appendChild(arriba);
+      const ops = [{ v: it.ok, ok: true }];
+      it.wrongs.forEach((v) => { if (!ops.some((o) => o.v === v)) ops.push({ v: v }); });
+      const fila = el("div", "opsTexto");
+      fila.setAttribute("data-ok", it.ok);
+      let resuelto = false;
+      shuffle(ops).forEach((o) => {
+        const b = el("button", "op-texto", o.v);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) {
+            resuelto = true; b.classList.add("bien", "anim-pop"); ctx.bien();
+            ronda++; await espera(900); if (ronda >= rondas) ctx.win(); else jugar();
+          } else { b.classList.add("casi"); ctx.casi(it.m); }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 /* ── CRECER Y CAMBIAR — LA PUBERTAD (6° grado — docs/auditoria-dc-caba/grado-6.md,
    gap #4: "reproducción humana / pubertad (Naturales + ESI) = 0", área troncal
    ausente mientras se sirve contenido de 7°). Contenido escolar de Naturales/ESI de

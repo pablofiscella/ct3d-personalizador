@@ -620,6 +620,10 @@ def _menu(banda, edad):
         # que pidió el panel). Clústeres nodales que el 1er pase dejó vacíos.
         g.append({"id": "potencias", "titulo": "Potencias", "icono": "🔺", "cfg": {"rondas": 10}})
         g.append({"id": "problemas_multipaso", "titulo": "Problemas de varios pasos", "icono": "📈", "cfg": {"rondas": 8}})
+        # Proporcionalidad directa e inversa (docs/auditoria-dc-caba/grado-7.md, gap
+        # #5: la INVERSA es contenido nuevo y nodal de 7°, estaba en 0). Calcular
+        # directa/inversa + clasificar la situación.
+        g.append({"id": "proporcionalidad", "titulo": "Directa o inversa", "icono": "⚖️", "cfg": {"rondas": 8}})
         # Azar y probabilidad (docs/auditoria-dc-caba/grado-7): diagrama de árbol,
         # principio multiplicativo y probabilidad simple (1 en a×b). Sigue de 6°.
         g.append({"id": "arbol_probabilidad", "titulo": "Árbol de combinaciones", "icono": "🌳", "cfg": {"rondas": 8}})
