@@ -266,6 +266,20 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 .arbol-lbl.leaf.on { opacity: 1; fill: var(--ac2); }
 .arbol-op { font-size: 22px; }
 
+/* ── Sujeto y predicado — dividí la oración (análisis sintáctico, 4°-5°) ── */
+.filaPalabras { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; }
+.palabraChip { font-family: "Baloo", sans-serif; font-size: 24px; padding: 8px 15px; border: none;
+  border-radius: 14px; background: var(--soft); color: var(--ink); box-shadow: var(--sombra); cursor: pointer;
+  transition: transform .1s ease, background .2s ease; }
+.palabraChip:active { transform: scale(.94); }
+.palabraChip.suj { background: var(--ac); color: #fff; }
+.palabraChip.pred { background: var(--ok); color: #fff; }
+.palabraChip.casi-chip { animation: sacudir .4s ease; }
+.sujpred-leyenda { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; font-size: 15px;
+  font-family: "Baloo", sans-serif; }
+.sujpred-leyenda .suj-lbl { color: var(--ac); }
+.sujpred-leyenda .pred-lbl { color: var(--ok); }
+
 /* ── animaciones ── */
 @keyframes pop     { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
 @keyframes brinco  { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-16%); } }

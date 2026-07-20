@@ -7300,6 +7300,82 @@ GAMES.analisis_sintactico = {
   },
 };
 
+/* ── SUJETO Y PREDICADO — DIVIDÍ LA ORACIÓN (docs/auditoria-dc-caba/: análisis
+   sintáctico, hueco de Lengua nodal — grado-4.md lo marca ausente en 4°). A
+   diferencia de analisis_sintactico (fluidez: el núcleo viene YA en negrita y se
+   clasifica), acá el chico HACE el análisis: divide la oración tocando la primera
+   palabra del PREDICADO (el verbo). Interacción por TAP, no drag de verdad — más
+   robusto en mobile (mismo criterio que agrupar/campo_ciudad). Al acertar se pintan
+   sujeto (azul) y predicado (verde). Capa 0 C3: el error dice si te quedaste en el
+   sujeto o te pasaste ("buscá el verbo"). ── */
+const SUJPRED_BANCO = [
+  { suj: ["El", "perro"], pred: ["ladra", "fuerte."] },
+  { suj: ["La", "niña", "pequeña"], pred: ["corre", "en", "el", "parque."] },
+  { suj: ["Los", "chicos"], pred: ["juegan", "al", "fútbol."] },
+  { suj: ["Mi", "mamá"], pred: ["cocina", "todos", "los", "días."] },
+  { suj: ["El", "sol"], pred: ["brilla", "en", "el", "cielo."] },
+  { suj: ["El", "gato", "negro"], pred: ["duerme", "en", "el", "sillón."] },
+  { suj: ["La", "maestra"], pred: ["explica", "la", "lección."] },
+  { suj: ["Los", "pájaros"], pred: ["cantan", "en", "la", "mañana."] },
+  { suj: ["El", "auto", "rojo"], pred: ["pasa", "muy", "rápido."] },
+  { suj: ["Nosotros"], pred: ["estudiamos", "para", "el", "examen."] },
+  { suj: ["Mi", "hermano", "mayor"], pred: ["juega", "a", "la", "pelota."] },
+  { suj: ["Las", "flores", "del", "jardín"], pred: ["crecen", "en", "primavera."] },
+  { suj: ["El", "viento", "fuerte"], pred: ["mueve", "las", "hojas."] },
+  { suj: ["Ana", "y", "Pedro"], pred: ["comen", "una", "pizza."] },
+];
+GAMES.sujeto_predicado = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 8;
+    ctx.rondas(rondas);
+    let usados = [], ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("Tocá la primera palabra del PREDICADO (lo que hace el sujeto).");
+      ctx.juego.innerHTML = "";
+      let libres = SUJPRED_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
+      if (!libres.length) { usados = []; libres = SUJPRED_BANCO.map((_, i) => i); }
+      const idx = libres[rint(0, libres.length - 1)];
+      usados.push(idx);
+      const item = SUJPRED_BANCO[idx];
+      const palabras = item.suj.concat(item.pred);
+      const corte = item.suj.length;
+      ctx.item("sujpred#" + idx);
+
+      const arriba = el("div", "tablero");
+      const fila = el("div", "filaPalabras");
+      fila.setAttribute("data-corte", corte);
+      let resuelto = false;
+      palabras.forEach((w, i) => {
+        const chip = el("button", "palabraChip", w);
+        chip.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (i === corte) {
+            resuelto = true;
+            palabras.forEach((_, k) => fila.children[k].classList.add(k < corte ? "suj" : "pred"));
+            ctx.bien();
+            ronda++; await espera(1050);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          } else if (i < corte) {
+            chip.classList.add("casi-chip"); setTimeout(() => chip.classList.remove("casi-chip"), 450);
+            ctx.casi("«" + w + "» todavía es parte del SUJETO (de quién hablamos). El predicado empieza en el verbo.");
+          } else {
+            chip.classList.add("casi-chip"); setTimeout(() => chip.classList.remove("casi-chip"), 450);
+            ctx.casi("Eso ya está dentro del predicado, pero empieza ANTES: buscá el verbo (la acción).");
+          }
+        });
+        fila.appendChild(chip);
+      });
+      arriba.appendChild(fila);
+      ctx.juego.appendChild(arriba);
+      const ley = el("div", "sujpred-leyenda",
+        '<span class="suj-lbl">■ Sujeto: de quién hablamos</span><span class="pred-lbl">■ Predicado: lo que hace</span>');
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(ley);
+    };
+    jugar();
+  },
+};
+
 /* ── PAGO EXACTO (14-jul-2026, 5° grado NAP Bimestre 3 "Ideas web":
    "simular pago con billetes/monedas argentinas reales — centavos
    incluidos"). Mismo patrón probado de cajero_automatico (3° grado, tocar
