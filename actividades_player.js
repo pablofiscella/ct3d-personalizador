@@ -4657,6 +4657,11 @@ const ESTADOS_BANCO = [
   { cosa: "Una piedra 🪨", r: "Sólido" }, { cosa: "La leche 🥛", r: "Líquido" }, { cosa: "El aire 💨", r: "Gaseoso" },
   { cosa: "Un bloque de madera 🧱", r: "Sólido" }, { cosa: "El jugo 🧃", r: "Líquido" }, { cosa: "El humo 🌫️", r: "Gaseoso" },
   { cosa: "Una moneda 🪙", r: "Sólido" }, { cosa: "El aceite 🫗", r: "Líquido" }, { cosa: "Las burbujas de aire 🫧", r: "Gaseoso" },
+  // ampliado 20-jul-2026 (de 12 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { cosa: "El jugo 🧃", r: "Líquido" }, { cosa: "El vidrio de la ventana 🪟", r: "Sólido" }, { cosa: "El humo 🌫️", r: "Gaseoso" },
+  { cosa: "La miel 🍯", r: "Líquido" }, { cosa: "Un ladrillo 🧱", r: "Sólido" }, { cosa: "El vapor del baño 💨", r: "Gaseoso" },
+  { cosa: "Un clavo de metal 🔩", r: "Sólido" }, { cosa: "La sopa 🍲", r: "Líquido" }, { cosa: "El aire adentro del globo 🎈", r: "Gaseoso" },
+  { cosa: "Una llave 🔑", r: "Sólido" },
 ];
 GAMES.estados_materia = {
   crear(ctx) {
