@@ -6264,6 +6264,19 @@ const FAMILIA_BANCO = [
   { raiz: "CARTA", correcta: "CARTERO", distractoras: ["SOL", "GATO"] },
   { raiz: "JARDÍN", correcta: "JARDINERO", distractoras: ["LUNA", "MESA"] },
   { raiz: "RELOJ", correcta: "RELOJERÍA", distractoras: ["PATO", "NUBE"] },
+  // ampliado 20-jul-2026 (de 10 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { raiz: "MAR", correcta: "MARINERO", distractoras: ["SILLA", "PERRO"] },
+  { raiz: "PAPEL", correcta: "PAPELERA", distractoras: ["GATO", "ÁRBOL"] },
+  { raiz: "CAMPO", correcta: "CAMPESINO", distractoras: ["LÁMPARA", "VENTANA"] },
+  { raiz: "FRUTA", correcta: "FRUTERÍA", distractoras: ["CAMIÓN", "ZAPATILLA"] },
+  { raiz: "CARNE", correcta: "CARNICERÍA", distractoras: ["PIEDRA", "ESTRELLA"] },
+  { raiz: "PELO", correcta: "PELUQUERÍA", distractoras: ["MESA", "CUADERNO"] },
+  { raiz: "SOL", correcta: "SOLEADO", distractoras: ["TIGRE", "BANCO"] },
+  { raiz: "CASA", correcta: "CASERO", distractoras: ["TREN", "MARIPOSA"] },
+  { raiz: "MÚSICA", correcta: "MUSICAL", distractoras: ["PLATO", "CAMA"] },
+  { raiz: "DEPORTE", correcta: "DEPORTISTA", distractoras: ["NUBE", "PUERTA"] },
+  { raiz: "JUEGO", correcta: "JUGUETE", distractoras: ["PAPA", "LUNA"] },
+  { raiz: "HELADO", correcta: "HELADERÍA", distractoras: ["CABALLO", "ESCALERA"] },
 ];
 GAMES.familia_palabras = {
   crear(ctx) {
