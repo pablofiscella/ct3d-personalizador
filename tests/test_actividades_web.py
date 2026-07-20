@@ -982,3 +982,13 @@ def test_sentidos_1ro():
     menu = aw._menu(aw._banda(6), 6)
     assert any(m["id"] == "sentidos" for m in menu)
     assert len([m["icono"] for m in menu]) == len({m["icono"] for m in menu})
+
+
+def test_comprension_2do():
+    """Comprensión lectora en 2° (grado-2.md gap #3: consolidar la lectura, sin
+    textos). Se agrega comprension_lectora a 2° (usa COMPRENSION_2 en el player)."""
+    m2 = next((m for m in aw._menu(aw._banda(7), 7) if m["id"] == "comprension_lectora"), None)
+    assert m2 is not None, "falta comprension_lectora en 2°"
+    assert not any(m["id"] == "comprension_lectora" for m in aw._menu(aw._banda(6), 6))
+    iconos = [m["icono"] for m in aw._menu(aw._banda(7), 7)]
+    assert len(iconos) == len(set(iconos))

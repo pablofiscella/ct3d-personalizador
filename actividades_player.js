@@ -4173,6 +4173,42 @@ const COMPRENSION_BANCO = [
 // ===== BANCOS DE COMPRENSIÓN POR GRADO (3°→7°) — escalados en longitud y
 // dificultad; ver comprensionBanco() abajo. COMPRENSION_BANCO (arriba) quedó
 // como el set corto original (fallback histórico). =====
+/* COMPRENSION_2 (2° grado — docs/auditoria-dc-caba/grado-2.md gap #3: "en el grado
+   cuyo objetivo es consolidar la lectura, no hay nada para leer más largo que una
+   palabra"). Textos CORTOS (2-3 oraciones simples) con preguntas literales + una
+   inferencia sencilla, a nivel de un chico de 7 años que recién afianza la lectura. */
+const COMPRENSION_2 = [
+  { texto: "Sofía tiene un gato blanco que se llama Nube. A Nube le gusta dormir arriba de la heladera, porque ahí está calentito. Todas las noches, Sofía le da leche antes de ir a dormir.", preguntas: [
+    { q: "¿Cómo se llama el gato de Sofía?", ops: ["Nube", "Sofía", "Leche"], ok: 0, m: "El texto dice: «un gato blanco que se llama Nube»." },
+    { q: "¿Por qué a Nube le gusta dormir arriba de la heladera?", ops: ["Porque ahí está calentito", "Porque hay leche", "Porque es blando"], ok: 0, m: "El texto dice que duerme ahí «porque ahí está calentito»." } ] },
+  { texto: "En el patio de la escuela hay un árbol muy grande. En primavera se llena de flores rosas. Los chicos juegan a su sombra cuando hace mucho calor.", preguntas: [
+    { q: "¿De qué color son las flores del árbol?", ops: ["Rosas", "Rojas", "Blancas"], ok: 0, m: "El texto dice: «se llena de flores rosas»." },
+    { q: "¿Por qué los chicos juegan debajo del árbol cuando hace calor?", ops: ["Por la sombra", "Por las flores", "Por los frutos"], ok: 0, m: "El árbol da sombra, y a la sombra hace menos calor." } ] },
+  { texto: "Juan perdió un diente comiendo una manzana. Se asustó un poco, pero su mamá le dijo que era normal. Esa noche puso el diente abajo de la almohada.", preguntas: [
+    { q: "¿Cómo perdió el diente Juan?", ops: ["Comiendo una manzana", "Jugando al fútbol", "Cepillándose"], ok: 0, m: "El texto dice: «perdió un diente comiendo una manzana»." },
+    { q: "¿Dónde puso el diente esa noche?", ops: ["Abajo de la almohada", "En un vaso", "En el bolsillo"], ok: 0, m: "El texto dice: «puso el diente abajo de la almohada»." } ] },
+  { texto: "La tortuga de Martina se llama Lenta. Camina muy despacio por el jardín y come hojas de lechuga. Cuando tiene miedo, esconde la cabeza adentro del caparazón.", preguntas: [
+    { q: "¿Qué come la tortuga Lenta?", ops: ["Hojas de lechuga", "Manzanas", "Pan"], ok: 0, m: "El texto dice: «come hojas de lechuga»." },
+    { q: "¿Qué hace la tortuga cuando tiene miedo?", ops: ["Esconde la cabeza en el caparazón", "Corre rápido", "Grita"], ok: 0, m: "El texto dice que «esconde la cabeza adentro del caparazón»." } ] },
+  { texto: "Hoy llueve mucho. Lucía no puede salir a la plaza, así que arma un fuerte con las sillas y una manta. Adentro lee cuentos con una linterna.", preguntas: [
+    { q: "¿Por qué Lucía no sale a la plaza?", ops: ["Porque llueve mucho", "Porque es de noche", "Porque está enferma"], ok: 0, m: "El texto empieza: «Hoy llueve mucho. Lucía no puede salir»." },
+    { q: "¿Con qué armó el fuerte?", ops: ["Con sillas y una manta", "Con cajas", "Con almohadas"], ok: 0, m: "El texto dice: «arma un fuerte con las sillas y una manta»." } ] },
+  { texto: "Pedro fue a la panadería con su abuelo. Compraron pan, facturas y un pan dulce. En el camino de vuelta, Pedro llevó la bolsa con mucho cuidado.", preguntas: [
+    { q: "¿Con quién fue Pedro a la panadería?", ops: ["Con su abuelo", "Con su hermana", "Solo"], ok: 0, m: "El texto dice: «fue a la panadería con su abuelo»." },
+    { q: "¿Por qué Pedro llevó la bolsa con cuidado?", ops: ["Para que no se aplaste lo que compraron", "Porque pesaba mucho", "Porque estaba rota"], ok: 0, m: "Llevaba pan y facturas: por eso la cuidaba para no aplastarlas." } ] },
+  { texto: "Mía plantó una semilla en una maceta. Todos los días la riega y la pone al sol. Después de dos semanas, salió una plantita verde.", preguntas: [
+    { q: "¿Qué hace Mía todos los días con la semilla?", ops: ["La riega y la pone al sol", "La guarda en un cajón", "La cambia de maceta"], ok: 0, m: "El texto dice: «Todos los días la riega y la pone al sol»." },
+    { q: "¿Qué salió después de dos semanas?", ops: ["Una plantita verde", "Una flor roja", "Nada"], ok: 0, m: "El texto dice: «salió una plantita verde»." } ] },
+  { texto: "El perro de Ana se llama Tito. A Tito le encanta correr atrás de la pelota. Cuando Ana llega de la escuela, Tito mueve la cola de contento.", preguntas: [
+    { q: "¿Qué le encanta hacer a Tito?", ops: ["Correr atrás de la pelota", "Dormir todo el día", "Comer lechuga"], ok: 0, m: "El texto dice: «le encanta correr atrás de la pelota»." },
+    { q: "¿Cómo se da cuenta Ana de que Tito está contento?", ops: ["Porque mueve la cola", "Porque ladra fuerte", "Porque se esconde"], ok: 0, m: "El texto dice que «mueve la cola de contento»." } ] },
+  { texto: "En el zoológico, Bruno vio una jirafa altísima. La jirafa comía hojas de la parte más alta de un árbol. Bruno sacó una foto para mostrarle a su hermana.", preguntas: [
+    { q: "¿Qué comía la jirafa?", ops: ["Hojas de la parte más alta del árbol", "Pasto del suelo", "Frutas"], ok: 0, m: "El texto dice: «comía hojas de la parte más alta de un árbol»." },
+    { q: "¿Para qué sacó Bruno una foto?", ops: ["Para mostrársela a su hermana", "Para venderla", "Para la escuela"], ok: 0, m: "El texto dice: «sacó una foto para mostrarle a su hermana»." } ] },
+  { texto: "Cami se cayó de la bici y se raspó la rodilla. Su papá le puso una curita y un beso. En un ratito, Cami ya estaba jugando de nuevo.", preguntas: [
+    { q: "¿Qué se raspó Cami?", ops: ["La rodilla", "El codo", "La mano"], ok: 0, m: "El texto dice: «se raspó la rodilla»." },
+    { q: "¿Qué le puso el papá en la rodilla?", ops: ["Una curita", "Una venda gigante", "Hielo"], ok: 0, m: "El texto dice: «le puso una curita y un beso»." } ] },
+];
 const COMPRENSION_3 = [
   {
     texto: "Todas las mañanas, Tomás toma el colectivo 60 para ir a la escuela. Se sienta al lado de la ventanilla porque le gusta mirar los árboles de la avenida. Un día se quedó dormido y casi se pasa de parada, pero el señor de al lado lo despertó a tiempo. Desde entonces, Tomás lleva un despertador chiquito en la mochila.",
@@ -4467,7 +4503,7 @@ const COMPRENSION_7 = [
 // dificultad (literal → inferencia → idea principal / hecho-vs-opinión / crítica).
 // Los COMPRENSION_N los define el bloque de contenido de abajo.
 function comprensionBanco(edad) {
-  const porGrado = { 8: COMPRENSION_3, 9: COMPRENSION_4, 10: COMPRENSION_5, 11: COMPRENSION_6, 12: COMPRENSION_7 };
+  const porGrado = { 7: COMPRENSION_2, 8: COMPRENSION_3, 9: COMPRENSION_4, 10: COMPRENSION_5, 11: COMPRENSION_6, 12: COMPRENSION_7 };
   return porGrado[edad | 0] || COMPRENSION_3;
 }
 
