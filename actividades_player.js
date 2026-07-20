@@ -9813,6 +9813,12 @@ const RED_TROFICA_BANCO = [
   { e: "🍄 Hongo", rol: "descomponedor" }, { e: "🦠 Bacteria", rol: "descomponedor" },
   // agregados 14-jul-2026 (banco ampliado de 7 a 10).
   { e: "🌻 Girasol", rol: "productor" }, { e: "🐺 Lobo", rol: "consumidor" }, { e: "🪱 Lombriz", rol: "descomponedor" },
+  // ampliado 20-jul-2026 (de 10 a 20 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { e: "🌿 Helecho", rol: "productor" }, { e: "🌵 Cactus", rol: "productor" },
+  { e: "🌽 Maíz", rol: "productor" }, { e: "🍀 Trébol", rol: "productor" },
+  { e: "🐄 Vaca", rol: "consumidor" }, { e: "🦅 Águila", rol: "consumidor" },
+  { e: "🐍 Serpiente", rol: "consumidor" }, { e: "🐁 Ratón", rol: "consumidor" },
+  { e: "🦊 Zorro", rol: "consumidor" }, { e: "🐸 Rana", rol: "consumidor" },
 ];
 GAMES.red_trofica = {
   crear(ctx) {
