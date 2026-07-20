@@ -6132,10 +6132,29 @@ GAMES.laboratorio_electrico = {
    igual (ej. la "complementaria" de 1/2 es 1/2) — más seguro autorearlos. ── */
 const FRACCIONES_BANCO = [
   { num: 1, den: 2, eq: { num: 2, den: 4 }, d1: { num: 1, den: 4 }, d2: { num: 3, den: 4 } },
-  { num: 1, den: 2, eq: { num: 3, den: 6 }, d1: { num: 2, den: 6 }, d2: { num: 5, den: 6 } },
-  { num: 1, den: 4, eq: { num: 2, den: 8 }, d1: { num: 3, den: 8 }, d2: { num: 6, den: 8 } },
-  { num: 3, den: 4, eq: { num: 6, den: 8 }, d1: { num: 3, den: 8 }, d2: { num: 1, den: 8 } },
-  { num: 1, den: 3, eq: { num: 2, den: 6 }, d1: { num: 1, den: 6 }, d2: { num: 4, den: 6 } },
+  { num: 1, den: 3, eq: { num: 2, den: 6 }, d1: { num: 1, den: 6 }, d2: { num: 3, den: 6 } },
+  { num: 2, den: 3, eq: { num: 4, den: 6 }, d1: { num: 3, den: 6 }, d2: { num: 5, den: 6 } },
+  { num: 1, den: 4, eq: { num: 2, den: 8 }, d1: { num: 1, den: 8 }, d2: { num: 3, den: 8 } },
+  { num: 3, den: 4, eq: { num: 6, den: 8 }, d1: { num: 5, den: 8 }, d2: { num: 7, den: 8 } },
+  { num: 1, den: 5, eq: { num: 2, den: 10 }, d1: { num: 1, den: 10 }, d2: { num: 3, den: 10 } },
+  { num: 2, den: 5, eq: { num: 4, den: 10 }, d1: { num: 3, den: 10 }, d2: { num: 5, den: 10 } },
+  { num: 3, den: 5, eq: { num: 6, den: 10 }, d1: { num: 5, den: 10 }, d2: { num: 7, den: 10 } },
+  { num: 4, den: 5, eq: { num: 8, den: 10 }, d1: { num: 7, den: 10 }, d2: { num: 9, den: 10 } },
+  { num: 1, den: 6, eq: { num: 2, den: 12 }, d1: { num: 1, den: 12 }, d2: { num: 3, den: 12 } },
+  { num: 5, den: 6, eq: { num: 10, den: 12 }, d1: { num: 9, den: 12 }, d2: { num: 11, den: 12 } },
+  { num: 1, den: 2, eq: { num: 3, den: 6 }, d1: { num: 2, den: 6 }, d2: { num: 4, den: 6 } },
+  { num: 1, den: 3, eq: { num: 3, den: 9 }, d1: { num: 2, den: 9 }, d2: { num: 4, den: 9 } },
+  { num: 2, den: 3, eq: { num: 6, den: 9 }, d1: { num: 5, den: 9 }, d2: { num: 7, den: 9 } },
+  { num: 1, den: 4, eq: { num: 3, den: 12 }, d1: { num: 2, den: 12 }, d2: { num: 4, den: 12 } },
+  { num: 3, den: 4, eq: { num: 9, den: 12 }, d1: { num: 8, den: 12 }, d2: { num: 10, den: 12 } },
+  { num: 1, den: 2, eq: { num: 4, den: 8 }, d1: { num: 3, den: 8 }, d2: { num: 5, den: 8 } },
+  { num: 1, den: 3, eq: { num: 4, den: 12 }, d1: { num: 3, den: 12 }, d2: { num: 5, den: 12 } },
+  { num: 2, den: 3, eq: { num: 8, den: 12 }, d1: { num: 7, den: 12 }, d2: { num: 9, den: 12 } },
+  { num: 1, den: 2, eq: { num: 5, den: 10 }, d1: { num: 4, den: 10 }, d2: { num: 6, den: 10 } },
+  { num: 1, den: 2, eq: { num: 6, den: 12 }, d1: { num: 5, den: 12 }, d2: { num: 7, den: 12 } },
+  { num: 2, den: 6, eq: { num: 4, den: 12 }, d1: { num: 3, den: 12 }, d2: { num: 5, den: 12 } },
+  { num: 3, den: 6, eq: { num: 6, den: 12 }, d1: { num: 5, den: 12 }, d2: { num: 7, den: 12 } },
+  { num: 2, den: 4, eq: { num: 6, den: 12 }, d1: { num: 5, den: 12 }, d2: { num: 7, den: 12 } }
 ];
 GAMES.fracciones_equivalentes = {
   crear(ctx) {
@@ -6682,11 +6701,30 @@ GAMES.camino_digestivo = {
    extensión del banco del año anterior, para que cada año conserve su
    propio progreso de estrellas. ── */
 const FRACCIONES_AVANZADO_BANCO = [
+  { num: 1, den: 3, eq: { num: 3, den: 9 }, d1: { num: 2, den: 9 }, d2: { num: 4, den: 9 } },
+  { num: 2, den: 3, eq: { num: 6, den: 9 }, d1: { num: 5, den: 9 }, d2: { num: 7, den: 9 } },
+  { num: 1, den: 4, eq: { num: 3, den: 12 }, d1: { num: 2, den: 12 }, d2: { num: 4, den: 12 } },
+  { num: 3, den: 4, eq: { num: 9, den: 12 }, d1: { num: 8, den: 12 }, d2: { num: 10, den: 12 } },
+  { num: 1, den: 2, eq: { num: 3, den: 6 }, d1: { num: 2, den: 6 }, d2: { num: 4, den: 6 } },
+  { num: 1, den: 2, eq: { num: 4, den: 8 }, d1: { num: 3, den: 8 }, d2: { num: 5, den: 8 } },
+  { num: 2, den: 3, eq: { num: 8, den: 12 }, d1: { num: 7, den: 12 }, d2: { num: 9, den: 12 } },
+  { num: 1, den: 3, eq: { num: 4, den: 12 }, d1: { num: 3, den: 12 }, d2: { num: 5, den: 12 } },
+  { num: 2, den: 4, eq: { num: 6, den: 12 }, d1: { num: 5, den: 12 }, d2: { num: 7, den: 12 } },
+  { num: 3, den: 5, eq: { num: 6, den: 10 }, d1: { num: 5, den: 10 }, d2: { num: 7, den: 10 } },
+  { num: 2, den: 5, eq: { num: 4, den: 10 }, d1: { num: 3, den: 10 }, d2: { num: 5, den: 10 } },
+  { num: 4, den: 5, eq: { num: 8, den: 10 }, d1: { num: 7, den: 10 }, d2: { num: 9, den: 10 } },
+  { num: 1, den: 5, eq: { num: 2, den: 10 }, d1: { num: 1, den: 10 }, d2: { num: 3, den: 10 } },
+  { num: 1, den: 6, eq: { num: 2, den: 12 }, d1: { num: 1, den: 12 }, d2: { num: 3, den: 12 } },
+  { num: 5, den: 6, eq: { num: 10, den: 12 }, d1: { num: 9, den: 12 }, d2: { num: 11, den: 12 } },
+  { num: 3, den: 4, eq: { num: 6, den: 8 }, d1: { num: 5, den: 8 }, d2: { num: 7, den: 8 } },
+  { num: 1, den: 4, eq: { num: 2, den: 8 }, d1: { num: 1, den: 8 }, d2: { num: 3, den: 8 } },
   { num: 2, den: 3, eq: { num: 4, den: 6 }, d1: { num: 3, den: 6 }, d2: { num: 5, den: 6 } },
-  { num: 2, den: 3, eq: { num: 6, den: 9 }, d1: { num: 4, den: 9 }, d2: { num: 8, den: 9 } },
-  { num: 1, den: 3, eq: { num: 3, den: 9 }, d1: { num: 2, den: 9 }, d2: { num: 5, den: 9 } },
-  { num: 3, den: 5, eq: { num: 6, den: 10 }, d1: { num: 4, den: 10 }, d2: { num: 8, den: 10 } },
-  { num: 2, den: 5, eq: { num: 4, den: 10 }, d1: { num: 3, den: 10 }, d2: { num: 7, den: 10 } },
+  { num: 1, den: 2, eq: { num: 5, den: 10 }, d1: { num: 4, den: 10 }, d2: { num: 6, den: 10 } },
+  { num: 1, den: 2, eq: { num: 6, den: 12 }, d1: { num: 5, den: 12 }, d2: { num: 7, den: 12 } },
+  { num: 1, den: 3, eq: { num: 2, den: 6 }, d1: { num: 1, den: 6 }, d2: { num: 3, den: 6 } },
+  { num: 3, den: 6, eq: { num: 6, den: 12 }, d1: { num: 5, den: 12 }, d2: { num: 7, den: 12 } },
+  { num: 2, den: 6, eq: { num: 4, den: 12 }, d1: { num: 3, den: 12 }, d2: { num: 5, den: 12 } },
+  { num: 4, den: 6, eq: { num: 8, den: 12 }, d1: { num: 7, den: 12 }, d2: { num: 9, den: 12 } }
 ];
 GAMES.fracciones_avanzado = {
   crear(ctx) {
