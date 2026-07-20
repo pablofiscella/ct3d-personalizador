@@ -2666,6 +2666,148 @@ GAMES.dividir = {
   },
 };
 
+/* ── LA CUENTA PASO A PASO (M6 4° / M7 5° — docs/auditoria-dc-caba/): la división
+   como PROCEDIMIENTO, no como trivia. Es LA pared de 4°-5° y el alumno lo pidió
+   textual ("hacerla paso a paso, no solo elegir"; grado-5.md). Algoritmo POR
+   APROXIMACIONES / cocientes parciales (el que enseña el DC, más accesible que el
+   gancho): se le va restando al dividendo de a MÚLTIPLOS AMIGABLES del divisor
+   (d × k × 10^p), con la resta acumulada VISIBLE y el cociente armándose cifra por
+   cifra (estimación de cifras del cociente). Cada paso = elegir cuánto entra en el
+   lugar más alto. nivel 1 (4°): ÷1 cifra, exacta. nivel 2 (5°+): con resto + la
+   comprobación c × d + r = D (análisis del resto). Capa 0: cada paso errado baja la
+   estrella al PRIMER intento (C2) y nombra el error (C3): "se pasa" / "todavía
+   entra uno más grande" / "olvidaste el resto". La estrella solo cuenta 3★ si toda
+   la cuenta salió sin un solo paso mal. ── */
+GAMES.cuenta_larga = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 8;
+    const nivel = ctx.cfg.nivel || 1;
+    ctx.rondas(rondas);
+    let ronda = 0;
+
+    // genera D ÷ d según nivel (cociente de 2 cifras siempre; nivel 2 con resto)
+    const generar = () => {
+      if (nivel === 1) {
+        const d = rint(2, 9), q = rint(11, 99);
+        return { D: d * q, d, q, r: 0 };
+      }
+      const d = rint(3, 12), q = rint(11, 99), r = rint(1, d - 1);
+      return { D: d * q + r, d, q, r };
+    };
+
+    // el "cacho" más grande que se puede restar de una vez: d × k × 10^p, con p el
+    // lugar más alto donde el divisor entra y k (1..9) las veces que entra ahí.
+    const mejorPaso = (R, d) => {
+      let p = 0;
+      while (d * 10 ** (p + 1) <= R) p++;
+      let k = Math.floor(R / (d * 10 ** p));
+      if (k > 9) k = 9;   // defensivo: nunca debería pasar (p es el lugar más alto)
+      return { k, p, mult: d * k * 10 ** p, unidad: k * 10 ** p };
+    };
+
+    const jugar = () => {
+      const { D, d } = generar();
+      ctx.ronda(ronda);
+      ctx.item("cuenta_larga#" + D + "e" + d);
+      ctx.consigna("Dividí " + D + " entre " + d + ": restá de a poco hasta que no entre más.");
+      ctx.juego.innerHTML = "";
+
+      let R = D, coc = 0;
+      const panel = el("div", "tablero cuenta");
+      panel.appendChild(el("div", "cuenta-cab",
+        '<span class="cuenta-D">' + D + '</span> ÷ <span class="cuenta-d">' + d + '</span>'));
+      const estado = el("div", "cuenta-estado"); panel.appendChild(estado);
+      const log = el("div", "cuenta-log"); panel.appendChild(log);
+      const zona = el("div", "cuenta-zona"); panel.appendChild(zona);
+      ctx.juego.appendChild(panel);
+
+      const pintarEstado = () => {
+        estado.innerHTML =
+          '<div class="cuenta-chip"><small>me falta repartir</small><b>' + R + '</b></div>' +
+          '<div class="cuenta-chip ac"><small>cociente</small><b>' + coc + '</b></div>';
+      };
+
+      const finRonda = async () => {
+        ctx.bien();
+        ronda++;
+        await espera(950);
+        if (ronda >= rondas) ctx.win(); else jugar();
+      };
+
+      const terminar = () => {
+        pintarEstado();
+        zona.innerHTML = "";
+        if (R === 0) {
+          zona.appendChild(el("p", "cuenta-preg", "¡No sobró nada! " + D + " ÷ " + d + " = " + coc));
+          finRonda(); return;
+        }
+        if (nivel === 1) {
+          zona.appendChild(el("p", "cuenta-preg", D + " ÷ " + d + " = " + coc + " y sobran " + R));
+          finRonda(); return;
+        }
+        // nivel 2 — análisis del resto: comprobar c × d + r = D
+        zona.appendChild(el("p", "cuenta-preg",
+          "Sobran " + R + ". Comprobá: " + coc + " × " + d + " + " + R + " = ?"));
+        const correcto = D;                       // = coc*d + R
+        const cand = [correcto, coc * d, D + d].filter((v, i, a) => v > 0 && a.indexOf(v) === i);
+        const fila = el("div", "ops");
+        let hecho = false;
+        shuffle(cand).forEach((v) => {
+          const btn = el("button", "op", v);
+          btn.addEventListener("click", async () => {
+            if (hecho) return;
+            if (v === correcto) { hecho = true; btn.classList.add("bien", "anim-pop"); await espera(550); finRonda(); }
+            else { btn.classList.add("casi"); ctx.casi("Acordate: cociente × divisor + resto tiene que dar el número de arriba (" + D + ")."); }
+          });
+          fila.appendChild(btn);
+        });
+        zona.appendChild(fila);
+      };
+
+      const paso = () => {
+        pintarEstado();
+        zona.innerHTML = "";
+        if (R < d) { terminar(); return; }        // ya no entra → resto final
+        const best = mejorPaso(R, d);
+        zona.appendChild(el("p", "cuenta-preg", "¿Cuánto le puedo sacar al " + R + "?"));
+        // opciones: el cacho justo + pasarse (k+1/k+2) + quedarse corto (k-1/k-2)
+        const ops = [{ k: best.k, ok: true }];
+        const meter = (o) => { if (ops.length < 3 && !ops.some((x) => x.k === o.k)) ops.push(o); };
+        if (best.k > 1) meter({ k: best.k - 1 });
+        meter({ k: best.k + 1 });
+        meter({ k: best.k + 2 });
+        if (best.k > 2) meter({ k: best.k - 2 });
+        const fila = el("div", "ops");
+        let resuelto = false;
+        shuffle(ops).forEach((o) => {
+          const unidad = o.k * 10 ** best.p, mult = d * unidad;
+          const btn = el("button", "op cuenta-op", d + " × " + unidad + "<small>= " + mult + "</small>");
+          btn.addEventListener("click", async () => {
+            if (resuelto) return;
+            if (o.ok) {
+              resuelto = true; btn.classList.add("bien", "anim-pop");
+              R -= mult; coc += unidad;
+              log.appendChild(el("div", "cuenta-linea", "− " + mult + "  <i>(" + d + " × " + unidad + ")</i>"));
+              await espera(680); paso();
+            } else if (mult > R) {
+              btn.classList.add("casi");
+              ctx.casi(d + " × " + unidad + " = " + mult + ", y solo te queda " + R + ". Se pasa.");
+            } else {
+              btn.classList.add("casi");
+              ctx.casi("Todavía entra un cacho más grande: fijate cuántas veces entra el " + d + ".");
+            }
+          });
+          fila.appendChild(btn);
+        });
+        zona.appendChild(fila);
+      };
+
+      paso();
+    };
+    jugar();
+  },
+};
+
 /* ── DUELO DE FRACCIONES (M10, 4° grado — docs/auditoria-dc-caba/grado-4.md):
    comparación de fracciones CON BARRAS (Singapore CPA, no negociable para
    fracciones — skill §2). Ataca la misconception #1 de fracciones: "1/4 es mayor

@@ -643,3 +643,24 @@ def test_token_normal_no_esta_gateado():
         assert aw.estado_gate(tok) == (False, False)         # público como siempre
     finally:
         shutil.rmtree(d, ignore_errors=True)
+
+
+def test_cuenta_larga_division_guiada():
+    """La cuenta paso a paso (M6 4° / M7 5°, docs/auditoria-dc-caba/): la división
+    como PROCEDIMIENTO guiado, no trivia. Debe estar en 4°-7° (edad 9-12) con el
+    nivel correcto (1 exacta en 4°, 2 con resto en 5°-7°), y NO en grados menores.
+    El ícono no puede colisionar con otro del mismo menú (bug real ya conocido)."""
+    # ausente en 1°-3° (edad <= 8)
+    for edad in (6, 7, 8):
+        ids = {m["id"] for m in aw._menu(aw._banda(edad), edad)}
+        assert "cuenta_larga" not in ids, f"cuenta_larga no debería estar en edad {edad}"
+    # presente en 4°-7° con el nivel correcto
+    niveles_esperados = {9: 1, 10: 2, 11: 2, 12: 2}
+    for edad, niv in niveles_esperados.items():
+        menu = aw._menu(aw._banda(edad), edad)
+        cl = next((m for m in menu if m["id"] == "cuenta_larga"), None)
+        assert cl is not None, f"falta cuenta_larga en edad {edad}"
+        assert cl["cfg"]["nivel"] == niv, f"nivel de cuenta_larga en edad {edad}"
+        # sin íconos repetidos dentro del menú (🪜 recién agregado)
+        iconos = [m["icono"] for m in menu]
+        assert len(iconos) == len(set(iconos)), f"íconos repetidos en edad {edad}"

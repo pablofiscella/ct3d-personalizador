@@ -209,6 +209,24 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 .op.bien { background: var(--ok); color: #fff; }
 .op.casi { animation: sacudir .4s ease; }
 
+/* ── La cuenta paso a paso (división por aproximaciones — M6 4° / M7 5°) ── */
+.cuenta { text-align: center; }
+.cuenta-cab { font-size: clamp(30px, 8vw, 46px); font-family: "Baloo", sans-serif; margin-bottom: 4px; }
+.cuenta-cab .cuenta-d { color: var(--ac); }
+.cuenta-estado { display: flex; gap: 12px; justify-content: center; margin: 6px 0 2px; flex-wrap: wrap; }
+.cuenta-chip { background: var(--soft); border-radius: 16px; padding: 7px 16px; min-width: 104px; }
+.cuenta-chip small { display: block; font-size: 13px; opacity: .7; }
+.cuenta-chip b { font-size: 30px; font-family: "Baloo", sans-serif; }
+.cuenta-chip.ac { background: var(--ac); color: #fff; }
+.cuenta-chip.ac small { opacity: .85; }
+.cuenta-log { display: flex; flex-direction: column; align-items: center; gap: 1px; margin: 6px 0; min-height: 4px; }
+.cuenta-linea { font-size: 20px; font-family: "Baloo", sans-serif; opacity: .88; }
+.cuenta-linea i { font-size: 15px; opacity: .6; font-style: normal; }
+.cuenta-preg { font-size: clamp(17px, 4.5vw, 22px); margin: 8px 0 2px; }
+.cuenta-op { flex-direction: column; gap: 0; min-width: 112px; min-height: 74px; font-size: 26px; line-height: 1.05; }
+.cuenta-op small { font-size: 15px; opacity: .7; }
+.cuenta-op.bien small { opacity: .9; }
+
 /* ── animaciones ── */
 @keyframes pop     { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
 @keyframes brinco  { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-16%); } }
