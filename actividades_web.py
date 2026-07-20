@@ -562,6 +562,10 @@ def _menu(banda, edad):
         # 3ª tanda 6° (19-jul-2026, nivelación): cuadriláteros (M15a), producto de
         # fracciones, e historia de la organización nacional 1862-1930.
         g.append({"id": "cuadrilateros", "titulo": "Cuadriláteros", "icono": "⬜", "cfg": {"rondas": 10}})
+        # Suma de ángulos interiores (docs/auditoria-dc-caba/grado-6.md, gap #5:
+        # geometría de 6°, "360°", ausente). Triángulo=180° / cuadrilátero=360°,
+        # con el ángulo faltante. Complementa el transportador (medir).
+        g.append({"id": "suma_angulos", "titulo": "La suma de los ángulos", "icono": "🔺", "cfg": {"rondas": 8}})
         g.append({"id": "multiplicar_fracciones", "titulo": "Producto de fracciones", "icono": "✖️", "cfg": {"rondas": 10}})
         # Azar y combinatoria (docs/auditoria-dc-caba/): diagrama de árbol +
         # principio multiplicativo (¿sumar o multiplicar?). Faltaba entero.

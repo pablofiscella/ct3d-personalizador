@@ -898,3 +898,16 @@ def test_pubertad_6to_esi():
     assert any(m["id"] == "pubertad" for m in menu), "falta pubertad en 6°"
     iconos = [m["icono"] for m in menu]
     assert len(iconos) == len(set(iconos)), "íconos repetidos en 6°"
+
+
+def test_suma_angulos_6to():
+    """Suma de ángulos interiores en 6° (docs/auditoria-dc-caba/grado-6.md gap #5:
+    geometría, 360°). Triángulo 180° / cuadrilátero 360° + faltante. Debe estar en 6°
+    (edad 11) y NO en 5° ni 7°, sin colisión de íconos."""
+    for edad in (9, 10, 12):
+        ids = {m["id"] for m in aw._menu(aw._banda(edad), edad)}
+        assert "suma_angulos" not in ids, f"no debería estar en edad {edad}"
+    menu = aw._menu(aw._banda(11), 11)
+    assert any(m["id"] == "suma_angulos" for m in menu), "falta suma_angulos en 6°"
+    iconos = [m["icono"] for m in menu]
+    assert len(iconos) == len(set(iconos)), "íconos repetidos en 6°"

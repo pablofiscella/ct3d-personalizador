@@ -3654,6 +3654,75 @@ const PUBERTAD_BANCO = [
 ];
 GAMES.pubertad = juegoTriviaTexto(PUBERTAD_BANCO, "Elegí la respuesta correcta.", "pubertad");
 
+/* ── LA SUMA DE LOS ÁNGULOS (6° grado — docs/auditoria-dc-caba/grado-6.md, gap #5:
+   geometría de 6° "360°, suma de ángulos interiores" ausente, enmascarada por
+   poligonos_lados que es de 3°-4°). Complementa el transportador (medir) y
+   cuadrilateros con la propiedad nodal: los ángulos de un triángulo suman 180° y los
+   de un cuadrilátero 360°. 3 modos GENERADOS: concepto (¿cuánto suman?), triángulo
+   faltante (dados 2, hallar el 3°) y cuadrilátero faltante (dados 3, hallar el 4°).
+   Ángulos enteros. Distractores por misconception (C4: sumar los dados en vez de
+   restar del total, confundir 180 con 360) + explicación con la cuenta (C3). ── */
+GAMES.suma_angulos = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 8;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const deg = (n) => n + "°";
+    const gen = () => {
+      const modo = ["tri", "cuad", "concepto"][rint(0, 2)];
+      if (modo === "concepto") {
+        const tri = rint(0, 1) === 0, s = tri ? 180 : 360, o = tri ? 360 : 180;
+        const fig = tri ? "un triángulo" : "un cuadrilátero";
+        return { q: "¿Cuánto suman TODOS los ángulos de " + fig + "?", ok: deg(s), wrongs: [deg(o), "90°"],
+                 m: "Los ángulos de " + fig + " siempre suman " + s + "°." };
+      }
+      if (modo === "tri") {
+        const a = rint(35, 95), b = rint(35, 150 - a), c = 180 - a - b;
+        return { q: "Dos ángulos de un triángulo miden " + a + "° y " + b + "°. ¿Cuánto mide el tercero?",
+                 ok: deg(c), wrongs: [deg(a + b), deg(180 - a)],
+                 m: "Los ángulos de un triángulo suman 180°: 180 − " + a + " − " + b + " = " + c + "°." };
+      }
+      let a = rint(60, 110), b = rint(60, 110), c = rint(60, 110), d = 360 - a - b - c, g = 0;
+      while ((d < 40 || d > 160) && g++ < 40) { a = rint(60, 110); b = rint(60, 110); c = rint(60, 110); d = 360 - a - b - c; }
+      return { q: "Tres ángulos de un cuadrilátero miden " + a + "°, " + b + "° y " + c + "°. ¿Cuánto mide el cuarto?",
+               ok: deg(d), wrongs: [deg(a + b + c), deg(360 - a - b)],
+               m: "Los ángulos de un cuadrilátero suman 360°: 360 − " + a + " − " + b + " − " + c + " = " + d + "°." };
+    };
+    const jugar = () => {
+      ctx.ronda(ronda);
+      const it = gen();
+      ctx.item("angsuma#" + ronda);
+      ctx.consigna("Elegí la respuesta correcta.");
+      ctx.juego.innerHTML = "";
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:21px;font-family:'Baloo',sans-serif">${it.q}</span>`));
+      ctx.juego.appendChild(arriba);
+      const ops = [{ v: it.ok, ok: true }];
+      const add = (v) => { if (ops.length < 3 && !ops.some((o) => o.v === v)) ops.push({ v: v }); };
+      it.wrongs.forEach(add);
+      let guard = 0;
+      while (ops.length < 3 && guard++ < 40) add(deg(rint(2, 17) * 10));
+      const fila = el("div", "opsTexto");
+      fila.setAttribute("data-ok", it.ok);
+      let resuelto = false;
+      shuffle(ops).forEach((o) => {
+        const b = el("button", "op-texto", o.v);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) {
+            resuelto = true; b.classList.add("bien", "anim-pop"); ctx.bien();
+            ronda++; await espera(900); if (ronda >= rondas) ctx.win(); else jugar();
+          } else { b.classList.add("casi"); ctx.casi(it.m); }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 /* ── ¿SEGURO, POSIBLE O IMPOSIBLE? (6° grado — docs/auditoria-dc-caba/grado-6.md,
    gap #3: "probabilidad y estadística... sucesos posibles/imposibles/seguros",
    contenido que el DC hace nodal POR PRIMERA VEZ en 6°). El árbol de probabilidad
