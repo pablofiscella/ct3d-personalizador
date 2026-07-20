@@ -5427,6 +5427,19 @@ const CUADRI_BANCO = [
   { q: "¿Cuál NO es un cuadrilátero?", ok: "El triángulo", d: ["El cuadrado", "El rombo"], m: "El triángulo tiene 3 lados; los cuadriláteros tienen 4." },
   { q: "El paralelogramo tiene…", ok: "Los lados opuestos paralelos", d: ["Un solo par paralelo", "Ningún lado paralelo"], m: "El paralelogramo tiene los dos pares de lados opuestos paralelos." },
   { q: "Las diagonales del cuadrado…", ok: "Son iguales y se cruzan en el medio", d: ["Son de distinto largo", "No se cruzan"], m: "En el cuadrado las dos diagonales miden lo mismo y se cortan en el centro." },
+  // ampliado 20-jul-2026 (de 8 a 20 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { q: "¿Cuántos lados tiene un cuadrilátero?", ok: "4", d: ["3", "5"], m: "«Cuadri» = cuatro: todo cuadrilátero tiene 4 lados." },
+  { q: "¿Cuánto suman los ángulos de cualquier cuadrilátero?", ok: "360°", d: ["180°", "90°"], m: "Los 4 ángulos de un cuadrilátero suman siempre 360°." },
+  { q: "¿Cuál de estos NO es un cuadrilátero?", ok: "El triángulo", d: ["El cuadrado", "El trapecio"], m: "El triángulo tiene 3 lados, no 4: no es cuadrilátero." },
+  { q: "Un cuadrilátero con un SOLO par de lados paralelos es un…", ok: "trapecio", d: ["cuadrado", "rombo"], m: "El trapecio tiene un solo par de lados paralelos." },
+  { q: "El paralelogramo tiene…", ok: "los lados opuestos paralelos e iguales", d: ["un solo par de lados paralelos", "3 lados"], m: "En el paralelogramo los dos pares de lados opuestos son paralelos e iguales." },
+  { q: "El rombo tiene…", ok: "4 lados iguales, pero sus ángulos no siempre son rectos", d: ["3 lados", "siempre 4 ángulos rectos"], m: "El rombo tiene 4 lados iguales; sus ángulos son rectos solo si es un cuadrado." },
+  { q: "Una figura con 4 lados iguales Y 4 ángulos rectos es un…", ok: "cuadrado", d: ["rombo", "rectángulo"], m: "Lados iguales + ángulos rectos = cuadrado." },
+  { q: "El rectángulo y el cuadrado siempre tienen…", ok: "4 ángulos rectos", d: ["lados curvos", "3 lados"], m: "Ambos tienen sus 4 ángulos rectos (de 90°)." },
+  { q: "El cuadrado es un caso especial de…", ok: "rectángulo y de rombo a la vez", d: ["triángulo", "círculo"], m: "El cuadrado tiene ángulos rectos (como el rectángulo) y lados iguales (como el rombo)." },
+  { q: "Los lados opuestos de un rectángulo son…", ok: "paralelos e iguales entre sí", d: ["todos distintos", "curvos"], m: "En el rectángulo los lados opuestos son paralelos y del mismo largo." },
+  { q: "Si un cuadrilátero tiene los 4 lados iguales, seguro es un…", ok: "rombo (o cuadrado)", d: ["trapecio", "rectángulo alargado"], m: "4 lados iguales = rombo; si además tiene ángulos rectos, es cuadrado." },
+  { q: "¿Qué figura tiene 4 lados que pueden ser de distinto largo?", ok: "El cuadrilátero en general", d: ["El cuadrado", "El círculo"], m: "Un cuadrilátero cualquiera solo necesita tener 4 lados, no importa el largo." },
 ];
 GAMES.cuadrilateros = juegoTriviaBanco(CUADRI_BANCO, "cuadri");
 const ORG_NAC_BANCO = [
