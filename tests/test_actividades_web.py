@@ -885,3 +885,16 @@ def test_probabilidad_sucesos_6to():
     assert any(m["id"] == "probabilidad_sucesos" for m in menu), "falta probabilidad_sucesos en 6°"
     iconos = [m["icono"] for m in menu]
     assert len(iconos) == len(set(iconos)), "íconos repetidos en 6°"
+
+
+def test_pubertad_6to_esi():
+    """Pubertad / reproducción humana en 6° (docs/auditoria-dc-caba/grado-6.md gap #4:
+    Naturales+ESI, área troncal ausente). Contenido escolar factual. Debe estar en 6°
+    (edad 11) y NO en 5° ni 7°, sin colisión de íconos."""
+    for edad in (9, 10, 12):
+        ids = {m["id"] for m in aw._menu(aw._banda(edad), edad)}
+        assert "pubertad" not in ids, f"pubertad no debería estar en edad {edad}"
+    menu = aw._menu(aw._banda(11), 11)
+    assert any(m["id"] == "pubertad" for m in menu), "falta pubertad en 6°"
+    iconos = [m["icono"] for m in menu]
+    assert len(iconos) == len(set(iconos)), "íconos repetidos en 6°"

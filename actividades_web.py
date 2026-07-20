@@ -534,6 +534,10 @@ def _menu(banda, edad):
         # Bimestre 4: energía renovable + polígonos.
         # rondas=10 (14-jul-2026): ENERGIA_BANCO creció de 7 a 10.
         g.append({"id": "energia_renovable", "titulo": "¿Renovable o no?", "icono": "⚡", "cfg": {"rondas": 10}})
+        # Pubertad / reproducción humana (Naturales + ESI) — docs/auditoria-dc-caba/
+        # grado-6.md, gap #4: área troncal ausente. Contenido escolar factual:
+        # cambios de la pubertad, higiene, reproducción básica y cuidado del cuerpo.
+        g.append({"id": "pubertad", "titulo": "Crecer y cambiar", "icono": "🌱", "cfg": {"rondas": 10}})
         # rondas=10 (14-jul-2026): POLIGONOS_BANCO creció de 6 a 10.
         g.append({"id": "poligonos_lados", "titulo": "¿Cuántos lados tiene?", "icono": "⬡", "cfg": {"rondas": 10}})
         # ── Rollout DC CABA · 6° grado (19-jul-2026, docs/auditoria-dc-caba/
