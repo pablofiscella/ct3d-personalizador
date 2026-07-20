@@ -5518,6 +5518,19 @@ const HOMOFONOS_BANCO = [
   { q: "Completá: El agua pasa por el … de la pileta.", ok: "tubo", d: ["tuvo"], m: "«tubo» es un caño; «tuvo» es del verbo tener." },
   { q: "Completá: — ¿Venís? — ¡… , claro!", ok: "sí", d: ["si"], m: "«sí» (afirmación) lleva tilde; «si» (condición) no." },
   { q: "Completá: No sé … voy a poder ir.", ok: "si", d: ["sí"], m: "«si» condicional va sin tilde; «sí» afirmación lleva tilde." },
+  // ampliado 20-jul-2026 (de 8 a 20 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { q: "Completá: Ya está … la tarea.", ok: "hecho", d: ["echo"], m: "«hecho» es del verbo hacer; «echo» es de echar (tirar)." },
+  { q: "Completá: Yo te … de menos.", ok: "echo", d: ["hecho"], m: "«echo de menos» es del verbo echar; «hecho» es de hacer." },
+  { q: "Completá: Espero que le … bien en la prueba.", ok: "vaya", d: ["valla"], m: "«vaya» es del verbo ir; «valla» es una cerca." },
+  { q: "Completá: El caballo saltó la … del corral.", ok: "valla", d: ["vaya"], m: "«valla» es la cerca u obstáculo; «vaya» es del verbo ir." },
+  { q: "Completá: Le dije «…» al vecino.", ok: "hola", d: ["ola"], m: "«hola» es el saludo; «ola» es la del mar." },
+  { q: "Completá: Vivo en una … con jardín.", ok: "casa", d: ["caza"], m: "«casa» es la vivienda; «caza» es de cazar animales." },
+  { q: "Completá: ¿Lo … desde acá?", ok: "ves", d: ["vez"], m: "«ves» es del verbo ver; «vez» es una ocasión (una vez)." },
+  { q: "Completá: Cayó un … en la tormenta.", ok: "rayo", d: ["rallo"], m: "«rayo» es el de la tormenta; «rallo» es de rallar queso." },
+  { q: "Completá: ¿Ya … terminado la tarea?", ok: "has", d: ["as"], m: "«has» es del verbo haber (has comido); «as» es la carta o un campeón." },
+  { q: "Completá: La … sube por el tronco del árbol.", ok: "savia", d: ["sabia"], m: "«savia» es el líquido del árbol; «sabia» es una mujer que sabe mucho." },
+  { q: "Completá: Hay que … en las elecciones.", ok: "votar", d: ["botar"], m: "«votar» es elegir en elecciones; «botar» es tirar algo." },
+  { q: "Completá: Vivo en el … piso (el número 6).", ok: "sexto", d: ["cesto"], m: "«sexto» es el número; «cesto» es la canasta." },
 ];
 GAMES.homofonos = juegoTriviaBanco(HOMOFONOS_BANCO, "homof");
 const SIGLOXX_BANCO = [
