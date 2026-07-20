@@ -6160,6 +6160,11 @@ const CONDUCTOR_BANCO = [
   // (¿se calienta rápido?), no electricidad — mismo criterio "cocina"
   // que el resto del banco.
   { e: "🔪", cat: "conductor" }, { e: "🧤", cat: "aislante" },
+  // ampliado 20-jul-2026 (de 10 a 20 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { e: "🪙", cat: "conductor" }, { e: "⛓️", cat: "conductor" }, { e: "🔩", cat: "conductor" },
+  { e: "🥘", cat: "conductor" }, { e: "🍴", cat: "conductor" },
+  { e: "🪵", cat: "aislante" }, { e: "🧶", cat: "aislante" }, { e: "🧣", cat: "aislante" },
+  { e: "🧸", cat: "aislante" }, { e: "🎋", cat: "aislante" },
 ];
 GAMES.conductor_aislante = {
   crear(ctx) {
