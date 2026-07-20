@@ -7848,9 +7848,11 @@ GAMES.programar_camino = {
     if (!labs.length) { ctx.rondas(0); ctx.win(); return; }
     ctx.rondas(labs.length);
     // Progresión de Programación por grado (docs/auditoria-dc-caba/): 1°-2°
-    // SECUENCIA (F/L/R); desde 3° (edad≥8) se habilita el BUCLE (repetir ×N) —
-    // el 1er hito de la progresión secuencia→bucle→condicional.
+    // SECUENCIA (F/L/R); desde 3° (edad≥8) el BUCLE (repetir ×N); desde 5°
+    // (edad≥10) el CONDICIONAL "⏩ avanzar hasta la pared" (avanza MIENTRAS haya
+    // camino) — los hitos secuencia→bucle→condicional del DC.
     const conBucle = ((D.edad | 0) >= 8);
+    const conCondicional = ((D.edad | 0) >= 10);
     const ORDEN = ["E", "S", "W", "N"];
     const DELTA = { E: [1, 0], S: [0, 1], W: [-1, 0], N: [0, -1] };
     const DEG = { N: 0, E: 90, S: 180, W: 270 };
@@ -7858,9 +7860,11 @@ GAMES.programar_camino = {
     let nivel = 0;
     const arrancar = () => {
       ctx.ronda(nivel);
-      ctx.consigna(conBucle
-        ? "Armá el programa (usá 🔁 para repetir sin escribir tanto) y apretá Jugar"
-        : "Armá el programa y apretá Jugar para ver el recorrido");
+      ctx.consigna(conCondicional
+        ? "Armá el programa: 🔁 repite y ⏩ avanza hasta la pared. Apretá Jugar."
+        : conBucle
+          ? "Armá el programa (usá 🔁 para repetir sin escribir tanto) y apretá Jugar"
+          : "Armá el programa y apretá Jugar para ver el recorrido");
       ctx.juego.innerHTML = "";
       const lab = labs[nivel];
       const n = lab.n, C = 64, M = 10, S = n * C + M * 2;
@@ -7920,7 +7924,7 @@ GAMES.programar_camino = {
 
       let programa = [];   // items: { c: "F"|"L"|"R", n: veces }
       let jugando = false;
-      const ICONOS = { F: "⬆️", L: "↩️", R: "↪️" };
+      const ICONOS = { F: "⬆️", L: "↩️", R: "↪️", H: "⏩" };
       const cola = el("div", "programaCola");
       const pintarCola = () => {
         cola.innerHTML = programa.length
@@ -7940,6 +7944,15 @@ GAMES.programar_camino = {
         });
         filaInstr.appendChild(b);
       });
+      if (conCondicional) {   // CONDICIONAL: ⏩ avanza MIENTRAS haya camino (hasta la pared)
+        const bH = el("button", "spriteBtn", `<span style="font-size:15px;font-family:'Baloo',sans-serif">⏩ Hasta la pared</span>`);
+        bH.addEventListener("click", () => {
+          if (jugando) return;
+          programa.push({ c: "H", n: 1 });
+          pintarCola();
+        });
+        filaInstr.appendChild(bH);
+      }
       if (conBucle) {   // BUCLE: 🔁 repite la ÚLTIMA instrucción una vez más (F → F×2 → F×3…)
         const bRep = el("button", "spriteBtn", `<span style="font-size:15px;font-family:'Baloo',sans-serif">🔁 Repetir</span>`);
         bRep.addEventListener("click", () => {
@@ -7985,6 +7998,19 @@ GAMES.programar_camino = {
                 break prog;
               }
               cur = { x: nx, y: ny, dir: cur.dir };
+            }
+            else if (instr.c === "H") {   // CONDICIONAL: avanzar mientras haya camino (hasta la pared)
+              let pasos = 0;
+              while (abierta(cur.x, cur.y, cur.dir)) {
+                const [dx, dy] = DELTA[cur.dir];
+                const nx = cur.x + dx, ny = cur.y + dy;
+                if (nx < 0 || ny < 0 || nx >= n || ny >= n) break;
+                cur = { x: nx, y: ny, dir: cur.dir };
+                ubicar();
+                if (cur.x === n - 1 && cur.y === n - 1) break;   // llegó a la ⭐
+                if (++pasos > n * n) break;                      // tope defensivo
+                await espera(400);
+              }
             }
             ubicar();
           }
