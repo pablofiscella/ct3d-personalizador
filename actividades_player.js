@@ -9161,6 +9161,19 @@ const SUFRAGIO_BANCO = [
   { afirmacion: "La Ley Sáenz Peña de 1912 les dio el derecho a votar a las mujeres", val: false },
   { afirmacion: "El voto es obligatorio en Argentina desde la Ley Sáenz Peña de 1912", val: true },
   { afirmacion: "En Argentina votar es opcional: cada persona elige si quiere hacerlo", val: false },
+  // ampliado 20-jul-2026 (de 10 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { afirmacion: "Hoy en Argentina el voto es secreto", val: true },
+  { afirmacion: "Antes de 1912 había fraude y el voto no era secreto", val: true },
+  { afirmacion: "La Ley Sáenz Peña se sancionó en 1912", val: true },
+  { afirmacion: "Las mujeres votaron por primera vez en Argentina en 1951", val: true },
+  { afirmacion: "Hoy en Argentina solo pueden votar los hombres", val: false },
+  { afirmacion: "En una democracia, el pueblo elige a sus representantes", val: true },
+  { afirmacion: "En una dictadura el pueblo elige libremente a sus gobernantes", val: false },
+  { afirmacion: "Se puede votar desde los 16 años en Argentina", val: true },
+  { afirmacion: "El voto de cada persona vale lo mismo", val: true },
+  { afirmacion: "En las elecciones se cuenta cada voto para saber quién ganó", val: true },
+  { afirmacion: "Votar es un derecho de los ciudadanos", val: true },
+  { afirmacion: "La Ley Sáenz Peña hizo que el voto fuera secreto y obligatorio", val: true },
 ];
 GAMES.sufragio_argentina = {
   crear(ctx) {
