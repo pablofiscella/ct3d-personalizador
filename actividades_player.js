@@ -6904,6 +6904,11 @@ const ABSTRACTOS_BANCO = [
   { p: "Pelota", tipo: "concreto" },
   // agregados 14-jul-2026 (banco ampliado de 8 a 10).
   { p: "Justicia", tipo: "abstracto" }, { p: "Silla", tipo: "concreto" },
+  // ampliado 20-jul-2026 (de 10 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { p: "Miedo", tipo: "abstracto" }, { p: "Paz", tipo: "abstracto" }, { p: "Verdad", tipo: "abstracto" },
+  { p: "Tristeza", tipo: "abstracto" }, { p: "Valentía", tipo: "abstracto" }, { p: "Esperanza", tipo: "abstracto" },
+  { p: "Zapato", tipo: "concreto" }, { p: "Nube", tipo: "concreto" }, { p: "Bicicleta", tipo: "concreto" },
+  { p: "Manzana", tipo: "concreto" }, { p: "Lápiz", tipo: "concreto" }, { p: "Ventana", tipo: "concreto" },
 ];
 GAMES.abstractos_concretos = {
   crear(ctx) {
