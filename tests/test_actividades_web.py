@@ -911,3 +911,16 @@ def test_suma_angulos_6to():
     assert any(m["id"] == "suma_angulos" for m in menu), "falta suma_angulos en 6°"
     iconos = [m["icono"] for m in menu]
     assert len(iconos) == len(set(iconos)), "íconos repetidos en 6°"
+
+
+def test_proporcionalidad_7mo():
+    """Proporcionalidad directa e inversa en 7° (docs/auditoria-dc-caba/grado-7.md gap
+    #5: la inversa es contenido nuevo y nodal de 7°). Debe estar en 7° (edad 12) y NO
+    en 6° ni menos, sin colisión de íconos."""
+    for edad in (10, 11):
+        ids = {m["id"] for m in aw._menu(aw._banda(edad), edad)}
+        assert "proporcionalidad" not in ids, f"no debería estar en edad {edad}"
+    menu = aw._menu(aw._banda(12), 12)
+    assert any(m["id"] == "proporcionalidad" for m in menu), "falta proporcionalidad en 7°"
+    iconos = [m["icono"] for m in menu]
+    assert len(iconos) == len(set(iconos)), "íconos repetidos en 7°"
