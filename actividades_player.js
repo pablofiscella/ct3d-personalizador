@@ -5331,6 +5331,19 @@ const DEC_FRAC_BANCO = [
   { q: "0,1 es igual a la fracción…", ok: "1/10", d: ["1/100", "10/1"], m: "0,1 es un décimo = 1/10." },
   { q: "0,50 y 0,5, ¿son iguales?", ok: "Sí, son iguales", d: ["No, 0,50 es más", "No, 0,5 es más"], m: "0,50 = 0,5: los ceros a la derecha después de la coma no cambian el valor." },
   { q: "9/100 escrito como decimal es…", ok: "0,09", d: ["0,9", "9,00"], m: "9/100 son 9 centésimos = 0,09." },
+  // ampliado 20-jul-2026 (de 10 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { q: "0,4 es igual a la fracción…", ok: "2/5", d: ["4/1", "1/4"], m: "0,4 = 4/10, y simplificando queda 2/5." },
+  { q: "0,6 es igual a la fracción…", ok: "3/5", d: ["6/1", "1/6"], m: "0,6 = 6/10, y simplificando queda 3/5." },
+  { q: "2/5 escrito como decimal es…", ok: "0,4", d: ["0,25", "5,2"], m: "2 dividido 5 da 0,4." },
+  { q: "0,8 es igual a la fracción…", ok: "4/5", d: ["8/1", "1/8"], m: "0,8 = 8/10, y simplificando queda 4/5." },
+  { q: "3/4 escrito como decimal es…", ok: "0,75", d: ["0,34", "4,3"], m: "3 dividido 4 da 0,75." },
+  { q: "0,05 es igual a la fracción…", ok: "1/20", d: ["1/5", "5/10"], m: "0,05 = 5/100, y simplificando queda 1/20." },
+  { q: "0,01 es igual a la fracción…", ok: "1/100", d: ["1/10", "100/1"], m: "0,01 es un centésimo = 1/100." },
+  { q: "1/10 escrito como decimal es…", ok: "0,1", d: ["1,0", "0,01"], m: "1 dividido 10 da 0,1 (un décimo)." },
+  { q: "0,2 es igual a la fracción…", ok: "1/5", d: ["1/2", "5/1"], m: "0,2 = 2/10, y simplificando queda 1/5." },
+  { q: "1/5 escrito como decimal es…", ok: "0,2", d: ["0,5", "0,15"], m: "1 dividido 5 da 0,2." },
+  { q: "0,5 y 1/2 son…", ok: "lo mismo: la mitad", d: ["distintos", "0,5 es mayor"], m: "0,5 y 1/2 son dos formas de escribir la mitad." },
+  { q: "¿Cuál es MAYOR: 0,5 o 0,25?", ok: "0,5", d: ["0,25", "son iguales"], m: "0,5 es la mitad y 0,25 es un cuarto: la mitad es mayor." },
 ];
 GAMES.decimales_fraccion = {
   crear(ctx) {
