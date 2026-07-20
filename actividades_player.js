@@ -6830,6 +6830,100 @@ GAMES.reloj = {
   },
 };
 
+/* ── ÁRBOL DE PROBABILIDAD (azar y combinatoria, 6°-7° — docs/auditoria-dc-caba/:
+   nociones de probabilidad + diagrama de árbol + principio multiplicativo; faltaba
+   entero). Dibuja el DIAGRAMA DE ÁRBOL de un experimento de 2 etapas (elegí A y B)
+   y el chico lee de ahí. Dos modos: (1) contar los resultados posibles (principio
+   multiplicativo a×b) y (2) probabilidad simple de una hoja (1 en a×b, con el
+   camino resaltado). Ataca LA misconception: SUMAR (a+b) en vez de multiplicar. Los
+   escenarios evitan 2×2 (ahí a+b=a×b y el distractor coincidiría con la respuesta).
+   Capa 0 C3: el error se explica sobre las HOJAS del árbol. ── */
+const ARBOL_ESCENAS = [
+  { a: { t: "remera", op: ["roja", "azul", "verde"] }, b: { t: "gorra", op: ["negra", "blanca"] } },
+  { a: { t: "sabor", op: ["chocolate", "frutilla", "limón"] }, b: { t: "cucurucho", op: ["simple", "doble"] } },
+  { a: { t: "jugo", op: ["naranja", "manzana"] }, b: { t: "galleta", op: ["dulce", "salada", "de agua"] } },
+  { a: { t: "entrada", op: ["empanada", "tarta"] }, b: { t: "postre", op: ["flan", "helado", "fruta"] } },
+  { a: { t: "media", op: ["blanca", "negra", "a rayas"] }, b: { t: "zapatilla", op: ["roja", "azul", "verde"] } },
+  { a: { t: "color", op: ["rojo", "verde", "azul", "amarillo"] }, b: { t: "moneda", op: ["cara", "cruz"] } },
+];
+GAMES.arbol_probabilidad = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 8;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.juego.innerHTML = "";
+      const esc = ARBOL_ESCENAS[rint(0, ARBOL_ESCENAS.length - 1)];
+      const A = esc.a.op, B = esc.b.op, a = A.length, b = B.length, total = a * b;
+      const modo = rint(0, 1) === 0 ? "contar" : "prob";
+      const hi = rint(0, a - 1), hj = rint(0, b - 1);   // hoja resaltada (modo prob)
+
+      const W = 380, rowH = 30, topPad = 20;
+      const Hsvg = topPad * 2 + total * rowH;
+      const xr = 22, x1 = 132, x2 = 230;
+      const yRoot = Hsvg / 2;
+      let s = '<svg viewBox="0 0 ' + W + ' ' + Hsvg + '" class="arbol-svg" data-answer="'
+        + (modo === "contar" ? total : "1 en " + total) + '" data-modo="' + modo + '">';
+      s += '<circle cx="' + xr + '" cy="' + yRoot.toFixed(1) + '" r="6" class="arbol-nodo"/>';
+      for (let i = 0; i < a; i++) {
+        const yi = topPad + (Hsvg - topPad * 2) * (i + 0.5) / a;
+        const on1 = (modo === "prob" && i === hi);
+        s += '<line x1="' + xr + '" y1="' + yRoot.toFixed(1) + '" x2="' + x1 + '" y2="' + yi.toFixed(1) + '" class="arbol-rama' + (on1 ? " on" : "") + '"/>';
+        s += '<circle cx="' + x1 + '" cy="' + yi.toFixed(1) + '" r="5" class="arbol-nodo"/>';
+        s += '<text x="' + (x1 - 8) + '" y="' + (yi - 6).toFixed(1) + '" class="arbol-lbl a">' + A[i] + '</text>';
+        for (let j = 0; j < b; j++) {
+          const leafIdx = i * b + j;
+          const yl = topPad + (Hsvg - topPad * 2) * (leafIdx + 0.5) / total;
+          const on = (modo === "prob" && i === hi && j === hj);
+          s += '<line x1="' + x1 + '" y1="' + yi.toFixed(1) + '" x2="' + x2 + '" y2="' + yl.toFixed(1) + '" class="arbol-rama' + (on ? " on" : "") + '"/>';
+          s += '<circle cx="' + x2 + '" cy="' + yl.toFixed(1) + '" r="4" class="arbol-hoja' + (on ? " on" : "") + '"/>';
+          s += '<text x="' + (x2 + 8) + '" y="' + (yl + 4).toFixed(1) + '" class="arbol-lbl leaf' + (on ? " on" : "") + '">' + A[i] + " + " + B[j] + '</text>';
+        }
+      }
+      s += '</svg>';
+      const arriba = el("div", "tablero arbol-wrap"); arriba.innerHTML = s;
+      ctx.juego.appendChild(arriba);
+
+      if (modo === "contar")
+        ctx.consigna("¿Cuántas combinaciones distintas de " + esc.a.t + " y " + esc.b.t + " se pueden armar?");
+      else
+        ctx.consigna("Con los ojos cerrados, ¿qué chance hay de que salga «" + A[hi] + " + " + B[hj] + "»?");
+
+      const ops = [];
+      const add = (v, tag) => { if (ops.length < 3 && !ops.some((o) => o.v === v)) ops.push({ v: v, tag: tag }); };
+      if (modo === "contar") {
+        add(String(total), "ok"); add(String(a + b), "suma"); add(String(total + b), "mis"); add(String(a), "una");
+      } else {
+        add("1 en " + total, "ok"); add("1 en " + (a + b), "suma"); add("1 en " + a, "una"); add("1 en " + b, "otra");
+      }
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(ops).forEach((o) => {
+        const bt = el("button", "op arbol-op", o.v);
+        bt.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.tag === "ok") {
+            resuelto = true; bt.classList.add("bien", "anim-pop"); ctx.bien();
+            ronda++; await espera(850); if (ronda >= rondas) ctx.win(); else jugar();
+          } else if (o.tag === "suma") {
+            bt.classList.add("casi");
+            ctx.casi(modo === "contar"
+              ? "No se suma: por CADA " + esc.a.t + " (" + a + ") hay " + b + " de " + esc.b.t + ", así que son " + a + "×" + b + "=" + total + " (contá las hojas)."
+              : "Mirá las HOJAS del árbol: hay " + total + " finales posibles, no " + (a + b) + ".");
+          } else {
+            bt.classList.add("casi");
+            ctx.casi("Contá las HOJAS del árbol (las puntas de la derecha): son " + total + ".");
+          }
+        });
+        fila.appendChild(bt);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 /* ── PREFIJOS — FORMÁ LA PALABRA NUEVA (14-jul-2026, 4° grado NAP
    Bimestre 4 "Ideas web": "arrastrar prefijos y sufijos para formar
    palabras nuevas"). Mismo patrón tap-en-orden que armar_palabra/
