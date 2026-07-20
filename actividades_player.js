@@ -3298,6 +3298,103 @@ const HISTORIA_ORDEN_BANCO = [
 ];
 GAMES.historia_orden = juegoOrdenar(HISTORIA_ORDEN_BANCO, "Ordená el cuento: ¿qué pasó primero? Tocá en orden.", "Pensá: primero cómo empieza, después el problema, y al final cómo se resuelve.", "historia_orden");
 
+/* ── PUEBLOS ORIGINARIOS Y LA COLONIA (4° grado — docs/auditoria-dc-caba/grado-4.md,
+   gap #4: "Ciencias Sociales histórico completo — originarios → conquista → colonia
+   → fundaciones de Buenos Aires: CERO actividades"). linea_tiempo ya ORDENA la
+   cronología; esto enseña el CONTENIDO (quiénes eran, qué pasó, por qué). Trivia de
+   opción múltiple con distractores por misconception (Capa 0 · C4) y explicación del
+   porqué en cada error (Capa 0 · C3). La opción correcta es siempre ops[0]; se
+   barajan al mostrar. Contenido curado, históricamente correcto y a nivel 9 años. ── */
+const HISTORIA4_BANCO = [
+  { q: "¿Quiénes vivían en nuestro territorio ANTES de que llegaran los españoles?",
+    ops: ["Los pueblos originarios, como diaguitas, guaraníes y tehuelches", "Los españoles", "No vivía nadie, estaba vacío"],
+    m: "Mucho antes de los españoles ya vivían acá los pueblos originarios: diaguitas, guaraníes, tehuelches y muchos más." },
+  { q: "Los diaguitas vivían en los cerros del noroeste. ¿A qué se dedicaban?",
+    ops: ["Cultivaban maíz en terrazas en las laderas", "Cazaban ballenas en el mar", "Fabricaban autos de metal"],
+    m: "Los diaguitas eran agricultores: armaban terrazas en los cerros para cultivar maíz y zapallo." },
+  { q: "Los tehuelches vivían en la Patagonia. Eran un pueblo…",
+    ops: ["Nómade: cazaban guanacos y se trasladaban", "Que vivía siempre en casas de piedra", "De navegantes que cruzaban el océano"],
+    m: "Los tehuelches eran nómades: se movían de un lugar a otro siguiendo a los guanacos que cazaban." },
+  { q: "¿Qué quiere decir que un pueblo era «nómade»?",
+    ops: ["Que se trasladaba de un lugar a otro", "Que vivía siempre en el mismo lugar", "Que no tenía jefes ni familias"],
+    m: "Nómade = que no vive fijo en un lugar, sino que se traslada buscando comida." },
+  { q: "¿En qué año llegó Cristóbal Colón a América?",
+    ops: ["En 1492", "En 1810", "En 1776"],
+    m: "Colón llegó a América en 1492. (En 1810 fue la Revolución de Mayo, mucho después.)" },
+  { q: "¿Qué buscaba Colón cuando cruzó el océano?",
+    ops: ["Un camino a Asia navegando hacia el oeste", "El Polo Sur", "Oro en la Luna"],
+    m: "Colón quería llegar a Asia (las Indias) por el mar hacia el oeste, y sin querer se encontró con América." },
+  { q: "¿Cómo se llama la etapa en que los españoles dominaron por la fuerza a los pueblos originarios?",
+    ops: ["La conquista", "La independencia", "La excursión"],
+    m: "Se llama la conquista: los españoles ocuparon el territorio y sometieron a los pueblos originarios." },
+  { q: "¿Qué les dio ventaja a los españoles en la conquista?",
+    ops: ["Las armas de fuego y los caballos", "Que eran muchísimos más", "Que hablaban el mismo idioma que los originarios"],
+    m: "Los españoles trajeron caballos y armas de fuego, que los pueblos originarios no conocían." },
+  { q: "Durante la época colonial, ¿quién gobernaba nuestro territorio?",
+    ops: ["El rey de España, a través de sus autoridades", "Un presidente elegido por el pueblo", "Los caciques de los pueblos originarios"],
+    m: "En la colonia mandaba el rey de España desde muy lejos, con autoridades que lo representaban acá." },
+  { q: "En la época colonial, el Cabildo era…",
+    ops: ["El gobierno de la ciudad", "Una iglesia muy grande", "Un barco español"],
+    m: "El Cabildo era el gobierno de la ciudad: se ocupaba de la limpieza, los precios y el orden." },
+  { q: "¿Qué era una pulpería en la época colonial?",
+    ops: ["Una tienda donde se vendía de todo y se juntaba la gente", "Una fábrica de pelotas", "Una escuela de música"],
+    m: "La pulpería era el almacén del pueblo: se compraba de todo y la gente se reunía a charlar." },
+  { q: "¿Quiénes eran los «criollos» en la colonia?",
+    ops: ["Los hijos de españoles nacidos en América", "Los reyes que vivían en España", "Los pueblos originarios de la selva"],
+    m: "Criollos eran los hijos de españoles pero nacidos acá, en América." },
+  { q: "¿Por qué Buenos Aires se tuvo que fundar DOS veces?",
+    ops: ["La primera fundación fracasó y se abandonó; se fundó de nuevo más tarde", "Porque a nadie le gustaba el nombre", "Porque la ciudad se mudó de provincia"],
+    m: "La 1ª fundación (1536) fracasó por el hambre y los ataques, y la abandonaron. Recién en 1580 se fundó de nuevo y quedó." },
+  { q: "¿Quién hizo la PRIMERA fundación de Buenos Aires, en 1536?",
+    ops: ["Pedro de Mendoza", "Juan de Garay", "Cristóbal Colón"],
+    m: "Pedro de Mendoza fundó Buenos Aires por primera vez en 1536, pero esa ciudad no sobrevivió." },
+  { q: "¿Quién fundó Buenos Aires por SEGUNDA vez, en 1580?",
+    ops: ["Juan de Garay", "Pedro de Mendoza", "José de San Martín"],
+    m: "Juan de Garay volvió a fundar Buenos Aires en 1580, y esta vez la ciudad quedó para siempre." },
+];
+GAMES.historia_originarios = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 8;
+    ctx.rondas(rondas);
+    let usados = [], ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("Elegí la respuesta correcta.");
+      ctx.juego.innerHTML = "";
+      let libres = HISTORIA4_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
+      if (!libres.length) { usados = []; libres = HISTORIA4_BANCO.map((_, i) => i); }
+      const idx = libres[rint(0, libres.length - 1)];
+      usados.push(idx);
+      const item = HISTORIA4_BANCO[idx];
+      ctx.item("historia4#" + idx);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:21px;font-family:'Baloo',sans-serif">${item.q}</span>`));
+      ctx.juego.appendChild(arriba);
+      const correcta = item.ops[0];
+      const fila = el("div", "opsTexto");
+      fila.setAttribute("data-ok", correcta);
+      let resuelto = false;
+      shuffle(item.ops).forEach((op) => {
+        const b = el("button", "op-texto", op);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (op === correcta) {
+            resuelto = true; b.classList.add("bien", "anim-pop"); ctx.bien();
+            ronda++; await espera(950);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          } else {
+            b.classList.add("casi"); ctx.casi(item.m);
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 /* ── MECÁNICA NUEVA: RECTA NUMÉRICA (M1 "Recta gigante", 4° grado) — 19-jul-2026,
    otra mecánica que el motor no tenía (docs/auditoria-dc-caba/). Ubicar un número
    en la recta: la recta se parte en 10 zonas y el chico toca la zona donde cae el
