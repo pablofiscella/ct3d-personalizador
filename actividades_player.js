@@ -7181,6 +7181,14 @@ const PROVINCIAS_BANCO = [
   { p: "Buenos Aires", region: "Centro" }, { p: "Córdoba", region: "Centro" }, { p: "Santa Fe", region: "Centro" },
   { p: "Mendoza", region: "Cuyo" }, { p: "San Juan", region: "Cuyo" },
   { p: "Chubut", region: "Patagonia" }, { p: "Santa Cruz", region: "Patagonia" },
+  // ampliado 20-jul-2026 (de 10 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/;
+  // mismo esquema simplificado de 4 regiones que ya usaba el banco, con Misiones→Norte)
+  { p: "Tucumán", region: "Norte" }, { p: "Santiago del Estero", region: "Norte" },
+  { p: "Catamarca", region: "Norte" }, { p: "Corrientes", region: "Norte" },
+  { p: "Chaco", region: "Norte" }, { p: "La Rioja", region: "Norte" },
+  { p: "Entre Ríos", region: "Centro" }, { p: "La Pampa", region: "Centro" },
+  { p: "San Luis", region: "Cuyo" },
+  { p: "Río Negro", region: "Patagonia" }, { p: "Neuquén", region: "Patagonia" }, { p: "Tierra del Fuego", region: "Patagonia" },
 ];
 GAMES.provincias_region = {
   crear(ctx) {
