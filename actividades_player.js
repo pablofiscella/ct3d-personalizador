@@ -2346,6 +2346,11 @@ const CAMPO_CIUDAD_BANCO = [
   { e: "🐓", cat: "campo" }, { e: "🐖", cat: "campo" },
   { e: "🏢", cat: "ciudad" }, { e: "🚦", cat: "ciudad" }, { e: "🚌", cat: "ciudad" },
   { e: "🏬", cat: "ciudad" }, { e: "🚕", cat: "ciudad" },
+  // ampliado 20-jul-2026 (de 10 a 20 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { e: "🐔", cat: "campo" }, { e: "🐑", cat: "campo" }, { e: "🌻", cat: "campo" },
+  { e: "🍅", cat: "campo" }, { e: "🐴", cat: "campo" },
+  { e: "🏙️", cat: "ciudad" }, { e: "🚇", cat: "ciudad" }, { e: "🏨", cat: "ciudad" },
+  { e: "🚧", cat: "ciudad" }, { e: "🏭", cat: "ciudad" },
 ];
 GAMES.campo_ciudad = {
   crear(ctx) {
