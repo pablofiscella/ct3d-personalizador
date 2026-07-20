@@ -5737,6 +5737,19 @@ const LETRA_INICIAL_BANCO = [
   { q: "¿Con qué letra empieza «nube»?", ok: "N", d: ["M", "U"], m: "«nube» empieza con el sonido /n/: la letra N." },
   { q: "¿Con qué letra empieza «bota»?", ok: "B", d: ["P", "D"], m: "«bota» empieza con el sonido /b/: la letra B." },
   { q: "¿Con qué letra empieza «tren»?", ok: "T", d: ["D", "R"], m: "«tren» empieza con el sonido /t/: la letra T." },
+  // ampliado 20-jul-2026 (de 12 a 24 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { q: "¿Con qué letra empieza «jugo»?", ok: "J", d: ["G", "U"], m: "«jugo» empieza con el sonido /j/: la letra J." },
+  { q: "¿Con qué letra empieza «vaca»?", ok: "V", d: ["B", "F"], m: "«vaca» se escribe con V." },
+  { q: "¿Con qué letra empieza «zapato»?", ok: "Z", d: ["S", "P"], m: "«zapato» se escribe con Z." },
+  { q: "¿Con qué letra empieza «niño»?", ok: "N", d: ["M", "Ñ"], m: "«niño» empieza con N (la Ñ está en el medio)." },
+  { q: "¿Con qué letra empieza «oso»?", ok: "O", d: ["S", "U"], m: "«oso» empieza con la vocal O." },
+  { q: "¿Con qué letra empieza «isla»?", ok: "I", d: ["E", "L"], m: "«isla» empieza con la vocal I." },
+  { q: "¿Con qué letra empieza «elefante»?", ok: "E", d: ["A", "L"], m: "«elefante» empieza con la vocal E." },
+  { q: "¿Con qué letra empieza «camión»?", ok: "C", d: ["K", "M"], m: "«camión» empieza con el sonido /k/ escrito con C." },
+  { q: "¿Con qué letra empieza «queso»?", ok: "Q", d: ["C", "K"], m: "«queso» se escribe con QU: empieza con la letra Q." },
+  { q: "¿Con qué letra empieza «árbol»?", ok: "A", d: ["E", "R"], m: "«árbol» empieza con la vocal A (con tilde)." },
+  { q: "¿Con qué letra empieza «pelota»?", ok: "P", d: ["B", "L"], m: "«pelota» empieza con el sonido /p/: la letra P." },
+  { q: "¿Con qué letra empieza «tigre»?", ok: "T", d: ["D", "G"], m: "«tigre» empieza con el sonido /t/: la letra T." },
 ];
 GAMES.letra_inicial = juegoTriviaBanco(LETRA_INICIAL_BANCO, "letraini");
 
