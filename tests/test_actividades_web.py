@@ -772,3 +772,20 @@ def test_dialogo_raya_lengua_4():
     assert any(m["id"] == "dialogo_raya" for m in menu), "falta dialogo_raya en 4°"
     iconos = [m["icono"] for m in menu]
     assert len(iconos) == len(set(iconos)), "íconos repetidos en 4°"
+
+
+def test_conectores_4to_nivel_simple():
+    """Conectores en 4° (docs/auditoria-dc-caba/grado-4.md gap #3): se agrega con
+    nivel 1 (subconjunto simple, sin adversativos cargados que quedan para 5°+).
+    Ícono propio (🔗 ya lo usa prefijos_sufijos en 4°). 5°-7° lo conservan sin
+    nivel (→ banco completo, comportamiento intacto)."""
+    menu4 = aw._menu(aw._banda(9), 9)
+    c4 = next((m for m in menu4 if m["id"] == "conectores"), None)
+    assert c4 is not None, "falta conectores en 4°"
+    assert c4["cfg"].get("nivel") == 1, "conectores de 4° debe ser nivel 1 (simple)"
+    iconos4 = [m["icono"] for m in menu4]
+    assert len(iconos4) == len(set(iconos4)), "íconos repetidos en 4°"
+    # 5°-7° conservan conectores SIN nivel (banco completo, sin regresión)
+    for edad in (10, 11, 12):
+        c = next((m for m in aw._menu(aw._banda(edad), edad) if m["id"] == "conectores"), None)
+        assert c is not None and "nivel" not in c["cfg"], f"conectores de edad {edad} no debe tener nivel"
