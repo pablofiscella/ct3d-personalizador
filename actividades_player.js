@@ -10091,6 +10091,17 @@ const ESCAPE_ROOM_BANCO = [
   // agregados 14-jul-2026 (banco ampliado de 8 a 10).
   { texto: "¿Cuál es la fórmula de 'el doble de un número'?", correcta: "2x", d1: "x/2", d2: "x+2" },
   { texto: "¿Qué gas liberan las plantas durante la fotosíntesis?", correcta: "Oxígeno", d1: "Dióxido de carbono", d2: "Nitrógeno" },
+  // ampliado 20-jul-2026 (de 10 a 20 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { texto: "¿Cuál es el máximo común divisor de 12 y 18?", correcta: "6", d1: "36", d2: "2" },
+  { texto: "¿Cuánto es 2 elevado a la 5?", correcta: "32", d1: "10", d2: "25" },
+  { texto: "¿Cuánto suman los ángulos interiores de un triángulo?", correcta: "180°", d1: "360°", d2: "90°" },
+  { texto: "Si 3 kg cuestan $600, ¿cuánto cuestan 5 kg?", correcta: "$1.000", d1: "$900", d2: "$1.200" },
+  { texto: "¿Cuál es el 25% de 200?", correcta: "50", d1: "25", d2: "75" },
+  { texto: "¿Qué órgano bombea la sangre por todo el cuerpo?", correcta: "El corazón", d1: "El pulmón", d2: "El hígado" },
+  { texto: "¿En qué año se declaró la Independencia argentina?", correcta: "1816", d1: "1810", d2: "1853" },
+  { texto: "¿Cuánto es 0,5 + 0,25?", correcta: "0,75", d1: "0,30", d2: "0,7" },
+  { texto: "Si x + 7 = 12, ¿cuánto vale x?", correcta: "5", d1: "19", d2: "7" },
+  { texto: "¿Cuántos lados tiene un hexágono?", correcta: "6", d1: "5", d2: "8" },
 ];
 GAMES.escape_room_egreso = {
   crear(ctx) {
