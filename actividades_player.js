@@ -3544,6 +3544,26 @@ const CIELO_BANCO = [
 ];
 GAMES.cielo = juegoTriviaTexto(CIELO_BANCO, "Elegí la respuesta correcta.", "cielo");
 
+/* ── EL CEREBRO Y LAS DEFENSAS (7° — docs/auditoria-dc-caba/grado-7.md gap #4:
+   sistema nervioso + inmune/vacunas = 0). Trivia de contenido (juegoTriviaTexto). ── */
+const SISNERV_BANCO = [
+  { q: "¿Qué órgano es el «jefe» que controla todo el cuerpo?", ops: ["El cerebro", "El corazón", "El estómago"], m: "El cerebro dirige y controla el cuerpo." },
+  { q: "El cerebro, la médula espinal y los nervios forman el sistema…", ops: ["nervioso", "digestivo", "respiratorio"], m: "Juntos forman el sistema nervioso." },
+  { q: "¿Para qué sirven los nervios?", ops: ["Llevan mensajes entre el cerebro y el resto del cuerpo", "Bombean la sangre", "Digieren la comida"], m: "Los nervios transmiten mensajes hacia y desde el cerebro." },
+  { q: "Sacás la mano rápido al tocar algo caliente. Eso es…", ops: ["un reflejo, para protegerte", "una casualidad", "algo del estómago"], m: "Es un acto reflejo: el cuerpo reacciona rapidísimo para cuidarte." },
+  { q: "Los cinco sentidos mandan la información al…", ops: ["cerebro", "corazón", "hígado"], m: "Los sentidos envían la información al cerebro, que la interpreta." },
+  { q: "¿Qué protege al cerebro?", ops: ["El cráneo (los huesos de la cabeza)", "Solo la piel", "Nada"], m: "El cráneo es una caja de huesos que protege al cerebro." },
+  { q: "Dormir bien es importante porque…", ops: ["el cerebro descansa y se recupera", "no sirve para nada", "hace mal"], m: "Durante el sueño el cerebro descansa y ordena lo aprendido." },
+  { q: "¿Qué son las vacunas?", ops: ["Preparados que enseñan al cuerpo a defenderse de una enfermedad", "Caramelos", "Solo vitaminas para crecer"], m: "La vacuna entrena al cuerpo para defenderse de una enfermedad." },
+  { q: "Las vacunas sirven sobre todo para…", ops: ["prevenir enfermedades antes de que aparezcan", "curar cuando ya estás grave", "nada"], m: "Las vacunas previenen: preparan las defensas ANTES de enfermarte." },
+  { q: "El sistema que nos defiende de los microbios se llama…", ops: ["sistema inmune (o inmunitario)", "sistema nervioso", "sistema óseo"], m: "El sistema inmune combate los microbios que nos enferman." },
+  { q: "Cuando te vacunás, tu cuerpo aprende a fabricar…", ops: ["defensas contra esa enfermedad", "más huesos", "sangre nueva"], m: "El cuerpo genera defensas (anticuerpos) contra esa enfermedad." },
+  { q: "¿Por qué conviene que muchas personas estén vacunadas?", ops: ["Así la enfermedad casi no se puede contagiar", "Solo por moda", "No sirve"], m: "Si la mayoría está vacunada, la enfermedad casi no circula y protege a todos." },
+  { q: "La fiebre suele aparecer cuando…", ops: ["el cuerpo está luchando contra una infección", "tenés hambre", "hace frío afuera"], m: "La fiebre es una señal de que el cuerpo está combatiendo una infección." },
+  { q: "Para cuidar el cerebro conviene…", ops: ["dormir bien y usar casco al andar en bici", "no dormir nunca", "golpearse la cabeza"], m: "Dormir bien y proteger la cabeza (casco) cuidan el sistema nervioso." },
+];
+GAMES.cerebro_defensas = juegoTriviaTexto(SISNERV_BANCO, "Elegí la respuesta correcta.", "cerebro");
+
 /* ── CAMINO A LA INDEPENDENCIA (5° grado — docs/auditoria-dc-caba/grado-5.md, gap
    #3: "ausencia total del proceso 1810-1853 en Sociales — al alumno de 5° se le
    ofrece el contenido de 4° [colonial] y nada del suyo"). Trivia de contenido (reusa

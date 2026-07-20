@@ -596,6 +596,8 @@ def _menu(banda, edad):
         g.append({"id": "linea_democracia", "titulo": "Línea de tiempo: la democracia", "icono": "🕊️", "cfg": {"rondas": 4}})
         # rondas=10 (14-jul-2026): REPRODUCTOR_BANCO creció de 5 a 10.
         g.append({"id": "sistema_reproductor", "titulo": "Aparato reproductor", "icono": "🧬", "cfg": {"rondas": 10}})
+        # Sistema nervioso + inmune/vacunas (docs/auditoria-dc-caba/grado-7.md, gap #4).
+        g.append({"id": "cerebro_defensas", "titulo": "El cerebro y las defensas", "icono": "💉", "cfg": {"rondas": 10}})
         # Bimestre 3: estadística (media) + red trófica.
         # rondas=10 (14-jul-2026): ESTADISTICA_BANCO creció de 6 a 10.
         g.append({"id": "estadistica_datos", "titulo": "Media, moda o mediana", "icono": "📊", "cfg": {"rondas": 10}})
