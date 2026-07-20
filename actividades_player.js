@@ -5309,7 +5309,7 @@ const DEC_FRAC_BANCO = [
   { q: "0,4 es igual a la fracción…", ok: "2/5", d: ["4/1", "1/4"], m: "0,4 = 4/10, y simplificando queda 2/5." },
   { q: "0,6 es igual a la fracción…", ok: "3/5", d: ["6/1", "1/6"], m: "0,6 = 6/10, y simplificando queda 3/5." },
   { q: "2/5 escrito como decimal es…", ok: "0,4", d: ["0,25", "5,2"], m: "2 dividido 5 da 0,4." },
-  { q: "3/10 escrito como decimal es…", ok: "0,3", d: ["0,03", "3,10"], m: "3/10 son 3 décimos = 0,3." },
+  { q: "7/10 escrito como decimal es…", ok: "0,7", d: ["0,07", "7,10"], m: "7/10 son 7 décimos = 0,7." },
   { q: "3/4 escrito como decimal es…", ok: "0,75", d: ["0,34", "4,3"], m: "3 dividido 4 da 0,75." },
   { q: "0,05 es igual a la fracción…", ok: "1/20", d: ["1/5", "5/10"], m: "0,05 = 5/100, y simplificando queda 1/20." },
   { q: "0,01 es igual a la fracción…", ok: "1/100", d: ["1/10", "100/1"], m: "0,01 es un centésimo = 1/100." },
