@@ -3600,6 +3600,77 @@ const INDEPENDENCIA_BANCO = [
 ];
 GAMES.independencia_arg = juegoTriviaTexto(INDEPENDENCIA_BANCO, "Elegí la respuesta correcta.", "independencia");
 
+/* ── ¿SEGURO, POSIBLE O IMPOSIBLE? (6° grado — docs/auditoria-dc-caba/grado-6.md,
+   gap #3: "probabilidad y estadística... sucesos posibles/imposibles/seguros",
+   contenido que el DC hace nodal POR PRIMERA VEZ en 6°). El árbol de probabilidad
+   cubre el CONTEO de resultados; esto cubre el lenguaje cualitativo de la
+   probabilidad: clasificar un suceso como seguro (pasa siempre), posible (puede
+   pasar o no) o imposible (no pasa nunca). Banco curado con contextos claros (dado,
+   bolsa de bolitas, moneda, hechos cotidianos). Capa 0 C3: el error explica por qué
+   es de esa categoría. ── */
+const SUCESOS_BANCO = [
+  { e: "Tirás un dado y sale un número del 1 al 6", c: "seguro", m: "El dado SIEMPRE cae en un número del 1 al 6: es seguro." },
+  { e: "Tirás un dado y sale un 7", c: "imposible", m: "El dado no tiene el 7: sacar un 7 es imposible." },
+  { e: "Tirás un dado y sale un número par", c: "posible", m: "Puede salir par (2, 4, 6) o impar (1, 3, 5): es posible, no seguro." },
+  { e: "Tirás un dado y sale un número menor que 10", c: "seguro", m: "Todos los números del dado (1 al 6) son menores que 10: es seguro." },
+  { e: "Sacás una bolita de una bolsa que tiene SOLO bolitas rojas, y sale roja", c: "seguro", m: "Si todas son rojas, sacar roja es seguro." },
+  { e: "Sacás una bolita azul de una bolsa que tiene solo bolitas rojas", c: "imposible", m: "No hay bolitas azules en la bolsa: es imposible." },
+  { e: "Sacás una bolita roja de una bolsa con bolitas rojas y verdes", c: "posible", m: "Puede salir roja o verde: es posible." },
+  { e: "Tirás una moneda y sale cara", c: "posible", m: "Puede salir cara o cruz: es posible (tenés la mitad de chances)." },
+  { e: "Mañana a la mañana sale el sol", c: "seguro", m: "El sol sale todos los días: es seguro." },
+  { e: "Un gato pone un huevo", c: "imposible", m: "Los gatos no ponen huevos: es imposible." },
+  { e: "Mañana llueve en tu ciudad", c: "posible", m: "Puede llover o no: es posible, depende del clima." },
+  { e: "Dos más dos es igual a cinco", c: "imposible", m: "2 + 2 siempre da 4: que dé 5 es imposible." },
+  { e: "Una persona vive 500 años", c: "imposible", m: "Nadie vive 500 años: es imposible." },
+  { e: "El próximo mes tiene por lo menos un día lunes", c: "seguro", m: "Todos los meses tienen varios lunes: es seguro." },
+  { e: "Sacás un caramelo de menta de una bolsa con caramelos de menta y de frutilla", c: "posible", m: "Puede salir de menta o de frutilla: es posible." },
+  { e: "Un número par termina en 0, 2, 4, 6 u 8", c: "seguro", m: "Todo número par termina en 0, 2, 4, 6 u 8: es seguro." },
+];
+GAMES.probabilidad_sucesos = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    let usados = [], ronda = 0;
+    const LBL = { seguro: "✅ Seguro", posible: "🤔 Posible", imposible: "🚫 Imposible" };
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Es seguro, posible o imposible?");
+      ctx.juego.innerHTML = "";
+      let libres = SUCESOS_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
+      if (!libres.length) { usados = []; libres = SUCESOS_BANCO.map((_, i) => i); }
+      const idx = libres[rint(0, libres.length - 1)]; usados.push(idx);
+      const it = SUCESOS_BANCO[idx]; ctx.item("suceso#" + idx);
+      const arriba = el("div", "tablero");
+      arriba.appendChild(el("div", "spriteQuieto",
+        `<span style="font-size:21px;font-family:'Baloo',sans-serif">${it.e}</span>`));
+      ctx.juego.appendChild(arriba);
+      const fila = el("div", "filaSprites");
+      fila.setAttribute("data-c", it.c);
+      let resuelto = false;
+      shuffle(["seguro", "posible", "imposible"]).forEach((cat) => {
+        const b = el("button", "spriteBtn", `<span style="font-size:18px;font-family:'Baloo',sans-serif">${LBL[cat]}</span>`);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (cat === it.c) {
+            resuelto = true; b.classList.add("anim-brinco"); ctx.bien();
+            ronda++; await espera(900);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          } else {
+            b.style.animation = "sacudir .4s ease"; setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi(it.m);
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+      const nota = el("div", "tonica-nota",
+        "Seguro = pasa siempre · Posible = puede pasar o no · Imposible = no pasa nunca");
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(nota);
+    };
+    jugar();
+  },
+};
+
 /* ── LA MEJOR OFERTA (M12, 4° grado — docs/auditoria-dc-caba/grado-4.md, gap #5:
    proporcionalidad directa + Educación Financiera). 3 modos GENERADOS: (1) valor
    unitario (N cuestan $T → 1 cuesta T÷N), (2) doble/triple (1 cuesta $U → K cuestan

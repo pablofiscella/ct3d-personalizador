@@ -562,6 +562,10 @@ def _menu(banda, edad):
         # Azar y combinatoria (docs/auditoria-dc-caba/): diagrama de árbol +
         # principio multiplicativo (¿sumar o multiplicar?). Faltaba entero.
         g.append({"id": "arbol_probabilidad", "titulo": "Árbol de combinaciones", "icono": "🌳", "cfg": {"rondas": 8}})
+        # Lenguaje de la probabilidad (docs/auditoria-dc-caba/grado-6.md, gap #3:
+        # nodal POR PRIMERA VEZ en 6°). Clasificar sucesos seguro/posible/imposible
+        # (el árbol de arriba cubre el conteo; esto, el lenguaje cualitativo).
+        g.append({"id": "probabilidad_sucesos", "titulo": "¿Seguro, posible o imposible?", "icono": "🎲", "cfg": {"rondas": 10}})
         g.append({"id": "organizacion_nacional", "titulo": "La organización nacional", "icono": "🚂", "cfg": {"rondas": 10}})
     if e == 12:
         # 7° grado (14-jul-2026, año de egreso, fin del NAP) — mismo
