@@ -8290,6 +8290,19 @@ const SINTACTICO_BANCO = [
   { oracion: "Los pájaros <b>cantan</b> en la mañana.", tipo: "predicado" },
   { oracion: "El <b>auto</b> rojo pasa rápido.", tipo: "sujeto" },
   { oracion: "Nosotros <b>estudiamos</b> para el examen.", tipo: "predicado" },
+  // ampliado 20-jul-2026 (de 10 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { oracion: "El <b>maestro</b> corrige la tarea.", tipo: "sujeto" },
+  { oracion: "Los niños <b>juegan</b> en el recreo.", tipo: "predicado" },
+  { oracion: "La <b>abuela</b> teje una bufanda.", tipo: "sujeto" },
+  { oracion: "El equipo <b>ganó</b> el partido.", tipo: "predicado" },
+  { oracion: "Mi <b>hermana</b> toca el piano.", tipo: "sujeto" },
+  { oracion: "El río <b>crece</b> con la lluvia.", tipo: "predicado" },
+  { oracion: "Las <b>estrellas</b> brillan de noche.", tipo: "sujeto" },
+  { oracion: "El bombero <b>apagó</b> el incendio.", tipo: "predicado" },
+  { oracion: "El <b>viento</b> movía las hojas.", tipo: "sujeto" },
+  { oracion: "Los turistas <b>sacaron</b> muchas fotos.", tipo: "predicado" },
+  { oracion: "La <b>maestra</b> explicó el tema.", tipo: "sujeto" },
+  { oracion: "El tren <b>llegó</b> tarde a la estación.", tipo: "predicado" },
 ];
 GAMES.analisis_sintactico = {
   crear(ctx) {
