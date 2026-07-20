@@ -641,6 +641,9 @@ def _menu(banda, edad):
         # inicial), homófonos (ortografía) e historia del s.XX.
         g.append({"id": "ecuaciones_simples", "titulo": "Despejá la x", "icono": "🟰", "cfg": {"rondas": 10}})
         g.append({"id": "homofonos", "titulo": "Homófonos", "icono": "✒️", "cfg": {"rondas": 10}})
+        # Ortografía / cazador de errores (docs/auditoria-dc-caba/grado-7.md L14: queja
+        # #1 de las familias, estaba en cero). Tildación, b/v, g/j, h, homófonos, ü.
+        g.append({"id": "cazador_errores", "titulo": "Cazador de errores", "icono": "✏️", "cfg": {"rondas": 10}})
         g.append({"id": "argentina_sigloXX", "titulo": "Argentina en el siglo XX", "icono": "🎖️", "cfg": {"rondas": 10}})
     return g
 

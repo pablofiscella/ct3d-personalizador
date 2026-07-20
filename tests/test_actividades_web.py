@@ -955,3 +955,12 @@ def test_luz_materiales_2do():
     menu = aw._menu(aw._banda(7), 7)
     assert any(m["id"] == "luz_materiales" for m in menu)
     assert len([m["icono"] for m in menu]) == len({m["icono"] for m in menu})
+
+
+def test_cazador_errores_7mo():
+    """Cazador de errores / ortografía en 7° (grado-7.md L14). Solo en 7° (edad 12)."""
+    for edad in (10, 11):
+        assert not any(m["id"] == "cazador_errores" for m in aw._menu(aw._banda(edad), edad))
+    menu = aw._menu(aw._banda(12), 12)
+    assert any(m["id"] == "cazador_errores" for m in menu)
+    assert len([m["icono"] for m in menu]) == len({m["icono"] for m in menu})

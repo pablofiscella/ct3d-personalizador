@@ -3585,6 +3585,29 @@ const LUZMAT_BANCO = [
 ];
 GAMES.luz_materiales = juegoTriviaTexto(LUZMAT_BANCO, "Elegí la respuesta correcta.", "luzmat");
 
+/* ── CAZADOR DE ERRORES (7° — docs/auditoria-dc-caba/grado-7.md L14: ortografía,
+   queja #1 de las familias, estaba en cero). Elegir la palabra bien escrita:
+   tildación (agudas/graves/esdrújulas), b/v, g/j, h, homófonos y diéresis. ── */
+const ORTO7_BANCO = [
+  { q: "El vegetal grande con tronco y hojas:", ops: ["árbol", "arbol", "árvol"], m: "«árbol» lleva tilde (grave terminada en consonante) y va con B." },
+  { q: "El órgano que late en el pecho:", ops: ["corazón", "corazon", "corasón"], m: "«corazón» es aguda terminada en N: lleva tilde. Y va con Z." },
+  { q: "Las personas, la multitud:", ops: ["gente", "jente", "guente"], m: "«gente» va con G." },
+  { q: "Votar o escoger a alguien:", ops: ["elegir", "elejir", "eleguir"], m: "«elegir» va con G." },
+  { q: "Un recado o texto que enviás:", ops: ["mensaje", "mensage", "menzaje"], m: "Las palabras terminadas en -aje van con J: mensaje." },
+  { q: "Lo duro y blanco que tenemos por dentro:", ops: ["hueso", "ueso", "huezo"], m: "«hueso» empieza con H (muda)." },
+  { q: "Construir o fabricar algo:", ops: ["hacer", "acer", "aser"], m: "«hacer» empieza con H y va con C." },
+  { q: "En este mismo momento:", ops: ["ahora", "aora", "ahorra"], m: "«ahora» lleva H en el medio (y una sola R)." },
+  { q: "El pasado del verbo estar (él ___):", ops: ["estuvo", "estubo", "estuvó"], m: "«estuvo» va con V." },
+  { q: "«Yo ___ caminando» (pasado de ir):", ops: ["iba", "iva", "hiba"], m: "«iba» (del verbo ir) va con B." },
+  { q: "La persona que cura a los enfermos:", ops: ["médico", "medico", "médicó"], m: "«médico» es esdrújula: todas llevan tilde." },
+  { q: "Lo contrario de difícil:", ops: ["fácil", "facil", "fásil"], m: "«fácil» es grave terminada en consonante: lleva tilde." },
+  { q: "«Espero que ___ sol» (del verbo haber):", ops: ["haya", "halla", "aya"], m: "«haya» (del verbo haber) va con H y con Y." },
+  { q: "«Hoy ___ mucho calor» (del verbo hacer):", ops: ["hace", "ase", "hase"], m: "«hace» (del verbo hacer) va con H y con C." },
+  { q: "La pena o timidez que se siente:", ops: ["vergüenza", "verguenza", "vergenza"], m: "«vergüenza» lleva diéresis (ü) para que suene la U: güe." },
+  { q: "El animal alto de cuello largo:", ops: ["jirafa", "girafa", "jiraffa"], m: "«jirafa» va con J." },
+];
+GAMES.cazador_errores = juegoTriviaTexto(ORTO7_BANCO, "Tocá la palabra bien escrita.", "orto7");
+
 /* ── CAMINO A LA INDEPENDENCIA (5° grado — docs/auditoria-dc-caba/grado-5.md, gap
    #3: "ausencia total del proceso 1810-1853 en Sociales — al alumno de 5° se le
    ofrece el contenido de 4° [colonial] y nada del suyo"). Trivia de contenido (reusa
