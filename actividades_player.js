@@ -5469,6 +5469,19 @@ const ORG_NAC_BANCO = [
   { q: "La Ley 1420 (1884) estableció que la primaria fuera…", ok: "Gratuita y obligatoria", d: ["Solo para ricos", "Solo religiosa"], m: "La Ley 1420 hizo la primaria gratuita, obligatoria y laica." },
   { q: "La Ley Sáenz Peña (1912) estableció el voto…", ok: "Secreto y obligatorio", d: ["Solo para dueños de tierras", "Cantado en voz alta"], m: "La Ley Sáenz Peña estableció el voto secreto y obligatorio." },
   { q: "A la Argentina de esa época se la llamaba…", ok: "El granero del mundo", d: ["El taller del mundo", "La isla del tesoro"], m: "Exportaba tanto grano y carne que la llamaban 'el granero del mundo'." },
+  // ampliado 20-jul-2026 (de 6 a 18 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { q: "¿Quién fue el primer presidente constitucional argentino?", ok: "Justo José de Urquiza", d: ["José de San Martín", "Manuel Belgrano"], m: "Urquiza fue el primer presidente bajo la Constitución de 1853." },
+  { q: "Los que querían un gobierno central fuerte en Buenos Aires eran los…", ok: "unitarios", d: ["federales", "realistas"], m: "Los unitarios querían un poder central fuerte en Buenos Aires." },
+  { q: "Los que defendían la autonomía de cada provincia eran los…", ok: "federales", d: ["unitarios", "virreyes"], m: "Los federales defendían que cada provincia se gobernara a sí misma." },
+  { q: "El ferrocarril y el puerto sirvieron sobre todo para…", ok: "exportar granos y carne a Europa", d: ["fabricar autos", "viajar a la Luna"], m: "El tren llevaba la producción al puerto para exportarla a Europa." },
+  { q: "A fines del siglo XIX llegaron a la Argentina muchos…", ok: "inmigrantes europeos", d: ["dinosaurios", "conquistadores"], m: "Llegaron miles de inmigrantes, sobre todo de Italia y España." },
+  { q: "¿Qué ley estableció la educación primaria gratuita, obligatoria y laica?", ok: "La Ley 1420", d: ["La Ley Sáenz Peña", "una ley de aduanas"], m: "La Ley 1420 (1884) hizo la primaria pública, gratuita y obligatoria." },
+  { q: "¿En qué año Buenos Aires fue declarada capital del país?", ok: "En 1880", d: ["En 1492", "En 2001"], m: "En 1880 Buenos Aires fue federalizada como capital de la Nación." },
+  { q: "La Argentina organizada tenía un gobierno con…", ok: "tres poderes: Ejecutivo, Legislativo y Judicial", d: ["un solo rey", "ningún gobierno"], m: "La Constitución dividió el gobierno en tres poderes." },
+  { q: "Muchos inmigrantes vinieron a la Argentina buscando…", ok: "trabajo y una vida mejor", d: ["oro en la Luna", "tesoros piratas"], m: "Vinieron escapando de la pobreza, buscando trabajo y progreso." },
+  { q: "¿Qué transporte ayudó a unir el país y llevar la producción al puerto?", ok: "el ferrocarril", d: ["el avión", "el subte"], m: "El ferrocarril conectó las provincias con el puerto de Buenos Aires." },
+  { q: "¿Los productos que más exportaba la Argentina eran…?", ok: "granos y carne", d: ["celulares", "juguetes"], m: "La Argentina exportaba materias primas: cereales y carne." },
+  { q: "La Constitución Nacional que organizó el país es del año…", ok: "1853", d: ["1810", "1983"], m: "La Constitución Nacional se sancionó en 1853." },
 ];
 GAMES.organizacion_nacional = juegoTriviaBanco(ORG_NAC_BANCO, "orgnac");
 
