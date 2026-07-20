@@ -4087,22 +4087,43 @@ const CONECTORES_BANCO = [
   { f: "Se hizo de noche, … encendieron las luces.", ok: "entonces", d: ["pero", "aunque"], m: "«entonces» marca qué pasó como consecuencia." },
   { f: "El equipo jugó bien, … perdió el partido.", ok: "sin embargo", d: ["porque", "por eso"], m: "«sin embargo» contrasta: jugó bien y aun así perdió." },
 ];
+/* ── Subconjunto de conectores para 4° grado (docs/auditoria-dc-caba/grado-4.md,
+   gap #3 de Lengua). Solo los que el DC pide en 4°: temporales (y después…),
+   causales (porque, por eso, así que) y la oposición simple (pero). SIN
+   adversativos cargados (aunque, sin embargo), que quedan para 5°+. Los distractores
+   también son del set simple, así no aparecen conectores que el chico no vio. ── */
+const CONECTORES4_BANCO = [
+  { f: "Primero me puse las medias … las zapatillas.", ok: "y después", d: ["porque", "pero"], m: "«y después» ordena en el tiempo: una cosa y luego la otra." },
+  { f: "Me quedé en casa … llovía mucho.", ok: "porque", d: ["y después", "pero"], m: "«porque» da la causa: la lluvia es el motivo." },
+  { f: "Estudié un montón, … me saqué un diez.", ok: "por eso", d: ["porque", "pero"], m: "«por eso» marca la consecuencia de estudiar." },
+  { f: "Terminé la tarea … salí a jugar.", ok: "y después", d: ["porque", "por eso"], m: "«y después» ordena: primero la tarea, luego el juego." },
+  { f: "Quería helado, … no había en la heladera.", ok: "pero", d: ["porque", "así que"], m: "«pero» marca oposición: querías algo y aparece un obstáculo." },
+  { f: "Se largó a llover, … abrimos los paraguas.", ok: "así que", d: ["porque", "pero"], m: "«así que» marca la consecuencia de que llueva." },
+  { f: "No desayunó, … al mediodía tenía mucha hambre.", ok: "por eso", d: ["pero", "y después"], m: "«por eso» une la causa (no desayunar) con su consecuencia." },
+  { f: "Me lavé las manos … me senté a comer.", ok: "y después", d: ["porque", "pero"], m: "«y después» ordena en el tiempo las dos acciones." },
+  { f: "Ganamos el partido … practicamos toda la semana.", ok: "porque", d: ["pero", "y después"], m: "«porque» da la causa de haber ganado." },
+  { f: "Hacía mucho calor, … prendimos el ventilador.", ok: "así que", d: ["porque", "pero"], m: "«así que» marca lo que hicimos como consecuencia del calor." },
+];
 GAMES.conectores = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 10;
+    // nivel 1 (4°): subconjunto simple (temporales, causales, «pero»). nivel 2+
+    // (5°-7°, default): banco completo, con adversativos (aunque, sin embargo).
+    const banco = (ctx.cfg.nivel || 2) <= 1 ? CONECTORES4_BANCO : CONECTORES_BANCO;
     ctx.rondas(rondas);
     let usados = [], ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      let disp = CONECTORES_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
-      if (!disp.length) { usados = []; disp = CONECTORES_BANCO.map((_, i) => i); }
+      let disp = banco.map((_, i) => i).filter((i) => !usados.includes(i));
+      if (!disp.length) { usados = []; disp = banco.map((_, i) => i); }
       const idx = disp[rint(0, disp.length - 1)]; usados.push(idx);
-      const it = CONECTORES_BANCO[idx];
+      const it = banco[idx];
       ctx.item("conector#" + idx);
       ctx.consigna("Completá: " + it.f);
       ctx.juego.innerHTML = "";
       const opciones = shuffle([{ t: it.ok, ok: true }].concat(it.d.map((x) => ({ t: x, ok: false }))));
       const fila = el("div", "ops");
+      fila.setAttribute("data-ok", it.ok);
       let resuelto = false;
       opciones.forEach((o) => {
         const b = el("button", "op", o.t);

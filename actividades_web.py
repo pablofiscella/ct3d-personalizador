@@ -413,6 +413,10 @@ def _menu(banda, edad):
         # rondas=10 (14-jul-2026): ANGULOS_BANCO creció de 7 a 10.
         g.append({"id": "angulos", "titulo": "Agudo, recto u obtuso", "icono": "📐", "cfg": {"rondas": 10}})
         g.append({"id": "prefijos_sufijos", "titulo": "Palabras nuevas", "icono": "🔗", "cfg": {"rondas": 5}})
+        # Conectores (docs/auditoria-dc-caba/grado-4.md, gap #3 de Lengua): nivel 1,
+        # subconjunto simple (temporales/causales/«pero»), sin adversativos cargados
+        # que quedan para 5°+. Ícono 🪢 (🔗 ya lo usa prefijos_sufijos en 4°).
+        g.append({"id": "conectores", "titulo": "El conector justo", "icono": "🪢", "cfg": {"rondas": 10, "nivel": 1}})
         # Pablo 15-jul-2026, probando el link en vivo: "las sumas en 4°
         # grado son de 4 a 5 cifras y en las actividades parecen muy
         # fáciles para esa edad". El `sumas` genérico (conteo de sprites,
