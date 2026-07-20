@@ -9788,6 +9788,17 @@ const REPRODUCTOR_BANCO = [
   { parte: "Escroto", correcta: "Protege y regula la temperatura de los testículos", d1: "Produce los óvulos", d2: "Es donde se desarrolla el bebé" },
   { parte: "Cuello uterino", correcta: "Conecta el útero con la vagina", d1: "Produce los espermatozoides", d2: "Filtra la sangre" },
   { parte: "Placenta", correcta: "Nutre al bebé durante el embarazo", d1: "Protege a los testículos", d2: "Produce los óvulos" },
+  // ampliado 20-jul-2026 (de 10 a 20 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { parte: "Óvulo", correcta: "Es la célula reproductora femenina", d1: "Es la célula reproductora masculina", d2: "Es un glóbulo rojo" },
+  { parte: "Espermatozoide", correcta: "Es la célula reproductora masculina", d1: "Es la célula reproductora femenina", d2: "Es una neurona" },
+  { parte: "Fecundación", correcta: "Es la unión del óvulo con el espermatozoide", d1: "Es la digestión de los alimentos", d2: "Es la respiración" },
+  { parte: "Cordón umbilical", correcta: "Une al bebé con la placenta para alimentarlo", d1: "Produce los óvulos", d2: "Protege el cerebro" },
+  { parte: "Embrión", correcta: "Es el bebé en las primeras semanas de desarrollo", d1: "Es una célula del hígado", d2: "Es un músculo del brazo" },
+  { parte: "Feto", correcta: "Es el bebé en desarrollo desde el tercer mes hasta el nacimiento", d1: "Es una célula suelta", d2: "Es un órgano del padre" },
+  { parte: "Embarazo", correcta: "Es el período en que el bebé se desarrolla en el útero", d1: "Es la etapa de la niñez", d2: "Es una enfermedad" },
+  { parte: "Parto", correcta: "Es el momento en que nace el bebé", d1: "Es la unión del óvulo y el espermatozoide", d2: "Es el crecimiento de los huesos" },
+  { parte: "Menstruación", correcta: "Es el sangrado mensual que ocurre si el óvulo no fue fecundado", d1: "Es una enfermedad grave", d2: "Es la producción de espermatozoides" },
+  { parte: "Pubertad", correcta: "Es la etapa en que el cuerpo madura y cambia", d1: "Es una enfermedad que se cura", d2: "Es la etapa de la vejez" },
 ];
 GAMES.sistema_reproductor = {
   crear(ctx) {
