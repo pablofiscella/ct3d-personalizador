@@ -6864,6 +6864,139 @@ GAMES.suma_columnas = {
   },
 };
 
+/* ── RESTA CON PRÉSTAMO EN COLUMNA (3° grado — docs/auditoria-dc-caba/grado-3.md,
+   gap #1/#3: el DC de 3° pide el algoritmo de resta con préstamo hasta 10.000 y no
+   existía). Espeja el motor de suma_columnas (grilla alineada + keypad + Ayuda tras
+   2 errores) pero restando: cuando una columna no alcanza, se pide prestado 1 a la
+   izquierda (badge "−1" sobre esa columna). El dígito correcto de cada columna es la
+   cifra de a−b. Rango por cfg (3°: 3→4 cifras). La Ayuda narra con TTS dinámico (no
+   hay audio pre-grabado de resta como en suma). Capa 0: cada tap errado baja la
+   estrella al primer intento (C2), la Ayuda explica el porqué (C3). ── */
+const RESTA_COL_CORTAS = ["¿Y esta resta?", "Otra vez, por las unidades", "¿Y esta cuenta?", "Seguimos restando"];
+GAMES.resta_columnas = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 6;
+    ctx.rondas(rondas);
+    let ronda = 0;
+    const gutter = (txt) => el("div", "sumaColGutter", txt || "");
+    const cifraEn = (n, i) => Math.floor(n / 10 ** i) % 10;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.juego.innerHTML = "";
+      ctx.consigna(ronda === 0
+        ? "Restá columna por columna, empezá por las UNIDADES (a la derecha). Si no te alcanza, te prestás 1 de la izquierda."
+        : sacarDeBolsa(ctx, "restacol", RESTA_COL_CORTAS));
+      const cifrasMin = ctx.cfg.cifrasMin || 3;
+      const cifrasMax = ctx.cfg.cifrasMax || 4;
+      const dif = (ronda + 1) / rondas;
+      const cifras = dif <= 0.5 ? cifrasMin : cifrasMax;
+      const piso = 10 ** (cifras - 1);
+      const tope = 10 ** cifras - 1;
+      const a = rint(piso + 1, tope);
+      const b = rint(piso, a - 1);            // minuendo > sustraendo → resultado positivo
+      const resta = a - b;
+      const ancho = String(a).length;
+      // préstamo[i] = 1 si la columna i tuvo que pedir prestado a la de su izquierda.
+      const prestamo = [];
+      let pide = 0;
+      for (let i = 0; i < ancho; i++) {
+        const top = cifraEn(a, i) - pide;
+        pide = top < cifraEn(b, i) ? 1 : 0;
+        prestamo[i] = pide;
+      }
+      const tablero = el("div", "tablero sumaColTablero");
+      const encabezado = el("div", "sumaColGrid sumaColEncabezado");
+      const filaPrestamos = el("div", "sumaColGrid sumaColAcarreos");
+      const filaA = el("div", "sumaColGrid");
+      const filaB = el("div", "sumaColGrid");
+      const filaResultado = el("div", "sumaColGrid");
+      encabezado.appendChild(gutter());
+      filaPrestamos.appendChild(gutter());
+      filaA.appendChild(gutter());
+      filaB.appendChild(gutter("−"));
+      filaResultado.appendChild(gutter());
+      const prestamoBadges = [], slots = [];
+      for (let i = ancho - 1; i >= 0; i--) {
+        encabezado.appendChild(el("div", "sumaColEncabezado__col",
+          `<span class="sumaColEncabezado__nombre">${SUMA_COL_NOMBRE[i]}</span><span class="sumaColEncabezado__potencia">${SUMA_COL_POTENCIA[i]}</span>`));
+        const badge = el("div", "sumaColAcarreo sumaColAcarreo--oculto", "−1");
+        prestamoBadges[i] = badge;
+        filaPrestamos.appendChild(badge);
+        filaA.appendChild(el("div", "sumaDigito", String(cifraEn(a, i))));
+        filaB.appendChild(el("div", "sumaDigito" + (i >= String(b).length ? " sumaDigito--vacio" : ""),
+          i < String(b).length ? String(cifraEn(b, i)) : ""));
+        const slot = el("div", "sumaResultado__slot", "");
+        slots[i] = slot;
+        filaResultado.appendChild(slot);
+      }
+      tablero.appendChild(encabezado);
+      tablero.appendChild(filaPrestamos);
+      tablero.appendChild(filaA);
+      tablero.appendChild(filaB);
+      tablero.appendChild(el("div", "sumaColLinea"));
+      tablero.appendChild(filaResultado);
+      const ayudaBox = el("div", "sumaColLeccion sumaColLeccion--oculto", "");
+      tablero.appendChild(ayudaBox);
+      const btnAyuda = el("button", "btn suave sumaColAyuda", "💡 Ayuda");
+      btnAyuda.type = "button";
+      tablero.appendChild(btnAyuda);
+      const keypad = el("div", "filaSprites sumaColKeypad");
+      const botones = [];
+      for (let d = 0; d <= 9; d++) {
+        const btn = el("button", "spriteBtn sumaColDigitBtn", String(d));
+        botones.push(btn);
+        keypad.appendChild(btn);
+      }
+      tablero.appendChild(keypad);
+      ctx.juego.appendChild(tablero);
+
+      let activa = 0, resuelto = false, fallosCol = 0;
+      const correctaEn = (i) => cifraEn(resta, i);
+      const marcarActiva = () => slots.forEach((s, i) => s.classList.toggle("activo", i === activa && !resuelto));
+      marcarActiva();
+      const mostrarAyuda = () => {
+        const i = activa;
+        const top = cifraEn(a, i) - (i > 0 && prestamo[i - 1] ? 1 : 0);
+        const nombre = SUMA_COL_LARGO[i];
+        const txt = top < cifraEn(b, i)
+          ? `En las ${nombre}: a ${top} no le alcanza para restarle ${cifraEn(b, i)}, así que te prestás 1 (queda ${top + 10}). ${top + 10} − ${cifraEn(b, i)} = ${correctaEn(i)}.`
+          : `En las ${nombre}: ${top} − ${cifraEn(b, i)} = ${correctaEn(i)}.`;
+        ayudaBox.textContent = "💡 " + txt;
+        ayudaBox.classList.remove("sumaColLeccion--oculto");
+        reproducirConsigna(txt);
+      };
+      btnAyuda.addEventListener("click", mostrarAyuda);
+      botones.forEach((btn, d) => {
+        btn.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (d !== correctaEn(activa)) {
+            btn.style.animation = "sacudir .4s ease";
+            setTimeout(() => (btn.style.animation = ""), 450);
+            ctx.casi(); fallosCol++;
+            if (fallosCol >= 2) mostrarAyuda();
+            return;
+          }
+          fallosCol = 0;
+          ayudaBox.classList.add("sumaColLeccion--oculto");
+          slots[activa].textContent = String(d);
+          slots[activa].classList.add("anim-pop");
+          if (prestamo[activa] && activa + 1 < ancho) prestamoBadges[activa + 1].classList.remove("sumaColAcarreo--oculto");
+          Sfx.tick(activa + 1);
+          activa++;
+          if (activa >= ancho) {
+            resuelto = true;
+            ctx.bien();
+            ronda++;
+            await espera(1100);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          } else marcarActiva();
+        });
+      });
+    };
+    jugar();
+  },
+};
+
 /* ── AGUDO, RECTO U OBTUSO (14-jul-2026, 4° grado NAP Bimestre 4 "Ideas
    web": "transportador interactivo para medir ángulos de rampas de
    skate" — simplificado de medición libre con transportador a

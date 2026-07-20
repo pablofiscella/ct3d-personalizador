@@ -305,6 +305,9 @@ def _menu(banda, edad):
         # el corazón de Matemática 3°: algoritmo hasta 10.000, que no existía). Reusa
         # el motor de suma_columnas con rango propio de 3° (3→4 cifras).
         g.append({"id": "suma_columnas", "titulo": "Sumas con llevada", "icono": "➕", "cfg": {"rondas": 6, "cifrasMin": 3, "cifrasMax": 4}})
+        # Resta con préstamo en columna (docs/auditoria-dc-caba/grado-3.md, gap #1/#3:
+        # el otro algoritmo nodal de 3°, hasta 10.000). El complemento de la suma.
+        g.append({"id": "resta_columnas", "titulo": "Restas con préstamo", "icono": "➖", "cfg": {"rondas": 6, "cifrasMin": 3, "cifrasMax": 4}})
         # ── Rollout DC CABA · 3° grado (19-jul-2026, docs/auditoria-dc-caba/
         # grado-3.md): réplica del modelo de 4°. 3 actividades nuevas + 2 reusadas
         # de los moldes ya construidos, y limpieza de los juegos de inicial (como

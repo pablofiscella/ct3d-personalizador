@@ -819,3 +819,16 @@ def test_suma_columnas_3ro_rango():
     # 1°-2° no lo tienen
     for edad in (6, 7):
         assert not any(m["id"] == "suma_columnas" for m in aw._menu(aw._banda(edad), edad))
+
+
+def test_resta_columnas_3ro():
+    """Resta con préstamo en columna en 3° (docs/auditoria-dc-caba/grado-3.md gap
+    #1/#3: el otro algoritmo nodal de 3°). Debe estar en 3° (edad 8) con rango 3→4
+    cifras, y NO en 1°-2° ni 4°+, sin colisión de íconos."""
+    m3 = next((m for m in aw._menu(aw._banda(8), 8) if m["id"] == "resta_columnas"), None)
+    assert m3 is not None, "falta resta_columnas en 3°"
+    assert m3["cfg"].get("cifrasMin") == 3 and m3["cfg"].get("cifrasMax") == 4
+    iconos = [m["icono"] for m in aw._menu(aw._banda(8), 8)]
+    assert len(iconos) == len(set(iconos)), "íconos repetidos en 3°"
+    for edad in (6, 7, 9, 10):
+        assert not any(m["id"] == "resta_columnas" for m in aw._menu(aw._banda(edad), edad))
