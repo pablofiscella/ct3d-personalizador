@@ -4910,6 +4910,19 @@ const VERBOS_PASADO_BANCO = [
   { f: "Esa mañana … el sol y salimos a pasear.", ok: "salió", d: "salía", m: "El perfecto (salió) es un hecho puntual de esa mañana." },
   { f: "Todas las noches mi mamá me … un cuento.", ok: "leía", d: "leyó", m: "El imperfecto (leía) es una costumbre repetida." },
   { f: "Cuando terminó la película, … las luces.", ok: "encendieron", d: "encendían", m: "El perfecto (encendieron) es lo que pasó al terminar, una vez." },
+  // ampliado 20-jul-2026 (de 12 a 24 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { f: "Todos los días … la bici a la escuela.", ok: "llevaba", d: "llevé", m: "El imperfecto (llevaba) es para algo de todos los días, una costumbre." },
+  { f: "Ayer … la bici y llegué tarde.", ok: "llevé", d: "llevaba", m: "El perfecto (llevé) es algo que pasó UNA vez, ayer." },
+  { f: "Cuando era chica, … en el club.", ok: "nadaba", d: "nadé", m: "El imperfecto describe lo que hacía habitualmente en esa época." },
+  { f: "El domingo pasado … en la pileta.", ok: "nadé", d: "nadaba", m: "El perfecto: pasó una sola vez, el domingo." },
+  { f: "Mientras estudiaba, … música tranquila.", ok: "escuchaba", d: "escuché", m: "El imperfecto acompaña otra acción que estaba en curso." },
+  { f: "De repente … un grito y me asusté.", ok: "escuché", d: "escuchaba", m: "El perfecto: un hecho puntual, «de repente»." },
+  { f: "En verano siempre … helado después de cenar.", ok: "comíamos", d: "comimos", m: "El imperfecto: una costumbre de todos los veranos." },
+  { f: "Anoche … milanesas con puré.", ok: "comimos", d: "comíamos", m: "El perfecto: pasó una vez, anoche." },
+  { f: "Antes mi abuelo … el diario todas las mañanas.", ok: "leía", d: "leyó", m: "El imperfecto: una costumbre repetida en el pasado." },
+  { f: "Esta mañana … la carta que había llegado.", ok: "leyó", d: "leía", m: "El perfecto: un hecho puntual de esta mañana." },
+  { f: "Cuando vivíamos en el campo, … muchas estrellas.", ok: "veíamos", d: "vimos", m: "El imperfecto: algo habitual de aquella época." },
+  { f: "Aquella noche … una estrella fugaz.", ok: "vimos", d: "veíamos", m: "El perfecto: pasó una sola vez, aquella noche." },
 ];
 GAMES.verbos_pasado = {
   crear(ctx) {
