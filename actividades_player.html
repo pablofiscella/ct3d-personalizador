@@ -227,6 +227,20 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 .cuenta-op small { font-size: 15px; opacity: .7; }
 .cuenta-op.bien small { opacity: .9; }
 
+/* ── Leer el transportador (M14 modo C, 5°) ── */
+.transp-wrap { display: flex; justify-content: center; padding: 8px 4px; }
+.transp-svg { width: 100%; max-width: 360px; height: auto; }
+.transp-arco { fill: none; stroke: var(--ink); stroke-width: 2; opacity: .5; }
+.transp-tick { stroke: var(--ink); stroke-width: 1.4; opacity: .45; }
+.transp-num { font-family: "Baloo", sans-serif; font-size: 11px; fill: var(--ink); text-anchor: middle; opacity: .72; }
+.transp-num.in { opacity: .42; }
+.transp-sector { fill: var(--ac); opacity: .16; }
+.transp-lado { stroke-width: 4; stroke-linecap: round; }
+.transp-lado.base { stroke: var(--ink); opacity: .65; }
+.transp-lado.movil { stroke: var(--ac); }
+.transp-halo { fill: none; stroke: var(--ac2); stroke-width: 2.5; }
+.transp-vert { fill: var(--ink); }
+
 /* ── animaciones ── */
 @keyframes pop     { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
 @keyframes brinco  { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-16%); } }

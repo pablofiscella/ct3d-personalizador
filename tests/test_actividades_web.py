@@ -676,3 +676,21 @@ def test_cuenta_larga_division_guiada():
         # sin íconos repetidos dentro del menú (🪜 recién agregado)
         iconos = [m["icono"] for m in menu]
         assert len(iconos) == len(set(iconos)), f"íconos repetidos en edad {edad}"
+
+
+def test_transportador_medir_angulos():
+    """Leer el transportador (M14 modo C, docs/auditoria-dc-caba/grado-5.md):
+    MEDIR el ángulo leyendo el transportador (¿40° o 140°?), la escala equivocada
+    como misconception. En 4° el ángulo se CLASIFICA (agudo/recto/obtuso); el
+    transportador debe estar en 5°-7° (edad 10-12) y NO en 4° ni antes, sin
+    colisión de íconos en el menú."""
+    for edad in (6, 7, 8, 9):   # 1°-4°: no lo tienen (4° tiene 'angulos', clasificar)
+        ids = {m["id"] for m in aw._menu(aw._banda(edad), edad)}
+        assert "transportador" not in ids, f"transportador no debería estar en edad {edad}"
+    for edad in (10, 11, 12):
+        menu = aw._menu(aw._banda(edad), edad)
+        assert any(m["id"] == "transportador" for m in menu), f"falta transportador en edad {edad}"
+        iconos = [m["icono"] for m in menu]
+        assert len(iconos) == len(set(iconos)), f"íconos repetidos en edad {edad}"
+    # 4° conserva la clasificación de ángulos (no se pisó)
+    assert any(m["id"] == "angulos" for m in aw._menu(aw._banda(9), 9))

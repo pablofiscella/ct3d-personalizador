@@ -448,6 +448,10 @@ def _menu(banda, edad):
         g.append({"id": "duelo_decimales", "titulo": "Duelo de decimales", "icono": "💲", "cfg": {"rondas": 10}})
         g.append({"id": "duelo_fracciones", "titulo": "Duelo de fracciones", "icono": "🍫", "cfg": {"rondas": 10}})
         g.append({"id": "recta_numerica", "titulo": "Recta gigante", "icono": "📍", "cfg": {"rondas": 10, "max1": 100000, "max2": 1000000}})
+        # M14 modo C (docs/auditoria-dc-caba/grado-5.md): LEER el transportador —
+        # medir el ángulo (¿mide 40° o 140°?), con la escala equivocada como
+        # misconception nodal. En 4° el ángulo se clasifica; acá se mide.
+        g.append({"id": "transportador", "titulo": "Leé el transportador", "icono": "📐", "cfg": {"rondas": 8}})
         # 2ª tanda 5° (19-jul-2026): actividades PROPIAS del dossier de 5° (no
         # moldes reusados), para nivelar 5° hacia su núcleo siguiendo la curva
         # creciente del DC (análisis de balance de actividades).
@@ -497,6 +501,8 @@ def _menu(banda, edad):
         g.append({"id": "duelo_decimales", "titulo": "Duelo de decimales", "icono": "💲", "cfg": {"rondas": 10}})
         g.append({"id": "recta_numerica", "titulo": "Recta gigante", "icono": "📍", "cfg": {"rondas": 10, "max1": 100000, "max2": 1000000}})
         g.append({"id": "conectores", "titulo": "El conector justo", "icono": "🔗", "cfg": {"rondas": 10}})
+        # Medición de ángulos (M14 modo C): leer el transportador, sigue de 5°.
+        g.append({"id": "transportador", "titulo": "Leé el transportador", "icono": "📐", "cfg": {"rondas": 8}})
         # 2ª tanda 6° (19-jul-2026, nivelación): actividades PROPIAS del dossier
         # de 6° — los 3 gaps de matemática (primos, jerarquía de operaciones,
         # porcentaje de una cantidad). Nodales de 6°.
@@ -546,6 +552,8 @@ def _menu(banda, edad):
         g.append({"id": "duelo_decimales", "titulo": "Duelo de decimales", "icono": "💲", "cfg": {"rondas": 10}})
         g.append({"id": "recta_numerica", "titulo": "Recta gigante", "icono": "📍", "cfg": {"rondas": 10, "max1": 100000, "max2": 1000000}})
         g.append({"id": "conectores", "titulo": "El conector justo", "icono": "🔗", "cfg": {"rondas": 10}})
+        # Medición de ángulos (M14 modo C): leer el transportador, sigue de 5°/6°.
+        g.append({"id": "transportador", "titulo": "Leé el transportador", "icono": "📐", "cfg": {"rondas": 8}})
         # 2ª tanda 7° (19-jul-2026, nivelación): actividades PROPIAS del dossier
         # de 7° — potenciación, problemas de varios pasos, e Inglés (área NUEVA
         # que pidió el panel). Clústeres nodales que el 1er pase dejó vacíos.

@@ -6653,6 +6653,95 @@ GAMES.angulos = {
   },
 };
 
+/* ── LEER EL TRANSPORTADOR (M14 modo C, 5° — docs/auditoria-dc-caba/grado-5.md:
+   "Lectura de transportador como modo C de M14: ¿mide 40° o 140°?"). En 4° el
+   ángulo se CLASIFICA (agudo/recto/obtuso, GAMES.angulos); acá se MIDE leyendo el
+   transportador de verdad — la mecánica nodal que la auditoría marcaba como
+   trivia. Ataca la misconception #1 del transportador: leer la ESCALA EQUIVOCADA
+   (θ vs 180−θ, el clásico "40 o 140"). Se dibuja el transportador con las DOS
+   escalas y el lado de abajo apoyado en el 0 de la derecha → se lee la de afuera.
+   Capa 0 C3: si eligen 180−θ, se nombra el error ("esa es la otra escala"). Los
+   ángulos son múltiplos de 10 (lectura exacta) y evitan 90 (ahí las dos escalas
+   coinciden y no hay nada que confundir). ── */
+const TRANSPORTADOR_BANCO = [20, 30, 40, 50, 60, 70, 80, 100, 110, 120, 130, 140, 150, 160];
+GAMES.transportador = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 8;
+    ctx.rondas(rondas);
+    let usados = [], ronda = 0;
+    const P = (cx, cy, r, a) => [cx + r * Math.cos(a * Math.PI / 180), cy - r * Math.sin(a * Math.PI / 180)];
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Cuántos grados mide el ángulo?");
+      ctx.juego.innerHTML = "";
+      let disp = TRANSPORTADOR_BANCO.filter((x) => !usados.includes(x));
+      if (!disp.length) { usados = []; disp = TRANSPORTADOR_BANCO; }
+      const th = disp[rint(0, disp.length - 1)]; usados.push(th);
+      ctx.item("transportador#" + th);
+
+      const cx = 175, cy = 185, R = 150;
+      let s = '<svg viewBox="0 0 350 214" class="transp-svg">';
+      // semicircunferencia + base
+      let arc = "";
+      for (let a = 0; a <= 180; a += 3) { const [x, y] = P(cx, cy, R, a); arc += (a ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1) + " "; }
+      s += '<path d="' + arc + '" class="transp-arco"/>';
+      s += '<line x1="' + (cx - R) + '" y1="' + cy + '" x2="' + (cx + R) + '" y2="' + cy + '" class="transp-arco"/>';
+      // marcas + números de las DOS escalas (externa = a, interna = 180−a) cada 10°
+      for (let a = 0; a <= 180; a += 10) {
+        const [x1, y1] = P(cx, cy, R, a), [x2, y2] = P(cx, cy, R - 13, a);
+        s += '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" class="transp-tick"/>';
+        const [ox, oy] = P(cx, cy, R + 12, a), [ix, iy] = P(cx, cy, R - 26, a);
+        s += '<text x="' + ox.toFixed(1) + '" y="' + (oy + 3).toFixed(1) + '" class="transp-num out">' + a + '</text>';
+        s += '<text x="' + ix.toFixed(1) + '" y="' + (iy + 3).toFixed(1) + '" class="transp-num in">' + (180 - a) + '</text>';
+      }
+      // sector sombreado del ángulo (0 → th)
+      let sec = "M " + cx + " " + cy + " ";
+      for (let a = 0; a <= th; a += 3) { const [x, y] = P(cx, cy, R * 0.55, a); sec += "L " + x.toFixed(1) + " " + y.toFixed(1) + " "; }
+      const [sxE, syE] = P(cx, cy, R * 0.55, th); sec += "L " + sxE.toFixed(1) + " " + syE.toFixed(1) + " Z";
+      s += '<path d="' + sec + '" class="transp-sector"/>';
+      // lados: base (0°, apoyado en la derecha) y móvil (th)
+      const [bx, by] = P(cx, cy, R, 0), [mx, my] = P(cx, cy, R, th);
+      s += '<line x1="' + cx + '" y1="' + cy + '" x2="' + bx + '" y2="' + by + '" class="transp-lado base"/>';
+      s += '<line x1="' + cx + '" y1="' + cy + '" x2="' + mx.toFixed(1) + '" y2="' + my.toFixed(1) + '" class="transp-lado movil"/>';
+      // resaltar las DOS lecturas posibles en la marca del lado móvil
+      const [hox, hoy] = P(cx, cy, R + 12, th), [hix, hiy] = P(cx, cy, R - 26, th);
+      s += '<circle cx="' + hox.toFixed(1) + '" cy="' + (hoy - 3).toFixed(1) + '" r="13" class="transp-halo"/>';
+      s += '<circle cx="' + hix.toFixed(1) + '" cy="' + (hiy - 3).toFixed(1) + '" r="13" class="transp-halo"/>';
+      s += '<circle cx="' + cx + '" cy="' + cy + '" r="4.5" class="transp-vert"/>';
+      s += '</svg>';
+      const arriba = el("div", "tablero transp-wrap"); arriba.innerHTML = s;
+      ctx.juego.appendChild(arriba);
+
+      // opciones: la correcta + la escala equivocada (180−th) + un error de ±1 marca
+      const wrong = 180 - th;
+      const tercero = [th + 10, th - 10, th + 20, th - 20].find((v) => v > 0 && v < 180 && v !== th && v !== wrong);
+      const ops = [{ v: th, ok: true }, { v: wrong, escala: true }, { v: tercero }];
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(ops).forEach((o) => {
+        const b = el("button", "op", o.v + "°");
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) {
+            resuelto = true; b.classList.add("bien", "anim-pop"); ctx.bien();
+            ronda++; await espera(850);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          } else if (o.escala) {
+            b.classList.add("casi");
+            ctx.casi("Esa es la OTRA escala. El lado de abajo apoya en el 0 de la derecha, así que se lee " + th + "°, no " + wrong + "°.");
+          } else {
+            b.classList.add("casi");
+            ctx.casi("Casi. Contá las marcas de a 10 desde el 0 de la derecha.");
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
 /* ── PREFIJOS — FORMÁ LA PALABRA NUEVA (14-jul-2026, 4° grado NAP
    Bimestre 4 "Ideas web": "arrastrar prefijos y sufijos para formar
    palabras nuevas"). Mismo patrón tap-en-orden que armar_palabra/
