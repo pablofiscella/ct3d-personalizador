@@ -712,3 +712,17 @@ def test_reloj_leer_la_hora():
         assert rl["cfg"]["nivel"] == niv, f"nivel de reloj en edad {edad}"
         iconos = [m["icono"] for m in menu]
         assert len(iconos) == len(set(iconos)), f"íconos repetidos en edad {edad}"
+
+
+def test_arbol_probabilidad_azar():
+    """Árbol de probabilidad / combinatoria (azar, docs/auditoria-dc-caba/):
+    diagrama de árbol + principio multiplicativo, mecánica que faltaba entera.
+    Debe estar en 6°-7° (edad 11-12) y NO en 5° ni antes, sin colisión de íconos."""
+    for edad in (8, 9, 10):   # 3°-5°: no lo tienen
+        ids = {m["id"] for m in aw._menu(aw._banda(edad), edad)}
+        assert "arbol_probabilidad" not in ids, f"arbol_probabilidad no debería estar en edad {edad}"
+    for edad in (11, 12):
+        menu = aw._menu(aw._banda(edad), edad)
+        assert any(m["id"] == "arbol_probabilidad" for m in menu), f"falta arbol_probabilidad en edad {edad}"
+        iconos = [m["icono"] for m in menu]
+        assert len(iconos) == len(set(iconos)), f"íconos repetidos en edad {edad}"

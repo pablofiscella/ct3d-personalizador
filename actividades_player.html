@@ -252,6 +252,20 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 .reloj-min { stroke: var(--ac); stroke-width: 4.5; stroke-linecap: round; }
 .reloj-centro { fill: var(--ac2); }
 
+/* ── Árbol de probabilidad (azar y combinatoria, 6°-7°) ── */
+.arbol-wrap { display: flex; justify-content: center; padding: 6px; overflow-x: auto; }
+.arbol-svg { width: 100%; max-width: 380px; height: auto; }
+.arbol-nodo { fill: var(--ink); }
+.arbol-rama { stroke: var(--ink); stroke-width: 2; opacity: .32; fill: none; }
+.arbol-rama.on { stroke: var(--ac2); stroke-width: 3.5; opacity: 1; }
+.arbol-hoja { fill: var(--ink); opacity: .5; }
+.arbol-hoja.on { fill: var(--ac2); opacity: 1; }
+.arbol-lbl { font-family: "Baloo", sans-serif; font-size: 12px; fill: var(--ink); }
+.arbol-lbl.a { text-anchor: end; opacity: .85; }
+.arbol-lbl.leaf { text-anchor: start; opacity: .6; }
+.arbol-lbl.leaf.on { opacity: 1; fill: var(--ac2); }
+.arbol-op { font-size: 22px; }
+
 /* ── animaciones ── */
 @keyframes pop     { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
 @keyframes brinco  { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-16%); } }
