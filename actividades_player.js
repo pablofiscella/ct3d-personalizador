@@ -3600,6 +3600,32 @@ const INDEPENDENCIA_BANCO = [
 ];
 GAMES.independencia_arg = juegoTriviaTexto(INDEPENDENCIA_BANCO, "Elegí la respuesta correcta.", "independencia");
 
+/* ── ¿CÓMO SE ESCRIBE? — 2° grado (docs/auditoria-dc-caba/grado-2.md, gap #1: los
+   dígrafos y las opacidades ortográficas son "el contenido insignia de 2°,
+   trivialmente gamificable, ausente por completo"). Elegir la palabra bien escrita,
+   con una pista visual: dígrafos (ll/ch/qu/gu/rr), b/v, mb/nv, s/c/z y la separación
+   entre palabras (el error de escritura más frecuente del grado). Distractores = los
+   errores típicos (C4) + explicación de la regla (C3). Reusa juegoTriviaTexto. ── */
+const ORTO2_BANCO = [
+  { q: "🐴 El animal que relincha:", ops: ["caballo", "cabayo", "cavallo"], m: "Va con LL y con B: caballo." },
+  { q: "🧀 Lo que se hace con la leche:", ops: ["queso", "keso", "cueso"], m: "El sonido /ke/ se escribe QU: queso." },
+  { q: "🎸 El instrumento de cuerdas:", ops: ["guitarra", "gitarra", "guitara"], m: "Va con GU (sonido /gi/) y con RR: guitarra." },
+  { q: "☔ El agua que cae del cielo:", ops: ["lluvia", "yuvia", "luvia"], m: "Va con LL: lluvia." },
+  { q: "🪑 Sirve para sentarse:", ops: ["silla", "siya", "cilla"], m: "Va con LL: silla." },
+  { q: "🐔 El ave que pone huevos:", ops: ["gallina", "gayina", "galina"], m: "Va con LL: gallina." },
+  { q: "🐄 El animal que da leche:", ops: ["vaca", "baca", "vaka"], m: "Va con V: vaca." },
+  { q: "🚢 Navega por el agua:", ops: ["barco", "varco", "barrco"], m: "Va con B: barco." },
+  { q: "🪟 Se abre para ver afuera:", ops: ["ventana", "bentana", "ventanna"], m: "Va con V: ventana." },
+  { q: "⛄ La estación más fría del año:", ops: ["invierno", "inbierno", "imvierno"], m: "Se escribe NV: invierno." },
+  { q: "🥁 Se toca golpeándolo:", ops: ["tambor", "tanbor", "tamvor"], m: "Antes de B va M: tambor." },
+  { q: "🍫 El dulce marrón que hacen con cacao:", ops: ["chocolate", "xocolate", "chocolat"], m: "Va con CH: chocolate." },
+  { q: "🎒 Lo llevás a la escuela en la espalda:", ops: ["mochila", "mochilla", "mochyla"], m: "Va con CH y una sola L: mochila." },
+  { q: "🦊 El animal naranja y astuto:", ops: ["zorro", "sorro", "zoro"], m: "Va con Z y con RR: zorro." },
+  { q: "🐷 El animal que dice «oink»:", ops: ["chancho", "chanco", "chansho"], m: "Va con CH: chancho." },
+  { q: "👦 «___ me quiere mucho». ¿Cómo se escribe?", ops: ["mi mamá", "mimamá", "mimama"], m: "Son DOS palabras separadas: «mi mamá»." },
+];
+GAMES.ortografia_2do = juegoTriviaTexto(ORTO2_BANCO, "Tocá la palabra bien escrita.", "orto2");
+
 /* ── PROPORCIONALIDAD DIRECTA E INVERSA (7° grado — docs/auditoria-dc-caba/grado-7.md,
    gap #5: "proporcionalidad directa e inversa = 0; la INVERSA es contenido nuevo y
    nodal de 7°"). Juego GENERADO, 3 modos: (1) directa (más cosas → más plata, calcular),
