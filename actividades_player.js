@@ -5998,6 +5998,19 @@ const SINANT_BANCO = [
   { p: "Cerca", rel: "ant", correcta: "Lejos", distractoras: ["Cercano", "Próximo"] },
   { p: "Difícil", rel: "sin", correcta: "Complicado", distractoras: ["Fácil", "Simple"] },
   { p: "Empezar", rel: "ant", correcta: "Terminar", distractoras: ["Comenzar", "Iniciar"] },
+  // ampliado 20-jul-2026 (de 10 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { p: "Bonito", rel: "sin", correcta: "Lindo", distractoras: ["Feo", "Grande"] },
+  { p: "Cansado", rel: "sin", correcta: "Agotado", distractoras: ["Descansado", "Fuerte"] },
+  { p: "Rico", rel: "sin", correcta: "Sabroso", distractoras: ["Feo", "Amargo"] },
+  { p: "Enojado", rel: "sin", correcta: "Furioso", distractoras: ["Tranquilo", "Alegre"] },
+  { p: "Peligroso", rel: "sin", correcta: "Riesgoso", distractoras: ["Seguro", "Tranquilo"] },
+  { p: "Valiente", rel: "sin", correcta: "Corajudo", distractoras: ["Miedoso", "Débil"] },
+  { p: "Claro", rel: "ant", correcta: "Oscuro", distractoras: ["Brillante", "Limpio"] },
+  { p: "Lleno", rel: "ant", correcta: "Vacío", distractoras: ["Completo", "Grande"] },
+  { p: "Subir", rel: "ant", correcta: "Bajar", distractoras: ["Trepar", "Correr"] },
+  { p: "Abrir", rel: "ant", correcta: "Cerrar", distractoras: ["Empujar", "Tocar"] },
+  { p: "Frío", rel: "ant", correcta: "Caliente", distractoras: ["Helado", "Fresco"] },
+  { p: "Antiguo", rel: "ant", correcta: "Moderno", distractoras: ["Viejo", "Usado"] },
 ];
 GAMES.sinonimos_antonimos = {
   crear(ctx) {
