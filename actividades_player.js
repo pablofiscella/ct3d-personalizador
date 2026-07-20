@@ -6436,11 +6436,30 @@ GAMES.suma_columnas = {
    recto real (90°), así que cada categoría usa valores CLARAMENTE
    distinguibles. ── */
 const ANGULOS_BANCO = [
-  { grados: 30, tipo: "agudo" }, { grados: 45, tipo: "agudo" }, { grados: 60, tipo: "agudo" },
+  { grados: 12, tipo: "agudo" },
+  { grados: 20, tipo: "agudo" },
+  { grados: 25, tipo: "agudo" },
+  { grados: 33, tipo: "agudo" },
+  { grados: 40, tipo: "agudo" },
+  { grados: 48, tipo: "agudo" },
+  { grados: 55, tipo: "agudo" },
+  { grados: 62, tipo: "agudo" },
+  { grados: 70, tipo: "agudo" },
+  { grados: 78, tipo: "agudo" },
+  { grados: 85, tipo: "agudo" },
   { grados: 90, tipo: "recto" },
-  { grados: 120, tipo: "obtuso" }, { grados: 135, tipo: "obtuso" }, { grados: 150, tipo: "obtuso" },
-  // agregados 14-jul-2026 (banco ampliado de 7 a 10).
-  { grados: 90, tipo: "recto" }, { grados: 15, tipo: "agudo" }, { grados: 170, tipo: "obtuso" },
+  { grados: 98, tipo: "obtuso" },
+  { grados: 105, tipo: "obtuso" },
+  { grados: 112, tipo: "obtuso" },
+  { grados: 118, tipo: "obtuso" },
+  { grados: 125, tipo: "obtuso" },
+  { grados: 132, tipo: "obtuso" },
+  { grados: 140, tipo: "obtuso" },
+  { grados: 148, tipo: "obtuso" },
+  { grados: 155, tipo: "obtuso" },
+  { grados: 162, tipo: "obtuso" },
+  { grados: 168, tipo: "obtuso" },
+  { grados: 175, tipo: "obtuso" }
 ];
 GAMES.angulos = {
   crear(ctx) {
