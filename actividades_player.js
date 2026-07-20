@@ -3677,6 +3677,17 @@ const SENTIDOS_BANCO = [
   { q: "🍬 Un caramelo es…", ops: ["dulce", "amargo", "salado"], m: "El caramelo es dulce: lo sentís con el gusto." },
   { q: "🔊 Un ruido muy fuerte lo escuchás con…", ops: ["los oídos", "los ojos", "la nariz"], m: "Los sonidos los oís con los oídos." },
   { q: "🎵 La música la disfrutás con el sentido del…", ops: ["oído", "gusto", "olfato"], m: "La música se escucha con el oído." },
+  // ampliado 20-jul-2026 (de 12 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { q: "🌭 Un pancho recién hecho lo OLÉS con…", ops: ["la nariz", "los ojos", "los pies"], m: "Los olores los sentimos con la nariz (olfato)." },
+  { q: "🥁 El sonido del tambor lo ESCUCHÁS con…", ops: ["los oídos", "la lengua", "las manos"], m: "Los sonidos se escuchan con los oídos." },
+  { q: "🍦 Para saber si un helado es dulce usás…", ops: ["la lengua", "los ojos", "los oídos"], m: "El sabor lo sentimos con la lengua (gusto)." },
+  { q: "🖼️ Un cuadro lleno de colores lo MIRÁS con…", ops: ["los ojos", "la nariz", "la boca"], m: "Los colores los vemos con los ojos (vista)." },
+  { q: "🧸 Para sentir si un peluche es suave usás…", ops: ["la piel", "los oídos", "la nariz"], m: "Lo suave o áspero lo sentimos con la piel (tacto)." },
+  { q: "🌶️ Un ají picante lo sentimos…", ops: ["picante", "dulce", "frío"], m: "El ají pica: lo sentimos con la lengua (gusto)." },
+  { q: "🔔 Una campana suena y la escuchás con…", ops: ["los oídos", "los ojos", "los pies"], m: "El sonido de la campana lo oímos con los oídos." },
+  { q: "🍫 El chocolate tiene un gusto…", ops: ["dulce", "salado", "amargo como el limón"], m: "El chocolate es dulce: lo sentimos con el gusto." },
+  { q: "🌼 Para oler una flor usás…", ops: ["la nariz", "la lengua", "las orejas"], m: "El perfume de la flor lo olemos con la nariz." },
+  { q: "☀️ El sol del verano lo sentís CALIENTE con…", ops: ["la piel", "los oídos", "la nariz"], m: "El calor lo sentimos con la piel (tacto)." },
 ];
 GAMES.sentidos = juegoTriviaTexto(SENTIDOS_BANCO, "Elegí la respuesta correcta.", "sentidos");
 
