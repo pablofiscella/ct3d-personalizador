@@ -3302,6 +3302,19 @@ const HISTORIA_ORDEN_BANCO = [
   { items: ["A Tomás se le perdió el perro en la plaza", "Lo buscó por todos lados y no aparecía", "Un vecino lo había guardado y se lo devolvió"] },
   { items: ["Los amigos plantaron una semilla en una maceta", "Pasaban los días y la semilla no crecía", "Con agua y sol, al fin brotó una plantita"] },
   { items: ["Sofía empezó a preparar una torta", "Se dio cuenta de que faltaba el azúcar", "Fue a comprarla, la terminó y quedó riquísima"] },
+  // ampliado 20-jul-2026 (de 5 a 17 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { items: ["Un chico plantó un arbolito en el jardín", "El arbolito casi se seca por la sequía", "Lo regó todos los días y volvió a crecer"] },
+  { items: ["Ana encontró un gatito perdido en la calle", "No sabía de quién era ni dónde vivía", "Puso carteles y apareció su dueña"] },
+  { items: ["Los chicos armaron un equipo de fútbol", "Perdieron los primeros tres partidos", "Entrenaron mucho y ganaron el campeonato"] },
+  { items: ["Lucas quería aprender a nadar", "Al principio le daba miedo el agua", "Con la ayuda del profe aprendió y se divirtió"] },
+  { items: ["La familia salió de viaje a la montaña", "En el camino se les pinchó una rueda", "Cambiaron la rueda y siguieron el viaje"] },
+  { items: ["Sofía preparó una obra de teatro para la escuela", "El día de la función se olvidó una parte", "Improvisó y todos la aplaudieron igual"] },
+  { items: ["Un pájaro construyó su nido en el balcón", "Una tormenta casi lo tira abajo", "El pájaro lo reparó con ramitas nuevas"] },
+  { items: ["Los vecinos querían una plaza en el barrio", "El terreno estaba lleno de basura", "Entre todos lo limpiaron y plantaron flores"] },
+  { items: ["Martín se anotó en la carrera de la escuela", "Se cayó cerca de la mitad del recorrido", "Se levantó y llegó igual a la meta"] },
+  { items: ["La maestra propuso hacer una huerta", "Nadie sabía cómo plantar las semillas", "Un abuelo del barrio les enseñó y creció todo"] },
+  { items: ["Julia perdió su cuaderno favorito", "Lo buscó por toda la casa sin encontrarlo", "Apareció en la mochila de su hermano"] },
+  { items: ["El grado organizó una feria de ciencias", "Faltaban materiales para los experimentos", "Cada familia trajo algo y salió genial"] },
 ];
 GAMES.historia_orden = juegoOrdenar(HISTORIA_ORDEN_BANCO, "Ordená el cuento: ¿qué pasó primero? Tocá en orden.", "Pensá: primero cómo empieza, después el problema, y al final cómo se resuelve.", "historia_orden");
 
