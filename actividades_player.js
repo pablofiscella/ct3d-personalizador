@@ -6436,11 +6436,30 @@ GAMES.suma_columnas = {
    recto real (90°), así que cada categoría usa valores CLARAMENTE
    distinguibles. ── */
 const ANGULOS_BANCO = [
-  { grados: 30, tipo: "agudo" }, { grados: 45, tipo: "agudo" }, { grados: 60, tipo: "agudo" },
+  { grados: 12, tipo: "agudo" },
+  { grados: 20, tipo: "agudo" },
+  { grados: 25, tipo: "agudo" },
+  { grados: 33, tipo: "agudo" },
+  { grados: 40, tipo: "agudo" },
+  { grados: 48, tipo: "agudo" },
+  { grados: 55, tipo: "agudo" },
+  { grados: 62, tipo: "agudo" },
+  { grados: 70, tipo: "agudo" },
+  { grados: 78, tipo: "agudo" },
+  { grados: 85, tipo: "agudo" },
   { grados: 90, tipo: "recto" },
-  { grados: 120, tipo: "obtuso" }, { grados: 135, tipo: "obtuso" }, { grados: 150, tipo: "obtuso" },
-  // agregados 14-jul-2026 (banco ampliado de 7 a 10).
-  { grados: 90, tipo: "recto" }, { grados: 15, tipo: "agudo" }, { grados: 170, tipo: "obtuso" },
+  { grados: 98, tipo: "obtuso" },
+  { grados: 105, tipo: "obtuso" },
+  { grados: 112, tipo: "obtuso" },
+  { grados: 118, tipo: "obtuso" },
+  { grados: 125, tipo: "obtuso" },
+  { grados: 132, tipo: "obtuso" },
+  { grados: 140, tipo: "obtuso" },
+  { grados: 148, tipo: "obtuso" },
+  { grados: 155, tipo: "obtuso" },
+  { grados: 162, tipo: "obtuso" },
+  { grados: 168, tipo: "obtuso" },
+  { grados: 175, tipo: "obtuso" }
 ];
 GAMES.angulos = {
   crear(ctx) {
@@ -7898,42 +7917,64 @@ GAMES.sistema_reproductor = {
    real detrás de "gráfico con promedio"; el motor no arma gráficos
    dinámicos de barras arrastrables, pero el cálculo SÍ se verifica). ── */
 const ESTADISTICA_BANCO = [
-  { texto: "4, 6, 8", correcta: 6 },
-  { texto: "2, 4, 6, 8", correcta: 5 },
-  { texto: "10, 20, 30", correcta: 20 },
-  { texto: "3, 5, 7", correcta: 5 },
-  { texto: "1, 2, 3, 4, 5", correcta: 3 },
-  { texto: "6, 8, 10, 12", correcta: 9 },
-  // agregados 14-jul-2026 (banco ampliado de 6 a 10).
-  { texto: "5, 10, 15", correcta: 10 },
-  { texto: "2, 4, 6", correcta: 4 },
-  { texto: "8, 10, 12, 14", correcta: 11 },
-  { texto: "9, 12, 15", correcta: 12 },
+  { nums: [4, 4, 5, 6, 11], media: 6, moda: 4, mediana: 5 },
+  { nums: [3, 3, 4, 9, 11], media: 6, moda: 3, mediana: 4 },
+  { nums: [2, 3, 3, 7, 10], media: 5, moda: 3, mediana: 3 },
+  { nums: [1, 1, 2, 7, 9], media: 4, moda: 1, mediana: 2 },
+  { nums: [1, 1, 6, 6, 6], media: 4, moda: 6, mediana: 6 },
+  { nums: [1, 3, 9, 11, 11], media: 7, moda: 11, mediana: 9 },
+  { nums: [1, 3, 8, 8, 10], media: 6, moda: 8, mediana: 8 },
+  { nums: [2, 2, 4, 5, 12], media: 5, moda: 2, mediana: 4 },
+  { nums: [2, 2, 7, 8, 11], media: 6, moda: 2, mediana: 7 },
+  { nums: [2, 4, 10, 12, 12], media: 8, moda: 12, mediana: 10 },
+  { nums: [1, 1, 7, 9, 12], media: 6, moda: 1, mediana: 7 },
+  { nums: [2, 3, 7, 9, 9], media: 6, moda: 9, mediana: 7 },
+  { nums: [4, 6, 6, 8, 11], media: 7, moda: 6, mediana: 6 },
+  { nums: [1, 6, 6, 6, 6], media: 5, moda: 6, mediana: 6 },
+  { nums: [1, 6, 7, 8, 8], media: 6, moda: 8, mediana: 7 },
+  { nums: [4, 6, 6, 9, 10], media: 7, moda: 6, mediana: 6 },
+  { nums: [2, 2, 6, 7, 8], media: 5, moda: 2, mediana: 6 },
+  { nums: [3, 3, 5, 9, 10], media: 6, moda: 3, mediana: 5 }
 ];
 GAMES.estadistica_datos = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 5;
     ctx.rondas(rondas);
+    // Estadística REAL (7° DC, docs/auditoria-dc-caba/): rota MEDIA / MODA /
+    // MEDIANA, no solo el promedio. Los distractores son las OTRAS dos medidas
+    // (el error típico: confundir una con otra) → C4 misconception.
+    const MEDIDAS = [
+      { k: "media",   q: "¿Cuál es el promedio (la media) de estos números?",
+        m: "La media: sumá todos los números y dividí por la cantidad." },
+      { k: "moda",    q: "¿Cuál es la moda (el número que más se repite)?",
+        m: "La moda es el valor que aparece más veces en la lista." },
+      { k: "mediana", q: "¿Cuál es la mediana? Ordenalos de menor a mayor y buscá el del medio.",
+        m: "La mediana es el valor que queda justo en el medio cuando ordenás los números." },
+    ];
     let usados = [];
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      consignaVariada(ctx, ronda, "¿Cuál es el promedio de estos números?", "n");
-      ctx.juego.innerHTML = "";
-      let disp = ESTADISTICA_BANCO.filter((x) => !usados.includes(x.texto));
+      let disp = ESTADISTICA_BANCO.filter((x) => !usados.includes(x.nums.join()));
       if (!disp.length) { usados = []; disp = ESTADISTICA_BANCO; }
       const item = disp[rint(0, disp.length - 1)];
-      usados.push(item.texto);
+      usados.push(item.nums.join());
+      const medida = MEDIDAS[rint(0, 2)];
+      const correcta = item[medida.k];
+      ctx.item("estadistica_" + medida.k);
+      consignaVariada(ctx, ronda, medida.q, "n");
+      ctx.juego.innerHTML = "";
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto",
-        `<span style="font-size:26px;font-family:'Baloo',sans-serif">${item.texto}</span>`));
+        `<span style="font-size:26px;font-family:'Baloo',sans-serif">${item.nums.join(", ")}</span>`));
       ctx.juego.appendChild(arriba);
-      const opciones = new Set([item.correcta]);
+      const opciones = new Set([correcta]);
+      [item.media, item.moda, item.mediana].forEach((v) => { if (opciones.size < 3) opciones.add(v); });
       let guardas = 0;
       while (opciones.size < 3 && guardas < 50) {
         guardas++;
-        const v = Math.max(1, item.correcta + rint(-3, 3));
-        if (v !== item.correcta) opciones.add(v);
+        const v = Math.max(1, correcta + rint(-3, 3));
+        if (v !== correcta) opciones.add(v);
       }
       const fila = el("div", "filaSprites");
       let resuelto = false;
@@ -7941,7 +7982,7 @@ GAMES.estadistica_datos = {
         const b = el("button", "spriteBtn", `<span style="font-size:26px;font-family:'Baloo',sans-serif">${v}</span>`);
         b.addEventListener("click", async () => {
           if (resuelto) return;
-          if (v === item.correcta) {
+          if (v === correcta) {
             resuelto = true;
             b.classList.add("anim-brinco");
             ctx.bien();
@@ -7952,7 +7993,7 @@ GAMES.estadistica_datos = {
           } else {
             b.style.animation = "sacudir .4s ease";
             setTimeout(() => (b.style.animation = ""), 450);
-            ctx.casi();
+            ctx.casi(medida.m);
           }
         });
         fila.appendChild(b);
