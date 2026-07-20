@@ -385,6 +385,9 @@ def _menu(banda, edad):
         # palabras con -z (z→c). Todas con misconception distractors + C3.
         g.append({"id": "duelo_decimales", "titulo": "Duelo de decimales", "icono": "💲", "cfg": {"rondas": 10}})
         g.append({"id": "problemas_mult_div", "titulo": "Problemas de verdad", "icono": "🤔", "cfg": {"rondas": 10}})
+        # Proporcionalidad directa + Ed. Financiera (docs/auditoria-dc-caba/grado-4.md,
+        # gap #5): valor unitario, doble/triple, mejor oferta por precio unitario.
+        g.append({"id": "mejor_oferta", "titulo": "La mejor oferta", "icono": "🏷️", "cfg": {"rondas": 8}})
         g.append({"id": "plurales_z", "titulo": "Plurales con Z", "icono": "📝", "cfg": {"rondas": 10}})
         # Producción de Lengua (docs/auditoria-dc-caba/grado-4.md, gap #3): el
         # diálogo con raya. Puntuar el diálogo (la raya abre lo dicho y la
