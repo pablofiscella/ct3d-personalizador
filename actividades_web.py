@@ -357,6 +357,10 @@ def _menu(banda, edad):
         # Bimestre 2: acentuación + fotosíntesis (el intruso).
         # rondas=10 (14-jul-2026): ACENTUACION_BANCO creció de 9 a 10.
         g.append({"id": "acentuacion", "titulo": "Aguda, grave o esdrújula", "icono": "🚂", "cfg": {"rondas": 10}})
+        # Análisis sintáctico (docs/auditoria-dc-caba/grado-4.md: hueco nodal de
+        # Lengua — 4° no tenía sujeto/predicado). El chico DIVIDE la oración
+        # tocando dónde empieza el predicado (no es la fluidez de 5°).
+        g.append({"id": "sujeto_predicado", "titulo": "Sujeto y predicado", "icono": "✂️", "cfg": {"rondas": 8}})
         g.append({"id": "fotosintesis", "titulo": "¿Qué no necesita la planta?", "icono": "🌱", "cfg": {"rondas": 5}})
         # Bimestre 3: laboratorio eléctrico + fracciones equivalentes.
         # rondas=10 (14-jul-2026): ELECTRICO_BANCO creció de 8 a 10.
@@ -430,6 +434,9 @@ def _menu(banda, edad):
         g.append({"id": "fracciones_avanzado", "titulo": "Fracciones equivalentes II", "icono": "🥧", "cfg": {"rondas": 10}})
         # rondas=10 (14-jul-2026): SINTACTICO_BANCO creció de 6 a 10.
         g.append({"id": "analisis_sintactico", "titulo": "Núcleo del sujeto o predicado", "icono": "✏️", "cfg": {"rondas": 10}})
+        # Análisis por división (sigue de 4°): dividir la oración en sujeto |
+        # predicado. Complementa la fluidez de arriba (que ya da el núcleo).
+        g.append({"id": "sujeto_predicado", "titulo": "Sujeto y predicado", "icono": "✂️", "cfg": {"rondas": 8}})
         # Bimestre 3: pago exacto + actividad económica por región.
         g.append({"id": "pago_exacto", "titulo": "Pago exacto", "icono": "🪙", "cfg": {"rondas": 5}})
         # rondas=10 (14-jul-2026): ECONOMIA_BANCO creció de 6 a 10.

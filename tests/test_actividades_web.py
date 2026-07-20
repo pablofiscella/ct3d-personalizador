@@ -726,3 +726,20 @@ def test_arbol_probabilidad_azar():
         assert any(m["id"] == "arbol_probabilidad" for m in menu), f"falta arbol_probabilidad en edad {edad}"
         iconos = [m["icono"] for m in menu]
         assert len(iconos) == len(set(iconos)), f"íconos repetidos en edad {edad}"
+
+
+def test_sujeto_predicado_analisis():
+    """Sujeto y predicado — dividir la oración (análisis sintáctico, hueco de
+    Lengua; grado-4.md lo marca ausente en 4°). Debe estar en 4°-5° (edad 9-10)
+    y NO en 3° ni 6°+, sin colisión de íconos. 5° conserva la fluidez
+    (analisis_sintactico) — son complementarios."""
+    for edad in (7, 8, 11, 12):   # 2°/3° y 6°+: no lo tienen
+        ids = {m["id"] for m in aw._menu(aw._banda(edad), edad)}
+        assert "sujeto_predicado" not in ids, f"sujeto_predicado no debería estar en edad {edad}"
+    for edad in (9, 10):
+        menu = aw._menu(aw._banda(edad), edad)
+        assert any(m["id"] == "sujeto_predicado" for m in menu), f"falta sujeto_predicado en edad {edad}"
+        iconos = [m["icono"] for m in menu]
+        assert len(iconos) == len(set(iconos)), f"íconos repetidos en edad {edad}"
+    # 5° mantiene la fluidez (el núcleo ya en negrita) además de la división
+    assert any(m["id"] == "analisis_sintactico" for m in aw._menu(aw._banda(10), 10))
