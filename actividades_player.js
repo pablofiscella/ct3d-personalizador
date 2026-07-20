@@ -6527,6 +6527,10 @@ const TIEMPOS_BANCO = [
   { p: "Corro", tiempo: "presente" }, { p: "Como", tiempo: "presente" }, { p: "Salto", tiempo: "presente" },
   { p: "Correré", tiempo: "futuro" }, { p: "Comeré", tiempo: "futuro" }, { p: "Saltaré", tiempo: "futuro" },
   { p: "Jugaré", tiempo: "futuro" }, // agregado 14-jul-2026 (banco ampliado de 9 a 10)
+  // ampliado 20-jul-2026 (de 10 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { p: "Bailé", tiempo: "pasado" }, { p: "Leí", tiempo: "pasado" }, { p: "Dibujé", tiempo: "pasado" }, { p: "Canté", tiempo: "pasado" },
+  { p: "Bailo", tiempo: "presente" }, { p: "Leo", tiempo: "presente" }, { p: "Dibujo", tiempo: "presente" }, { p: "Canto", tiempo: "presente" },
+  { p: "Bailaré", tiempo: "futuro" }, { p: "Leeré", tiempo: "futuro" }, { p: "Dibujaré", tiempo: "futuro" }, { p: "Cantaré", tiempo: "futuro" },
 ];
 GAMES.tiempos_verbales = {
   crear(ctx) {
