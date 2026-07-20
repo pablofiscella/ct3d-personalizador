@@ -5185,6 +5185,17 @@ const PROB_MULTI_BANCO = [
   { t: "Un cine tiene 8 filas de 15 butacas. Ya se ocuparon 90. ¿Cuántas quedan libres?", ok: 30, d: [{ v: 120, m: "Faltó restar las 90 ocupadas: 8×15=120, y 120−90=30." }, { v: 105, m: "8×15=120, después restá 90 → 30." }] },
   { t: "Compré 6 paquetes de 8 figuritas. Repetidas tenía 12. ¿Cuántas nuevas quedaron?", ok: 36, d: [{ v: 48, m: "Restá las 12 repetidas: 6×8=48, y 48−12=36." }, { v: 26, m: "6×8=48, recién ahí restá 12 → 36." }] },
   { t: "Tenía $250. Mi abuela me dio $100 y compré un libro de $130. ¿Cuánto me quedó?", ok: 220, d: [{ v: 480, m: "El libro se RESTA: 250+100−130=220." }, { v: 20, m: "Los $100 se SUMAN: 250+100−130=220." }] },
+  // ampliado 20-jul-2026 (de 8 a 18 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { t: "Compré 4 paquetes de 6 figuritas y perdí 5. ¿Cuántas me quedaron?", ok: 19, d: [{ v: 24, m: "Te faltó restar las 5 perdidas: 4×6=24, y 24−5=19." }, { v: 29, m: "Las 5 perdidas se RESTAN: 24−5=19." }] },
+  { t: "En el aula hay 5 filas de 7 bancos. Si 3 quedan vacíos, ¿cuántos están ocupados?", ok: 32, d: [{ v: 35, m: "Te faltó restar los 3 vacíos: 5×7=35, y 35−3=32." }, { v: 38, m: "Los vacíos se RESTAN: 35−3=32." }] },
+  { t: "Un libro tiene 8 capítulos de 12 páginas. Ya leí 30 páginas. ¿Cuántas me faltan?", ok: 66, d: [{ v: 96, m: "Te faltó restar las leídas: 8×12=96, y 96−30=66." }, { v: 126, m: "Las páginas leídas se RESTAN: 96−30=66." }] },
+  { t: "Compré 3 docenas de huevos y se rompieron 4. ¿Cuántos quedaron enteros?", ok: 32, d: [{ v: 36, m: "Una docena son 12: 3×12=36, y 36−4=32." }, { v: 40, m: "Los rotos se RESTAN: 36−4=32." }] },
+  { t: "Tenía 45 caramelos y los repartí en partes iguales entre 9 amigos. ¿Cuántos le tocaron a cada uno?", ok: 5, d: [{ v: 36, m: "Eso es restar. Repartir en partes iguales es DIVIDIR: 45÷9=5." }, { v: 405, m: "Eso es multiplicar. Hay que dividir: 45÷9=5." }] },
+  { t: "Junté 60 tapitas y las puse en bolsas de 12. ¿Cuántas bolsas llené?", ok: 5, d: [{ v: 48, m: "Eso es restar. Hay que dividir: 60÷12=5." }, { v: 720, m: "Eso es multiplicar. Hay que dividir: 60÷12=5." }] },
+  { t: "En el colectivo van 40 personas. Bajan 12 y suben 7. ¿Cuántas van ahora?", ok: 35, d: [{ v: 45, m: "Los que bajan se RESTAN: 40−12+7=35." }, { v: 21, m: "Los que suben se SUMAN: 40−12+7=35." }] },
+  { t: "Compré 2 cajas de 15 lápices y regalé 8. ¿Cuántos tengo?", ok: 22, d: [{ v: 30, m: "Te faltó restar los 8 regalados: 2×15=30, y 30−8=22." }, { v: 38, m: "Los regalados se RESTAN: 30−8=22." }] },
+  { t: "Hay 6 mesas con 4 sillas cada una. Se rompieron 3 sillas. ¿Cuántas sirven?", ok: 21, d: [{ v: 24, m: "Te faltó restar las rotas: 6×4=24, y 24−3=21." }, { v: 27, m: "Las rotas se RESTAN: 24−3=21." }] },
+  { t: "Ahorré $50 por semana durante 6 semanas y gasté $120. ¿Cuánto me quedó?", ok: 180, d: [{ v: 300, m: "Te faltó restar lo gastado: 50×6=300, y 300−120=180." }, { v: 420, m: "Lo gastado se RESTA: 300−120=180." }] },
 ];
 GAMES.problemas_multipaso = {
   crear(ctx) {
