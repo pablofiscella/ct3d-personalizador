@@ -270,6 +270,9 @@ def _menu(banda, edad):
         # anterior/siguiente con números hasta 1.000.
         g.append({"id": "contar_saltando", "titulo": "Contar saltando", "icono": "🦘", "cfg": {"rondas": 10}})
         g.append({"id": "anterior_siguiente", "titulo": "Antes y después", "icono": "➡️", "cfg": {"rondas": 10, "max": 1000}})
+        # Medida del tiempo (docs/auditoria-dc-caba/: leer la hora — mecánica nodal
+        # que faltaba entera). nivel 1 = en punto y y media.
+        g.append({"id": "reloj", "titulo": "¿Qué hora es?", "icono": "🕐", "cfg": {"rondas": 8, "nivel": 1}})
     if e == 8:
         # 3° grado (14-jul-2026): mismo criterio — un juego por cada "Idea
         # web" del NAP, un bimestre a la vez. NO hizo falta separar la
@@ -312,6 +315,8 @@ def _menu(banda, edad):
         g.append({"id": "problemas_3ro", "titulo": "Problemas", "icono": "🤔", "cfg": {"rondas": 10}})
         g.append({"id": "orden_alfabetico", "titulo": "De la A a la Z", "icono": "🔡", "cfg": {"rondas": 8}})
         g.append({"id": "ortografia_3ro", "titulo": "¿Cómo se escribe?", "icono": "✍️", "cfg": {"rondas": 10}})
+        # Medida del tiempo: leer la hora, nivel 2 = cuartos y de a 5/10 (sigue de 2°).
+        g.append({"id": "reloj", "titulo": "¿Qué hora es?", "icono": "🕐", "cfg": {"rondas": 8, "nivel": 2}})
         _drop3 = {"sumas", "restas", "contar", "colorear", "puntos", "mas_menos", "patron", "separador_mezclas"}
         g[:] = [it for it in g if it["id"] not in _drop3]
     if e == 9:
