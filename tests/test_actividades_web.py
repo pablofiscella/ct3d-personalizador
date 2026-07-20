@@ -937,3 +937,12 @@ def test_ortografia_2do():
     assert any(m["id"] == "ortografia_2do" for m in menu), "falta ortografia_2do en 2°"
     iconos = [m["icono"] for m in menu]
     assert len(iconos) == len(set(iconos)), "íconos repetidos en 2°"
+
+
+def test_cerebro_defensas_7mo():
+    """Sistema nervioso + vacunas en 7° (grado-7.md gap #4). Solo en 7° (edad 12)."""
+    for edad in (10, 11):
+        assert not any(m["id"] == "cerebro_defensas" for m in aw._menu(aw._banda(edad), edad))
+    menu = aw._menu(aw._banda(12), 12)
+    assert any(m["id"] == "cerebro_defensas" for m in menu)
+    assert len([m["icono"] for m in menu]) == len({m["icono"] for m in menu})
