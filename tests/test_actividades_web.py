@@ -964,3 +964,12 @@ def test_cazador_errores_7mo():
     menu = aw._menu(aw._banda(12), 12)
     assert any(m["id"] == "cazador_errores" for m in menu)
     assert len([m["icono"] for m in menu]) == len({m["icono"] for m in menu})
+
+
+def test_valor_posicional_2do():
+    """Valor posicional en 2° (grado-2.md gap #2). Solo en 2° (edad 7)."""
+    for edad in (6, 8, 9):
+        assert not any(m["id"] == "valor_posicional" for m in aw._menu(aw._banda(edad), edad))
+    menu = aw._menu(aw._banda(7), 7)
+    assert any(m["id"] == "valor_posicional" for m in menu)
+    assert len([m["icono"] for m in menu]) == len({m["icono"] for m in menu})

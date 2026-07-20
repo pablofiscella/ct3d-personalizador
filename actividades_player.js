@@ -3608,6 +3608,27 @@ const ORTO7_BANCO = [
 ];
 GAMES.cazador_errores = juegoTriviaTexto(ORTO7_BANCO, "Tocá la palabra bien escrita.", "orto7");
 
+/* ── VALOR POSICIONAL (2° — docs/auditoria-dc-caba/grado-2.md gap #2: valor
+   posicional hasta 1.000, ausente). Cuánto vale cada cifra, descomposición,
+   unidades/decenas/centenas. Trivia (juegoTriviaTexto). ── */
+const VALPOS_BANCO = [
+  { q: "En el número 45, ¿cuánto vale el 4?", ops: ["40", "4", "400"], m: "El 4 está en las decenas: vale 40." },
+  { q: "En el número 235, ¿cuánto vale el 2?", ops: ["200", "20", "2"], m: "El 2 está en las centenas: vale 200." },
+  { q: "En el número 235, ¿cuánto vale el 3?", ops: ["30", "3", "300"], m: "El 3 está en las decenas: vale 30." },
+  { q: "En el número 235, ¿cuánto vale el 5?", ops: ["5", "50", "500"], m: "El 5 está en las unidades: vale 5." },
+  { q: "En el número 70, ¿cuánto vale el 7?", ops: ["70", "7", "700"], m: "El 7 está en las decenas: vale 70." },
+  { q: "¿Cuántas decenas hay en 60?", ops: ["6", "60", "16"], m: "60 = 6 decenas (6 grupos de 10)." },
+  { q: "¿Cuántas centenas hay en 300?", ops: ["3", "30", "300"], m: "300 = 3 centenas (3 grupos de 100)." },
+  { q: "El número 100 tiene…", ops: ["1 centena, 0 decenas y 0 unidades", "10 centenas", "100 decenas"], m: "100 = 1 centena, 0 decenas y 0 unidades." },
+  { q: "¿Qué número es 2 centenas, 4 decenas y 5 unidades?", ops: ["245", "2045", "254"], m: "2 centenas (200) + 4 decenas (40) + 5 = 245." },
+  { q: "¿Qué número es 3 decenas y 6 unidades?", ops: ["36", "360", "63"], m: "3 decenas (30) + 6 unidades = 36." },
+  { q: "En el número 508, ¿cuánto vale el 0?", ops: ["0", "50", "500"], m: "No hay decenas: el 0 vale 0." },
+  { q: "¿Cuál 5 vale MÁS: el de 52 o el de 25?", ops: ["El de 52 (vale 50)", "El de 25 (vale 5)", "Valen igual"], m: "En 52 el 5 está en las decenas (50); en 25, en las unidades (5)." },
+  { q: "300 + 40 + 5 = ", ops: ["345", "3045", "0345"], m: "3 centenas + 4 decenas + 5 unidades = 345." },
+  { q: "¿Cuántas decenas tiene el número 89?", ops: ["8", "9", "89"], m: "El 8 está en las decenas: 89 tiene 8 decenas." },
+];
+GAMES.valor_posicional = juegoTriviaTexto(VALPOS_BANCO, "Elegí la respuesta correcta.", "valpos");
+
 /* ── CAMINO A LA INDEPENDENCIA (5° grado — docs/auditoria-dc-caba/grado-5.md, gap
    #3: "ausencia total del proceso 1810-1853 en Sociales — al alumno de 5° se le
    ofrece el contenido de 4° [colonial] y nada del suyo"). Trivia de contenido (reusa

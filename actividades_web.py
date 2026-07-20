@@ -273,6 +273,9 @@ def _menu(banda, edad):
         g.append({"id": "recta_numerica", "titulo": "Recta gigante", "icono": "📍", "cfg": {"rondas": 8, "max1": 100, "max2": 1000}})
         g.append({"id": "comparar_numeros", "titulo": "Tres en fila", "icono": "🥇", "cfg": {"rondas": 10, "max": 999}})
         g.append({"id": "ordenar_numeros", "titulo": "Ordená los números", "icono": "🪜", "cfg": {"rondas": 8, "max": 100, "cant": 4}})
+        # Valor posicional (docs/auditoria-dc-caba/grado-2.md, gap #2: hasta 1.000,
+        # ausente). Cuánto vale cada cifra, descomposición, unidades/decenas/centenas.
+        g.append({"id": "valor_posicional", "titulo": "¿Cuánto vale?", "icono": "🧮", "cfg": {"rondas": 10}})
         # 2ª tanda 2° (19-jul-2026, nivelación): contar de a 2/5/10 (NAP nodal) +
         # anterior/siguiente con números hasta 1.000.
         g.append({"id": "contar_saltando", "titulo": "Contar saltando", "icono": "🦘", "cfg": {"rondas": 10}})
