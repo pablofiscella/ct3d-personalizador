@@ -342,7 +342,8 @@ def _menu(banda, edad):
         # Bimestre 3: laboratorio eléctrico + fracciones equivalentes.
         # rondas=10 (14-jul-2026): ELECTRICO_BANCO creció de 8 a 10.
         g.append({"id": "laboratorio_electrico", "titulo": "Laboratorio eléctrico", "icono": "🔌", "cfg": {"rondas": 10}})
-        # rondas=10 (14-jul-2026): FRACCIONES_BANCO tiene 20 ítems, de sobra.
+        # rondas=10: FRACCIONES_BANCO tiene 24 ítems verificados (equivalencias
+        # correctas + distractores comprobados), de sobra para 2 pasadas sin quemarse.
         g.append({"id": "fracciones_equivalentes", "titulo": "Fracciones equivalentes", "icono": "🍕", "cfg": {"rondas": 10}})
         # M10 "Duelo de fracciones" (19-jul-2026, rollout DC CABA): comparación
         # de fracciones CON BARRAS (CPA), ataca la misconception #1 (1/4 > 1/2
@@ -406,7 +407,7 @@ def _menu(banda, edad):
         g.append({"id": "trivia_colonial", "titulo": "Vida colonial", "icono": "🏛️", "cfg": {"rondas": 10}})
         g.append({"id": "camino_digestivo", "titulo": "El camino digestivo", "icono": "🍽️", "cfg": {"rondas": 4}})
         # Bimestre 2: fracciones nivel 2 + análisis sintáctico contrarreloj.
-        # rondas=10 (14-jul-2026): FRACCIONES_AVANZADO_BANCO tiene 20 ítems, de sobra.
+        # rondas=10: FRACCIONES_AVANZADO_BANCO tiene 24 ítems verificados, de sobra.
         g.append({"id": "fracciones_avanzado", "titulo": "Fracciones equivalentes II", "icono": "🥧", "cfg": {"rondas": 10}})
         # rondas=10 (14-jul-2026): SINTACTICO_BANCO creció de 6 a 10.
         g.append({"id": "analisis_sintactico", "titulo": "Núcleo del sujeto o predicado", "icono": "✏️", "cfg": {"rondas": 10}})
