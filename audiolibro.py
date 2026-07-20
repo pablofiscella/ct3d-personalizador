@@ -28,25 +28,71 @@ _TTS_URL = "https://api.openai.com/v1/audio/speech"
 _VOZ = "sage"        # la voz del preset oficial "Bedtime Story" de openai.fm
 VOCES = {"fable": "Voz de cuentacuentos", "nova": "Voz femenina cálida",
          "onyx": "Voz masculina profunda"}
-# Estructura Affect/Tone/Pacing/... calcada de los presets oficiales "Bedtime
-# Story" + "Serene" de openai.fm (así recomienda OpenAI usar `instructions`;
-# en inglés siguen mejor). El acento rioplatense se ancla desde el TEXTO (voseo).
-_INSTRUCCIONES = (
-    "Affect: A warm, gentle female storyteller telling a bedtime story to a "
-    "small child (2 to 6 years old), in Latin American Spanish from Argentina "
-    "(Rioplatense accent).\n"
-    "Tone: Soft, magical, loving and reassuring, like a mother reading a "
-    "picture book at night; full of wonder, never loud or rushed.\n"
-    "Pacing: Slow and unhurried, around 120 to 130 words per minute. Brief "
-    "pause after every sentence; a longer, expectant pause before magical "
-    "moments.\n"
-    "Emotion: Tender warmth and quiet delight; gently playful in adventure "
-    "moments, hushed and sleepy toward the end.\n"
-    "Pronunciation: Clear, soft articulation with slightly elongated vowels. "
-    "Argentine Spanish: pronounce 'll' and 'y' with the soft 'sh' sound, and "
-    "read voseo forms ('mirá', 'tenés', 'dormite') naturally.\n"
-    "Pauses: Gentle pauses at commas and ellipses; let final sentences trail "
-    "off softly.")
+_VOCES_MASCULINAS = {"onyx"}   # ver _instrucciones(): Affect cambia según género
+
+# Estructura Affect/Tone/Pacing/... inspirada en los presets oficiales de
+# openai.fm, pero YA NO calcada del preset "Bedtime Story" para todo — ver
+# nota de abajo (15-jul-2026, 2ª vuelta): ese preset es demasiado lento/parejo
+# para escenas que no son de dormir. El acento rioplatense se ancla desde el
+# TEXTO (voseo).
+#
+# 15-jul-2026 (pedido de Pablo, sobre onyx/voces masculinas), 1ª vuelta: "más
+# entonación y emoción" — reforzado el bloque Emotion (antes alcanzaba, pero
+# sonaba plano/monótono) — y separado el Affect por GÉNERO real de la voz:
+# antes decía "female storyteller" para TODAS, onyx incluida (voz "masculina
+# profunda" narrada con instrucciones que decían que era una mujer).
+#
+# 15-jul-2026, 2ª vuelta (Pablo, sobre esa muestra corregida): "le falta
+# emoción, está lento y sin cambio de ritmo" — la 1ª vuelta NO tocó el bloque
+# Pacing, que seguía diciendo "Slow and unhurried, 120-130 wpm" SIEMPRE, para
+# CUALQUIER texto — literalmente pedía ritmo parejo y lento sin importar el
+# contenido. Además, a diferencia de ElevenLabs (que recibe una etiqueta v3
+# distinta por NODO vía _etiqueta_pagina), _tts_openai manda las mismas
+# instructions fijas en cada llamada — sin nada que varíe el ritmo entre
+# nodos. Fix: `_instrucciones` ahora recibe el `texto` de ESE nodo/página y
+# ajusta Pacing/Emotion según su contenido (mismas señales que
+# _etiqueta_pagina, expresadas como instrucción en vez de tag), y el caso
+# base (ninguna señal especial) pasa a ritmo conversacional normal, no
+# "bedtime lento" — el ritmo lento queda reservado para el cierre real.
+def _instrucciones(voz=None, texto=None):
+    genero = "male" if voz in _VOCES_MASCULINAS else "female"
+    quien = "father" if genero == "male" else "mother"
+    low = (texto or "").lower()
+    if low.count("¡") >= 2 or "sorpresa!" in low:
+        pacing = ("Pick up the pace right now — this moment is thrilling. Quick, "
+                  "bright, energetic delivery, like the exciting part of an "
+                  "adventure story read aloud to a delighted child.")
+        emocion = ("Big, genuine excitement — let your voice visibly light up, "
+                  "almost breathless with delight, NOT calm or measured.")
+    elif "a dormir" in low or "se durmió" in low or "buenas noches" in low:
+        pacing = ("Slow way down here — this is the sleepy closing moment, "
+                  "unhurried, around 110 words per minute, long soft pauses.")
+        emocion = "Hushed, tender, and sleepy, trailing off softly."
+    else:
+        pacing = ("Natural, lively conversational storytelling pace, around 150 "
+                  "to 170 words per minute — like an animated storyteller "
+                  "performing live for a child, NOT a slow bedtime drone. Vary "
+                  "the rhythm: quicken slightly on action, linger briefly on "
+                  "wonder or surprise.")
+        emocion = ("Highly expressive and animated, with clear rises and falls "
+                  "in pitch and energy from sentence to sentence — never flat, "
+                  "never monotone, never a single steady drone.")
+    return (
+        "Affect: A warm %s storyteller performing a story out loud for a "
+        "small child (2 to 6 years old), in Latin American Spanish from "
+        "Argentina (Rioplatense accent) — like a %s who loves telling "
+        "stories with real energy, not just reading calmly off a page.\n"
+        "Tone: Magical and full of wonder, warm and loving at its core, but "
+        "genuinely animated — never a single flat, soft murmur throughout.\n"
+        "Pacing: %s\n"
+        "Emotion: %s\n"
+        "Pronunciation: Clear, warm articulation. Argentine Spanish: "
+        "pronounce 'll' and 'y' with the soft 'sh' sound, and read voseo "
+        "forms ('mirá', 'tenés', 'dormite') naturally.\n"
+        "Pauses: A brief pause at commas, a longer expectant pause before a "
+        "reveal or surprise — pauses should FEEL different depending on "
+        "what's happening, not be evenly spaced."
+        % (genero, quien, pacing, emocion))
 
 # ElevenLabs: voz por default del audiolibro (más natural que OpenAI). Lizy es una voz
 # nativa en español pensada para cuentos infantiles. La key se lee de config.json.
@@ -190,7 +236,7 @@ def _tts_openai(api_key, texto, timeout=120, voz=None):
     texto = re.sub(r"\[[a-z][a-z ]*\]\s*", "", texto)
     body = json.dumps({"model": "gpt-4o-mini-tts", "voice": v, "input": texto,
                        "response_format": "mp3",
-                       "instructions": _INSTRUCCIONES}).encode()
+                       "instructions": _instrucciones(v, texto)}).encode()
     req = urllib.request.Request(_TTS_URL, data=body, method="POST", headers={
         "Authorization": "Bearer " + api_key, "Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as r:

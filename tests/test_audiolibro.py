@@ -107,3 +107,35 @@ def test_tts_mp3_rutea_voz_alternativa_elevenlabs(monkeypatch):
     llamadas.clear()
     al.tts_mp3(api_key="k", texto="Hola", voz="fable", seed=1)
     assert llamadas == [("openai", "fable")]    # voz OpenAI: ni pasa por ElevenLabs
+
+
+def test_instrucciones_openai_son_por_genero_de_voz():
+    """15-jul-2026, pedido de Pablo sobre onyx ("voz masculina profunda"): "hace
+    lo mismo con las voces de los hombres, mas entonacion y emocion". Antes,
+    _INSTRUCCIONES era un único texto fijo que decía "female storyteller" para
+    TODAS las voces, onyx incluida — bug real, no solo falta de emoción."""
+    import audiolibro as al
+    masc = al._instrucciones("onyx", "Texto neutro.")
+    fem = al._instrucciones("nova", "Texto neutro.")
+    assert "male storyteller" in masc
+    assert "female storyteller" not in masc
+    assert "female storyteller" in fem
+
+
+def test_instrucciones_openai_varian_ritmo_segun_contenido():
+    """15-jul-2026, 2ª vuelta: Pablo sobre la muestra ya corregida por género:
+    "le falta emocion, esta lento y sin cambio de ritmo". La 1ª vuelta no
+    tocó Pacing (seguía diciendo "slow, 120-130 wpm" SIEMPRE) ni variaba nada
+    entre llamadas — a diferencia de ElevenLabs (etiqueta v3 por NODO), cada
+    llamada a _tts_openai mandaba las mismas instructions fijas sin importar
+    el contenido de ESE texto puntual."""
+    import audiolibro as al
+    excitado = al._instrucciones("onyx", "¡Qué sorpresa! ¡Vamos ya!")
+    dormir = al._instrucciones("onyx", "Y así, {nombre} se durmió tranquilo.")
+    neutro = al._instrucciones("onyx", "Caminó despacio por el sendero.")
+    assert "Pick up the pace" in excitado
+    assert "Slow way down" in dormir
+    assert "150 to 170 words per minute" in neutro
+    # el caso base ya NO es el ritmo lento de bedtime fijo de antes
+    assert "120 to 130 words per minute" not in neutro
+    assert "Slow and unhurried" not in neutro
