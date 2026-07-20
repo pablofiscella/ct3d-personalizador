@@ -5558,6 +5558,19 @@ const SIGLOXX_BANCO = [
   { q: "El 24 de marzo se recuerda…", ok: "El Día de la Memoria", d: ["El Día de la Bandera", "La independencia"], m: "El 24 de marzo es el Día Nacional de la Memoria por la Verdad y la Justicia." },
   { q: "¿Qué derecho consiguieron las mujeres en 1947?", ok: "El voto femenino", d: ["Manejar autos", "Ir a la escuela"], m: "En 1947 se sancionó la ley del voto femenino; votaron por primera vez en 1951." },
   { q: "En democracia, ¿quién elige a los gobernantes?", ok: "El pueblo, votando", d: ["Un rey", "El ejército"], m: "En democracia, la gente elige a sus representantes con el voto." },
+  // ampliado 20-jul-2026 (de 6 a 18 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { q: "¿En qué año votaron las mujeres por primera vez en Argentina?", ok: "En 1951", d: ["En 1810", "En 2001"], m: "En 1951 las mujeres votaron por primera vez, gracias a la ley de 1947." },
+  { q: "¿Quién impulsó la ley del voto femenino?", ok: "Eva Perón", d: ["Manuel Belgrano", "Cristóbal Colón"], m: "Eva Perón fue clave para la ley de sufragio femenino (1947)." },
+  { q: "La última dictadura militar en Argentina comenzó en…", ok: "1976", d: ["1810", "2010"], m: "El golpe de 1976 inició la última dictadura, que terminó en 1983." },
+  { q: "¿En qué año volvió la democracia tras la última dictadura?", ok: "En 1983", d: ["En 1930", "En 1955"], m: "En 1983 se recuperó la democracia con elecciones libres." },
+  { q: "La Guerra de Malvinas ocurrió en…", ok: "1982", d: ["1810", "2001"], m: "En 1982 Argentina y el Reino Unido se enfrentaron por las Islas Malvinas." },
+  { q: "¿Quiénes reclamaron por sus hijos desaparecidos durante la dictadura?", ok: "Las Madres de Plaza de Mayo", d: ["Los conquistadores", "Los virreyes"], m: "Las Madres de Plaza de Mayo reclamaron por sus hijos desaparecidos." },
+  { q: "El 24 de marzo se recuerda el Día de la Memoria por…", ok: "las víctimas de la última dictadura", d: ["la Revolución de Mayo", "el Descubrimiento de América"], m: "El 24 de marzo se conmemora a las víctimas del terrorismo de Estado." },
+  { q: "¿Dónde están las Islas Malvinas que Argentina reclama?", ok: "En el océano Atlántico Sur", d: ["En el océano Pacífico", "En el mar Mediterráneo"], m: "Las Malvinas están en el Atlántico Sur; Argentina reclama su soberanía." },
+  { q: "Durante una dictadura…", ok: "se suspenden los derechos y no hay elecciones libres", d: ["hay más libertad que nunca", "todos votan"], m: "En una dictadura se suspenden derechos y libertades." },
+  { q: "Un derecho de los trabajadores conquistado en el siglo XX es…", ok: "el aguinaldo y las vacaciones pagas", d: ["viajar gratis siempre", "no trabajar nunca"], m: "En el siglo XX se lograron derechos laborales como el aguinaldo." },
+  { q: "¿Por qué es importante recordar los hechos de la dictadura?", ok: "Para que no vuelvan a pasar (memoria, verdad y justicia)", d: ["Para olvidarlos", "No es importante"], m: "Recordar ayuda a que no se repitan: memoria, verdad y justicia." },
+  { q: "La democracia se caracteriza por…", ok: "elecciones libres y respeto a los derechos", d: ["un solo partido obligatorio", "el gobierno de un rey"], m: "En democracia hay elecciones libres y se respetan los derechos." },
 ];
 GAMES.argentina_sigloXX = juegoTriviaBanco(SIGLOXX_BANCO, "sigloxx");
 
