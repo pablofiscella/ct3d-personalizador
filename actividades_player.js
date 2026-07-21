@@ -2821,6 +2821,9 @@ GAMES.cuenta_larga = {
    chicos) y equivalentes (pintan lo mismo). Explicación por misconception
    apuntando a las barras (Capa 0 · C3). Reusa el render de barra de
    fracciones_equivalentes. ── */
+// consignas rotativas del duelo de fracciones (Pablo 20-jul-2026: decía siempre
+// "¿Cuál pinta MÁS?" fijo; debe preguntar por la MÁS GRANDE y no repetirse).
+const DUELO_FRAC_CORTAS = ["¿Cuál es más grande?", "¿Cuál fracción es mayor?", "¿Cuál vale más?", "¿Cuál es la mayor?", "Mirá las barras: ¿cuál es más grande?"];
 GAMES.duelo_fracciones = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 10;
@@ -2857,14 +2860,14 @@ GAMES.duelo_fracciones = {
       }
       const mayor = iguales ? "iguales" : (val(A) > val(B) ? "a" : "b");
       ctx.item("duelo_fracciones#" + A.n + "/" + A.d + "_" + B.n + "/" + B.d);
-      ctx.consigna("¿Cuál pinta MÁS?");
+      ctx.consigna(ronda === 0 ? "¿Cuál fracción es más grande? (si son iguales, tocá «son iguales»)" : sacarDeBolsa(ctx, "duelofrac", DUELO_FRAC_CORTAS));
       ctx.juego.innerHTML = "";
       const explicaChica = (chica, grande) => {
         if (chica.n === grande.n && chica.d !== grande.d)
           return "Partiste en más pedazos (" + chica.d + "): cada pedazo es más CHICO. Mirá las barras.";
         if (chica.d === grande.d)
           return "Con el mismo denominador manda el de arriba: " + grande.n + " es más que " + chica.n + ".";
-        return "Mirá las barras: una pinta más que la otra.";
+        return "Mirá las barras: una es más grande que la otra.";
       };
       const cards = [{ key: "a", frac: A }, { key: "b", frac: B }, { key: "iguales", frac: null }];
       const fila = el("div", "filaSprites fraccionesOpciones");
