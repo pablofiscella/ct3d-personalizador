@@ -10069,6 +10069,20 @@ const AREA_BANCO = [
   { texto: "Rectángulo A: 5m × 3m.<br>Rectángulo B: 4m × 2m.", correcta: 23 },
   { texto: "Rectángulo A: 6m × 3m.<br>Rectángulo B: 2m × 2m.", correcta: 22 },
   { texto: "Rectángulo A: 9m × 2m.<br>Rectángulo B: 3m × 3m.", correcta: 27 },
+  // ampliado 20-jul-2026 (de 10 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/;
+  // correcta = área total (A + B), verificada por código)
+  { texto: "Rectángulo A: 5m × 2m.<br>Rectángulo B: 3m × 4m.", correcta: 22 },
+  { texto: "Rectángulo A: 4m × 4m.<br>Rectángulo B: 2m × 3m.", correcta: 22 },
+  { texto: "Rectángulo A: 6m × 3m.<br>Rectángulo B: 1m × 2m.", correcta: 20 },
+  { texto: "Rectángulo A: 7m × 2m.<br>Rectángulo B: 2m × 2m.", correcta: 18 },
+  { texto: "Rectángulo A: 5m × 5m.<br>Rectángulo B: 2m × 5m.", correcta: 35 },
+  { texto: "Rectángulo A: 8m × 2m.<br>Rectángulo B: 3m × 2m.", correcta: 22 },
+  { texto: "Rectángulo A: 4m × 6m.<br>Rectángulo B: 5m × 2m.", correcta: 34 },
+  { texto: "Rectángulo A: 3m × 3m.<br>Rectángulo B: 3m × 3m.", correcta: 18 },
+  { texto: "Rectángulo A: 10m × 2m.<br>Rectángulo B: 4m × 3m.", correcta: 32 },
+  { texto: "Rectángulo A: 6m × 4m.<br>Rectángulo B: 2m × 2m.", correcta: 28 },
+  { texto: "Rectángulo A: 5m × 3m.<br>Rectángulo B: 5m × 3m.", correcta: 30 },
+  { texto: "Rectángulo A: 7m × 3m.<br>Rectángulo B: 2m × 4m.", correcta: 29 },
 ];
 GAMES.area_perimetro = {
   crear(ctx) {
