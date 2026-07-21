@@ -4780,6 +4780,19 @@ const CONECTORES4_BANCO = [
   { f: "Me lavé las manos … me senté a comer.", ok: "y después", d: ["porque", "pero"], m: "«y después» ordena en el tiempo las dos acciones." },
   { f: "Ganamos el partido … practicamos toda la semana.", ok: "porque", d: ["pero", "y después"], m: "«porque» da la causa de haber ganado." },
   { f: "Hacía mucho calor, … prendimos el ventilador.", ok: "así que", d: ["porque", "pero"], m: "«así que» marca lo que hicimos como consecuencia del calor." },
+  // ampliado 20-jul-2026 (de 10 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/)
+  { f: "Tenía sed, … tomé un vaso de agua.", ok: "así que", d: ["porque", "pero"], m: "«así que» marca la consecuencia de tener sed." },
+  { f: "No hice la tarea … me olvidé el cuaderno.", ok: "porque", d: ["así que", "y después"], m: "«porque» da la causa de no hacer la tarea." },
+  { f: "Quería jugar afuera, … estaba lloviendo.", ok: "pero", d: ["porque", "por eso"], m: "«pero» marca el obstáculo: la lluvia." },
+  { f: "Me lavé los dientes … me fui a dormir.", ok: "y después", d: ["porque", "pero"], m: "«y después» ordena en el tiempo las dos acciones." },
+  { f: "Comí muchos dulces, … me dolió la panza.", ok: "por eso", d: ["pero", "y después"], m: "«por eso» une la causa (los dulces) con su consecuencia." },
+  { f: "Practiqué toda la semana, … gané la carrera.", ok: "por eso", d: ["pero", "porque"], m: "«por eso» marca la consecuencia de practicar." },
+  { f: "Se hizo de noche, … encendimos la luz.", ok: "así que", d: ["porque", "pero"], m: "«así que» marca lo que hicimos como consecuencia." },
+  { f: "Estaba muy cansado … me acosté temprano.", ok: "así que", d: ["pero", "porque"], m: "«así que» marca la consecuencia del cansancio." },
+  { f: "Quería el juguete, … no me alcanzaba la plata.", ok: "pero", d: ["por eso", "así que"], m: "«pero» marca el obstáculo que apareció." },
+  { f: "Primero armamos la carpa … prendimos el fuego.", ok: "y después", d: ["porque", "pero"], m: "«y después» ordena: primero una cosa, luego la otra." },
+  { f: "Llegué tarde … perdí el colectivo.", ok: "porque", d: ["así que", "y después"], m: "«porque» da la causa de llegar tarde." },
+  { f: "Estudié mucho, … me saqué buena nota.", ok: "por eso", d: ["pero", "porque"], m: "«por eso» marca la consecuencia de estudiar." },
 ];
 GAMES.conectores = {
   crear(ctx) {
