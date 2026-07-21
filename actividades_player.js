@@ -9542,6 +9542,12 @@ const ENERGIA_BANCO = [
   { e: "⛽", cat: "no_renovable" }, { e: "⚫", cat: "no_renovable" }, { e: "☢️", cat: "no_renovable" },
   // agregados 14-jul-2026 (banco ampliado de 7 a 10).
   { e: "🌊", cat: "renovable" }, { e: "🌳", cat: "renovable" }, { e: "🛢️", cat: "no_renovable" },
+  // ampliado 20-jul-2026 (de 10 a 18 — engrosar bancos nodales, docs/auditoria-dc-caba/;
+  // renovables: biomasa/geotérmica/hidráulica · no renovables: combustibles fósiles)
+  { e: "🌾", cat: "renovable" }, { e: "♨️", cat: "renovable" },
+  { e: "🌱", cat: "renovable" }, { e: "🏞️", cat: "renovable" },
+  { e: "🚗", cat: "no_renovable" }, { e: "🏭", cat: "no_renovable" },
+  { e: "✈️", cat: "no_renovable" }, { e: "⛏️", cat: "no_renovable" },
 ];
 GAMES.energia_renovable = {
   crear(ctx) {
