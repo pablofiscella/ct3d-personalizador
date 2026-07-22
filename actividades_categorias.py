@@ -17,7 +17,7 @@ Categorías (las 4 áreas de la primaria) + un bucket transversal:
                  o dentro de la materia más cercana.
 
 Los marcados con  # ???  son dudosos: confirmar con Pablo / mirando el juego.
-Generado 21-jul-2026. Fuente: los 141 `GAMES.<id>` de actividades_player.js.
+Generado 21-jul-2026. Fuente: los 142 `GAMES.<id>` de actividades_player.js.
 """
 
 CATEGORIA = {
@@ -145,6 +145,7 @@ CATEGORIA = {
 
     # ─────────── CS. SOCIALES ───────────
     "actividad_economica": "sociales",
+    "argentina_sigloXX": "sociales",      # Argentina siglo XX (id camelCase)
     "buenos_aires": "sociales",
     "campo_ciudad": "sociales",
     "derechos_constitucion": "sociales",
