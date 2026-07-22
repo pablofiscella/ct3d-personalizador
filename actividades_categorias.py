@@ -179,3 +179,34 @@ CATEGORIA = {
 def categoria_de(juego_id, default=None):
     """Categoría de un juego por su id (el mismo que usa GAMES.<id> / el menú)."""
     return CATEGORIA.get(juego_id, default)
+
+
+# Orden y etiqueta visible de los carriles en el lateral. "logica" se muestra como
+# "Ingenio" (juegos transversales sin materia). Labels cambiables sin tocar la lógica.
+CATEGORIA_ORDEN = ["lengua", "matematica", "naturales", "sociales", "logica"]
+CATEGORIA_LABEL = {
+    "lengua": "Lengua", "matematica": "Matemática", "naturales": "Cs. Naturales",
+    "sociales": "Cs. Sociales", "logica": "Ingenio",
+}
+
+
+def carriles_de_menu(menu_ids, min_actividades=1):
+    """Agrupa los juegos de UN grado (su lista de ids de menú) en carriles por
+    categoría, en orden, y devuelve SOLO los que llegan a `min_actividades`.
+
+    Regla clave de la pantalla: una categoría con muy pocas (o cero) actividades en
+    ese grado NO se muestra — nada de carriles vacíos. Con el contenido de hoy, 2° y
+    3° no muestran Sociales (0 juegos); aparece sola cuando se cargue contenido.
+
+    Devuelve: [{"categoria","label","juegos":[ids...],"cantidad"}] ordenado por
+    CATEGORIA_ORDEN. Los ids sin categoría conocida se ignoran."""
+    grupos = {c: [] for c in CATEGORIA_ORDEN}
+    for jid in menu_ids:
+        c = CATEGORIA.get(jid)
+        if c is not None:
+            grupos[c].append(jid)
+    return [
+        {"categoria": c, "label": CATEGORIA_LABEL[c],
+         "juegos": grupos[c], "cantidad": len(grupos[c])}
+        for c in CATEGORIA_ORDEN if len(grupos[c]) >= min_actividades
+    ]
