@@ -34,8 +34,9 @@ CATEGORIA = {
     "familia_palabras": "lengua",
     "hechos_opiniones": "lengua",
     "homofonos": "lengua",
-    "ingles_basico": "lengua",            # ??? ¿Inglés como categoría propia? por ahora en Lengua
-    "historia_orden": "lengua",           # ??? ordenar hechos de un relato (narrativa) vs. historia(Sociales)
+    "ingles_basico": "lengua",             # confirmado: un solo juego, no amerita categoría propia todavía
+    "historia_orden": "lengua",            # confirmado: "ordená el cuento" = secuencia narrativa (comprensión
+                                            # lectora), NO contenido histórico — eso lo hace historia4/sigloXX (sociales)
     "letra_inicial": "lengua",
     "orden_alfabetico": "lengua",
     "ortografia_2do": "lengua",
@@ -90,7 +91,7 @@ CATEGORIA = {
     "patron": "matematica",               # patrones/secuencias
     "poligonos_lados": "matematica",
     "porcentajes": "matematica",
-    "posicion": "matematica",             # ??? valor posicional / posición
+    "posicion": "matematica",             # confirmado: arriba/abajo/adentro/afuera (nociones espaciales, geometría 1°)
     "potencias": "matematica",
     "probabilidad_sucesos": "matematica",
     "problemas_3ro": "matematica",
@@ -134,7 +135,7 @@ CATEGORIA = {
     "materiales": "naturales",
     "planetas_tipo": "naturales",
     "planta_fruto": "naturales",
-    "planta_potabilizadora": "naturales", # ??? proceso natural vs. tecnología/Sociales
+    "planta_potabilizadora": "naturales", # confirmado: proceso del agua como recurso natural (captación→distribución)
     "pubertad": "naturales",
     "red_trofica": "naturales",
     "sentidos": "naturales",
@@ -165,12 +166,12 @@ CATEGORIA = {
     "escape_room_egreso": "logica",       # repaso mixto de egreso
     "laberinto": "logica",
     "memotest": "logica",
-    "programar_camino": "logica",         # ??? pensamiento computacional
+    "programar_camino": "logica",         # confirmado: pensamiento computacional (secuencia/bucle/condicional)
     "puntos": "logica",
     "quefalta": "logica",
     "simon": "logica",
     "sombra": "logica",
-    "sudoku": "logica",                   # ??? lógica con números
+    "sudoku": "logica",                   # confirmado: son caras/símbolos, no aritmética — es razonamiento lógico puro
     "tamano": "logica",
 }
 
