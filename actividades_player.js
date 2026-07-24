@@ -446,6 +446,16 @@ const Shell = {
     return {
       cfg: item.cfg || {}, D, P,
       juego: $("#juego"),
+      // Piso de dificultad según el DOMINIO del chico en esta actividad (gateado por
+      // adaptativo_on). Quien ya la domina arranca más difícil, no desde el warm-up.
+      // 0 si el flag está apagado → los links vendidos se comportan igual que siempre.
+      get difPiso() {
+        if (!D.adaptativo_on) return 0;
+        const s = Store.sello(self.actual);
+        if (s === "consolidado") return 0.6;
+        if (s === "dominado") return 0.45;
+        return Store.stars(self.actual) >= 2 ? 0.25 : 0;
+      },
       consigna(txt, pistaSrc) {
         $("#consignaTexto").innerHTML = txt;
         const p = $("#consignaPista");
@@ -1550,7 +1560,7 @@ function juegoCuentas(resta) {
       const jugar = () => {
         ctx.ronda(ronda);
         ctx.juego.innerHTML = "";
-        const dif = (ronda + 1) / rondas;      // sube la dificultad
+        const dif = (ctx.difPiso || 0) + (1 - (ctx.difPiso || 0)) * (ronda + 1) / rondas;      // sube la dificultad
         let a, b, res;
         if (resta) {
           a = rint(2, Math.max(3, Math.round(max * dif)));
@@ -7713,7 +7723,7 @@ GAMES.suma_columnas = {
         ctx.consigna(sacarDeBolsa(ctx, "sumacol", SUMA_COL_CORTAS));
       }
       // dificultad: últimas rondas van a 5 cifras (NAP: "hasta 10.000-50.000").
-      const dif = (ronda + 1) / rondas;
+      const dif = (ctx.difPiso || 0) + (1 - (ctx.difPiso || 0)) * (ronda + 1) / rondas;
       // rango configurable por cfg — 3° usa 3→4 cifras (hasta 10.000, gap #1 del DC
       // de 3°); 4° queda con el default 4→5 cifras. Sin cfg = comportamiento original.
       const cifrasMin = ctx.cfg.cifrasMin || 4;
@@ -7915,7 +7925,7 @@ GAMES.resta_columnas = {
         : sacarDeBolsa(ctx, "restacol", RESTA_COL_CORTAS));
       const cifrasMin = ctx.cfg.cifrasMin || 3;
       const cifrasMax = ctx.cfg.cifrasMax || 4;
-      const dif = (ronda + 1) / rondas;
+      const dif = (ctx.difPiso || 0) + (1 - (ctx.difPiso || 0)) * (ronda + 1) / rondas;
       const cifras = dif <= 0.5 ? cifrasMin : cifrasMax;
       const piso = 10 ** (cifras - 1);
       const tope = 10 ** cifras - 1;
