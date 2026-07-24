@@ -3177,7 +3177,7 @@ GAMES.duelo_fracciones = {
     const jugar = () => {
       ctx.ronda(ronda);
       const prog = rondas > 1 ? ronda / (rondas - 1) : 1;
-      const tipo = prog > 0.66 ? 2 : (prog > 0.33 ? 1 : 0);
+      const tipo = (prog > 0.66 || ctx.bonusDominio >= 2) ? 2 : ((prog > 0.33 || ctx.bonusDominio >= 1) ? 1 : 0);   // adaptativo
       let A, B, iguales = false;
       if (tipo === 2 && rint(0, 2) === 0) {
         const e = equiv[rint(0, equiv.length - 1)];
@@ -3263,7 +3263,7 @@ GAMES.reparto_fracciones = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      const M = rint(3, 6);              // chicos = denominador
+      const M = rint(3, Math.min(10, 6 + ctx.bonusDominio * 2));              // chicos = denominador (adaptativo)
       const N = rint(1, M - 1);          // objetos = numerador (N<M → fracción < 1)
       const obj = OBJ[rint(0, OBJ.length - 1)];
       ctx.item("reparto#" + N + "e" + M);
@@ -3328,7 +3328,7 @@ GAMES.completar_entero = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      const d = rint(2, 6);
+      const d = rint(2, Math.min(12, 6 + ctx.bonusDominio * 2));   // adaptativo: denominador mayor al dominar
       const num = rint(1, d - 1);              // lo que ya tengo (< 1)
       const fn = d - num;                       // lo que falta (numerador correcto)
       const med = ["litro", "kilo"][rint(0, 1)];
@@ -3394,7 +3394,7 @@ GAMES.duelo_decimales = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      const ent = rint(1, 24);
+      const ent = rint(1, 24 + ctx.bonusDominio * 25);   // adaptativo: enteros mayores al dominar
       let a = rint(1, 9);                 // A = ent,a   (1 decimal → a0 centésimos)
       let b = rint(11, 99);               // B = ent,b   (2 decimales)
       while (a * 10 === b) b = rint(11, 99);
@@ -3447,7 +3447,7 @@ GAMES.problemas_mult_div = {
       let texto, correcto, cand;
       if (tipo === 0) {
         // multiplicación: cajas × por caja
-        const cajas = rint(3, 9), cada = rint(4, 12);
+        const cajas = rint(3, 9 + ctx.bonusDominio * 3), cada = rint(4, 12 + ctx.bonusDominio * 4);   // adaptativo
         correcto = cajas * cada;
         texto = "Hay " + cajas + " cajas con " + cada + " figuritas cada una. ¿Cuántas figuritas hay en total?";
         cand = [
@@ -3457,7 +3457,7 @@ GAMES.problemas_mult_div = {
         ];
       } else {
         // división: total ÷ grupos
-        const grupos = rint(3, 8), cada = rint(3, 9);
+        const grupos = rint(3, 8 + ctx.bonusDominio * 2), cada = rint(3, 9 + ctx.bonusDominio * 3);   // adaptativo
         const total = grupos * cada;
         correcto = cada;
         texto = "Reparto " + total + " caramelos en " + grupos + " bolsas iguales. ¿Cuántos caramelos van en cada bolsa?";
@@ -4443,13 +4443,13 @@ GAMES.mejor_oferta = {
       const cosa = OFERTA_COSAS[rint(0, OFERTA_COSAS.length - 1)];
       const modo = ["unitario", "varios", "oferta"][rint(0, 2)];
       if (modo === "unitario") {
-        const N = rint(2, 5), U = U_SET[rint(0, U_SET.length - 1)], T = N * U;
+        const N = rint(2, 5 + ctx.bonusDominio * 2), U = U_SET[rint(0, U_SET.length - 1)], T = N * U;   // adaptativo
         return { q: `${N} ${cosa.p} cuestan ${money(T)}. ¿Cuánto cuesta 1?`,
                  ops: [money(U), money(T), money(N * T)],
                  m: `Si ${N} cuestan ${money(T)}, dividís: ${T} ÷ ${N} = ${U}. Cada uno sale ${money(U)}.` };
       }
       if (modo === "varios") {
-        const U = U_SET[rint(0, U_SET.length - 1)], K = rint(2, 4);
+        const U = U_SET[rint(0, U_SET.length - 1)], K = rint(2, 4 + ctx.bonusDominio);   // adaptativo
         return { q: `1 ${cosa.s} cuesta ${money(U)}. ¿Cuánto cuestan ${K}?`,
                  ops: [money(U * K), money(U + K), money(U * (K + 1))],
                  m: `Si 1 cuesta ${money(U)}, ${K} cuestan ${U} × ${K} = ${U * K} (se multiplica, no se suma).` };
@@ -4511,7 +4511,7 @@ GAMES.recta_numerica = {
     const jugar = () => {
       ctx.ronda(ronda);
       const prog = rondas > 1 ? ronda / (rondas - 1) : 1;
-      const max = prog > 0.5 ? (ctx.cfg.max2 || 100000) : (ctx.cfg.max1 || 10000);
+      const max = (prog > 0.5 ? (ctx.cfg.max2 || 100000) : (ctx.cfg.max1 || 10000)) * (1 + ctx.bonusDominio);   // adaptativo: rango mayor al dominar
       const paso = max / 10;
       const g100 = Math.max(1, Math.round(max / 100));       // paso "redondo" que escala con el rango
       const target = rint(1, Math.floor(max / g100) - 1) * g100;   // en (0, max); entero también si max<100 (1°/2°)
@@ -7927,6 +7927,8 @@ GAMES.fracciones_equivalentes = {
       ctx.juego.innerHTML = "";
       let disp = FRACCIONES_BANCO.filter((x) => !usados.includes(x.num + "/" + x.den));
       if (!disp.length) { usados = []; disp = FRACCIONES_BANCO; }
+      if (ctx.bonusDominio > 0 && disp.length > 2)   // adaptativo: al dominar, prioriza denominadores grandes (más difícil ver la equivalencia)
+        disp = disp.slice().sort((a, b) => b.den - a.den).slice(0, Math.max(2, Math.ceil(disp.length / (1 + ctx.bonusDominio))));
       const item = disp[rint(0, disp.length - 1)];
       usados.push(item.num + "/" + item.den);
       const arriba = el("div", "tablero");
@@ -8364,6 +8366,8 @@ GAMES.angulos = {
       ctx.juego.innerHTML = "";
       let disp = ANGULOS_BANCO.filter((x) => !usados.includes(x.grados));
       if (!disp.length) { usados = []; disp = ANGULOS_BANCO; }
+      if (ctx.bonusDominio > 0 && disp.length > 2)   // adaptativo: al dominar, prioriza ángulos cerca de 90° (más difícil clasificar)
+        disp = disp.slice().sort((a, b) => Math.abs(a.grados - 90) - Math.abs(b.grados - 90)).slice(0, Math.max(2, Math.ceil(disp.length / (1 + ctx.bonusDominio))));
       const item = disp[rint(0, disp.length - 1)];
       usados.push(item.grados);
       const arriba = el("div", "tablero");
@@ -10830,11 +10834,11 @@ GAMES.serie = {
       // hacía adivinable CUÁNDO cambia el tipo de patrón): más probable +1
       // al principio, +2 hacia el final, con el medio genuinamente al azar.
       const progreso = rondas > 1 ? ronda / (rondas - 1) : 0;
-      const paso = Math.random() < progreso ? 2 : 1;
+      const paso = (Math.random() < progreso ? 2 : 1) + (ctx.bonusDominio >= 2 ? 1 : 0);   // adaptativo: pasos mayores al dominar
       // tope (14-jul-2026, 1° grado NAP: "números del 1 al 30"): 16 reproduce
       // el rango histórico sin cfg.tope (12 con paso 1, 8 con paso 2 — la
       // cuenta de siempre), más alto solo si el juego lo pide.
-      const tope = ctx.cfg.tope || 16;
+      const tope = (ctx.cfg.tope || 16) + ctx.bonusDominio * 20;   // adaptativo: rango mayor al dominar
       const desde = rint(1, Math.max(1, tope - 4 * paso));
       const seq = Array.from({ length: 5 }, (_, i) => desde + i * paso);
       const falta = rint(1, 4);
