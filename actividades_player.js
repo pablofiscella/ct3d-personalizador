@@ -825,7 +825,7 @@ function pintarMenuPlano(items, stage) {
     if (!document.getElementById("btnPadres")) {
       const bp = el("button", "pill", "📊");
       bp.id = "btnPadres"; bp.title = "Panel para grandes";
-      bp.addEventListener("click", panelPadres);
+      bp.addEventListener("click", gatePadres);   // compuerta para grandes → panel
       const anchor = $("#btnSonido"); if (anchor) anchor.insertAdjacentElement("afterend", bp);
     }
     stage.appendChild(_botonModoProfe());   // Modo Creador (el diferencial: crear, no solo resolver)
@@ -981,6 +981,35 @@ function _demoProgreso() {
   Store.data.activeProfile = "Sofía (demo)";
   Store.data.profiles["Sofía (demo)"] = { stars, dominio };
   Store.save();
+}
+
+// Compuerta "para grandes": una cuenta de 2 cifras antes de abrir el panel (el chico no
+// llega solo al momento de compra). El adulto la resuelve al toque.
+function gatePadres() {
+  const a = rint(11, 19), b = rint(12, 19), ok = a * b;
+  const ov = el("div");
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px";
+  const caja = el("div");
+  caja.style.cssText = "background:#fff;color:#2b2b2b;max-width:380px;width:100%;border-radius:20px;padding:24px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)";
+  caja.innerHTML =
+    `<div style="font-size:40px">🔒</div>
+     <h2 style="margin:6px 0">Espacio para grandes</h2>
+     <p style="opacity:.75;font-size:15px;margin:4px 0 14px">Resolvé para ver el progreso.</p>
+     <div style="font-size:26px;font-weight:800;margin:8px 0">${a} × ${b} = <input id="gateInp" inputmode="numeric" style="width:96px;font-size:24px;text-align:center;border:2px solid #ccc;border-radius:10px;padding:5px"></div>
+     <div id="gateMsg" style="min-height:22px;color:#e74c3c;font-size:14px;font-weight:700"></div>
+     <button id="gateOk" style="margin-top:6px;width:100%;padding:12px;border:none;border-radius:12px;background:var(--ac,#4aa3df);color:#fff;font-weight:800;cursor:pointer">Entrar</button>
+     <button id="gateCancel" style="margin-top:8px;width:100%;padding:10px;border:none;border-radius:12px;background:#eee;font-weight:700;cursor:pointer">Volver</button>`;
+  ov.appendChild(caja); document.body.appendChild(ov);
+  const cerrar = () => ov.remove();
+  const probar = () => {
+    if (parseInt(caja.querySelector("#gateInp").value, 10) === ok) { cerrar(); panelPadres(); }
+    else { caja.querySelector("#gateMsg").textContent = "Probá de nuevo."; caja.querySelector("#gateInp").value = ""; }
+  };
+  caja.querySelector("#gateOk").addEventListener("click", probar);
+  caja.querySelector("#gateInp").addEventListener("keydown", (e) => { if (e.key === "Enter") probar(); });
+  caja.querySelector("#gateCancel").addEventListener("click", cerrar);
+  ov.addEventListener("click", (e) => { if (e.target === ov) cerrar(); });
+  setTimeout(() => caja.querySelector("#gateInp").focus(), 60);
 }
 
 /* ── Panel de padres: progreso del chico por materia (domina / practicando / le falta),
