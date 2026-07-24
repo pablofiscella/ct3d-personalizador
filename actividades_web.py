@@ -917,6 +917,36 @@ def _es_duplicado(cand, elegidos):
     return False
 
 
+def _arte_de_grado(edad, d):
+    """Arte ESCOLAR por grado (pedido de Pablo 24-jul: "que toda la temática sea la que
+    tiene la portada"): si existe `actividades_arte/g<grado>/s*.png`, ese elenco —dibujado
+    en el estilo de la portada de ESE grado— reemplaza a los stickers del tema de cumpleaños.
+    Grado = edad − 5 (edad 9 → 4°). Devuelve (personajes, sombras) o None si no hay arte
+    para el grado → el llamador cae al comportamiento de siempre (`_personajes(tema, d)`),
+    así los temas sin arte propio siguen exactamente igual."""
+    try:
+        grado = int(str(edad).strip()) - 5
+    except (TypeError, ValueError):
+        return None
+    src = os.path.join(BASEDIR, "actividades_arte", "g%d" % grado)
+    if not os.path.isdir(src):
+        return None
+    out = []
+    for fn in sorted(f for f in os.listdir(src) if re.fullmatch(r"s\d{2}\.png", f)):
+        try:
+            im = Image.open(os.path.join(src, fn)).convert("RGBA")
+        except Exception:
+            continue
+        im.thumbnail((420, 420), Image.LANCZOS)
+        im.save(os.path.join(d, fn), optimize=True)
+        out.append(fn)
+        if len(out) >= 8:
+            break
+    if len(out) < 2:                      # arte incompleto → mejor el tema de siempre
+        return None
+    return out, list(out)                 # sombras = los mismos archivos (ya sin fondo)
+
+
 def _personajes(tema, d):
     """Copia al token los mejores recortes del tema, LIMPIOS (sin el aro
     blanco del die-cut — acá no son stickers; feedback Pablo 10-jul-2026, vía
@@ -1602,7 +1632,7 @@ def crear(data, tema, token=None):
     edad = (str(data.get("edad") or "")).strip()
     seed = zlib.crc32(token.encode())
 
-    pers, sombras = _personajes(tema, d)
+    pers, sombras = _arte_de_grado(edad, d) or _personajes(tema, d)
     cols = _colorear(tema, d)
     esc = _escena(tema, d)
     dj = _armar_data(tema, nombre, edad, seed)
