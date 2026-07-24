@@ -75,11 +75,50 @@ SABERES = {
     # ── 4° · GEOMETRÍA ──
     "MAT-4-ANGULOS":   {"nombre": "Clasificar ángulos (recto/agudo/obtuso)", "eje": "geometria", "grado": 4,
                         "prerrequisitos": [], "juegos": ["angulos"], "dificultad": 2},
+
+    # ═══════════════ 4° · LENGUA (Prácticas del Lenguaje) ═══════════════
+    "LEN-4-VOCAB":       {"nombre": "Vocabulario (palabras escondidas)", "eje": "vocabulario", "grado": 4,
+                          "prerrequisitos": [], "juegos": ["sopa"], "dificultad": 1},
+    "LEN-4-SUSTANTIVOS": {"nombre": "Sustantivos concretos y abstractos", "eje": "gramatica", "grado": 4,
+                          "prerrequisitos": [], "juegos": ["abstractos_concretos"], "dificultad": 2},
+    "LEN-4-ACENTUACION": {"nombre": "Acentuación", "eje": "ortografia", "grado": 4,
+                          "prerrequisitos": [], "juegos": ["acentuacion"], "dificultad": 2},
+    "LEN-4-PLURALES":    {"nombre": "Plurales (z → ces)", "eje": "ortografia", "grado": 4,
+                          "prerrequisitos": [], "juegos": ["plurales_z"], "dificultad": 2},
+    "LEN-4-ORACION":     {"nombre": "Sujeto y predicado", "eje": "gramatica", "grado": 4,
+                          "prerrequisitos": ["LEN-4-SUSTANTIVOS"], "juegos": ["sujeto_predicado"], "dificultad": 3},
+    "LEN-4-MORFOLOGIA":  {"nombre": "Prefijos y sufijos", "eje": "vocabulario", "grado": 4,
+                          "prerrequisitos": ["LEN-4-VOCAB"], "juegos": ["prefijos_sufijos"], "dificultad": 3},
+    "LEN-4-CONECTORES":  {"nombre": "Conectores", "eje": "gramatica", "grado": 4,
+                          "prerrequisitos": ["LEN-4-ORACION"], "juegos": ["conectores"], "dificultad": 3},
+    "LEN-4-DIALOGO":     {"nombre": "Puntuación del diálogo (raya)", "eje": "ortografia", "grado": 4,
+                          "prerrequisitos": ["LEN-4-ORACION"], "juegos": ["dialogo_raya"], "dificultad": 3},
+    "LEN-4-COMPRENSION": {"nombre": "Comprensión lectora", "eje": "comprension", "grado": 4,
+                          "prerrequisitos": ["LEN-4-VOCAB"], "juegos": ["comprension_lectora"], "dificultad": 3},
+    "LEN-4-NARRATIVA":   {"nombre": "Ordenar el relato (secuencia narrativa)", "eje": "comprension", "grado": 4,
+                          "prerrequisitos": ["LEN-4-COMPRENSION"], "juegos": ["historia_orden"], "dificultad": 4},
+
+    # ═══════════════ 4° · CIENCIAS NATURALES ═══════════════
+    "NAT-4-FOTOSINTESIS": {"nombre": "Plantas y fotosíntesis", "eje": "seres_vivos", "grado": 4,
+                           "prerrequisitos": [], "juegos": ["fotosintesis"], "dificultad": 2},
+    "NAT-4-ELECTRICIDAD": {"nombre": "Electricidad y circuitos", "eje": "materiales_energia", "grado": 4,
+                           "prerrequisitos": [], "juegos": ["laboratorio_electrico"], "dificultad": 3},
+
+    # ═══════════════ 4° · CIENCIAS SOCIALES ═══════════════
+    "SOC-4-CRONOLOGIA": {"nombre": "Ordenar cronología (línea de tiempo)", "eje": "tiempo", "grado": 4,
+                         "prerrequisitos": [], "juegos": ["linea_tiempo"], "dificultad": 2},
+    "SOC-4-GEOGRAFIA":  {"nombre": "Provincias y regiones", "eje": "espacio", "grado": 4,
+                         "prerrequisitos": [], "juegos": ["provincias_region"], "dificultad": 2},
+    "SOC-4-HISTORIA":   {"nombre": "Pueblos originarios y la colonia", "eje": "tiempo", "grado": 4,
+                         "prerrequisitos": ["SOC-4-CRONOLOGIA"], "juegos": ["historia_originarios"], "dificultad": 3},
 }
 
 EJE_LABEL = {
     "numeracion": "Numeración", "operaciones": "Operaciones", "fracciones": "Fracciones",
     "decimales": "Decimales", "medida": "Medida y dinero", "geometria": "Geometría",
+    "vocabulario": "Vocabulario", "gramatica": "Gramática", "ortografia": "Ortografía",
+    "comprension": "Comprensión", "seres_vivos": "Seres vivos",
+    "materiales_energia": "Materiales y energía", "tiempo": "Tiempo histórico", "espacio": "Espacio geográfico",
 }
 
 
