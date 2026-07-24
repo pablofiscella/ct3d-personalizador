@@ -209,6 +209,19 @@ const Store = {
   // ── dificultad adaptativa por juego: sube 1 al dominar (3★ = le salió fácil), se
   // QUEDA si todavía le cuesta (<3★). Persistido por perfil. Cap para no volverse imposible.
   nivelDif(id) { const p = this._perfil(); return (p && p.nd && p.nd[id]) || 0; },
+  // ── ítems ya acertados al PRIMER intento, por juego (dificultad por dominio en los
+  // juegos de banco: al dominar, dejan de repetirle los que ya sabe). Se guarda un mapa
+  // {itemId: 1} por juego, con tope para no inflar el localStorage del perfil.
+  itemsOk(juego) { const p = this._perfil(); return (p && p.io && p.io[juego]) || {}; },
+  marcarItemOk(juego, itemId) {
+    const p = this._perfil(); if (!p || !juego || !itemId) return;
+    if (!p.io) p.io = {};
+    const m = p.io[juego] || (p.io[juego] = {});
+    if (m[itemId]) return;                       // ya estaba: no reescribir por gusto
+    if (Object.keys(m).length >= 60) return;     // banco más grande que esto no hay
+    m[itemId] = 1;
+    this.save();
+  },
   subirNivelDif(id, max) {
     const p = this._perfil(); if (!p) return;
     if (!p.nd) p.nd = {};
@@ -452,6 +465,11 @@ const Shell = {
       const primer = !self._rondaResp;
       self._rondaResp = true;
       if (primer) { self.primerTotal++; if (ok) self.primerOk++; }
+      // acertado al PRIMER intento = lo sabe: los juegos de banco dejan de ofrecérselo
+      // cuando ya dominan el juego (ver _ordenPorDominio). Gateado como el resto.
+      if (primer && ok && D.adaptativo_on && self._itemId) {
+        Store.marcarItemOk(self.actual, self._itemId);
+      }
       Tel.push({
         j: self.actual,
         it: self._itemId != null ? self._itemId : (self.actual + "#" + self._rondaIdx),
@@ -485,6 +503,7 @@ const Shell = {
       get bonusDominio() {
         return D.adaptativo_on ? Store.nivelDif(self.actual) : 0;
       },
+      get juegoId() { return self.actual; },   // lo usan los juegos de banco
       consigna(txt, pistaSrc) {
         $("#consignaTexto").innerHTML = txt;
         const p = $("#consignaPista");
@@ -3778,6 +3797,35 @@ GAMES.historia_originarios = {
   },
 };
 
+/* ── Dificultad por DOMINIO en los juegos de BANCO (trivia).
+
+   Un juego de trivia no puede endurecerse por contenido: el banco es el que es, y
+   escribir preguntas más difíciles sería contenido nuevo. Lo que SÍ es dificultad real
+   —y no inventada— es DEJAR DE REGALAR lo que ya sabe: el banco tiene 14-20 ítems y una
+   partida usa 8-10, así que al chico que dominó el juego le vuelven a tocar preguntas
+   que ya contestó bien. Al subir el dominio, la selección PRIORIZA los ítems que todavía
+   no acertó al primer intento (los que falló, y los que nunca le salieron).
+
+   Es la misma idea del repaso espaciado que ya usa el motor, aplicada dentro del juego.
+   Se descartó la alternativa de sumar opciones tomadas de otros ítems: en los bancos de
+   completar u ortografía quedaban obviamente descartables ("estubo" como opción de "el
+   vegetal grande con tronco y hojas") — eso es ruido en pantalla, no dificultad.
+
+   `Store.itemsOk` guarda los ítems acertados al PRIMER intento, por juego y por perfil.
+   Sin `adaptativo_on` no se registra ni se usa nada: los links vendidos no cambian. ── */
+function _filtrarPorDominio(ctx, candidatos, idDe) {
+  if (!(ctx.bonusDominio > 0)) return candidatos;
+  const sabidos = Store.itemsOk(ctx.juegoId);
+  const nuevos = candidatos.filter((c) => !sabidos[idDe(c)]);
+  // si ya acertó TODOS los del banco, no hay nada que priorizar: sigue como siempre
+  return nuevos.length ? nuevos : candidatos;
+}
+
+/* Igual, para los bancos que se recorren por ÍNDICE (las factories de trivia). */
+function _ordenPorDominio(ctx, libres, idPrefijo) {
+  return _filtrarPorDominio(ctx, libres, (i) => idPrefijo + "#" + i);
+}
+
 /* ── Helper genérico de trivia de opción múltiple con opciones de TEXTO largo
    (contenido: historia, gramática, ciencias). Banco de {q, ops, m}: ops[0] es la
    correcta, se barajan al mostrar; el error muestra la explicación m (Capa 0 · C3)
@@ -3795,6 +3843,7 @@ function juegoTriviaTexto(banco, consigna, idPrefix, rondasDefault) {
         ctx.juego.innerHTML = "";
         let libres = banco.map((_, i) => i).filter((i) => !usados.includes(i));
         if (!libres.length) { usados = []; libres = banco.map((_, i) => i); }
+        libres = _ordenPorDominio(ctx, libres, idPrefix);   // al dominar, lo que aún no sabe
         const idx = libres[rint(0, libres.length - 1)];
         usados.push(idx);
         const item = banco[idx];
@@ -4396,6 +4445,7 @@ GAMES.probabilidad_sucesos = {
       ctx.juego.innerHTML = "";
       let libres = SUCESOS_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
       if (!libres.length) { usados = []; libres = SUCESOS_BANCO.map((_, i) => i); }
+      libres = _ordenPorDominio(ctx, libres, "suceso");   // al dominar, lo que aún no sabe
       const idx = libres[rint(0, libres.length - 1)]; usados.push(idx);
       const it = SUCESOS_BANCO[idx]; ctx.item("suceso#" + idx);
       const arriba = el("div", "tablero");
@@ -5458,7 +5508,9 @@ GAMES.numeros_primos = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      let p; do { p = rint(2, 47); } while (!_esPrimo(p));
+      // adaptativo: al dominar, primos más grandes (cuesta más descartar divisores)
+      const _tope = [47, 71, 97, 113][Math.min(3, ctx.bonusDominio)];
+      let p; do { p = rint(2, _tope); } while (!_esPrimo(p));
       const opciones = [{ v: p, ok: true }];
       let intento = 0;
       while (opciones.length < 3 && intento++ < 60) {
@@ -5498,7 +5550,9 @@ GAMES.jerarquia_operaciones = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      const a = rint(2, 9), b = rint(2, 9), c = rint(2, 9);
+      // adaptativo: al dominar, números más grandes (la jerarquía es la misma)
+      const _t = 9 + Math.min(11, ctx.bonusDominio * 4);
+      const a = rint(2, _t), b = rint(2, _t), c = rint(2, _t);
       const tipo = rint(0, 1);
       let texto, correcto, malo, paso;
       if (tipo === 0) { texto = a + " + " + b + " × " + c; correcto = a + b * c; malo = (a + b) * c; paso = b + "×" + c + "=" + (b * c) + ", y después " + a + "+" + (b * c) + "=" + correcto; }
@@ -5542,7 +5596,8 @@ GAMES.porcentajes = {
     const jugar = () => {
       ctx.ronda(ronda);
       const p = PS[rint(0, PS.length - 1)];
-      const N = rint(2, 12) * MULT[p];
+      // adaptativo: al dominar, cantidades más grandes (mismo concepto, cuenta más pesada)
+      const N = rint(2, 12 + ctx.bonusDominio * 8) * MULT[p];
       const correcto = N * p / 100;
       ctx.item("porc#" + p + "de" + N);
       ctx.consigna("¿Cuánto es el " + p + "% de " + N + "?");
@@ -5583,9 +5638,15 @@ GAMES.potencias = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      const base = rint(2, 9), exp = rint(2, 3);
+      // dificultad adaptativa (sube al dominar): bases más grandes y, ya consolidado,
+      // la cuarta potencia. El desarrollo se arma solo, así que sigue explicando bien.
+      const bon = ctx.bonusDominio;
+      const exp = rint(2, bon >= 2 ? 4 : 3);
+      // con exponente 4 la base se mantiene chica: la idea es entender la potencia, no
+      // que calcule 12⁴ = 20736. 2⁴..6⁴ ya es un salto real desde el cubo.
+      const base = exp >= 4 ? rint(2, 6) : rint(2, 9 + Math.min(3, bon));
       const correcto = Math.pow(base, exp);
-      const es = exp === 2 ? "²" : "³";
+      const es = { 2: "²", 3: "³", 4: "⁴" }[exp] || "^" + exp;
       const desarrollo = Array(exp).fill(base).join("×") + " = " + correcto;
       ctx.item("pot#" + base + "e" + exp);
       ctx.consigna("¿Cuánto es  " + base + es + "  ?");
@@ -5649,6 +5710,7 @@ GAMES.problemas_multipaso = {
       ctx.ronda(ronda);
       let disp = PROB_MULTI_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
       if (!disp.length) { usados = []; disp = PROB_MULTI_BANCO.map((_, i) => i); }
+      disp = _ordenPorDominio(ctx, disp, "probmulti");   // al dominar, lo que aún no sabe
       const idx = disp[rint(0, disp.length - 1)]; usados.push(idx);
       const it = PROB_MULTI_BANCO[idx];
       ctx.item("probmulti#" + idx);
@@ -5711,6 +5773,7 @@ GAMES.ingles_basico = {
       ctx.ronda(ronda);
       let disp = INGLES_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
       if (!disp.length) { usados = []; disp = INGLES_BANCO.map((_, i) => i); }
+      disp = _ordenPorDominio(ctx, disp, "ingles");   // al dominar, lo que aún no sabe
       const idx = disp[rint(0, disp.length - 1)]; usados.push(idx);
       const it = INGLES_BANCO[idx];
       ctx.item("ingles#" + idx);
@@ -5905,6 +5968,7 @@ function juegoTriviaBanco(BANCO, idPrefijo) {
         ctx.ronda(ronda);
         let disp = BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
         if (!disp.length) { usados = []; disp = BANCO.map((_, i) => i); }
+        disp = _ordenPorDominio(ctx, disp, idPrefijo);      // al dominar, lo que aún no sabe
         const idx = disp[rint(0, disp.length - 1)]; usados.push(idx);
         const it = BANCO[idx];
         ctx.item(idPrefijo + "#" + idx);
@@ -5987,7 +6051,9 @@ GAMES.multiplicar_fracciones = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      const a = rint(1, 4), b = rint(2, 5), c = rint(1, 4), d = rint(2, 5);
+      // adaptativo: al dominar, numeradores y denominadores más grandes
+      const _b = ctx.bonusDominio, _n = 4 + Math.min(5, _b * 2), _d = 5 + Math.min(7, _b * 3);
+      const a = rint(1, _n), b = rint(2, _d), c = rint(1, _n), d = rint(2, _d);
       const num = a * c, den = b * d;
       ctx.item("mulfrac#" + a + b + c + d);
       ctx.consigna("¿Cuánto es  " + a + "/" + b + " × " + c + "/" + d + "  ?");
@@ -6026,10 +6092,16 @@ GAMES.ecuaciones_simples = {
     const jugar = () => {
       ctx.ronda(ronda);
       const tipo = rint(0, 2);
+      // dificultad adaptativa (sube al dominar): mismos 3 tipos de ecuación, números más
+      // grandes. El despeje es el mismo concepto; lo que cuesta más es la cuenta.
+      const b = ctx.bonusDominio, esc = (n) => n + b * Math.ceil(n / 2);
       let texto, x, motivo, malo;
-      if (tipo === 0) { x = rint(2, 15); const a = rint(1, 9); texto = "x + " + a + " = " + (x + a); malo = (x + a) + a; motivo = "Para despejar x hacé la operación contraria: " + (x + a) + " − " + a + " = " + x + "."; }
-      else if (tipo === 1) { x = rint(4, 16); const a = rint(1, 9); texto = "x − " + a + " = " + (x - a); malo = (x - a) - a; motivo = "Para despejar x sumá: " + (x - a) + " + " + a + " = " + x + "."; }
-      else { const a = rint(2, 6); x = rint(2, 9); texto = a + " × x = " + (a * x); malo = a * x - a; motivo = "Para despejar x dividí: " + (a * x) + " ÷ " + a + " = " + x + "."; }
+      if (tipo === 0) { x = rint(2, esc(15)); const a = rint(1, esc(9)); texto = "x + " + a + " = " + (x + a); malo = (x + a) + a; motivo = "Para despejar x hacé la operación contraria: " + (x + a) + " − " + a + " = " + x + "."; }
+      // en la resta, `a` nunca supera a x: si no, la ecuación sale con el resultado en
+      // NEGATIVO (x − 11 = −6), que no es el contenido de este juego. Ya pasaba antes
+      // en los casos chicos (x=4, a=9) y con números más grandes pasaría seguido.
+      else if (tipo === 1) { x = rint(4, esc(16)); const a = rint(1, Math.min(esc(9), x)); texto = "x − " + a + " = " + (x - a); malo = (x - a) - a; motivo = "Para despejar x sumá: " + (x - a) + " + " + a + " = " + x + "."; }
+      else { const a = rint(2, 6 + Math.min(6, b * 3)); x = rint(2, 9 + Math.min(9, b * 4)); texto = a + " × x = " + (a * x); malo = a * x - a; motivo = "Para despejar x dividí: " + (a * x) + " ÷ " + a + " = " + x + "."; }
       ctx.item("ecu#" + texto.replace(/ /g, ""));
       ctx.consigna("Si  " + texto + " ,  ¿cuánto vale x?");
       ctx.juego.innerHTML = "";
@@ -8622,7 +8694,9 @@ GAMES.arbol_probabilidad = {
       ctx.juego.innerHTML = "";
       const esc = ARBOL_ESCENAS[rint(0, ARBOL_ESCENAS.length - 1)];
       const A = esc.a.op, B = esc.b.op, a = A.length, b = B.length, total = a * b;
-      const modo = rint(0, 1) === 0 ? "contar" : "prob";
+      // adaptativo: "contar" (cuántos resultados hay) es el paso previo a "prob"
+      // (qué probabilidad tiene una hoja). Al dominar, deja de tocarle el modo fácil.
+      const modo = (ctx.bonusDominio > 0 || rint(0, 1) === 1) ? "prob" : "contar";
       const hi = rint(0, a - 1), hj = rint(0, b - 1);   // hoja resaltada (modo prob)
 
       const W = 380, rowH = 30, topPad = 20;
@@ -9495,7 +9569,10 @@ GAMES.celula_partes = {
       ctx.juego.innerHTML = "";
       let disp = CELULA_BANCO.filter((x) => !usados.includes(x.parte));
       if (!disp.length) { usados = []; disp = CELULA_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "celula#" + CELULA_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("celula#" + CELULA_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.parte);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto",
@@ -9571,7 +9648,10 @@ GAMES.hechos_opiniones = {
       ctx.juego.innerHTML = "";
       let disp = HECHOS_OPINIONES_BANCO.filter((x) => !usados.includes(x.texto));
       if (!disp.length) { usados = []; disp = HECHOS_OPINIONES_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "hechop#" + HECHOS_OPINIONES_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("hechop#" + HECHOS_OPINIONES_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.texto);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto",
@@ -9650,7 +9730,10 @@ GAMES.sistema_nervioso = {
       ctx.juego.innerHTML = "";
       let disp = NERVIOSO_BANCO.filter((x) => !usados.includes(x.afirmacion));
       if (!disp.length) { usados = []; disp = NERVIOSO_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "nervioso#" + NERVIOSO_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("nervioso#" + NERVIOSO_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.afirmacion);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto",
@@ -9775,7 +9858,10 @@ GAMES.fraccion_de_cantidad = {
       ctx.juego.innerHTML = "";
       let disp = FRACCION_CANTIDAD_BANCO.filter((x) => !usados.includes(x.texto));
       if (!disp.length) { usados = []; disp = FRACCION_CANTIDAD_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "fraccant#" + FRACCION_CANTIDAD_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("fraccant#" + FRACCION_CANTIDAD_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.texto);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto",
@@ -9859,7 +9945,10 @@ GAMES.sufragio_argentina = {
       ctx.juego.innerHTML = "";
       let disp = SUFRAGIO_BANCO.filter((x) => !usados.includes(x.afirmacion));
       if (!disp.length) { usados = []; disp = SUFRAGIO_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "sufragio#" + SUFRAGIO_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("sufragio#" + SUFRAGIO_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.afirmacion);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto",
@@ -9921,7 +10010,10 @@ GAMES.energia_renovable = {
       ctx.juego.innerHTML = "";
       let disp = ENERGIA_BANCO.filter((x) => !usados.includes(x.e));
       if (!disp.length) { usados = []; disp = ENERGIA_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "energia#" + ENERGIA_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("energia#" + ENERGIA_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.e);
       const arriba = el("div", "tablero");
       const cont = el("div", "spriteQuieto anim-pop", `<span style="font-size:80px">${item.e}</span>`);
@@ -9980,7 +10072,10 @@ GAMES.poligonos_lados = {
       ctx.juego.innerHTML = "";
       let disp = POLIGONOS_BANCO.filter((x) => !usados.includes(x.nombre));
       if (!disp.length) { usados = []; disp = POLIGONOS_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "polig#" + POLIGONOS_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("polig#" + POLIGONOS_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.nombre);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto",
@@ -10063,7 +10158,10 @@ GAMES.traductor_algebraico = {
       ctx.juego.innerHTML = "";
       let disp = ALGEBRA_BANCO.filter((x) => !usados.includes(x.texto));
       if (!disp.length) { usados = []; disp = ALGEBRA_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "algebra#" + ALGEBRA_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("algebra#" + ALGEBRA_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.texto);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto",
@@ -10127,7 +10225,10 @@ GAMES.planetas_tipo = {
       ctx.juego.innerHTML = "";
       let disp = PLANETAS_BANCO.filter((x) => !usados.includes(x.nombre));
       if (!disp.length) { usados = []; disp = PLANETAS_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "planeta#" + PLANETAS_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("planeta#" + PLANETAS_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.nombre);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto anim-pop",
@@ -10263,7 +10364,10 @@ GAMES.sistema_reproductor = {
       ctx.juego.innerHTML = "";
       let disp = REPRODUCTOR_BANCO.filter((x) => !usados.includes(x.parte));
       if (!disp.length) { usados = []; disp = REPRODUCTOR_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "reprod#" + REPRODUCTOR_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("reprod#" + REPRODUCTOR_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.parte);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto",
@@ -10423,7 +10527,10 @@ GAMES.red_trofica = {
       ctx.juego.innerHTML = "";
       let disp = RED_TROFICA_BANCO.filter((x) => !usados.includes(x.e));
       if (!disp.length) { usados = []; disp = RED_TROFICA_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "trofica#" + RED_TROFICA_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("trofica#" + RED_TROFICA_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.e);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto anim-pop",
@@ -10504,7 +10611,10 @@ GAMES.area_perimetro = {
       ctx.juego.innerHTML = "";
       let disp = AREA_BANCO.filter((x) => !usados.includes(x.texto));
       if (!disp.length) { usados = []; disp = AREA_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "areaper#" + AREA_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("areaper#" + AREA_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.texto);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto",
