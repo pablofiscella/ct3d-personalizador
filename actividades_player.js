@@ -709,6 +709,24 @@ function pintarNivel(n) {
 }
 
 // pinta una grilla de actividades (lista ya filtrada). Reusa la misma carta.
+// Piloto adaptativo: CSS de los 3 estados (recomendado/reforzar/repaso). Se inyecta una
+// sola vez y SOLO cuando el token tiene D.adaptativo_on → links vendidos intactos.
+let _adaptCSSInyectado = false;
+function _adaptCSS() {
+  if (_adaptCSSInyectado) return;
+  _adaptCSSInyectado = true;
+  const s = document.createElement("style");
+  s.textContent =
+    "#menu .carta{position:relative}" +
+    ".carta.adapt-recomendado{box-shadow:inset 0 0 0 3px #2ecc71,0 8px 22px rgba(0,0,0,.14)}" +
+    ".carta.adapt-reforzar{box-shadow:inset 0 0 0 3px #f5a623;opacity:.9}" +
+    ".carta.adapt-repaso{box-shadow:inset 0 0 0 3px #4aa3df}" +
+    ".carta[data-adapt]::after{content:attr(data-adapt);position:absolute;top:6px;left:50%;" +
+    "transform:translateX(-50%);font-size:11px;font-weight:800;color:#333;background:rgba(255,255,255,.9);" +
+    "border-radius:999px;padding:2px 9px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.15)}";
+  document.head.appendChild(s);
+}
+
 function pintarMenuPlano(items, stage) {
   Shell.actual = null;
   if (!stage) {
@@ -727,13 +745,21 @@ function pintarMenuPlano(items, stage) {
       `🔁 Tenés ${repasos.length} ${repasos.length === 1 ? "repaso" : "repasos"} para hacer hoy — ¡a ver si te lo acordás!`));
   }
   const menu = el("div"); menu.id = "menu";
+  // Piloto adaptativo (gateado por D.adaptativo_on): ordena y decora por estado de saber,
+  // SIN bloquear. Los links sin el flag no ejecutan nada de esto.
+  const adaptOn = !!(D.adaptativo_on && typeof Adapt !== "undefined");
+  if (adaptOn) { _adaptCSS(); items = items.slice().sort((a, b) => Adapt.peso(a.id) - Adapt.peso(b.id)); }
   items.forEach((m, i) => {
     if (!GAMES[m.id]) return;
     if (P.length < (GAMES[m.id].minP || 0)) return;   // tema con pocos personajes
     const st = Store.stars(m.id);
     const sello = Store.sello(m.id);           // Capa 0 · sello sostenido
     const repaso = Store.repasoPendiente(m.id);
-    const c = el("button", "carta" + (repaso ? " repaso" : ""));
+    const adaptEst = adaptOn ? Adapt.estadoActividad(m.id) : null;
+    const c = el("button", "carta" + (repaso ? " repaso" : "") + (adaptEst ? " adapt-" + adaptEst : ""));
+    if (adaptOn && (adaptEst === "recomendado" || adaptEst === "reforzar")) {
+      const etq = Adapt.etiqueta(m.id); if (etq) c.dataset.adapt = etq;
+    }
     // las cartas alternan emoji y personajes del tema para que el menú viva
     const conSprite = i % 3 === 1 && P[(i / 3 | 0) + 1];
     let est;
