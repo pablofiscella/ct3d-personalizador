@@ -821,6 +821,13 @@ function pintarMenuPlano(items, stage) {
 
   if (adaptOn) {
     _adaptCSS();
+    // entrada 📊 al panel de padres en el header (una sola vez)
+    if (!document.getElementById("btnPadres")) {
+      const bp = el("button", "pill", "📊");
+      bp.id = "btnPadres"; bp.title = "Panel para grandes";
+      bp.addEventListener("click", panelPadres);
+      const anchor = $("#btnSonido"); if (anchor) anchor.insertAdjacentElement("afterend", bp);
+    }
     stage.appendChild(_botonModoProfe());   // Modo Creador (el diferencial: crear, no solo resolver)
     const EMOJI = { lengua: "✏️", matematica: "🔢", naturales: "🌱", sociales: "🌎", logica: "🎲" };
     Adapt.ordenCategorias().forEach((cat) => {
@@ -960,6 +967,49 @@ function modoMaestro() {
     });
     cont.appendChild(btn);
   });
+}
+
+/* ── Panel de padres: progreso del chico por materia (domina / practicando / le falta),
+   estilo ALEKS-Pie. Client-side (lee Store + Adapt). Gateado por adaptativo_on. ── */
+function panelPadres() {
+  const nombre = Store.data.activeProfile || "tu hijo/a";
+  const resumen = Adapt.resumenPorCategoria();
+  const EMOJI = { lengua: "✏️", matematica: "🔢", naturales: "🌱", sociales: "🌎" };
+  let totalDom = 0, totalProc = 0;
+  let filas = "";
+  Adapt.ordenCategorias().forEach((cat) => {
+    const r = resumen[cat];
+    if (!r || !r.total) return;   // Extras / sin saberes no se muestran
+    totalDom += r.dom; totalProc += r.proc;
+    const pDom = Math.round(100 * r.dom / r.total);
+    filas +=
+      `<div style="margin:14px 0">
+         <div style="display:flex;justify-content:space-between;font-weight:800;font-size:16px">
+           <span>${EMOJI[cat] || ""} ${Adapt.labelCategoria(cat)}</span><span>${pDom}%</span></div>
+         <div style="height:16px;border-radius:8px;background:#eee;overflow:hidden;display:flex;margin:6px 0">
+           <div style="width:${100 * r.dom / r.total}%;background:#2ecc71"></div>
+           <div style="width:${100 * r.proc / r.total}%;background:#f5a623"></div>
+         </div>
+         <div style="font-size:13px;opacity:.72">✅ Domina ${r.dom} · 🔶 Practicando ${r.proc} · ⚪ Le falta ${r.pend}</div>
+       </div>`;
+  });
+  const resumenTxt = totalDom
+    ? `Esta semana ${nombre} <b>domina ${totalDom}</b> ${totalDom === 1 ? "tema" : "temas"}` +
+      (totalProc ? ` y está <b>reforzando ${totalProc}</b>.` : ".")
+    : `${nombre} recién empieza — jugá un rato y acá vas a ver su progreso.`;
+  const ov = el("div");
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px";
+  const caja = el("div");
+  caja.style.cssText = "background:#fff;color:#2b2b2b;max-width:540px;width:100%;max-height:88vh;overflow:auto;border-radius:22px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.4)";
+  caja.innerHTML =
+    `<h2 style="margin:0 0 2px;font-size:24px">📊 ¿Cómo viene ${nombre}?</h2>
+     <p style="opacity:.75;margin:6px 0 14px;font-size:15px;line-height:1.4">${resumenTxt}</p>
+     ${filas || '<p style="opacity:.6">Todavía no hay progreso para mostrar.</p>'}
+     <p style="font-size:12px;opacity:.55;margin-top:12px">Verde = lo domina de verdad (bien, sin ayuda, en días distintos). Naranja = lo está practicando.</p>
+     <button id="cerrarPadres" style="margin-top:12px;width:100%;padding:13px;border:none;border-radius:12px;background:var(--ac,#4aa3df);color:#fff;font-weight:800;font-size:16px;cursor:pointer">Cerrar</button>`;
+  ov.appendChild(caja); document.body.appendChild(ov);
+  caja.querySelector("#cerrarPadres").addEventListener("click", () => ov.remove());
+  ov.addEventListener("click", (e) => { if (e.target === ov) ov.remove(); });
 }
 
 function pantallaCandado(nv) {

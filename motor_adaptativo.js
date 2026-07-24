@@ -59,6 +59,21 @@ const Adapt = {
                         .sort((a, b) => this.peso(a) - this.peso(b));
     return cand.length ? cand[0] : null;
   },
+  saberCategoria(sid) { const j = (SABERES_MOTOR[sid]||{}).juegos || []; return j.length ? this.categoria(j[0]) : null; },
+  // resumen por categoría para el panel de padres: dominado/en proceso/pendiente
+  resumenPorCategoria() {
+    const res = {}; for (const c of CATEGORIA_ORDEN) res[c] = { dom: 0, proc: 0, pend: 0, total: 0 };
+    const dom = this._dominados(); const st = this._store();
+    for (const sid in SABERES_MOTOR) {
+      const s = SABERES_MOTOR[sid]; if (s.grado < 4) continue;
+      const cat = this.saberCategoria(sid); if (!cat || !res[cat]) continue;
+      res[cat].total++;
+      if (dom.has(sid)) res[cat].dom++;
+      else if (st && s.juegos.some((j) => st.stars(j) > 0)) res[cat].proc++;
+      else res[cat].pend++;
+    }
+    return res;
+  },
   labelCategoria(cat) { return CATEGORIA_LABEL[cat] || cat; },
 };
 if (typeof module !== "undefined")
