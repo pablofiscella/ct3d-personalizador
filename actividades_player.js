@@ -199,6 +199,15 @@ const Store = {
     const p = this._perfil();
     if (p && n > this.stars(id)) { p.stars[id] = n; this.save(); }
   },
+  // ── dificultad adaptativa por juego: sube 1 al dominar (3★ = le salió fácil), se
+  // QUEDA si todavía le cuesta (<3★). Persistido por perfil. Cap para no volverse imposible.
+  nivelDif(id) { const p = this._perfil(); return (p && p.nd && p.nd[id]) || 0; },
+  subirNivelDif(id, max) {
+    const p = this._perfil(); if (!p) return;
+    if (!p.nd) p.nd = {};
+    const m = (max == null ? 4 : max);
+    if ((p.nd[id] || 0) < m) { p.nd[id] = (p.nd[id] || 0) + 1; this.save(); }
+  },
   total() {
     const p = this._perfil();
     return p ? Object.values(p.stars).reduce((a, b) => a + b, 0) : 0;
@@ -456,6 +465,14 @@ const Shell = {
         if (s === "dominado") return 0.45;
         return Store.stars(self.actual) >= 2 ? 0.25 : 0;
       },
+      // Nivel de dificultad efectivo del juego (entero): piso por EDAD (4° arranca más
+      // difícil que 1°) + niveles GANADOS por dominar. Los juegos lo suman a su "knob"
+      // (cantidad de imágenes, tamaño, etc.). 0 sin el flag → links vendidos igual.
+      get nivelDif() {
+        if (!D.adaptativo_on) return 0;
+        const pisoEdad = Math.max(0, (D.edad || 6) - 6);   // 6→0, 9→+3, 12→+6
+        return pisoEdad + Store.nivelDif(self.actual);
+      },
       consigna(txt, pistaSrc) {
         $("#consignaTexto").innerHTML = txt;
         const p = $("#consignaPista");
@@ -506,6 +523,9 @@ const Shell = {
         }
         const yaEstabaCompleto = todoCompleto();
         Store.setStars(self.actual, e);
+        // dificultad adaptativa: si le salió fácil (3★) sube el nivel para la próxima;
+        // si le costó, se queda igual (repite ese nivel hasta dominarlo). Gateado.
+        if (e >= 3 && D.adaptativo_on) Store.subirNivelDif(self.actual);
         // Capa 0 · sello de dominio sostenido: registra el día si fue nivel de
         // dominio (3★) y avisa si recién ahora quedó 'dominado'/'consolidado'.
         const evtDom = e >= 3 ? Store.registrarDominio(self.actual, e) : null;
@@ -868,6 +888,8 @@ function modoCreador() {
     if (ok && !festejado) {
       festejado = true;
       Sfx.fanfarria && Sfx.fanfarria(); Confeti.tirar(160);
+      // telemetría de oro: crear evidencia válida = dominio profundo. El sistema lo registra.
+      Tel.push({ j: "modo_creador", it: String(N), edad: (D && D.edad) || null, ok: true, primer: true, motivo: a + OPS[op] + b, t: Date.now() });
       const msg = root.querySelector("#crMsg");
       msg.innerHTML = `🎉 ¡Genio! Inventaste ${a} ${OPS[op]} ${b} = ${N} ` +
         `<button id="crOtra" style="margin-left:6px;padding:8px 14px;border:none;border-radius:12px;background:#2ecc71;color:#fff;font-weight:800;cursor:pointer">¡Otra! ▶</button>`;
@@ -911,6 +933,7 @@ function modoMaestro() {
     btn.addEventListener("click", () => {
       if (o === correcto) {
         Sfx.fanfarria && Sfx.fanfarria(); Confeti.tirar(160);
+        Tel.push({ j: "modo_maestro", it: a + OPS[op] + b, edad: (D && D.edad) || null, ok: true, primer: true, t: Date.now() });
         btn.style.background = "#2ecc71"; btn.style.color = "#fff";
         cont.querySelectorAll("button").forEach((x) => { x.disabled = true; });
         root.querySelector("#mzMsg").innerHTML =
@@ -1026,7 +1049,7 @@ document.addEventListener("DOMContentLoaded", boot);
 GAMES.memotest = {
   minP: 3,
   crear(ctx) {
-    const pares = Math.min(ctx.cfg.pares || 6, P.length);
+    const pares = Math.min((ctx.cfg.pares || 6) + ctx.nivelDif, P.length);   // + dificultad adaptativa
     ctx.consigna("Encontrá las parejas");
     ctx.rondas(pares);
     const sprites = sample(P, pares);
@@ -1181,7 +1204,8 @@ GAMES.sopa = {
 /* ── LABERINTO — llevá al personaje arrastrando; las paredes frenan solas ── */
 GAMES.laberinto = {
   crear(ctx) {
-    const labs = D.laberintos.slice(ctx.cfg.desde || 0);
+    const desde = Math.min((ctx.cfg.desde || 0) + ctx.nivelDif, Math.max(0, D.laberintos.length - 1));
+    const labs = D.laberintos.slice(desde);   // sube el piso: saltea los laberintos fáciles
     ctx.rondas(labs.length);
     let nivel = 0;
     const arrancar = () => {
@@ -10870,7 +10894,7 @@ const QUEFALTA_QUIEN_CORTAS = ["¿Y ahora, quién falta?", "¿Quién no está?",
 GAMES.quefalta = {
   minP: 3,
   crear(ctx) {
-    const n = Math.min(ctx.cfg.items || 4, P.length);
+    const n = Math.min((ctx.cfg.items || 4) + ctx.nivelDif, P.length);   // + dificultad adaptativa
     const rondas = ctx.cfg.rondas || 5;
     ctx.rondas(rondas);
     let ronda = 0;
@@ -10927,7 +10951,7 @@ const BINGO_CORTAS = ["¿Y ahora, a quién buscamos?", "Encontrá a:", "¿Dónde
 GAMES.bingo = {
   minP: 4,
   crear(ctx) {
-    const tam = Math.min(ctx.cfg.tam || 6, P.length);
+    const tam = Math.min((ctx.cfg.tam || 6) + ctx.nivelDif, P.length);   // + dificultad adaptativa
     const cols = tam <= 4 ? 2 : 3;
     const items = sample(P, tam);
     const orden = shuffle(items);
