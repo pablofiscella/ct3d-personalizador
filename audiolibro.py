@@ -377,7 +377,7 @@ def crear(data, tema, api_key, escenas_dir=None, progress=None, token=None):
         for i in range(total):
             if progress:
                 progress("Página %d de %d…" % (i + 1, total))
-            img = libro.pagina_libro(i, data, tema, catalogo=True).convert("RGB")
+            img = libro.pagina_audiolibro(i, data, tema).convert("RGB")
             img.resize((img.width * 2 // 3, img.height * 2 // 3)).save(
                 os.path.join(d, "pag_%02d.jpg" % i), quality=86)
             with open(os.path.join(d, "pag_%02d.mp3" % i), "wb") as f:
