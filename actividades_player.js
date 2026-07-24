@@ -2095,7 +2095,7 @@ GAMES.sombra = {
 /* ── SEGUÍ EL PATRÓN — ¿qué sigue? (predice matemática: el "sleeper") ── */
 GAMES.patron = {
   crear(ctx) {
-    const nivel = ctx.cfg.nivel || 1, rondas = ctx.cfg.rondas || 5;
+    const nivel = (ctx.cfg.nivel || 1) + ctx.bonusDominio, rondas = ctx.cfg.rondas || 5;   // adaptativo
     ctx.rondas(rondas);
     let MOLDES = { 1: ["AB"], 2: ["AB", "ABC", "AABB"], 3: ["ABC", "ABB", "AABB", "ABCD"] }[nivel] || ["AB"];
     MOLDES = MOLDES.filter((m) => new Set(m.split("")).size <= P.length);
@@ -5192,7 +5192,7 @@ GAMES.conectores = {
     const rondas = ctx.cfg.rondas || 10;
     // nivel 1 (4°): subconjunto simple (temporales, causales, «pero»). nivel 2+
     // (5°-7°, default): banco completo, con adversativos (aunque, sin embargo).
-    const banco = (ctx.cfg.nivel || 2) <= 1 ? CONECTORES4_BANCO : CONECTORES_BANCO;
+    const banco = ((ctx.cfg.nivel || 2) + ctx.bonusDominio) <= 1 ? CONECTORES4_BANCO : CONECTORES_BANCO;   // adaptativo: al dominar salta al banco difícil (grados bajos)
     ctx.rondas(rondas);
     let usados = [], ronda = 0;
     const jugar = () => {
@@ -8519,7 +8519,7 @@ GAMES.transportador = {
 GAMES.reloj = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 8;
-    const nivel = ctx.cfg.nivel || 1;
+    const nivel = (ctx.cfg.nivel || 1) + ctx.bonusDominio;   // adaptativo (grados bajos: horas más difíciles al dominar)
     ctx.rondas(rondas);
     let ronda = 0, previas = [];
     const P = (cx, cy, r, a) => [cx + r * Math.cos(a * Math.PI / 180), cy - r * Math.sin(a * Math.PI / 180)];
