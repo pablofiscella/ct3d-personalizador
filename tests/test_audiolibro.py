@@ -122,6 +122,99 @@ def test_instrucciones_openai_son_por_genero_de_voz():
     assert "female storyteller" in fem
 
 
+def test_historia_desde_titulo_reconstruye_la_key(tmp_path, monkeypatch):
+    """muestra_voz necesita re-narrar el texto EXACTO de un demo viejo que
+    nunca guardó `historia` en su manifest — solo se puede reconstruir
+    revirtiendo el armado de _titulo_libro contra TITULOS."""
+    al = _fresh_audiolibro(tmp_path, monkeypatch)
+    assert al._historia_desde_titulo(
+        "La noche de las estrellas — el cuento de Alex", "Alex") == "noche-estrellas"
+    assert al._historia_desde_titulo(
+        "El mapa del tesoro — el cuento de Sofía", "Sofía") == "tesoro"
+    # título del fallback genérico (libro de kit legado, sin historia) → None
+    assert al._historia_desde_titulo("La gran aventura de Alex", "Alex") is None
+    # nombre que no coincide con el del título → no matchea el sufijo → None
+    assert al._historia_desde_titulo(
+        "La noche de las estrellas — el cuento de Alex", "Otro") is None
+
+
+def test_muestra_voz_bug_real_texto_no_coincidia_con_la_pagina(tmp_path, monkeypatch):
+    """24-jul-2026, bug reportado: al elegir una voz distinta de Lizy en la
+    ficha, la previa narraba un texto de referencia genérico grabado una
+    sola vez ("Che, vení que te cuento un secreto...") en vez del texto REAL
+    de la página 2 que se ve en pantalla — con ~25 libros de catálogo, cada
+    uno con su propia historia, nunca podía coincidir. muestra_voz() tiene
+    que narrar el mismo texto que pag_02, solo que en otra voz."""
+    al = _fresh_audiolibro(tmp_path, monkeypatch)
+    tok = "TokenPreviewNoche01"
+    _escribir_manifest(al, tok, tema="safari", nombre="Alex",
+                        titulo="La noche de las estrellas — el cuento de Alex")
+    textos_esperados = al._textos_narracion(
+        {"nombre": "Alex", "historia": "noche-estrellas"}, "safari")
+
+    llamadas = []
+    monkeypatch.setattr(al, "tts_mp3", lambda api_key, texto, voz=None, seed=None:
+                         llamadas.append((texto, voz)) or b"FAKE" * 100)
+
+    mp3 = al.muestra_voz(tok, "malena")
+    assert mp3 == b"FAKE" * 100
+    assert llamadas == [(textos_esperados[2], "malena")]   # el texto de pag_02, no uno genérico
+
+
+def test_muestra_voz_cachea_en_disco_no_regenera(tmp_path, monkeypatch):
+    al = _fresh_audiolibro(tmp_path, monkeypatch)
+    tok = "TokenCacheVoz0001"
+    _escribir_manifest(al, tok, titulo="El cuento")   # sin historia reconstruible: cae al default del tema, no importa acá
+
+    llamadas = []
+    monkeypatch.setattr(al, "tts_mp3", lambda api_key, texto, voz=None, seed=None:
+                         llamadas.append(voz) or b"FAKE")
+
+    b1 = al.muestra_voz(tok, "malena")
+    b2 = al.muestra_voz(tok, "malena")
+    assert b1 == b2 == b"FAKE"
+    assert llamadas == ["malena"]   # la 2da vez sirve del cache, no vuelve a llamar TTS
+    assert os.path.isfile(os.path.join(al.AUDIOLIBROS_DIR, tok, "muestra_malena.mp3"))
+
+
+def test_muestra_voz_si_pide_la_voz_del_manifest_sirve_el_real_sin_tts(tmp_path, monkeypatch):
+    al = _fresh_audiolibro(tmp_path, monkeypatch)
+    tok = "TokenVozRealSirve1"
+    _escribir_manifest(al, tok, voz="malena")
+    d = os.path.join(al.AUDIOLIBROS_DIR, tok)
+    with open(os.path.join(d, "pag_02.mp3"), "wb") as f:
+        f.write(b"AUDIO REAL DE LA PAGINA 2")
+
+    llamado = []
+    monkeypatch.setattr(al, "tts_mp3", lambda *a, **k: llamado.append(1) or b"NO DEBERIA USARSE")
+
+    assert al.muestra_voz(tok, "malena") == b"AUDIO REAL DE LA PAGINA 2"
+    assert not llamado
+
+
+def test_muestra_voz_voz_invalida_o_token_inexistente(tmp_path, monkeypatch):
+    al = _fresh_audiolibro(tmp_path, monkeypatch)
+    tok = "TokenVozInvalida01"
+    _escribir_manifest(al, tok)
+    assert al.muestra_voz(tok, "no-existe") is None
+    assert al.muestra_voz("token-no-existe-123", "malena") is None
+
+
+def test_archivo_rutea_muestra_voz(tmp_path, monkeypatch):
+    """El endpoint real (servicio.py /al/<token>/<arch>) llama a archivo() con
+    lo que venga después del token — tiene que reconocer 'muestra_<voz>.mp3'
+    y no solo 'pag_NN.(jpg|mp3)'."""
+    al = _fresh_audiolibro(tmp_path, monkeypatch)
+    tok = "TokenArchivoRuteo1"
+    _escribir_manifest(al, tok)
+    monkeypatch.setattr(al, "tts_mp3", lambda api_key, texto, voz=None, seed=None: b"X" * 50)
+
+    r = al.archivo(tok, "muestra_dante.mp3")
+    assert r == (b"X" * 50, "audio/mpeg")
+    assert al.archivo(tok, "muestra_no-existe.mp3") is None
+    assert al.archivo(tok, "otracosa.mp3") is None
+
+
 def test_instrucciones_openai_varian_ritmo_segun_contenido():
     """15-jul-2026, 2ª vuelta: Pablo sobre la muestra ya corregida por género:
     "le falta emocion, esta lento y sin cambio de ritmo". La 1ª vuelta no
