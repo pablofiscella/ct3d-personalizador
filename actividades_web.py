@@ -61,6 +61,19 @@ PALETAS = {
 _PALETA_DEFAULT = {"bg": "#FBF4EA", "card": "#FFFFFF", "ink": "#44372E", "ac": "#E0713C", "ac2": "#4E9C7E", "soft": "#F5E4CE", "star": "#F2A93B"}
 
 
+def _flag(v):
+    """Bool de un flag por token, tolerante a que venga YA STRINGIFICADO.
+
+    `POST /api/generar` hace `str(v).strip()` sobre los campos extra del payload, así que
+    un `False` de JSON llega como la cadena `"False"` — y `bool("False")` es True, o sea
+    el flag se encendería justo cuando se pide apagarlo. Hasta ahora eso se esquivaba por
+    convención (los llamadores mandan el flag SOLO cuando es True); acá se resuelve de
+    raíz, para que mandar `escolar_on=False` signifique lo que dice."""
+    if isinstance(v, str):
+        return v.strip().lower() not in ("", "false", "0", "no", "none", "off")
+    return bool(v)
+
+
 def _paleta(tema):
     return dict(PALETAS.get(tema, _PALETA_DEFAULT))
 
@@ -1756,7 +1769,7 @@ def crear(data, tema, token=None):
     # elenco, header, paleta, escena y páginas para colorear salen de la portada de ese
     # grado. Sin el flag manda el TEMA que el cliente eligió, así una compra del kit
     # (safari, princesas…) no se convierte en "Científicos en Acción" por la edad.
-    escolar = bool(data.get("escolar_on") or _prev.get("escolar_on"))
+    escolar = _flag(data.get("escolar_on")) or _flag(_prev.get("escolar_on"))
 
     pers, sombras = _arte_de_grado(edad, d, escolar) or _personajes(tema, d)
     cols = _colorear_de_grado(edad, d, escolar) or _colorear(tema, d)
@@ -1767,17 +1780,27 @@ def crear(data, tema, token=None):
     dj["colorear"] = cols
     dj["escena"] = esc
     dj["escolar_on"] = escolar
+    # El motor adaptativo (grafo de saberes, menú por categorías, panel de padres,
+    # Modo Profe, dificultad que escala) es la OTRA mitad de la línea escolar, así que
+    # `escolar_on` lo enciende: si no, quedaban medios estados sin sentido — arte del
+    # grado con el menú plano de siempre, o el menú adaptativo sobre stickers de safari
+    # (lo que Pablo marcó con "ojo las imágenes"). Sigue pudiendo prenderse solo, para
+    # los tokens de prueba que ya lo traen. Se PRESERVA al regenerar: hasta ahora se
+    # editaba a mano en data.json y re-armar el token lo perdía.
+    dj["adaptativo_on"] = (_flag(data.get("adaptativo_on"))
+                           or _flag(_prev.get("adaptativo_on")) or escolar)
     # activación escalable por niveles: modo premium por token (default OFF → sin
     # impacto en links vivos) + nivel_max (el nivel más alto desbloqueado; se
     # PRESERVA si el token se regenera, para no "perder" una compra al re-armar).
-    dj["premium_on"] = bool(data.get("premium_on"))
+    dj["premium_on"] = _flag(data.get("premium_on"))
     dj["nivel_max"] = int(data.get("nivel_max") or _prev.get("nivel_max") or 1)
     # acceso gateado por cuenta (Fase 2): con requiere_cuenta=True el visor /act/
     # deja de ser público y pide un permiso firmado que emite la biblioteca
     # logueada. Sin el flag → público como siempre (cero impacto en lo existente).
     # revocado corta el acceso al instante. Ambos se PRESERVAN al regenerar.
-    dj["requiere_cuenta"] = bool(data.get("requiere_cuenta") or _prev.get("requiere_cuenta"))
-    dj["revocado"] = bool(data.get("revocado") or _prev.get("revocado"))
+    dj["requiere_cuenta"] = (_flag(data.get("requiere_cuenta"))
+                             or _flag(_prev.get("requiere_cuenta")))
+    dj["revocado"] = _flag(data.get("revocado")) or _flag(_prev.get("revocado"))
     with open(os.path.join(d, "data.json"), "w", encoding="utf-8") as f:
         json.dump(dj, f, ensure_ascii=False)
 
