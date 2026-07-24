@@ -551,36 +551,37 @@ _ESCENAS_POR_HISTORIA_LARGO = {
     ]),
     "ayudar-a-todos": _tabla17([
         "Un problema grandote y vistoso en {mundo} (un gran enredo o desorden "
-        "que bloquea el lugar); los personajes del tema mirándolo sin saber "
-        "qué hacer.",
-        "Los personajes del tema desanimados; {protagonista} respirando hondo "
-        "con un destello de idea sobre la cabeza.",
-        "Los personajes del tema sentados cabizbajos, desanimados.",
+        "que bloquea el lugar); {alto}, {fuerte} y {chiquito} mirándolo "
+        "juntos sin saber qué hacer.",
+        "{alto}, {fuerte} y {chiquito} desanimados; {protagonista} "
+        "respirando hondo con un destello de idea sobre la cabeza.",
+        "{alto}, {fuerte} y {chiquito} sentados cabizbajos, desanimados.",
         "{protagonista} proponiendo con entusiasmo resolverlo entre todos; "
-        "los personajes del tema levantando la cabeza con esperanza.",
-        "El personaje más chiquito escondiéndose en un rinconcito, "
-        "creyéndose demasiado pequeño.",
-        "{protagonista} sonriendo con cariño al personaje más chiquito, "
-        "dándole importancia.",
-        "{protagonista} repartiendo tareas: el más alto, el más fuerte y el "
-        "más rápido, cada uno listo; el más chiquito adelante con la misión "
+        "{alto}, {fuerte} y {chiquito} levantando la cabeza con esperanza.",
+        "{chiquito} escondiéndose en un rinconcito, con gesto de creerse "
+        "demasiado pequeña para servir de ayuda.",
+        "{protagonista} sonriendo con cariño a {chiquito}, dándole "
+        "importancia.",
+        "{protagonista} repartiendo tareas: {alto} listo para alcanzar, "
+        "{fuerte} lista para empujar, {chiquito} adelante con la misión más "
         "especial.",
-        "El grupo esforzándose con el problema grandote, que todavía no "
-        "cede; caras de esfuerzo.",
-        "El personaje más chiquito metiéndose por un huequito imposible y "
-        "destrabando la primera parte; todos gritando de alegría.",
-        "El más alto alcanzando lo inalcanzable y el más fuerte empujando "
-        "con todo; {protagonista} coordinando como director de orquesta.",
-        "Un tropezón grupal gracioso: todos sosteniéndose en grupo para no "
-        "caer, riéndose del susto.",
+        "{alto}, {fuerte} y {chiquito} esforzándose con el problema "
+        "grandote, que todavía no cede; caras de esfuerzo.",
+        "{chiquito} metiéndose por un huequito imposible y destrabando la "
+        "primera parte; {alto} y {fuerte} gritando de alegría junto a "
+        "{protagonista}.",
+        "{alto} alcanzando lo inalcanzable y {fuerte} empujando con todo; "
+        "{protagonista} coordinando como director de orquesta.",
+        "Un tropezón gracioso: {alto}, {fuerte}, {chiquito} y {protagonista} "
+        "sosteniéndose todos juntos para no caer, riéndose del susto.",
         "¡Lo lograron! El problema resuelto, {mundo} en paz otra vez; "
-        "festejo grupal enorme.",
-        "El personaje más chiquito en el medio de la ronda, festejado como "
-        "un héroe.",
-        "{protagonista} hablando al grupo en ronda, todos asintiendo con "
-        "sonrisas.",
-        "Los personajes del tema entregando {tesoro} brillante y destacado a "
-        "{protagonista}, celebración.",
+        "{alto}, {fuerte}, {chiquito} y {protagonista} festejando en grande.",
+        "{chiquito} en el centro de la ronda; {alto}, {fuerte} y "
+        "{protagonista} festejando muy felices alrededor.",
+        "{protagonista} hablando en ronda con {alto}, {fuerte} y {chiquito}, "
+        "todos asintiendo con sonrisas.",
+        "{alto}, {fuerte} y {chiquito} entregando {tesoro} brillante y "
+        "destacado a {protagonista}, celebración.",
         "Un cuarto infantil de noche; {protagonista} acurrucándose en la "
         "cama, sonrisa tranquila.",
         "Una casita de noche con ventana cálida iluminada, cielo estrellado "
@@ -700,6 +701,47 @@ _ESCENAS_POR_HISTORIA_LARGO = {
 }
 
 
+# ── ELENCO FIJO (Pablo, 24-jul-2026 — libro "El día de ayudar a todos" era el
+# peor: cada página inventaba un protagonista/personaje distinto porque el
+# arco menciona roles con nombre propio —"el más alto", "el más fuerte", "el
+# más chiquito"— sin atarlos a un diseño concreto). Para el combo (tema,
+# historia) que lo necesite, este dict fija la DESCRIPCIÓN FÍSICA exacta de
+# cada rol (debe coincidir con los personajes reales de ia_maestra.png del
+# tema) y se inyecta en el prompt de TODAS las escenas donde aparece — así
+# nunca se inventa un personaje nuevo. El texto narrado (libro_historias.py)
+# sigue usando el nombre de rol genérico ("el más chiquito") para no romper
+# la regla de texto universal; solo el PROMPT DE IMAGEN, que ya es por-tema,
+# recibe la descripción concreta.
+ELENCO_FIJO = {
+    ("superheroes", "ayudar-a-todos"): {
+        "alto": "el superhéroe de pelo oscuro rizado, antifaz rojo y traje "
+                "azul con capa roja y un rayo dorado en el pecho (el "
+                "mismo superhéroe en TODAS las escenas, nunca cambia)",
+        "fuerte": "la superheroína de pelo oscuro rizado con una estrellita "
+                  "dorada en el pelo, antifaz rojo y traje verde azulado con "
+                  "capa roja (la misma superheroína en TODAS las escenas, "
+                  "nunca cambia)",
+        "chiquito": "la superheroína más pequeña del trío, de pelo castaño "
+                    "en colitas, antifaz celeste, traje rosa con capa "
+                    "celeste y una estrella en el pecho (la misma "
+                    "superheroína en TODAS las escenas, nunca cambia)",
+    },
+}
+
+_ELENCO_FALLBACK = {
+    "alto": "el más alto de los personajes del tema",
+    "fuerte": "el más fuerte de los personajes del tema",
+    "chiquito": "el más chiquito de los personajes del tema",
+}
+
+
+def _elenco(tema, historia):
+    """Roles con nombre propio ({alto}/{fuerte}/{chiquito}) para el prompt de
+    imagen. Si el combo (tema, historia) no tiene un elenco fijo definido,
+    cae al genérico de siempre (compatibilidad con el resto de historias)."""
+    return {**_ELENCO_FALLBACK, **ELENCO_FIJO.get((tema, (historia or "").lower()), {})}
+
+
 def _paleta(tema):
     import json
     try:
@@ -750,16 +792,12 @@ def _protagonista(genero):
     return "un niño visto de espaldas (nunca se le ve la cara)"
 
 
-def prompt_pagina(tema, idx, genero=None, historia=None, catalogo=False, edad=None):
-    """Prompt de la ilustración de la página idx, con la ambientación de la historia
-    del tema (libro.HISTORIAS) y el mismo bloque de estilo del resto del kit.
-    genero («nena»/«nene», opcional): cómo dibujar al protagonista en las escenas
-    donde aparece — lo usa el libro premium, que ilustra por pedido.
-    catalogo=True (audiolibro): usa las escenas de la versión larga (17 páginas) con
-    largo por edad; la versión corta (9, hasta 3 años) mapea con libro.CORTO_IDX."""
-    h = dict(libro.HISTORIAS.get(tema, libro.HISTORIA_DEFAULT))
-    h["protagonista"] = _protagonista(genero)
-    pal = _paleta(tema)
+def _escena_para(tema, idx, historia=None, catalogo=False, edad=None):
+    """(escena SIN formatear, hlow) — el lookup de qué texto de escena
+    corresponde a la página idx. Separado de `prompt_pagina` para que
+    `generar_ilustraciones` pueda mirar el template CRUDO (con {protagonista}
+    todavía sin sustituir) y decidir si esta página sirve de ANCLA de
+    continuidad de personajes (ver ELENCO FIJO / referencias encadenadas)."""
     hlow = (historia or "").strip().lower()
     if not catalogo and not hlow:
         # sin historia explícita, el arte sigue la historia DEL TEMA (tema.json
@@ -781,6 +819,21 @@ def prompt_pagina(tema, idx, genero=None, historia=None, catalogo=False, edad=No
         fallback = _ESCENAS_EXT if extendido else _ESCENAS
         arco = tabla.get(hlow, {})
         escena = arco.get(idx, fallback[idx])
+    return escena, hlow
+
+
+def prompt_pagina(tema, idx, genero=None, historia=None, catalogo=False, edad=None):
+    """Prompt de la ilustración de la página idx, con la ambientación de la historia
+    del tema (libro.HISTORIAS) y el mismo bloque de estilo del resto del kit.
+    genero («nena»/«nene», opcional): cómo dibujar al protagonista en las escenas
+    donde aparece — lo usa el libro premium, que ilustra por pedido.
+    catalogo=True (audiolibro): usa las escenas de la versión larga (17 páginas) con
+    largo por edad; la versión corta (9, hasta 3 años) mapea con libro.CORTO_IDX."""
+    h = dict(libro.HISTORIAS.get(tema, libro.HISTORIA_DEFAULT))
+    h["protagonista"] = _protagonista(genero)
+    pal = _paleta(tema)
+    escena, hlow = _escena_para(tema, idx, historia=historia, catalogo=catalogo, edad=edad)
+    h.update(_elenco(tema, hlow))
     escena = escena.format(**h)
     return (
         "Ilustración para la página de un libro de cuentos infantil profesional. "
@@ -797,6 +850,16 @@ def prompt_pagina(tema, idx, genero=None, historia=None, catalogo=False, edad=No
         "que se entienda que la historia es sobre ÉL. Si en la escena hay un animal o "
         "mascota, tiene que quedar CLARO que el protagonista es el niño y el animal es "
         "secundario (más chico o atrás). Nunca confundir al niño con un animal. "
+        "CONTINUIDAD DE PERSONAJES (obligatoria, prioridad máxima): si además "
+        "de la referencia de estilo se incluyen imágenes de referencia del "
+        "PROTAGONISTA y/o del ELENCO de esta misma historia, el protagonista y "
+        "cada personaje secundario mantienen EXACTAMENTE el mismo diseño que "
+        "en esas referencias — mismo color y tipo de ropa (nunca cambia de "
+        "pijama a otro color, ni de manga corta a larga, ni de un peinado a "
+        "otro), mismo pelo, mismos accesorios. Es el MISMO personaje de página "
+        "en página, nunca uno nuevo ni parecido. Ningún personaje de las "
+        "referencias aparece más de UNA vez dentro de la misma escena (nunca "
+        "dos copias del mismo personaje, ni el protagonista duplicado). "
         "La escena llena TODA la imagen, sin marcos, bordes ni viñetas. "
         "ESCENARIO COMPLETO (obligatorio): la escena tiene SIEMPRE un fondo "
         "completo que llena toda la imagen — piso con textura y color del tema "
@@ -927,16 +990,67 @@ def verificar_ilustracion(api_key, png_bytes, escena, timeout=60):
         return True, "qa saltado: %s" % str(e)[:80]
 
 
+def _es_ancla_elenco(cruda):
+    """Heurística: ¿esta escena (texto CRUDO, sin formatear) muestra el elenco
+    fijo/secundario (y no solo al protagonista solo)? Sirve para elegir qué
+    página generada usar como referencia de continuidad del ELENCO."""
+    return ("{alto}" in cruda or "{fuerte}" in cruda or "{chiquito}" in cruda
+            or "personajes del tema" in cruda)
+
+
+def _autoancla(tema, historia, catalogo, edad, dest_dir, excluir):
+    """Si `dest_dir` ya tiene páginas generadas de ANTES (p.ej. se regeneran
+    solo algunas páginas de un combo ya cacheado), busca ahí una que sirva de
+    referencia de PROTAGONISTA y otra de ELENCO — así las páginas nuevas
+    quedan parecidas a las vecinas que ya estaban bien, en vez de arrancar
+    de cero. `excluir`: índices que se van a regenerar ahora (no sirven de
+    ancla porque pueden ser justamente los que están mal)."""
+    ref_p = ref_e = None
+    if not dest_dir or not os.path.isdir(dest_dir):
+        return ref_p, ref_e
+    total = libro.total_paginas(tema, edad, historia, catalogo)
+    for idx in range(total):
+        if ref_p is not None and ref_e is not None:
+            break
+        if idx in excluir:
+            continue
+        p = os.path.join(dest_dir, "%d.png" % idx)
+        if not os.path.isfile(p):
+            continue
+        cruda, _ = _escena_para(tema, idx, historia=historia, catalogo=catalogo, edad=edad)
+        if ref_p is None and "{protagonista}" in cruda:
+            ref_p = open(p, "rb").read()
+        if ref_e is None and idx >= 2 and _es_ancla_elenco(cruda):
+            ref_e = open(p, "rb").read()
+    return ref_p, ref_e
+
+
 def generar_ilustraciones(client, tema, paginas=None, calidad="medium", progress=None,
                           dest_dir=None, genero=None, historia=None,
-                          verificar=False, fallos_log=None, catalogo=False, edad=None):
+                          verificar=False, fallos_log=None, catalogo=False, edad=None,
+                          ref_protagonista_path=None, ref_elenco_path=None):
     """Genera y guarda las ilustraciones de `paginas` (default: las 10). Devuelve la
     lista de paths escritos. `client` es ia_kit.client.OpenAIImageClient (o cualquier
     objeto con .editar(refs, prompt, size, quality=) -> bytes PNG).
 
     dest_dir: si se pasa, guarda en <dest_dir>/<idx>.png en vez de los overrides del
     tema — es el modo LIBRO PREMIUM (arte único por pedido; se renderiza después con
-    libro.usar_escenas_dir(dest_dir))."""
+    libro.usar_escenas_dir(dest_dir)).
+
+    CONSISTENCIA DE PERSONAJES (Pablo, 24-jul-2026 — sin esto cada página podía
+    reinventar la ropa o el personaje: pasó pijama verde en una página y azul
+    en la siguiente, protagonistas distintos de página en página). Además de
+    la referencia de ESTILO del tema (ia_maestra.png), se encadenan DOS
+    anclas más a medida que se generan las páginas EN ORDEN: la del
+    PROTAGONISTA (la primera página cuya escena lo menciona) y la del ELENCO/
+    extras (la primera página que muestra a los personajes secundarios). Cada
+    página siguiente que vuelve a mostrar a ese personaje recibe también su
+    imagen como referencia — mismo mecanismo que `aventura_ia.py`, generalizado
+    acá a los libros/audiolibros del catálogo. `ref_protagonista_path` /
+    `ref_elenco_path` fuerzan un ancla ya aprobada (recomendado al regenerar
+    páginas sueltas de un combo ya revisado); si no se pasan, se intenta
+    encontrar una en `dest_dir` (páginas ya cacheadas) y si tampoco hay, se
+    arma sola con la primera página de ESTA corrida que corresponda."""
     paginas = list(paginas) if paginas is not None else \
         list(range(libro.total_paginas(tema, edad, historia, catalogo)))
     refs = referencias(tema)
@@ -947,27 +1061,57 @@ def generar_ilustraciones(client, tema, paginas=None, calidad="medium", progress
         raise RuntimeError(
             "el tema %r no tiene imagen de referencia (ia_maestra.png/stickers) "
             "— agregala antes de generar el catálogo" % tema)
+    ref_protagonista = (open(ref_protagonista_path, "rb").read()
+                        if ref_protagonista_path else None)
+    ref_elenco = open(ref_elenco_path, "rb").read() if ref_elenco_path else None
+    if ref_protagonista is None or ref_elenco is None:
+        auto_p, auto_e = _autoancla(tema, historia, catalogo, edad, dest_dir, set(paginas))
+        ref_protagonista = ref_protagonista or auto_p
+        ref_elenco = ref_elenco or auto_e
     out = []
     for n, idx in enumerate(paginas):
         if progress:
             progress("Página %d de %d (pieza %d)…" % (n + 1, len(paginas), idx))
-        r = refs or [_boceto(tema, idx)]
+        cruda, _hlow = _escena_para(tema, idx, historia=historia, catalogo=catalogo, edad=edad)
+        base = list(refs) if refs else [_boceto(tema, idx)]
+        if ref_protagonista is not None:
+            base.append(ref_protagonista)
+        if ref_elenco is not None:
+            base.append(ref_elenco)
+        r = base
         prompt = prompt_pagina(tema, idx, genero=genero, historia=historia,
                                catalogo=catalogo, edad=edad)
         if not refs:
             prompt = ("Redibujá este boceto como ilustración profesional, conservando "
                       "la composición. " + prompt)
         tam = tam_pagina(tema, idx, edad=edad, historia=historia, catalogo=catalogo)
-        raw = client.editar(r, prompt, tam, quality=calidad)
+        try:
+            raw = client.editar(r, prompt, tam, quality=calidad)
+        except Exception as e:
+            # Un bloqueo de moderación de OpenAI (o cualquier error de red/API) en
+            # UNA página NO puede tirar abajo el combo entero (pasó 24-jul-2026:
+            # una página con "S dorada" en el prompt disparó moderation_blocked y
+            # crasheó toda la corrida, perdiendo las páginas ya generadas antes).
+            # Se trata igual que un rechazo de QA: se deja constancia y se sigue.
+            if fallos_log:
+                with open(fallos_log, "a", encoding="utf-8") as fl:
+                    fl.write("pagina %d: ERROR generando: %s\n" % (idx, str(e)[:300]))
+            if progress:
+                progress("Página %d: error generando (%s) — se sigue con las demás"
+                         % (idx, str(e)[:120]))
+            continue
         qa_key = os.environ.get("OPENAI_API_KEY")
         if verificar and qa_key:
             ok, motivo = verificar_ilustracion(qa_key, _como_en_panel(raw, idx), prompt)
             if not ok:
                 if progress:
                     progress("Página %d rechazada por QA (%s) — reintento…" % (idx, motivo))
-                raw2 = client.editar(r, prompt + " MUY IMPORTANTE: " + motivo,
-                                     tam, quality=calidad)
-                ok2, motivo2 = verificar_ilustracion(qa_key, _como_en_panel(raw2, idx), prompt)
+                try:
+                    raw2 = client.editar(r, prompt + " MUY IMPORTANTE: " + motivo,
+                                         tam, quality=calidad)
+                    ok2, motivo2 = verificar_ilustracion(qa_key, _como_en_panel(raw2, idx), prompt)
+                except Exception as e:
+                    ok2, motivo2 = False, "error en reintento: %s" % str(e)[:200]
                 if ok2:
                     raw = raw2
                 else:
@@ -987,6 +1131,10 @@ def generar_ilustraciones(client, tema, paginas=None, calidad="medium", progress
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         img.save(dest)
         out.append(dest)
+        if ref_protagonista is None and "{protagonista}" in cruda:
+            ref_protagonista = raw          # ancla para el resto de la corrida
+        if ref_elenco is None and idx >= 2 and _es_ancla_elenco(cruda):
+            ref_elenco = raw
     return out
 
 
@@ -1020,6 +1168,7 @@ def _escena_larga(tema, li, historia, genero="nene"):
     """(texto de escena renderizado, ¿lleva protagonista?) del índice LARGO li."""
     h = dict(libro.HISTORIAS.get(tema, libro.HISTORIA_DEFAULT))
     h["protagonista"] = _protagonista(genero)
+    h.update(_elenco(tema, historia))
     if li == 0:
         esc = _ESCENAS_LARGO[0]
     elif li == 1:
@@ -1052,12 +1201,17 @@ def _piso_blanco(path, umbral=0.45):
 
 
 def qa_vision_catalogo(api_key, png_bytes, tema, escena, espera_nino,
-                       ref_bytes=None, timeout=90):
-    """(ok, motivo) — QA de visión dirigido a los 3 errores históricos del
+                       ref_bytes=None, ref_protagonista=None, ref_elenco=None,
+                       timeout=90):
+    """(ok, motivo) — QA de visión dirigido a los errores históricos del
     catálogo: patas de más / protagonista que no es un chico humano / personajes
-    de otra temática. Compara contra la REFERENCIA del tema (sus personajes
-    NUNCA son intrusos — p.ej. el elefante obrero de construcción). Best-effort:
-    si el QA falla (red, etc.) devuelve OK para no frenar la venta."""
+    de otra temática / personaje duplicado / inconsistencia con la página
+    anterior. Compara contra la REFERENCIA del tema (sus personajes NUNCA son
+    intrusos — p.ej. el elefante obrero de construcción) y, si se pasan,
+    contra las referencias de PROTAGONISTA/ELENCO ya ancladas en esta corrida
+    (Pablo, 24-jul-2026 — el pijama cambiaba de color de una página a otra sin
+    que nada lo detectara). Best-effort: si el QA falla (red, etc.) devuelve
+    OK para no frenar la venta."""
     import base64 as _b64
     import urllib.request as _rq
     nino = ("nino_falta=true si NO aparece un nene o nena HUMANO como figura "
@@ -1065,33 +1219,55 @@ def qa_vision_catalogo(api_key, png_bytes, tema, escena, espera_nino,
             "en vez de un chico humano; "
             if espera_nino else
             "nino_falta=false SIEMPRE (esta escena no lleva chico); ")
+    consist = (
+        "También se incluyen imágenes de referencia del PROTAGONISTA y/o del "
+        "ELENCO de esta misma historia (ya aprobadas en páginas anteriores): "
+        "inconsistente=true SOLO si el protagonista o algún personaje "
+        "secundario de la escena a evaluar tiene un diseño, ropa, color o "
+        "peinado CLARAMENTE distinto al de esas referencias (por ejemplo, "
+        "pijama de otro color, otro tipo de prenda, otro peinado). Si no hay "
+        "diferencia clara o no se puede comparar bien, poné false. "
+        if (ref_protagonista or ref_elenco) else
+        "inconsistente=false SIEMPRE (no hay referencia de personaje previa "
+        "para comparar en esta página). ")
     txt = ("Sos QA de ilustraciones de un libro de cuentos infantil. "
            "Temática: %s. Escena esperada: %s "
            "La PRIMERA imagen es la REFERENCIA oficial del tema: TODOS los "
            "personajes que aparecen en ella son válidos (aunque sean "
-           "animales), NUNCA intrusos, aparezcan donde aparezcan. La SEGUNDA "
-           "imagen es la ilustración a evaluar. El protagonista humano (nene "
-           "o nena) NUNCA es un intruso. Respondé SOLO un JSON: "
+           "animales), NUNCA intrusos, aparezcan donde aparezcan. Las "
+           "imágenes de referencia siguientes (si las hay) son del "
+           "PROTAGONISTA y del ELENCO ya aprobados. La ÚLTIMA imagen es la "
+           "ilustración a evaluar. El protagonista humano (nene o nena) "
+           "NUNCA es un intruso. Respondé SOLO un JSON: "
            '{"patas_mal": bool, "nino_falta": bool, "intrusos": bool, '
-           '"detalle": "texto corto"}. '
+           '"duplicado": bool, "inconsistente": bool, "detalle": "texto corto"}. '
            "patas_mal=true si ALGÚN animal de cuatro patas tiene una cantidad "
            "de patas visiblemente incorrecta (5 o más, o 3 o menos), o si un "
            "animal en cuatro patas da la mano, choca los cinco, aplaude o "
            "saluda con una pata levantada; la cola NO es una pata. %s"
            "intrusos=true SOLO si aparecen personajes que NO están en la "
-           "referencia y claramente pertenecen a OTRA temática. Ante la "
-           "MÍNIMA duda en un campo, poné false." % (tema, escena, nino))
+           "referencia y claramente pertenecen a OTRA temática. "
+           "duplicado=true SOLO si el MISMO personaje (mismo diseño) aparece "
+           "dos o más veces dentro de la escena a evaluar (dos copias del "
+           "mismo personaje, o el protagonista repetido). %s"
+           "Ante la MÍNIMA duda en cualquier campo, poné false."
+           % (tema, escena, nino, consist))
     contenido = [{"type": "text", "text": txt}]
     if ref_bytes:
         contenido.append({"type": "image_url", "image_url": {
             "url": "data:image/png;base64," + _b64.b64encode(ref_bytes).decode(),
             "detail": "low"}})
+    for extra in (ref_protagonista, ref_elenco):
+        if extra:
+            contenido.append({"type": "image_url", "image_url": {
+                "url": "data:image/png;base64," + _b64.b64encode(extra).decode(),
+                "detail": "low"}})
     contenido.append({"type": "image_url", "image_url": {
         "url": "data:image/png;base64," + _b64.b64encode(png_bytes).decode(),
         "detail": "high"}})
     try:
         body = json.dumps({"model": os.environ.get("OPENAI_QA_MODEL", "gpt-4o-mini"),
-                           "max_tokens": 140,
+                           "max_tokens": 160,
                            "messages": [{"role": "user", "content": contenido}]}
                           ).encode()
         req = urllib.request.Request(_QA_URL, data=body, method="POST", headers={
@@ -1101,7 +1277,8 @@ def qa_vision_catalogo(api_key, png_bytes, tema, escena, espera_nino,
             out = json.loads(r.read())
         resp = out["choices"][0]["message"]["content"] or ""
         v = json.loads(resp[resp.find("{"):resp.rfind("}") + 1])
-        if v.get("patas_mal") or v.get("nino_falta") or v.get("intrusos"):
+        if (v.get("patas_mal") or v.get("nino_falta") or v.get("intrusos")
+                or v.get("duplicado") or v.get("inconsistente")):
             return False, str(v.get("detalle") or "")[:160]
         return True, ""
     except Exception as e:
@@ -1140,6 +1317,7 @@ def arte_catalogo(client, tema, historia, genero, edad, dest_dir,
         if qa_key:
             refs = referencias(tema)
             ref_b = refs[0] if refs else None
+            ref_p, ref_e = _autoancla(tema, hist, True, "5", cache, set())
             malas = []
             for li in faltan:
                 p = os.path.join(cache, "%d.png" % li)
@@ -1152,7 +1330,8 @@ def arte_catalogo(client, tema, historia, genero, edad, dest_dir,
                     continue
                 escena, espera = _escena_larga(tema, li, hist, g)
                 ok, det = qa_vision_catalogo(qa_key, open(p, "rb").read(),
-                                             tema, escena, espera, ref_b)
+                                             tema, escena, espera, ref_b,
+                                             ref_protagonista=ref_p, ref_elenco=ref_e)
                 if not ok:
                     malas.append(li)
                     if progress:

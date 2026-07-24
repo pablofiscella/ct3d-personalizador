@@ -351,8 +351,8 @@ ARGUMENTOS_LARGO = {
         "«Justamente por eso sos importante», le sonrió {nombre}. «Vos llegás "
         "a lugares donde los grandes no entran. Te necesitamos».",
         "{nombre} le dio a cada uno una tarea: el más alto alcanzaba, el más "
-        "fuerte empujaba, el más rápido avisaba... y el más chiquito tenía la "
-        "misión más secreta de todas.",
+        "fuerte empujaba... y el más chiquito tenía la misión más secreta de "
+        "todas.",
         "Al principio costó un montón: el problema era grandote de verdad, y "
         "más de uno quiso rendirse otra vez.",
         "Pero el más chiquito se metió por un huequito donde nadie más "
