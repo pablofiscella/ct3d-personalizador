@@ -3580,6 +3580,7 @@ function juegoOrdenar(BANCO, consignaTxt, explicaTxt, idPrefijo) {
       const nuevoSet = () => {
         let disp = BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
         if (!disp.length) { usados = []; disp = BANCO.map((_, i) => i); }
+        disp = _masDificil(disp, (i) => (BANCO[i].items || []).length, ctx.bonusDominio);   // adaptativo: secuencias más largas al dominar
         const idx = disp[rint(0, disp.length - 1)];
         usados.push(idx);
         return idx;
@@ -4940,6 +4941,7 @@ GAMES.comprension_lectora = {
     const nuevoPasaje = () => {
       let disp = BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
       if (!disp.length) { usados = []; disp = BANCO.map((_, i) => i); }
+      disp = _masDificil(disp, (i) => (BANCO[i].texto || "").length, ctx.bonusDominio);   // adaptativo: textos más largos al dominar
       pIdx = disp[rint(0, disp.length - 1)]; usados.push(pIdx); qi = 0;
     };
     const render = () => {
@@ -7608,6 +7610,7 @@ GAMES.provincias_region = {
       ctx.juego.innerHTML = "";
       let disp = PROVINCIAS_BANCO.filter((x) => !usados.includes(x.p));
       if (!disp.length) { usados = []; disp = PROVINCIAS_BANCO; }
+      disp = _masDificil(disp, (x) => (["Buenos Aires", "Córdoba", "Santa Fe", "Mendoza", "Salta", "Jujuy", "Tucumán", "Misiones", "Chubut", "Tierra del Fuego"].includes(x.p) ? 0 : 1), ctx.bonusDominio);   // adaptativo: conocidas→menos conocidas
       const item = disp[rint(0, disp.length - 1)];
       usados.push(item.p);
       const arriba = el("div", "tablero");
