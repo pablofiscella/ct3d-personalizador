@@ -789,6 +789,7 @@ function pintarMenuPlano(items, stage) {
 
   if (adaptOn) {
     _adaptCSS();
+    stage.appendChild(_botonModoProfe());   // Modo Creador (el diferencial: crear, no solo resolver)
     const EMOJI = { lengua: "✏️", matematica: "🔢", naturales: "🌱", sociales: "🌎", logica: "🎲" };
     Adapt.ordenCategorias().forEach((cat) => {
       const delCat = visibles.filter((m) => Adapt.categoria(m.id) === cat)
@@ -804,6 +805,75 @@ function pintarMenuPlano(items, stage) {
     visibles.forEach((m, i) => menu.appendChild(hacerCarta(m, i)));
     stage.appendChild(menu);
   }
+}
+
+/* ── Modo Creador / "Modo Profe" (post-dominio) ──────────────────────────────
+   El diferencial que ni ALEKS ni DreamBox tienen: el chico DEJA de resolver y pasa a
+   CREAR. Inventa una cuenta que dé un número objetivo (con steppers, sin teclado); el
+   motor la valida en vivo. Crear evidencia válida = dominio profundo. Gateado por
+   adaptativo_on (solo aparece la entrada con el flag). ── */
+function _botonModoProfe() {
+  const b = el("button");
+  b.style.cssText = "width:100%;display:flex;align-items:center;gap:12px;justify-content:center;" +
+    "background:linear-gradient(135deg,#7b5cff,#4aa3df);color:#fff;border:none;border-radius:18px;" +
+    "padding:16px 18px;font-size:18px;font-weight:800;box-shadow:0 8px 22px rgba(0,0,0,.18);cursor:pointer;margin:2px 0 10px";
+  b.innerHTML = "🧑‍🏫 <span>Modo Profe — inventá tus propias cuentas</span>";
+  b.addEventListener("click", () => { Sfx.pop(); modoCreador(); });
+  return b;
+}
+
+function modoCreador() {
+  Shell.actual = null; Shell.nivelActual = null;
+  $("#btnAtras").classList.add("ver");   // el botón atrás (volverMenu) ya vuelve al menú
+  const stage = $("#stage"); stage.innerHTML = "";
+  const TARGETS = [10, 12, 15, 18, 20, 24, 30];
+  const OPS = ["+", "−", "×"];
+  const clamp = (x) => Math.max(0, Math.min(99, x));
+  let a = 2, b = 2, op = 2, N = 0, festejado = false;
+  const calc = () => op === 0 ? a + b : op === 1 ? a - b : a * b;
+  const root = el("div");
+  root.style.cssText = "max-width:520px;margin:6px auto;text-align:center";
+  stage.appendChild(root);
+  const stepper = (w, v) =>
+    `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--card,#fff);border-radius:16px;padding:6px 8px;box-shadow:0 2px 8px rgba(0,0,0,.1)">
+       <button data-w="${w}" data-d="-1" style="width:46px;height:46px;border:none;border-radius:12px;background:#eee;font-size:26px;font-weight:800;cursor:pointer">−</button>
+       <b style="font-size:30px;min-width:42px;display:inline-block">${v}</b>
+       <button data-w="${w}" data-d="1" style="width:46px;height:46px;border:none;border-radius:12px;background:#eee;font-size:26px;font-weight:800;cursor:pointer">+</button>
+     </span>`;
+  const render = () => {
+    const r = calc(), ok = r === N;
+    root.innerHTML =
+      `<div style="font-size:44px">🧑‍🏫</div>
+       <h1 style="margin:4px 0">Modo Profe</h1>
+       <p style="opacity:.82;font-size:17px;margin:0 0 6px">Ahora el profe sos vos.<br>Inventá una cuenta que dé <b style="font-size:24px;color:var(--ac,#4aa3df)">${N}</b></p>
+       <div style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:16px 0">
+         ${stepper("a", a)}
+         <button data-op style="width:56px;height:56px;border:none;border-radius:14px;background:var(--ac,#4aa3df);color:#fff;font-size:28px;font-weight:800;cursor:pointer">${OPS[op]}</button>
+         ${stepper("b", b)}
+         <span style="font-size:30px;font-weight:900">=</span>
+         <b style="font-size:36px;min-width:56px;display:inline-block;color:${ok ? "#2ecc71" : "inherit"}">${r}</b>
+       </div>
+       <div id="crMsg" style="min-height:46px;font-size:19px;font-weight:800;color:#2ecc71"></div>`;
+    root.querySelectorAll("button[data-w]").forEach((btn) => btn.addEventListener("click", () => {
+      const w = btn.dataset.w, d = +btn.dataset.d;
+      if (w === "a") a = clamp(a + d); else b = clamp(b + d);
+      festejado = false; Sfx.pop(); render();
+    }));
+    root.querySelector("button[data-op]").addEventListener("click", () => {
+      op = (op + 1) % 3; festejado = false; Sfx.pop(); render();
+    });
+    if (ok && !festejado) {
+      festejado = true;
+      Sfx.fanfarria && Sfx.fanfarria(); Confeti.tirar(160);
+      const msg = root.querySelector("#crMsg");
+      msg.innerHTML = `🎉 ¡Genio! Inventaste ${a} ${OPS[op]} ${b} = ${N} ` +
+        `<button id="crOtra" style="margin-left:6px;padding:8px 14px;border:none;border-radius:12px;background:#2ecc71;color:#fff;font-weight:800;cursor:pointer">¡Otra! ▶</button>`;
+      const bo = document.getElementById("crOtra");
+      if (bo) bo.addEventListener("click", () => { Sfx.pop(); nuevoTarget(); });
+    }
+  };
+  const nuevoTarget = () => { N = TARGETS[rint(0, TARGETS.length - 1)]; a = 2; b = 2; op = 2; festejado = false; render(); };
+  nuevoTarget();
 }
 
 function pantallaCandado(nv) {
