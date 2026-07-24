@@ -275,10 +275,12 @@ _ESCENAS_POR_HISTORIA_EXT = {
 # render mapea cada página con libro.CORTO_IDX (ver prompt_pagina).
 # ---------------------------------------------------------------------------
 _AVENTURA_LARGO = [
-    "Un dormitorio infantil de noche acogedor: una cama con un sobre dorado "
-    "brillante asomando bajo la almohada, luz de luna por la ventana.",
-    "Un remolino mágico de luces de colores llenando un dormitorio de noche, "
-    "destellos y estrellas, sensación de comienzo de viaje.",
+    "Un dormitorio infantil de noche acogedor; {protagonista} asomándose a "
+    "mirar un sobre dorado brillante que aparece bajo la almohada, luz de "
+    "luna por la ventana.",
+    "Un remolino mágico de luces de colores rodeando a {protagonista} en un "
+    "dormitorio de noche, destellos y estrellas, sensación de comienzo de "
+    "viaje.",
     "{protagonista} llegando a {mundo}, un lugar enorme y mágico, mirando todo "
     "con asombro.",
     "Una fiesta de bienvenida en {mundo} con banderines y globos, los personajes "
@@ -331,29 +333,29 @@ _ESCENAS_POR_HISTORIA_LARGO = {
         "{protagonista}, comienzo de aventura.",
         "{protagonista} llegando a {mundo} siguiendo un caminito brillante "
         "marcado por el mapa, todo con aire de secreto.",
-        "Los personajes del tema alrededor de {protagonista} mirando el mapa "
+        "{nino} y {ninia} alrededor de {protagonista} mirando el mapa "
         "juntos con ojos brillantes, listos para la búsqueda.",
         "Un rincón escondido de {mundo} lleno de brillitos; una única lucecita "
         "con forma de estrella destaca y {protagonista} la señala con asombro.",
-        "Una llave dorada brillante junto a una puerta secreta enorme; los "
-        "personajes del tema empujándola todos juntos con esfuerzo.",
+        "Una llave dorada brillante junto a una puerta secreta enorme; "
+        "{nino} y {ninia} empujándola juntos con esfuerzo.",
         "Un pasillo oscuro y misterioso con ecos en {mundo}; momento de "
         "preocupación: {desafio}.",
         "{protagonista} con los ojos cerrados pensando, una idea iluminándose "
         "como un destello suave sobre la cabeza.",
         "Momento heroico: {protagonista} que {solucion}; al fondo del pasillo "
         "aparece un cofre dorado.",
-        "Un cofre dorado con tres cerraduras brillantes; {protagonista} y los "
-        "personajes del tema observándolo con curiosidad.",
-        "{protagonista} girando las cerraduras del cofre mientras los "
-        "personajes del tema acompañan expectantes alrededor.",
+        "Un cofre dorado con tres cerraduras brillantes; {protagonista}, "
+        "{nino} y {ninia} observándolo con curiosidad.",
+        "{protagonista} girando las cerraduras del cofre mientras {nino} y "
+        "{ninia} acompañan expectantes alrededor.",
         "El cofre abierto de golpe irradiando luz dorada, con {tesoro} "
-        "brillando adentro; todos maravillados.",
+        "brillando adentro; {protagonista}, {nino} y {ninia} maravillados.",
         "El mapa dado vuelta mostrando una segunda cara que brilla con un "
         "camino dorado nuevo; sorpresa y asombro.",
-        "El más sabio de los personajes del tema contando una historia al "
-        "grupo en ronda, ambiente cálido de atardecer.",
-        "Los personajes del tema despidiendo a {protagonista} en la salida de "
+        "{ninia} contando una historia a {protagonista} y {nino} en ronda, "
+        "ambiente cálido de atardecer.",
+        "{nino} y {ninia} despidiendo a {protagonista} en la salida de "
         "{mundo}; el cofre guardado brillando a lo lejos.",
         "Un cuarto infantil de noche; {protagonista} guardando el mapa "
         "enrollado debajo de la almohada.",
@@ -513,36 +515,35 @@ _ESCENAS_POR_HISTORIA_LARGO = {
         "cielo estrellado.",
     ]),
     "pequeno-maestro": _tabla17([
-        "Los personajes del tema haciendo algo increíble propio del tema; "
+        "{ninia} y {nino} haciendo algo increíble propio del tema; "
         "{protagonista} mirando con ojos enormes de admiración.",
-        "{protagonista} pidiendo con ilusión que le enseñen; los personajes "
-        "del tema entusiasmados alrededor.",
-        "Los personajes del tema mostrando cómo se hace, despacito; "
-        "{protagonista} mirando sin pestañear.",
+        "{protagonista} pidiendo con ilusión que le enseñen; {ninia} y "
+        "{nino} entusiasmados alrededor.",
+        "{ninia} y {nino} mostrando cómo se hace, despacito; {protagonista} "
+        "mirando sin pestañear.",
         "{protagonista} de cola en el piso tras un intento fallido gracioso, "
-        "riéndose; los personajes del tema sonriendo con cariño.",
-        "El más viejito de los personajes del tema animando con gesto tierno "
-        "a {protagonista}.",
-        "{protagonista} practicando una y otra vez con esfuerzo; los "
-        "personajes del tema alentando desde el costado.",
-        "¡Primer logro! {protagonista} dando un gran salto de alegría; los "
-        "personajes del tema festejando amontonados de risa.",
+        "riéndose; {ninia} y {nino} sonriendo con cariño.",
+        "{nino} animando con gesto tierno a {protagonista}.",
+        "{protagonista} practicando una y otra vez con esfuerzo; {ninia} y "
+        "{nino} alentando desde el costado.",
+        "¡Primer logro! {protagonista} dando un gran salto de alegría; "
+        "{ninia} y {nino} festejando amontonados de risa.",
         "Preparativos de una gran muestra en {mundo}: un escenario armándose, "
         "entusiasmo general.",
-        "Un personaje nuevo chiquito y tímido mirando todo desde lejos; "
-        "{protagonista} mirando hacia ese rincón con gesto amable.",
-        "{protagonista} acercándose despacito al personaje nuevo tímido, "
-        "gesto de invitación amable.",
-        "{protagonista} enseñando de a pasitos al personaje nuevo, con mucha "
+        "{nuevo} mirando todo desde lejos; {protagonista} mirando hacia ese "
+        "rincón con gesto amable.",
+        "{protagonista} acercándose despacito a {nuevo}, gesto de invitación "
+        "amable.",
+        "{protagonista} enseñando de a pasitos a {nuevo}, con mucha "
         "paciencia, ambiente cálido.",
         "La gran muestra en {mundo}: {protagonista} en el escenario logrando "
-        "su número, el personaje nuevo lográndolo también al lado; el público "
-        "del tema festejando con sonrisas enormes.",
-        "El personaje nuevo saltando de alegría junto a {protagonista}, "
-        "gratitud y orgullo.",
-        "El más viejito de los personajes del tema hablando con cariño al "
-        "grupo en ronda; {protagonista} en el centro, ambiente emotivo.",
-        "Los personajes del tema entregando {tesoro} brillante y destacado a "
+        "su número, {nuevo} lográndolo también al lado; {ninia} y {nino} "
+        "festejando con sonrisas enormes en el público.",
+        "{nuevo} saltando de alegría junto a {protagonista}, gratitud y "
+        "orgullo.",
+        "{nino} hablando con cariño al grupo en ronda; {protagonista} en el "
+        "centro, ambiente emotivo.",
+        "{ninia} y {nino} entregando {tesoro} brillante y destacado a "
         "{protagonista}, agradecimiento.",
         "Un cuarto infantil de noche; {protagonista} en la cama con una "
         "sonrisa soñadora.",
@@ -589,35 +590,36 @@ _ESCENAS_POR_HISTORIA_LARGO = {
     ]),
     "gran-viaje": _tabla17([
         "Un paquetito brillante con moño en la puerta de un dormitorio "
-        "infantil, luz de atardecer, sensación de misión por empezar.",
+        "infantil; {protagonista} mirándolo con curiosidad, luz de "
+        "atardecer, sensación de misión por empezar.",
         "{protagonista} con una mochila liviana saliendo al anochecer con "
         "paso decidido, primer paso del gran viaje.",
-        "Los personajes del tema esperando a {protagonista} con un mapa de "
-        "recorrido desplegado: caminitos y tres banderitas (dibujo, sin letras).",
-        "Los personajes del tema contando la misión en ronda a "
+        "{piloto1} y {piloto2} esperando a {protagonista} con un mapa de "
+        "recorrido desplegado: caminitos y tres banderitas (dibujo, sin "
+        "letras).",
+        "{piloto1} y {piloto2} contando la misión en ronda a "
         "{protagonista}, gesto de urgencia dulce; la luna saliendo.",
-        "El grupo repartiéndose el viaje; {protagonista} sosteniendo con "
-        "cuidado el paquetito brillante.",
-        "El grupo de viaje cantando por un camino de {mundo} mientras el sol "
-        "se esconde, ambiente alegre.",
+        "{piloto1} y {piloto2} repartiéndose el viaje; {protagonista} "
+        "sosteniendo con cuidado el paquetito brillante.",
+        "{piloto1} y {piloto2} cantando junto a {protagonista} por un "
+        "camino de {mundo} mientras el sol se esconde, ambiente alegre.",
         "Un viento travieso en forma de remolino tratando de llevarse el "
         "paquetito; {protagonista} abrazándolo fuerte.",
         "El viento despejando el cielo: las nubes yéndose y un cielo lleno "
         "de estrellas apareciendo.",
-        "{protagonista} señalando un atajo iluminado por las estrellas; el "
-        "grupo avanzando con energía.",
-        "Una parada del viaje con chocolate calentito humeante; los "
-        "personajes del tema tomando fuerzas, tacitas y vapor.",
-        "El tramo más oscuro del camino de noche; el grupo avanzando bien "
-        "juntito, {protagonista} adelante con paso valiente.",
-        "La llegada al amanecer: el más viejito de los personajes del tema "
-        "abriendo el paquetito con ojos brillantes de emoción, primer rayito "
-        "de sol.",
-        "El más viejito del tema con el regalo bien cerquita, muy emocionado; "
-        "todos alrededor con ternura.",
-        "El festejo del viejito arrancando con el primer sol; {protagonista} "
-        "en el lugar de honor.",
-        "Los personajes del tema entregando {tesoro} brillante y destacado a "
+        "{protagonista} señalando un atajo iluminado por las estrellas; "
+        "{piloto1} y {piloto2} avanzando con energía.",
+        "Una parada del viaje con chocolate calentito humeante; {piloto1} "
+        "y {piloto2} tomando fuerzas, tacitas y vapor.",
+        "El tramo más oscuro del camino de noche; {piloto1} y {piloto2} "
+        "avanzando bien juntito, {protagonista} adelante con paso valiente.",
+        "La llegada al amanecer: {piloto1} abriendo el paquetito con ojos "
+        "brillantes de emoción, primer rayito de sol.",
+        "{piloto1} con el regalo bien cerquita, muy emocionado; {piloto2} "
+        "y {protagonista} alrededor con ternura.",
+        "El festejo de {piloto1} arrancando con el primer sol; "
+        "{protagonista} en el lugar de honor.",
+        "{piloto1} y {piloto2} entregando {tesoro} brillante y destacado a "
         "{protagonista}, premio de la misión cumplida.",
         "Un cuarto infantil de mañana tempranito; {protagonista} en la cama "
         "con cara de dulce cansancio feliz.",
@@ -759,6 +761,69 @@ ELENCO_FIJO = {
                               "blancas, short azul y medias blancas que sus "
                               "compañeros de equipo",
     },
+    # artistas/pequeno-maestro (Pablo, 24-jul-2026, "Pequeños artistas"):
+    # ia_maestra.png trae 2 personajes fijos del tema (nena de colitas +
+    # nene de guardapolvo) — sin elenco fijo, el arte los repetía siempre a
+    # ELLOS incluso para el rol de "personaje nuevo" (que la historia pide
+    # que sea alguien DISTINTO, nunca visto antes) y confundía cuál de los
+    # dos era el protagonista.
+    ("artistas", "pequeno-maestro"): {
+        "ninia": "la compañera de pelo negro rizado recogido en dos moños "
+                 "con vinchas rojas, remera amarilla y guardapolvo blanco "
+                 "con manchas de pintura de colores (la misma nena de la "
+                 "referencia del tema en TODAS las escenas, nunca cambia)",
+        "nino": "el compañero de pelo castaño corto, remera y jean "
+                "celeste con guardapolvo blanco lleno de manchas de "
+                "pintura de colores (el mismo nene de la referencia del "
+                "tema en TODAS las escenas, nunca cambia)",
+        "nuevo": "un chico nuevo y tímido, de pelo negro lacio y "
+                 "guardapolvo celeste claro liso (bien distinto a los "
+                 "guardapolvos blancos con manchas de los demás) — un "
+                 "chico DISTINTO a la nena y al nene de guardapolvo "
+                 "blanco, nunca el mismo personaje que ellos (el mismo "
+                 "chico nuevo en TODAS las escenas, nunca cambia)",
+    },
+    # campamento/tesoro (Pablo, 24-jul-2026, "El mapa del tesoro"): mismo
+    # fix — 2 personajes fijos de la referencia, nombrados siempre para que
+    # no aparezcan nenes de más que la escena no pide.
+    ("campamento", "tesoro"): {
+        "nino": "el compañero de campamento de pelo castaño, remera "
+                "celeste y short caqui, con una mochila y un rollo de "
+                "dormir al hombro (el mismo chico de la referencia del "
+                "tema en TODAS las escenas, nunca cambia)",
+        "ninia": "la compañera de campamento de pelo castaño en trenza, "
+                 "gorra caqui, pañuelo rojo al cuello y mochila de "
+                 "explorador (la misma chica de la referencia del tema en "
+                 "TODAS las escenas, nunca cambia)",
+        "protagonista_extra": ", con una mochila de explorador y una "
+                              "gorra caqui como sus compañeros de "
+                              "campamento",
+    },
+    # aviadores/gran-viaje (Pablo, 24-jul-2026, "La entrega importante"):
+    # el protagonista perdía el traje de aviador entre páginas; acá se fija
+    # por texto además de encadenar la imagen.
+    ("aviadores", "gran-viaje"): {
+        "piloto1": "un piloto de campamento aéreo, pelo castaño con "
+                   "flequillo, gorro de cuero y antiparras, mameluco "
+                   "marrón con cuello de piel blanca y botas marrones (el "
+                   "mismo piloto en TODAS las escenas, nunca cambia)",
+        "piloto2": "otro piloto de campamento aéreo, pelo castaño en dos "
+                   "colitas cortas, gorro de cuero y antiparras, mameluco "
+                   "marrón con cuello de piel blanca y botas marrones (el "
+                   "mismo piloto en TODAS las escenas, nunca cambia)",
+        "protagonista_extra": ", con un traje de aviador marrón, gorro de "
+                              "cuero, antiparras y bufanda blanca, igual "
+                              "al de los pilotos del grupo",
+    },
+    # monstruos/aventura (Pablo, 24-jul-2026, "La invitación mágica"): acá
+    # el problema NO era falta de elenco (hay ~10 monstruos, de sobra) sino
+    # el pijama del protagonista cambiando de color de página en página —
+    # alcanza con fijarlo por texto + la cadena de referencias.
+    ("monstruos", "aventura"): {
+        "protagonista_extra": ", con el mismo pijama celeste de manga "
+                              "larga con estrellitas y pantuflas a juego "
+                              "(igual en TODAS las escenas, nunca cambia)",
+    },
 }
 
 _ELENCO_FALLBACK = {
@@ -768,6 +833,11 @@ _ELENCO_FALLBACK = {
     "capitan": "el capitán del equipo de los personajes del tema",
     "rapido": "el más rápido de los personajes del tema",
     "rival": "el equipo rival",
+    "nino": "un nene de los personajes del tema",
+    "ninia": "una nena de los personajes del tema",
+    "nuevo": "un personaje nuevo del tema, distinto a los demás",
+    "piloto1": "el primero de los personajes del tema",
+    "piloto2": "el segundo de los personajes del tema",
     "protagonista_extra": "",
 }
 
