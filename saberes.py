@@ -201,6 +201,44 @@ SABERES = {
                          "prerrequisitos": ["SOC-6-ORGANIZACION"], "juegos": ["viaje_inmigrante"], "dificultad": 4},
     "SOC-6-SUFRAGIO":   {"nombre": "Sufragio y ley Sáenz Peña", "eje": "tiempo", "grado": 6,
                          "prerrequisitos": ["SOC-5-CONSTITUCION"], "juegos": ["sufragio_argentina"], "dificultad": 4},
+
+    # ═══════════════ 7° · MATEMÁTICA ═══════════════ (menú e==12)
+    "MAT-7-POTENCIAS":  {"nombre": "Potencias y raíces", "eje": "operaciones", "grado": 7,
+                         "prerrequisitos": ["MAT-4-MUL"], "juegos": ["potencias"], "dificultad": 5},
+    "MAT-7-ECUACIONES": {"nombre": "Ecuaciones simples (x)", "eje": "operaciones", "grado": 7,
+                         "prerrequisitos": ["MAT-6-JERARQUIA"], "juegos": ["ecuaciones_simples"], "dificultad": 5},
+    "MAT-7-ALGEBRA":    {"nombre": "Lenguaje algebraico (traducir)", "eje": "operaciones", "grado": 7,
+                         "prerrequisitos": ["MAT-7-ECUACIONES"], "juegos": ["traductor_algebraico"], "dificultad": 5},
+    "MAT-7-PROPORCION": {"nombre": "Proporcionalidad directa", "eje": "decimales", "grado": 7,
+                         "prerrequisitos": ["MAT-6-PORCENTAJE"], "juegos": ["proporcionalidad"], "dificultad": 5},
+    "MAT-7-AREA":       {"nombre": "Área y perímetro", "eje": "geometria", "grado": 7,
+                         "prerrequisitos": ["MAT-6-POLIGONOS"], "juegos": ["area_perimetro"], "dificultad": 4},
+    "MAT-7-ESTADISTICA": {"nombre": "Estadística (media, gráficos)", "eje": "datos", "grado": 7,
+                         "prerrequisitos": ["MAT-6-PROBABILIDAD"], "juegos": ["estadistica_datos"], "dificultad": 4},
+    "MAT-7-PROBLEMAS":  {"nombre": "Problemas de varios pasos", "eje": "operaciones", "grado": 7,
+                         "prerrequisitos": ["MAT-6-JERARQUIA"], "juegos": ["problemas_multipaso"], "dificultad": 5},
+
+    # ═══════════════ 7° · LENGUA ═══════════════
+    "LEN-7-ORTOGRAFIA": {"nombre": "Cazador de errores ortográficos", "eje": "ortografia", "grado": 7,
+                         "prerrequisitos": ["LEN-4-ACENTUACION"], "juegos": ["cazador_errores"], "dificultad": 4},
+    "LEN-7-HOMOFONOS":  {"nombre": "Homófonos (haber/a ver, hay/ahí)", "eje": "ortografia", "grado": 7,
+                         "prerrequisitos": ["LEN-4-ACENTUACION"], "juegos": ["homofonos"], "dificultad": 5},
+    "LEN-7-INGLES":     {"nombre": "Inglés básico (vocabulario)", "eje": "vocabulario", "grado": 7,
+                         "prerrequisitos": [], "juegos": ["ingles_basico"], "dificultad": 3},
+
+    # ═══════════════ 7° · CIENCIAS NATURALES ═══════════════
+    "NAT-7-CEREBRO":    {"nombre": "Cerebro y defensas del cuerpo", "eje": "seres_vivos", "grado": 7,
+                         "prerrequisitos": ["NAT-6-NERVIOSO"], "juegos": ["cerebro_defensas"], "dificultad": 4},
+    "NAT-7-REPRODUCTOR": {"nombre": "Sistema reproductor", "eje": "seres_vivos", "grado": 7,
+                         "prerrequisitos": ["NAT-6-PUBERTAD"], "juegos": ["sistema_reproductor"], "dificultad": 4},
+    "NAT-7-TROFICA":    {"nombre": "Redes tróficas (ecosistemas)", "eje": "seres_vivos", "grado": 7,
+                         "prerrequisitos": ["NAT-4-FOTOSINTESIS"], "juegos": ["red_trofica"], "dificultad": 4},
+    "NAT-7-PLANETAS":   {"nombre": "El sistema solar (tipos de planetas)", "eje": "seres_vivos", "grado": 7,
+                         "prerrequisitos": ["NAT-5-ASTRO"], "juegos": ["planetas_tipo"], "dificultad": 3},
+
+    # ═══════════════ 7° · CIENCIAS SOCIALES ═══════════════
+    "SOC-7-DEMOCRACIA": {"nombre": "Democracia y vida en democracia (1983→)", "eje": "tiempo", "grado": 7,
+                         "prerrequisitos": ["SOC-6-SUFRAGIO"], "juegos": ["linea_democracia"], "dificultad": 4},
 }
 
 EJE_LABEL = {
