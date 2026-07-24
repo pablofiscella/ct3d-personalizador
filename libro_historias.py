@@ -346,16 +346,16 @@ ARGUMENTOS_LARGO = {
         "«¿Y si lo resolvemos entre todos?», propuso {nombre}. «Cada uno sabe "
         "hacer algo distinto. ¡Juntos podemos!». Y {amigos} levantaron la "
         "cabeza con un brillito de esperanza.",
-        "«Pero yo soy muy pequeño para servir de algo», dijo el más chiquito, "
-        "escondiéndose en un rinconcito.",
+        "«Pero yo soy muy chiquita para servir de algo», dijo la más "
+        "chiquita, escondiéndose en un rinconcito.",
         "«Justamente por eso sos importante», le sonrió {nombre}. «Vos llegás "
         "a lugares donde los grandes no entran. Te necesitamos».",
         "{nombre} le dio a cada uno una tarea: el más alto alcanzaba, el más "
-        "fuerte empujaba... y el más chiquito tenía la misión más secreta de "
+        "fuerte empujaba... y la más chiquita tenía la misión más secreta de "
         "todas.",
         "Al principio costó un montón: el problema era grandote de verdad, y "
         "más de uno quiso rendirse otra vez.",
-        "Pero el más chiquito se metió por un huequito donde nadie más "
+        "Pero la más chiquita se metió por un huequito donde nadie más "
         "entraba... ¡y destrabó la primera parte! Todos gritaron de alegría.",
         "El más alto alcanzó lo inalcanzable, el más fuerte empujó con todo, y "
         "{nombre} los coordinaba como una orquesta: «¡Ahora vos! ¡Ahora vos!».",
@@ -363,8 +363,8 @@ ARGUMENTOS_LARGO = {
         "grupo, se rieron del susto y siguieron, más unidos que nunca.",
         "Con un último esfuerzo de todos juntos... ¡lo lograron! El problema "
         "se resolvió, y {mundo} volvió a estar en paz.",
-        "{amigos} saltaban festejando, y el más chiquito —el que creía que no "
-        "servía— quedó en el medio de la ronda, hecho un héroe.",
+        "{amigos} saltaban festejando, y la más chiquita —la que creía que "
+        "no servía— quedó en el medio de la ronda, hecha toda una heroína.",
         "«¿Vieron?», dijo {nombre}. «Solos parecía imposible. Pero cada uno, "
         "con su granito, hizo algo que ninguno podía hacer solo».",
         "Para celebrarlo, {amigos} le regalaron a {nombre} {tesoro}, por "
@@ -465,8 +465,8 @@ ARGUMENTOS_LARGO = {
         "distintos y se chocaban. ¡Pero terminaron riéndose en el piso!",
         "{nombre} propuso el plan: «Entrenamos juntos todos los días, cada "
         "uno en lo suyo, y a los Grandes Juegos vamos EN EQUIPO».",
-        "El más rápido practicó las carreras, el más fuerte los saltos, y el "
-        "más chiquito... ¡la jugada secreta!",
+        "La más rápida practicó las carreras, el más fuerte los saltos, y la "
+        "más chiquita... ¡la jugada secreta!",
         "Día a día salía mejor: ya no se chocaban. Se pasaban, se esperaban, "
         "se alentaban.",
         "Pero justo antes de los juegos, el capitán del equipo se dio un "
@@ -480,10 +480,11 @@ ARGUMENTOS_LARGO = {
         "La primera prueba salió regular. La segunda, un poquito mejor. ¡Y en "
         "la tercera ya nadie los paraba!",
         "La prueba final iba cabeza a cabeza con el otro equipo. Todo se "
-        "definía en la última jugada... ¡la jugada secreta del más chiquito!",
-        "El más chiquito hizo su jugada, todos entraron en el momento justo... "
-        "¡y salió PERFECTA! Todo el público de {mundo} saltó a festejar el "
-        "jugadón.",
+        "definía en la última jugada... ¡la jugada secreta de la más "
+        "chiquita!",
+        "La más chiquita hizo su jugada, todos entraron en el momento "
+        "justo... ¡y salió PERFECTA! Todo el público de {mundo} saltó a "
+        "festejar el jugadón.",
         "Los dos equipos terminaron festejando juntos y mezclados, porque "
         "había sido el juego más lindo de la historia de los Grandes Juegos.",
         "El capitán abrazó a todo el equipo: «Nunca jugamos tan bien... ¡y yo "

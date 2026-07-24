@@ -661,38 +661,39 @@ _ESCENAS_POR_HISTORIA_LARGO = {
         "nuevo de {mundo} con farolitos brillando.",
     ]),
     "gran-torneo": _tabla17([
-        "Banderines y preparativos de los Grandes Juegos en {mundo}; los "
-        "personajes del tema desanimados a un costado.",
-        "{protagonista} animando al equipo con una sonrisa, gesto de "
-        "arranque de entrenamiento.",
-        "Entrenamiento desastroso y gracioso: los personajes del tema "
-        "corriendo para lados distintos, chocándose con suavidad y "
-        "terminando en el piso riéndose.",
-        "{protagonista} explicando el plan al equipo en ronda, todos atentos "
-        "y con ganas.",
-        "Cada personaje entrenando lo suyo: el más rápido corriendo, el más "
-        "fuerte saltando, el más chiquito ensayando una jugada secreta.",
-        "El equipo entrenando cada día mejor, pasándose y esperándose, "
-        "ambiente de progreso alegre.",
-        "El capitán del equipo a un costado con una venda simpática, carita "
-        "de no poder jugar; el equipo alrededor, preocupado.",
-        "{protagonista} juntando al equipo en ronda con gesto de ánimo; el "
-        "capitán sonriendo desde el costado.",
-        "La entrada a los Grandes Juegos: el equipo desfilando con el "
-        "capitán al frente alentando desde el costado; tribunas de {mundo} "
-        "llenas.",
-        "Las primeras pruebas de los juegos: el equipo mejorando prueba a "
-        "prueba, energía creciente.",
-        "La prueba final cabeza a cabeza con el otro equipo; expectativa "
-        "máxima en las tribunas de {mundo}.",
-        "La jugada secreta del más chiquito saliendo perfecta; el público de "
+        "Banderines y preparativos de los Grandes Juegos en {mundo}; "
+        "{capitan}, {rapido}, {fuerte} y {chiquito} desanimados a un costado.",
+        "{protagonista} animando a {capitan}, {rapido}, {fuerte} y "
+        "{chiquito} con una sonrisa, gesto de arranque de entrenamiento.",
+        "Entrenamiento desastroso y gracioso: {capitan}, {rapido}, {fuerte} "
+        "y {chiquito} corriendo para lados distintos, tropezándose con "
+        "suavidad y terminando en el piso riéndose.",
+        "{protagonista} explicando el plan a {capitan}, {rapido}, {fuerte} y "
+        "{chiquito} en ronda, todos atentos y con ganas.",
+        "Cada uno entrenando lo suyo: {rapido} corriendo, {fuerte} "
+        "saltando, {chiquito} ensayando una jugada secreta.",
+        "{capitan}, {rapido}, {fuerte} y {chiquito} entrenando cada día "
+        "mejor, pasándose y esperándose, ambiente de progreso alegre.",
+        "{capitan} a un costado con una venda simpática, carita de no poder "
+        "jugar; {rapido}, {fuerte} y {chiquito} alrededor, preocupados.",
+        "{protagonista} juntando a {rapido}, {fuerte} y {chiquito} en ronda "
+        "con gesto de ánimo; {capitan} sonriendo desde el costado.",
+        "La entrada a los Grandes Juegos: {rapido}, {fuerte}, {chiquito} y "
+        "{protagonista} desfilando con {capitan} al frente alentando desde "
+        "el costado; tribunas de {mundo} llenas.",
+        "Las primeras pruebas de los juegos: {rapido}, {fuerte} y "
+        "{chiquito} mejorando prueba a prueba, energía creciente.",
+        "La prueba final cabeza a cabeza con {rival}; expectativa máxima en "
+        "las tribunas de {mundo}.",
+        "La jugada secreta de {chiquito} saliendo perfecta; el público de "
         "{mundo} festejando con saltos y confetti.",
-        "Los dos equipos festejando juntos y mezclados, alegría deportiva "
+        "{capitan}, {rapido}, {fuerte}, {chiquito} y {protagonista} "
+        "festejando junto a {rival}, todos mezclados, alegría deportiva "
         "enorme.",
-        "El capitán muy emocionado junto al equipo, momento tierno de "
-        "orgullo.",
-        "Premiación: los personajes del tema entregando {tesoro} brillante y "
-        "destacado a {protagonista}.",
+        "{capitan} muy emocionado junto a {rapido}, {fuerte} y {chiquito}, "
+        "momento tierno de orgullo.",
+        "Premiación: {capitan}, {rapido}, {fuerte} y {chiquito} entregando "
+        "{tesoro} brillante y destacado a {protagonista}.",
         "Un cuarto infantil de noche; {protagonista} en la cama con una "
         "sonrisa, una cintita de premio colgada cerca.",
         "Una casita de noche con ventana cálida; banderines de los Grandes "
@@ -726,12 +727,48 @@ ELENCO_FIJO = {
                     "celeste y una estrella en el pecho (la misma "
                     "superheroína en TODAS las escenas, nunca cambia)",
     },
+    # futbol/gran-torneo (Pablo, 24-jul-2026): la referencia del tema
+    # (ia_maestra.png) NO tiene NINGÚN personaje humano — es una hoja de
+    # objetos con carita (pelota, trofeo, botín). Sin un elenco fijo el
+    # modelo dibuja esos objetos en vez de un equipo de chicos, y solo por
+    # momentos inventa nenes sueltos y distintos. Acá se define un plantel
+    # de 4 amigos + el protagonista, todos con la MISMA camiseta de local, y
+    # el rival con otra camiseta — ver `protagonista_extra`.
+    ("futbol", "gran-torneo"): {
+        "capitan": "el capitán del equipo, un chico de pelo oscuro corto y "
+                   "cinta de capitán en el brazo, camiseta a rayas celestes "
+                   "y blancas, short azul y medias blancas (el mismo chico "
+                   "en TODAS las escenas, nunca cambia)",
+        "rapido": "la compañera más rápida del equipo, de pelo castaño en "
+                  "una colita alta, la misma camiseta a rayas celestes y "
+                  "blancas, short azul y medias blancas (la misma chica en "
+                  "TODAS las escenas, nunca cambia)",
+        "fuerte": "el compañero más fuerte del equipo, más robusto y de "
+                  "pelo rubio corto, la misma camiseta a rayas celestes y "
+                  "blancas, short azul y medias blancas (el mismo chico en "
+                  "TODAS las escenas, nunca cambia)",
+        "chiquito": "la compañera más chiquita del equipo, la más bajita "
+                    "del grupo, pelo negro corto con una vincha, la misma "
+                    "camiseta a rayas celestes y blancas, short azul y "
+                    "medias blancas (la misma chica en TODAS las escenas, "
+                    "nunca cambia)",
+        "rival": "el equipo rival, con camiseta roja lisa y short blanco "
+                 "(bien distinto a la camiseta celeste y blanca a rayas del "
+                 "equipo local)",
+        "protagonista_extra": ", con la misma camiseta a rayas celestes y "
+                              "blancas, short azul y medias blancas que sus "
+                              "compañeros de equipo",
+    },
 }
 
 _ELENCO_FALLBACK = {
     "alto": "el más alto de los personajes del tema",
     "fuerte": "el más fuerte de los personajes del tema",
     "chiquito": "el más chiquito de los personajes del tema",
+    "capitan": "el capitán del equipo de los personajes del tema",
+    "rapido": "el más rápido de los personajes del tema",
+    "rival": "el equipo rival",
+    "protagonista_extra": "",
 }
 
 
@@ -830,10 +867,11 @@ def prompt_pagina(tema, idx, genero=None, historia=None, catalogo=False, edad=No
     catalogo=True (audiolibro): usa las escenas de la versión larga (17 páginas) con
     largo por edad; la versión corta (9, hasta 3 años) mapea con libro.CORTO_IDX."""
     h = dict(libro.HISTORIAS.get(tema, libro.HISTORIA_DEFAULT))
-    h["protagonista"] = _protagonista(genero)
     pal = _paleta(tema)
     escena, hlow = _escena_para(tema, idx, historia=historia, catalogo=catalogo, edad=edad)
-    h.update(_elenco(tema, hlow))
+    elenco = _elenco(tema, hlow)
+    h["protagonista"] = _protagonista(genero) + elenco.pop("protagonista_extra", "")
+    h.update(elenco)
     escena = escena.format(**h)
     return (
         "Ilustración para la página de un libro de cuentos infantil profesional. "
@@ -1167,8 +1205,9 @@ def indices_largo(tema, edad, historia):
 def _escena_larga(tema, li, historia, genero="nene"):
     """(texto de escena renderizado, ¿lleva protagonista?) del índice LARGO li."""
     h = dict(libro.HISTORIAS.get(tema, libro.HISTORIA_DEFAULT))
-    h["protagonista"] = _protagonista(genero)
-    h.update(_elenco(tema, historia))
+    elenco = _elenco(tema, historia)
+    h["protagonista"] = _protagonista(genero) + elenco.pop("protagonista_extra", "")
+    h.update(elenco)
     if li == 0:
         esc = _ESCENAS_LARGO[0]
     elif li == 1:
