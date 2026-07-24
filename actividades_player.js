@@ -821,6 +821,7 @@ function pintarMenuPlano(items, stage) {
 
   if (adaptOn) {
     _adaptCSS();
+    _enviarProgreso();   // sincroniza el progreso al server → el padre lo ve en su biblioteca
     // entrada 📊 al panel de padres en el header (una sola vez)
     if (!document.getElementById("btnPadres")) {
       const bp = el("button", "pill", "📊");
@@ -967,6 +968,21 @@ function modoMaestro() {
     });
     cont.appendChild(btn);
   });
+}
+
+// Manda al servidor un snapshot del progreso del chico (best-effort) → el padre lo ve
+// en su biblioteca. Gateado por adaptativo_on. No bloquea el juego.
+function _enviarProgreso() {
+  try {
+    if (!D.adaptativo_on || typeof Adapt === "undefined") return;
+    const perfil = Store.data.activeProfile;
+    if (!perfil) return;
+    const snap = { perfil: perfil, resumen: Adapt.resumenPorCategoria(),
+      dominados: Array.from(Adapt._dominados()), ts: Date.now() };
+    const blob = new Blob([JSON.stringify(snap)], { type: "application/json" });
+    if (navigator.sendBeacon) navigator.sendBeacon("progreso", blob);
+    else fetch("progreso", { method: "POST", body: blob, keepalive: true }).catch(() => {});
+  } catch (e) { /* sin progreso remoto para este token */ }
 }
 
 // Perfil de DEMO (para ?demo=1): un chico que ya domina Matemática de 4° → deja ver el panel

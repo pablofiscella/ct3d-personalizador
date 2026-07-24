@@ -1068,6 +1068,9 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(body)
             return
         # ---- actividades web (cuaderno interactivo; link con token) ----
+        m_prog = re.match(r"^/act/([A-Za-z0-9_-]+)/progreso$", path)
+        if m_prog:
+            return self._act_progreso_get(m_prog.group(1))
         # OJO: el visor usa rutas RELATIVAS -> siempre servirlo bajo /act/<tok>/
         # (con barra final); /act/<tok> sin barra redirige.
         m = re.match(r"^/act/([A-Za-z0-9_-]+)(?:/([a-z_0-9.]*))?$", path)
@@ -1505,6 +1508,60 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", "0")
         self.end_headers()
 
+    def _act_progreso_get(self, token):
+        """Snapshot de progreso por chico de un token, para el tablero del padre en la
+        biblioteca. {"profiles": {<perfil>: {"resumen": {...}, "dominados": [...], "ts"}}}"""
+        import actividades_web as aw
+        d = os.path.join(aw.ACT_DIR, token)
+        if not os.path.isdir(d):
+            return self._json(404, {"ok": False})
+        try:
+            data = json.load(open(os.path.join(d, "progreso.json"), encoding="utf-8"))
+            if not isinstance(data, dict) or "profiles" not in data:
+                data = {"profiles": {}}
+        except Exception:
+            data = {"profiles": {}}
+        return self._json(200, data)
+
+    def _act_progreso_set(self, token):
+        """El player manda un snapshot del progreso de un chico (best-effort, sendBeacon).
+        Se guarda en actividades/<token>/progreso.json. Sin auth (mismo criterio que servir
+        el token); acotado: token existente, campos saneados, tope de perfiles."""
+        import actividades_web as aw
+        d = os.path.join(aw.ACT_DIR, token)
+        if not os.path.isdir(d):
+            return self._json(404, {"ok": False})
+        try:
+            ev = json.loads(self._body() or b"{}")
+        except Exception:
+            return self._json(400, {"ok": False})
+        perfil = (str(ev.get("perfil", "")) or "?")[:40]
+        cats = {}
+        if isinstance(ev.get("resumen"), dict):
+            for k, v in list(ev["resumen"].items())[:10]:
+                if isinstance(v, dict):
+                    cats[str(k)[:20]] = {kk: int(v.get(kk) or 0) for kk in ("dom", "proc", "pend", "total")}
+        dominados = ([str(x)[:40] for x in ev.get("dominados")][:300]
+                     if isinstance(ev.get("dominados"), list) else [])
+        p = os.path.join(d, "progreso.json")
+        try:
+            data = json.load(open(p, encoding="utf-8"))
+            if not isinstance(data, dict) or "profiles" not in data:
+                data = {"profiles": {}}
+        except Exception:
+            data = {"profiles": {}}
+        if len(data["profiles"]) < 25 or perfil in data["profiles"]:
+            data["profiles"][perfil] = {"resumen": cats, "dominados": dominados,
+                                        "ts": int(ev.get("ts") or 0) if str(ev.get("ts") or "0").isdigit() else 0}
+            try:
+                with open(p, "w", encoding="utf-8") as f:
+                    json.dump(data, f, ensure_ascii=False)
+            except Exception:
+                pass
+        self.send_response(204)
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
     def _act_interes(self, token):
         """Activación escalable por niveles · CAPTURAR EVENTO (público, desde el
         player): el chico tocó el candado de un nivel (motivo='pidio') o dominó su
@@ -1570,6 +1627,9 @@ class Handler(BaseHTTPRequestHandler):
         m_tel = re.match(r"^/act/([A-Za-z0-9_-]+)/telemetria$", path)
         if m_tel:
             return self._act_telemetria(m_tel.group(1))
+        m_prog = re.match(r"^/act/([A-Za-z0-9_-]+)/progreso$", path)
+        if m_prog:
+            return self._act_progreso_set(m_prog.group(1))
         m_int = re.match(r"^/act/([A-Za-z0-9_-]+)/quiero-desbloquear$", path)
         if m_int:
             return self._act_interes(m_int.group(1))
