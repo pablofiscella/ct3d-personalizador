@@ -131,6 +131,34 @@ SABERES = {
                          "prerrequisitos": ["MAT-4-MUL"], "juegos": ["equivalencias_medida"], "dificultad": 3},
     "MAT-5-DINERO":     {"nombre": "Pago exacto y vuelto", "eje": "medida", "grado": 5,
                          "prerrequisitos": ["MAT-4-MUL"], "juegos": ["pago_exacto"], "dificultad": 3},
+
+    # ═══════════════ 5° · LENGUA ═══════════════
+    "LEN-5-SINTAXIS":   {"nombre": "Análisis sintáctico (núcleo del sujeto/predicado)", "eje": "gramatica", "grado": 5,
+                         "prerrequisitos": ["LEN-4-ORACION"], "juegos": ["analisis_sintactico"], "dificultad": 4},
+    "LEN-5-VERBOS":     {"nombre": "Tiempos verbales del pasado (cantó / cantaba)", "eje": "gramatica", "grado": 5,
+                         "prerrequisitos": ["LEN-4-ORACION"], "juegos": ["verbos_pasado"], "dificultad": 3},
+    "LEN-5-COMPRENSION": {"nombre": "Comprensión de textos más largos (inferencia)", "eje": "comprension", "grado": 5,
+                         "prerrequisitos": ["LEN-4-COMPRENSION"], "juegos": ["comprension_lectora"], "dificultad": 3},
+
+    # ═══════════════ 5° · CIENCIAS NATURALES ═══════════════
+    "NAT-5-DIGESTIVO":  {"nombre": "Sistema digestivo", "eje": "seres_vivos", "grado": 5,
+                         "prerrequisitos": [], "juegos": ["camino_digestivo"], "dificultad": 3},
+    "NAT-5-AGUA":       {"nombre": "Potabilización del agua", "eje": "materiales_energia", "grado": 5,
+                         "prerrequisitos": [], "juegos": ["planta_potabilizadora"], "dificultad": 3},
+    "NAT-5-ASTRO":      {"nombre": "Astronomía (Sol, Luna, cielo)", "eje": "seres_vivos", "grado": 5,
+                         "prerrequisitos": [], "juegos": ["detectives_cielo"], "dificultad": 3},
+
+    # ═══════════════ 5° · CIENCIAS SOCIALES ═══════════════
+    "SOC-5-COLONIAL":   {"nombre": "Vida colonial (Virreinato)", "eje": "tiempo", "grado": 5,
+                         "prerrequisitos": ["SOC-4-HISTORIA"], "juegos": ["trivia_colonial"], "dificultad": 3},
+    "SOC-5-INDEPENDENCIA": {"nombre": "Camino a la independencia (1810-1853)", "eje": "tiempo", "grado": 5,
+                         "prerrequisitos": ["SOC-5-COLONIAL"], "juegos": ["independencia_arg"], "dificultad": 4},
+    "SOC-5-ECONOMIA":   {"nombre": "Actividades económicas por región", "eje": "espacio", "grado": 5,
+                         "prerrequisitos": ["SOC-4-GEOGRAFIA"], "juegos": ["actividad_economica"], "dificultad": 3},
+    "SOC-5-CONSTITUCION": {"nombre": "Derechos y Constitución", "eje": "tiempo", "grado": 5,
+                         "prerrequisitos": ["SOC-5-INDEPENDENCIA"], "juegos": ["derechos_constitucion"], "dificultad": 4},
+    "SOC-5-BSAS":       {"nombre": "Historia de Buenos Aires", "eje": "espacio", "grado": 5,
+                         "prerrequisitos": ["SOC-5-COLONIAL"], "juegos": ["buenos_aires"], "dificultad": 3},
 }
 
 EJE_LABEL = {
