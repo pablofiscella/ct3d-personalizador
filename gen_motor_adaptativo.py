@@ -27,10 +27,12 @@ const _JUEGO_A_SABERES = (() => {
 
 const Adapt = {
   _store() { return (typeof Store !== "undefined") ? Store : null; },
+  // grado del token, por edad: edad 9 → 4°, 10 → 5°, 11 → 6°… Sin edad, asume 4°.
+  _grado() { return ((typeof D !== "undefined" && D.edad) ? D.edad : 9) - 5; },
   saberDominado(sid) {
     const s = SABERES_MOTOR[sid];
     if (!s) return false;
-    if (s.grado < 4) return true;              // grado anterior = asumido dominado
+    if (s.grado < this._grado()) return true;  // grados anteriores = asumidos dominados
     const st = this._store();
     return !!st && s.juegos.some((j) => {
       const sel = st.sello(j);
@@ -47,8 +49,8 @@ const Adapt = {
   estadoActividad(actId) {
     const st = this._store();
     if (st && st.repasoPendiente && st.repasoPendiente(actId)) return "repaso";
-    const saberes = _JUEGO_A_SABERES[actId];
-    if (!saberes || !saberes.length) return "disponible";  // sin saber (Extras/otra materia)
+    const saberes = (_JUEGO_A_SABERES[actId] || []).filter((sid) => SABERES_MOTOR[sid].grado <= this._grado());  // ignora saberes de grados posteriores
+    if (!saberes.length) return "disponible";  // sin saber del grado (Extras/otra materia/otro grado)
     const dom = this._dominados();
     if (saberes.every((s) => dom.has(s))) return "dominado";
     if (saberes.some((s) => !dom.has(s) && this._prereqsOk(s, dom))) return "recomendado";
@@ -75,7 +77,7 @@ const Adapt = {
     const res = {}; for (const c of CATEGORIA_ORDEN) res[c] = { dom: 0, proc: 0, pend: 0, total: 0 };
     const dom = this._dominados(); const st = this._store();
     for (const sid in SABERES_MOTOR) {
-      const s = SABERES_MOTOR[sid]; if (s.grado < 4) continue;
+      const s = SABERES_MOTOR[sid]; if (s.grado !== this._grado()) continue;   // solo el grado del token
       const cat = this.saberCategoria(sid); if (!cat || !res[cat]) continue;
       res[cat].total++;
       if (dom.has(sid)) res[cat].dom++;

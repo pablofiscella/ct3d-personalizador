@@ -111,6 +111,26 @@ SABERES = {
                          "prerrequisitos": [], "juegos": ["provincias_region"], "dificultad": 2},
     "SOC-4-HISTORIA":   {"nombre": "Pueblos originarios y la colonia", "eje": "tiempo", "grado": 4,
                          "prerrequisitos": ["SOC-4-CRONOLOGIA"], "juegos": ["historia_originarios"], "dificultad": 3},
+
+    # ═══════════════ 5° · MATEMÁTICA ═══════════════ (verificado por consigna del menú de 5°, edad 10)
+    # Los saberes de 4° son ANCLAS de 5° (asumidos dominados: el chico ya pasó 4°). Cada saber de
+    # 5° tiene AL MENOS un juego real del menú de 5° que lo mide (actividades_web.py, bloque e==10).
+    "MAT-5-DIV-RESTO":  {"nombre": "División con análisis del resto (c×d+r=D)", "eje": "operaciones", "grado": 5,
+                         "prerrequisitos": ["MAT-4-DIV-LARGA"], "juegos": ["cuenta_larga", "dividir"], "dificultad": 4},
+    "MAT-5-FRAC-EQUIV2": {"nombre": "Fracciones equivalentes avanzadas (II)", "eje": "fracciones", "grado": 5,
+                         "prerrequisitos": ["MAT-4-FRAC-EQUIV"], "juegos": ["fracciones_avanzado"], "dificultad": 4},
+    "MAT-5-FRAC-SUMA":  {"nombre": "Suma de fracciones (igual denominador)", "eje": "fracciones", "grado": 5,
+                         "prerrequisitos": ["MAT-4-FRAC-COMP"], "juegos": ["suma_fracciones"], "dificultad": 4},
+    "MAT-5-DEC-FRAC":   {"nombre": "Equivalencia decimal ↔ fracción", "eje": "decimales", "grado": 5,
+                         "prerrequisitos": ["MAT-4-DECIMALES", "MAT-4-FRAC-ENTERO"], "juegos": ["decimales_fraccion"], "dificultad": 4},
+    "MAT-5-RECTA-M":    {"nombre": "Recta numérica hasta 1.000.000", "eje": "numeracion", "grado": 5,
+                         "prerrequisitos": ["MAT-4-RECTA"], "juegos": ["recta_numerica"], "dificultad": 3},
+    "MAT-5-ANGULO-MEDIR": {"nombre": "Medir ángulos con transportador (no solo clasificar)", "eje": "geometria", "grado": 5,
+                         "prerrequisitos": ["MAT-4-ANGULOS"], "juegos": ["transportador"], "dificultad": 4},
+    "MAT-5-MEDIDA":     {"nombre": "Equivalencias de medida (m/cm, kg/g, l/ml)", "eje": "medida", "grado": 5,
+                         "prerrequisitos": ["MAT-4-MUL"], "juegos": ["equivalencias_medida"], "dificultad": 3},
+    "MAT-5-DINERO":     {"nombre": "Pago exacto y vuelto", "eje": "medida", "grado": 5,
+                         "prerrequisitos": ["MAT-4-MUL"], "juegos": ["pago_exacto"], "dificultad": 3},
 }
 
 EJE_LABEL = {
