@@ -79,6 +79,33 @@ def test_con_arte_de_grado_lo_usa(arte_dir):
         shutil.rmtree(d, ignore_errors=True)
 
 
+def test_header_dice_el_mundo_del_grado(arte_dir):
+    """Con arte del grado, el header muestra el mundo de la portada (no 'Safari')."""
+    for i in range(4):
+        _sticker(os.path.join(arte_dir, "s%02d.png" % i), (10, 90, 200))
+    tok = "test-arte-mundo-aabb"
+    d = _crear(tok)
+    try:
+        import json
+        dj = json.load(open(os.path.join(d, "data.json"), encoding="utf-8"))
+        assert dj["tema_nombre"] == aw.MUNDO_GRADO[GRADO], dj["tema_nombre"]
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+def test_sin_arte_el_header_sigue_siendo_el_tema(arte_dir):
+    """Sin arte del grado, el header NO promete un mundo que el cuaderno no muestra."""
+    shutil.rmtree(arte_dir, ignore_errors=True)
+    tok = "test-arte-mundo2-aabb"
+    d = _crear(tok)
+    try:
+        import json
+        dj = json.load(open(os.path.join(d, "data.json"), encoding="utf-8"))
+        assert dj["tema_nombre"] != aw.MUNDO_GRADO[GRADO], dj["tema_nombre"]
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
 def test_arte_incompleto_cae_al_tema(arte_dir):
     """Con UNA sola imagen (arte a medio generar) NO se usa: el player necesita variedad."""
     _sticker(os.path.join(arte_dir, "s00.png"), (200, 30, 30))
@@ -93,14 +120,21 @@ def test_arte_incompleto_cae_al_tema(arte_dir):
 
 
 def test_otro_grado_no_se_contamina(arte_dir):
-    """El arte de 5° no se le aplica a un token de otra edad (grado distinto)."""
-    for i, col in enumerate([(200, 30, 30), (30, 200, 30), (30, 30, 200)]):
-        _sticker(os.path.join(arte_dir, "s%02d.png" % i), col)
+    """El arte de 5° NO se le aplica a un token de otro grado: cada grado usa SU carpeta.
+
+    Se verifica por CONTENIDO (no por nombre): las piezas de 5° acá son de un color único,
+    y ninguna del token de otro grado puede tener ese color."""
+    marca = (177, 13, 201)                       # color que no aparece en ningún arte real
+    for i in range(4):
+        _sticker(os.path.join(arte_dir, "s%02d.png" % i), marca)
     tok = "test-arte-otro-aabb"
-    d = _crear(tok, edad="7")          # 2° grado, sin arte propio
+    d = _crear(tok, edad="7")                    # 2° grado (su propio arte, o el tema)
     try:
         import json
         dj = json.load(open(os.path.join(d, "data.json"), encoding="utf-8"))
-        assert all(p.startswith("p") for p in dj["personajes"]), dj["personajes"]
+        for fn in dj["personajes"]:
+            im = Image.open(os.path.join(d, fn)).convert("RGBA")
+            colores = {p[:3] for p in im.getdata() if p[3] > 200}
+            assert marca not in colores, "%s trae arte de 5° en un token de 2°" % fn
     finally:
         shutil.rmtree(d, ignore_errors=True)

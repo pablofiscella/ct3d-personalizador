@@ -917,6 +917,28 @@ def _es_duplicado(cand, elegidos):
     return False
 
 
+# Mundo de cada grado (el de su portada "Mis Desafíos"). Solo se usa cuando ese grado
+# TIENE arte propio en actividades_arte/ — si no, el cuaderno sigue mostrando el tema.
+MUNDO_GRADO = {
+    1: "Exploradores de la Naturaleza", 2: "Jóvenes Creativos en la Ciudad",
+    3: "Campamento de Aventuras",       4: "Científicos en Acción",
+    5: "Viajeros en el Tiempo",         6: "Creadores del Mañana",
+    7: "Creadores del Futuro",
+}
+
+
+def _mundo_de_grado(edad):
+    """Nombre del mundo del grado, o None si ese grado no tiene arte propio instalado
+    (así el header nunca promete una temática que el cuaderno no está mostrando)."""
+    try:
+        grado = int(str(edad).strip()) - 5
+    except (TypeError, ValueError):
+        return None
+    if not os.path.isdir(os.path.join(BASEDIR, "actividades_arte", "g%d" % grado)):
+        return None
+    return MUNDO_GRADO.get(grado)
+
+
 def _arte_de_grado(edad, d):
     """Arte ESCOLAR por grado (pedido de Pablo 24-jul: "que toda la temática sea la que
     tiene la portada"): si existe `actividades_arte/g<grado>/s*.png`, ese elenco —dibujado
@@ -1178,7 +1200,7 @@ def _armar_data(tema, nombre, edad, seed):
     titulo = ("Las actividades de %s" % nombre) if nombre else "Cuaderno de actividades"
     menu_niv = _marcar_niveles(_menu(banda, edad))
     return {
-        "v": 1, "tema": tema, "tema_nombre": _tema_nombre(tema),
+        "v": 1, "tema": tema, "tema_nombre": _mundo_de_grado(edad) or _tema_nombre(tema),
         "nombre": nombre, "edad": edad, "banda": banda, "titulo": titulo,
         "paleta": _paleta(tema),
         "menu": menu_niv,
