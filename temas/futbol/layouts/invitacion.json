@@ -69,30 +69,6 @@
     "color": "#6f4e37",
     "anchor": "lm"
   },
-  "texto2": {
-    "x": 0.5183,
-    "y": 0.2689,
-    "size": 89.0,
-    "maxw": 0.9,
-    "wght": 500.0,
-    "font": "DancingScript-VF.ttf",
-    "color": "#333333",
-    "anchor": "mm"
-  },
   "_oculto": [],
-  "_nuevos": [
-    {
-      "id": "texto2",
-      "tpl": "Te invitamos al cumple de",
-      "x": 0.5183,
-      "y": 0.2689,
-      "size": 89.0,
-      "maxw": 0.9,
-      "wght": 500.0,
-      "font": "DancingScript-VF.ttf",
-      "color": "#333333",
-      "anchor": "mm",
-      "toggleable": true
-    }
-  ]
+  "_nuevos": []
 }
