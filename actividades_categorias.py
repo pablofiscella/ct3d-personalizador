@@ -53,12 +53,12 @@ CATEGORIA = {
     "verbos_pasado": "lengua",
 
     # ─────────── MATEMÁTICA ───────────
-    "agrupar": "matematica",
+    # agrupar: LÚDICO (clasificar sprites en canastas, no valor posicional) → Extras (movido a la sección logica)
     "angulos": "matematica",
     "anterior_siguiente": "matematica",
     "arbol_probabilidad": "matematica",
     "area_perimetro": "matematica",
-    "bingo": "matematica",                # bingo de números
+    # bingo: LÚDICO (matching de imágenes/sprites, NO números) → Extras (movido a la sección logica)
     "cajero_automatico": "matematica",
     "comparar_numeros": "matematica",
     "completar_entero": "matematica",
@@ -87,7 +87,7 @@ CATEGORIA = {
     "numeros_primos": "matematica",
     "ordenar_numeros": "matematica",
     "pago_exacto": "matematica",
-    "patron": "matematica",               # patrones/secuencias
+    # patron: LÚDICO (seguir secuencia VISUAL de sprites (1°-2°)) → Extras (movido a la sección logica)
     "poligonos_lados": "matematica",
     "porcentajes": "matematica",
     "posicion": "matematica",             # ??? valor posicional / posición
@@ -159,7 +159,10 @@ CATEGORIA = {
     "trivia_colonial": "sociales",
     "viaje_inmigrante": "sociales",
 
-    # ─────────── LÓGICA / TRANSVERSAL (sin materia) ───────────
+    # ─────────── EXTRAS / LÚDICO (sin materia; dificultad no escala a 4° → NO académicos) ───────────
+    "bingo": "logica",
+    "agrupar": "logica",
+    "patron": "logica",
     "colorear": "logica",
     "diferente": "logica",
     "escape_room_egreso": "logica",       # repaso mixto de egreso
@@ -178,3 +181,37 @@ CATEGORIA = {
 def categoria_de(juego_id, default=None):
     """Categoría de un juego por su id (el mismo que usa GAMES.<id> / el menú)."""
     return CATEGORIA.get(juego_id, default)
+<<<<<<< HEAD
+=======
+
+
+# Orden y etiqueta visible de los carriles en el lateral. "logica" se muestra como
+# "Ingenio" (juegos transversales sin materia). Labels cambiables sin tocar la lógica.
+CATEGORIA_ORDEN = ["lengua", "matematica", "naturales", "sociales", "logica"]
+CATEGORIA_LABEL = {
+    "lengua": "Lengua", "matematica": "Matemática", "naturales": "Cs. Naturales",
+    "sociales": "Cs. Sociales", "logica": "Extras",
+}
+
+
+def carriles_de_menu(menu_ids, min_actividades=1):
+    """Agrupa los juegos de UN grado (su lista de ids de menú) en carriles por
+    categoría, en orden, y devuelve SOLO los que llegan a `min_actividades`.
+
+    Regla clave de la pantalla: una categoría con muy pocas (o cero) actividades en
+    ese grado NO se muestra — nada de carriles vacíos. Con el contenido de hoy, 2° y
+    3° no muestran Sociales (0 juegos); aparece sola cuando se cargue contenido.
+
+    Devuelve: [{"categoria","label","juegos":[ids...],"cantidad"}] ordenado por
+    CATEGORIA_ORDEN. Los ids sin categoría conocida se ignoran."""
+    grupos = {c: [] for c in CATEGORIA_ORDEN}
+    for jid in menu_ids:
+        c = CATEGORIA.get(jid)
+        if c is not None:
+            grupos[c].append(jid)
+    return [
+        {"categoria": c, "label": CATEGORIA_LABEL[c],
+         "juegos": grupos[c], "cantidad": len(grupos[c])}
+        for c in CATEGORIA_ORDEN if len(grupos[c]) >= min_actividades
+    ]
+>>>>>>> c89c13d (feat(actividades-web): menú separado por CATEGORÍAS + Extras (gateado adaptativo_on))
