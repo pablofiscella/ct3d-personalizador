@@ -473,6 +473,11 @@ const Shell = {
         const pisoEdad = Math.max(0, (D.edad || 6) - 6);   // 6→0, 9→+3, 12→+6
         return pisoEdad + Store.nivelDif(self.actual);
       },
+      // Solo el bonus GANADO por dominar (SIN piso de edad): para los juegos que YA traen
+      // su nivel por edad en cfg.nivel y solo tienen que endurecerse al dominar. 0 sin flag.
+      get bonusDominio() {
+        return D.adaptativo_on ? Store.nivelDif(self.actual) : 0;
+      },
       consigna(txt, pistaSrc) {
         $("#consignaTexto").innerHTML = txt;
         const p = $("#consignaPista");
@@ -2809,7 +2814,7 @@ GAMES.planta_fruto = {
 GAMES.tablas_ninja = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 10;
-    const nivel = ctx.cfg.nivel || 1;
+    const nivel = (ctx.cfg.nivel || 1) + ctx.bonusDominio;   // + dificultad adaptativa (sube al dominar)
     ctx.rondas(rondas);
     let ronda = 0;
     const rango = () => {
@@ -2880,7 +2885,7 @@ GAMES.tablas_ninja = {
 GAMES.multiplicar = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 10;
-    const nivel = ctx.cfg.nivel || 1;
+    const nivel = (ctx.cfg.nivel || 1) + ctx.bonusDominio;   // + dificultad adaptativa (sube al dominar)
     ctx.rondas(rondas);
     let ronda = 0;
     const jugar = () => {
@@ -2948,7 +2953,7 @@ GAMES.multiplicar = {
 GAMES.dividir = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 10;
-    const nivel = ctx.cfg.nivel || 1;
+    const nivel = (ctx.cfg.nivel || 1) + ctx.bonusDominio;   // + dificultad adaptativa (sube al dominar)
     ctx.rondas(rondas);
     let ronda = 0;
     const jugar = () => {
@@ -3019,7 +3024,7 @@ GAMES.dividir = {
 GAMES.cuenta_larga = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 8;
-    const nivel = ctx.cfg.nivel || 1;
+    const nivel = (ctx.cfg.nivel || 1) + ctx.bonusDominio;   // + dificultad adaptativa (sube al dominar)
     ctx.rondas(rondas);
     let ronda = 0;
 
