@@ -131,9 +131,9 @@ _EL_VOCES_ALT = {
     "lionel": {"voice_id": "MjtZn5tagxL1RO6w9ER5",
                "settings": {"stability": 0.5},
                "label": "Voz masculina — cuentacuentos"},
-    "regis": {"voice_id": "zR7eV8hMFnxhSSAcCYW0",
-              "settings": {"stability": 0.5},
-              "label": "Voz masculina — suave, para dormir"},
+    # Regis (zR7eV8hMFnxhSSAcCYW0) descartada 24-jul-2026: Pablo la escuchó y
+    # tiene acento español (de España), no rioplatense — no encaja en el
+    # grupo "Voces argentinas" (igual que Lalo/Mariana, descartadas antes).
     "dante": {"voice_id": "DzZyY3xqjLUXGaT9wykC",
               "settings": {"stability": 0.5},
               "label": "Voz masculina — joven porteño"},
