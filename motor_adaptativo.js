@@ -53,6 +53,12 @@ const Adapt = {
   // ── categorías (para separar el menú) ──
   categoria(actId) { return CATEGORIA_JUEGO[actId] || "logica"; },   // sin match → Extras
   ordenCategorias() { return CATEGORIA_ORDEN.slice(); },
+  // próxima actividad recomendada del menú (repaso/recomendado), distinta de la actual
+  proximaRecomendada(menuIds, excepto) {
+    const cand = menuIds.filter((id) => id !== excepto && _JUEGO_A_SABERES[id] && this.peso(id) <= 1)
+                        .sort((a, b) => this.peso(a) - this.peso(b));
+    return cand.length ? cand[0] : null;
+  },
   labelCategoria(cat) { return CATEGORIA_LABEL[cat] || cat; },
 };
 if (typeof module !== "undefined")

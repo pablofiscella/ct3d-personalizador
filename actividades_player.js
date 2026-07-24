@@ -574,6 +574,18 @@ function festejar(estrellas, evtDom) {
     if (i < estrellas) setTimeout(() => { s.classList.add("gana"); Sfx.tick(i * 3); }, 450 + i * 380);
     else { s.style.opacity = 0.35; }
   }
+  // El motor GUÍA: si adaptativo, el botón "Seguir" ofrece la PRÓXIMA recomendada (no solo
+  // vuelve al menú). Gateado → sin flag, botón normal.
+  Shell._proxima = null;
+  if (D.adaptativo_on && typeof Adapt !== "undefined") {
+    const ids = (D.menu || []).map((m) => (typeof m === "string" ? m : m.id)).filter((id) => GAMES[id]);
+    const prox = Adapt.proximaRecomendada(ids, Shell.actual);
+    if (prox) {
+      const it = (D.menu || []).find((m) => (typeof m === "string" ? m : m.id) === prox);
+      Shell._proxima = prox;
+      $("#btnSeguir").textContent = "▶ Seguir: " + ((it && it.titulo) || prox);
+    } else { $("#btnSeguir").textContent = "¡Seguir jugando!"; }
+  }
   $("#festejo").classList.add("ver");
 }
 
@@ -1025,8 +1037,10 @@ async function boot() {
     if (Sfx.on) Sfx.pop();
   });
   $("#btnSeguir").addEventListener("click", () => {
-    cerrarFestejo(); volverMenu();
-    if (Shell._nuevoLogro) { Shell._nuevoLogro = false; mostrarLogro(); }
+    cerrarFestejo();
+    if (Shell._nuevoLogro) { Shell._nuevoLogro = false; Shell._proxima = null; volverMenu(); mostrarLogro(); }
+    else if (Shell._proxima) { const p = Shell._proxima; Shell._proxima = null; Shell.abrir(p); }  // el motor guía a la próxima
+    else volverMenu();
   });
   $("#btnOtraVez").addEventListener("click", () => {
     const id = Shell.actual;
