@@ -35,6 +35,13 @@ const shuffle = (arr) => {
 };
 const sample = (arr, n) => shuffle(arr).slice(0, n);
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+// adaptativo (Lengua/Cs.): al dominar, angosta el banco a los ítems MÁS difíciles
+// (difFn mayor = más difícil). bonus 0 → devuelve el banco entero (links vendidos intactos).
+const _masDificil = (disp, difFn, bonus) =>
+  (bonus > 0 && disp.length > 2)
+    ? disp.slice().sort((a, b) => difFn(b) - difFn(a)).slice(0, Math.max(2, Math.ceil(disp.length / (1 + bonus))))
+    : disp;
+const _nsil = (w) => (String(w).toLowerCase().match(/[aeiouáéíóúü]+/g) || []).length;   // sílabas aprox (grupos vocálicos)
 
 // Consigna variada (15-jul-2026, Pablo: "esto repetitivo se da en varias,
 // hay que tratar de que sea más natural" — la mayoría de los juegos de
@@ -3523,6 +3530,7 @@ GAMES.plurales_z = {
       ctx.ronda(ronda);
       let disp = PLURALES_Z_BANCO.filter((w) => !usados.includes(w));
       if (!disp.length) { usados = []; disp = PLURALES_Z_BANCO.slice(); }
+      disp = _masDificil(disp, (w) => _nsil(w) * 2 + (w.length > 6 ? 1 : 0), ctx.bonusDominio);   // adaptativo: cortos/comunes→largos/raros
       const w = disp[rint(0, disp.length - 1)];
       usados.push(w);
       const correcto = plural(w);
@@ -7533,6 +7541,7 @@ GAMES.abstractos_concretos = {
       ctx.juego.innerHTML = "";
       let disp = ABSTRACTOS_BANCO.filter((x) => !usados.includes(x.p));
       if (!disp.length) { usados = []; disp = ABSTRACTOS_BANCO; }
+      disp = _masDificil(disp, (x) => (x.tipo === "abstracto" ? 2 : 0) + Math.min(2, Math.floor(x.p.length / 5)), ctx.bonusDominio);   // adaptativo: concretos→abstractos
       const item = disp[rint(0, disp.length - 1)];
       usados.push(item.p);
       const arriba = el("div", "tablero");
@@ -7661,6 +7670,7 @@ GAMES.acentuacion = {
       ctx.juego.innerHTML = "";
       let disp = ACENTUACION_BANCO.filter((x) => !usados.includes(x.p));
       if (!disp.length) { usados = []; disp = ACENTUACION_BANCO; }
+      disp = _masDificil(disp, (x) => ({ aguda: 0, grave: 1, "esdrújula": 2 }[x.tipo]) * 2 + Math.min(2, _nsil(x.p) - 2), ctx.bonusDominio);   // adaptativo: agudas→graves→esdrújulas
       const item = disp[rint(0, disp.length - 1)];
       usados.push(item.p);
       const arriba = el("div", "tablero");
@@ -8713,6 +8723,7 @@ GAMES.prefijos_sufijos = {
       ctx.juego.innerHTML = "";
       let disp = BANCO.filter((x) => !usados.includes(x.resultado));
       if (!disp.length) { usados = []; disp = BANCO; }
+      disp = _masDificil(disp, (x) => x.resultado.length + (/[ÁÉÍÓÚ]/.test(x.resultado) ? 3 : 0), ctx.bonusDominio);   // adaptativo: palabras largas/con tilde
       const item = disp[rint(0, disp.length - 1)];
       usados.push(item.resultado);
       const tablero = el("div", "tablero armarPalabraTablero");
@@ -9114,6 +9125,7 @@ GAMES.sujeto_predicado = {
       ctx.juego.innerHTML = "";
       let libres = SUJPRED_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
       if (!libres.length) { usados = []; libres = SUJPRED_BANCO.map((_, i) => i); }
+      libres = _masDificil(libres, (i) => { const it = SUJPRED_BANCO[i]; return (it.suj.length - 2) * 3 + (it.suj.length + it.pred.length); }, ctx.bonusDominio);   // adaptativo: oraciones cortas→largas/sujeto compuesto
       const idx = libres[rint(0, libres.length - 1)];
       usados.push(idx);
       const item = SUJPRED_BANCO[idx];
