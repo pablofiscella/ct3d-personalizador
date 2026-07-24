@@ -991,6 +991,10 @@ function panelPadres() {
            <div style="width:${100 * r.proc / r.total}%;background:#f5a623"></div>
          </div>
          <div style="font-size:13px;opacity:.72">✅ Domina ${r.dom} · 🔶 Practicando ${r.proc} · ⚪ Le falta ${r.pend}</div>
+         ${pDom >= 80 ? `<div style="margin-top:8px;background:#eafff0;border:1.5px solid #2ecc71;border-radius:12px;padding:11px 13px;font-size:14px">
+             🎉 <b>¡Ya domina ${Adapt.labelCategoria(cat)} de 4°!</b> Está listo para el siguiente nivel.
+             <button data-upsell="${Adapt.labelCategoria(cat)}" style="display:block;margin-top:8px;width:100%;padding:11px;border:none;border-radius:10px;background:#2ecc71;color:#fff;font-weight:800;cursor:pointer">Desbloquear ${Adapt.labelCategoria(cat)} de 5° ▶</button>
+           </div>` : ""}
        </div>`;
   });
   const resumenTxt = totalDom
@@ -1010,6 +1014,10 @@ function panelPadres() {
   ov.appendChild(caja); document.body.appendChild(ov);
   caja.querySelector("#cerrarPadres").addEventListener("click", () => ov.remove());
   ov.addEventListener("click", (e) => { if (e.target === ov) ov.remove(); });
+  // upsell (momento de negocio): al dominar una materia, ofrecer el nivel siguiente.
+  caja.querySelectorAll("[data-upsell]").forEach((b) => b.addEventListener("click", () => {
+    b.outerHTML = `<div style="margin-top:8px;font-size:13px;background:#fff8e6;border-radius:10px;padding:10px">📩 Te vamos a mandar el acceso al siguiente nivel por mail. <i>(demo — el flujo de compra se termina de definir)</i></div>`;
+  }));
 }
 
 function pantallaCandado(nv) {
