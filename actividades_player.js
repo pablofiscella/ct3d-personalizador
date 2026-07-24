@@ -817,10 +817,13 @@ function _botonModoProfe() {
   b.style.cssText = "width:100%;display:flex;align-items:center;gap:12px;justify-content:center;" +
     "background:linear-gradient(135deg,#7b5cff,#4aa3df);color:#fff;border:none;border-radius:18px;" +
     "padding:16px 18px;font-size:18px;font-weight:800;box-shadow:0 8px 22px rgba(0,0,0,.18);cursor:pointer;margin:2px 0 10px";
-  b.innerHTML = "🧑‍🏫 <span>Modo Profe — inventá tus propias cuentas</span>";
-  b.addEventListener("click", () => { Sfx.pop(); modoCreador(); });
+  b.innerHTML = "🧑‍🏫 <span>Modo Profe — inventá y corregí cuentas</span>";
+  b.addEventListener("click", () => { Sfx.pop(); modoProfe(); });
   return b;
 }
+
+// alterna al azar entre CREAR (inventar) y CORREGIR al robot
+function modoProfe() { return rint(0, 1) ? modoCreador() : modoMaestro(); }
 
 function modoCreador() {
   Shell.actual = null; Shell.nivelActual = null;
@@ -869,11 +872,59 @@ function modoCreador() {
       msg.innerHTML = `🎉 ¡Genio! Inventaste ${a} ${OPS[op]} ${b} = ${N} ` +
         `<button id="crOtra" style="margin-left:6px;padding:8px 14px;border:none;border-radius:12px;background:#2ecc71;color:#fff;font-weight:800;cursor:pointer">¡Otra! ▶</button>`;
       const bo = document.getElementById("crOtra");
-      if (bo) bo.addEventListener("click", () => { Sfx.pop(); nuevoTarget(); });
+      if (bo) bo.addEventListener("click", () => { Sfx.pop(); modoProfe(); });
     }
   };
   const nuevoTarget = () => { N = TARGETS[rint(0, TARGETS.length - 1)]; a = 2; b = 2; op = 2; festejado = false; render(); };
   nuevoTarget();
+}
+
+// Modo Maestro: el chico CORRIGE una cuenta que el robot resolvió mal (evaluar > resolver).
+function modoMaestro() {
+  Shell.actual = null; Shell.nivelActual = null;
+  $("#btnAtras").classList.add("ver");
+  const stage = $("#stage"); stage.innerHTML = "";
+  const OPS = ["+", "−", "×"];
+  const op = rint(0, 2);
+  let a = rint(2, 9), b = rint(2, 9);
+  if (op === 1 && b > a) { const t = a; a = b; b = t; }          // resta sin negativos
+  const correcto = op === 0 ? a + b : op === 1 ? a - b : a * b;
+  let mal = correcto + (rint(0, 1) ? 1 : -1) * rint(1, 3);
+  if (mal < 0 || mal === correcto) mal = correcto + 2;
+  let d3 = correcto + (rint(0, 1) ? 2 : -2);
+  if (d3 < 0 || d3 === correcto || d3 === mal) d3 = correcto + 4;
+  const opciones = shuffle([correcto, mal, d3]);
+  const root = el("div"); root.style.cssText = "max-width:520px;margin:6px auto;text-align:center";
+  stage.appendChild(root);
+  root.innerHTML =
+    `<div style="font-size:44px">🤖</div>
+     <h1 style="margin:4px 0">Corregí al Robot</h1>
+     <p style="opacity:.82;font-size:17px">El Robot Tito dice que…</p>
+     <div style="font-size:34px;font-weight:900;margin:10px 0">${a} ${OPS[op]} ${b} = <span style="color:#e74c3c;text-decoration:line-through">${mal}</span></div>
+     <p style="font-size:17px;font-weight:700">¿Cuánto es de verdad?</p>
+     <div id="mzOps" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:12px 0"></div>
+     <div id="mzMsg" style="min-height:46px;font-size:19px;font-weight:800"></div>`;
+  const cont = root.querySelector("#mzOps");
+  opciones.forEach((o) => {
+    const btn = el("button", "", String(o));
+    btn.style.cssText = "min-width:76px;height:64px;font-size:30px;font-weight:900;border:none;border-radius:16px;background:var(--card,#fff);box-shadow:0 3px 12px rgba(0,0,0,.12);cursor:pointer";
+    btn.addEventListener("click", () => {
+      if (o === correcto) {
+        Sfx.fanfarria && Sfx.fanfarria(); Confeti.tirar(160);
+        btn.style.background = "#2ecc71"; btn.style.color = "#fff";
+        cont.querySelectorAll("button").forEach((x) => { x.disabled = true; });
+        root.querySelector("#mzMsg").innerHTML =
+          `🎉 ¡Bien visto, profe! El robot se equivocó: es <b>${correcto}</b> ` +
+          `<button id="mzOtra" style="margin-left:6px;padding:8px 14px;border:none;border-radius:12px;background:#2ecc71;color:#fff;font-weight:800;cursor:pointer">¡Otra! ▶</button>`;
+        const bo = document.getElementById("mzOtra");
+        if (bo) bo.addEventListener("click", () => { Sfx.pop(); modoProfe(); });
+      } else {
+        Sfx.casi && Sfx.casi(); btn.style.background = "#f5a623";
+        root.querySelector("#mzMsg").textContent = "Mmm, fijate de nuevo…";
+      }
+    });
+    cont.appendChild(btn);
+  });
 }
 
 function pantallaCandado(nv) {
