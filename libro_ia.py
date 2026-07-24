@@ -824,6 +824,17 @@ ELENCO_FIJO = {
                               "larga con estrellitas y pantuflas a juego "
                               "(igual en TODAS las escenas, nunca cambia)",
     },
+    # safari/noche-estrellas (Pablo, 24-jul-2026, "La noche de las
+    # estrellas"): mismo bug que monstruos/aventura — el protagonista sale
+    # en pijama a buscar la estrella fugaz y a mitad de historia aparecía
+    # con ropa de safari de día en vez de seguir en pijama. El trío fijo
+    # (león/jirafa/mono) de la referencia ya se mantenía bien, no hace
+    # falta ELENCO_FIJO para ellos.
+    ("safari", "noche-estrellas"): {
+        "protagonista_extra": ", con el mismo pijama celeste de manga "
+                              "larga y pantuflas marrones a juego (igual "
+                              "en TODAS las escenas, nunca cambia)",
+    },
 }
 
 _ELENCO_FALLBACK = {

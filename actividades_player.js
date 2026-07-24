@@ -35,6 +35,13 @@ const shuffle = (arr) => {
 };
 const sample = (arr, n) => shuffle(arr).slice(0, n);
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+// adaptativo (Lengua/Cs.): al dominar, angosta el banco a los ítems MÁS difíciles
+// (difFn mayor = más difícil). bonus 0 → devuelve el banco entero (links vendidos intactos).
+const _masDificil = (disp, difFn, bonus) =>
+  (bonus > 0 && disp.length > 2)
+    ? disp.slice().sort((a, b) => difFn(b) - difFn(a)).slice(0, Math.max(2, Math.ceil(disp.length / (1 + bonus))))
+    : disp;
+const _nsil = (w) => (String(w).toLowerCase().match(/[aeiouáéíóúü]+/g) || []).length;   // sílabas aprox (grupos vocálicos)
 
 // Consigna variada (15-jul-2026, Pablo: "esto repetitivo se da en varias,
 // hay que tratar de que sea más natural" — la mayoría de los juegos de
@@ -472,6 +479,11 @@ const Shell = {
         if (!D.adaptativo_on) return 0;
         const pisoEdad = Math.max(0, (D.edad || 6) - 6);   // 6→0, 9→+3, 12→+6
         return pisoEdad + Store.nivelDif(self.actual);
+      },
+      // Solo el bonus GANADO por dominar (SIN piso de edad): para los juegos que YA traen
+      // su nivel por edad en cfg.nivel y solo tienen que endurecerse al dominar. 0 sin flag.
+      get bonusDominio() {
+        return D.adaptativo_on ? Store.nivelDif(self.actual) : 0;
       },
       consigna(txt, pistaSrc) {
         $("#consignaTexto").innerHTML = txt;
@@ -2083,7 +2095,7 @@ GAMES.sombra = {
 /* ── SEGUÍ EL PATRÓN — ¿qué sigue? (predice matemática: el "sleeper") ── */
 GAMES.patron = {
   crear(ctx) {
-    const nivel = ctx.cfg.nivel || 1, rondas = ctx.cfg.rondas || 5;
+    const nivel = (ctx.cfg.nivel || 1) + ctx.bonusDominio, rondas = ctx.cfg.rondas || 5;   // adaptativo
     ctx.rondas(rondas);
     let MOLDES = { 1: ["AB"], 2: ["AB", "ABC", "AABB"], 3: ["ABC", "ABB", "AABB", "ABCD"] }[nivel] || ["AB"];
     MOLDES = MOLDES.filter((m) => new Set(m.split("")).size <= P.length);
@@ -2809,7 +2821,7 @@ GAMES.planta_fruto = {
 GAMES.tablas_ninja = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 10;
-    const nivel = ctx.cfg.nivel || 1;
+    const nivel = (ctx.cfg.nivel || 1) + ctx.bonusDominio;   // + dificultad adaptativa (sube al dominar)
     ctx.rondas(rondas);
     let ronda = 0;
     const rango = () => {
@@ -2880,7 +2892,7 @@ GAMES.tablas_ninja = {
 GAMES.multiplicar = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 10;
-    const nivel = ctx.cfg.nivel || 1;
+    const nivel = (ctx.cfg.nivel || 1) + ctx.bonusDominio;   // + dificultad adaptativa (sube al dominar)
     ctx.rondas(rondas);
     let ronda = 0;
     const jugar = () => {
@@ -2948,7 +2960,7 @@ GAMES.multiplicar = {
 GAMES.dividir = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 10;
-    const nivel = ctx.cfg.nivel || 1;
+    const nivel = (ctx.cfg.nivel || 1) + ctx.bonusDominio;   // + dificultad adaptativa (sube al dominar)
     ctx.rondas(rondas);
     let ronda = 0;
     const jugar = () => {
@@ -3019,7 +3031,7 @@ GAMES.dividir = {
 GAMES.cuenta_larga = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 8;
-    const nivel = ctx.cfg.nivel || 1;
+    const nivel = (ctx.cfg.nivel || 1) + ctx.bonusDominio;   // + dificultad adaptativa (sube al dominar)
     ctx.rondas(rondas);
     let ronda = 0;
 
@@ -3172,7 +3184,7 @@ GAMES.duelo_fracciones = {
     const jugar = () => {
       ctx.ronda(ronda);
       const prog = rondas > 1 ? ronda / (rondas - 1) : 1;
-      const tipo = prog > 0.66 ? 2 : (prog > 0.33 ? 1 : 0);
+      const tipo = (prog > 0.66 || ctx.bonusDominio >= 2) ? 2 : ((prog > 0.33 || ctx.bonusDominio >= 1) ? 1 : 0);   // adaptativo
       let A, B, iguales = false;
       if (tipo === 2 && rint(0, 2) === 0) {
         const e = equiv[rint(0, equiv.length - 1)];
@@ -3258,7 +3270,7 @@ GAMES.reparto_fracciones = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      const M = rint(3, 6);              // chicos = denominador
+      const M = rint(3, Math.min(10, 6 + ctx.bonusDominio * 2));              // chicos = denominador (adaptativo)
       const N = rint(1, M - 1);          // objetos = numerador (N<M → fracción < 1)
       const obj = OBJ[rint(0, OBJ.length - 1)];
       ctx.item("reparto#" + N + "e" + M);
@@ -3323,7 +3335,7 @@ GAMES.completar_entero = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      const d = rint(2, 6);
+      const d = rint(2, Math.min(12, 6 + ctx.bonusDominio * 2));   // adaptativo: denominador mayor al dominar
       const num = rint(1, d - 1);              // lo que ya tengo (< 1)
       const fn = d - num;                       // lo que falta (numerador correcto)
       const med = ["litro", "kilo"][rint(0, 1)];
@@ -3389,7 +3401,7 @@ GAMES.duelo_decimales = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      const ent = rint(1, 24);
+      const ent = rint(1, 24 + ctx.bonusDominio * 25);   // adaptativo: enteros mayores al dominar
       let a = rint(1, 9);                 // A = ent,a   (1 decimal → a0 centésimos)
       let b = rint(11, 99);               // B = ent,b   (2 decimales)
       while (a * 10 === b) b = rint(11, 99);
@@ -3442,7 +3454,7 @@ GAMES.problemas_mult_div = {
       let texto, correcto, cand;
       if (tipo === 0) {
         // multiplicación: cajas × por caja
-        const cajas = rint(3, 9), cada = rint(4, 12);
+        const cajas = rint(3, 9 + ctx.bonusDominio * 3), cada = rint(4, 12 + ctx.bonusDominio * 4);   // adaptativo
         correcto = cajas * cada;
         texto = "Hay " + cajas + " cajas con " + cada + " figuritas cada una. ¿Cuántas figuritas hay en total?";
         cand = [
@@ -3452,7 +3464,7 @@ GAMES.problemas_mult_div = {
         ];
       } else {
         // división: total ÷ grupos
-        const grupos = rint(3, 8), cada = rint(3, 9);
+        const grupos = rint(3, 8 + ctx.bonusDominio * 2), cada = rint(3, 9 + ctx.bonusDominio * 3);   // adaptativo
         const total = grupos * cada;
         correcto = cada;
         texto = "Reparto " + total + " caramelos en " + grupos + " bolsas iguales. ¿Cuántos caramelos van en cada bolsa?";
@@ -3518,6 +3530,7 @@ GAMES.plurales_z = {
       ctx.ronda(ronda);
       let disp = PLURALES_Z_BANCO.filter((w) => !usados.includes(w));
       if (!disp.length) { usados = []; disp = PLURALES_Z_BANCO.slice(); }
+      disp = _masDificil(disp, (w) => _nsil(w) * 2 + (w.length > 6 ? 1 : 0), ctx.bonusDominio);   // adaptativo: cortos/comunes→largos/raros
       const w = disp[rint(0, disp.length - 1)];
       usados.push(w);
       const correcto = plural(w);
@@ -3567,6 +3580,7 @@ function juegoOrdenar(BANCO, consignaTxt, explicaTxt, idPrefijo) {
       const nuevoSet = () => {
         let disp = BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
         if (!disp.length) { usados = []; disp = BANCO.map((_, i) => i); }
+        disp = _masDificil(disp, (i) => (BANCO[i].items || []).length, ctx.bonusDominio);   // adaptativo: secuencias más largas al dominar
         const idx = disp[rint(0, disp.length - 1)];
         usados.push(idx);
         return idx;
@@ -4438,13 +4452,13 @@ GAMES.mejor_oferta = {
       const cosa = OFERTA_COSAS[rint(0, OFERTA_COSAS.length - 1)];
       const modo = ["unitario", "varios", "oferta"][rint(0, 2)];
       if (modo === "unitario") {
-        const N = rint(2, 5), U = U_SET[rint(0, U_SET.length - 1)], T = N * U;
+        const N = rint(2, 5 + ctx.bonusDominio * 2), U = U_SET[rint(0, U_SET.length - 1)], T = N * U;   // adaptativo
         return { q: `${N} ${cosa.p} cuestan ${money(T)}. ¿Cuánto cuesta 1?`,
                  ops: [money(U), money(T), money(N * T)],
                  m: `Si ${N} cuestan ${money(T)}, dividís: ${T} ÷ ${N} = ${U}. Cada uno sale ${money(U)}.` };
       }
       if (modo === "varios") {
-        const U = U_SET[rint(0, U_SET.length - 1)], K = rint(2, 4);
+        const U = U_SET[rint(0, U_SET.length - 1)], K = rint(2, 4 + ctx.bonusDominio);   // adaptativo
         return { q: `1 ${cosa.s} cuesta ${money(U)}. ¿Cuánto cuestan ${K}?`,
                  ops: [money(U * K), money(U + K), money(U * (K + 1))],
                  m: `Si 1 cuesta ${money(U)}, ${K} cuestan ${U} × ${K} = ${U * K} (se multiplica, no se suma).` };
@@ -4506,7 +4520,7 @@ GAMES.recta_numerica = {
     const jugar = () => {
       ctx.ronda(ronda);
       const prog = rondas > 1 ? ronda / (rondas - 1) : 1;
-      const max = prog > 0.5 ? (ctx.cfg.max2 || 100000) : (ctx.cfg.max1 || 10000);
+      const max = (prog > 0.5 ? (ctx.cfg.max2 || 100000) : (ctx.cfg.max1 || 10000)) * (1 + ctx.bonusDominio);   // adaptativo: rango mayor al dominar
       const paso = max / 10;
       const g100 = Math.max(1, Math.round(max / 100));       // paso "redondo" que escala con el rango
       const target = rint(1, Math.floor(max / g100) - 1) * g100;   // en (0, max); entero también si max<100 (1°/2°)
@@ -4927,6 +4941,7 @@ GAMES.comprension_lectora = {
     const nuevoPasaje = () => {
       let disp = BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
       if (!disp.length) { usados = []; disp = BANCO.map((_, i) => i); }
+      disp = _masDificil(disp, (i) => (BANCO[i].texto || "").length, ctx.bonusDominio);   // adaptativo: textos más largos al dominar
       pIdx = disp[rint(0, disp.length - 1)]; usados.push(pIdx); qi = 0;
     };
     const render = () => {
@@ -5177,7 +5192,7 @@ GAMES.conectores = {
     const rondas = ctx.cfg.rondas || 10;
     // nivel 1 (4°): subconjunto simple (temporales, causales, «pero»). nivel 2+
     // (5°-7°, default): banco completo, con adversativos (aunque, sin embargo).
-    const banco = (ctx.cfg.nivel || 2) <= 1 ? CONECTORES4_BANCO : CONECTORES_BANCO;
+    const banco = ((ctx.cfg.nivel || 2) + ctx.bonusDominio) <= 1 ? CONECTORES4_BANCO : CONECTORES_BANCO;   // adaptativo: al dominar salta al banco difícil (grados bajos)
     ctx.rondas(rondas);
     let usados = [], ronda = 0;
     const jugar = () => {
@@ -7528,6 +7543,7 @@ GAMES.abstractos_concretos = {
       ctx.juego.innerHTML = "";
       let disp = ABSTRACTOS_BANCO.filter((x) => !usados.includes(x.p));
       if (!disp.length) { usados = []; disp = ABSTRACTOS_BANCO; }
+      disp = _masDificil(disp, (x) => (x.tipo === "abstracto" ? 2 : 0) + Math.min(2, Math.floor(x.p.length / 5)), ctx.bonusDominio);   // adaptativo: concretos→abstractos
       const item = disp[rint(0, disp.length - 1)];
       usados.push(item.p);
       const arriba = el("div", "tablero");
@@ -7594,6 +7610,7 @@ GAMES.provincias_region = {
       ctx.juego.innerHTML = "";
       let disp = PROVINCIAS_BANCO.filter((x) => !usados.includes(x.p));
       if (!disp.length) { usados = []; disp = PROVINCIAS_BANCO; }
+      disp = _masDificil(disp, (x) => (["Buenos Aires", "Córdoba", "Santa Fe", "Mendoza", "Salta", "Jujuy", "Tucumán", "Misiones", "Chubut", "Tierra del Fuego"].includes(x.p) ? 0 : 1), ctx.bonusDominio);   // adaptativo: conocidas→menos conocidas
       const item = disp[rint(0, disp.length - 1)];
       usados.push(item.p);
       const arriba = el("div", "tablero");
@@ -7656,6 +7673,7 @@ GAMES.acentuacion = {
       ctx.juego.innerHTML = "";
       let disp = ACENTUACION_BANCO.filter((x) => !usados.includes(x.p));
       if (!disp.length) { usados = []; disp = ACENTUACION_BANCO; }
+      disp = _masDificil(disp, (x) => ({ aguda: 0, grave: 1, "esdrújula": 2 }[x.tipo]) * 2 + Math.min(2, _nsil(x.p) - 2), ctx.bonusDominio);   // adaptativo: agudas→graves→esdrújulas
       const item = disp[rint(0, disp.length - 1)];
       usados.push(item.p);
       const arriba = el("div", "tablero");
@@ -7922,6 +7940,8 @@ GAMES.fracciones_equivalentes = {
       ctx.juego.innerHTML = "";
       let disp = FRACCIONES_BANCO.filter((x) => !usados.includes(x.num + "/" + x.den));
       if (!disp.length) { usados = []; disp = FRACCIONES_BANCO; }
+      if (ctx.bonusDominio > 0 && disp.length > 2)   // adaptativo: al dominar, prioriza denominadores grandes (más difícil ver la equivalencia)
+        disp = disp.slice().sort((a, b) => b.den - a.den).slice(0, Math.max(2, Math.ceil(disp.length / (1 + ctx.bonusDominio))));
       const item = disp[rint(0, disp.length - 1)];
       usados.push(item.num + "/" + item.den);
       const arriba = el("div", "tablero");
@@ -8359,6 +8379,8 @@ GAMES.angulos = {
       ctx.juego.innerHTML = "";
       let disp = ANGULOS_BANCO.filter((x) => !usados.includes(x.grados));
       if (!disp.length) { usados = []; disp = ANGULOS_BANCO; }
+      if (ctx.bonusDominio > 0 && disp.length > 2)   // adaptativo: al dominar, prioriza ángulos cerca de 90° (más difícil clasificar)
+        disp = disp.slice().sort((a, b) => Math.abs(a.grados - 90) - Math.abs(b.grados - 90)).slice(0, Math.max(2, Math.ceil(disp.length / (1 + ctx.bonusDominio))));
       const item = disp[rint(0, disp.length - 1)];
       usados.push(item.grados);
       const arriba = el("div", "tablero");
@@ -8497,7 +8519,7 @@ GAMES.transportador = {
 GAMES.reloj = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 8;
-    const nivel = ctx.cfg.nivel || 1;
+    const nivel = (ctx.cfg.nivel || 1) + ctx.bonusDominio;   // adaptativo (grados bajos: horas más difíciles al dominar)
     ctx.rondas(rondas);
     let ronda = 0, previas = [];
     const P = (cx, cy, r, a) => [cx + r * Math.cos(a * Math.PI / 180), cy - r * Math.sin(a * Math.PI / 180)];
@@ -8704,6 +8726,7 @@ GAMES.prefijos_sufijos = {
       ctx.juego.innerHTML = "";
       let disp = BANCO.filter((x) => !usados.includes(x.resultado));
       if (!disp.length) { usados = []; disp = BANCO; }
+      disp = _masDificil(disp, (x) => x.resultado.length + (/[ÁÉÍÓÚ]/.test(x.resultado) ? 3 : 0), ctx.bonusDominio);   // adaptativo: palabras largas/con tilde
       const item = disp[rint(0, disp.length - 1)];
       usados.push(item.resultado);
       const tablero = el("div", "tablero armarPalabraTablero");
@@ -9105,6 +9128,7 @@ GAMES.sujeto_predicado = {
       ctx.juego.innerHTML = "";
       let libres = SUJPRED_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
       if (!libres.length) { usados = []; libres = SUJPRED_BANCO.map((_, i) => i); }
+      libres = _masDificil(libres, (i) => { const it = SUJPRED_BANCO[i]; return (it.suj.length - 2) * 3 + (it.suj.length + it.pred.length); }, ctx.bonusDominio);   // adaptativo: oraciones cortas→largas/sujeto compuesto
       const idx = libres[rint(0, libres.length - 1)];
       usados.push(idx);
       const item = SUJPRED_BANCO[idx];
@@ -10825,11 +10849,11 @@ GAMES.serie = {
       // hacía adivinable CUÁNDO cambia el tipo de patrón): más probable +1
       // al principio, +2 hacia el final, con el medio genuinamente al azar.
       const progreso = rondas > 1 ? ronda / (rondas - 1) : 0;
-      const paso = Math.random() < progreso ? 2 : 1;
+      const paso = (Math.random() < progreso ? 2 : 1) + (ctx.bonusDominio >= 2 ? 1 : 0);   // adaptativo: pasos mayores al dominar
       // tope (14-jul-2026, 1° grado NAP: "números del 1 al 30"): 16 reproduce
       // el rango histórico sin cfg.tope (12 con paso 1, 8 con paso 2 — la
       // cuenta de siempre), más alto solo si el juego lo pide.
-      const tope = ctx.cfg.tope || 16;
+      const tope = (ctx.cfg.tope || 16) + ctx.bonusDominio * 20;   // adaptativo: rango mayor al dominar
       const desde = rint(1, Math.max(1, tope - 4 * paso));
       const seq = Array.from({ length: 5 }, (_, i) => desde + i * paso);
       const falta = rint(1, 4);
