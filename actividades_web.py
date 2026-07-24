@@ -28,6 +28,7 @@ BASEDIR = os.path.dirname(os.path.abspath(__file__))
 ACT_DIR = os.path.join(BASEDIR, "actividades")
 TEMPLATE_HTML = os.path.join(BASEDIR, "actividades_player.html")
 TEMPLATE_JS = os.path.join(BASEDIR, "actividades_player.js")
+TEMPLATE_MOTOR = os.path.join(BASEDIR, "motor_adaptativo.js")  # capa de saberes (piloto, gateada)
 AUDIO_DIR = os.path.join(BASEDIR, "audio_consignas")
 VIGENCIA_DIAS = 7300         # igual que el audiolibro: respalda "Mis compras"
 _TOKEN_RE = r"[A-Za-z0-9_-]{8,32}"
@@ -1661,7 +1662,8 @@ def _player_version():
     """Cache-buster: cambia solo cuando se toca el player en el repo."""
     try:
         return str(int(max(os.path.getmtime(TEMPLATE_JS),
-                           os.path.getmtime(TEMPLATE_HTML))))
+                           os.path.getmtime(TEMPLATE_HTML),
+                           os.path.getmtime(TEMPLATE_MOTOR))))
     except OSError:
         return "1"
 
@@ -1786,7 +1788,7 @@ def html(token):
 
 
 _ASSET_RE = re.compile(
-    r"^(data\.json|player\.js|f[12]\.ttf|[ps]\d{2}\.png|colorear_\d\.png|escena\.jpg|portada\.jpg"
+    r"^(data\.json|player\.js|motor_adaptativo\.js|f[12]\.ttf|[ps]\d{2}\.png|colorear_\d\.png|escena\.jpg|portada\.jpg"
     r"|audio_manifest\.json|c_[a-f0-9]{10}\.mp3)$")
 _CT = {".json": "application/json; charset=utf-8", ".js": "text/javascript; charset=utf-8",
        ".ttf": "font/ttf", ".png": "image/png", ".jpg": "image/jpeg", ".mp3": "audio/mpeg"}
@@ -1802,6 +1804,8 @@ def archivo(token, nombre):
         return None
     if nombre == "player.js":
         p = TEMPLATE_JS
+    elif nombre == "motor_adaptativo.js":
+        p = TEMPLATE_MOTOR
     elif nombre == "f1.ttf":
         p = os.path.join(BASEDIR, "fonts", "Baloo2-VF.ttf")
     elif nombre == "f2.ttf":
