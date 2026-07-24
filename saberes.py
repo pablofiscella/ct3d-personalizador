@@ -159,6 +159,48 @@ SABERES = {
                          "prerrequisitos": ["SOC-5-INDEPENDENCIA"], "juegos": ["derechos_constitucion"], "dificultad": 4},
     "SOC-5-BSAS":       {"nombre": "Historia de Buenos Aires", "eje": "espacio", "grado": 5,
                          "prerrequisitos": ["SOC-5-COLONIAL"], "juegos": ["buenos_aires"], "dificultad": 3},
+
+    # ═══════════════ 6° · MATEMÁTICA ═══════════════ (menú e==11)
+    "MAT-6-PRIMOS":     {"nombre": "Números primos y divisibilidad", "eje": "numeracion", "grado": 6,
+                         "prerrequisitos": ["MAT-4-MUL"], "juegos": ["numeros_primos"], "dificultad": 4},
+    "MAT-6-JERARQUIA":  {"nombre": "Jerarquía de operaciones", "eje": "operaciones", "grado": 6,
+                         "prerrequisitos": ["MAT-4-MUL", "MAT-4-DIV"], "juegos": ["jerarquia_operaciones"], "dificultad": 4},
+    "MAT-6-FRAC-CANT":  {"nombre": "Fracción de una cantidad (avanzado)", "eje": "fracciones", "grado": 6,
+                         "prerrequisitos": ["MAT-4-FRAC-CANT"], "juegos": ["fraccion_de_cantidad"], "dificultad": 4},
+    "MAT-6-FRAC-MULT":  {"nombre": "Multiplicación de fracciones", "eje": "fracciones", "grado": 6,
+                         "prerrequisitos": ["MAT-5-FRAC-SUMA"], "juegos": ["multiplicar_fracciones"], "dificultad": 5},
+    "MAT-6-PORCENTAJE": {"nombre": "Porcentajes", "eje": "decimales", "grado": 6,
+                         "prerrequisitos": ["MAT-5-DEC-FRAC"], "juegos": ["porcentajes"], "dificultad": 5},
+    "MAT-6-POLIGONOS":  {"nombre": "Polígonos y sus lados", "eje": "geometria", "grado": 6,
+                         "prerrequisitos": ["MAT-4-ANGULOS"], "juegos": ["poligonos_lados"], "dificultad": 3},
+    "MAT-6-CUADRILATEROS": {"nombre": "Clasificar cuadriláteros", "eje": "geometria", "grado": 6,
+                         "prerrequisitos": ["MAT-6-POLIGONOS"], "juegos": ["cuadrilateros"], "dificultad": 4},
+    "MAT-6-SUMA-ANGULOS": {"nombre": "Suma de ángulos (triángulo/cuadrilátero)", "eje": "geometria", "grado": 6,
+                         "prerrequisitos": ["MAT-5-ANGULO-MEDIR"], "juegos": ["suma_angulos"], "dificultad": 4},
+    "MAT-6-PROBABILIDAD": {"nombre": "Probabilidad de sucesos", "eje": "datos", "grado": 6,
+                         "prerrequisitos": ["MAT-4-FRAC-ENTERO"], "juegos": ["probabilidad_sucesos", "arbol_probabilidad"], "dificultad": 4},
+
+    # ═══════════════ 6° · LENGUA ═══════════════
+    "LEN-6-HECHOS":     {"nombre": "Distinguir hechos de opiniones", "eje": "comprension", "grado": 6,
+                         "prerrequisitos": ["LEN-5-COMPRENSION"], "juegos": ["hechos_opiniones"], "dificultad": 4},
+
+    # ═══════════════ 6° · CIENCIAS NATURALES ═══════════════
+    "NAT-6-CELULA":     {"nombre": "La célula y sus partes", "eje": "seres_vivos", "grado": 6,
+                         "prerrequisitos": [], "juegos": ["celula_partes"], "dificultad": 4},
+    "NAT-6-NERVIOSO":   {"nombre": "Sistema nervioso", "eje": "seres_vivos", "grado": 6,
+                         "prerrequisitos": ["NAT-5-DIGESTIVO"], "juegos": ["sistema_nervioso"], "dificultad": 4},
+    "NAT-6-PUBERTAD":   {"nombre": "Pubertad y cambios del cuerpo", "eje": "seres_vivos", "grado": 6,
+                         "prerrequisitos": [], "juegos": ["pubertad"], "dificultad": 3},
+    "NAT-6-ENERGIA":    {"nombre": "Energías renovables", "eje": "materiales_energia", "grado": 6,
+                         "prerrequisitos": [], "juegos": ["energia_renovable"], "dificultad": 3},
+
+    # ═══════════════ 6° · CIENCIAS SOCIALES ═══════════════
+    "SOC-6-ORGANIZACION": {"nombre": "Organización nacional (1853-1880)", "eje": "tiempo", "grado": 6,
+                         "prerrequisitos": ["SOC-5-INDEPENDENCIA"], "juegos": ["organizacion_nacional"], "dificultad": 4},
+    "SOC-6-INMIGRACION": {"nombre": "La gran inmigración", "eje": "tiempo", "grado": 6,
+                         "prerrequisitos": ["SOC-6-ORGANIZACION"], "juegos": ["viaje_inmigrante"], "dificultad": 4},
+    "SOC-6-SUFRAGIO":   {"nombre": "Sufragio y ley Sáenz Peña", "eje": "tiempo", "grado": 6,
+                         "prerrequisitos": ["SOC-5-CONSTITUCION"], "juegos": ["sufragio_argentina"], "dificultad": 4},
 }
 
 EJE_LABEL = {
