@@ -20,6 +20,18 @@
       "layout_file": "layouts/invitacion.json",
       "text": [
         {
+          "id": "titulo",
+          "tpl": "Te invitamos al cumple de",
+          "x": 0.5,
+          "y": 0.14,
+          "size": 70,
+          "maxw": 0.9,
+          "color": "#5A3A44",
+          "font": "DancingScript-VF.ttf",
+          "wght": 600,
+          "anchor": "mm"
+        },
+        {
           "id": "nombre",
           "tpl": "{nombre}",
           "editable": true,
@@ -31,6 +43,18 @@
           "y": 0.34,
           "anchor": "mm",
           "maxw": 0.64
+        },
+        {
+          "id": "edad",
+          "tpl": "Cumple {edad} años",
+          "x": 0.5,
+          "y": 0.3,
+          "size": 54,
+          "maxw": 0.6,
+          "color": "#D9636B",
+          "font": "Fredoka-VF.ttf",
+          "wght": 600,
+          "anchor": "mm"
         },
         {
           "id": "fecha",

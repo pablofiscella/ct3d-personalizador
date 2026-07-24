@@ -275,10 +275,12 @@ _ESCENAS_POR_HISTORIA_EXT = {
 # render mapea cada página con libro.CORTO_IDX (ver prompt_pagina).
 # ---------------------------------------------------------------------------
 _AVENTURA_LARGO = [
-    "Un dormitorio infantil de noche acogedor: una cama con un sobre dorado "
-    "brillante asomando bajo la almohada, luz de luna por la ventana.",
-    "Un remolino mágico de luces de colores llenando un dormitorio de noche, "
-    "destellos y estrellas, sensación de comienzo de viaje.",
+    "Un dormitorio infantil de noche acogedor; {protagonista} asomándose a "
+    "mirar un sobre dorado brillante que aparece bajo la almohada, luz de "
+    "luna por la ventana.",
+    "Un remolino mágico de luces de colores rodeando a {protagonista} en un "
+    "dormitorio de noche, destellos y estrellas, sensación de comienzo de "
+    "viaje.",
     "{protagonista} llegando a {mundo}, un lugar enorme y mágico, mirando todo "
     "con asombro.",
     "Una fiesta de bienvenida en {mundo} con banderines y globos, los personajes "
@@ -331,29 +333,29 @@ _ESCENAS_POR_HISTORIA_LARGO = {
         "{protagonista}, comienzo de aventura.",
         "{protagonista} llegando a {mundo} siguiendo un caminito brillante "
         "marcado por el mapa, todo con aire de secreto.",
-        "Los personajes del tema alrededor de {protagonista} mirando el mapa "
+        "{nino} y {ninia} alrededor de {protagonista} mirando el mapa "
         "juntos con ojos brillantes, listos para la búsqueda.",
         "Un rincón escondido de {mundo} lleno de brillitos; una única lucecita "
         "con forma de estrella destaca y {protagonista} la señala con asombro.",
-        "Una llave dorada brillante junto a una puerta secreta enorme; los "
-        "personajes del tema empujándola todos juntos con esfuerzo.",
+        "Una llave dorada brillante junto a una puerta secreta enorme; "
+        "{nino} y {ninia} empujándola juntos con esfuerzo.",
         "Un pasillo oscuro y misterioso con ecos en {mundo}; momento de "
         "preocupación: {desafio}.",
         "{protagonista} con los ojos cerrados pensando, una idea iluminándose "
         "como un destello suave sobre la cabeza.",
         "Momento heroico: {protagonista} que {solucion}; al fondo del pasillo "
         "aparece un cofre dorado.",
-        "Un cofre dorado con tres cerraduras brillantes; {protagonista} y los "
-        "personajes del tema observándolo con curiosidad.",
-        "{protagonista} girando las cerraduras del cofre mientras los "
-        "personajes del tema acompañan expectantes alrededor.",
+        "Un cofre dorado con tres cerraduras brillantes; {protagonista}, "
+        "{nino} y {ninia} observándolo con curiosidad.",
+        "{protagonista} girando las cerraduras del cofre mientras {nino} y "
+        "{ninia} acompañan expectantes alrededor.",
         "El cofre abierto de golpe irradiando luz dorada, con {tesoro} "
-        "brillando adentro; todos maravillados.",
+        "brillando adentro; {protagonista}, {nino} y {ninia} maravillados.",
         "El mapa dado vuelta mostrando una segunda cara que brilla con un "
         "camino dorado nuevo; sorpresa y asombro.",
-        "El más sabio de los personajes del tema contando una historia al "
-        "grupo en ronda, ambiente cálido de atardecer.",
-        "Los personajes del tema despidiendo a {protagonista} en la salida de "
+        "{ninia} contando una historia a {protagonista} y {nino} en ronda, "
+        "ambiente cálido de atardecer.",
+        "{nino} y {ninia} despidiendo a {protagonista} en la salida de "
         "{mundo}; el cofre guardado brillando a lo lejos.",
         "Un cuarto infantil de noche; {protagonista} guardando el mapa "
         "enrollado debajo de la almohada.",
@@ -513,36 +515,35 @@ _ESCENAS_POR_HISTORIA_LARGO = {
         "cielo estrellado.",
     ]),
     "pequeno-maestro": _tabla17([
-        "Los personajes del tema haciendo algo increíble propio del tema; "
+        "{ninia} y {nino} haciendo algo increíble propio del tema; "
         "{protagonista} mirando con ojos enormes de admiración.",
-        "{protagonista} pidiendo con ilusión que le enseñen; los personajes "
-        "del tema entusiasmados alrededor.",
-        "Los personajes del tema mostrando cómo se hace, despacito; "
-        "{protagonista} mirando sin pestañear.",
+        "{protagonista} pidiendo con ilusión que le enseñen; {ninia} y "
+        "{nino} entusiasmados alrededor.",
+        "{ninia} y {nino} mostrando cómo se hace, despacito; {protagonista} "
+        "mirando sin pestañear.",
         "{protagonista} de cola en el piso tras un intento fallido gracioso, "
-        "riéndose; los personajes del tema sonriendo con cariño.",
-        "El más viejito de los personajes del tema animando con gesto tierno "
-        "a {protagonista}.",
-        "{protagonista} practicando una y otra vez con esfuerzo; los "
-        "personajes del tema alentando desde el costado.",
-        "¡Primer logro! {protagonista} dando un gran salto de alegría; los "
-        "personajes del tema festejando amontonados de risa.",
+        "riéndose; {ninia} y {nino} sonriendo con cariño.",
+        "{nino} animando con gesto tierno a {protagonista}.",
+        "{protagonista} practicando una y otra vez con esfuerzo; {ninia} y "
+        "{nino} alentando desde el costado.",
+        "¡Primer logro! {protagonista} dando un gran salto de alegría; "
+        "{ninia} y {nino} festejando amontonados de risa.",
         "Preparativos de una gran muestra en {mundo}: un escenario armándose, "
         "entusiasmo general.",
-        "Un personaje nuevo chiquito y tímido mirando todo desde lejos; "
-        "{protagonista} mirando hacia ese rincón con gesto amable.",
-        "{protagonista} acercándose despacito al personaje nuevo tímido, "
-        "gesto de invitación amable.",
-        "{protagonista} enseñando de a pasitos al personaje nuevo, con mucha "
+        "{nuevo} mirando todo desde lejos; {protagonista} mirando hacia ese "
+        "rincón con gesto amable.",
+        "{protagonista} acercándose despacito a {nuevo}, gesto de invitación "
+        "amable.",
+        "{protagonista} enseñando de a pasitos a {nuevo}, con mucha "
         "paciencia, ambiente cálido.",
         "La gran muestra en {mundo}: {protagonista} en el escenario logrando "
-        "su número, el personaje nuevo lográndolo también al lado; el público "
-        "del tema festejando con sonrisas enormes.",
-        "El personaje nuevo saltando de alegría junto a {protagonista}, "
-        "gratitud y orgullo.",
-        "El más viejito de los personajes del tema hablando con cariño al "
-        "grupo en ronda; {protagonista} en el centro, ambiente emotivo.",
-        "Los personajes del tema entregando {tesoro} brillante y destacado a "
+        "su número, {nuevo} lográndolo también al lado; {ninia} y {nino} "
+        "festejando con sonrisas enormes en el público.",
+        "{nuevo} saltando de alegría junto a {protagonista}, gratitud y "
+        "orgullo.",
+        "{nino} hablando con cariño al grupo en ronda; {protagonista} en el "
+        "centro, ambiente emotivo.",
+        "{ninia} y {nino} entregando {tesoro} brillante y destacado a "
         "{protagonista}, agradecimiento.",
         "Un cuarto infantil de noche; {protagonista} en la cama con una "
         "sonrisa soñadora.",
@@ -551,36 +552,37 @@ _ESCENAS_POR_HISTORIA_LARGO = {
     ]),
     "ayudar-a-todos": _tabla17([
         "Un problema grandote y vistoso en {mundo} (un gran enredo o desorden "
-        "que bloquea el lugar); los personajes del tema mirándolo sin saber "
-        "qué hacer.",
-        "Los personajes del tema desanimados; {protagonista} respirando hondo "
-        "con un destello de idea sobre la cabeza.",
-        "Los personajes del tema sentados cabizbajos, desanimados.",
+        "que bloquea el lugar); {alto}, {fuerte} y {chiquito} mirándolo "
+        "juntos sin saber qué hacer.",
+        "{alto}, {fuerte} y {chiquito} desanimados; {protagonista} "
+        "respirando hondo con un destello de idea sobre la cabeza.",
+        "{alto}, {fuerte} y {chiquito} sentados cabizbajos, desanimados.",
         "{protagonista} proponiendo con entusiasmo resolverlo entre todos; "
-        "los personajes del tema levantando la cabeza con esperanza.",
-        "El personaje más chiquito escondiéndose en un rinconcito, "
-        "creyéndose demasiado pequeño.",
-        "{protagonista} sonriendo con cariño al personaje más chiquito, "
-        "dándole importancia.",
-        "{protagonista} repartiendo tareas: el más alto, el más fuerte y el "
-        "más rápido, cada uno listo; el más chiquito adelante con la misión "
+        "{alto}, {fuerte} y {chiquito} levantando la cabeza con esperanza.",
+        "{chiquito} escondiéndose en un rinconcito, con gesto de creerse "
+        "demasiado pequeña para servir de ayuda.",
+        "{protagonista} sonriendo con cariño a {chiquito}, dándole "
+        "importancia.",
+        "{protagonista} repartiendo tareas: {alto} listo para alcanzar, "
+        "{fuerte} lista para empujar, {chiquito} adelante con la misión más "
         "especial.",
-        "El grupo esforzándose con el problema grandote, que todavía no "
-        "cede; caras de esfuerzo.",
-        "El personaje más chiquito metiéndose por un huequito imposible y "
-        "destrabando la primera parte; todos gritando de alegría.",
-        "El más alto alcanzando lo inalcanzable y el más fuerte empujando "
-        "con todo; {protagonista} coordinando como director de orquesta.",
-        "Un tropezón grupal gracioso: todos sosteniéndose en grupo para no "
-        "caer, riéndose del susto.",
+        "{alto}, {fuerte} y {chiquito} esforzándose con el problema "
+        "grandote, que todavía no cede; caras de esfuerzo.",
+        "{chiquito} metiéndose por un huequito imposible y destrabando la "
+        "primera parte; {alto} y {fuerte} gritando de alegría junto a "
+        "{protagonista}.",
+        "{alto} alcanzando lo inalcanzable y {fuerte} empujando con todo; "
+        "{protagonista} coordinando como director de orquesta.",
+        "Un tropezón gracioso: {alto}, {fuerte}, {chiquito} y {protagonista} "
+        "sosteniéndose todos juntos para no caer, riéndose del susto.",
         "¡Lo lograron! El problema resuelto, {mundo} en paz otra vez; "
-        "festejo grupal enorme.",
-        "El personaje más chiquito en el medio de la ronda, festejado como "
-        "un héroe.",
-        "{protagonista} hablando al grupo en ronda, todos asintiendo con "
-        "sonrisas.",
-        "Los personajes del tema entregando {tesoro} brillante y destacado a "
-        "{protagonista}, celebración.",
+        "{alto}, {fuerte}, {chiquito} y {protagonista} festejando en grande.",
+        "{chiquito} en el centro de la ronda; {alto}, {fuerte} y "
+        "{protagonista} festejando muy felices alrededor.",
+        "{protagonista} hablando en ronda con {alto}, {fuerte} y {chiquito}, "
+        "todos asintiendo con sonrisas.",
+        "{alto}, {fuerte} y {chiquito} entregando {tesoro} brillante y "
+        "destacado a {protagonista}, celebración.",
         "Un cuarto infantil de noche; {protagonista} acurrucándose en la "
         "cama, sonrisa tranquila.",
         "Una casita de noche con ventana cálida iluminada, cielo estrellado "
@@ -588,35 +590,36 @@ _ESCENAS_POR_HISTORIA_LARGO = {
     ]),
     "gran-viaje": _tabla17([
         "Un paquetito brillante con moño en la puerta de un dormitorio "
-        "infantil, luz de atardecer, sensación de misión por empezar.",
+        "infantil; {protagonista} mirándolo con curiosidad, luz de "
+        "atardecer, sensación de misión por empezar.",
         "{protagonista} con una mochila liviana saliendo al anochecer con "
         "paso decidido, primer paso del gran viaje.",
-        "Los personajes del tema esperando a {protagonista} con un mapa de "
-        "recorrido desplegado: caminitos y tres banderitas (dibujo, sin letras).",
-        "Los personajes del tema contando la misión en ronda a "
+        "{piloto1} y {piloto2} esperando a {protagonista} con un mapa de "
+        "recorrido desplegado: caminitos y tres banderitas (dibujo, sin "
+        "letras).",
+        "{piloto1} y {piloto2} contando la misión en ronda a "
         "{protagonista}, gesto de urgencia dulce; la luna saliendo.",
-        "El grupo repartiéndose el viaje; {protagonista} sosteniendo con "
-        "cuidado el paquetito brillante.",
-        "El grupo de viaje cantando por un camino de {mundo} mientras el sol "
-        "se esconde, ambiente alegre.",
+        "{piloto1} y {piloto2} repartiéndose el viaje; {protagonista} "
+        "sosteniendo con cuidado el paquetito brillante.",
+        "{piloto1} y {piloto2} cantando junto a {protagonista} por un "
+        "camino de {mundo} mientras el sol se esconde, ambiente alegre.",
         "Un viento travieso en forma de remolino tratando de llevarse el "
         "paquetito; {protagonista} abrazándolo fuerte.",
         "El viento despejando el cielo: las nubes yéndose y un cielo lleno "
         "de estrellas apareciendo.",
-        "{protagonista} señalando un atajo iluminado por las estrellas; el "
-        "grupo avanzando con energía.",
-        "Una parada del viaje con chocolate calentito humeante; los "
-        "personajes del tema tomando fuerzas, tacitas y vapor.",
-        "El tramo más oscuro del camino de noche; el grupo avanzando bien "
-        "juntito, {protagonista} adelante con paso valiente.",
-        "La llegada al amanecer: el más viejito de los personajes del tema "
-        "abriendo el paquetito con ojos brillantes de emoción, primer rayito "
-        "de sol.",
-        "El más viejito del tema con el regalo bien cerquita, muy emocionado; "
-        "todos alrededor con ternura.",
-        "El festejo del viejito arrancando con el primer sol; {protagonista} "
-        "en el lugar de honor.",
-        "Los personajes del tema entregando {tesoro} brillante y destacado a "
+        "{protagonista} señalando un atajo iluminado por las estrellas; "
+        "{piloto1} y {piloto2} avanzando con energía.",
+        "Una parada del viaje con chocolate calentito humeante; {piloto1} "
+        "y {piloto2} tomando fuerzas, tacitas y vapor.",
+        "El tramo más oscuro del camino de noche; {piloto1} y {piloto2} "
+        "avanzando bien juntito, {protagonista} adelante con paso valiente.",
+        "La llegada al amanecer: {piloto1} abriendo el paquetito con ojos "
+        "brillantes de emoción, primer rayito de sol.",
+        "{piloto1} con el regalo bien cerquita, muy emocionado; {piloto2} "
+        "y {protagonista} alrededor con ternura.",
+        "El festejo de {piloto1} arrancando con el primer sol; "
+        "{protagonista} en el lugar de honor.",
+        "{piloto1} y {piloto2} entregando {tesoro} brillante y destacado a "
         "{protagonista}, premio de la misión cumplida.",
         "Un cuarto infantil de mañana tempranito; {protagonista} en la cama "
         "con cara de dulce cansancio feliz.",
@@ -660,44 +663,201 @@ _ESCENAS_POR_HISTORIA_LARGO = {
         "nuevo de {mundo} con farolitos brillando.",
     ]),
     "gran-torneo": _tabla17([
-        "Banderines y preparativos de los Grandes Juegos en {mundo}; los "
-        "personajes del tema desanimados a un costado.",
-        "{protagonista} animando al equipo con una sonrisa, gesto de "
-        "arranque de entrenamiento.",
-        "Entrenamiento desastroso y gracioso: los personajes del tema "
-        "corriendo para lados distintos, chocándose con suavidad y "
-        "terminando en el piso riéndose.",
-        "{protagonista} explicando el plan al equipo en ronda, todos atentos "
-        "y con ganas.",
-        "Cada personaje entrenando lo suyo: el más rápido corriendo, el más "
-        "fuerte saltando, el más chiquito ensayando una jugada secreta.",
-        "El equipo entrenando cada día mejor, pasándose y esperándose, "
-        "ambiente de progreso alegre.",
-        "El capitán del equipo a un costado con una venda simpática, carita "
-        "de no poder jugar; el equipo alrededor, preocupado.",
-        "{protagonista} juntando al equipo en ronda con gesto de ánimo; el "
-        "capitán sonriendo desde el costado.",
-        "La entrada a los Grandes Juegos: el equipo desfilando con el "
-        "capitán al frente alentando desde el costado; tribunas de {mundo} "
-        "llenas.",
-        "Las primeras pruebas de los juegos: el equipo mejorando prueba a "
-        "prueba, energía creciente.",
-        "La prueba final cabeza a cabeza con el otro equipo; expectativa "
-        "máxima en las tribunas de {mundo}.",
-        "La jugada secreta del más chiquito saliendo perfecta; el público de "
+        "Banderines y preparativos de los Grandes Juegos en {mundo}; "
+        "{capitan}, {rapido}, {fuerte} y {chiquito} desanimados a un costado.",
+        "{protagonista} animando a {capitan}, {rapido}, {fuerte} y "
+        "{chiquito} con una sonrisa, gesto de arranque de entrenamiento.",
+        "Entrenamiento desastroso y gracioso: {capitan}, {rapido}, {fuerte} "
+        "y {chiquito} corriendo para lados distintos, tropezándose con "
+        "suavidad y terminando en el piso riéndose.",
+        "{protagonista} explicando el plan a {capitan}, {rapido}, {fuerte} y "
+        "{chiquito} en ronda, todos atentos y con ganas.",
+        "Cada uno entrenando lo suyo: {rapido} corriendo, {fuerte} "
+        "saltando, {chiquito} ensayando una jugada secreta.",
+        "{capitan}, {rapido}, {fuerte} y {chiquito} entrenando cada día "
+        "mejor, pasándose y esperándose, ambiente de progreso alegre.",
+        "{capitan} a un costado con una venda simpática, carita de no poder "
+        "jugar; {rapido}, {fuerte} y {chiquito} alrededor, preocupados.",
+        "{protagonista} juntando a {rapido}, {fuerte} y {chiquito} en ronda "
+        "con gesto de ánimo; {capitan} sonriendo desde el costado.",
+        "La entrada a los Grandes Juegos: {rapido}, {fuerte}, {chiquito} y "
+        "{protagonista} desfilando con {capitan} al frente alentando desde "
+        "el costado; tribunas de {mundo} llenas.",
+        "Las primeras pruebas de los juegos: {rapido}, {fuerte} y "
+        "{chiquito} mejorando prueba a prueba, energía creciente.",
+        "La prueba final cabeza a cabeza con {rival}; expectativa máxima en "
+        "las tribunas de {mundo}.",
+        "La jugada secreta de {chiquito} saliendo perfecta; el público de "
         "{mundo} festejando con saltos y confetti.",
-        "Los dos equipos festejando juntos y mezclados, alegría deportiva "
+        "{capitan}, {rapido}, {fuerte}, {chiquito} y {protagonista} "
+        "festejando junto a {rival}, todos mezclados, alegría deportiva "
         "enorme.",
-        "El capitán muy emocionado junto al equipo, momento tierno de "
-        "orgullo.",
-        "Premiación: los personajes del tema entregando {tesoro} brillante y "
-        "destacado a {protagonista}.",
+        "{capitan} muy emocionado junto a {rapido}, {fuerte} y {chiquito}, "
+        "momento tierno de orgullo.",
+        "Premiación: {capitan}, {rapido}, {fuerte} y {chiquito} entregando "
+        "{tesoro} brillante y destacado a {protagonista}.",
         "Un cuarto infantil de noche; {protagonista} en la cama con una "
         "sonrisa, una cintita de premio colgada cerca.",
         "Una casita de noche con ventana cálida; banderines de los Grandes "
         "Juegos a lo lejos en {mundo}.",
     ]),
 }
+
+
+# ── ELENCO FIJO (Pablo, 24-jul-2026 — libro "El día de ayudar a todos" era el
+# peor: cada página inventaba un protagonista/personaje distinto porque el
+# arco menciona roles con nombre propio —"el más alto", "el más fuerte", "el
+# más chiquito"— sin atarlos a un diseño concreto). Para el combo (tema,
+# historia) que lo necesite, este dict fija la DESCRIPCIÓN FÍSICA exacta de
+# cada rol (debe coincidir con los personajes reales de ia_maestra.png del
+# tema) y se inyecta en el prompt de TODAS las escenas donde aparece — así
+# nunca se inventa un personaje nuevo. El texto narrado (libro_historias.py)
+# sigue usando el nombre de rol genérico ("el más chiquito") para no romper
+# la regla de texto universal; solo el PROMPT DE IMAGEN, que ya es por-tema,
+# recibe la descripción concreta.
+ELENCO_FIJO = {
+    ("superheroes", "ayudar-a-todos"): {
+        "alto": "el superhéroe de pelo oscuro rizado, antifaz rojo y traje "
+                "azul con capa roja y un rayo dorado en el pecho (el "
+                "mismo superhéroe en TODAS las escenas, nunca cambia)",
+        "fuerte": "la superheroína de pelo oscuro rizado con una estrellita "
+                  "dorada en el pelo, antifaz rojo y traje verde azulado con "
+                  "capa roja (la misma superheroína en TODAS las escenas, "
+                  "nunca cambia)",
+        "chiquito": "la superheroína más pequeña del trío, de pelo castaño "
+                    "en colitas, antifaz celeste, traje rosa con capa "
+                    "celeste y una estrella en el pecho (la misma "
+                    "superheroína en TODAS las escenas, nunca cambia)",
+    },
+    # futbol/gran-torneo (Pablo, 24-jul-2026): la referencia del tema
+    # (ia_maestra.png) NO tiene NINGÚN personaje humano — es una hoja de
+    # objetos con carita (pelota, trofeo, botín). Sin un elenco fijo el
+    # modelo dibuja esos objetos en vez de un equipo de chicos, y solo por
+    # momentos inventa nenes sueltos y distintos. Acá se define un plantel
+    # de 4 amigos + el protagonista, todos con la MISMA camiseta de local, y
+    # el rival con otra camiseta — ver `protagonista_extra`.
+    ("futbol", "gran-torneo"): {
+        "capitan": "el capitán del equipo, un chico de pelo oscuro corto y "
+                   "cinta de capitán en el brazo, camiseta a rayas celestes "
+                   "y blancas, short azul y medias blancas (el mismo chico "
+                   "en TODAS las escenas, nunca cambia)",
+        "rapido": "la compañera más rápida del equipo, de pelo castaño en "
+                  "una colita alta, la misma camiseta a rayas celestes y "
+                  "blancas, short azul y medias blancas (la misma chica en "
+                  "TODAS las escenas, nunca cambia)",
+        "fuerte": "el compañero más fuerte del equipo, más robusto y de "
+                  "pelo rubio corto, la misma camiseta a rayas celestes y "
+                  "blancas, short azul y medias blancas (el mismo chico en "
+                  "TODAS las escenas, nunca cambia)",
+        "chiquito": "la compañera más chiquita del equipo, la más bajita "
+                    "del grupo, pelo negro corto con una vincha, la misma "
+                    "camiseta a rayas celestes y blancas, short azul y "
+                    "medias blancas (la misma chica en TODAS las escenas, "
+                    "nunca cambia)",
+        "rival": "el equipo rival, con camiseta roja lisa y short blanco "
+                 "(bien distinto a la camiseta celeste y blanca a rayas del "
+                 "equipo local)",
+        "protagonista_extra": ", con la misma camiseta a rayas celestes y "
+                              "blancas, short azul y medias blancas que sus "
+                              "compañeros de equipo",
+    },
+    # artistas/pequeno-maestro (Pablo, 24-jul-2026, "Pequeños artistas"):
+    # ia_maestra.png trae 2 personajes fijos del tema (nena de colitas +
+    # nene de guardapolvo) — sin elenco fijo, el arte los repetía siempre a
+    # ELLOS incluso para el rol de "personaje nuevo" (que la historia pide
+    # que sea alguien DISTINTO, nunca visto antes) y confundía cuál de los
+    # dos era el protagonista.
+    ("artistas", "pequeno-maestro"): {
+        "ninia": "la compañera de pelo negro rizado recogido en dos moños "
+                 "con vinchas rojas, remera amarilla y guardapolvo blanco "
+                 "con manchas de pintura de colores (la misma nena de la "
+                 "referencia del tema en TODAS las escenas, nunca cambia)",
+        "nino": "el compañero de pelo castaño corto, remera y jean "
+                "celeste con guardapolvo blanco lleno de manchas de "
+                "pintura de colores (el mismo nene de la referencia del "
+                "tema en TODAS las escenas, nunca cambia)",
+        "nuevo": "un chico nuevo y tímido, de pelo negro lacio y "
+                 "guardapolvo celeste claro liso (bien distinto a los "
+                 "guardapolvos blancos con manchas de los demás) — un "
+                 "chico DISTINTO a la nena y al nene de guardapolvo "
+                 "blanco, nunca el mismo personaje que ellos (el mismo "
+                 "chico nuevo en TODAS las escenas, nunca cambia)",
+    },
+    # campamento/tesoro (Pablo, 24-jul-2026, "El mapa del tesoro"): mismo
+    # fix — 2 personajes fijos de la referencia, nombrados siempre para que
+    # no aparezcan nenes de más que la escena no pide.
+    ("campamento", "tesoro"): {
+        "nino": "el compañero de campamento de pelo castaño, remera "
+                "celeste y short caqui, con una mochila y un rollo de "
+                "dormir al hombro (el mismo chico de la referencia del "
+                "tema en TODAS las escenas, nunca cambia)",
+        "ninia": "la compañera de campamento de pelo castaño en trenza, "
+                 "gorra caqui, pañuelo rojo al cuello y mochila de "
+                 "explorador (la misma chica de la referencia del tema en "
+                 "TODAS las escenas, nunca cambia)",
+        "protagonista_extra": ", con una mochila de explorador y una "
+                              "gorra caqui como sus compañeros de "
+                              "campamento",
+    },
+    # aviadores/gran-viaje (Pablo, 24-jul-2026, "La entrega importante"):
+    # el protagonista perdía el traje de aviador entre páginas; acá se fija
+    # por texto además de encadenar la imagen.
+    ("aviadores", "gran-viaje"): {
+        "piloto1": "un piloto de campamento aéreo, pelo castaño con "
+                   "flequillo, gorro de cuero y antiparras, mameluco "
+                   "marrón con cuello de piel blanca y botas marrones (el "
+                   "mismo piloto en TODAS las escenas, nunca cambia)",
+        "piloto2": "otro piloto de campamento aéreo, pelo castaño en dos "
+                   "colitas cortas, gorro de cuero y antiparras, mameluco "
+                   "marrón con cuello de piel blanca y botas marrones (el "
+                   "mismo piloto en TODAS las escenas, nunca cambia)",
+        "protagonista_extra": ", con un traje de aviador marrón, gorro de "
+                              "cuero, antiparras y bufanda blanca, igual "
+                              "al de los pilotos del grupo",
+    },
+    # monstruos/aventura (Pablo, 24-jul-2026, "La invitación mágica"): acá
+    # el problema NO era falta de elenco (hay ~10 monstruos, de sobra) sino
+    # el pijama del protagonista cambiando de color de página en página —
+    # alcanza con fijarlo por texto + la cadena de referencias.
+    ("monstruos", "aventura"): {
+        "protagonista_extra": ", con el mismo pijama celeste de manga "
+                              "larga con estrellitas y pantuflas a juego "
+                              "(igual en TODAS las escenas, nunca cambia)",
+    },
+    # safari/noche-estrellas (Pablo, 24-jul-2026, "La noche de las
+    # estrellas"): mismo bug que monstruos/aventura — el protagonista sale
+    # en pijama a buscar la estrella fugaz y a mitad de historia aparecía
+    # con ropa de safari de día en vez de seguir en pijama. El trío fijo
+    # (león/jirafa/mono) de la referencia ya se mantenía bien, no hace
+    # falta ELENCO_FIJO para ellos.
+    ("safari", "noche-estrellas"): {
+        "protagonista_extra": ", con el mismo pijama celeste de manga "
+                              "larga y pantuflas marrones a juego (igual "
+                              "en TODAS las escenas, nunca cambia)",
+    },
+}
+
+_ELENCO_FALLBACK = {
+    "alto": "el más alto de los personajes del tema",
+    "fuerte": "el más fuerte de los personajes del tema",
+    "chiquito": "el más chiquito de los personajes del tema",
+    "capitan": "el capitán del equipo de los personajes del tema",
+    "rapido": "el más rápido de los personajes del tema",
+    "rival": "el equipo rival",
+    "nino": "un nene de los personajes del tema",
+    "ninia": "una nena de los personajes del tema",
+    "nuevo": "un personaje nuevo del tema, distinto a los demás",
+    "piloto1": "el primero de los personajes del tema",
+    "piloto2": "el segundo de los personajes del tema",
+    "protagonista_extra": "",
+}
+
+
+def _elenco(tema, historia):
+    """Roles con nombre propio ({alto}/{fuerte}/{chiquito}) para el prompt de
+    imagen. Si el combo (tema, historia) no tiene un elenco fijo definido,
+    cae al genérico de siempre (compatibilidad con el resto de historias)."""
+    return {**_ELENCO_FALLBACK, **ELENCO_FIJO.get((tema, (historia or "").lower()), {})}
 
 
 def _paleta(tema):
@@ -750,16 +910,12 @@ def _protagonista(genero):
     return "un niño visto de espaldas (nunca se le ve la cara)"
 
 
-def prompt_pagina(tema, idx, genero=None, historia=None, catalogo=False, edad=None):
-    """Prompt de la ilustración de la página idx, con la ambientación de la historia
-    del tema (libro.HISTORIAS) y el mismo bloque de estilo del resto del kit.
-    genero («nena»/«nene», opcional): cómo dibujar al protagonista en las escenas
-    donde aparece — lo usa el libro premium, que ilustra por pedido.
-    catalogo=True (audiolibro): usa las escenas de la versión larga (17 páginas) con
-    largo por edad; la versión corta (9, hasta 3 años) mapea con libro.CORTO_IDX."""
-    h = dict(libro.HISTORIAS.get(tema, libro.HISTORIA_DEFAULT))
-    h["protagonista"] = _protagonista(genero)
-    pal = _paleta(tema)
+def _escena_para(tema, idx, historia=None, catalogo=False, edad=None):
+    """(escena SIN formatear, hlow) — el lookup de qué texto de escena
+    corresponde a la página idx. Separado de `prompt_pagina` para que
+    `generar_ilustraciones` pueda mirar el template CRUDO (con {protagonista}
+    todavía sin sustituir) y decidir si esta página sirve de ANCLA de
+    continuidad de personajes (ver ELENCO FIJO / referencias encadenadas)."""
     hlow = (historia or "").strip().lower()
     if not catalogo and not hlow:
         # sin historia explícita, el arte sigue la historia DEL TEMA (tema.json
@@ -781,6 +937,22 @@ def prompt_pagina(tema, idx, genero=None, historia=None, catalogo=False, edad=No
         fallback = _ESCENAS_EXT if extendido else _ESCENAS
         arco = tabla.get(hlow, {})
         escena = arco.get(idx, fallback[idx])
+    return escena, hlow
+
+
+def prompt_pagina(tema, idx, genero=None, historia=None, catalogo=False, edad=None):
+    """Prompt de la ilustración de la página idx, con la ambientación de la historia
+    del tema (libro.HISTORIAS) y el mismo bloque de estilo del resto del kit.
+    genero («nena»/«nene», opcional): cómo dibujar al protagonista en las escenas
+    donde aparece — lo usa el libro premium, que ilustra por pedido.
+    catalogo=True (audiolibro): usa las escenas de la versión larga (17 páginas) con
+    largo por edad; la versión corta (9, hasta 3 años) mapea con libro.CORTO_IDX."""
+    h = dict(libro.HISTORIAS.get(tema, libro.HISTORIA_DEFAULT))
+    pal = _paleta(tema)
+    escena, hlow = _escena_para(tema, idx, historia=historia, catalogo=catalogo, edad=edad)
+    elenco = _elenco(tema, hlow)
+    h["protagonista"] = _protagonista(genero) + elenco.pop("protagonista_extra", "")
+    h.update(elenco)
     escena = escena.format(**h)
     return (
         "Ilustración para la página de un libro de cuentos infantil profesional. "
@@ -797,6 +969,16 @@ def prompt_pagina(tema, idx, genero=None, historia=None, catalogo=False, edad=No
         "que se entienda que la historia es sobre ÉL. Si en la escena hay un animal o "
         "mascota, tiene que quedar CLARO que el protagonista es el niño y el animal es "
         "secundario (más chico o atrás). Nunca confundir al niño con un animal. "
+        "CONTINUIDAD DE PERSONAJES (obligatoria, prioridad máxima): si además "
+        "de la referencia de estilo se incluyen imágenes de referencia del "
+        "PROTAGONISTA y/o del ELENCO de esta misma historia, el protagonista y "
+        "cada personaje secundario mantienen EXACTAMENTE el mismo diseño que "
+        "en esas referencias — mismo color y tipo de ropa (nunca cambia de "
+        "pijama a otro color, ni de manga corta a larga, ni de un peinado a "
+        "otro), mismo pelo, mismos accesorios. Es el MISMO personaje de página "
+        "en página, nunca uno nuevo ni parecido. Ningún personaje de las "
+        "referencias aparece más de UNA vez dentro de la misma escena (nunca "
+        "dos copias del mismo personaje, ni el protagonista duplicado). "
         "La escena llena TODA la imagen, sin marcos, bordes ni viñetas. "
         "ESCENARIO COMPLETO (obligatorio): la escena tiene SIEMPRE un fondo "
         "completo que llena toda la imagen — piso con textura y color del tema "
@@ -927,16 +1109,67 @@ def verificar_ilustracion(api_key, png_bytes, escena, timeout=60):
         return True, "qa saltado: %s" % str(e)[:80]
 
 
+def _es_ancla_elenco(cruda):
+    """Heurística: ¿esta escena (texto CRUDO, sin formatear) muestra el elenco
+    fijo/secundario (y no solo al protagonista solo)? Sirve para elegir qué
+    página generada usar como referencia de continuidad del ELENCO."""
+    return ("{alto}" in cruda or "{fuerte}" in cruda or "{chiquito}" in cruda
+            or "personajes del tema" in cruda)
+
+
+def _autoancla(tema, historia, catalogo, edad, dest_dir, excluir):
+    """Si `dest_dir` ya tiene páginas generadas de ANTES (p.ej. se regeneran
+    solo algunas páginas de un combo ya cacheado), busca ahí una que sirva de
+    referencia de PROTAGONISTA y otra de ELENCO — así las páginas nuevas
+    quedan parecidas a las vecinas que ya estaban bien, en vez de arrancar
+    de cero. `excluir`: índices que se van a regenerar ahora (no sirven de
+    ancla porque pueden ser justamente los que están mal)."""
+    ref_p = ref_e = None
+    if not dest_dir or not os.path.isdir(dest_dir):
+        return ref_p, ref_e
+    total = libro.total_paginas(tema, edad, historia, catalogo)
+    for idx in range(total):
+        if ref_p is not None and ref_e is not None:
+            break
+        if idx in excluir:
+            continue
+        p = os.path.join(dest_dir, "%d.png" % idx)
+        if not os.path.isfile(p):
+            continue
+        cruda, _ = _escena_para(tema, idx, historia=historia, catalogo=catalogo, edad=edad)
+        if ref_p is None and "{protagonista}" in cruda:
+            ref_p = open(p, "rb").read()
+        if ref_e is None and idx >= 2 and _es_ancla_elenco(cruda):
+            ref_e = open(p, "rb").read()
+    return ref_p, ref_e
+
+
 def generar_ilustraciones(client, tema, paginas=None, calidad="medium", progress=None,
                           dest_dir=None, genero=None, historia=None,
-                          verificar=False, fallos_log=None, catalogo=False, edad=None):
+                          verificar=False, fallos_log=None, catalogo=False, edad=None,
+                          ref_protagonista_path=None, ref_elenco_path=None):
     """Genera y guarda las ilustraciones de `paginas` (default: las 10). Devuelve la
     lista de paths escritos. `client` es ia_kit.client.OpenAIImageClient (o cualquier
     objeto con .editar(refs, prompt, size, quality=) -> bytes PNG).
 
     dest_dir: si se pasa, guarda en <dest_dir>/<idx>.png en vez de los overrides del
     tema — es el modo LIBRO PREMIUM (arte único por pedido; se renderiza después con
-    libro.usar_escenas_dir(dest_dir))."""
+    libro.usar_escenas_dir(dest_dir)).
+
+    CONSISTENCIA DE PERSONAJES (Pablo, 24-jul-2026 — sin esto cada página podía
+    reinventar la ropa o el personaje: pasó pijama verde en una página y azul
+    en la siguiente, protagonistas distintos de página en página). Además de
+    la referencia de ESTILO del tema (ia_maestra.png), se encadenan DOS
+    anclas más a medida que se generan las páginas EN ORDEN: la del
+    PROTAGONISTA (la primera página cuya escena lo menciona) y la del ELENCO/
+    extras (la primera página que muestra a los personajes secundarios). Cada
+    página siguiente que vuelve a mostrar a ese personaje recibe también su
+    imagen como referencia — mismo mecanismo que `aventura_ia.py`, generalizado
+    acá a los libros/audiolibros del catálogo. `ref_protagonista_path` /
+    `ref_elenco_path` fuerzan un ancla ya aprobada (recomendado al regenerar
+    páginas sueltas de un combo ya revisado); si no se pasan, se intenta
+    encontrar una en `dest_dir` (páginas ya cacheadas) y si tampoco hay, se
+    arma sola con la primera página de ESTA corrida que corresponda."""
     paginas = list(paginas) if paginas is not None else \
         list(range(libro.total_paginas(tema, edad, historia, catalogo)))
     refs = referencias(tema)
@@ -947,27 +1180,57 @@ def generar_ilustraciones(client, tema, paginas=None, calidad="medium", progress
         raise RuntimeError(
             "el tema %r no tiene imagen de referencia (ia_maestra.png/stickers) "
             "— agregala antes de generar el catálogo" % tema)
+    ref_protagonista = (open(ref_protagonista_path, "rb").read()
+                        if ref_protagonista_path else None)
+    ref_elenco = open(ref_elenco_path, "rb").read() if ref_elenco_path else None
+    if ref_protagonista is None or ref_elenco is None:
+        auto_p, auto_e = _autoancla(tema, historia, catalogo, edad, dest_dir, set(paginas))
+        ref_protagonista = ref_protagonista or auto_p
+        ref_elenco = ref_elenco or auto_e
     out = []
     for n, idx in enumerate(paginas):
         if progress:
             progress("Página %d de %d (pieza %d)…" % (n + 1, len(paginas), idx))
-        r = refs or [_boceto(tema, idx)]
+        cruda, _hlow = _escena_para(tema, idx, historia=historia, catalogo=catalogo, edad=edad)
+        base = list(refs) if refs else [_boceto(tema, idx)]
+        if ref_protagonista is not None:
+            base.append(ref_protagonista)
+        if ref_elenco is not None:
+            base.append(ref_elenco)
+        r = base
         prompt = prompt_pagina(tema, idx, genero=genero, historia=historia,
                                catalogo=catalogo, edad=edad)
         if not refs:
             prompt = ("Redibujá este boceto como ilustración profesional, conservando "
                       "la composición. " + prompt)
         tam = tam_pagina(tema, idx, edad=edad, historia=historia, catalogo=catalogo)
-        raw = client.editar(r, prompt, tam, quality=calidad)
+        try:
+            raw = client.editar(r, prompt, tam, quality=calidad)
+        except Exception as e:
+            # Un bloqueo de moderación de OpenAI (o cualquier error de red/API) en
+            # UNA página NO puede tirar abajo el combo entero (pasó 24-jul-2026:
+            # una página con "S dorada" en el prompt disparó moderation_blocked y
+            # crasheó toda la corrida, perdiendo las páginas ya generadas antes).
+            # Se trata igual que un rechazo de QA: se deja constancia y se sigue.
+            if fallos_log:
+                with open(fallos_log, "a", encoding="utf-8") as fl:
+                    fl.write("pagina %d: ERROR generando: %s\n" % (idx, str(e)[:300]))
+            if progress:
+                progress("Página %d: error generando (%s) — se sigue con las demás"
+                         % (idx, str(e)[:120]))
+            continue
         qa_key = os.environ.get("OPENAI_API_KEY")
         if verificar and qa_key:
             ok, motivo = verificar_ilustracion(qa_key, _como_en_panel(raw, idx), prompt)
             if not ok:
                 if progress:
                     progress("Página %d rechazada por QA (%s) — reintento…" % (idx, motivo))
-                raw2 = client.editar(r, prompt + " MUY IMPORTANTE: " + motivo,
-                                     tam, quality=calidad)
-                ok2, motivo2 = verificar_ilustracion(qa_key, _como_en_panel(raw2, idx), prompt)
+                try:
+                    raw2 = client.editar(r, prompt + " MUY IMPORTANTE: " + motivo,
+                                         tam, quality=calidad)
+                    ok2, motivo2 = verificar_ilustracion(qa_key, _como_en_panel(raw2, idx), prompt)
+                except Exception as e:
+                    ok2, motivo2 = False, "error en reintento: %s" % str(e)[:200]
                 if ok2:
                     raw = raw2
                 else:
@@ -987,6 +1250,10 @@ def generar_ilustraciones(client, tema, paginas=None, calidad="medium", progress
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         img.save(dest)
         out.append(dest)
+        if ref_protagonista is None and "{protagonista}" in cruda:
+            ref_protagonista = raw          # ancla para el resto de la corrida
+        if ref_elenco is None and idx >= 2 and _es_ancla_elenco(cruda):
+            ref_elenco = raw
     return out
 
 
@@ -1019,7 +1286,9 @@ def indices_largo(tema, edad, historia):
 def _escena_larga(tema, li, historia, genero="nene"):
     """(texto de escena renderizado, ¿lleva protagonista?) del índice LARGO li."""
     h = dict(libro.HISTORIAS.get(tema, libro.HISTORIA_DEFAULT))
-    h["protagonista"] = _protagonista(genero)
+    elenco = _elenco(tema, historia)
+    h["protagonista"] = _protagonista(genero) + elenco.pop("protagonista_extra", "")
+    h.update(elenco)
     if li == 0:
         esc = _ESCENAS_LARGO[0]
     elif li == 1:
@@ -1052,12 +1321,17 @@ def _piso_blanco(path, umbral=0.45):
 
 
 def qa_vision_catalogo(api_key, png_bytes, tema, escena, espera_nino,
-                       ref_bytes=None, timeout=90):
-    """(ok, motivo) — QA de visión dirigido a los 3 errores históricos del
+                       ref_bytes=None, ref_protagonista=None, ref_elenco=None,
+                       timeout=90):
+    """(ok, motivo) — QA de visión dirigido a los errores históricos del
     catálogo: patas de más / protagonista que no es un chico humano / personajes
-    de otra temática. Compara contra la REFERENCIA del tema (sus personajes
-    NUNCA son intrusos — p.ej. el elefante obrero de construcción). Best-effort:
-    si el QA falla (red, etc.) devuelve OK para no frenar la venta."""
+    de otra temática / personaje duplicado / inconsistencia con la página
+    anterior. Compara contra la REFERENCIA del tema (sus personajes NUNCA son
+    intrusos — p.ej. el elefante obrero de construcción) y, si se pasan,
+    contra las referencias de PROTAGONISTA/ELENCO ya ancladas en esta corrida
+    (Pablo, 24-jul-2026 — el pijama cambiaba de color de una página a otra sin
+    que nada lo detectara). Best-effort: si el QA falla (red, etc.) devuelve
+    OK para no frenar la venta."""
     import base64 as _b64
     import urllib.request as _rq
     nino = ("nino_falta=true si NO aparece un nene o nena HUMANO como figura "
@@ -1065,33 +1339,55 @@ def qa_vision_catalogo(api_key, png_bytes, tema, escena, espera_nino,
             "en vez de un chico humano; "
             if espera_nino else
             "nino_falta=false SIEMPRE (esta escena no lleva chico); ")
+    consist = (
+        "También se incluyen imágenes de referencia del PROTAGONISTA y/o del "
+        "ELENCO de esta misma historia (ya aprobadas en páginas anteriores): "
+        "inconsistente=true SOLO si el protagonista o algún personaje "
+        "secundario de la escena a evaluar tiene un diseño, ropa, color o "
+        "peinado CLARAMENTE distinto al de esas referencias (por ejemplo, "
+        "pijama de otro color, otro tipo de prenda, otro peinado). Si no hay "
+        "diferencia clara o no se puede comparar bien, poné false. "
+        if (ref_protagonista or ref_elenco) else
+        "inconsistente=false SIEMPRE (no hay referencia de personaje previa "
+        "para comparar en esta página). ")
     txt = ("Sos QA de ilustraciones de un libro de cuentos infantil. "
            "Temática: %s. Escena esperada: %s "
            "La PRIMERA imagen es la REFERENCIA oficial del tema: TODOS los "
            "personajes que aparecen en ella son válidos (aunque sean "
-           "animales), NUNCA intrusos, aparezcan donde aparezcan. La SEGUNDA "
-           "imagen es la ilustración a evaluar. El protagonista humano (nene "
-           "o nena) NUNCA es un intruso. Respondé SOLO un JSON: "
+           "animales), NUNCA intrusos, aparezcan donde aparezcan. Las "
+           "imágenes de referencia siguientes (si las hay) son del "
+           "PROTAGONISTA y del ELENCO ya aprobados. La ÚLTIMA imagen es la "
+           "ilustración a evaluar. El protagonista humano (nene o nena) "
+           "NUNCA es un intruso. Respondé SOLO un JSON: "
            '{"patas_mal": bool, "nino_falta": bool, "intrusos": bool, '
-           '"detalle": "texto corto"}. '
+           '"duplicado": bool, "inconsistente": bool, "detalle": "texto corto"}. '
            "patas_mal=true si ALGÚN animal de cuatro patas tiene una cantidad "
            "de patas visiblemente incorrecta (5 o más, o 3 o menos), o si un "
            "animal en cuatro patas da la mano, choca los cinco, aplaude o "
            "saluda con una pata levantada; la cola NO es una pata. %s"
            "intrusos=true SOLO si aparecen personajes que NO están en la "
-           "referencia y claramente pertenecen a OTRA temática. Ante la "
-           "MÍNIMA duda en un campo, poné false." % (tema, escena, nino))
+           "referencia y claramente pertenecen a OTRA temática. "
+           "duplicado=true SOLO si el MISMO personaje (mismo diseño) aparece "
+           "dos o más veces dentro de la escena a evaluar (dos copias del "
+           "mismo personaje, o el protagonista repetido). %s"
+           "Ante la MÍNIMA duda en cualquier campo, poné false."
+           % (tema, escena, nino, consist))
     contenido = [{"type": "text", "text": txt}]
     if ref_bytes:
         contenido.append({"type": "image_url", "image_url": {
             "url": "data:image/png;base64," + _b64.b64encode(ref_bytes).decode(),
             "detail": "low"}})
+    for extra in (ref_protagonista, ref_elenco):
+        if extra:
+            contenido.append({"type": "image_url", "image_url": {
+                "url": "data:image/png;base64," + _b64.b64encode(extra).decode(),
+                "detail": "low"}})
     contenido.append({"type": "image_url", "image_url": {
         "url": "data:image/png;base64," + _b64.b64encode(png_bytes).decode(),
         "detail": "high"}})
     try:
         body = json.dumps({"model": os.environ.get("OPENAI_QA_MODEL", "gpt-4o-mini"),
-                           "max_tokens": 140,
+                           "max_tokens": 160,
                            "messages": [{"role": "user", "content": contenido}]}
                           ).encode()
         req = urllib.request.Request(_QA_URL, data=body, method="POST", headers={
@@ -1101,7 +1397,8 @@ def qa_vision_catalogo(api_key, png_bytes, tema, escena, espera_nino,
             out = json.loads(r.read())
         resp = out["choices"][0]["message"]["content"] or ""
         v = json.loads(resp[resp.find("{"):resp.rfind("}") + 1])
-        if v.get("patas_mal") or v.get("nino_falta") or v.get("intrusos"):
+        if (v.get("patas_mal") or v.get("nino_falta") or v.get("intrusos")
+                or v.get("duplicado") or v.get("inconsistente")):
             return False, str(v.get("detalle") or "")[:160]
         return True, ""
     except Exception as e:
@@ -1140,6 +1437,7 @@ def arte_catalogo(client, tema, historia, genero, edad, dest_dir,
         if qa_key:
             refs = referencias(tema)
             ref_b = refs[0] if refs else None
+            ref_p, ref_e = _autoancla(tema, hist, True, "5", cache, set())
             malas = []
             for li in faltan:
                 p = os.path.join(cache, "%d.png" % li)
@@ -1152,7 +1450,8 @@ def arte_catalogo(client, tema, historia, genero, edad, dest_dir,
                     continue
                 escena, espera = _escena_larga(tema, li, hist, g)
                 ok, det = qa_vision_catalogo(qa_key, open(p, "rb").read(),
-                                             tema, escena, espera, ref_b)
+                                             tema, escena, espera, ref_b,
+                                             ref_protagonista=ref_p, ref_elenco=ref_e)
                 if not ok:
                     malas.append(li)
                     if progress:

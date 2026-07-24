@@ -797,6 +797,42 @@ def pagina_libro(idx, data, tema="safari", catalogo=False, sin_pie=False):
     return pagina_historia(idx - 2, data, tema, catalogo, sin_pie=sin_pie)
 
 
+# ── Tapas de catálogo por historia (arte completo subido por Pablo, SIN el
+# nombre del chico: el nombre queda solo en la dedicatoria). Las usa SOLO el
+# AUDIOLIBRO — el libro imprimible del kit conserva su portada clásica (estas
+# tapas dicen «AUDIOLIBRO INFANTIL» en el arte).
+PORTADAS_DIR = os.path.join(KIT, "libro_portadas")
+
+def portada_arte_path(historia):
+    h = str(historia or "").strip().lower()
+    p = os.path.join(PORTADAS_DIR, h + ".png")
+    return p if h and os.path.isfile(p) else None
+
+def _portada_full(path):
+    """Tapa a página completa: contain centrado sobre un fondo del color
+    promedio de los bordes del arte (los ratios 1024x1536 vs A4 no coinciden
+    exacto y un crop podría cortar la marca arriba o la bajada de abajo)."""
+    art = Image.open(path).convert("RGB")
+    s = min(Wp / art.width, Hp / art.height)
+    w, h = int(art.width * s), int(art.height * s)
+    borde = [art.getpixel((x, y)) for x in (2, art.width - 3)
+             for y in range(0, art.height, max(1, art.height // 40))]
+    bg = tuple(sum(c[i] for c in borde) // len(borde) for i in range(3))
+    im = Image.new("RGBA", (Wp, Hp), bg + (255,))
+    im.alpha_composite(art.convert("RGBA").resize((w, h), Image.LANCZOS),
+                       ((Wp - w) // 2, (Hp - h) // 2))
+    return im
+
+def pagina_audiolibro(idx, data, tema="safari"):
+    """Página del AUDIOLIBRO: la portada usa la tapa de catálogo de su historia
+    (si existe); el resto delega en pagina_libro(catalogo=True)."""
+    if idx == 0:
+        p = portada_arte_path(data.get("historia"))
+        if p:
+            return _portada_full(p)
+    return pagina_libro(idx, data, tema, catalogo=True)
+
+
 def paginas_libro(data, tema="safari", catalogo=False):
     n = total_paginas(tema, data.get("edad"), data.get("historia"), catalogo)
     return [pagina_libro(i, data, tema, catalogo) for i in range(n)]

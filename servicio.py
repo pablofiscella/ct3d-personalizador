@@ -3277,7 +3277,7 @@ function regen(i){
                 "historia": historia, "genero": g,
                 "dedicatoria": "Un cuento de muestra"}
         with _libro.usar_escenas_dir(cache):
-            img = _libro.pagina_libro(idx, data, tema, catalogo=True).convert("RGB")
+            img = _libro.pagina_audiolibro(idx, data, tema).convert("RGB")
         img.resize((img.width * 2 // 3, img.height * 2 // 3)).save(
             os.path.join(audiolibro.AUDIOLIBROS_DIR, token, "pag_%02d.jpg" % idx),
             quality=86)

@@ -205,6 +205,9 @@ def _field_text(field, data):
     t = field.get("_text")
     if t is None:
         t = field["tpl"].format(**data)
+    # sin edad no hay línea: "Cumple {edad} años" con edad vacía quedaba "Cumple  años"
+    if "{edad}" in field.get("tpl", "") and not str(data.get("edad", "")).strip():
+        return ""
     # plural inteligente de la edad: "1 año" / "5 años"
     if "{edad}" in field.get("tpl", "") and str(data.get("edad", "")).strip() == "1":
         t = t.replace(" años", " año")

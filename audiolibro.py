@@ -131,9 +131,9 @@ _EL_VOCES_ALT = {
     "lionel": {"voice_id": "MjtZn5tagxL1RO6w9ER5",
                "settings": {"stability": 0.5},
                "label": "Voz masculina — cuentacuentos"},
-    "regis": {"voice_id": "zR7eV8hMFnxhSSAcCYW0",
-              "settings": {"stability": 0.5},
-              "label": "Voz masculina — suave, para dormir"},
+    # Regis (zR7eV8hMFnxhSSAcCYW0) descartada 24-jul-2026: Pablo la escuchó y
+    # tiene acento español (de España), no rioplatense — no encaja en el
+    # grupo "Voces argentinas" (igual que Lalo/Mariana, descartadas antes).
     "dante": {"voice_id": "DzZyY3xqjLUXGaT9wykC",
               "settings": {"stability": 0.5},
               "label": "Voz masculina — joven porteño"},
@@ -150,6 +150,10 @@ _EL_VOCES_ALT = {
              "settings": {"stability": 0.5},
              "label": "Voz neutra — dulce, juvenil"},
 }
+
+# Todas las keys de voz válidas (para muestra_voz(): valida el parámetro que
+# llega por URL antes de tocar disco o llamar a un TTS).
+_VOCES_VALIDAS = frozenset({"lizy"} | set(VOCES) | set(_EL_VOCES_ALT))
 
 # Etiquetas de emoción v3 automáticas y CONSERVADORAS (receta investigada:
 # 1 etiqueta por página máximo, whitelist dulce, al inicio del segmento; las
@@ -194,6 +198,28 @@ def _elevenlabs_key():
             except Exception:
                 pass
     _EL_KEY_CACHE["k"] = k
+    return k
+
+
+_OPENAI_KEY_CACHE = {}
+
+
+def _openai_key():
+    """Igual que _elevenlabs_key() pero para OpenAI (respaldo de tts_mp3 y voces
+    nativas fable/nova/onyx) — necesaria en muestra_voz() para regenerar previas
+    fuera del flujo normal de crear(), que hoy recibe la key de servicio.py."""
+    if "k" in _OPENAI_KEY_CACHE:
+        return _OPENAI_KEY_CACHE["k"]
+    k = (os.environ.get("OPENAI_API_KEY") or "").strip()
+    if not k:
+        for p in (os.path.join(KIT, "config.json"), "/opt/ct3d/backend/config.json"):
+            try:
+                k = (json.load(open(p)).get("openai_api_key") or "").strip()
+                if k:
+                    break
+            except Exception:
+                pass
+    _OPENAI_KEY_CACHE["k"] = k
     return k
 
 
@@ -279,6 +305,21 @@ def _titulo_libro(data):
     t = TITULOS.get(str(data.get("historia") or "").strip().lower())
     return ("%s — el cuento de %s" % (t, nombre)) if t \
         else "La gran aventura de %s" % nombre
+
+
+def _historia_desde_titulo(titulo, nombre):
+    """Reconstruye la key de `historia` a partir del título guardado en el
+    manifest (_titulo_libro) — el manifest no guarda `historia` directamente,
+    así que para volver a narrar la MISMA historia (ver muestra_voz) hay que
+    revertir el armado de _titulo_libro contra libro_historias.TITULOS."""
+    from libro_historias import TITULOS
+    suf = " — el cuento de %s" % nombre
+    if titulo and titulo.endswith(suf):
+        t = titulo[:-len(suf)]
+        for k, v in TITULOS.items():
+            if v == t:
+                return k
+    return None
 
 
 def _textos_narracion(data, tema):
@@ -377,7 +418,7 @@ def crear(data, tema, api_key, escenas_dir=None, progress=None, token=None):
         for i in range(total):
             if progress:
                 progress("Página %d de %d…" % (i + 1, total))
-            img = libro.pagina_libro(i, data, tema, catalogo=True).convert("RGB")
+            img = libro.pagina_audiolibro(i, data, tema).convert("RGB")
             img.resize((img.width * 2 // 3, img.height * 2 // 3)).save(
                 os.path.join(d, "pag_%02d.jpg" % i), quality=86)
             with open(os.path.join(d, "pag_%02d.mp3" % i), "wb") as f:
@@ -409,9 +450,67 @@ def _cargar(token):
         return None
 
 
+_RE_MUESTRA_VOZ = re.compile(r"muestra_([a-z]+)\.mp3")
+
+
+def muestra_voz(token, voz, reg=None):
+    """MP3 de MUESTRA: la MISMA página 2 real que se ve en la ficha de la
+    tienda (pag_02, la que ilustra `au.dataset.libro`), narrada en `voz`.
+
+    Bug real (24-jul-2026): el preview de voz de la ficha usaba, para
+    cualquier voz distinta de Lizy, un archivo estático grabado una sola vez
+    con un texto de referencia genérico ("Che, vení que te cuento un
+    secreto...") — no el texto del libro que el cliente está mirando. Con ~25
+    libros distintos en catálogo (cada uno con su propia historia), esa
+    muestra nunca podía coincidir. Acá se regenera el texto REAL de la
+    página 2 de ESE token (reconstruyendo la historia desde el título del
+    manifest — no se guardaba `historia` en su momento) y se narra en la voz
+    pedida, cacheado en disco por (token, voz): se paga el TTS una sola vez
+    por combinación, no por request."""
+    v = (str(voz or "").strip().lower())
+    if v not in _VOCES_VALIDAS:
+        return None
+    reg = reg or _cargar(token)
+    if not reg:
+        return None
+    if v == (reg.get("voz") or "lizy"):
+        p = os.path.join(AUDIOLIBROS_DIR, token, "pag_02.mp3")
+        if not os.path.isfile(p):
+            return None
+        with open(p, "rb") as f:
+            return f.read()
+    cache = os.path.join(AUDIOLIBROS_DIR, token, "muestra_%s.mp3" % v)
+    if os.path.isfile(cache):
+        with open(cache, "rb") as f:
+            return f.read()
+    nombre = reg.get("nombre") or "Alex"
+    historia = _historia_desde_titulo(reg.get("titulo") or "", nombre)
+    textos = _textos_narracion({"nombre": nombre, "historia": historia or ""},
+                                reg.get("tema") or "safari")
+    texto = textos[2] if len(textos) > 2 else textos[-1]
+    try:
+        mp3 = tts_mp3(_openai_key(), texto, voz=v,
+                      seed=zlib.crc32(("%s|%s" % (token, v)).encode()))
+    except Exception as e:
+        print("[audiolibro] muestra_voz(%s, %s) falló: %s" % (token, v, e), flush=True)
+        return None
+    if not mp3:
+        return None
+    with open(cache, "wb") as f:
+        f.write(mp3)
+    return mp3
+
+
 def archivo(token, nombre):
     """(bytes, content_type) de un asset del audiolibro, o None."""
-    if not _cargar(token) or not re.fullmatch(r"pag_\d{2}\.(jpg|mp3)", nombre or ""):
+    reg = _cargar(token)
+    if not reg:
+        return None
+    m = _RE_MUESTRA_VOZ.fullmatch(nombre or "")
+    if m:
+        mp3 = muestra_voz(token, m.group(1), reg)
+        return (mp3, "audio/mpeg") if mp3 else None
+    if not re.fullmatch(r"pag_\d{2}\.(jpg|mp3)", nombre or ""):
         return None
     p = os.path.join(AUDIOLIBROS_DIR, token, nombre)
     if not os.path.isfile(p):
