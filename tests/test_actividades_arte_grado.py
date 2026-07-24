@@ -21,18 +21,13 @@ GRADO = int(EDAD_5TO) - 5
 
 
 @pytest.fixture
-def arte_dir():
-    """Crea/limpia actividades_arte/g<N>/ sin pisar arte real si existiera."""
-    d = os.path.join(aw.BASEDIR, "actividades_arte", "g%d" % GRADO)
-    backup = d + ".bak-test"
-    existia = os.path.isdir(d)
-    if existia:
-        shutil.move(d, backup)
-    os.makedirs(d, exist_ok=True)
-    yield d
-    shutil.rmtree(d, ignore_errors=True)
-    if existia:
-        shutil.move(backup, d)
+def arte_dir(tmp_path, monkeypatch):
+    """Carpeta de arte del grado, en un tmp: `ARTE_DIR` se apunta ahí para que el test
+    NUNCA toque el arte real del repo (ver test_actividades_tematica_grado.py)."""
+    monkeypatch.setattr(aw, "ARTE_DIR", str(tmp_path))
+    d = tmp_path / ("g%d" % GRADO)
+    d.mkdir()
+    return str(d)
 
 
 def _sticker(path, color):
@@ -44,7 +39,7 @@ def _sticker(path, color):
 def _crear(token, edad=EDAD_5TO):
     d = os.path.join(aw.ACT_DIR, token)
     shutil.rmtree(d, ignore_errors=True)
-    aw.crear({"nombre": "Test", "edad": edad}, TEMA, token=token)
+    aw.crear({"nombre": "Test", "edad": edad, "escolar_on": True}, TEMA, token=token)
     return d
 
 
