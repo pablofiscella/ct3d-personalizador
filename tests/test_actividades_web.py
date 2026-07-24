@@ -463,14 +463,16 @@ def test_archivo_rechaza_mp3_con_nombre_invalido(token):
     assert aw.archivo(token, "c_deadbeef00.mp3") is None  # nombre válido pero no existe
 
 
-def test_archivo_whitelist(token):
+def test_archivo_whitelist(token, data):
     assert aw.archivo(token, "manifest.json") is None      # no expuesto
     assert aw.archivo(token, "../secreto.txt") is None
     assert aw.archivo(token, "data.json")[1].startswith("application/json")
     js = aw.archivo(token, "player.js")                     # sale del REPO
     assert js and b"GAMES" in js[0]
     assert aw.archivo(token, "f1.ttf")[1] == "font/ttf"
-    assert aw.archivo(token, "p00.png")[1] == "image/png"
+    # el personaje real del token: p00 si vino del tema, s00 si el grado tiene
+    # arte propio (_arte_de_grado) — el whitelist acepta ambos ([ps]\d{2}\.png).
+    assert aw.archivo(token, data["personajes"][0])[1] == "image/png"
 
 
 def test_html_personalizado(token):

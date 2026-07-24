@@ -26,6 +26,7 @@ import piezas
 
 BASEDIR = os.path.dirname(os.path.abspath(__file__))
 ACT_DIR = os.path.join(BASEDIR, "actividades")
+ARTE_DIR = os.path.join(BASEDIR, "actividades_arte")   # arte escolar por grado (g1..g7)
 TEMPLATE_HTML = os.path.join(BASEDIR, "actividades_player.html")
 TEMPLATE_JS = os.path.join(BASEDIR, "actividades_player.js")
 TEMPLATE_MOTOR = os.path.join(BASEDIR, "motor_adaptativo.js")  # capa de saberes (piloto, gateada)
@@ -927,31 +928,121 @@ MUNDO_GRADO = {
 }
 
 
-def _mundo_de_grado(edad):
-    """Nombre del mundo del grado, o None si ese grado no tiene arte propio instalado
-    (así el header nunca promete una temática que el cuaderno no está mostrando)."""
+# Paleta por GRADO: los colores del mundo de su portada. Mismo criterio que las de
+# tema (bg pastel, card blanca, un acento fuerte + uno secundario) y el mismo piso de
+# contraste, verificado en tests/test_actividades_tematica_grado.py: `ink` cumple AA
+# (≥4.5) sobre bg/card/soft, y los acentos cumplen AA-large (≥3) bajo texto blanco
+# —que es el estándar real de las paletas de tema, donde los botones son Baloo 21px+.
+PALETA_GRADO = {
+    1: {"bg": "#F1F7EC", "card": "#FFFFFF", "ink": "#2A3B1E", "ac": "#5E8B34", "ac2": "#C77B2B", "soft": "#DCEBCE", "star": "#F2A93B"},
+    2: {"bg": "#FBF3EA", "card": "#FFFFFF", "ink": "#3E2A1C", "ac": "#C4703C", "ac2": "#2F9490", "soft": "#F3DFC9", "star": "#E8A426"},
+    3: {"bg": "#F4F5E7", "card": "#FFFFFF", "ink": "#333A1B", "ac": "#6C7A2C", "ac2": "#C08A2A", "soft": "#E3E7C8", "star": "#F2A93B"},
+    4: {"bg": "#EDF5F5", "card": "#FFFFFF", "ink": "#1F3A3B", "ac": "#2E8B8E", "ac2": "#7C5CD6", "soft": "#D6EAEA", "star": "#F2A93B"},
+    5: {"bg": "#F8F1E4", "card": "#FFFFFF", "ink": "#3D2E16", "ac": "#A9772A", "ac2": "#4E7FA8", "soft": "#EFE0C4", "star": "#E8A426"},
+    6: {"bg": "#EDF3FA", "card": "#FFFFFF", "ink": "#1B2E45", "ac": "#2A6497", "ac2": "#2A9A92", "soft": "#D7E6F5", "star": "#F2A93B"},
+    7: {"bg": "#F0F2F6", "card": "#FFFFFF", "ink": "#232B33", "ac": "#3E5A72", "ac2": "#B5764C", "soft": "#DDE3EB", "star": "#F2A93B"},
+}
+
+
+def _grado_con_arte(edad, escolar):
+    """Grado (edad − 5, así edad 9 → 4°) SI este token es de la LÍNEA ESCOLAR y ese grado
+    tiene su carpeta de arte propio instalada; si no, None. Es la compuerta única de toda
+    la temática por grado: mundo, elenco, paleta, escena y páginas para colorear.
+
+    Las dos condiciones importan. `escolar` (flag por token, default OFF) separa las dos
+    líneas que comparten este mismo cuaderno: la ESCOLAR muestra el mundo del grado, y la
+    compra por TEMA del kit sigue viendo el safari/princesas que el cliente eligió — sin
+    el flag, el arte por grado le pisaría el tema a todo chico de 6 a 12. La carpeta de
+    arte, además, evita prometer en el header un mundo que el cuaderno no está mostrando."""
+    if not escolar:
+        return None
     try:
         grado = int(str(edad).strip()) - 5
     except (TypeError, ValueError):
         return None
-    if not os.path.isdir(os.path.join(BASEDIR, "actividades_arte", "g%d" % grado)):
+    if not os.path.isdir(os.path.join(ARTE_DIR, "g%d" % grado)):
         return None
-    return MUNDO_GRADO.get(grado)
+    return grado
 
 
-def _arte_de_grado(edad, d):
+def _dir_grado(edad, escolar):
+    """Carpeta de arte del grado, o None (compuerta `_grado_con_arte`)."""
+    grado = _grado_con_arte(edad, escolar)
+    if grado is None:
+        return None
+    return os.path.join(ARTE_DIR, "g%d" % grado)
+
+
+def _mundo_de_grado(edad, escolar=False):
+    """Nombre del mundo del grado, o None si el token no es escolar o ese grado no tiene
+    arte propio (así el header nunca promete una temática que el cuaderno no muestra)."""
+    grado = _grado_con_arte(edad, escolar)
+    return None if grado is None else MUNDO_GRADO.get(grado)
+
+
+def _paleta_de_grado(edad, escolar=False):
+    """Paleta del mundo del grado, o None → el llamador cae a la del tema."""
+    grado = _grado_con_arte(edad, escolar)
+    if grado is None:
+        return None
+    pal = PALETA_GRADO.get(grado)
+    return dict(pal) if pal else None
+
+
+def _escena_de_grado(edad, d, escolar=False):
+    """Fondo del juego "contar" ambientado en el mundo del grado
+    (`actividades_arte/g<N>/escena.png`), o None → el llamador cae a la del tema."""
+    src = _dir_grado(edad, escolar)
+    if src is None:
+        return None
+    p = os.path.join(src, "escena.png")
+    if not os.path.isfile(p):
+        return None
+    try:
+        f = Image.open(p).convert("RGB")
+    except Exception:
+        return None
+    f.thumbnail((1600, 1600), Image.LANCZOS)
+    f.save(os.path.join(d, "escena.jpg"), quality=82)
+    return "escena.jpg"
+
+
+def _colorear_de_grado(edad, d, escolar=False):
+    """Páginas para colorear del mundo del grado (`actividades_arte/g<N>/colorear_*.png`),
+    o None → el llamador cae a las del tema. Les aplica el mismo tratamiento que a las de
+    tema (`cuaderno._colorear_imgs`): binarizado B/N idempotente + cierre de huecos del
+    contorno, sin el cual el balde de pintura se fuga por los cortes de la línea."""
+    src = _dir_grado(edad, escolar)
+    if src is None:
+        return None
+    from cuaderno import _cerrar_huecos_lineart
+    out = []
+    for fn in sorted(f for f in os.listdir(src) if re.fullmatch(r"colorear_\d\.png", f)):
+        try:
+            im = Image.open(os.path.join(src, fn)).convert("RGBA")
+        except Exception:
+            continue
+        bg = Image.new("RGBA", im.size, (255, 255, 255, 255))
+        bg.alpha_composite(im)
+        g = bg.convert("L").point(lambda v: 0 if v < 165 else 255)
+        g = _cerrar_huecos_lineart(g)
+        g.thumbnail((1100, 1100), Image.LANCZOS)
+        g.save(os.path.join(d, fn), optimize=True)
+        out.append(fn)
+        if len(out) >= 3:
+            break
+    return out or None
+
+
+def _arte_de_grado(edad, d, escolar=False):
     """Arte ESCOLAR por grado (pedido de Pablo 24-jul: "que toda la temática sea la que
     tiene la portada"): si existe `actividades_arte/g<grado>/s*.png`, ese elenco —dibujado
     en el estilo de la portada de ESE grado— reemplaza a los stickers del tema de cumpleaños.
     Grado = edad − 5 (edad 9 → 4°). Devuelve (personajes, sombras) o None si no hay arte
     para el grado → el llamador cae al comportamiento de siempre (`_personajes(tema, d)`),
     así los temas sin arte propio siguen exactamente igual."""
-    try:
-        grado = int(str(edad).strip()) - 5
-    except (TypeError, ValueError):
-        return None
-    src = os.path.join(BASEDIR, "actividades_arte", "g%d" % grado)
-    if not os.path.isdir(src):
+    src = _dir_grado(edad, escolar)
+    if src is None:
         return None
     out = []
     for fn in sorted(f for f in os.listdir(src) if re.fullmatch(r"s\d{2}\.png", f)):
@@ -1162,7 +1253,7 @@ def revocar(token, on=True):
     return dj["revocado"]
 
 
-def _armar_data(tema, nombre, edad, seed):
+def _armar_data(tema, nombre, edad, seed, escolar=False):
     """El data.json del token: paleta + menú + puzzles verificados."""
     from cuaderno import _tema_nombre, _tema_palabras, PALABRAS
     banda = _banda(edad)
@@ -1200,9 +1291,9 @@ def _armar_data(tema, nombre, edad, seed):
     titulo = ("Las actividades de %s" % nombre) if nombre else "Cuaderno de actividades"
     menu_niv = _marcar_niveles(_menu(banda, edad))
     return {
-        "v": 1, "tema": tema, "tema_nombre": _mundo_de_grado(edad) or _tema_nombre(tema),
+        "v": 1, "tema": tema, "tema_nombre": _mundo_de_grado(edad, escolar) or _tema_nombre(tema),
         "nombre": nombre, "edad": edad, "banda": banda, "titulo": titulo,
-        "paleta": _paleta(tema),
+        "paleta": _paleta_de_grado(edad, escolar) or _paleta(tema),
         "menu": menu_niv,
         "niveles": _niveles_meta(menu_niv),
         "sopas": sopas, "sudokus": sudokus, "laberintos": laberintos,
@@ -1654,23 +1745,32 @@ def crear(data, tema, token=None):
     edad = (str(data.get("edad") or "")).strip()
     seed = zlib.crc32(token.encode())
 
-    pers, sombras = _arte_de_grado(edad, d) or _personajes(tema, d)
-    cols = _colorear(tema, d)
-    esc = _escena(tema, d)
-    dj = _armar_data(tema, nombre, edad, seed)
-    dj["personajes"] = pers
-    dj["sombras"] = sombras
-    dj["colorear"] = cols
-    dj["escena"] = esc
-    # activación escalable por niveles: modo premium por token (default OFF → sin
-    # impacto en links vivos) + nivel_max (el nivel más alto desbloqueado; se
-    # PRESERVA si el token se regenera, para no "perder" una compra al re-armar).
-    dj["premium_on"] = bool(data.get("premium_on"))
+    # los flags por token se PRESERVAN si el token se regenera (para no "perder" una
+    # compra al re-armar), así que el data.json anterior se lee ANTES de armar el arte.
     _prev = {}
     try:
         _prev = json.load(open(os.path.join(d, "data.json"), encoding="utf-8"))
     except Exception:
         pass
+    # línea ESCOLAR (default OFF): el cuaderno se ambienta en el mundo del GRADO —
+    # elenco, header, paleta, escena y páginas para colorear salen de la portada de ese
+    # grado. Sin el flag manda el TEMA que el cliente eligió, así una compra del kit
+    # (safari, princesas…) no se convierte en "Científicos en Acción" por la edad.
+    escolar = bool(data.get("escolar_on") or _prev.get("escolar_on"))
+
+    pers, sombras = _arte_de_grado(edad, d, escolar) or _personajes(tema, d)
+    cols = _colorear_de_grado(edad, d, escolar) or _colorear(tema, d)
+    esc = _escena_de_grado(edad, d, escolar) or _escena(tema, d)
+    dj = _armar_data(tema, nombre, edad, seed, escolar)
+    dj["personajes"] = pers
+    dj["sombras"] = sombras
+    dj["colorear"] = cols
+    dj["escena"] = esc
+    dj["escolar_on"] = escolar
+    # activación escalable por niveles: modo premium por token (default OFF → sin
+    # impacto en links vivos) + nivel_max (el nivel más alto desbloqueado; se
+    # PRESERVA si el token se regenera, para no "perder" una compra al re-armar).
+    dj["premium_on"] = bool(data.get("premium_on"))
     dj["nivel_max"] = int(data.get("nivel_max") or _prev.get("nivel_max") or 1)
     # acceso gateado por cuenta (Fase 2): con requiere_cuenta=True el visor /act/
     # deja de ser público y pide un permiso firmado que emite la biblioteca
