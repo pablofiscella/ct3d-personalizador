@@ -969,6 +969,20 @@ function modoMaestro() {
   });
 }
 
+// Perfil de DEMO (para ?demo=1): un chico que ya domina Matemática de 4° → deja ver el panel
+// de padres con el upsell. No afecta perfiles reales (crea uno aparte "Sofía (demo)").
+function _demoProgreso() {
+  const dom = () => ({ dias: ["2026-07-20", "2026-07-22"], sello: "dominado", repasarEn: 0 });
+  const juegos = ["serie", "recta_numerica", "suma_columnas", "tablas_ninja", "multiplicar",
+    "dividir", "cuenta_larga", "problemas_mult_div", "completar_entero", "reparto_fracciones",
+    "fracciones_equivalentes", "duelo_fracciones", "angulos", "sopa", "acentuacion", "sujeto_predicado"];
+  const stars = {}, dominio = {};
+  juegos.forEach((g) => { stars[g] = 3; dominio[g] = dom(); });
+  Store.data.activeProfile = "Sofía (demo)";
+  Store.data.profiles["Sofía (demo)"] = { stars, dominio };
+  Store.save();
+}
+
 /* ── Panel de padres: progreso del chico por materia (domina / practicando / le falta),
    estilo ALEKS-Pie. Client-side (lee Store + Adapt). Gateado por adaptativo_on. ── */
 function panelPadres() {
@@ -1065,6 +1079,9 @@ async function boot() {
   if (!meta) { meta = document.createElement("meta"); meta.name = "theme-color"; document.head.appendChild(meta); }
   meta.content = D.paleta.ac;
   Store.load();
+  // ?demo=1 (solo con adaptativo_on): carga un perfil que ya domina Matemática, para VER el
+  // panel de padres con el upsell sin tener que jugar 100 actividades. Para mostrarle a Pablo.
+  if (D.adaptativo_on && /[?&]demo\b/.test(location.search)) _demoProgreso();
   Sfx.on = Store.data.sound !== false;
   $("#btnSonido").textContent = Sfx.on ? "🔊" : "🔇";
   Confeti.init();
