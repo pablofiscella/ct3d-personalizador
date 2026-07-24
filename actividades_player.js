@@ -717,7 +717,10 @@ function _adaptCSS() {
   _adaptCSSInyectado = true;
   const s = document.createElement("style");
   s.textContent =
-    "#menu .carta{position:relative}" +
+    "#menu .carta,.menu-cat .carta{position:relative}" +
+    ".menu-cat{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:16px;margin:0 0 6px}" +
+    ".cat-titulo{font-size:20px;font-weight:800;margin:22px 4px 12px;opacity:.92;display:flex;align-items:center;gap:8px}" +
+    "@media(max-width:560px){.menu-cat{grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:12px}.cat-titulo{font-size:17px;margin:16px 2px 9px}}" +
     ".carta.adapt-recomendado{box-shadow:inset 0 0 0 3px #2ecc71,0 8px 22px rgba(0,0,0,.14)}" +
     ".carta.adapt-reforzar{box-shadow:inset 0 0 0 3px #f5a623;opacity:.9}" +
     ".carta.adapt-repaso{box-shadow:inset 0 0 0 3px #4aa3df}" +
@@ -744,14 +747,12 @@ function pintarMenuPlano(items, stage) {
     stage.appendChild(el("div", "repaso-nota",
       `🔁 Tenés ${repasos.length} ${repasos.length === 1 ? "repaso" : "repasos"} para hacer hoy — ¡a ver si te lo acordás!`));
   }
-  const menu = el("div"); menu.id = "menu";
-  // Piloto adaptativo (gateado por D.adaptativo_on): ordena y decora por estado de saber,
-  // SIN bloquear. Los links sin el flag no ejecutan nada de esto.
+  // Piloto adaptativo (gateado por D.adaptativo_on): separa el menú por categorías y decora
+  // por estado de saber, SIN bloquear. Los links sin el flag ven el menú plano de siempre.
   const adaptOn = !!(D.adaptativo_on && typeof Adapt !== "undefined");
-  if (adaptOn) { _adaptCSS(); items = items.slice().sort((a, b) => Adapt.peso(a.id) - Adapt.peso(b.id)); }
-  items.forEach((m, i) => {
-    if (!GAMES[m.id]) return;
-    if (P.length < (GAMES[m.id].minP || 0)) return;   // tema con pocos personajes
+  const visibles = items.filter((m) => GAMES[m.id] && P.length >= (GAMES[m.id].minP || 0));
+
+  const hacerCarta = (m, i) => {
     const st = Store.stars(m.id);
     const sello = Store.sello(m.id);           // Capa 0 · sello sostenido
     const repaso = Store.repasoPendiente(m.id);
@@ -773,9 +774,26 @@ function pintarMenuPlano(items, stage) {
       <div class="mini-est">${est}</div>
       ${conSprite ? `<div class="chip">${m.icono}</div>` : ""}`;
     c.addEventListener("click", () => { Sfx.pop(); Shell.abrir(m.id); });
-    menu.appendChild(c);
-  });
-  stage.appendChild(menu);
+    return c;
+  };
+
+  if (adaptOn) {
+    _adaptCSS();
+    const EMOJI = { lengua: "✏️", matematica: "🔢", naturales: "🌱", sociales: "🌎", logica: "🎲" };
+    Adapt.ordenCategorias().forEach((cat) => {
+      const delCat = visibles.filter((m) => Adapt.categoria(m.id) === cat)
+                             .sort((a, b) => Adapt.peso(a.id) - Adapt.peso(b.id));
+      if (!delCat.length) return;                    // categoría vacía en este grado → no se muestra
+      stage.appendChild(el("h3", "cat-titulo", `${EMOJI[cat] || "•"} ${Adapt.labelCategoria(cat)}`));
+      const grid = el("div", "menu-cat");
+      delCat.forEach((m, i) => grid.appendChild(hacerCarta(m, i)));
+      stage.appendChild(grid);
+    });
+  } else {
+    const menu = el("div"); menu.id = "menu";
+    visibles.forEach((m, i) => menu.appendChild(hacerCarta(m, i)));
+    stage.appendChild(menu);
+  }
 }
 
 function pantallaCandado(nv) {

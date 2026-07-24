@@ -54,12 +54,12 @@ CATEGORIA = {
     "verbos_pasado": "lengua",
 
     # ─────────── MATEMÁTICA ───────────
-    "agrupar": "matematica",
+    # agrupar: LÚDICO (clasificar sprites en canastas, no valor posicional) → Extras (movido a la sección logica)
     "angulos": "matematica",
     "anterior_siguiente": "matematica",
     "arbol_probabilidad": "matematica",
     "area_perimetro": "matematica",
-    "bingo": "matematica",                # bingo de números
+    # bingo: LÚDICO (matching de imágenes/sprites, NO números) → Extras (movido a la sección logica)
     "cajero_automatico": "matematica",
     "comparar_numeros": "matematica",
     "completar_entero": "matematica",
@@ -88,7 +88,7 @@ CATEGORIA = {
     "numeros_primos": "matematica",
     "ordenar_numeros": "matematica",
     "pago_exacto": "matematica",
-    "patron": "matematica",               # patrones/secuencias
+    # patron: LÚDICO (seguir secuencia VISUAL de sprites (1°-2°)) → Extras (movido a la sección logica)
     "poligonos_lados": "matematica",
     "porcentajes": "matematica",
     "posicion": "matematica",             # confirmado: arriba/abajo/adentro/afuera (nociones espaciales, geometría 1°)
@@ -160,7 +160,10 @@ CATEGORIA = {
     "trivia_colonial": "sociales",
     "viaje_inmigrante": "sociales",
 
-    # ─────────── LÓGICA / TRANSVERSAL (sin materia) ───────────
+    # ─────────── EXTRAS / LÚDICO (sin materia; dificultad no escala a 4° → NO académicos) ───────────
+    "bingo": "logica",
+    "agrupar": "logica",
+    "patron": "logica",
     "colorear": "logica",
     "diferente": "logica",
     "escape_room_egreso": "logica",       # repaso mixto de egreso
@@ -186,7 +189,7 @@ def categoria_de(juego_id, default=None):
 CATEGORIA_ORDEN = ["lengua", "matematica", "naturales", "sociales", "logica"]
 CATEGORIA_LABEL = {
     "lengua": "Lengua", "matematica": "Matemática", "naturales": "Cs. Naturales",
-    "sociales": "Cs. Sociales", "logica": "Ingenio",
+    "sociales": "Cs. Sociales", "logica": "Extras",
 }
 
 
