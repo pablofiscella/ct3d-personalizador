@@ -263,3 +263,68 @@ def test_otro_grado_no_hereda_la_tematica(arte_dir):
         assert _data(d)["paleta"] != aw.PALETA_GRADO[GRADO]
     finally:
         shutil.rmtree(d, ignore_errors=True)
+
+
+# ── el flag como interruptor de la LÍNEA ESCOLAR ────────────────────────────────
+@pytest.mark.parametrize("valor,esperado", [
+    (True, True), (False, False), (None, False),
+    # el POST /api/generar stringifica los campos extra: sin _flag, "False" sería True
+    ("True", True), ("False", False), ("true", True), ("false", False),
+    ("1", True), ("0", False), ("", False), ("off", False),
+])
+def test_flag_tolera_el_valor_stringificado(valor, esperado):
+    assert aw._flag(valor) is esperado
+
+
+def test_escolar_enciende_el_motor_adaptativo(arte_dir):
+    """`escolar_on` es UN interruptor: mundo del grado + motor adaptativo. Si no, quedan
+    medios estados (arte del grado con menú plano, o menú adaptativo sobre safari)."""
+    _elenco(arte_dir)
+    tok = "test-tem-adapt-aabb"
+    d = _crear(tok)
+    try:
+        dj = _data(d)
+        assert dj["escolar_on"] is True and dj["adaptativo_on"] is True
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+def test_token_por_tema_no_enciende_el_adaptativo(arte_dir):
+    """No-regresión: la compra por tema queda como siempre, con el menú de siempre."""
+    _elenco(arte_dir)
+    tok = "test-tem-adapt2-aabb"
+    d = _crear(tok, escolar=False)
+    try:
+        dj = _data(d)
+        assert dj["escolar_on"] is False and dj["adaptativo_on"] is False
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+def test_escolar_apagado_explicito_no_se_enciende(arte_dir):
+    """`escolar_on=False` del payload llega como la cadena "False": debe APAGAR."""
+    _elenco(arte_dir)
+    tok = "test-tem-adapt3-aabb"
+    d = _crear(tok, escolar="False")
+    try:
+        dj = _data(d)
+        assert dj["escolar_on"] is False, "un False explícito encendió la línea escolar"
+        assert dj["tema_nombre"] != aw.MUNDO_GRADO[GRADO]
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+def test_adaptativo_se_preserva_al_regenerar(arte_dir):
+    """Los 3 tokens de prueba traen adaptativo_on puesto A MANO en data.json; hasta
+    ahora `crear()` no lo manejaba y regenerarlos lo perdía."""
+    _elenco(arte_dir)
+    tok = "test-tem-adapt4-aabb"
+    d = _crear(tok, escolar=False)
+    try:
+        dj = json.load(open(os.path.join(d, "data.json"), encoding="utf-8"))
+        dj["adaptativo_on"] = True                       # como se hizo a mano en prod
+        json.dump(dj, open(os.path.join(d, "data.json"), "w", encoding="utf-8"))
+        aw.crear({"nombre": "Test", "edad": EDAD_5TO}, TEMA, token=tok)   # regenerar
+        assert _data(d)["adaptativo_on"] is True, "se perdió el flag al regenerar"
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
