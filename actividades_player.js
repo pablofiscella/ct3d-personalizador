@@ -125,6 +125,12 @@ async function cargarAudioManifest() {
 // atropellarse: antes usaba pausas fijas "a ojo" y, si la frase real duraba
 // más que la pausa, la siguiente la cortaba en seco (Pablo 15-jul-2026:
 // "entre cuando explica 0 + 4 no hace pausa y queda el audio muy junto").
+// Nombre de la voz de las actividades. Espejo de `actividades_web.VOZ_ACTIVIDADES`:
+// al cambiar de voz hay que cambiarlo acá también, y con eso se invalidan las URLs
+// de /tts en el navegador de todos (el player ya se sirve con ?v=<mtime>, así que
+// este archivo nuevo llega a todos los links, incluidos los ya vendidos).
+const VOZ_TTS = "valeria";
+
 function reproducirConsigna(txt) {
   if (vozActual) { vozActual.pause(); vozActual = null; }
   if (!Sfx.on) return Promise.resolve(false);
@@ -132,7 +138,13 @@ function reproducirConsigna(txt) {
   // Texto DINÁMICO (consignas/explicaciones generadas, que no están en el
   // manifest) → endpoint /tts on-demand, MISMA voz argentina, cacheado en el
   // server. Antes el texto dinámico quedaba en silencio (19-jul-2026).
-  const archivo = AudioManifest[txt] || ("/tts?t=" + encodeURIComponent(txt));
+  //
+  // El `&v=` NO lo usa el servidor: está para que la URL cambie cuando cambia la
+  // voz. Los mp3 pregrabados llevan la voz en el nombre del archivo, así que ahí
+  // el cambio se propaga solo; esta URL, en cambio, era idéntica antes y después,
+  // y el NAVEGADOR del que ya había usado el cuaderno seguía reproduciendo la voz
+  // vieja desde su caché (Pablo lo cazó en "¿Qué número falta?", 25-jul-2026).
+  const archivo = AudioManifest[txt] || ("/tts?t=" + encodeURIComponent(txt) + "&v=" + VOZ_TTS);
   const audio = new Audio(archivo);
   vozActual = audio;
   return new Promise((resolve) => {
