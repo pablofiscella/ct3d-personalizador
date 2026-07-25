@@ -8076,6 +8076,40 @@ const FRACCIONES_BANCO = [
   { num: 3, den: 6, eq: { num: 6, den: 12 }, d1: { num: 5, den: 12 }, d2: { num: 7, den: 12 } },
   { num: 2, den: 4, eq: { num: 6, den: 12 }, d1: { num: 5, den: 12 }, d2: { num: 7, den: 12 } }
 ];
+/* Fracción + su equivalente + 2 distractores, todo generado. La equivalente sale de
+   multiplicar numerador y denominador por el mismo k; los distractores comparten el
+   denominador de la equivalente y cambian el numerador, así que NO pueden ser equivalentes
+   por accidente (mismo denominador y distinto numerador ⇒ distinto valor).
+   Las barras se dibujan con un segmento por parte, así que el denominador de la
+   equivalente se topea para que siga entrando en pantalla.
+   Al dominar, denominadores más grandes: ver la equivalencia cuesta más. */
+function _generarFraccionEquiv(bonus, usados) {
+  // 12 es el tope real: es el denominador más grande que ya usaba el banco original,
+  // o sea el máximo de segmentos que la barra dibuja bien.
+  const TOPE_SEG = 12;
+  for (let intento = 0; intento < 40; intento++) {
+    const den = rint(2, 6);
+    const num = rint(1, den - 1);
+    const kMax = Math.max(2, Math.floor(TOPE_SEG / den));
+    const k = rint(2, kMax);
+    const eqDen = den * k, eqNum = num * k;
+    if (eqDen > TOPE_SEG) continue;
+    // el dominio NO recorta la variedad, sólo empuja a lo difícil: denominadores
+    // grandes cuestan más de ver. (Atarle el rango al bonus dejaba 3 combinaciones
+    // en frío — muchas menos que el banco que reemplaza.)
+    if (bonus > 0 && eqDen < Math.min(12, 6 + bonus * 2) && intento < 25) continue;
+    const otros = [];
+    for (let n = 1; n < eqDen && otros.length < 8; n++) if (n !== eqNum) otros.push(n);
+    if (otros.length < 2) continue;
+    const dos = shuffle(otros).slice(0, 2);
+    const clave = num + "/" + den;
+    if (usados && usados.includes(clave) && intento < 30) continue;
+    return { num: num, den: den, eq: { num: eqNum, den: eqDen },
+             d1: { num: dos[0], den: eqDen }, d2: { num: dos[1], den: eqDen } };
+  }
+  return { num: 1, den: 2, eq: { num: 2, den: 4 }, d1: { num: 1, den: 4 }, d2: { num: 3, den: 4 } };
+}
+
 GAMES.fracciones_equivalentes = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 5;
@@ -8091,11 +8125,9 @@ GAMES.fracciones_equivalentes = {
       ctx.ronda(ronda);
       consignaVariada(ctx, ronda, "¿Cuál de estas barras muestra la misma fracción?", "f");
       ctx.juego.innerHTML = "";
-      let disp = FRACCIONES_BANCO.filter((x) => !usados.includes(x.num + "/" + x.den));
-      if (!disp.length) { usados = []; disp = FRACCIONES_BANCO; }
-      if (ctx.bonusDominio > 0 && disp.length > 2)   // adaptativo: al dominar, prioriza denominadores grandes (más difícil ver la equivalencia)
-        disp = disp.slice().sort((a, b) => b.den - a.den).slice(0, Math.max(2, Math.ceil(disp.length / (1 + ctx.bonusDominio))));
-      const item = disp[rint(0, disp.length - 1)];
+      // GENERADA, no elegida de una lista (pedido de Pablo 24-jul: que no aprenda de
+      // memoria). La equivalencia se COMPUTA, así que no hay ítem que escribir.
+      const item = _generarFraccionEquiv(ctx.bonusDominio, usados);
       usados.push(item.num + "/" + item.den);
       const arriba = el("div", "tablero");
       arriba.appendChild(barra(item.num, item.den));
@@ -8520,6 +8552,25 @@ const ANGULOS_BANCO = [
   { grados: 168, tipo: "obtuso" },
   { grados: 175, tipo: "obtuso" }
 ];
+/* Ángulo nuevo cada vez. `tipo` se computa del valor — nunca puede quedar mal etiquetado.
+   Al dominar, los ángulos caen CERCA de 90°, que es donde clasificar cuesta de verdad
+   (un ángulo de 12° lo resuelve cualquiera de un vistazo). Evita repetir dentro de la
+   misma partida sin quedarse nunca sin candidatos. */
+function _generarAngulo(bonus, usados) {
+  const cerca = Math.max(6, 40 - (bonus || 0) * 12);
+  for (let intento = 0; intento < 30; intento++) {
+    const t = rint(0, 9);
+    let g;
+    if (t === 0) g = 90;
+    else if (t <= 4) g = bonus > 0 ? rint(90 - cerca, 89) : rint(10, 85);
+    else g = bonus > 0 ? rint(91, 90 + cerca) : rint(95, 170);
+    if (!usados || !usados.includes(g) || intento > 20) {
+      return { grados: g, tipo: g === 90 ? "recto" : (g < 90 ? "agudo" : "obtuso") };
+    }
+  }
+  return { grados: 90, tipo: "recto" };
+}
+
 GAMES.angulos = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 6;
@@ -8530,11 +8581,11 @@ GAMES.angulos = {
       ctx.ronda(ronda);
       consignaVariada(ctx, ronda, "¿Es agudo, recto u obtuso?", "m");
       ctx.juego.innerHTML = "";
-      let disp = ANGULOS_BANCO.filter((x) => !usados.includes(x.grados));
-      if (!disp.length) { usados = []; disp = ANGULOS_BANCO; }
-      if (ctx.bonusDominio > 0 && disp.length > 2)   // adaptativo: al dominar, prioriza ángulos cerca de 90° (más difícil clasificar)
-        disp = disp.slice().sort((a, b) => Math.abs(a.grados - 90) - Math.abs(b.grados - 90)).slice(0, Math.max(2, Math.ceil(disp.length / (1 + ctx.bonusDominio))));
-      const item = disp[rint(0, disp.length - 1)];
+      // GENERADO, no elegido de una lista: con 24 ángulos fijos, a la segunda partida
+      // ya los vio todos y clasificar pasa a ser memoria en vez de aplicar la regla
+      // (pedido de Pablo 24-jul). El tipo se COMPUTA del valor, así que no hay contenido
+      // que escribir y las variantes son miles.
+      const item = _generarAngulo(ctx.bonusDominio, usados);
       usados.push(item.grados);
       const arriba = el("div", "tablero");
       const dibujo = el("div", "anguloDibujo");
