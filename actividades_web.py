@@ -32,6 +32,18 @@ TEMPLATE_JS = os.path.join(BASEDIR, "actividades_player.js")
 TEMPLATE_MOTOR = os.path.join(BASEDIR, "motor_adaptativo.js")  # capa de saberes (piloto, gateada)
 TEMPLATE_CURRICULUM = os.path.join(BASEDIR, "actividades_curriculum.js")  # catálogo curricular (generado)
 AUDIO_DIR = os.path.join(BASEDIR, "audio_consignas")
+
+# ── Voz de las ACTIVIDADES ──────────────────────────────────────────────────────
+# Pablo (25-jul-2026) escuchó 7 candidatas con la misma frase y eligió VALERIA. La
+# anterior era Lizy, que es la del audiolibro, y la descartó por no sonar rioplatense.
+#
+# Es SÓLO para las actividades y los videos explicativos: el audiolibro sigue con
+# Lizy (`audiolibro._EL_VOICE`), porque hay libros ya vendidos narrados con ella y
+# cambiarla ahí les cambiaría la voz a mitad del catálogo. Por eso está declarada acá
+# —en el módulo de actividades— y no tocando el default del audiolibro.
+VOZ_ACTIVIDADES = "9oPKasc15pfAbMr7N6Gs"      # Valeria — femenina joven, rioplatense
+VOZ_ACTIVIDADES_NOMBRE = "valeria"
+
 VIGENCIA_DIAS = 7300         # igual que el audiolibro: respalda "Mis compras"
 _TOKEN_RE = r"[A-Za-z0-9_-]{8,32}"
 
@@ -2004,9 +2016,17 @@ def _player_version():
         return "1"
 
 
-def _slug_audio(texto):
+def _slug_audio(texto, voz=None):
+    """Nombre del mp3 de una consigna. La VOZ entra en el hash a propósito.
+
+    Sin eso, cambiar de voz no cambiaba el nombre del archivo: los 215 clips viejos
+    seguían sirviéndose con la voz anterior y sólo lo nuevo salía con la nueva, así que
+    el chico escuchaba DOS voces distintas en el mismo cuaderno — peor que no cambiar
+    nada. Con la voz en el hash, cambiarla genera archivos nuevos, los viejos quedan
+    huérfanos (se borran cuando se quiera) y volver atrás es cambiar la constante."""
     import hashlib
-    return "c_" + hashlib.md5(texto.encode("utf-8")).hexdigest()[:10] + ".mp3"
+    clave = "%s|%s" % (voz or VOZ_ACTIVIDADES, texto)
+    return "c_" + hashlib.md5(clave.encode("utf-8")).hexdigest()[:10] + ".mp3"
 
 
 _EMOJI_RE = re.compile(
@@ -2065,7 +2085,8 @@ def generar_audio_consignas(textos):
     consignas son texto FIJO del player (nunca personalizado por compra), así
     que se graban UNA VEZ acá y se sirven como asset del repo — igual
     criterio que player.js/las fuentes, NO se regeneran por token. Reusa el
-    mismo motor de voz del audiolibro (ElevenLabs Lizy, acento argentino).
+    mismo motor de voz del audiolibro (ElevenLabs) pero con la voz de las
+    ACTIVIDADES (`VOZ_ACTIVIDADES` = Valeria), no la del audiolibro.
 
     QA de duración (piso Y techo por conteo de vocales, ver _duracion_minima/
     _duracion_maxima): hasta 4 tomas con seeds distintos, se queda con la
@@ -2093,7 +2114,10 @@ def generar_audio_consignas(textos):
         maximo = _duracion_maxima(limpio)
         mejor = None
         for intento in range(4):
-            mp3 = audiolibro._tts_elevenlabs(limpio, seed=4242 + intento * 137)
+            # voice_id explícito: sin él sale la voz DEFAULT del audiolibro (Lizy), que
+            # es justamente la que se cambió para las actividades.
+            mp3 = audiolibro._tts_elevenlabs(limpio, seed=4242 + intento * 137,
+                                             voice_id=VOZ_ACTIVIDADES)
             if not mp3:
                 # Sin ElevenLabs (falta la key o falló el TTS) _tts_elevenlabs devuelve
                 # None y _dur_mp3_128(None) tiraba "len(None)". Error claro en su lugar.

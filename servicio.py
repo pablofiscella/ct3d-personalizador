@@ -602,8 +602,9 @@ class Handler(BaseHTTPRequestHandler):
         """Voz argentina ON-DEMAND para texto DINÁMICO — las explicaciones del
         porqué (Capa 0 · C3) y las consignas GENERADAS no están en el manifest
         fijo de audio_consignas (ese es para texto fijo, pregrabado). Genera con
-        la MISMA voz del audiolibro (ElevenLabs, acento argentino — NO la voz
-        robótica del navegador) y cachea por hash en audio_dinamico/, así cada
+        la voz de las ACTIVIDADES (`actividades_web.VOZ_ACTIVIDADES` = Valeria,
+        rioplatense — NO la voz robótica del navegador, ni la del audiolibro, que
+        sigue siendo Lizy) y cachea por hash en audio_dinamico/, así cada
         texto se genera UNA sola vez. Guardas anti-abuso: largo máx y tope de
         archivos (bound de costo/almacenamiento). 19-jul-2026."""
         import hashlib, actividades_web, audiolibro
@@ -612,7 +613,11 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(400, {"ok": False})
         din_dir = os.path.join(actividades_web.BASEDIR, "audio_dinamico")
         os.makedirs(din_dir, exist_ok=True)
-        fn = "d_" + hashlib.sha1(texto.encode("utf-8")).hexdigest()[:16] + ".mp3"
+        # la VOZ entra en la clave del caché: si no, al cambiarla el chico seguiría
+        # escuchando la voz vieja en todo lo ya generado y la nueva sólo en lo nuevo
+        # (dos voces en el mismo cuaderno). Mismo criterio que `_slug_audio`.
+        clave = "%s|%s" % (actividades_web.VOZ_ACTIVIDADES, texto)
+        fn = "d_" + hashlib.sha1(clave.encode("utf-8")).hexdigest()[:16] + ".mp3"
         path = os.path.join(din_dir, fn)
         if not os.path.isfile(path):
             try:
@@ -624,7 +629,9 @@ class Handler(BaseHTTPRequestHandler):
                 limpio = actividades_web._texto_para_tts(texto)
             except Exception:
                 limpio = texto
-            mp3 = audiolibro._tts_elevenlabs(limpio)
+            # voice_id explícito (Valeria): sin él sale el default del audiolibro.
+            mp3 = audiolibro._tts_elevenlabs(
+                limpio, voice_id=actividades_web.VOZ_ACTIVIDADES)
             if not mp3:
                 return self._json(503, {"ok": False})     # sin key o falló el TTS: el player sigue en silencio
             tmp = path + ".tmp"
