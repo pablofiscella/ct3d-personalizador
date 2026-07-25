@@ -1561,7 +1561,12 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(400, {"ok": False})
         if not isinstance(body, dict) or not isinstance(body.get("items"), list):
             return self._json(400, {"ok": False})
-        r = aw.extras_guardar(token, body["items"])
+        # `compradas` las manda la TIENDA (server-to-server): son las que el padre PAGÓ,
+        # y por eso no cuentan contra el cupo gratis. El motor no las cuestiona — la
+        # tienda es la única que sabe qué se cobró.
+        compradas = body.get("compradas")
+        r = aw.extras_guardar(token, body["items"],
+                              compradas=compradas if isinstance(compradas, list) else None)
         return self._json(200 if r.get("ok") else 400, r)
 
     def _act_progreso_set(self, token):

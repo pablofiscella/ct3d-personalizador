@@ -221,3 +221,30 @@ def test_del_grado_anterior_no_se_ofrece_comprar():
             assert not x.get("comprable"), "ofrece comprar algo del año pasado: %s" % x
     finally:
         shutil.rmtree(d, ignore_errors=True)
+
+
+def test_lo_comprado_entra_sin_tope_ni_limite_de_grado():
+    """Una actividad PAGADA ($1000, decisión de Pablo 25-jul) no cuenta contra el cupo
+    gratis ni mira el grado: si la pagó, entra. Si no, el padre paga y no recibe."""
+    tok = "test-compra-aabb"
+    d = _token_de("9", tok)                       # 4° grado
+    try:
+        cat = aw.catalogo_actividades()
+        leng5 = [m["id"] for m in cat[5] if m.get("categoria") == "lengua"]
+        assert len(leng5) >= 3, "hace falta contenido de Lengua de 5° para este test"
+        pedidos = [{"id": i, "grado": 5} for i in leng5]
+        # sin comprar: entra 1 sola (el cupo gratis del grado siguiente)
+        libre = aw.extras_guardar(tok, pedidos)
+        assert len([x for x in libre["items"] if x["grado"] == 5]) == aw.EXTRAS_TOPE_ADYACENTE
+        # comprando 2: entran las 2 pagadas ADEMÁS de la gratis
+        pagadas = [{"id": leng5[1], "grado": 5}, {"id": leng5[2], "grado": 5}]
+        r = aw.extras_guardar(tok, pedidos, compradas=pagadas)
+        de5 = [x for x in r["items"] if x["grado"] == 5]
+        assert len(de5) == aw.EXTRAS_TOPE_ADYACENTE + 2, [x["id"] for x in de5]
+        assert sum(1 for x in de5 if x["origen"] == "comprada") == 2
+        # una comprada de un grado LEJANO también entra: la pagó
+        lejana = [{"id": cat[7][0]["id"], "grado": 7}]
+        r2 = aw.extras_guardar(tok, lejana, compradas=lejana)
+        assert len(r2["items"]) == 1 and r2["items"][0]["origen"] == "comprada"
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
