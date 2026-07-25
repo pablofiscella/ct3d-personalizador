@@ -822,6 +822,7 @@ function comoEsDe(id) { return COMO_ES[id] || null; }
    qué parte puntual se trabó). Una regla sin entrada acá simplemente no muestra
    video: el popup queda igual que antes. */
 const COMO_ES_VIDEO = {
+  // Acentuación va en 4 cortes porque son 4 reglas que se explican por separado.
   acentuacion: {
     auto: "lec_acentuacion_tonica.mp4",
     partes: [
@@ -830,6 +831,29 @@ const COMO_ES_VIDEO = {
       { t: "Graves", f: "lec_acentuacion_graves.mp4", s: 27 },
       { t: "Esdrújulas", f: "lec_acentuacion_esdrujulas.mp4", s: 23 },
     ],
+  },
+  // Las de Matemática son UNA pieza cada una: son un procedimiento seguido (no se
+  // puede explicar "te llevás una" sin haber mostrado el paso anterior), así que
+  // partirlas rompería el hilo en vez de ayudar.
+  multiplicar: {
+    auto: "lec_multiplicar.mp4",
+    partes: [{ t: "Multiplicar en columna", f: "lec_multiplicar.mp4", s: 35 }],
+  },
+  completar_entero: {
+    auto: "lec_completar_entero.mp4",
+    partes: [{ t: "Qué es una fracción", f: "lec_completar_entero.mp4", s: 33 }],
+  },
+  dividir: {
+    auto: "lec_dividir.mp4",
+    partes: [{ t: "Dividir con resto", f: "lec_dividir.mp4", s: 40 }],
+  },
+  angulos: {
+    auto: "lec_angulos.mp4",
+    partes: [{ t: "Agudo, recto y obtuso", f: "lec_angulos.mp4", s: 32 }],
+  },
+  fracciones_equivalentes: {
+    auto: "lec_fracciones_equivalentes.mp4",
+    partes: [{ t: "Fracciones equivalentes", f: "lec_fracciones_equivalentes.mp4", s: 33 }],
   },
 };
 

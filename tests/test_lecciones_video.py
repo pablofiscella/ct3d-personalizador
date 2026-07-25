@@ -33,14 +33,24 @@ def test_todo_video_declarado_existe_de_verdad():
     assert not faltan, "videos declarados que no están en lecciones_video/: %s" % faltan
 
 
-def test_los_cortes_son_cortos():
-    """El motivo de partir la lección de 85 s. Un corte largo no arregla nada."""
+def test_ninguna_leccion_se_va_de_largo():
+    """El motivo de haber partido la lección de 85 s: un chico no banca eso en medio
+    de una actividad.
+
+    El tope es 45 s y no 35 porque las lecciones de PROCEDIMIENTO (multiplicar,
+    dividir) no se pueden acortar sin sacar un paso, y el paso que sobraría en
+    división es la comprobación —justo donde más se equivocan—. Los cortes de una
+    sub-regla, en cambio, quedan holgados debajo de 30 s. El tope está para cazar una
+    lección que se fue de mano, no para forzar recortes pedagógicos."""
     import subprocess
+    largas = []
     for v in sorted(_videos_declarados()):
         p = os.path.join(BASEDIR, "lecciones_video", v)
         d = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
                                   "-of", "csv=p=0", p], capture_output=True, text=True).stdout.strip())
-        assert d <= 35, "%s dura %.1fs: es demasiado para un chico mid-actividad" % (v, d)
+        if d > 45:
+            largas.append("%s (%.1fs)" % (v, d))
+    assert not largas, "lecciones demasiado largas para verlas jugando: %s" % largas
 
 
 def test_el_motor_sirve_los_mp4_y_solo_los_de_lecciones():
