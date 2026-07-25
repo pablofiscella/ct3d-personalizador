@@ -1273,7 +1273,9 @@ function cerrarLogro() { $("#logro").classList.remove("ver"); }
 function abrirPerfil() {
   const lista = $("#perfilLista");
   lista.innerHTML = "";
-  Object.keys(Store.data.profiles).forEach((n) => {
+  // con un solo chico no se ofrecen "otros perfiles": esa lista es lo que hacía que
+  // un intento de corregir el nombre terminara sumando gente.
+  (perfilUnico() ? [] : Object.keys(Store.data.profiles)).forEach((n) => {
     const b = el("button", "btn suave");
     b.type = "button";
     b.textContent = n;
@@ -1289,7 +1291,13 @@ function abrirPerfil() {
   // misma pantalla ya lo resuelve (perfil 1 queda de botón arriba, el
   // input para el nombre nuevo arranca vacío, no repite el de la compra).
   const esElPrimerPerfil = Object.keys(Store.data.profiles).length === 0;
-  $("#perfilInput").value = esElPrimerPerfil ? (D.nombre || "") : "";
+  // En un cuaderno de UN chico el input arranca con SU nombre: la pantalla se lee como
+  // "corregí el nombre", no como "agregá otro". Y el placeholder genérico no se
+  // precarga nunca — que diga "Peque" invita a aceptarlo y después no se podía cambiar.
+  const deLaCompra = (D.nombre && D.nombre !== NOMBRE_GENERICO) ? D.nombre : "";
+  $("#perfilInput").value = perfilUnico()
+    ? (Store.data.activeProfile || deLaCompra)
+    : (esElPrimerPerfil ? deLaCompra : "");
   $("#perfil").classList.add("ver");
   $("#perfilInput").focus();
   // cursor al final (no seleccionar todo el texto): se entiende que se
@@ -1299,9 +1307,44 @@ function abrirPerfil() {
   $("#perfilInput").setSelectionRange(largo, largo);
 }
 function cerrarPerfil() { $("#perfil").classList.remove("ver"); }
+/* El nombre con el que se crea un cuaderno escolar es un PLACEHOLDER, no un chico:
+   el canje del código no sabe cómo se llama, así que pone "Peque". */
+const NOMBRE_GENERICO = "Peque";
+
+/* Un cuaderno ESCOLAR es de un grado puntual → es de UN solo chico. El de cumpleaños,
+   en cambio, se comparte entre hermanos y ahí varios perfiles tienen sentido. */
+function perfilUnico() {
+  return !!(typeof D !== "undefined" && D.escolar_on);
+}
+
+function _tieneProgreso(p) {
+  return !!(p && p.stars && Object.keys(p.stars).length);
+}
+
 function elegirPerfil(nombre) {
   nombre = (nombre || "").trim().slice(0, 20);
   if (!nombre) return;
+  if (perfilUnico()) {
+    // RENOMBRAR, no agregar. Pablo (25-jul-2026) puso "Peque" —el placeholder que venía
+    // precargado—, después quiso corregirlo a su nombre y el cuaderno le creó un
+    // segundo perfil; siguió intentando y llegó a tres. "No quiero dos usuarios con la
+    // misma actividad, lo haría todo más complejo."
+    // el perfil a renombrar es el activo; si no hay activo pero existe UNO solo, es ese
+    // (puede pasar si la pantalla se abre antes de elegir: sin esto se crearía un
+    // segundo perfil y el chico perdería de vista su progreso).
+    const claves = Object.keys(Store.data.profiles);
+    const activo = Store.data.activeProfile || (claves.length === 1 ? claves[0] : null);
+    if (activo && activo !== nombre && Store.data.profiles[activo] &&
+        !Store.data.profiles[nombre]) {
+      Store.data.profiles[nombre] = Store.data.profiles[activo];   // se lleva el progreso
+      delete Store.data.profiles[activo];
+    }
+    // limpia los que quedaron de intentos anteriores, pero SÓLO si no jugaron nada:
+    // borrar un perfil con progreso sería tirar el trabajo de un chico.
+    Object.keys(Store.data.profiles).forEach((k) => {
+      if (k !== nombre && !_tieneProgreso(Store.data.profiles[k])) delete Store.data.profiles[k];
+    });
+  }
   if (!Store.data.profiles[nombre]) Store.data.profiles[nombre] = { stars: {} };
   Store.data.activeProfile = nombre;
   Store.save();

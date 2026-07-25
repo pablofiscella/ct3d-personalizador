@@ -374,3 +374,81 @@ def test_la_portada_no_se_deforma(grado, edad, tmp_path, monkeypatch):
 def test_el_kit_por_tema_NO_usa_la_portada_del_grado():
     """La compuerta de siempre: un cuaderno comprado por tema sigue con su tarjeta."""
     assert aw._portada_de_grado("9", False) is None
+
+
+# ── un cuaderno escolar es de UN chico ──────────────────────────────────────────
+def _perfiles(escolar, nombres, previos=None):
+    """Corre `elegirPerfil` del player REAL con node y devuelve los perfiles que quedan.
+
+    Se evalúa el código servido, no una reimplementación: lo que falló acá es una
+    interacción entre tres funciones del player, y una copia en Python probaría otra cosa.
+    """
+    import json
+    import subprocess
+    src_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                            "actividades_player.js")
+    js = """
+      const fs = require('fs');
+      const src = fs.readFileSync(%s, 'utf8');
+      const g = (a, b) => { const i = src.indexOf(a); return src.slice(i, src.indexOf(b, i)); };
+      var D = {escolar_on: %s, nombre: "Peque"};
+      var Store = {data: {profiles: %s, activeProfile: null}, save() {}};
+      eval(g('const NOMBRE_GENERICO', 'function elegirPerfil(')
+           + g('function elegirPerfil(', '  Store.save();') + '}'
+           + 'function cerrarPerfil(){};function pintarHeader(){};function pintarMenu(){};');
+      for (const n of %s) elegirPerfil(n);
+      console.log(JSON.stringify({p: Object.keys(Store.data.profiles),
+                                  activo: Store.data.activeProfile}));
+    """ % (json.dumps(src_path), "true" if escolar else "false",
+           json.dumps(previos or {}), json.dumps(nombres))
+    r = subprocess.run(["node", "-e", js], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    return json.loads(r.stdout.strip())
+
+
+def test_en_el_cuaderno_escolar_cambiar_el_nombre_no_agrega_otro_chico():
+    """Pablo (25-jul-2026): puso "Peque" —el placeholder precargado—, quiso corregirlo,
+    y el cuaderno le creó un segundo perfil. Siguió intentando y llegó a TRES.
+    "No quiero dos usuarios con la misma actividad, lo haría todo más complejo"."""
+    r = _perfiles(True, ["Peque", "Pablo", "Lalo"])
+    assert r["p"] == ["Lalo"], "quedaron %s" % r["p"]
+    assert r["activo"] == "Lalo"
+
+
+def test_renombrar_se_lleva_el_progreso():
+    """Si al corregir el nombre se perdieran las estrellas, el chico empezaría de cero
+    por un error de tipeo del padre."""
+    r = _perfiles(True, ["Pablo"], previos={"Peque": {"stars": {"sopa": 3}}})
+    assert r["p"] == ["Pablo"]
+
+
+def test_no_se_pierde_progreso_al_renombrar_el_unico_perfil():
+    """Con un solo chico, poner otro nombre ES renombrar: el perfil pasa a llamarse así
+    y las estrellas viajan con él."""
+    r = _perfiles(True, ["Otro"], previos={"Hermana": {"stars": {"sopa": 3}}})
+    assert r["p"] == ["Otro"] and r["activo"] == "Otro"
+
+
+def test_la_limpieza_no_se_lleva_un_perfil_con_progreso():
+    """Si quedaron varios de antes del arreglo, sólo se descartan los VACÍOS: uno con
+    estrellas es el trabajo de alguien y no se borra en silencio."""
+    r = _perfiles(True, ["Pablo"],
+                  previos={"Peque": {"stars": {}}, "Jugó": {"stars": {"sopa": 3}}})
+    assert "Jugó" in r["p"], "se borró un perfil con progreso: %s" % r["p"]
+    assert "Peque" not in r["p"], "quedó el vacío: %s" % r["p"]
+
+
+def test_el_kit_por_tema_sigue_admitiendo_hermanos():
+    """Un cuaderno de cumpleaños se comparte en casa; ahí varios perfiles SÍ tienen
+    sentido. El cambio es sólo para el escolar, que es de un grado puntual."""
+    r = _perfiles(False, ["Sofía", "Tomás", "Mia"])
+    assert sorted(r["p"]) == ["Mia", "Sofía", "Tomás"]
+
+
+def test_el_placeholder_no_se_precarga():
+    """Que el input diga "Peque" invita a aceptarlo — y era lo que después no se podía
+    corregir sin sumar un perfil."""
+    src = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                            "actividades_player.js"), encoding="utf-8").read()
+    i = src.index("const deLaCompra")
+    assert "NOMBRE_GENERICO" in src[i:i + 200]
