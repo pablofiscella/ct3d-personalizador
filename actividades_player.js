@@ -141,6 +141,11 @@ function reproducirConsigna(txt) {
     audio.play().catch(() => resolve(false));   // autoplay bloqueado hasta el primer toque: no rompe nada
   });
 }
+// Corta lo que esté sonando. Hace falta al cerrar una mini-lección ("¿Cómo es?"):
+// si no, la voz sigue explicando sobre la actividad que el chico ya volvió a jugar.
+function pararVoz() {
+  if (vozActual) { vozActual.pause(); vozActual = null; }
+}
 // Desbloqueo de audio (15-jul-2026): algunos navegadores móviles (sobre todo
 // iOS) solo permiten reproducir audio con sonido si el .play() ocurre cerca
 // de un toque real — la lección de suma en columnas encadena varias voces
@@ -231,6 +236,34 @@ const Store = {
   total() {
     const p = this._perfil();
     return p ? Object.values(p.stars).reduce((a, b) => a + b, 0) : 0;
+  },
+  // ── nivelación inicial (ALEKS): dónde arranca, NO qué domina ──
+  // Se guarda aparte de `dominio` a propósito: dominar es haber demostrado en días
+  // distintos (es lo que ve el padre y lo que habilita la oferta); ubicar es "esto ya
+  // lo sabe hacer, no le hagamos perder el tiempo". Si compartieran campo, un sondeo
+  // de 3 preguntas contaría como dominio y el tablero del padre mentiría.
+  ubicado(sid) {
+    const p = this._perfil();
+    return !!(p && p.ubicado && p.ubicado[sid]);
+  },
+  ubicados() {
+    const p = this._perfil();
+    return p && p.ubicado ? Object.keys(p.ubicado) : [];
+  },
+  marcarUbicados(sids) {
+    const p = this._perfil(); if (!p || !sids || !sids.length) return;
+    if (!p.ubicado) p.ubicado = {};
+    for (const s of sids) p.ubicado[s] = 1;
+    this.save();
+  },
+  sondeoHecho() {
+    const p = this._perfil();
+    return !!(p && p.sondeo);
+  },
+  marcarSondeo(saltado) {
+    const p = this._perfil(); if (!p) return;
+    p.sondeo = { ts: Date.now(), saltado: !!saltado };
+    this.save();
   },
   // ── sello de dominio sostenido (Capa 0) ──
   dom(id) {
@@ -374,6 +407,341 @@ const Confeti = {
 };
 
 /* ── frases de aliento (elogian el ESFUERZO, voseo rioplatense) ── */
+/* Mini-lecciones del botón "¿Cómo es?" (ver mostrarComoEs). Formato:
+     t = título · l = las líneas de la regla · e = un ejemplo trabajado
+   Se leen en voz alta, así que van en frases cortas y en rioplatense.
+   REGLA PARA SUMAR ENTRADAS: sólo actividades que enseñan una REGLA. Si la
+   respuesta es un dato (fotosíntesis, batallas, comprensión lectora), no lleva —
+   un botón que dice obviedades enseña a ignorar el botón. */
+const COMO_ES = {
+  // ── Lengua ──────────────────────────────────────────────────────────────────
+  silaba_tonica: { t: "La sílaba que suena más fuerte",
+    l: ["Toda palabra tiene una sílaba que se pronuncia más fuerte: la tónica.",
+        "Para encontrarla, decí la palabra despacio y en voz alta, sílaba por sílaba.",
+        "La que te sale más fuerte es la tónica, lleve tilde o no."],
+    e: "ven-TA-na → la fuerte es TA · Á-guila → la fuerte es Á" },
+  acentuacion: { t: "Agudas, graves y esdrújulas",
+    l: ["Primero buscá la sílaba fuerte (la tónica). Después mirá dónde quedó.",
+        "AGUDA: la fuerte es la ÚLTIMA. Lleva tilde sólo si termina en n, s o vocal.",
+        "GRAVE: la fuerte es la ANTEÚLTIMA. Lleva tilde sólo si NO termina en n, s ni vocal.",
+        "ESDRÚJULA: la fuerte es la ANTEPENÚLTIMA. Lleva tilde SIEMPRE."],
+    e: "ca-MIÓN es aguda y termina en n, por eso lleva tilde. LÁ-piz es grave y termina en z, por eso lleva. MÚ-si-ca es esdrújula: siempre lleva." },
+  plurales_z: { t: "El plural de las palabras con z",
+    l: ["Cuando una palabra termina en z, el plural NO se hace con zs.",
+        "La z se cambia por c y recién ahí se agrega -es."],
+    e: "lápiz → lápices · pez → peces · nuez → nueces · feliz → felices" },
+  prefijos_sufijos: { t: "Prefijos y sufijos",
+    l: ["El prefijo va ADELANTE de la palabra y le cambia el significado.",
+        "El sufijo va ATRÁS y muchas veces cambia de qué tipo es la palabra.",
+        "La palabra del medio se llama raíz y es la que da el significado principal."],
+    e: "des-hacer (prefijo des- = lo contrario) · pan-adería (sufijo -ería = el lugar)" },
+  familia_palabras: { t: "Familia de palabras",
+    l: ["Son las palabras que comparten la misma raíz y tienen significados parecidos.",
+        "Si le sacás los prefijos y sufijos, te queda la parte que todas comparten.",
+        "Ojo: parecerse en el sonido no alcanza; tienen que compartir el significado."],
+    e: "pan, panadero, panadería, panecillo comparten la raíz PAN" },
+  sujeto_predicado: { t: "Sujeto y predicado",
+    l: ["El SUJETO es de quién o de qué habla la oración.",
+        "El PREDICADO es lo que se dice del sujeto; adentro siempre está el verbo.",
+        "Truco: preguntale al verbo ¿quién? o ¿qué? La respuesta es el sujeto."],
+    e: "Los chicos juegan en el patio. → ¿Quiénes juegan? Los chicos = sujeto. juegan en el patio = predicado." },
+  partes_oracion: { t: "Las partes de la oración",
+    l: ["El sustantivo nombra: personas, animales, cosas, ideas.",
+        "El adjetivo dice cómo es el sustantivo.",
+        "El verbo dice qué pasa o qué hace alguien.",
+        "El artículo (el, la, los, las, un, una) va adelante del sustantivo."],
+    e: "El perro negro corre. → El (artículo) perro (sustantivo) negro (adjetivo) corre (verbo)" },
+  analisis_sintactico: { t: "Analizar una oración",
+    l: ["Buscá primero el VERBO: es el motor de la oración.",
+        "Preguntale ¿quién? o ¿qué? para encontrar el sujeto.",
+        "Todo lo demás forma parte del predicado y acompaña al verbo."],
+    e: "Ayer mi hermana compró pan. → verbo: compró · sujeto: mi hermana · predicado: compró pan (ayer)" },
+  sustantivos: { t: "Los sustantivos",
+    l: ["El sustantivo es la palabra que NOMBRA.",
+        "COMÚN nombra en general (perro, ciudad); PROPIO nombra a uno solo y va con mayúscula (Toby, Rosario).",
+        "CONCRETO es lo que se puede ver o tocar; ABSTRACTO es lo que sólo se siente o se piensa."],
+    e: "mesa: común y concreto · Buenos Aires: propio · alegría: abstracto" },
+  abstractos_concretos: { t: "Concretos y abstractos",
+    l: ["CONCRETO: lo podés ver, tocar, escuchar u oler.",
+        "ABSTRACTO: existe, pero no se toca. Son ideas y sentimientos.",
+        "Prueba rápida: ¿lo podrías meter en una caja? Si no, es abstracto."],
+    e: "silla, agua, perro son concretos · miedo, justicia, amistad son abstractos" },
+  pronombres_clasif: { t: "Los pronombres",
+    l: ["El pronombre reemplaza al sustantivo para no repetirlo.",
+        "PERSONALES: yo, vos, él, ella, nosotros, ustedes, ellos.",
+        "POSESIVOS: mío, tuyo, suyo, nuestro. DEMOSTRATIVOS: este, ese, aquel."],
+    e: "Ana trajo la pelota. → Ella la trajo. (Ella y la son pronombres)" },
+  tiempo_verbo: { t: "Pasado, presente y futuro",
+    l: ["PRESENTE: pasa ahora. PASADO: ya pasó. FUTURO: todavía no pasó.",
+        "Fijate en la terminación del verbo, que es la que cambia."],
+    e: "juego (presente) · jugué (pasado) · jugaré (futuro)" },
+  tiempos_verbales: { t: "Los tiempos del verbo",
+    l: ["El verbo cambia su terminación según CUÁNDO pasa la acción.",
+        "PRESENTE: ahora. PASADO: antes. FUTURO: después.",
+        "Truco: probá poner 'ayer', 'ahora' y 'mañana' adelante y fijate cuál suena bien."],
+    e: "Ayer caminé · Ahora camino · Mañana caminaré" },
+  verbos_pasado: { t: "Los verbos en pasado",
+    l: ["El pretérito perfecto simple cuenta algo que pasó y terminó: canté, comí, salí.",
+        "El pretérito imperfecto cuenta algo que se repetía o duraba: cantaba, comía, salía.",
+        "En un cuento, el imperfecto describe y el perfecto simple hace avanzar la acción."],
+    e: "Llovía (imperfecto: escenario) cuando sonó el timbre (perfecto simple: pasó)" },
+  sinonimos_antonimos: { t: "Sinónimos y antónimos",
+    l: ["SINÓNIMOS: dos palabras que significan casi lo mismo.",
+        "ANTÓNIMOS: dos palabras que significan lo contrario.",
+        "Truco: cambiá la palabra en la oración. Si el sentido se mantiene, es sinónimo."],
+    e: "lindo y bonito son sinónimos · alto y bajo son antónimos" },
+  homofonos: { t: "Palabras que suenan igual",
+    l: ["Hay palabras que suenan igual pero se escriben distinto y significan otra cosa.",
+        "Para elegir, fijate en el SENTIDO de la oración, no en el sonido.",
+        "hay = existe · ahí = en ese lugar · ay = queja."],
+    e: "Ahí hay un perro y dice ¡ay! · a ver (mirar) ≠ haber (existir)" },
+  suena_igual: { t: "Letras que suenan igual",
+    l: ["En rioplatense hay letras distintas que suenan igual: b y v, ll e y, s c z.",
+        "Como el sonido no ayuda, hay que apoyarse en la palabra entera.",
+        "Truco: pensá en una palabra de la misma familia, que suele conservar la letra."],
+    e: "hierba → herbívoro (por eso va con b) · vaca → vaquero (por eso va con v)" },
+  dialogo_raya: { t: "La raya de diálogo",
+    l: ["Cuando un personaje habla, se abre el renglón con una raya (—).",
+        "Es una raya, no un guion corto ni comillas.",
+        "Si el narrador aclara quién habló, se agrega otra raya antes de esa aclaración."],
+    e: "—¿Vamos a la plaza? —preguntó Ana." },
+  conectores: { t: "Los conectores",
+    l: ["Los conectores unen ideas y muestran qué relación hay entre ellas.",
+        "SUMAR: y, además, también. OPONER: pero, sin embargo, aunque.",
+        "CAUSA: porque, por eso, así que. TIEMPO: primero, después, finalmente."],
+    e: "Estudié mucho, PERO me olvidé una parte. (opone) · Estudié, POR ESO me fue bien. (causa)" },
+  conectores_6: { t: "Conectores para textos largos",
+    l: ["En un texto largo los conectores ordenan el razonamiento, no sólo las frases.",
+        "Para agregar un argumento: además, asimismo, por otra parte.",
+        "Para oponer: sin embargo, no obstante, en cambio.",
+        "Para concluir: en síntesis, por lo tanto, en conclusión."],
+    e: "El plan es bueno; SIN EMBARGO, es caro. POR LO TANTO, conviene revisarlo." },
+  tipos_de_texto: { t: "Tipos de texto",
+    l: ["NARRATIVO: cuenta hechos en un orden (cuento, noticia).",
+        "DESCRIPTIVO: dice cómo es algo o alguien.",
+        "INSTRUCTIVO: explica cómo hacer algo, paso a paso (receta, instructivo).",
+        "ARGUMENTATIVO: defiende una opinión y da razones."],
+    e: "Una receta es instructiva; una carta de lectores es argumentativa." },
+  hechos_opiniones: { t: "Hecho u opinión",
+    l: ["Un HECHO se puede comprobar: pasó o no pasó.",
+        "Una OPINIÓN es lo que alguien piensa y puede no compartirse.",
+        "Truco: si aparecen palabras como mejor, feo, hermoso o creo que, casi siempre es opinión."],
+    e: "Hecho: El partido terminó 2 a 1. · Opinión: Fue el mejor partido del año." },
+  orden_alfabetico: { t: "Ordenar de la A a la Z",
+    l: ["Se compara la primera letra de cada palabra siguiendo el abecedario.",
+        "Si la primera letra es la misma, se pasa a la segunda, y así hasta que se diferencien."],
+    e: "casa, cielo, cuna → todas con c, así que decide la segunda: a, i, u" },
+  clases_palabra_5: { t: "Clases de palabras",
+    l: ["SUSTANTIVO nombra · ADJETIVO califica · VERBO expresa la acción.",
+        "ADVERBIO dice cómo, cuándo o dónde, y acompaña al verbo.",
+        "Truco: probá cambiarla de número o de género; el verbo y el adverbio no cambian así."],
+    e: "El perro (sust.) grande (adj.) corre (verbo) rápido (adverbio)." },
+
+  // ── Matemática ──────────────────────────────────────────────────────────────
+  valor_posicional: { t: "El valor de cada cifra",
+    l: ["En un número, cada cifra vale según el LUGAR donde está.",
+        "De derecha a izquierda: unidades, decenas, centenas, unidades de mil…",
+        "La misma cifra vale distinto según dónde caiga."],
+    e: "En 352, el 3 vale 300, el 5 vale 50 y el 2 vale 2." },
+  suma_columnas: { t: "Sumar en columna (con llevada)",
+    l: ["Alineá los números por la derecha: unidades con unidades.",
+        "Sumá empezando por la columna de la derecha.",
+        "Si el resultado de una columna pasa de 9, escribís la unidad y te LLEVÁS la decena a la columna siguiente."],
+    e: "27 + 15: 7+5=12 → escribo 2 y me llevo 1. Después 2+1+1=4. Resultado 42." },
+  resta_columnas: { t: "Restar en columna (con canje)",
+    l: ["Alineá por la derecha y restá empezando por las unidades.",
+        "Si arriba hay menos que abajo, pedís prestado a la columna de la izquierda.",
+        "Esa columna te presta 10: el de al lado baja 1 y vos sumás 10 arriba."],
+    e: "42 − 15: 2 menos 5 no se puede → el 4 presta 1, queda 3 y arriba hay 12. 12−5=7, 3−1=2. Resultado 27." },
+  multiplicacion_concepto: { t: "Qué es multiplicar",
+    l: ["Multiplicar es sumar el mismo número varias veces.",
+        "3 × 4 quiere decir: el 3 sumado 4 veces.",
+        "Por eso sirve para contar grupos iguales sin sumar de a uno."],
+    e: "4 cajas con 3 alfajores: 3+3+3+3 = 12, o directamente 3 × 4 = 12" },
+  multiplicar: { t: "Multiplicar en columna",
+    l: ["Multiplicá cada cifra de arriba por la de abajo, empezando por la derecha.",
+        "Si pasa de 9, escribís la unidad y te llevás lo demás a la columna siguiente.",
+        "Con dos cifras abajo, hacés una fila por cada una y la segunda se corre un lugar a la izquierda."],
+    e: "23 × 4: 3×4=12 → escribo 2 y llevo 1. 2×4=8, más 1 = 9. Resultado 92." },
+  cuenta_larga: { t: "La cuenta larga",
+    l: ["Es multiplicar por más de una cifra: una fila por cada cifra de abajo.",
+        "La fila de las decenas se corre UN lugar a la izquierda (porque vale por diez).",
+        "Al final se suman todas las filas."],
+    e: "34 × 12 = (34 × 2) + (34 × 10) = 68 + 340 = 408" },
+  dividir: { t: "Dividir",
+    l: ["Dividir es repartir en partes iguales, o ver cuántas veces entra un número en otro.",
+        "Se empieza por la izquierda, tomando las cifras que alcancen.",
+        "Lo que sobra al final es el RESTO, y siempre tiene que ser menor que el divisor."],
+    e: "27 ÷ 4: el 4 entra 6 veces (24) y sobran 3. Cociente 6, resto 3." },
+  reparto_con_resto: { t: "El resto del reparto",
+    l: ["Cuando repartís en partes iguales, a veces sobra: eso es el resto.",
+        "El resto SIEMPRE es menor que el divisor; si no, todavía podés repartir una más.",
+        "Comprobación: divisor × cociente + resto tiene que darte el número del principio."],
+    e: "17 caramelos entre 5 chicos: 3 para cada uno y sobran 2. 5×3+2 = 17 ✔" },
+  jerarquia_operaciones: { t: "En qué orden se resuelve",
+    l: ["No se resuelve de izquierda a derecha nomás: hay un orden.",
+        "1) Lo que está entre paréntesis. 2) Multiplicaciones y divisiones. 3) Sumas y restas.",
+        "Dentro del mismo escalón, sí se va de izquierda a derecha."],
+    e: "2 + 3 × 4 = 2 + 12 = 14 (NO 20) · (2 + 3) × 4 = 20" },
+  numeros_primos: { t: "Números primos",
+    l: ["Un número es PRIMO si se puede dividir exacto sólo por 1 y por sí mismo.",
+        "Si tiene algún otro divisor, es COMPUESTO.",
+        "El 1 no es primo: tiene un solo divisor. El 2 es el único primo par."],
+    e: "7 es primo (sólo 1 y 7) · 9 no lo es, porque también se divide por 3" },
+  potencias: { t: "Las potencias",
+    l: ["Una potencia es multiplicar un número por sí mismo varias veces.",
+        "El número de abajo es la BASE y el chiquito de arriba es el EXPONENTE.",
+        "El exponente dice cuántas veces se multiplica la base, NO por cuánto se multiplica."],
+    e: "2³ = 2 × 2 × 2 = 8 (no es 2 × 3)" },
+  fracciones_equivalentes: { t: "Fracciones equivalentes",
+    l: ["Dos fracciones son equivalentes si representan la misma parte del entero.",
+        "Se obtienen multiplicando o dividiendo ARRIBA y ABAJO por el mismo número.",
+        "Si multiplicás sólo uno de los dos, cambiás la fracción."],
+    e: "1/2 = 2/4 = 3/6 (multiplicando arriba y abajo por 2 y por 3)" },
+  completar_entero: { t: "Completar el entero",
+    l: ["El entero es cuando el numerador iguala al denominador.",
+        "Si tenés 3/4, te falta lo que va de 3 a 4: 1/4.",
+        "El denominador te dice en cuántas partes se dividió; el numerador, cuántas tenés."],
+    e: "Para completar 1 con 2/5 te faltan 3/5, porque 2/5 + 3/5 = 5/5 = 1" },
+  suma_fracciones: { t: "Sumar fracciones",
+    l: ["Si tienen el MISMO denominador, sumás los numeradores y el denominador queda igual.",
+        "Si tienen distinto denominador, primero buscás fracciones equivalentes con el mismo.",
+        "El denominador nunca se suma."],
+    e: "1/5 + 2/5 = 3/5 · 1/2 + 1/4 = 2/4 + 1/4 = 3/4" },
+  multiplicar_fracciones: { t: "Multiplicar fracciones",
+    l: ["Se multiplica numerador por numerador y denominador por denominador.",
+        "No hace falta que tengan el mismo denominador (eso es para sumar).",
+        "Al multiplicar por una fracción menor que 1, el resultado da MÁS CHICO."],
+    e: "2/3 × 3/4 = 6/12 = 1/2" },
+  fraccion_de_cantidad: { t: "La fracción de una cantidad",
+    l: ["Dividí la cantidad por el denominador: eso te da UNA parte.",
+        "Después multiplicá por el numerador: son las partes que te piden."],
+    e: "3/4 de 20: 20 ÷ 4 = 5 (una parte), 5 × 3 = 15" },
+  decimales_fraccion: { t: "Decimales y fracciones",
+    l: ["Un decimal es otra forma de escribir una fracción de denominador 10, 100 o 1.000.",
+        "La primera cifra después de la coma son los décimos; la segunda, los centésimos.",
+        "0,5 es la mitad; 0,25 es la cuarta parte; 0,1 es la décima parte."],
+    e: "0,5 = 5/10 = 1/2 · 0,75 = 75/100 = 3/4" },
+  porcentajes: { t: "Los porcentajes",
+    l: ["Por ciento quiere decir 'de cada 100'.",
+        "50% es la mitad, 25% es la cuarta parte y 10% es dividir por 10.",
+        "Para calcular otro porcentaje: dividí por 100 y multiplicá por el número que te piden."],
+    e: "20% de 300: 300 ÷ 100 = 3, y 3 × 20 = 60" },
+  proporcionalidad: { t: "Proporcionalidad",
+    l: ["Dos cantidades son proporcionales si al aumentar una, la otra aumenta lo mismo.",
+        "Si el doble de una da el doble de la otra, hay proporcionalidad directa.",
+        "Truco: buscá cuánto vale UNA unidad y después multiplicá."],
+    e: "Si 3 facturas cuestan $600, una cuesta $200, y 5 cuestan $1.000" },
+  angulos: { t: "Los ángulos",
+    l: ["RECTO: mide exactamente 90°, como la esquina de una hoja.",
+        "AGUDO: mide menos de 90°, es más cerrado que la esquina.",
+        "OBTUSO: mide más de 90° pero menos de 180°.",
+        "LLANO: mide 180°, los dos lados forman una línea recta."],
+    e: "La esquina de una puerta es recto · la punta de una porción de pizza suele ser agudo" },
+  transportador: { t: "Medir con el transportador",
+    l: ["Poné el centro del transportador justo en el vértice del ángulo.",
+        "Alineá uno de los lados con el 0.",
+        "Leé el número por donde pasa el otro lado, en la escala que arranca en ese 0."],
+    e: "Si un lado está en 0 y el otro pasa por 45, el ángulo mide 45°" },
+  suma_angulos: { t: "Los ángulos de un triángulo",
+    l: ["Los tres ángulos interiores de cualquier triángulo suman siempre 180°.",
+        "Si conocés dos, el tercero sale restando: 180 menos la suma de los otros dos.",
+        "Por eso un triángulo no puede tener dos ángulos rectos."],
+    e: "Si dos ángulos miden 60° y 70°, el tercero mide 180 − 130 = 50°" },
+  area_perimetro: { t: "Perímetro y área",
+    l: ["PERÍMETRO es cuánto mide el contorno: se suman todos los lados.",
+        "ÁREA es cuánta superficie ocupa por dentro.",
+        "El perímetro se mide en cm y el área en cm² (centímetros cuadrados)."],
+    e: "Un rectángulo de 3 y 5: perímetro 3+5+3+5 = 16 cm · área 3 × 5 = 15 cm²" },
+  poligonos_lados: { t: "Los polígonos",
+    l: ["Un polígono es una figura cerrada hecha sólo con lados rectos.",
+        "Se nombran por la cantidad de lados: 3 triángulo, 4 cuadrilátero, 5 pentágono, 6 hexágono.",
+        "Si tiene alguna parte curva, no es un polígono."],
+    e: "Un hexágono tiene 6 lados y 6 vértices · un círculo no es polígono" },
+  cuadrilateros: { t: "Los cuadriláteros",
+    l: ["Cuadrilátero es todo polígono de 4 lados.",
+        "CUADRADO: 4 lados iguales y 4 ángulos rectos.",
+        "RECTÁNGULO: ángulos rectos y lados iguales de a pares.",
+        "ROMBO: 4 lados iguales, pero sin ángulos rectos."],
+    e: "Todo cuadrado es rectángulo y también rombo, pero no al revés" },
+  cuerpos_geometricos: { t: "Los cuerpos geométricos",
+    l: ["Los cuerpos ocupan lugar en el espacio: tienen caras, aristas y vértices.",
+        "CARA es cada superficie plana, ARISTA es donde se juntan dos caras y VÉRTICE es la punta.",
+        "El cubo tiene 6 caras, 12 aristas y 8 vértices."],
+    e: "Una caja de zapatos es un prisma; una pelota, una esfera" },
+  recta_numerica: { t: "Ubicar en la recta numérica",
+    l: ["En la recta los números crecen siempre hacia la derecha, a distancias iguales.",
+        "Ubicá primero la MITAD: te parte el problema al medio.",
+        "Después fijate si tu número está antes o después de esa mitad, y afiná por cuartos."],
+    e: "Para ubicar 900 entre 0 y 10.000: la mitad es 5.000, así que 900 va bien a la izquierda" },
+  equivalencias_medida: { t: "Cambiar de unidad",
+    l: ["1 metro son 100 cm · 1 km son 1.000 m · 1 kg son 1.000 g · 1 litro son 1.000 ml.",
+        "Si pasás a una unidad MÁS CHICA, el número se hace más grande (multiplicás).",
+        "Si pasás a una unidad MÁS GRANDE, el número se hace más chico (dividís)."],
+    e: "2,5 m = 250 cm · 3.000 g = 3 kg" },
+  probabilidad_sucesos: { t: "Qué tan probable es",
+    l: ["SEGURO: va a pasar sí o sí. IMPOSIBLE: no puede pasar nunca.",
+        "POSIBLE: puede pasar o no.",
+        "Cuantos más casos favorables sobre el total, más probable es."],
+    e: "En una bolsa con 9 bolitas rojas y 1 azul, sacar roja es más probable" },
+  ecuaciones_simples: { t: "Ecuaciones",
+    l: ["Una ecuación es una balanza: los dos lados del = valen lo mismo.",
+        "Para despejar la incógnita, hacés la operación CONTRARIA en los dos lados.",
+        "Lo contrario de sumar es restar, y lo contrario de multiplicar es dividir."],
+    e: "x + 5 = 12 → resto 5 de los dos lados → x = 7" },
+  traductor_algebraico: { t: "Pasar palabras a símbolos",
+    l: ["'El doble de un número' se escribe 2x. 'La mitad', x ÷ 2.",
+        "'Un número aumentado en 5' es x + 5; 'disminuido en 5' es x − 5.",
+        "La incógnita es el número que no conocés: se le pone una letra."],
+    e: "El doble de un número más 3 → 2x + 3" },
+  reloj: { t: "Leer la hora",
+    l: ["La aguja CORTA marca la hora; la LARGA, los minutos.",
+        "Cada número grande son 5 minutos para la aguja larga.",
+        "Media hora son 30 minutos (aguja larga en el 6); un cuarto, 15 (en el 3)."],
+    e: "Aguja corta pasando el 3 y larga en el 6 → las 3 y media" },
+
+  // ── Naturales / Conocimiento del Mundo ──────────────────────────────────────
+  estados_materia: { t: "Los estados de la materia",
+    l: ["SÓLIDO: tiene forma propia y no se puede comprimir.",
+        "LÍQUIDO: toma la forma del recipiente y se puede volcar.",
+        "GASEOSO: ocupa todo el espacio disponible.",
+        "El mismo material puede pasar de un estado a otro con el calor o el frío."],
+    e: "El agua es hielo (sólido), agua (líquido) y vapor (gaseoso)" },
+  estados_tres: { t: "Sólido, líquido y gaseoso",
+    l: ["Sólido: mantiene su forma. Líquido: se adapta al recipiente. Gas: se expande.",
+        "Con calor, un sólido puede volverse líquido; con más calor, gas.",
+        "Con frío pasa al revés."],
+    e: "Un cubito al sol se derrite y, si se sigue calentando, se evapora" },
+  conductor_aislante: { t: "Conductores y aislantes",
+    l: ["CONDUCTOR: deja pasar la electricidad. Casi todos los metales lo son.",
+        "AISLANTE: no la deja pasar. Plástico, goma, madera y vidrio.",
+        "Por eso los cables tienen metal adentro y plástico afuera."],
+    e: "El cobre conduce; la funda de plástico aísla y te protege" },
+  luz_propia: { t: "Luz propia y luz reflejada",
+    l: ["Algunos cuerpos tienen LUZ PROPIA: la producen ellos (el Sol, una lámpara prendida).",
+        "Otros son ILUMINADOS: sólo se ven porque les llega luz de otro lado.",
+        "Sin una fuente de luz, un cuerpo iluminado no se ve."],
+    e: "El Sol tiene luz propia; la Luna se ve porque el Sol la ilumina" },
+  cadena_alimentaria: { t: "La cadena alimentaria",
+    l: ["Empieza siempre en las plantas, que fabrican su propio alimento: son productoras.",
+        "Después vienen los consumidores: primero los que comen plantas, después los que comen animales.",
+        "Las flechas apuntan hacia quien recibe la energía, o sea hacia el que come."],
+    e: "pasto → vaca → puma (el pasto alimenta a la vaca y la vaca al puma)" },
+
+  // ── Sociales ────────────────────────────────────────────────────────────────
+  gobierno_argentina: { t: "Los tres poderes",
+    l: ["EJECUTIVO: gobierna y hace cumplir las leyes. Lo encabeza el Presidente.",
+        "LEGISLATIVO: hace las leyes. Es el Congreso (Diputados y Senadores).",
+        "JUDICIAL: juzga si algo cumple la ley. Son los jueces.",
+        "Están separados a propósito, para que ninguno tenga todo el poder."],
+    e: "El Congreso escribe la ley, el Presidente la promulga y los jueces la aplican" },
+  democracia_argentina: { t: "Qué es la democracia",
+    l: ["En democracia gobiernan los representantes que el pueblo elige votando.",
+        "El voto en Argentina es universal, secreto y obligatorio desde los 18 (optativo desde los 16).",
+        "Hay una Constitución que fija los derechos y nadie está por encima de ella."],
+    e: "Elegimos presidente, diputados y senadores cada cierta cantidad de años" },
+};
+
 const FRASES_BIEN = ["¡Muy bien!", "¡Genial!", "¡Lo lograste!", "¡Excelente!", "¡Así se hace!", "¡Qué bien!"];
 const FRASES_FESTEJO = [
   "¡Cuánto esfuerzo le pusiste!", "¡Lo resolviste vos!", "¡Qué bien pensaste!",
@@ -418,6 +786,50 @@ function ocultarExplicacion() {
   if (e) e.style.opacity = "0";
 }
 
+/* ── "¿Cómo es?" — instrucción explícita, SIEMPRE disponible ────────────────────
+   Pedido de Pablo (24-jul): "en acentuación, tener siempre a mano un explicador de
+   cuál es cuál". Hasta ahora el cuaderno explicaba SÓLO cuando el chico erraba
+   (`ctx.casi(motivo)`), o sea que para entender la regla había que equivocarse
+   primero. DreamBox combina descubrimiento guiado CON instrucción explícita; esto
+   es la parte que nos faltaba.
+
+   Es texto y no video a propósito: un video por actividad son 149 videos que hay
+   que producir, versionar y servir, y la mini-lección se lee en voz alta con la
+   misma voz rioplatense que ya usa la explicación. Si más adelante un tema pide
+   video, se le agrega a ESA entrada sin cambiar el mecanismo.
+
+   Sólo tienen entrada las actividades que enseñan una REGLA. Las que evalúan un
+   dato (fotosíntesis, historia, comprensión) no llevan: ahí no hay regla que
+   explicar, y un botón que dice obviedades enseña a ignorar el botón. */
+function comoEsDe(id) { return COMO_ES[id] || null; }
+
+function mostrarComoEs(id) {
+  const c = comoEsDe(id);
+  if (!c) return;
+  const fondo = el("div", "comoes-fondo");
+  const card = el("div", "comoes");
+  card.innerHTML = '<div class="comoes-h">💡 ' + c.t + "</div>" +
+    "<ul>" + c.l.map((x) => "<li>" + x + "</li>").join("") + "</ul>" +
+    (c.e ? '<div class="comoes-ej">' + c.e + "</div>" : "");
+  const cerrar = el("button", "btn-sondeo", "¡Ya entendí!");
+  cerrar.addEventListener("click", () => { pararVoz(); fondo.remove(); });
+  card.appendChild(cerrar);
+  fondo.appendChild(card);
+  fondo.addEventListener("click", (ev) => { if (ev.target === fondo) { pararVoz(); fondo.remove(); } });
+  document.body.appendChild(fondo);
+  // se lee en voz alta: el que todavía lee con esfuerzo no puede quedar afuera de
+  // la explicación justo en la actividad que le está costando.
+  reproducirConsigna(c.t + ". " + c.l.join(" ") + (c.e ? " Por ejemplo: " + c.e : ""));
+}
+
+function botonComoEs(id) {
+  if (!comoEsDe(id)) return null;
+  const b = el("button", "btn-comoes", "❓ ¿Cómo es?");
+  b.type = "button";
+  b.addEventListener("click", () => mostrarComoEs(id));
+  return b;
+}
+
 /* ── diploma de logro (14-jul-2026): cuaderno COMPLETO, sin errores en
    ningún juego (3 estrellas = 0 fallos, mismo criterio que Shell.ctx().win).
    Progreso vive solo en localStorage (Store) — no hay servidor que lo
@@ -439,12 +851,20 @@ const Shell = {
   // Capa 0 · C1: estado de PRIMER INTENTO por ronda (lo consume la telemetría
   // Tel y, más adelante, la compuerta de dominio C2).
   _itemId: null, _rondaResp: false, _rondaIdx: 0, primerOk: 0, primerTotal: 0,
+  // Telemetría de PROCESO (DreamBox): no alcanza con saber si acertó. `_rondaT0` es
+  // cuándo empezó la ronda, `_rondaT1` cuándo la tocó por primera vez (tardar mucho =
+  // no entendió la consigna, no que el contenido sea difícil) y `_rondaToques` cuántas
+  // veces tocó antes de responder (muchos toques + acierto = probó hasta que salió).
+  // Con esto se distingue "lo sabe" de "acertó por ensayo y error", que es lo que el
+  // resultado solo NO puede decir. No cambia ninguna mecánica: sólo observa.
+  _rondaT0: 0, _rondaT1: 0, _rondaToques: 0,
   abrir(id) {
     const item = D.menu.find((m) => m.id === id);
     if (!item || !GAMES[id]) return;
     this.actual = id; this.fallos = 0;
     this._itemId = null; this._rondaResp = false; this._rondaIdx = 0;
     this.primerOk = 0; this.primerTotal = 0;
+    this._rondaT0 = Date.now(); this._rondaT1 = 0; this._rondaToques = 0;
     $("#btnAtras").classList.add("ver");
     const stage = $("#stage");
     stage.innerHTML = "";
@@ -453,6 +873,17 @@ const Shell = {
         <div class="texto" id="consignaTexto"></div></div>
       <div id="progreso"></div><div id="juego"></div>`));
     scrollTo(0, 0);
+    // Un solo listener en el contenedor del juego cuenta los toques de la ronda, sin
+    // que cada juego tenga que instrumentarse. Va en captura para que lo vea aunque el
+    // juego frene la propagación, y es pasivo para no interferir con drags ni scroll.
+    $("#juego").addEventListener("pointerdown", () => {
+      if (!this._rondaT1) this._rondaT1 = Date.now();
+      this._rondaToques++;
+    }, { capture: true, passive: true });
+    // "¿Cómo es?": la regla, a mano, sin tener que errar primero. Sólo aparece en
+    // las actividades que enseñan una regla (las demás no tienen entrada).
+    const bce = botonComoEs(id);
+    if (bce) $("#consigna").appendChild(bce);
     GAMES[id].crear(this.ctx(item));
     requestAnimationFrame(ajustarAlto);
   },
@@ -470,11 +901,18 @@ const Shell = {
       if (primer && ok && D.adaptativo_on && self._itemId) {
         Store.marcarItemOk(self.actual, self._itemId);
       }
+      const ahora = Date.now();
       Tel.push({
         j: self.actual,
         it: self._itemId != null ? self._itemId : (self.actual + "#" + self._rondaIdx),
         edad: (D && D.edad) || null,
-        ok: ok, primer: primer, motivo: motivo || null, t: Date.now(),
+        ok: ok, primer: primer, motivo: motivo || null, t: ahora,
+        // proceso: ms hasta el primer toque, ms hasta responder, toques dados.
+        // Se acotan a 5 min: si el chico dejó la tablet y volvió, el número real sería
+        // basura estadística y arruinaría cualquier promedio.
+        ms1: self._rondaT1 ? Math.min(300000, self._rondaT1 - self._rondaT0) : null,
+        ms: self._rondaT0 ? Math.min(300000, ahora - self._rondaT0) : null,
+        toq: self._rondaToques || 0,
       });
     };
     return {
@@ -525,6 +963,7 @@ const Shell = {
       ronda(i) {
         self._rondaIdx = i;
         self._rondaResp = false;   // ronda nueva → la próxima respuesta es "primer intento"
+        self._rondaT0 = Date.now(); self._rondaT1 = 0; self._rondaToques = 0;
         ocultarExplicacion();
         document.querySelectorAll("#progreso i").forEach((d, j) => {
           d.className = j < i ? "hecho" : (j === i ? "actual" : "");
@@ -551,6 +990,13 @@ const Shell = {
           e = acc >= 0.9 ? 3 : (acc >= 0.7 ? 2 : 1);
         } else {
           e = self.fallos === 0 ? 3 : (self.fallos <= 2 ? 2 : 1);
+        }
+        // Durante la nivelación inicial el resultado UBICA, no puntúa: no se guardan
+        // estrellas ni sellos ni se festeja, porque el sondeo no es logro del chico —
+        // es el motor averiguando por dónde empezar. Sale por acá antes de tocar nada.
+        if (typeof Sondeo !== "undefined" && Sondeo.activo) {
+          Sondeo.resultado(self.actual, self.primerTotal > 0 ? self.primerOk / self.primerTotal : 0);
+          return;
         }
         const yaEstabaCompleto = todoCompleto();
         Store.setStars(self.actual, e);
@@ -668,6 +1114,9 @@ function elegirPerfil(nombre) {
   Store.save();
   cerrarPerfil();
   pintarHeader();
+  // nivelación inicial: sólo la primera vez de ese perfil y sólo con el motor
+  // adaptativo encendido. Si no corresponde, el arranque es exactamente el de antes.
+  if (typeof Sondeo !== "undefined" && Sondeo.disponible()) return Sondeo.iniciar();
   pintarMenu();
 }
 
@@ -738,6 +1187,123 @@ function nivelInicial() {
   const desbloq = (D.niveles || []).filter((x) => !nivelBloqueado(x.nivel)).map((x) => x.nivel);
   return desbloq.length ? Math.max.apply(null, desbloq) : 1;
 }
+/* ── Nivelación inicial (ALEKS) ────────────────────────────────────────────────
+   ALEKS arranca con un diagnóstico que UBICA al alumno; sin eso todos empiezan de
+   cero y el motor le hace perder el tiempo al que ya sabe. Acá es un sondeo corto:
+   una actividad de 3 rondas por materia, de dificultad media-alta, y si le sale
+   bien se dan por sabidos ese saber y sus prerrequisitos (la inferencia de ALEKS:
+   no resolvés lo de arriba sin lo de abajo).
+
+   Tres decisiones que importan:
+   - NO puntúa. No guarda estrellas, ni sellos, ni festeja. El chico no está siendo
+     evaluado, y el padre no ve resultados de esto en su tablero.
+   - Se puede saltear. Un chico que no quiere no tiene que pasar por un examen para
+     usar su cuaderno; si saltea, el motor arranca como arrancaba antes.
+   - Sólo con adaptativo_on, y una vez por perfil: los links ya vendidos no lo ven. */
+const Sondeo = {
+  activo: false, plan: [], idx: 0, aciertos: [],
+  UMBRAL: 0.75,          // 3 de 4 al primer intento = lo sabe hacer
+
+  disponible() {
+    if (!D.adaptativo_on || typeof Adapt === "undefined") return false;
+    if (Store.sondeoHecho()) return false;
+    if (Store.total() > 0) return false;    // ya venía jugando: ubicarlo ahora sería raro
+    return this._plan().length >= 2;        // con una sola materia no vale la pena
+  },
+  _plan() {
+    const ids = (D.menu || []).map((m) => (typeof m === "string" ? m : m.id)).filter((id) => GAMES[id]);
+    try { return Adapt.planSondeo(ids) || []; } catch (e) { return []; }
+  },
+
+  iniciar() {
+    this.plan = this._plan(); this.idx = 0; this.aciertos = []; this.activo = false;
+    const stage = $("#stage"); stage.innerHTML = "";
+    $("#btnAtras").classList.remove("ver");
+    const card = el("div", "sondeo");
+    card.innerHTML =
+      '<div class="sondeo-ico">🧭</div>' +
+      "<h2>¿Qué ya sabés hacer?</h2>" +
+      "<p>Antes de arrancar te voy a mostrar <b>" + this.plan.length + " juegos cortitos</b>, " +
+      "uno de cada materia. <b>No es una prueba</b> y no te va a bajar estrellas: " +
+      "es para no darte cosas que ya sabés hacer.</p>" +
+      '<div class="sondeo-btns"></div>';
+    const btns = card.querySelector(".sondeo-btns");
+    const ok = el("button", "btn-sondeo", "¡Dale, empecemos!");
+    ok.addEventListener("click", () => this._siguiente());
+    const no = el("button", "btn-sondeo btn-sondeo--ghost", "Ahora no");
+    no.addEventListener("click", () => { Store.marcarSondeo(true); pintarMenu(); });
+    btns.appendChild(ok); btns.appendChild(no);
+    stage.appendChild(card);
+    scrollTo(0, 0);
+  },
+
+  _siguiente() {
+    if (this.idx >= this.plan.length) return this._terminar();
+    const paso = this.plan[this.idx];
+    const base = (D.menu || []).find((m) => (typeof m === "string" ? m : m.id) === paso.juego);
+    if (!base) { this.idx++; return this._siguiente(); }
+    this.activo = true;
+    // copia del ítem con rondas cortas: el sondeo tiene que durar minutos, no la
+    // partida entera. El juego que ignore cfg.rondas simplemente dura lo suyo.
+    const corto = Object.assign({}, base, { cfg: Object.assign({}, base.cfg || {}, { rondas: 3 }) });
+    Shell.actual = paso.juego; Shell.fallos = 0;
+    Shell._itemId = null; Shell._rondaResp = false; Shell._rondaIdx = 0;
+    Shell.primerOk = 0; Shell.primerTotal = 0;
+    Shell._rondaT0 = Date.now(); Shell._rondaT1 = 0; Shell._rondaToques = 0;
+    const stage = $("#stage"); stage.innerHTML = "";
+    stage.appendChild(el("div", "", '<div class="sondeo-paso">Juego ' + (this.idx + 1) +
+      " de " + this.plan.length + " · " + (Adapt.labelCategoria ? Adapt.labelCategoria(paso.cat) : "") + "</div>" +
+      '<div id="consigna"><img class="pista" id="consignaPista" alt="" style="display:none">' +
+      '<div class="texto" id="consignaTexto"></div></div>' +
+      '<div id="progreso"></div><div id="juego"></div>'));
+    scrollTo(0, 0);
+    $("#juego").addEventListener("pointerdown", () => {
+      if (!Shell._rondaT1) Shell._rondaT1 = Date.now();
+      Shell._rondaToques++;
+    }, { capture: true, passive: true });
+    GAMES[paso.juego].crear(Shell.ctx(corto));
+    requestAnimationFrame(ajustarAlto);
+  },
+
+  // la llama ctx.win() cuando el sondeo está activo
+  resultado(juegoId, precision) {
+    this.aciertos.push({ juego: juegoId, precision: precision });
+    this.idx++;
+    this.activo = false;
+    this._siguiente();
+  },
+
+  _terminar() {
+    this.activo = false;
+    const sabidos = new Set();
+    this.plan.forEach((paso, i) => {
+      const r = this.aciertos[i];
+      if (r && r.precision >= this.UMBRAL) {
+        // inferencia ALEKS: si resolvió esto, se dan por sabidos sus prerrequisitos
+        for (const sid of Adapt.saberYPrereqs(paso.sid)) sabidos.add(sid);
+      }
+    });
+    Store.marcarUbicados(Array.from(sabidos));
+    Store.marcarSondeo(false);
+    const n = sabidos.size;
+    const stage = $("#stage"); stage.innerHTML = "";
+    const card = el("div", "sondeo");
+    card.innerHTML =
+      '<div class="sondeo-ico">🎯</div>' +
+      "<h2>¡Listo!</h2>" +
+      "<p>" + (n
+        ? "Ya sé por dónde empezar: hay <b>" + n + (n === 1 ? " tema</b> que" : " temas</b> que") +
+          " ya sabés hacer, así que te voy a proponer lo que sigue."
+        : "Vamos a empezar desde el principio, tranquilo. Todo lo que hagas va a ir sumando.") +
+      "</p><div class=\"sondeo-btns\"></div>";
+    const b = el("button", "btn-sondeo", "Ver mis actividades");
+    b.addEventListener("click", () => pintarMenu());
+    card.querySelector(".sondeo-btns").appendChild(b);
+    stage.appendChild(card);
+    scrollTo(0, 0);
+  },
+};
+
 function pintarMenu() {
   if (D.premium_on && (D.niveles || []).length > 1) return pintarNivel(nivelInicial());
   return pintarMenuPlano(D.menu);
@@ -901,7 +1467,162 @@ function _botonModoProfe() {
 }
 
 // alterna al azar entre CREAR (inventar) y CORREGIR al robot
-function modoProfe() { return rint(0, 1) ? modoCreador() : modoMaestro(); }
+/* El Modo Profe era 100% matemático: el chico creaba una cuenta o corregía al robot
+   sumando. Es EL diferencial del producto (crear y corregir, no sólo resolver) y dejarlo
+   sólo en Matemática hacía que la mitad del cuaderno no lo tuviera. Estas son las dos
+   versiones de Lengua, con la misma regla de diseño: sin teclado —el chico elige fichas—
+   así no se convierte en un ejercicio de tipeo. */
+
+// El robot escribe mal y el chico tiene que darse cuenta de POR QUÉ está mal.
+const MAESTRO_LENGUA = [
+  { mal: "El lapiz está sobre la mesa.", bien: "El lápiz está sobre la mesa.", regla: "lápiz es grave terminada en z, por eso lleva tilde" },
+  { mal: "Junté muchos lapizes de colores.", bien: "Junté muchos lápices de colores.", regla: "las palabras con z hacen el plural con c: lápiz → lápices" },
+  { mal: "Los pezes nadan en el río.", bien: "Los peces nadan en el río.", regla: "pez → peces: la z se cambia por c" },
+  { mal: "Mi hermana canto una canción.", bien: "Mi hermana cantó una canción.", regla: "cantó es pasado y lleva tilde; canto sin tilde es presente" },
+  { mal: "¿Donde dejaste la mochila?", bien: "¿Dónde dejaste la mochila?", regla: "dónde lleva tilde cuando pregunta" },
+  { mal: "Ayer fuimos a la plaza y jugamos", bien: "Ayer fuimos a la plaza y jugamos.", regla: "toda oración termina con punto" },
+  { mal: "mi perro se llama toby.", bien: "Mi perro se llama Toby.", regla: "se escribe con mayúscula al empezar y en los nombres propios" },
+  { mal: "Tengo que aser la tarea.", bien: "Tengo que hacer la tarea.", regla: "hacer va con h y con c" },
+  { mal: "No se si voy a ir.", bien: "No sé si voy a ir.", regla: "sé del verbo saber lleva tilde" },
+  { mal: "El arbol tiene muchas hojas.", bien: "El árbol tiene muchas hojas.", regla: "árbol es grave terminada en l, por eso lleva tilde" },
+  { mal: "Habia una vez un dragón.", bien: "Había una vez un dragón.", regla: "había lleva tilde en la i" },
+  { mal: "Comimos torta y helado tambien.", bien: "Comimos torta y helado también.", regla: "también es aguda terminada en n: lleva tilde" },
+];
+
+function modoMaestroLengua() {
+  Shell.actual = null; Shell.nivelActual = null;
+  $("#btnAtras").classList.add("ver");
+  const stage = $("#stage"); stage.innerHTML = "";
+  const c = MAESTRO_LENGUA[rint(0, MAESTRO_LENGUA.length - 1)];
+  // distractor: la corrige a medias, para que no alcance con "elegir la más larga"
+  const aMedias = c.bien.replace(/[áéíóú]/, (v) => "aeiou"["áéíóú".indexOf(v)]);
+  const opciones = shuffle([c.bien, c.mal, aMedias === c.bien || aMedias === c.mal
+    ? c.mal.toUpperCase().charAt(0) + c.mal.slice(1) : aMedias]);
+  const root = el("div"); root.style.cssText = "max-width:560px;margin:6px auto;text-align:center";
+  stage.appendChild(root);
+  root.innerHTML =
+    '<div style="font-size:44px">🤖</div>' +
+    "<h1 style=\"margin:4px 0\">Corregí al Robot</h1>" +
+    '<p style="opacity:.82;font-size:17px">El Robot Tito escribió esto:</p>' +
+    '<div style="font-size:21px;font-weight:800;margin:10px 0;color:#e74c3c">“' + c.mal + "”</div>" +
+    '<p style="font-size:17px;font-weight:700">¿Cuál está bien escrita?</p>' +
+    '<div id="mlOps" style="display:flex;flex-direction:column;gap:10px;margin:12px 0"></div>' +
+    '<div id="mlMsg" style="min-height:52px;font-size:18px;font-weight:800"></div>';
+  const cont = root.querySelector("#mlOps");
+  opciones.forEach((o) => {
+    const btn = el("button", "", o);
+    btn.style.cssText = "padding:13px 15px;font-size:18px;font-weight:700;border:none;border-radius:14px;background:var(--card,#fff);box-shadow:0 3px 12px rgba(0,0,0,.12);cursor:pointer;line-height:1.3";
+    btn.addEventListener("click", () => {
+      if (o === c.bien) {
+        Sfx.fanfarria && Sfx.fanfarria(); Confeti.tirar(160);
+        Tel.push({ j: "modo_maestro_lengua", it: c.bien.slice(0, 40), edad: (D && D.edad) || null,
+                   ok: true, primer: true, motivo: c.regla, t: Date.now() });
+        btn.style.background = "#2ecc71"; btn.style.color = "#fff";
+        cont.querySelectorAll("button").forEach((x) => { x.disabled = true; });
+        root.querySelector("#mlMsg").innerHTML =
+          "🎉 ¡Bien visto, profe! " + c.regla + ". " +
+          '<button id="mlOtra" style="margin-left:6px;padding:8px 14px;border:none;border-radius:12px;background:#2ecc71;color:#fff;font-weight:800;cursor:pointer">¡Otra! ▶</button>';
+        const bo = document.getElementById("mlOtra");
+        if (bo) bo.addEventListener("click", () => { Sfx.pop(); modoProfe(); });
+        reproducirConsigna("¡Bien visto! " + c.regla);
+      } else {
+        Sfx.casi && Sfx.casi(); btn.style.background = "#f5a623";
+        root.querySelector("#mlMsg").textContent = "Mmm, fijate de nuevo… todavía tiene algo mal.";
+      }
+    });
+    cont.appendChild(btn);
+  });
+}
+
+// Crear, no resolver: el chico ARMA una oración con fichas. Se valida la concordancia
+// (singular con singular), que es lo que la hace un ejercicio de lengua y no un collage.
+const CREADOR_SUJETOS = [
+  { t: "El gato", n: "s" }, { t: "Mi hermana", n: "s" }, { t: "El robot Tito", n: "s" },
+  { t: "La maestra", n: "s" }, { t: "Los chicos", n: "p" }, { t: "Mis amigas", n: "p" },
+  { t: "Los perros", n: "p" }, { t: "Las nubes", n: "p" },
+];
+const CREADOR_VERBOS = [
+  { t: "corre", n: "s" }, { t: "dibuja", n: "s" }, { t: "canta", n: "s" }, { t: "salta", n: "s" },
+  { t: "corren", n: "p" }, { t: "dibujan", n: "p" }, { t: "cantan", n: "p" }, { t: "saltan", n: "p" },
+];
+const CREADOR_COMPL = [
+  "en la plaza", "con una pelota", "muy despacio", "abajo del árbol",
+  "toda la tarde", "en el patio", "con mucha alegría", "bajo la lluvia",
+];
+
+function modoCreadorLengua() {
+  Shell.actual = null; Shell.nivelActual = null;
+  $("#btnAtras").classList.add("ver");
+  const stage = $("#stage"); stage.innerHTML = "";
+  const sel = { suj: null, ver: null, com: null };
+  const root = el("div"); root.style.cssText = "max-width:600px;margin:6px auto;text-align:center";
+  stage.appendChild(root);
+  root.innerHTML =
+    '<div style="font-size:44px">✍️</div>' +
+    "<h1 style=\"margin:4px 0\">Armá tu oración</h1>" +
+    '<p style="opacity:.82;font-size:17px">Elegí <b>quién</b>, <b>qué hace</b> y <b>cómo o dónde</b>. ' +
+    "Ojo que tienen que combinar: si el sujeto es uno solo, el verbo también.</p>" +
+    '<div id="crFrase" style="font-size:23px;font-weight:900;min-height:64px;margin:14px 0;padding:12px;border-radius:14px;background:var(--soft,#eee)"></div>' +
+    '<div id="crSuj"></div><div id="crVer"></div><div id="crCom"></div>' +
+    '<div id="crMsg" style="min-height:52px;font-size:18px;font-weight:800;margin-top:8px"></div>';
+  const fila = (destino, titulo, datos, clave) => {
+    const cont = el("div");
+    cont.innerHTML = '<div style="font-size:14px;opacity:.7;margin:8px 0 4px;font-weight:700">' + titulo + "</div>";
+    const wrap = el("div"); wrap.style.cssText = "display:flex;gap:8px;flex-wrap:wrap;justify-content:center";
+    datos.forEach((d) => {
+      const txt = typeof d === "string" ? d : d.t;
+      const b = el("button", "", txt);
+      b.style.cssText = "padding:9px 13px;font-size:16px;font-weight:700;border:none;border-radius:999px;background:var(--card,#fff);box-shadow:0 2px 8px rgba(0,0,0,.1);cursor:pointer";
+      b.addEventListener("click", () => {
+        sel[clave] = d;
+        wrap.querySelectorAll("button").forEach((x) => { x.style.outline = ""; });
+        b.style.outline = "3px solid var(--ac,#2a6497)";
+        Sfx.pop && Sfx.pop();
+        pintar();
+      });
+      wrap.appendChild(b);
+    });
+    cont.appendChild(wrap);
+    root.querySelector(destino).appendChild(cont);
+  };
+  const pintar = () => {
+    const s = sel.suj, v = sel.ver, c = sel.com;
+    const partes = [s && s.t, v && v.t, c].filter(Boolean);
+    root.querySelector("#crFrase").textContent = partes.length
+      ? partes.join(" ") + (partes.length === 3 ? "." : " …") : "…";
+    const msg = root.querySelector("#crMsg");
+    if (!s || !v) { msg.textContent = ""; return; }
+    if (s.n !== v.n) {
+      msg.style.color = "#e08a00";
+      msg.textContent = s.n === "s"
+        ? "Casi: “" + s.t + "” es uno solo, así que el verbo va en singular."
+        : "Casi: “" + s.t + "” son varios, así que el verbo va en plural.";
+      return;
+    }
+    if (!c) { msg.style.color = ""; msg.textContent = "¡Van bien! Elegí cómo o dónde para terminarla."; return; }
+    msg.style.color = "#14663a";
+    msg.innerHTML = "🎉 ¡Muy bien! Armaste una oración completa: sujeto, verbo y complemento. " +
+      '<button id="crOtra" style="margin-left:6px;padding:8px 14px;border:none;border-radius:12px;background:#2ecc71;color:#fff;font-weight:800;cursor:pointer">¡Otra! ▶</button>';
+    const bo = document.getElementById("crOtra");
+    if (bo) bo.addEventListener("click", () => { Sfx.pop(); modoProfe(); });
+    if (!pintar._festejado) {
+      pintar._festejado = true;
+      Sfx.fanfarria && Sfx.fanfarria(); Confeti.tirar(160);
+      Tel.push({ j: "modo_creador_lengua", it: s.t + "|" + v.t, edad: (D && D.edad) || null,
+                 ok: true, primer: true, t: Date.now() });
+      reproducirConsigna(s.t + " " + v.t + " " + c + ".");
+    }
+  };
+  fila("#crSuj", "¿Quién?", CREADOR_SUJETOS, "suj");
+  fila("#crVer", "¿Qué hace?", CREADOR_VERBOS, "ver");
+  fila("#crCom", "¿Cómo o dónde?", CREADOR_COMPL, "com");
+  pintar();
+}
+
+// Reparte entre los cuatro modos. Antes eran dos y los dos eran de Matemática.
+function modoProfe() {
+  return [modoCreador, modoMaestro, modoCreadorLengua, modoMaestroLengua][rint(0, 3)]();
+}
 
 function modoCreador() {
   Shell.actual = null; Shell.nivelActual = null;
@@ -4359,22 +5080,41 @@ GAMES.cazador_errores = juegoTriviaTexto(ORTO7_BANCO, "Tocá la palabra bien esc
 /* ── VALOR POSICIONAL (2° — docs/auditoria-dc-caba/grado-2.md gap #2: valor
    posicional hasta 1.000, ausente). Cuánto vale cada cifra, descomposición,
    unidades/decenas/centenas. Trivia (juegoTriviaTexto). ── */
-const VALPOS_BANCO = [
-  { q: "En el número 45, ¿cuánto vale el 4?", ops: ["40", "4", "400"], m: "El 4 está en las decenas: vale 40." },
-  { q: "En el número 235, ¿cuánto vale el 2?", ops: ["200", "20", "2"], m: "El 2 está en las centenas: vale 200." },
-  { q: "En el número 235, ¿cuánto vale el 3?", ops: ["30", "3", "300"], m: "El 3 está en las decenas: vale 30." },
-  { q: "En el número 235, ¿cuánto vale el 5?", ops: ["5", "50", "500"], m: "El 5 está en las unidades: vale 5." },
-  { q: "En el número 70, ¿cuánto vale el 7?", ops: ["70", "7", "700"], m: "El 7 está en las decenas: vale 70." },
-  { q: "¿Cuántas decenas hay en 60?", ops: ["6", "60", "16"], m: "60 = 6 decenas (6 grupos de 10)." },
-  { q: "¿Cuántas centenas hay en 300?", ops: ["3", "30", "300"], m: "300 = 3 centenas (3 grupos de 100)." },
-  { q: "El número 100 tiene…", ops: ["1 centena, 0 decenas y 0 unidades", "10 centenas", "100 decenas"], m: "100 = 1 centena, 0 decenas y 0 unidades." },
-  { q: "¿Qué número es 2 centenas, 4 decenas y 5 unidades?", ops: ["245", "2045", "254"], m: "2 centenas (200) + 4 decenas (40) + 5 = 245." },
-  { q: "¿Qué número es 3 decenas y 6 unidades?", ops: ["36", "360", "63"], m: "3 decenas (30) + 6 unidades = 36." },
-  { q: "En el número 508, ¿cuánto vale el 0?", ops: ["0", "50", "500"], m: "No hay decenas: el 0 vale 0." },
-  { q: "¿Cuál 5 vale MÁS: el de 52 o el de 25?", ops: ["El de 52 (vale 50)", "El de 25 (vale 5)", "Valen igual"], m: "En 52 el 5 está en las decenas (50); en 25, en las unidades (5)." },
-  { q: "300 + 40 + 5 = ", ops: ["345", "3045", "0345"], m: "3 centenas + 4 decenas + 5 unidades = 345." },
-  { q: "¿Cuántas decenas tiene el número 89?", ops: ["8", "9", "89"], m: "El 8 está en las decenas: 89 tiene 8 decenas." },
-];
+// Valor posicional COMPUTADO, no escrito a mano. Eran 14 preguntas fijas: a la segunda
+// partida el chico ya las había visto todas, así que lo que medíamos era memoria y no la
+// regla ("no quiero que aprenda por memoria sino porque entendió el saber"). Acá el ítem
+// sale de la regla misma —cifra × potencia de diez— y los distractores son los DOS errores
+// que de verdad cometen: dar la cifra suelta, o correrse una posición.
+const VALPOS_BANCO = (() => {
+  const NOMBRE = ["unidades", "decenas", "centenas", "unidades de mil"];
+  const nums = [];
+  for (let n = 12; n <= 98; n += 3) nums.push(n);          // 2 cifras
+  for (let n = 104; n <= 989; n += 17) nums.push(n);       // 3 cifras
+  for (let n = 1023; n <= 9876; n += 149) nums.push(n);    // 4 cifras
+  const out = [];
+  for (const n of nums) {
+    const s = String(n);
+    for (let i = 0; i < s.length; i++) {
+      const d = +s[i];
+      if (!d) continue;                       // "¿cuánto vale el 0?" no enseña nada
+      // si la cifra aparece dos veces, la pregunta tiene DOS respuestas correctas
+      // ("en 121, ¿cuánto vale el 1?" → 100 y 1). Se descarta: un ítem ambiguo le
+      // enseña al chico que la regla no cierra.
+      if (s.indexOf(String(d)) !== s.lastIndexOf(String(d))) continue;
+      const pos = s.length - 1 - i;           // 0 = unidades
+      const vale = d * Math.pow(10, pos);
+      const ops = [String(vale)];
+      // error 1: leer la cifra suelta · error 2: correrse una posición
+      for (const alt of [d, d * Math.pow(10, pos + 1), d * Math.pow(10, Math.max(0, pos - 1))]) {
+        if (ops.length < 3 && ops.indexOf(String(alt)) === -1) ops.push(String(alt));
+      }
+      if (ops.length < 3) continue;           // no se pudo armar 3 opciones distintas
+      out.push({ q: "En el número " + n + ", ¿cuánto vale el " + d + "?", ops: ops,
+                 m: "El " + d + " está en las " + NOMBRE[pos] + ": vale " + vale + "." });
+    }
+  }
+  return out;
+})();
 GAMES.valor_posicional = juegoTriviaTexto(VALPOS_BANCO, "Elegí la respuesta correcta.", "valpos");
 
 /* ── LOS SENTIDOS (1° — Conocimiento del Mundo, el cuerpo y los 5 sentidos).
@@ -4877,7 +5617,19 @@ GAMES.recta_numerica = {
             setTimeout(() => { if (ronda >= rondas) ctx.win(); else jugar(); }, 1000);
           } else {
             z.style.background = "#e08a8a"; setTimeout(() => { z.style.background = "rgba(140,140,160,.14)"; }, 450);
-            ctx.casi("El " + fmt(target) + " está entre " + fmt(zonaOK * paso) + " y " + fmt((zonaOK + 1) * paso) + ". ¿Está más cerca del 0 o del " + fmt(max) + "?");
+            // La pista ORIENTA, no resuelve: decía "está entre <inicio> y <fin> de la
+            // zona correcta", o sea le daba la respuesta — el chico erraba una vez y
+            // después clickeaba lo que le habían dicho, así que el dominio que medíamos
+            // no era dominio. Ahora lo acota a mitad y cuarto, que es la estrategia real
+            // para ubicar en la recta (compará con las referencias, no adivines).
+            // Cuartos y no zonas: la recta tiene 10 zonas, así que nombrar el cuarto lo
+            // deja entre 2 y 3 opciones — lo suficiente para que use las referencias
+            // (mitad, cuartos) y no lo suficiente para que no piense.
+            const NOM = ["primer", "segundo", "tercer", "último"];
+            const cuarto = Math.max(0, Math.min(3, Math.floor(target / (max / 4))));
+            ctx.casi("El " + fmt(target) + " va en el " + NOM[cuarto] + " cuarto de la recta"
+                     + " (entre " + fmt(cuarto * max / 4) + " y " + fmt((cuarto + 1) * max / 4) + ")."
+                     + " Ubicá primero la mitad: " + fmt(max / 2) + ".");
           }
         });
         linea.appendChild(z);
@@ -7421,6 +8173,14 @@ const ANIMAL_COMIDA_BANCO = [
   // agregados 14-jul-2026 (banco ampliado de 5 a 10).
   { animal: "🐵", comida: "🍌" }, { animal: "🐘", comida: "🥜" }, { animal: "🐻", comida: "🍯" },
   { animal: "🐮", comida: "🌾" }, { animal: "🐿️", comida: "🌰" },
+  // 25-jul-2026: de 10 a 24. Con 10 pares y 5 rondas, dos partidas alcanzaban para
+  // verlos todos. Se eligieron animales que un chico de 1° reconoce y comidas que no
+  // se confunden entre sí (nada de dos herbívoros con la misma hoja).
+  { animal: "🐧", comida: "🐟" }, { animal: "🐴", comida: "🍏" }, { animal: "🐷", comida: "🌽" },
+  { animal: "🐐", comida: "🍃" }, { animal: "🦒", comida: "🌳" }, { animal: "🐔", comida: "🌾" },
+  { animal: "🦅", comida: "🐍" }, { animal: "🐨", comida: "🍂" }, { animal: "🦇", comida: "🦟" },
+  { animal: "🐢", comida: "🥬" }, { animal: "🦈", comida: "🐠" }, { animal: "🐸", comida: "🪰" },
+  { animal: "🐜", comida: "🍬" }, { animal: "🦜", comida: "🌻" },
 ];
 GAMES.animal_comida = {
   crear(ctx) {
@@ -7740,10 +8500,20 @@ GAMES.estaciones = {
    afuera, ver informe). Consigna de audio FIJA y genérica — la pregunta
    específica (qué cuerpo, qué propiedad) se muestra en pantalla como texto
    dinámico, mismo criterio que "Formá {objetivo}" en sumas_redondas. ── */
+// Eran 3 cuerpos: en dos partidas los vio todos. Ampliado a los que el DC pide en 4°-5°,
+// con sus caras/vértices/aristas verificados uno por uno. Los cuerpos redondos van con
+// vertices/aristas en 0 porque no tienen (la esfera no tiene ni caras planas).
 const CUERPOS_BANCO = [
   { e: "🧊", nombre: "el cubo", caras: 6, vertices: 8, aristas: 12 },
   { e: "📦", nombre: "el prisma rectangular", caras: 6, vertices: 8, aristas: 12 },
-  { e: "🔺", nombre: "la pirámide", caras: 5, vertices: 5, aristas: 8 },
+  { e: "🔺", nombre: "la pirámide de base cuadrada", caras: 5, vertices: 5, aristas: 8 },
+  { e: "⛺", nombre: "la pirámide de base triangular", caras: 4, vertices: 4, aristas: 6 },
+  { e: "🔷", nombre: "el prisma de base triangular", caras: 5, vertices: 6, aristas: 9 },
+  { e: "🛢️", nombre: "el prisma de base pentagonal", caras: 7, vertices: 10, aristas: 15 },
+  { e: "🎲", nombre: "el prisma de base hexagonal", caras: 8, vertices: 12, aristas: 18 },
+  { e: "🥫", nombre: "el cilindro", caras: 3, vertices: 0, aristas: 2, redondo: true },
+  { e: "🍦", nombre: "el cono", caras: 2, vertices: 1, aristas: 1, redondo: true },
+  { e: "⚽", nombre: "la esfera", caras: 1, vertices: 0, aristas: 0, redondo: true },
 ];
 GAMES.cuerpos_geometricos = {
   crear(ctx) {
@@ -7755,7 +8525,12 @@ GAMES.cuerpos_geometricos = {
       consignaVariada(ctx, ronda, "Contá y elegí la respuesta correcta", "f");
       ctx.juego.innerHTML = "";
       const item = CUERPOS_BANCO[rint(0, CUERPOS_BANCO.length - 1)];
-      const propKey = ["caras", "vertices", "aristas"][rint(0, 2)];
+      // A los cuerpos redondos NO se les pregunta por las caras: cuántas tiene una
+      // esfera o un cono depende de si el manual cuenta la superficie curva como cara,
+      // y no vamos a enseñar una respuesta que la maestra pueda marcar mal. Vértices y
+      // aristas sí son inequívocos (la esfera no tiene ninguno).
+      const props = item.redondo ? ["vertices", "aristas"] : ["caras", "vertices", "aristas"];
+      const propKey = props[rint(0, props.length - 1)];
       const propLabel = { caras: "caras", vertices: "vértices", aristas: "aristas" }[propKey];
       const correcta = item[propKey];
       const arriba = el("div", "tablero");
@@ -10447,6 +11222,13 @@ const POLIGONOS_BANCO = [
   // agregados 14-jul-2026 (banco ampliado de 6 a 10).
   { nombre: "Eneágono", lados: 9 }, { nombre: "Decágono", lados: 10 },
   { nombre: "Rectángulo", lados: 4 }, { nombre: "Rombo", lados: 4 },
+  // 25-jul-2026: de 10 a 20. Se suman los cuadriláteros que el DC nombra en 4°-5° y
+  // los polígonos de 11 y 12 lados, que cierran la serie de los nombres.
+  { nombre: "Trapecio", lados: 4 }, { nombre: "Trapezoide", lados: 4 },
+  { nombre: "Romboide", lados: 4 }, { nombre: "Paralelogramo", lados: 4 },
+  { nombre: "Endecágono", lados: 11 }, { nombre: "Dodecágono", lados: 12 },
+  { nombre: "Triángulo equilátero", lados: 3 }, { nombre: "Triángulo isósceles", lados: 3 },
+  { nombre: "Triángulo escaleno", lados: 3 }, { nombre: "Cuadrilátero", lados: 4 },
 ];
 GAMES.poligonos_lados = {
   crear(ctx) {
