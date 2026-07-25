@@ -1071,6 +1071,14 @@ class Handler(BaseHTTPRequestHandler):
         m_prog = re.match(r"^/act/([A-Za-z0-9_-]+)/progreso$", path)
         if m_prog:
             return self._act_progreso_get(m_prog.group(1))
+        # actividades EXTRA que el padre eligió ("¿qué ven en la escuela?")
+        m_ext = re.match(r"^/act/([A-Za-z0-9_-]+)/extras$", path)
+        if m_ext:
+            return self._act_extras_get(m_ext.group(1))
+        if path == "/act/catalogo":
+            import actividades_web as aw
+            return self._json(200, {"ok": True, "catalogo": aw.catalogo_actividades(),
+                                    "tope": aw.EXTRAS_TOPE_POR_MATERIA})
         # OJO: el visor usa rutas RELATIVAS -> siempre servirlo bajo /act/<tok>/
         # (con barra final); /act/<tok> sin barra redirige.
         m = re.match(r"^/act/([A-Za-z0-9_-]+)(?:/([a-z_0-9.]*))?$", path)
@@ -1523,6 +1531,30 @@ class Handler(BaseHTTPRequestHandler):
             data = {"profiles": {}}
         return self._json(200, data)
 
+    def _act_extras_get(self, token):
+        """Actividades EXTRA que el padre eligió para ese token. Las lee la TIENDA (para
+        pintar el selector) y también el player del chico (para sumarlas al menú)."""
+        import actividades_web as aw
+        if not os.path.isdir(os.path.join(aw.ACT_DIR, token)):
+            return self._json(404, {"ok": False})
+        return self._json(200, aw.extras_leer(token))
+
+    def _act_extras_set(self, token):
+        """La TIENDA manda la lista elegida por el padre (server-to-server, ya validó que
+        el token sea suyo). El motor igual valida contra el catálogo real y aplica el tope
+        por materia: nunca confía en que el cliente mandó algo razonable."""
+        import actividades_web as aw
+        if not os.path.isdir(os.path.join(aw.ACT_DIR, token)):
+            return self._json(404, {"ok": False})
+        try:
+            body = json.loads(self._body() or b"{}")
+        except Exception:
+            return self._json(400, {"ok": False})
+        if not isinstance(body, dict) or not isinstance(body.get("items"), list):
+            return self._json(400, {"ok": False})
+        r = aw.extras_guardar(token, body["items"])
+        return self._json(200 if r.get("ok") else 400, r)
+
     def _act_progreso_set(self, token):
         """El player manda un snapshot del progreso de un chico (best-effort, sendBeacon).
         Se guarda en actividades/<token>/progreso.json. Sin auth (mismo criterio que servir
@@ -1630,6 +1662,9 @@ class Handler(BaseHTTPRequestHandler):
         m_prog = re.match(r"^/act/([A-Za-z0-9_-]+)/progreso$", path)
         if m_prog:
             return self._act_progreso_set(m_prog.group(1))
+        m_ext = re.match(r"^/act/([A-Za-z0-9_-]+)/extras$", path)
+        if m_ext:
+            return self._act_extras_set(m_ext.group(1))
         m_int = re.match(r"^/act/([A-Za-z0-9_-]+)/quiero-desbloquear$", path)
         if m_int:
             return self._act_interes(m_int.group(1))

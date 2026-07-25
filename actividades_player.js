@@ -814,6 +814,10 @@ function pintarMenuPlano(items, stage) {
       <a id="pillLogro" class="${todoCompleto() ? "ver" : ""}" href="${certificadoUrl()}" target="_blank" rel="noopener">🏆 Ver mi diploma</a>`;
     stage.appendChild(bienv);
   }
+  // el badge de las cartas ("📚 Lo ven en la escuela") lo estiliza _adaptCSS: si hay
+  // extras del padre hay que inyectarlo aunque el token no tenga el motor adaptativo,
+  // si no la marca queda invisible.
+  if (items.some((m) => m && m.escuela)) _adaptCSS();
   // Capa 0 · nota de repaso del día (arriba del menú) si hay algo para repasar.
   const repasos = items.filter((m) => GAMES[m.id] && Store.repasoPendiente(m.id));
   if (repasos.length) {
@@ -837,6 +841,9 @@ function pintarMenuPlano(items, stage) {
     // las cartas alternan emoji y personajes del tema para que el menú viva
     const conSprite = i % 3 === 1 && P[(i / 3 | 0) + 1];
     let est;
+    // la eligió el padre porque la están viendo en la escuela: se marca para que el
+    // chico entienda por qué apareció algo que no es de su grado
+    if (m.escuela) c.dataset.adapt = "📚 Lo ven en la escuela";
     if (repaso) est = "🔁 ¡Repasá!";
     else if (sello === "consolidado") est = "🌟 ¡Lo sabés!";
     else if (sello === "dominado") est = "🏅 Dominado";
@@ -1142,10 +1149,37 @@ function pantallaCandado(nv) {
   stage.appendChild(box);
 }
 
+/* ── Actividades EXTRA que eligió el padre ("¿qué ven en la escuela?").
+
+   El menú del cuaderno se arma con el GRADO del chico, pero la escuela real no va
+   sincronizada: si esta semana están viendo un tema que le toca más adelante (o de un
+   grado anterior), el padre lo suma desde su cuenta y le aparece acá. Se piden aparte de
+   data.json porque cambian sin regenerar el token — por eso `no-store`.
+
+   Falla en silencio a propósito: si extras.json no está o el fetch se cae, el chico ve
+   su menú de siempre. Nunca puede dejarlo sin cuaderno. ── */
+async function sumarExtrasDeLaEscuela() {
+  try {
+    const r = await fetch("extras.json", { cache: "no-store" });
+    if (!r.ok) return;
+    const items = ((await r.json()) || {}).items;
+    if (!Array.isArray(items) || !items.length) return;
+    const yaEstan = new Set((D.menu || []).map((m) => (typeof m === "string" ? m : m.id)));
+    items.forEach((it) => {
+      // si ya lo tiene en su grado no se duplica: la del padre no pisa la que le toca
+      if (!it || !it.id || yaEstan.has(it.id)) return;
+      yaEstan.add(it.id);
+      D.menu.push({ id: it.id, titulo: it.titulo, icono: it.icono, cfg: it.cfg || {},
+                    nivel: 1, escuela: true });
+    });
+  } catch (e) { /* sin extras: el cuaderno de siempre */ }
+}
+
 /* ── arranque ── */
 async function boot() {
   const r = await fetch("data.json");
   D = await r.json();
+  await sumarExtrasDeLaEscuela();
   P = D.personajes;
   // paleta del tema → CSS vars (todo el look sale de acá)
   const root = document.documentElement;
