@@ -855,6 +855,52 @@ const COMO_ES_VIDEO = {
     auto: "lec_fracciones_equivalentes.mp4",
     partes: [{ t: "Fracciones equivalentes", f: "lec_fracciones_equivalentes.mp4", s: 33 }],
   },
+  // Las 11 restantes de 4°: con estas, TODA actividad que enseña una regla tiene su
+  // video además del texto (pedido de Pablo, 25-jul).
+  suma_columnas: {
+    auto: "lec_suma_columnas.mp4",
+    partes: [{ t: "Sumar con llevada", f: "lec_suma_columnas.mp4", s: 40 }],
+  },
+  cuenta_larga: {
+    auto: "lec_cuenta_larga.mp4",
+    partes: [{ t: "La cuenta larga", f: "lec_cuenta_larga.mp4", s: 36 }],
+  },
+  recta_numerica: {
+    auto: "lec_recta_numerica.mp4",
+    partes: [{ t: "Ubicar en la recta", f: "lec_recta_numerica.mp4", s: 36 }],
+  },
+  sujeto_predicado: {
+    auto: "lec_sujeto_predicado.mp4",
+    partes: [{ t: "Sujeto y predicado", f: "lec_sujeto_predicado.mp4", s: 33 }],
+  },
+  plurales_z: {
+    auto: "lec_plurales_z.mp4",
+    partes: [{ t: "Plurales con Z", f: "lec_plurales_z.mp4", s: 28 }],
+  },
+  prefijos_sufijos: {
+    auto: "lec_prefijos_sufijos.mp4",
+    partes: [{ t: "Prefijos y sufijos", f: "lec_prefijos_sufijos.mp4", s: 31 }],
+  },
+  conectores: {
+    auto: "lec_conectores.mp4",
+    partes: [{ t: "El conector justo", f: "lec_conectores.mp4", s: 30 }],
+  },
+  dialogo_raya: {
+    auto: "lec_dialogo_raya.mp4",
+    partes: [{ t: "La raya de diálogo", f: "lec_dialogo_raya.mp4", s: 28 }],
+  },
+  abstractos_concretos: {
+    auto: "lec_abstractos_concretos.mp4",
+    partes: [{ t: "Concreto o abstracto", f: "lec_abstractos_concretos.mp4", s: 31 }],
+  },
+  cadena_alimentaria: {
+    auto: "lec_cadena_alimentaria.mp4",
+    partes: [{ t: "La cadena alimentaria", f: "lec_cadena_alimentaria.mp4", s: 30 }],
+  },
+  gobierno_argentina: {
+    auto: "lec_gobierno_argentina.mp4",
+    partes: [{ t: "Los tres poderes", f: "lec_gobierno_argentina.mp4", s: 31 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }

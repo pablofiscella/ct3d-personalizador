@@ -74,6 +74,28 @@ def test_los_videos_salen_del_repo_no_del_token():
 
 
 # ── cuándo se muestra ───────────────────────────────────────────────────────────
+def test_toda_explicacion_de_cuarto_tiene_video():
+    """Pablo (25-jul): "quiero en las explicaciones siempre videos que expliquen el
+    contenido de forma visual".
+
+    O sea: si una actividad de 4° enseña una regla y tiene mini-lección de texto, tiene
+    que tener también su video. Yo había argumentado que algunas reglas simples no lo
+    necesitaban; su criterio fue que sí, y este test lo fija — si mañana se agrega una
+    actividad con texto y sin video, salta acá y no en el aula."""
+    import sys
+    sys.path.insert(0, BASEDIR)
+    import actividades_web as aw
+    menu = {m["id"] for m in aw._menu(aw._banda("9"), "9") + aw._menu_curricular("9")}
+    i = PLAYER.index("const COMO_ES = {")
+    f = PLAYER.index("\nconst FRASES_BIEN")
+    texto = set(re.findall(r"^  (\w+): \{ t:", PLAYER[i:f], re.M))
+    j = PLAYER.index("const COMO_ES_VIDEO = {")
+    k = PLAYER.index("function videoDe(")
+    video = set(re.findall(r"^  (\w+): \{", PLAYER[j:k], re.M))
+    faltan = sorted((menu & texto) - video)
+    assert not faltan, "actividades de 4° con texto y SIN video: %s" % faltan
+
+
 def test_el_popup_abre_con_texto_y_el_video_queda_a_un_toque():
     i = PLAYER.index("function mostrarComoEs(")
     cuerpo = PLAYER[i:i + 2200]
