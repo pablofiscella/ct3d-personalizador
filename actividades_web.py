@@ -1542,7 +1542,7 @@ def extras_leer(token):
         return {"items": []}
 
 
-def extras_guardar(token, pedidos):
+def extras_guardar(token, pedidos, compradas=None):
     """Guarda las actividades extra de un token. `pedidos` = [{id, grado}, ...].
 
     LÍMITE (decisión de Pablo 24-jul, es de negocio): sólo se puede sumar del grado
@@ -1558,11 +1558,17 @@ def extras_guardar(token, pedidos):
     pantalla del padre lo convierta en la oferta en vez de un "no" seco: "de Matemática ya
     sumaste la del año que viene; el resto lo desbloqueás".
 
+    `compradas` = [{id, grado}, ...] que el padre PAGÓ ($1000 c/u, decisión de Pablo
+    25-jul). No cuentan contra el cupo gratis y no miran el grado: si la pagó, entra. La
+    tienda es la que sabe qué se pagó; el motor sólo la cree para eso.
+
     Devuelve {"ok", "items", "rechazadas"}."""
     d = os.path.join(ACT_DIR, token)
     if not os.path.isdir(d):
         return {"ok": False, "error": "token inexistente"}
     grado_chico = _grado_del_token(token)
+    pagadas = {(str(c.get("id")), int(c.get("grado") or 0))
+               for c in (compradas or []) if isinstance(c, dict)}
     cat = catalogo_actividades()
     porcat, items, rechazadas = {}, [], []
     vistos = set()
@@ -1583,6 +1589,13 @@ def extras_guardar(token, pedidos):
         vistos.add((jid, grado))
         c = entrada.get("categoria") or "extras"
         titulo = entrada.get("titulo")
+        comprada = (jid, grado) in pagadas
+        if comprada:
+            it = dict(entrada)
+            it["grado"] = grado
+            it["origen"] = "comprada"     # pagada: ni tope ni límite de grado
+            items.append(it)
+            continue
         if grado_chico is not None:
             dist = grado - grado_chico
             if abs(dist) > 1:
