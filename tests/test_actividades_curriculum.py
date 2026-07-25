@@ -248,3 +248,41 @@ def test_lo_comprado_entra_sin_tope_ni_limite_de_grado():
         assert len(r2["items"]) == 1 and r2["items"][0]["origen"] == "comprada"
     finally:
         shutil.rmtree(d, ignore_errors=True)
+
+
+# ── ningún juego del menú puede faltar en el player ──────────────────────────────
+def _games_definidos():
+    """Ids que el player registra, en cualquiera de sus dos archivos."""
+    ids = set()
+    for f in ("actividades_player.js", "actividades_curriculum.js"):
+        try:
+            src = open(os.path.join(aw.BASEDIR, f), encoding="utf-8").read()
+        except OSError:
+            continue
+        ids |= set(re.findall(r"GAMES\.(\w+)\s*=", src))
+    return ids
+
+
+@pytest.mark.parametrize("edad", [str(e) for e in range(6, 13)])
+def test_todo_juego_del_menu_existe_en_el_player(edad):
+    """Una carta que el player no sabe abrir es una actividad muerta en el cuaderno.
+
+    Pasó de verdad (25-jul): borrando bancos muertos, una regex se comió `GAMES.reloj` y
+    `GAMES.transportador` enteros — el banco del transportador estaba declarado en UNA
+    línea y el patrón siguió hasta el `];` del array siguiente. Quedaron en el menú de
+    2°, 3° y 5° cartas que no abrían nada, y ningún test lo notó."""
+    definidos = _games_definidos()
+    menu = aw._menu(aw._banda(edad), edad) + aw._menu_curricular(edad)
+    faltan = sorted({m["id"] for m in menu} - definidos)
+    assert not faltan, "el menú de %s años ofrece juegos inexistentes: %s" % (edad, faltan)
+
+
+def test_todo_juego_del_grafo_existe_en_el_player():
+    """Lo mismo para el grafo de saberes: el motor no puede recomendar lo que no existe."""
+    definidos = _games_definidos()
+    faltan = set()
+    for sid, s in saberes.SABERES.items():
+        for j in s.get("juegos", []):
+            if j not in definidos:
+                faltan.add("%s (%s)" % (j, sid))
+    assert not faltan, "el grafo apunta a juegos inexistentes: %s" % sorted(faltan)
