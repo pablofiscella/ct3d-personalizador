@@ -532,7 +532,14 @@ def _limpiar_vencidos():
         pass
 
 
-def html(token, base_url=""):
+_CTA_CUENTA_HTML = """<div id="ctaCuenta">
+  <span>💾 ¿Te gustó? Guardalo en tu cuenta gratis y descubrí el resto del catálogo.</span>
+  <a href="%(cta_url)s" target="_top">Crear cuenta gratis</a>
+  <button id="ctaCerrar" title="Cerrar">✕</button>
+</div>"""
+
+
+def html(token, base_url="", con_cuenta=False):
     """El visor: página a pantalla completa, narración y page-flip automático."""
     reg = _cargar(token)
     if not reg:
@@ -598,11 +605,7 @@ body.tv #ctaCuenta { display:none !important; }
   <span class="pag" id="velval" style="min-width:38px">1.0x</span>
 </div>
 <div id="diag" style="color:#e0b0b0;font-size:12px;min-height:16px"></div>
-<div id="ctaCuenta">
-  <span>💾 ¿Te gustó? Guardalo en tu cuenta gratis y descubrí el resto del catálogo.</span>
-  <a href="%(cta_url)s" target="_top">Crear cuenta gratis</a>
-  <button id="ctaCerrar" title="Cerrar">✕</button>
-</div>
+%(cta_html)s
 <audio id="audio" preload="auto"></audio>
 <script src="https://unpkg.com/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 <script>
@@ -645,11 +648,11 @@ function visibles(){
   return [actual];
 }
 var ctaCuenta=document.getElementById('ctaCuenta'), ctaCerrada=false;
-document.getElementById('ctaCerrar').onclick=function(){ ctaCerrada=true; ctaCuenta.classList.remove('on'); };
+if (ctaCuenta) document.getElementById('ctaCerrar').onclick=function(){ ctaCerrada=true; ctaCuenta.classList.remove('on'); };
 function mostrarPag(){
   var v = visibles();
   pag.textContent = (v.length === 2 ? (v[0]+1)+'-'+(v[1]+1) : (v[0]+1)) + ' / ' + N;
-  if (!ctaCerrada && v[v.length-1] >= N-1) ctaCuenta.classList.add('on');
+  if (ctaCuenta && !ctaCerrada && v[v.length-1] >= N-1) ctaCuenta.classList.add('on');
 }
 function narrarVisibles(){
   cola = visibles().slice();
@@ -737,5 +740,11 @@ pag.textContent='1 / '+N;
                               # que entra por este banner) — mi_cuenta_crear() en
                               # la tienda lee este query param y dispara la
                               # notificación al confirmarse el alta.
-                              "cta_url": "https://casatridimensional.com.ar/mi-cuenta/crear?voz=" +
-                                         urllib.parse.quote(reg.get("voz") or "lizy")}
+                              # Banner "creá tu cuenta": NO se lo mostramos a quien ya
+                              # tiene sesión — Pablo, 24-jul-2026: le aparecía cada vez que
+                              # terminaba un libro que ya tenía en SU biblioteca. La cookie
+                              # de cliente es de .casatridimensional.com.ar, así que llega
+                              # también al visor (kit.*) y servicio.py la detecta.
+                              "cta_html": "" if con_cuenta else _CTA_CUENTA_HTML % {
+                                  "cta_url": "https://casatridimensional.com.ar/mi-cuenta/crear?voz=" +
+                                             urllib.parse.quote(reg.get("voz") or "lizy")}}
