@@ -5287,8 +5287,10 @@ GAMES.reparto_con_resto = {
     const jugar = () => {
       ctx.ronda(ronda);
       const prog = rondas > 1 ? ronda / (rondas - 1) : 1;
-      const N = rint(2, prog > 0.5 ? 6 : 4);          // amigos = divisor
-      const coc = rint(2, prog > 0.5 ? 9 : 5);        // a cada uno = cociente
+      // adaptativo: al dominar, más amigos y más a cada uno (el resto sigue siendo < N)
+      const _bd = ctx.bonusDominio;
+      const N = rint(2, (prog > 0.5 ? 6 : 4) + Math.min(4, _bd * 2));   // amigos = divisor
+      const coc = rint(2, (prog > 0.5 ? 9 : 5) + Math.min(6, _bd * 3)); // a cada uno = cociente
       const resto = rint(0, N - 1);                    // sobran (siempre < amigos)
       const total = N * coc + resto;
       const obj = OBJ[rint(0, OBJ.length - 1)];
@@ -5394,6 +5396,8 @@ GAMES.estados_materia = {
       ctx.ronda(ronda);
       let disp = ESTADOS_BANCO.filter((x) => !usados.includes(x.cosa));
       if (!disp.length) { usados = []; disp = ESTADOS_BANCO.slice(); }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "estados#" + x.r);
       const it = disp[rint(0, disp.length - 1)]; usados.push(it.cosa);
       ctx.item("estados#" + it.r);
       ctx.consigna(it.cosa + ", ¿en qué estado está?");
@@ -6628,8 +6632,10 @@ GAMES.contar_saltando = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      const paso = [2, 5, 10][rint(0, 2)];
-      const inicio = rint(1, 8) * paso;
+      // adaptativo: al dominar, saltos que no son de 2/5/10 (los que no se recitan)
+      const _pasos = ctx.bonusDominio > 0 ? [2, 3, 4, 5, 10, 25] : [2, 5, 10];
+      const paso = _pasos[rint(0, _pasos.length - 1)];
+      const inicio = rint(1, 8 + ctx.bonusDominio * 4) * paso;
       const serie = [inicio, inicio + paso, inicio + 2 * paso];
       const correcto = inicio + 3 * paso;
       ctx.item("saltar#" + paso + "_" + inicio);
@@ -7504,8 +7510,10 @@ GAMES.tabla_pitagorica = {
     const jugar = () => {
       ctx.ronda(ronda);
       ctx.juego.innerHTML = "";
-      const tabla = rint(2, 9);
-      const factor = rint(2, 9);
+      // adaptativo: al dominar, la tabla sigue hasta 12 (las que más cuestan)
+      const _tp = 9 + Math.min(3, ctx.bonusDominio);
+      const tabla = rint(2, _tp);
+      const factor = rint(2, _tp);
       const correcta = tabla * factor;
       // consigna de audio FIJA (el "6 × 7" cambia cada ronda — no puede
       // grabarse, mismo criterio que "Formá {objetivo}" en sumas_redondas)
@@ -8123,6 +8131,7 @@ GAMES.silaba_tonica = {
       ctx.juego.innerHTML = "";
       let libres = SILABA_TONICA_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
       if (!libres.length) { usados = []; libres = SILABA_TONICA_BANCO.map((_, i) => i); }
+      libres = _ordenPorDominio(ctx, libres, "tonica");   // al dominar, lo que aún no sabe
       const idx = libres[rint(0, libres.length - 1)]; usados.push(idx);
       const it = SILABA_TONICA_BANCO[idx];
       ctx.item("tonica#" + idx);
