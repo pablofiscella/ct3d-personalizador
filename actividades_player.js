@@ -5843,31 +5843,66 @@ GAMES.ingles_basico = {
 /* ── DEL DÉCIMO A LA COMA (M11, 5° grado — docs/auditoria-dc-caba/grado-5.md):
    equivalencia fracción decimal ↔ expresión decimal, nodal de 5°. Banco de
    equivalencias comunes. Explicación con décimos/centésimos (Capa 0 · C3). ── */
-const DEC_FRAC_BANCO = [
-  { q: "0,5 es igual a la fracción…", ok: "1/2", d: ["1/5", "5/1"], m: "0,5 son 5 décimos = 5/10 = 1/2 (la mitad)." },
-  { q: "0,25 es igual a la fracción…", ok: "1/4", d: ["2/5", "1/25"], m: "0,25 son 25 centésimos = 25/100 = 1/4." },
-  { q: "1/2 escrito como decimal es…", ok: "0,5", d: ["0,2", "1,2"], m: "1/2 es la mitad = 0,5." },
-  { q: "3/10 escrito como decimal es…", ok: "0,3", d: ["0,03", "3,0"], m: "3/10 son 3 décimos = 0,3." },
-  { q: "0,75 es igual a la fracción…", ok: "3/4", d: ["7/5", "3/5"], m: "0,75 son 75 centésimos = 75/100 = 3/4." },
-  { q: "1/4 escrito como decimal es…", ok: "0,25", d: ["0,4", "1,4"], m: "1/4 es 25 centésimos = 0,25." },
-  { q: "7/10 escrito como decimal es…", ok: "0,7", d: ["0,07", "7,10"], m: "7/10 son 7 décimos = 0,7." },
-  { q: "0,1 es igual a la fracción…", ok: "1/10", d: ["1/100", "10/1"], m: "0,1 es un décimo = 1/10." },
-  { q: "0,50 y 0,5, ¿son iguales?", ok: "Sí, son iguales", d: ["No, 0,50 es más", "No, 0,5 es más"], m: "0,50 = 0,5: los ceros a la derecha después de la coma no cambian el valor." },
-  { q: "9/100 escrito como decimal es…", ok: "0,09", d: ["0,9", "9,00"], m: "9/100 son 9 centésimos = 0,09." },
-  // ampliado 20-jul-2026 (de 10 a 22 — engrosar bancos nodales, docs/auditoria-dc-caba/)
-  { q: "0,4 es igual a la fracción…", ok: "2/5", d: ["4/1", "1/4"], m: "0,4 = 4/10, y simplificando queda 2/5." },
-  { q: "0,6 es igual a la fracción…", ok: "3/5", d: ["6/1", "1/6"], m: "0,6 = 6/10, y simplificando queda 3/5." },
-  { q: "2/5 escrito como decimal es…", ok: "0,4", d: ["0,25", "5,2"], m: "2 dividido 5 da 0,4." },
-  { q: "0,8 es igual a la fracción…", ok: "4/5", d: ["8/1", "1/8"], m: "0,8 = 8/10, y simplificando queda 4/5." },
-  { q: "3/4 escrito como decimal es…", ok: "0,75", d: ["0,34", "4,3"], m: "3 dividido 4 da 0,75." },
-  { q: "0,05 es igual a la fracción…", ok: "1/20", d: ["1/5", "5/10"], m: "0,05 = 5/100, y simplificando queda 1/20." },
-  { q: "0,01 es igual a la fracción…", ok: "1/100", d: ["1/10", "100/1"], m: "0,01 es un centésimo = 1/100." },
-  { q: "1/10 escrito como decimal es…", ok: "0,1", d: ["1,0", "0,01"], m: "1 dividido 10 da 0,1 (un décimo)." },
-  { q: "0,2 es igual a la fracción…", ok: "1/5", d: ["1/2", "5/1"], m: "0,2 = 2/10, y simplificando queda 1/5." },
-  { q: "1/5 escrito como decimal es…", ok: "0,2", d: ["0,5", "0,15"], m: "1 dividido 5 da 0,2." },
-  { q: "0,5 y 1/2 son…", ok: "lo mismo: la mitad", d: ["distintos", "0,5 es mayor"], m: "0,5 y 1/2 son dos formas de escribir la mitad." },
-  { q: "¿Cuál es MAYOR: 0,5 o 0,25?", ok: "0,5", d: ["0,25", "son iguales"], m: "0,5 es la mitad y 0,25 es un cuarto: la mitad es mayor." },
-];
+/* Conversión decimal ↔ fracción, generada. Las dos direcciones ("0,25 es igual a la
+   fracción…" / "1/4 escrito como decimal es…"), con la fracción SIEMPRE simplificada y la
+   explicación armada desde la cuenta real (décimos / centésimos según los decimales).
+   Al dominar aparecen denominadores menos redondos (8, 20, 25, 50), que es donde la
+   conversión deja de ser un dato recordado.
+   Los distractores son errores TÍPICOS: invertir la fracción, no simplificar, correr la
+   coma. Se verifica que ninguno valga lo mismo que la respuesta. */
+function _mcd(a, b) { return b ? _mcd(b, a % b) : a; }
+
+function _generarDecimalFraccion(bonus, usados) {
+  // la variedad va COMPLETA desde el arranque; el dominio sólo suma los denominadores
+  // menos redondos (25, 50, 100). Atarla al bonus dejaba 22 ejercicios en frío — los
+  // mismos que el banco que reemplaza, o sea ninguna mejora.
+  const BASE = [2, 4, 5, 8, 10, 20], DIFICILES = [25, 50, 100];
+  const dens = bonus > 0 ? BASE.concat(DIFICILES) : BASE;
+  for (let intento = 0; intento < 60; intento++) {
+    const den = dens[rint(0, dens.length - 1)];
+    const num = rint(1, den - 1);
+    const g = _mcd(num, den), sn = num / g, sd = den / g;
+    if (sd === 1) continue;                       // daría un entero, no una fracción
+    const dec = num / den;
+    const txt = dec.toFixed(3).replace(/0+$/, "").replace(/\.$/, "").replace(".", ",");
+    const decimales = (txt.split(",")[1] || "").length;
+    if (!decimales || decimales > 3) continue;
+    const clave = sn + "/" + sd;
+    if (usados && usados.includes(clave) && intento < 45) continue;
+    const NOMBRE = { 1: "décimos", 2: "centésimos", 3: "milésimos" }[decimales];
+    const potencia = Math.pow(10, decimales);
+    const enteroDec = Math.round(dec * potencia);
+    const explic = txt + " son " + enteroDec + " " + NOMBRE + " = " + enteroDec + "/" +
+                   potencia + " = " + clave + ".";
+    const haciaFraccion = rint(0, 1) === 0;
+    const cand = haciaFraccion
+      ? [sd + "/" + sn, num + "/" + den, sn + "/" + (sd + 1), (sn + 1) + "/" + sd]
+      : [txt.replace(",", ",0"), (dec * 10).toFixed(2).replace(/0+$/, "").replace(/\.$/, "").replace(".", ","),
+         (dec / 10).toFixed(4).replace(/0+$/, "").replace(/\.$/, "").replace(".", ",")];
+    const ok = haciaFraccion ? clave : txt;
+    const d = [];
+    // los distractores se barajan: si se toman siempre los dos primeros, el trío de
+    // opciones queda fijo por fracción y se memoriza igual que el banco viejo.
+    shuffle(cand).forEach((c) => {
+      if (d.length >= 2 || c === ok || d.includes(c)) return;
+      // un distractor NO puede valer lo mismo que la respuesta (serían 2 correctas)
+      const v = c.indexOf("/") > 0
+        ? Number(c.split("/")[0]) / Number(c.split("/")[1])
+        : Number(c.replace(",", "."));
+      if (Math.abs(v - dec) < 1e-9) return;
+      d.push(c);
+    });
+    if (d.length < 2) continue;
+    return {
+      clave: clave, ok: ok, d: d, m: explic,
+      q: haciaFraccion ? (txt + " es igual a la fracción…")
+                       : (clave + " escrito como decimal es…"),
+    };
+  }
+  return { clave: "1/2", ok: "1/2", d: ["1/5", "5/1"], q: "0,5 es igual a la fracción…",
+           m: "0,5 son 5 décimos = 5/10 = 1/2." };
+}
+
 GAMES.decimales_fraccion = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 10;
@@ -5875,12 +5910,12 @@ GAMES.decimales_fraccion = {
     let usados = [], ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      let disp = DEC_FRAC_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
-      if (!disp.length) { usados = []; disp = DEC_FRAC_BANCO.map((_, i) => i); }
-      disp = _ordenPorDominio(ctx, disp, "decfrac");   // al dominar, lo que aún no sabe
-      const idx = disp[rint(0, disp.length - 1)]; usados.push(idx);
-      const it = DEC_FRAC_BANCO[idx];
-      ctx.item("decfrac#" + idx);
+      // GENERADO: los 22 ítems del banco se veían enteros en dos partidas de 10 rondas.
+      // La conversión decimal↔fracción es pura cuenta, así que sale computada — enunciado,
+      // respuesta, distractores y explicación.
+      const it = _generarDecimalFraccion(ctx.bonusDominio, usados);
+      usados.push(it.clave);
+      ctx.item("decfrac#" + it.clave);
       ctx.consigna(it.q);
       ctx.juego.innerHTML = "";
       const opciones = shuffle([{ t: it.ok, ok: true }].concat(it.d.map((x) => ({ t: x, ok: false }))));
@@ -8050,32 +8085,6 @@ GAMES.laboratorio_electrico = {
    ESCRITO A MANO (no generado): con fracciones, un distractor generado al
    azar puede terminar siendo por coincidencia matemáticamente equivalente
    igual (ej. la "complementaria" de 1/2 es 1/2) — más seguro autorearlos. ── */
-const FRACCIONES_BANCO = [
-  { num: 1, den: 2, eq: { num: 2, den: 4 }, d1: { num: 1, den: 4 }, d2: { num: 3, den: 4 } },
-  { num: 1, den: 3, eq: { num: 2, den: 6 }, d1: { num: 1, den: 6 }, d2: { num: 3, den: 6 } },
-  { num: 2, den: 3, eq: { num: 4, den: 6 }, d1: { num: 3, den: 6 }, d2: { num: 5, den: 6 } },
-  { num: 1, den: 4, eq: { num: 2, den: 8 }, d1: { num: 1, den: 8 }, d2: { num: 3, den: 8 } },
-  { num: 3, den: 4, eq: { num: 6, den: 8 }, d1: { num: 5, den: 8 }, d2: { num: 7, den: 8 } },
-  { num: 1, den: 5, eq: { num: 2, den: 10 }, d1: { num: 1, den: 10 }, d2: { num: 3, den: 10 } },
-  { num: 2, den: 5, eq: { num: 4, den: 10 }, d1: { num: 3, den: 10 }, d2: { num: 5, den: 10 } },
-  { num: 3, den: 5, eq: { num: 6, den: 10 }, d1: { num: 5, den: 10 }, d2: { num: 7, den: 10 } },
-  { num: 4, den: 5, eq: { num: 8, den: 10 }, d1: { num: 7, den: 10 }, d2: { num: 9, den: 10 } },
-  { num: 1, den: 6, eq: { num: 2, den: 12 }, d1: { num: 1, den: 12 }, d2: { num: 3, den: 12 } },
-  { num: 5, den: 6, eq: { num: 10, den: 12 }, d1: { num: 9, den: 12 }, d2: { num: 11, den: 12 } },
-  { num: 1, den: 2, eq: { num: 3, den: 6 }, d1: { num: 2, den: 6 }, d2: { num: 4, den: 6 } },
-  { num: 1, den: 3, eq: { num: 3, den: 9 }, d1: { num: 2, den: 9 }, d2: { num: 4, den: 9 } },
-  { num: 2, den: 3, eq: { num: 6, den: 9 }, d1: { num: 5, den: 9 }, d2: { num: 7, den: 9 } },
-  { num: 1, den: 4, eq: { num: 3, den: 12 }, d1: { num: 2, den: 12 }, d2: { num: 4, den: 12 } },
-  { num: 3, den: 4, eq: { num: 9, den: 12 }, d1: { num: 8, den: 12 }, d2: { num: 10, den: 12 } },
-  { num: 1, den: 2, eq: { num: 4, den: 8 }, d1: { num: 3, den: 8 }, d2: { num: 5, den: 8 } },
-  { num: 1, den: 3, eq: { num: 4, den: 12 }, d1: { num: 3, den: 12 }, d2: { num: 5, den: 12 } },
-  { num: 2, den: 3, eq: { num: 8, den: 12 }, d1: { num: 7, den: 12 }, d2: { num: 9, den: 12 } },
-  { num: 1, den: 2, eq: { num: 5, den: 10 }, d1: { num: 4, den: 10 }, d2: { num: 6, den: 10 } },
-  { num: 1, den: 2, eq: { num: 6, den: 12 }, d1: { num: 5, den: 12 }, d2: { num: 7, den: 12 } },
-  { num: 2, den: 6, eq: { num: 4, den: 12 }, d1: { num: 3, den: 12 }, d2: { num: 5, den: 12 } },
-  { num: 3, den: 6, eq: { num: 6, den: 12 }, d1: { num: 5, den: 12 }, d2: { num: 7, den: 12 } },
-  { num: 2, den: 4, eq: { num: 6, den: 12 }, d1: { num: 5, den: 12 }, d2: { num: 7, den: 12 } }
-];
 /* Fracción + su equivalente + 2 distractores, todo generado. La equivalente sale de
    multiplicar numerador y denominador por el mismo k; los distractores comparten el
    denominador de la equivalente y cambian el numerador, así que NO pueden ser equivalentes
@@ -8526,32 +8535,6 @@ GAMES.resta_columnas = {
    al azar — un ángulo de 88° sería ambiguo a simple vista contra uno
    recto real (90°), así que cada categoría usa valores CLARAMENTE
    distinguibles. ── */
-const ANGULOS_BANCO = [
-  { grados: 12, tipo: "agudo" },
-  { grados: 20, tipo: "agudo" },
-  { grados: 25, tipo: "agudo" },
-  { grados: 33, tipo: "agudo" },
-  { grados: 40, tipo: "agudo" },
-  { grados: 48, tipo: "agudo" },
-  { grados: 55, tipo: "agudo" },
-  { grados: 62, tipo: "agudo" },
-  { grados: 70, tipo: "agudo" },
-  { grados: 78, tipo: "agudo" },
-  { grados: 85, tipo: "agudo" },
-  { grados: 90, tipo: "recto" },
-  { grados: 98, tipo: "obtuso" },
-  { grados: 105, tipo: "obtuso" },
-  { grados: 112, tipo: "obtuso" },
-  { grados: 118, tipo: "obtuso" },
-  { grados: 125, tipo: "obtuso" },
-  { grados: 132, tipo: "obtuso" },
-  { grados: 140, tipo: "obtuso" },
-  { grados: 148, tipo: "obtuso" },
-  { grados: 155, tipo: "obtuso" },
-  { grados: 162, tipo: "obtuso" },
-  { grados: 168, tipo: "obtuso" },
-  { grados: 175, tipo: "obtuso" }
-];
 /* Ángulo nuevo cada vez. `tipo` se computa del valor — nunca puede quedar mal etiquetado.
    Al dominar, los ángulos caen CERCA de 90°, que es donde clasificar cuesta de verdad
    (un ángulo de 12° lo resuelve cualquiera de un vistazo). Evita repetir dentro de la
@@ -8633,191 +8616,6 @@ GAMES.angulos = {
    Capa 0 C3: si eligen 180−θ, se nombra el error ("esa es la otra escala"). Los
    ángulos son múltiplos de 10 (lectura exacta) y evitan 90 (ahí las dos escalas
    coinciden y no hay nada que confundir). ── */
-const TRANSPORTADOR_BANCO = [20, 30, 40, 50, 60, 70, 80, 100, 110, 120, 130, 140, 150, 160];
-GAMES.transportador = {
-  crear(ctx) {
-    const rondas = ctx.cfg.rondas || 8;
-    ctx.rondas(rondas);
-    let usados = [], ronda = 0;
-    const P = (cx, cy, r, a) => [cx + r * Math.cos(a * Math.PI / 180), cy - r * Math.sin(a * Math.PI / 180)];
-    const jugar = () => {
-      ctx.ronda(ronda);
-      ctx.consigna("¿Cuántos grados mide el ángulo?");
-      ctx.juego.innerHTML = "";
-      let disp = TRANSPORTADOR_BANCO.filter((x) => !usados.includes(x));
-      if (!disp.length) { usados = []; disp = TRANSPORTADOR_BANCO; }
-      // al dominar, prioriza los ángulos que todavía no midió bien de una
-      disp = _filtrarPorDominio(ctx, disp, (x) => "transportador#" + x);
-      const th = disp[rint(0, disp.length - 1)]; usados.push(th);
-      ctx.item("transportador#" + th);
-
-      const cx = 175, cy = 185, R = 150;
-      let s = '<svg viewBox="0 0 350 214" class="transp-svg">';
-      // semicircunferencia + base
-      let arc = "";
-      for (let a = 0; a <= 180; a += 3) { const [x, y] = P(cx, cy, R, a); arc += (a ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1) + " "; }
-      s += '<path d="' + arc + '" class="transp-arco"/>';
-      s += '<line x1="' + (cx - R) + '" y1="' + cy + '" x2="' + (cx + R) + '" y2="' + cy + '" class="transp-arco"/>';
-      // marcas + números de las DOS escalas (externa = a, interna = 180−a) cada 10°
-      for (let a = 0; a <= 180; a += 10) {
-        const [x1, y1] = P(cx, cy, R, a), [x2, y2] = P(cx, cy, R - 13, a);
-        s += '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" class="transp-tick"/>';
-        const [ox, oy] = P(cx, cy, R + 12, a), [ix, iy] = P(cx, cy, R - 26, a);
-        s += '<text x="' + ox.toFixed(1) + '" y="' + (oy + 3).toFixed(1) + '" class="transp-num out">' + a + '</text>';
-        s += '<text x="' + ix.toFixed(1) + '" y="' + (iy + 3).toFixed(1) + '" class="transp-num in">' + (180 - a) + '</text>';
-      }
-      // sector sombreado del ángulo (0 → th)
-      let sec = "M " + cx + " " + cy + " ";
-      for (let a = 0; a <= th; a += 3) { const [x, y] = P(cx, cy, R * 0.55, a); sec += "L " + x.toFixed(1) + " " + y.toFixed(1) + " "; }
-      const [sxE, syE] = P(cx, cy, R * 0.55, th); sec += "L " + sxE.toFixed(1) + " " + syE.toFixed(1) + " Z";
-      s += '<path d="' + sec + '" class="transp-sector"/>';
-      // lados: base (0°, apoyado en la derecha) y móvil (th)
-      const [bx, by] = P(cx, cy, R, 0), [mx, my] = P(cx, cy, R, th);
-      s += '<line x1="' + cx + '" y1="' + cy + '" x2="' + bx + '" y2="' + by + '" class="transp-lado base"/>';
-      s += '<line x1="' + cx + '" y1="' + cy + '" x2="' + mx.toFixed(1) + '" y2="' + my.toFixed(1) + '" class="transp-lado movil"/>';
-      // resaltar las DOS lecturas posibles en la marca del lado móvil
-      const [hox, hoy] = P(cx, cy, R + 12, th), [hix, hiy] = P(cx, cy, R - 26, th);
-      s += '<circle cx="' + hox.toFixed(1) + '" cy="' + (hoy - 3).toFixed(1) + '" r="13" class="transp-halo"/>';
-      s += '<circle cx="' + hix.toFixed(1) + '" cy="' + (hiy - 3).toFixed(1) + '" r="13" class="transp-halo"/>';
-      s += '<circle cx="' + cx + '" cy="' + cy + '" r="4.5" class="transp-vert"/>';
-      s += '</svg>';
-      const arriba = el("div", "tablero transp-wrap"); arriba.innerHTML = s;
-      ctx.juego.appendChild(arriba);
-
-      // opciones: la correcta + la escala equivocada (180−th) + un error de ±1 marca
-      const wrong = 180 - th;
-      const tercero = [th + 10, th - 10, th + 20, th - 20].find((v) => v > 0 && v < 180 && v !== th && v !== wrong);
-      const ops = [{ v: th, ok: true }, { v: wrong, escala: true }, { v: tercero }];
-      const fila = el("div", "ops");
-      let resuelto = false;
-      shuffle(ops).forEach((o) => {
-        const b = el("button", "op", o.v + "°");
-        b.addEventListener("click", async () => {
-          if (resuelto) return;
-          if (o.ok) {
-            resuelto = true; b.classList.add("bien", "anim-pop"); ctx.bien();
-            ronda++; await espera(850);
-            if (ronda >= rondas) ctx.win(); else jugar();
-          } else if (o.escala) {
-            b.classList.add("casi");
-            ctx.casi("Esa es la OTRA escala. El lado de abajo apoya en el 0 de la derecha, así que se lee " + th + "°, no " + wrong + "°.");
-          } else {
-            b.classList.add("casi");
-            ctx.casi("Casi. Contá las marcas de a 10 desde el 0 de la derecha.");
-          }
-        });
-        fila.appendChild(b);
-      });
-      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
-    };
-    jugar();
-  },
-};
-
-/* ── ¿QUÉ HORA ES? (leer el reloj — docs/auditoria-dc-caba/: medida del tiempo,
-   2°-3°, mecánica nodal que faltaba entera). Reloj analógico SVG real con dos
-   punteros (el corto/grueso = hora, el largo/fino = minutos). Ataca las 2
-   misconceptions clásicas: (1) redondear mal la hora — leer el puntero corto como
-   el número más cercano cuando está entre dos (3:40 → "las 4"); (2) leer el
-   puntero largo CRUDO en vez de ×5 (marca el 8 → "8" en vez de 40). nivel 1 (2°):
-   en punto y y media. nivel 2 (3°): cuartos y de a 5/10. Capa 0 C2/C3: cada error
-   baja la estrella al primer intento y nombra el error. ── */
-GAMES.reloj = {
-  crear(ctx) {
-    const rondas = ctx.cfg.rondas || 8;
-    const nivel = (ctx.cfg.nivel || 1) + ctx.bonusDominio;   // adaptativo (grados bajos: horas más difíciles al dominar)
-    ctx.rondas(rondas);
-    let ronda = 0, previas = [];
-    const P = (cx, cy, r, a) => [cx + r * Math.cos(a * Math.PI / 180), cy - r * Math.sin(a * Math.PI / 180)];
-    const fmt = (h, m) => h + ":" + String(m).padStart(2, "0");
-    const jugar = () => {
-      ctx.ronda(ronda);
-      ctx.consigna("¿Qué hora marca el reloj?");
-      ctx.juego.innerHTML = "";
-      const mins = nivel >= 2 ? [0, 10, 15, 20, 30, 40, 45, 50] : [0, 30];
-      let H, M, key, guard = 0;
-      do { H = rint(1, 12); M = mins[rint(0, mins.length - 1)]; key = fmt(H, M); guard++; }
-      while (previas.includes(key) && guard < 30);
-      previas.push(key); if (previas.length > 6) previas.shift();
-      ctx.item("reloj#" + key);
-
-      const cx = 150, cy = 150, R = 132;
-      let s = '<svg viewBox="0 0 300 300" class="reloj-svg" data-hora="' + key + '">';
-      s += '<circle cx="' + cx + '" cy="' + cy + '" r="' + R + '" class="reloj-cara"/>';
-      for (let i = 0; i < 60; i++) {
-        const a = 90 - i * 6, larga = i % 5 === 0;
-        const [x1, y1] = P(cx, cy, R - 4, a), [x2, y2] = P(cx, cy, R - (larga ? 16 : 9), a);
-        s += '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" class="reloj-tick' + (larga ? " larga" : "") + '"/>';
-      }
-      for (let n = 1; n <= 12; n++) {
-        const a = 90 - n * 30, [x, y] = P(cx, cy, R - 32, a);
-        s += '<text x="' + x.toFixed(1) + '" y="' + (y + 8).toFixed(1) + '" class="reloj-num">' + n + '</text>';
-      }
-      const ah = 90 - ((H % 12) + M / 60) * 30, am = 90 - M * 6;
-      const [hx, hy] = P(cx, cy, R * 0.52, ah), [mx, my] = P(cx, cy, R * 0.78, am);
-      s += '<line x1="' + cx + '" y1="' + cy + '" x2="' + hx.toFixed(1) + '" y2="' + hy.toFixed(1) + '" class="reloj-hora"/>';
-      s += '<line x1="' + cx + '" y1="' + cy + '" x2="' + mx.toFixed(1) + '" y2="' + my.toFixed(1) + '" class="reloj-min"/>';
-      s += '<circle cx="' + cx + '" cy="' + cy + '" r="7" class="reloj-centro"/>';
-      s += '</svg>';
-      const arriba = el("div", "tablero reloj-wrap"); arriba.innerHTML = s;
-      ctx.juego.appendChild(arriba);
-
-      const correcto = fmt(H, M);
-      const wrongHora = fmt(H === 12 ? 1 : H + 1, M);   // redondeó mal la hora (puntero corto)
-      const crudo = M / 5;                               // leyó el puntero largo crudo (÷5)
-      const wrongMin = fmt(H, crudo);                    // "3:08" en vez de 3:40
-      const ops = [{ v: correcto, ok: true }];
-      const add = (o) => { if (ops.length < 3 && !ops.some((x) => x.v === o.v)) ops.push(o); };
-      if (wrongMin !== correcto) add({ v: wrongMin, min: true });
-      add({ v: wrongHora, hora: true });
-      let tries = 0;
-      while (ops.length < 3 && tries++ < 30) {
-        const v = fmt(rint(1, 12), mins[rint(0, mins.length - 1)]);
-        if (!ops.some((x) => x.v === v)) add({ v: v });
-      }
-      const fila = el("div", "ops");
-      let resuelto = false;
-      shuffle(ops).forEach((o) => {
-        const b = el("button", "op reloj-op", o.v);
-        b.addEventListener("click", async () => {
-          if (resuelto) return;
-          if (o.ok) {
-            resuelto = true; b.classList.add("bien", "anim-pop"); ctx.bien();
-            ronda++; await espera(850); if (ronda >= rondas) ctx.win(); else jugar();
-          } else if (o.min) {
-            b.classList.add("casi");
-            ctx.casi("El puntero largo cuenta los minutos de a 5. Si marca el " + crudo + ", son " + M + " minutos.");
-          } else if (o.hora) {
-            b.classList.add("casi");
-            ctx.casi("El puntero corto es la hora, y todavía no llegó al " + (H === 12 ? 1 : H + 1) + ". Son las " + H + ".");
-          } else {
-            b.classList.add("casi"); ctx.casi("Mirá bien los dos punteros: el corto es la hora, el largo los minutos.");
-          }
-        });
-        fila.appendChild(b);
-      });
-      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
-    };
-    jugar();
-  },
-};
-
-/* ── ÁRBOL DE PROBABILIDAD (azar y combinatoria, 6°-7° — docs/auditoria-dc-caba/:
-   nociones de probabilidad + diagrama de árbol + principio multiplicativo; faltaba
-   entero). Dibuja el DIAGRAMA DE ÁRBOL de un experimento de 2 etapas (elegí A y B)
-   y el chico lee de ahí. Dos modos: (1) contar los resultados posibles (principio
-   multiplicativo a×b) y (2) probabilidad simple de una hoja (1 en a×b, con el
-   camino resaltado). Ataca LA misconception: SUMAR (a+b) en vez de multiplicar. Los
-   escenarios evitan 2×2 (ahí a+b=a×b y el distractor coincidiría con la respuesta).
-   Capa 0 C3: el error se explica sobre las HOJAS del árbol. ── */
-const ARBOL_ESCENAS = [
-  { a: { t: "remera", op: ["roja", "azul", "verde"] }, b: { t: "gorra", op: ["negra", "blanca"] } },
-  { a: { t: "sabor", op: ["chocolate", "frutilla", "limón"] }, b: { t: "cucurucho", op: ["simple", "doble"] } },
-  { a: { t: "jugo", op: ["naranja", "manzana"] }, b: { t: "galleta", op: ["dulce", "salada", "de agua"] } },
-  { a: { t: "entrada", op: ["empanada", "tarta"] }, b: { t: "postre", op: ["flan", "helado", "fruta"] } },
-  { a: { t: "media", op: ["blanca", "negra", "a rayas"] }, b: { t: "zapatilla", op: ["roja", "azul", "verde"] } },
-  { a: { t: "color", op: ["rojo", "verde", "azul", "amarillo"] }, b: { t: "moneda", op: ["cara", "cruz"] } },
-];
 GAMES.arbol_probabilidad = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 8;
@@ -9123,32 +8921,6 @@ GAMES.camino_digestivo = {
    décimos en vez de medios/cuartos/octavos) — juego propio, no una
    extensión del banco del año anterior, para que cada año conserve su
    propio progreso de estrellas. ── */
-const FRACCIONES_AVANZADO_BANCO = [
-  { num: 1, den: 3, eq: { num: 3, den: 9 }, d1: { num: 2, den: 9 }, d2: { num: 4, den: 9 } },
-  { num: 2, den: 3, eq: { num: 6, den: 9 }, d1: { num: 5, den: 9 }, d2: { num: 7, den: 9 } },
-  { num: 1, den: 4, eq: { num: 3, den: 12 }, d1: { num: 2, den: 12 }, d2: { num: 4, den: 12 } },
-  { num: 3, den: 4, eq: { num: 9, den: 12 }, d1: { num: 8, den: 12 }, d2: { num: 10, den: 12 } },
-  { num: 1, den: 2, eq: { num: 3, den: 6 }, d1: { num: 2, den: 6 }, d2: { num: 4, den: 6 } },
-  { num: 1, den: 2, eq: { num: 4, den: 8 }, d1: { num: 3, den: 8 }, d2: { num: 5, den: 8 } },
-  { num: 2, den: 3, eq: { num: 8, den: 12 }, d1: { num: 7, den: 12 }, d2: { num: 9, den: 12 } },
-  { num: 1, den: 3, eq: { num: 4, den: 12 }, d1: { num: 3, den: 12 }, d2: { num: 5, den: 12 } },
-  { num: 2, den: 4, eq: { num: 6, den: 12 }, d1: { num: 5, den: 12 }, d2: { num: 7, den: 12 } },
-  { num: 3, den: 5, eq: { num: 6, den: 10 }, d1: { num: 5, den: 10 }, d2: { num: 7, den: 10 } },
-  { num: 2, den: 5, eq: { num: 4, den: 10 }, d1: { num: 3, den: 10 }, d2: { num: 5, den: 10 } },
-  { num: 4, den: 5, eq: { num: 8, den: 10 }, d1: { num: 7, den: 10 }, d2: { num: 9, den: 10 } },
-  { num: 1, den: 5, eq: { num: 2, den: 10 }, d1: { num: 1, den: 10 }, d2: { num: 3, den: 10 } },
-  { num: 1, den: 6, eq: { num: 2, den: 12 }, d1: { num: 1, den: 12 }, d2: { num: 3, den: 12 } },
-  { num: 5, den: 6, eq: { num: 10, den: 12 }, d1: { num: 9, den: 12 }, d2: { num: 11, den: 12 } },
-  { num: 3, den: 4, eq: { num: 6, den: 8 }, d1: { num: 5, den: 8 }, d2: { num: 7, den: 8 } },
-  { num: 1, den: 4, eq: { num: 2, den: 8 }, d1: { num: 1, den: 8 }, d2: { num: 3, den: 8 } },
-  { num: 2, den: 3, eq: { num: 4, den: 6 }, d1: { num: 3, den: 6 }, d2: { num: 5, den: 6 } },
-  { num: 1, den: 2, eq: { num: 5, den: 10 }, d1: { num: 4, den: 10 }, d2: { num: 6, den: 10 } },
-  { num: 1, den: 2, eq: { num: 6, den: 12 }, d1: { num: 5, den: 12 }, d2: { num: 7, den: 12 } },
-  { num: 1, den: 3, eq: { num: 2, den: 6 }, d1: { num: 1, den: 6 }, d2: { num: 3, den: 6 } },
-  { num: 3, den: 6, eq: { num: 6, den: 12 }, d1: { num: 5, den: 12 }, d2: { num: 7, den: 12 } },
-  { num: 2, den: 6, eq: { num: 4, den: 12 }, d1: { num: 3, den: 12 }, d2: { num: 5, den: 12 } },
-  { num: 4, den: 6, eq: { num: 8, den: 12 }, d1: { num: 7, den: 12 }, d2: { num: 9, den: 12 } }
-];
 GAMES.fracciones_avanzado = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 5;
@@ -9164,11 +8936,10 @@ GAMES.fracciones_avanzado = {
       ctx.ronda(ronda);
       consignaVariada(ctx, ronda, "¿Cuál de estas barras muestra la misma fracción?", "f");
       ctx.juego.innerHTML = "";
-      let disp = FRACCIONES_AVANZADO_BANCO.filter((x) => !usados.includes(x.num + "/" + x.den));
-      if (!disp.length) { usados = []; disp = FRACCIONES_AVANZADO_BANCO; }
-      // al dominar, prioriza las fracciones que todavía no acertó al primer intento
-      disp = _filtrarPorDominio(ctx, disp, (x) => "fracav#" + x.num + "/" + x.den);
-      const item = disp[rint(0, disp.length - 1)];
+      // GENERADA (mismo generador que fracciones_equivalentes, un escalón más arriba:
+      // esta es la versión "avanzado" de 5°, así que arranca con los denominadores que
+      // en la básica recién aparecen al dominar).
+      const item = _generarFraccionEquiv((ctx.bonusDominio || 0) + 1, usados);
       ctx.item("fracav#" + item.num + "/" + item.den);   // C1: telemetría por ítem real
       usados.push(item.num + "/" + item.den);
       const arriba = el("div", "tablero");
