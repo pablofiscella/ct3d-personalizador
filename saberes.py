@@ -306,8 +306,9 @@ SABERES = {
                          "prerrequisitos": ["LEN-2-COMPRENSION"], "juegos": ["comprension_lectora"], "dificultad": 3},
     "NAT-3-MATERIA":    {"nombre": "Estados de la materia", "eje": "materiales_energia", "grado": 3,
                          "prerrequisitos": [], "juegos": ["estados_materia"], "dificultad": 2},
-    "NAT-3-MEZCLAS":    {"nombre": "Separar mezclas", "eje": "materiales_energia", "grado": 3,
-                         "prerrequisitos": ["NAT-3-MATERIA"], "juegos": ["separador_mezclas"], "dificultad": 3},
+    # NAT-3-MEZCLAS quitado (25-jul): su único juego, `separador_mezclas`, fue sacado del
+    # menú de 3° a propósito (lo reemplazó estados_materia) y quedó huérfano — el motor
+    # recomendaba una actividad que el chico no tenía cómo abrir. Nada dependía de él.
     "NAT-3-ANIMALES":   {"nombre": "Alimentación de los animales", "eje": "seres_vivos", "grado": 3,
                          "prerrequisitos": [], "juegos": ["animal_comida"], "dificultad": 2},
     "NAT-3-CIELO":      {"nombre": "El cielo de día y de noche", "eje": "seres_vivos", "grado": 3,
