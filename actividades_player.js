@@ -815,6 +815,53 @@ function ocultarExplicacion() {
    explicar, y un botón que dice obviedades enseña a ignorar el botón. */
 function comoEsDe(id) { return COMO_ES[id] || null; }
 
+/* Videos de las lecciones. Cada corte responde UNA parte de la regla: el que se
+   traba con las graves recibe 20 s sobre graves, no 85 s sobre acentuación entera.
+   `partes` es lo que se le ofrece adentro del popup; `auto` es el corte que abre el
+   motor cuando lo dispara él (el más general, porque en ese momento no sabemos en
+   qué parte puntual se trabó). Una regla sin entrada acá simplemente no muestra
+   video: el popup queda igual que antes. */
+const COMO_ES_VIDEO = {
+  acentuacion: {
+    auto: "lec_acentuacion_tonica.mp4",
+    partes: [
+      { t: "La sílaba fuerte", f: "lec_acentuacion_tonica.mp4", s: 20 },
+      { t: "Agudas", f: "lec_acentuacion_agudas.mp4", s: 18 },
+      { t: "Graves", f: "lec_acentuacion_graves.mp4", s: 27 },
+      { t: "Esdrújulas", f: "lec_acentuacion_esdrujulas.mp4", s: 23 },
+    ],
+  },
+};
+
+function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
+
+/**
+ * Reproductor de una lección.
+ *
+ * Se abre encima de todo y PAUSA la voz: si no, la narración de la consigna se
+ * pisaría con la del video. Al cerrar vuelve a la actividad tal como estaba — el
+ * chico no pierde la partida por consultar.
+ */
+function mostrarVideoLeccion(archivo, titulo) {
+  pararVoz();
+  const fondo = el("div", "comoes-fondo");
+  const card = el("div", "comoes comoes--video");
+  card.innerHTML = '<div class="comoes-h">▶ ' + (titulo || "Cómo es") + "</div>";
+  const v = document.createElement("video");
+  v.src = archivo;
+  v.controls = true;
+  v.autoplay = true;
+  v.playsInline = true;
+  v.style.cssText = "width:100%;border-radius:14px;background:#000;display:block";
+  card.appendChild(v);
+  const cerrar = el("button", "btn-sondeo", "Volver a jugar");
+  cerrar.addEventListener("click", () => { v.pause(); fondo.remove(); });
+  card.appendChild(cerrar);
+  fondo.appendChild(card);
+  fondo.addEventListener("click", (ev) => { if (ev.target === fondo) { v.pause(); fondo.remove(); } });
+  document.body.appendChild(fondo);
+}
+
 function mostrarComoEs(id) {
   const c = comoEsDe(id);
   if (!c) return;
@@ -823,6 +870,23 @@ function mostrarComoEs(id) {
   card.innerHTML = '<div class="comoes-h">💡 ' + c.t + "</div>" +
     "<ul>" + c.l.map((x) => "<li>" + x + "</li>").join("") + "</ul>" +
     (c.e ? '<div class="comoes-ej">' + c.e + "</div>" : "");
+  // El texto va PRIMERO a propósito: la mayoría de las veces el chico ya vio la
+  // regla y sólo quiere refrescarla — eso se lee en cinco segundos. El video es
+  // para el que no la entiende, y queda a un toque sin obligar al resto a mirarlo.
+  const vid = videoDe(id);
+  if (vid) {
+    const fila = el("div", "comoes-videos");
+    fila.innerHTML = '<div class="comoes-videos__t">¿No te cierra? Mirá el video:</div>';
+    const cont = el("div", "comoes-videos__f");
+    vid.partes.forEach((p) => {
+      const b = el("button", "btn-video", "▶ " + p.t + " <small>" + p.s + " s</small>");
+      b.type = "button";
+      b.addEventListener("click", () => { pararVoz(); fondo.remove(); mostrarVideoLeccion(p.f, p.t); });
+      cont.appendChild(b);
+    });
+    fila.appendChild(cont);
+    card.appendChild(fila);
+  }
   const cerrar = el("button", "btn-sondeo", "¡Ya entendí!");
   cerrar.addEventListener("click", () => { pararVoz(); fondo.remove(); });
   card.appendChild(cerrar);
@@ -832,6 +896,39 @@ function mostrarComoEs(id) {
   // se lee en voz alta: el que todavía lee con esfuerzo no puede quedar afuera de
   // la explicación justo en la actividad que le está costando.
   reproducirConsigna(c.t + ". " + c.l.join(" ") + (c.e ? " Por ejemplo: " + c.e : ""));
+}
+
+/**
+ * El motor OFRECE la lección — no la impone.
+ *
+ * Dos momentos, y en los dos va derecho al video: cuando el motor es el que abre,
+ * ya diagnosticó que el problema no es un olvido, así que repetirle el texto que no
+ * le alcanzó no ayuda.
+ *   1. Al abrir una actividad marcada "reforzá antes" (el grafo sabe que no tiene la base).
+ *   2. Tras el SEGUNDO error al primer intento (ahí arranca la frustración y todavía
+ *      no abandonó).
+ * Nunca dos veces por actividad en la misma sesión: si lo rechazó, se respeta.
+ */
+const _ofrecido = new Set();
+function ofrecerLeccion(id, motivo) {
+  const vid = videoDe(id);
+  if (!vid || _ofrecido.has(id)) return;
+  _ofrecido.add(id);
+  const fondo = el("div", "comoes-fondo");
+  const card = el("div", "comoes", "");
+  card.innerHTML = '<div class="comoes-h">💡 ¿Te muestro cómo es?</div>' +
+    "<p style='font-size:17px;line-height:1.45;opacity:.85;margin:0 0 16px'>" +
+    (motivo === "reforzar"
+      ? "Esta actividad usa algo que todavía no practicaste. Son 20 segundos y después seguís."
+      : "Vi que te está costando. Son 20 segundos y volvés justo donde estabas.") +
+    "</p>";
+  const si = el("button", "btn-sondeo", "▶ Dale, mostrame");
+  si.addEventListener("click", () => { fondo.remove(); mostrarVideoLeccion(vid.auto, "Cómo es"); });
+  const no = el("button", "btn-sondeo btn-sondeo--ghost", "No, sigo probando");
+  no.addEventListener("click", () => fondo.remove());
+  card.appendChild(si); card.appendChild(no);
+  fondo.appendChild(card);
+  document.body.appendChild(fondo);
 }
 
 function botonComoEs(id) {
@@ -898,6 +995,13 @@ const Shell = {
     if (bce) $("#consigna").appendChild(bce);
     GAMES[id].crear(this.ctx(item));
     requestAnimationFrame(ajustarAlto);
+    // disparador 1: el grafo ya sabe que le faltan los prerrequisitos. Dejarlo
+    // probar acá es dejarlo fallar, así que se le ofrece la lección ANTES.
+    if (D.adaptativo_on && typeof Adapt !== "undefined" && typeof Sondeo !== "undefined" && !Sondeo.activo) {
+      try {
+        if (Adapt.estadoActividad(id) === "reforzar") setTimeout(() => ofrecerLeccion(id, "reforzar"), 700);
+      } catch (e) { /* sin motor adaptativo el cuaderno anda igual */ }
+    }
   },
   ctx(item) {
     const self = this;
@@ -908,6 +1012,13 @@ const Shell = {
       const primer = !self._rondaResp;
       self._rondaResp = true;
       if (primer) { self.primerTotal++; if (ok) self.primerOk++; }
+      // disparador 2: al SEGUNDO error de primer intento. Ahí arranca la frustración
+      // y todavía no abandonó; antes sería interrumpir a quien está pensando.
+      // Sólo si el sondeo no está corriendo (ahí se está midiendo, no enseñando).
+      if (primer && !ok && (self.primerTotal - self.primerOk) === 2 &&
+          typeof Sondeo !== "undefined" && !Sondeo.activo) {
+        setTimeout(() => ofrecerLeccion(self.actual, "errores"), 900);
+      }
       // acertado al PRIMER intento = lo sabe: los juegos de banco dejan de ofrecérselo
       // cuando ya dominan el juego (ver _ordenPorDominio). Gateado como el resto.
       if (primer && ok && D.adaptativo_on && self._itemId) {

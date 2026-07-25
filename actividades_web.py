@@ -2149,9 +2149,15 @@ def html(token):
 
 _ASSET_RE = re.compile(
     r"^(data\.json|extras\.json|player\.js|motor_adaptativo\.js|actividades_curriculum\.js|f[12]\.ttf|[ps]\d{2}\.png|colorear_\d\.png|escena\.jpg|portada\.jpg"
-    r"|audio_manifest\.json|c_[a-f0-9]{10}\.mp3)$")
+    r"|audio_manifest\.json|c_[a-f0-9]{10}\.mp3"
+    # lecciones en video del botón "¿Cómo es?": salen del REPO como el player y el
+    # audio de consignas — una sola copia para todos los tokens, así mejorar una
+    # lección llega también a los links ya vendidos.
+    r"|lec_[a-z0-9_]{1,40}\.mp4)$")
+LECCION_DIR = os.path.join(BASEDIR, "lecciones_video")
 _CT = {".json": "application/json; charset=utf-8", ".js": "text/javascript; charset=utf-8",
-       ".ttf": "font/ttf", ".png": "image/png", ".jpg": "image/jpeg", ".mp3": "audio/mpeg"}
+       ".ttf": "font/ttf", ".png": "image/png", ".jpg": "image/jpeg", ".mp3": "audio/mpeg",
+       ".mp4": "video/mp4"}
 
 
 def archivo(token, nombre):
@@ -2174,6 +2180,8 @@ def archivo(token, nombre):
         p = os.path.join(BASEDIR, "fonts", "Nunito-VF.ttf")
     elif nombre == "audio_manifest.json" or nombre.endswith(".mp3"):
         p = os.path.join(AUDIO_DIR, "manifest.json" if nombre == "audio_manifest.json" else nombre)
+    elif nombre.endswith(".mp4"):
+        p = os.path.join(LECCION_DIR, nombre)
     else:
         p = os.path.join(ACT_DIR, token, nombre)
     if not os.path.isfile(p):
