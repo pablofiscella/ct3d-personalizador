@@ -1078,7 +1078,7 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/act/catalogo":
             import actividades_web as aw
             return self._json(200, {"ok": True, "catalogo": aw.catalogo_actividades(),
-                                    "tope": aw.EXTRAS_TOPE_POR_MATERIA})
+                                    "tope_adyacente": aw.EXTRAS_TOPE_ADYACENTE})
         # OJO: el visor usa rutas RELATIVAS -> siempre servirlo bajo /act/<tok>/
         # (con barra final); /act/<tok> sin barra redirige.
         m = re.match(r"^/act/([A-Za-z0-9_-]+)(?:/([a-z_0-9.]*))?$", path)
@@ -1537,7 +1537,11 @@ class Handler(BaseHTTPRequestHandler):
         import actividades_web as aw
         if not os.path.isdir(os.path.join(aw.ACT_DIR, token)):
             return self._json(404, {"ok": False})
-        return self._json(200, aw.extras_leer(token))
+        # el grado del chico va en la respuesta: la tienda lo necesita para ofrecer sólo
+        # los grados adyacentes (los únicos que el motor va a aceptar)
+        r = dict(aw.extras_leer(token))
+        r["grado"] = aw._grado_del_token(token)
+        return self._json(200, r)
 
     def _act_extras_set(self, token):
         """La TIENDA manda la lista elegida por el padre (server-to-server, ya validó que

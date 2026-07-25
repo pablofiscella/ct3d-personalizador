@@ -156,3 +156,68 @@ def test_token_de_segundo_trae_la_actividad_y_su_archivo():
             "el player no puede pedir el JS del catálogo"
     finally:
         shutil.rmtree(d, ignore_errors=True)
+
+
+# ── el tope del "¿qué ven en la escuela?" es una decisión de NEGOCIO ─────────────
+def _token_de(edad, tok):
+    d = os.path.join(aw.ACT_DIR, tok)
+    shutil.rmtree(d, ignore_errors=True)
+    aw.crear({"nombre": "Test", "edad": edad}, "safari", token=tok)
+    return d
+
+
+def test_solo_se_puede_sumar_de_grados_adyacentes():
+    """El desbloqueo por materia vende "el nivel siguiente". Si el padre pudiera sumar de
+    cualquier grado, se llevaría gratis lo que está en venta — y en las materias flacas
+    (5° Lengua tiene 3 actividades, 6° Lengua 1) se llevaría el nivel ENTERO."""
+    tok = "test-tope-4to-aabb"
+    d = _token_de("9", tok)                     # 4° grado
+    try:
+        cat = aw.catalogo_actividades()
+        pedidos = [{"id": m["id"], "grado": g} for g, v in cat.items() for m in v]
+        r = aw.extras_guardar(tok, pedidos)
+        grados = {it["grado"] for it in r["items"]}
+        assert grados <= {3, 4, 5}, "entraron grados no adyacentes: %s" % (grados - {3, 4, 5})
+        # de cada grado adyacente, como mucho 1 por materia
+        for g in (3, 5):
+            por_materia = {}
+            for it in r["items"]:
+                if it["grado"] == g:
+                    por_materia[it["categoria"]] = por_materia.get(it["categoria"], 0) + 1
+            demas = {k: v for k, v in por_materia.items() if v > aw.EXTRAS_TOPE_ADYACENTE}
+            assert not demas, "%d° superó el tope por materia: %s" % (g, demas)
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+def test_lo_rechazado_del_grado_siguiente_se_ofrece_para_comprar():
+    """El tope no puede ser un "no" seco: lo que no entra del año que viene es la oferta
+    (pedido de Pablo: "decime pudiste 2 materias y el resto las podés comprar")."""
+    tok = "test-tope-ofer-aabb"
+    d = _token_de("9", tok)
+    try:
+        cat = aw.catalogo_actividades()
+        # pide TODO lo de 5°: sólo puede entrar 1 por materia, el resto tiene que ofrecerse
+        pedidos = [{"id": m["id"], "grado": 5} for m in cat[5]]
+        r = aw.extras_guardar(tok, pedidos)
+        comprables = [x for x in r["rechazadas"] if x.get("comprable")]
+        assert comprables, "no ofrece comprar nada de lo que rechazó"
+        for x in comprables:
+            assert x.get("materia"), "sin materia: la tienda no sabe qué desbloquear"
+            assert x.get("motivo"), "sin motivo visible para el padre"
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+def test_del_grado_anterior_no_se_ofrece_comprar():
+    """Lo del año pasado es repaso: no está en venta, así que no puede empujar una compra."""
+    tok = "test-tope-ant-aabb"
+    d = _token_de("9", tok)
+    try:
+        cat = aw.catalogo_actividades()
+        pedidos = [{"id": m["id"], "grado": 3} for m in cat[3]]
+        r = aw.extras_guardar(tok, pedidos)
+        for x in r["rechazadas"]:
+            assert not x.get("comprable"), "ofrece comprar algo del año pasado: %s" % x
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
