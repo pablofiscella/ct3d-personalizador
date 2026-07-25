@@ -178,20 +178,26 @@ CATEGORIA = {
     "tamano": "logica",
 }
 
+# Las del catálogo CURRICULAR (`actividades_curriculum.py`) declaran su área en la misma
+# entrada que el resto de la actividad, así sumar una no obliga a registrarla también acá.
+# Se mezclan en el dict MISMO —no sólo en `categoria_de()`— porque hay consumidores que
+# leen `CATEGORIA` directo: `gen_motor_adaptativo.py`, que la vuelca a `CATEGORIA_JUEGO`
+# del player, y `carriles_de_menu()`. Mientras el merge vivió sólo en la función, esos dos
+# vieron 142 de 176 juegos: 34 saberes —los 12 de Conocimiento del Mundo entre ellos— no
+# figuraban en el panel de padres, porque `saberCategoria()` devuelve null y
+# `resumenPorCategoria()` los saltea. En 2° era casi la mitad del grado.
+# Lo agregado NO pisa lo de arriba: esta tabla manda si un id estuviera en las dos.
+try:
+    import actividades_curriculum as _cur
+    for _jid, _area in _cur.categorias().items():
+        CATEGORIA.setdefault(_jid, _area)
+except Exception:
+    pass
+
 
 def categoria_de(juego_id, default=None):
-    """Categoría de un juego por su id (el mismo que usa GAMES.<id> / el menú).
-
-    Incluye las del catálogo curricular (`actividades_curriculum`), que declaran su área
-    en la misma entrada que el resto de la actividad — así agregar una no obliga a
-    acordarse de registrarla también acá."""
-    if juego_id in CATEGORIA:
-        return CATEGORIA[juego_id]
-    try:
-        import actividades_curriculum as _cur
-        return _cur.categorias().get(juego_id, default)
-    except Exception:
-        return default
+    """Categoría de un juego por su id (el mismo que usa GAMES.<id> / el menú)."""
+    return CATEGORIA.get(juego_id, default)
 
 
 # Orden y etiqueta visible de los carriles en el lateral. "logica" se muestra como

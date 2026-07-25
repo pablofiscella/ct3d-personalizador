@@ -310,3 +310,38 @@ def test_ningun_saber_del_grado_queda_sin_juego_en_el_menu(grado):
     )
     assert not huerfanos, (
         "saberes de %d° que ningún juego del menú puede dominar: %s" % (grado, huerfanos))
+
+
+@pytest.mark.parametrize("grado", list(range(1, 8)))
+def test_todo_saber_del_grado_llega_al_panel_de_padres(grado):
+    """Un saber cuyo primer juego no tiene categoría es INVISIBLE para el padre.
+
+    `saberCategoria()` resuelve la categoría por el PRIMER juego del saber y devuelve
+    null si no la encuentra; `resumenPorCategoria()` saltea los null. Ese saber no suma
+    ni al dominado ni al total, así que el tablero miente en los dos sentidos: muestra
+    menos de lo que el chico hizo y, al achicar el denominador, dispara antes el 80% de
+    dominio que ofrece la materia.
+
+    Pasó de verdad (25-jul): el merge del catálogo curricular vivía sólo dentro de
+    `categoria_de()`, y `gen_motor_adaptativo.py` vuelca el dict `CATEGORIA` crudo. Los
+    34 juegos del catálogo —los 12 de Conocimiento del Mundo incluidos— quedaron sin
+    categoría en el player: 10 de los 22 saberes de 2° no figuraban en el panel."""
+    cat = ac.CATEGORIA
+    ciegos = sorted(
+        "%s (%s)" % (sid, (s.get("juegos") or ["sin juegos"])[0])
+        for sid, s in saberes.SABERES.items()
+        if s.get("grado") == grado and (not s.get("juegos") or s["juegos"][0] not in cat)
+    )
+    assert not ciegos, (
+        "saberes de %d° que no llegan al panel de padres: %s" % (grado, ciegos))
+
+
+def test_el_motor_generado_categoriza_todos_los_juegos():
+    """El JS que se sirve tiene que traer las categorías, no sólo tenerlas el .py.
+
+    Es el eslabón que falló: `CATEGORIA` estaba incompleto en el módulo, así que el
+    generado salió con 142 de 176 juegos y nadie lo notó."""
+    src = open(os.path.join(aw.BASEDIR, "motor_adaptativo.js"), encoding="utf-8").read()
+    cat_js = json.loads(re.search(r"CATEGORIA_JUEGO\s*=\s*(\{.*?\});", src, re.S).group(1))
+    faltan = sorted(set(_games_definidos()) - set(cat_js))
+    assert not faltan, "juegos sin categoría en el motor servido: %s" % faltan
