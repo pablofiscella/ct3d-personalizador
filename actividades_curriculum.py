@@ -33,7 +33,10 @@ AREA_CDM = "cdm"          # Conocimiento del Mundo — 1° a 3° (DC CABA 2024)
 # El DC usa mucho clasificar y ordenar, no sólo trivia — y la propia auditoría fija que
 # "el menú nunca sirve 3 trivias seguidas": cargar todo como trivia daría un catálogo
 # completo y un producto aburrido.
-MECANICAS = ("trivia", "clasificar", "ordenar")
+#   parametrica → SIN banco: "plantilla" {q, vars, ok, distractores, tope, m}
+#                  El ejercicio se genera cada vez, así que no hay nada que memorizar —
+#                  es la mecánica que la auditoría llama "paramétrica".  (juegoParametrico)
+MECANICAS = ("trivia", "clasificar", "ordenar", "parametrica")
 
 # Tamaño mínimo de banco. La auditoría fijó "mínimo real 30 ítems, insignia 40" para 2°;
 # por debajo de 12 el banco se agota en una sola partida y la actividad mide memoria.
@@ -806,6 +809,55 @@ CATALOGO = [
                        "Se envasa en frascos", "La comemos con tostadas"]},
         ],
     },
+
+    # ── 2° · cálculo redondo (PARAMÉTRICA: ejercicio nuevo cada vez) ─────────────
+    {
+        "id": "calculo_redondo",
+        "grado": 2, "area": "matematica",
+        "titulo": "Cálculo redondo", "icono": "💯",
+        "mecanica": "parametrica",
+        "consigna": "¿Cuánto da?",
+        "dc": "Sumar y restar 1, 10 y 100 a números de tres cifras. Reemplaza sumas/restas, "
+              "que operaban hasta 10 (contenido de 1°)",
+        "fuente": "docs/auditoria-dc-caba/grado-2.md · M4",
+        "saber": {"id": "MAT-2-redondo", "nombre": "Sumar y restar 1, 10 y 100",
+                  "prereqs": []},
+        "plantilla": {
+            "q": "{a} + {b}",
+            "vars": {"a": {"rango": [110, 880], "paso": 10},
+                     "b": {"opciones": [1, 10, 100]}},
+            "ok": "a + b",
+            # distractores POSICIONALES: sumar en la columna equivocada, que es EL error
+            "distractores": ["a + b*10", "a + b/10", "a - b"],
+            "tope": 1000,
+            "m": "Fijate en qué columna sumás: unidades con unidades, dieces con dieces, "
+                 "cienes con cienes. Da {ok}.",
+        },
+    },
+
+    # ── 2° · formá 100 y 1.000 (PARAMÉTRICA) ─────────────────────────────────────
+    {
+        "id": "forma_redondo",
+        "grado": 2, "area": "matematica",
+        "titulo": "¿Cuánto falta para llegar?", "icono": "🎯",
+        "mecanica": "parametrica",
+        "consigna": "¿Cuánto falta?",
+        "dc": "Sumas que dan 100 y 1.000 — complementos, nodal del grado",
+        "fuente": "docs/auditoria-dc-caba/grado-2.md · M3",
+        "saber": {"id": "MAT-2-complemento", "nombre": "Complementos a 100 y 1.000",
+                  "prereqs": ["MAT-2-redondo"]},
+        "plantilla": {
+            "q": "{a} + ___ = {objetivo}",
+            "vars": {"a": {"rango": [5, 95], "paso": 5},
+                     # la auditoría fija objetivos {100, 500, 1.000}
+                     "objetivo": {"opciones": [100, 500, 1000]}},
+            "ok": "objetivo - a",
+            # trampas de magnitud: confundir el complemento a 100 con el de 1.000
+            "distractores": ["100 - a", "objetivo - a - 10", "objetivo - a + 10"],
+            "tope": 1000,
+            "m": "Pensá cuánto le falta a {a} para llegar. La respuesta es {ok}.",
+        },
+    },
 ]
 
 
@@ -819,8 +871,13 @@ def actividades_de(grado=None, area=None):
 
 def menu_de_grado(grado):
     """Entradas de menú (mismo formato que `actividades_web._menu`) para ese grado."""
+    # una paramétrica no tiene banco: genera ejercicios sin límite, así que va a rondas
+    # fijas. (Este `len(a["banco"])` sin guarda tiraba KeyError y, como `_menu_curricular`
+    # atrapa cualquier excepción para no dejar al chico sin cuaderno, borraba EN SILENCIO
+    # todas las actividades del grado. El fallback defensivo escondía el bug.)
     return [{"id": a["id"], "titulo": a["titulo"], "icono": a["icono"],
-             "cfg": {"rondas": min(10, max(6, len(a["banco"]) // 2))}}
+             "cfg": {"rondas": 10 if a["mecanica"] == "parametrica"
+                     else min(10, max(6, len(a["banco"]) // 2))}}
             for a in actividades_de(grado)]
 
 
@@ -844,6 +901,85 @@ def saberes():
 
 
 # ── validación ──────────────────────────────────────────────────────────────────
+def _validar_plantilla(ref, act):
+    """Una plantilla mal declarada no falla al generarse: se queda sin candidatos y el
+    juego termina solo. Por eso se valida acá, SIMULANDO tiradas de verdad."""
+    problemas = []
+    pl = act.get("plantilla") or {}
+    for campo in ("q", "vars", "ok", "distractores"):
+        if not pl.get(campo):
+            problemas.append("%s: la plantilla no declara %r" % (ref, campo))
+    if problemas:
+        return problemas
+    if len(pl["distractores"]) < 2:
+        problemas.append("%s: %d distractores, mínimo 2" % (ref, len(pl["distractores"])))
+    for n in pl["vars"]:
+        if "{%s}" % n not in pl["q"]:
+            problemas.append("%s: la variable %r no aparece en el enunciado" % (ref, n))
+    # simulación: la plantilla tiene que producir ejercicios válidos de verdad, y VARIADOS
+    ok, vistos = 0, set()
+    for _ in range(400):
+        ej = _simular(pl)
+        if ej:
+            ok += 1
+            vistos.add(ej)
+    if ok < 300:
+        problemas.append("%s: sólo %d de 400 tiradas dan un ejercicio válido — las guardas "
+                         "descartan casi todo" % (ref, ok))
+    if len(vistos) < 20:
+        problemas.append("%s: sólo %d ejercicios distintos; una paramétrica con tan poca "
+                         "variedad no evita la memorización" % (ref, len(vistos)))
+    return problemas
+
+
+def _simular(pl):
+    """Una tirada de la plantilla con las MISMAS guardas que el player. Devuelve el
+    ejercicio como texto (para contar variedad) o None si las guardas lo descartan."""
+    import random
+    tope = pl.get("tope", float("inf"))
+    entorno = {}
+    for n, d in pl["vars"].items():
+        if d.get("opciones"):
+            entorno[n] = random.choice(d["opciones"])
+        else:
+            paso = d.get("paso", 1)
+            lo, hi = d["rango"]
+            entorno[n] = random.randint(-(-lo // paso), hi // paso) * paso
+    try:
+        ok = _eval(pl["ok"], entorno)
+    except Exception:
+        return None
+    if ok != int(ok) or ok < 0 or ok > tope:
+        return None
+    ds = []
+    for e in pl["distractores"]:
+        try:
+            d = _eval(e, entorno)
+        except Exception:
+            continue
+        if d == int(d) and 0 <= d <= tope and d != ok and d not in ds:
+            ds.append(d)
+    if len(ds) < 2:
+        return None
+    return "%s=%s|%s" % (pl["q"].format(**entorno), int(ok), sorted(int(x) for x in ds[:2]))
+
+
+def _eval(expr, entorno):
+    """Mismo evaluador acotado que el player: sólo números, variables y + - * / ( )."""
+    import ast as _ast
+    OPS = (_ast.Add, _ast.Sub, _ast.Mult, _ast.Div, _ast.USub)
+    arbol = _ast.parse(expr, mode="eval")
+    for nodo in _ast.walk(arbol):
+        if isinstance(nodo, (_ast.Expression, _ast.Constant, _ast.Name, _ast.Load)):
+            continue
+        if isinstance(nodo, (_ast.BinOp, _ast.UnaryOp)):
+            continue
+        if isinstance(nodo, OPS):
+            continue
+        raise ValueError("expresión no permitida: %s" % expr)
+    return eval(compile(arbol, "<plantilla>", "eval"), {"__builtins__": {}}, dict(entorno))
+
+
 def _validar_banco(ref, mecanica, act, banco):
     """Chequeos propios de cada mecánica. Cada una tiene su forma y sus trampas."""
     problemas, vistas = [], set()
@@ -909,8 +1045,11 @@ def validar():
     problemas, ids, saberes_vistos = [], set(), set()
     for a in CATALOGO:
         ref = "%s (%d°)" % (a.get("id", "?"), a.get("grado", 0))
-        for campo in ("id", "grado", "area", "titulo", "icono", "mecanica", "dc",
-                      "fuente", "saber", "banco"):
+        # una paramétrica no tiene banco: su contenido es la plantilla
+        obligatorios = ["id", "grado", "area", "titulo", "icono", "mecanica", "dc",
+                        "fuente", "saber"]
+        obligatorios.append("plantilla" if a.get("mecanica") == "parametrica" else "banco")
+        for campo in obligatorios:
             if not a.get(campo):
                 problemas.append("%s: falta '%s'" % (ref, campo))
         if a.get("id") in ids:
@@ -922,6 +1061,9 @@ def validar():
             problemas.append("%s: Conocimiento del Mundo sólo existe en 1°-3° del DC" % ref)
         banco = a.get("banco") or []
         mec = a.get("mecanica")
+        if mec == "parametrica":
+            problemas.extend(_validar_plantilla(ref, a))
+            continue                      # no tiene banco: el ejercicio se genera
         # "ordenar" mide por SECUENCIAS, no por ítems sueltos: 12 secuencias de 4-5
         # tarjetas ya son muchas rondas distintas, así que el piso es más bajo.
         minimo = 8 if mec == "ordenar" else BANCO_MINIMO
@@ -933,6 +1075,18 @@ def validar():
         if s.get("id") in saberes_vistos:
             problemas.append("%s: saber repetido %s" % (ref, s.get("id")))
         saberes_vistos.add(s.get("id"))
+    # el menú se tiene que poder ARMAR: si esto revienta, `_menu_curricular` lo atrapa y
+    # el grado se queda sin ninguna actividad del catálogo, sin ningún error visible.
+    for grado in range(1, 8):
+        try:
+            entradas = menu_de_grado(grado)
+        except Exception as e:
+            problemas.append("no se puede armar el menú de %d°: %s: %s"
+                             % (grado, type(e).__name__, e))
+            continue
+        if len(entradas) != len(actividades_de(grado)):
+            problemas.append("el menú de %d° trae %d entradas y hay %d actividades"
+                             % (grado, len(entradas), len(actividades_de(grado))))
     # los prerrequisitos tienen que existir (en el catálogo o en el grafo grande)
     import saberes as grafo
     conocidos = saberes_vistos | set(grafo.SABERES)

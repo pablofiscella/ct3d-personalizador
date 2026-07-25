@@ -1609,3 +1609,67 @@ const CUR_CAMPO_A_CASA_BANCO = [
   }
 ];
 GAMES.campo_a_casa = juegoOrdenar(CUR_CAMPO_A_CASA_BANCO, "Ordená cómo llega a tu casa. Tocá en orden.", "Empezá por dónde nace o se produce, y terminá en tu casa.", "campo_a_ca");
+
+/* 2° · Cálculo redondo — calculo_redondo
+   DC: Sumar y restar 1, 10 y 100 a números de tres cifras. Reemplaza sumas/restas, que operaban hasta 10 (contenido de 1°)
+   Fuente: docs/auditoria-dc-caba/grado-2.md · M4 */
+const CUR_CALCULO_REDONDO_PLANTILLA = {
+  "q": "{a} + {b}",
+  "vars": {
+    "a": {
+      "rango": [
+        110,
+        880
+      ],
+      "paso": 10
+    },
+    "b": {
+      "opciones": [
+        1,
+        10,
+        100
+      ]
+    }
+  },
+  "ok": "a + b",
+  "distractores": [
+    "a + b*10",
+    "a + b/10",
+    "a - b"
+  ],
+  "tope": 1000,
+  "m": "Fijate en qué columna sumás: unidades con unidades, dieces con dieces, cienes con cienes. Da {ok}."
+};
+GAMES.calculo_redondo = juegoParametrico(CUR_CALCULO_REDONDO_PLANTILLA, "¿Cuánto da?", "calculo_re");
+
+/* 2° · ¿Cuánto falta para llegar? — forma_redondo
+   DC: Sumas que dan 100 y 1.000 — complementos, nodal del grado
+   Fuente: docs/auditoria-dc-caba/grado-2.md · M3 */
+const CUR_FORMA_REDONDO_PLANTILLA = {
+  "q": "{a} + ___ = {objetivo}",
+  "vars": {
+    "a": {
+      "rango": [
+        5,
+        95
+      ],
+      "paso": 5
+    },
+    "objetivo": {
+      "opciones": [
+        100,
+        500,
+        1000
+      ]
+    }
+  },
+  "ok": "objetivo - a",
+  "distractores": [
+    "100 - a",
+    "objetivo - a - 10",
+    "objetivo - a + 10"
+  ],
+  "tope": 1000,
+  "m": "Pensá cuánto le falta a {a} para llegar. La respuesta es {ok}."
+};
+GAMES.forma_redondo = juegoParametrico(CUR_FORMA_REDONDO_PLANTILLA, "¿Cuánto falta?", "forma_redo");

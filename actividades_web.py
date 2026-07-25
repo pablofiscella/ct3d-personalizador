@@ -1493,7 +1493,22 @@ def _catalogo_juegos():
 # Es GRATIS con TOPE por materia: sincronizar con la escuela no puede ser un paywall
 # (era justamente la traba que había que sacar), pero el tope evita que el padre se arme
 # el grado siguiente entero y vacíe el desbloqueo por materia que sí se cobra.
-EXTRAS_TOPE_POR_MATERIA = 5
+# Tope de actividades que el padre puede sumar de un grado ADYACENTE, por materia.
+# Es 1 a propósito y es una decisión de negocio: el desbloqueo vende "el nivel siguiente",
+# y con un tope alto el padre se llevaba gratis el nivel entero de las materias flacas.
+EXTRAS_TOPE_ADYACENTE = 1
+_MATERIA_NOMBRE = {"lengua": "Lengua", "matematica": "Matemática", "cdm": "Conocimiento del Mundo",
+                   "naturales": "Cs. Naturales", "sociales": "Cs. Sociales", "logica": "Extras",
+                   "extras": "Extras"}
+
+
+def _grado_del_token(token):
+    """Grado del chico de ese token (edad − 5), o None si no se puede saber."""
+    try:
+        dj = json.load(open(os.path.join(ACT_DIR, token, "data.json"), encoding="utf-8"))
+        return int(str(dj.get("edad")).strip()) - 5
+    except Exception:
+        return None
 
 
 def catalogo_actividades():
@@ -1530,12 +1545,24 @@ def extras_leer(token):
 def extras_guardar(token, pedidos):
     """Guarda las actividades extra de un token. `pedidos` = [{id, grado}, ...].
 
-    Valida contra el catálogo REAL (un id inventado no entra) y aplica el tope por
-    materia. Devuelve {"ok", "items", "rechazadas"} — las rechazadas se informan en vez
-    de recortar en silencio, así el padre entiende por qué no entró la que eligió."""
+    LÍMITE (decisión de Pablo 24-jul, es de negocio): sólo se puede sumar del grado
+    ANTERIOR y del SIGUIENTE, **1 por materia de cada uno**. Del grado propio no hay tope
+    porque esas actividades ya están en el menú del chico (el player las deduplica).
+
+    Por qué: el desbloqueo por materia vende justamente "el nivel siguiente", y las
+    materias son muy desparejas — 5° Lengua tiene 3 actividades y 6° Lengua tiene 1. Con
+    el tope viejo (5 por materia, sin mirar el grado) un padre se llevaba el nivel entero
+    de las materias flacas gratis, y encima le sobraban cupos.
+
+    Lo rechazado por tope se devuelve marcado `comprable` con su materia, para que la
+    pantalla del padre lo convierta en la oferta en vez de un "no" seco: "de Matemática ya
+    sumaste la del año que viene; el resto lo desbloqueás".
+
+    Devuelve {"ok", "items", "rechazadas"}."""
     d = os.path.join(ACT_DIR, token)
     if not os.path.isdir(d):
         return {"ok": False, "error": "token inexistente"}
+    grado_chico = _grado_del_token(token)
     cat = catalogo_actividades()
     porcat, items, rechazadas = {}, [], []
     vistos = set()
@@ -1555,11 +1582,27 @@ def extras_guardar(token, pedidos):
             continue
         vistos.add((jid, grado))
         c = entrada.get("categoria") or "extras"
-        porcat[c] = porcat.get(c, 0) + 1
-        if porcat[c] > EXTRAS_TOPE_POR_MATERIA:
-            rechazadas.append({"id": jid, "grado": grado, "titulo": entrada.get("titulo"),
-                               "motivo": "tope de %d por materia" % EXTRAS_TOPE_POR_MATERIA})
-            continue
+        titulo = entrada.get("titulo")
+        if grado_chico is not None:
+            dist = grado - grado_chico
+            if abs(dist) > 1:
+                rechazadas.append({
+                    "id": jid, "grado": grado, "titulo": titulo, "materia": c,
+                    "comprable": dist > 0,
+                    "motivo": ("es de %d.º grado: sólo se puede sumar del grado anterior "
+                               "o del siguiente" % grado)})
+                continue
+            if dist != 0:                       # grado adyacente: 1 por materia de cada uno
+                clave = (c, grado)
+                porcat[clave] = porcat.get(clave, 0) + 1
+                if porcat[clave] > EXTRAS_TOPE_ADYACENTE:
+                    cuando = "del año que viene" if dist > 0 else "del año pasado"
+                    rechazadas.append({
+                        "id": jid, "grado": grado, "titulo": titulo, "materia": c,
+                        "comprable": dist > 0,
+                        "motivo": ("ya sumaste %d de %s %s" %
+                                   (EXTRAS_TOPE_ADYACENTE, _MATERIA_NOMBRE.get(c, c), cuando))})
+                    continue
         it = dict(entrada)
         it["grado"] = grado
         it["origen"] = "escuela"          # lo eligió el padre, no se compró

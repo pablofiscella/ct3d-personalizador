@@ -27,12 +27,21 @@ out = [
 ]
 
 for a in cur.CATALOGO:
-    banco = "CUR_%s_BANCO" % a["id"].upper()
     out.append("/* %d° · %s — %s\n   DC: %s\n   Fuente: %s */"
                % (a["grado"], a["titulo"], a["id"], a["dc"], a["fuente"]))
+    pfx = a["id"][:10]
+    if a["mecanica"] == "parametrica":
+        # no tiene banco: el ejercicio se genera desde la plantilla en cada ronda
+        pl = "CUR_%s_PLANTILLA" % a["id"].upper()
+        out.append("const %s = %s;" % (pl, json.dumps(a["plantilla"], ensure_ascii=False,
+                                                      indent=2)))
+        out.append('GAMES.%s = juegoParametrico(%s, %s, "%s");'
+                   % (a["id"], pl, json.dumps(a["consigna"], ensure_ascii=False), pfx))
+        out.append("")
+        continue
+    banco = "CUR_%s_BANCO" % a["id"].upper()
     out.append("const %s = %s;" % (banco, json.dumps(a["banco"], ensure_ascii=False,
                                                      indent=2)))
-    pfx = a["id"][:10]
     if a["mecanica"] == "trivia":
         out.append('GAMES.%s = juegoTriviaTexto(%s, %s, "%s");'
                    % (a["id"], banco, json.dumps(a.get("consigna") or
@@ -55,4 +64,5 @@ for a in cur.CATALOGO:
 js = "\n".join(out)
 open("actividades_curriculum.js", "w", encoding="utf-8").write(js)
 print("actividades_curriculum.js:", len(js), "bytes |", len(cur.CATALOGO), "actividades |",
-      sum(len(a["banco"]) for a in cur.CATALOGO), "ítems")
+      sum(len(a.get("banco") or []) for a in cur.CATALOGO), "ítems de banco |",
+      sum(1 for a in cur.CATALOGO if a["mecanica"] == "parametrica"), "paramétricas")
