@@ -328,3 +328,49 @@ def test_adaptativo_se_preserva_al_regenerar(arte_dir):
         assert _data(d)["adaptativo_on"] is True, "se perdió el flag al regenerar"
     finally:
         shutil.rmtree(d, ignore_errors=True)
+
+
+# ── la portada ilustrada del grado ──────────────────────────────────────────────
+def test_los_7_grados_tienen_su_portada_cargada():
+    """Están en el repo desde el 24-jul. Si falta una, ese grado cae a la tarjeta
+    genérica sin que nadie se entere."""
+    faltan = [g for g in range(1, 8)
+              if not os.path.isfile(os.path.join(aw.PORTADA_DIR, "%d.png" % g))]
+    assert not faltan, "grados sin portada: %s" % faltan
+
+
+def test_la_portada_del_grado_LA_USA_alguien():
+    """LA lección del 25-jul: las 7 portadas estuvieron un día enteras en el repo y
+    ningún código las leía — el cliente veía la tarjeta genérica. Subir un asset no es
+    entregarlo. Este test falla si alguien vuelve a dejar la carpeta huérfana."""
+    src = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                            "actividades_web.py"), encoding="utf-8").read()
+    assert "PORTADA_DIR" in src and "_portada_de_grado" in src
+    i = src.index("portada.jpg\"), quality=88")
+    assert "_portada_de_grado" in src[max(0, i - 400):i], \
+        "la portada del grado no se está usando al guardar portada.jpg"
+
+
+@pytest.mark.parametrize("grado,edad", [(1, "6"), (2, "7"), (4, "9"), (7, "12")])
+def test_la_portada_no_se_deforma(grado, edad, tmp_path, monkeypatch):
+    """1° y 2° vinieron en 2:3 y el resto en 3:4. Un resize directo a 900×1200 estiraría
+    las caras de los chicos; se hace contain con relleno.
+
+    Arma el arte del grado que prueba (la fixture `arte_dir` sólo crea el de GRADO), pero
+    deja PORTADA_DIR apuntando al real: lo que se está probando es justamente que las
+    portadas de verdad no se deformen."""
+    monkeypatch.setattr(aw, "ARTE_DIR", str(tmp_path))
+    (tmp_path / ("g%d" % grado)).mkdir()
+    im = aw._portada_de_grado(edad, True)
+    assert im is not None, "sin portada para %d°" % grado
+    assert im.size == (900, 1200)
+    orig = Image.open(os.path.join(aw.PORTADA_DIR, "%d.png" % grado))
+    # el contenido escalado tiene que conservar la proporción original
+    esc = min(900 / orig.width, 1200 / orig.height)
+    nw, nh = int(orig.width * esc), int(orig.height * esc)
+    assert abs((nw / nh) - (orig.width / orig.height)) < 0.01
+
+
+def test_el_kit_por_tema_NO_usa_la_portada_del_grado():
+    """La compuerta de siempre: un cuaderno comprado por tema sigue con su tarjeta."""
+    assert aw._portada_de_grado("9", False) is None

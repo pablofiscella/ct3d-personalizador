@@ -991,6 +991,51 @@ def _grado_con_arte(edad, escolar):
     return grado
 
 
+PORTADA_DIR = os.path.join(BASEDIR, "actividades_portadas")
+
+
+def _portada_de_grado(edad, escolar):
+    """La portada ILUSTRADA del grado ("Mis Desafíos · Científicos en Acción · 4.º"), o
+    None si no corresponde.
+
+    Las 7 portadas estaban subidas desde el 24-jul pero NINGÚN código las usaba: el
+    cuaderno escolar mostraba en la biblioteca la misma tarjeta dibujada que los kits de
+    cumpleaños, con el nombre del chico y el nombre del mundo, pero sin la ilustración.
+    Pablo, mirando su biblioteca: "esta primera no es la portada".
+
+    Sólo aplica a la línea escolar (misma compuerta que el resto de la temática por
+    grado): un kit comprado por tema sigue con su tarjeta de siempre.
+
+    La mayoría son 3:4 (1086×1448), igual que la card, pero 1° y 2° vinieron en 2:3 —
+    un `resize` directo a 900×1200 las estiraría y se notaría en las caras. Se hace
+    CONTAIN: se escala hasta entrar entera y se rellena el sobrante con el color del
+    borde de la propia imagen. Recortar sería la otra opción, pero el título va arriba
+    y se lo comería.
+    """
+    grado = _grado_con_arte(edad, escolar)
+    if not grado:
+        return None
+    p = os.path.join(PORTADA_DIR, "%d.png" % grado)
+    if not os.path.isfile(p):
+        return None
+    W, H = 900, 1200
+    try:
+        src = Image.open(p).convert("RGB")
+        esc = min(W / src.width, H / src.height)
+        nw, nh = max(1, int(src.width * esc)), max(1, int(src.height * esc))
+        chica = src.resize((nw, nh), Image.LANCZOS)
+        if (nw, nh) == (W, H):
+            return chica
+        # color de relleno: el promedio del borde superior, para que la banda no corte
+        # visualmente (las portadas tienen fondo ilustrado hasta el borde)
+        borde = chica.crop((0, 0, nw, max(1, nh // 40))).resize((1, 1), Image.LANCZOS)
+        fondo = Image.new("RGB", (W, H), borde.getpixel((0, 0)))
+        fondo.paste(chica, ((W - nw) // 2, (H - nh) // 2))
+        return fondo
+    except Exception:
+        return None                    # una portada rota no puede impedir crear el kit
+
+
 def _dir_grado(edad, escolar):
     """Carpeta de arte del grado, o None (compuerta `_grado_con_arte`)."""
     grado = _grado_con_arte(edad, escolar)
@@ -1978,7 +2023,10 @@ def crear(data, tema, token=None):
         json.dump(dj, f, ensure_ascii=False)
 
     pers_imgs = [Image.open(os.path.join(d, p)).convert("RGBA") for p in pers[:3]]
-    _render_portada(dj, pers_imgs).save(os.path.join(d, "portada.jpg"), quality=88)
+    # La línea ESCOLAR usa su portada ilustrada ("Mis Desafíos · <mundo> · N.º grado");
+    # el kit por tema sigue con la tarjeta dibujada de siempre.
+    (_portada_de_grado(edad, escolar) or _render_portada(dj, pers_imgs)) \
+        .save(os.path.join(d, "portada.jpg"), quality=88)
 
     with open(os.path.join(d, "manifest.json"), "w", encoding="utf-8") as f:
         json.dump({"tema": tema, "nombre": nombre, "edad": edad,
