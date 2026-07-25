@@ -32,6 +32,18 @@ TEMPLATE_JS = os.path.join(BASEDIR, "actividades_player.js")
 TEMPLATE_MOTOR = os.path.join(BASEDIR, "motor_adaptativo.js")  # capa de saberes (piloto, gateada)
 TEMPLATE_CURRICULUM = os.path.join(BASEDIR, "actividades_curriculum.js")  # catálogo curricular (generado)
 AUDIO_DIR = os.path.join(BASEDIR, "audio_consignas")
+
+# ── Voz de las ACTIVIDADES ──────────────────────────────────────────────────────
+# Pablo (25-jul-2026) escuchó 7 candidatas con la misma frase y eligió VALERIA. La
+# anterior era Lizy, que es la del audiolibro, y la descartó por no sonar rioplatense.
+#
+# Es SÓLO para las actividades y los videos explicativos: el audiolibro sigue con
+# Lizy (`audiolibro._EL_VOICE`), porque hay libros ya vendidos narrados con ella y
+# cambiarla ahí les cambiaría la voz a mitad del catálogo. Por eso está declarada acá
+# —en el módulo de actividades— y no tocando el default del audiolibro.
+VOZ_ACTIVIDADES = "9oPKasc15pfAbMr7N6Gs"      # Valeria — femenina joven, rioplatense
+VOZ_ACTIVIDADES_NOMBRE = "valeria"
+
 VIGENCIA_DIAS = 7300         # igual que el audiolibro: respalda "Mis compras"
 _TOKEN_RE = r"[A-Za-z0-9_-]{8,32}"
 
@@ -977,6 +989,51 @@ def _grado_con_arte(edad, escolar):
     if not os.path.isdir(os.path.join(ARTE_DIR, "g%d" % grado)):
         return None
     return grado
+
+
+PORTADA_DIR = os.path.join(BASEDIR, "actividades_portadas")
+
+
+def _portada_de_grado(edad, escolar):
+    """La portada ILUSTRADA del grado ("Mis Desafíos · Científicos en Acción · 4.º"), o
+    None si no corresponde.
+
+    Las 7 portadas estaban subidas desde el 24-jul pero NINGÚN código las usaba: el
+    cuaderno escolar mostraba en la biblioteca la misma tarjeta dibujada que los kits de
+    cumpleaños, con el nombre del chico y el nombre del mundo, pero sin la ilustración.
+    Pablo, mirando su biblioteca: "esta primera no es la portada".
+
+    Sólo aplica a la línea escolar (misma compuerta que el resto de la temática por
+    grado): un kit comprado por tema sigue con su tarjeta de siempre.
+
+    La mayoría son 3:4 (1086×1448), igual que la card, pero 1° y 2° vinieron en 2:3 —
+    un `resize` directo a 900×1200 las estiraría y se notaría en las caras. Se hace
+    CONTAIN: se escala hasta entrar entera y se rellena el sobrante con el color del
+    borde de la propia imagen. Recortar sería la otra opción, pero el título va arriba
+    y se lo comería.
+    """
+    grado = _grado_con_arte(edad, escolar)
+    if not grado:
+        return None
+    p = os.path.join(PORTADA_DIR, "%d.png" % grado)
+    if not os.path.isfile(p):
+        return None
+    W, H = 900, 1200
+    try:
+        src = Image.open(p).convert("RGB")
+        esc = min(W / src.width, H / src.height)
+        nw, nh = max(1, int(src.width * esc)), max(1, int(src.height * esc))
+        chica = src.resize((nw, nh), Image.LANCZOS)
+        if (nw, nh) == (W, H):
+            return chica
+        # color de relleno: el promedio del borde superior, para que la banda no corte
+        # visualmente (las portadas tienen fondo ilustrado hasta el borde)
+        borde = chica.crop((0, 0, nw, max(1, nh // 40))).resize((1, 1), Image.LANCZOS)
+        fondo = Image.new("RGB", (W, H), borde.getpixel((0, 0)))
+        fondo.paste(chica, ((W - nw) // 2, (H - nh) // 2))
+        return fondo
+    except Exception:
+        return None                    # una portada rota no puede impedir crear el kit
 
 
 def _dir_grado(edad, escolar):
@@ -1966,7 +2023,10 @@ def crear(data, tema, token=None):
         json.dump(dj, f, ensure_ascii=False)
 
     pers_imgs = [Image.open(os.path.join(d, p)).convert("RGBA") for p in pers[:3]]
-    _render_portada(dj, pers_imgs).save(os.path.join(d, "portada.jpg"), quality=88)
+    # La línea ESCOLAR usa su portada ilustrada ("Mis Desafíos · <mundo> · N.º grado");
+    # el kit por tema sigue con la tarjeta dibujada de siempre.
+    (_portada_de_grado(edad, escolar) or _render_portada(dj, pers_imgs)) \
+        .save(os.path.join(d, "portada.jpg"), quality=88)
 
     with open(os.path.join(d, "manifest.json"), "w", encoding="utf-8") as f:
         json.dump({"tema": tema, "nombre": nombre, "edad": edad,
@@ -2004,9 +2064,17 @@ def _player_version():
         return "1"
 
 
-def _slug_audio(texto):
+def _slug_audio(texto, voz=None):
+    """Nombre del mp3 de una consigna. La VOZ entra en el hash a propósito.
+
+    Sin eso, cambiar de voz no cambiaba el nombre del archivo: los 215 clips viejos
+    seguían sirviéndose con la voz anterior y sólo lo nuevo salía con la nueva, así que
+    el chico escuchaba DOS voces distintas en el mismo cuaderno — peor que no cambiar
+    nada. Con la voz en el hash, cambiarla genera archivos nuevos, los viejos quedan
+    huérfanos (se borran cuando se quiera) y volver atrás es cambiar la constante."""
     import hashlib
-    return "c_" + hashlib.md5(texto.encode("utf-8")).hexdigest()[:10] + ".mp3"
+    clave = "%s|%s" % (voz or VOZ_ACTIVIDADES, texto)
+    return "c_" + hashlib.md5(clave.encode("utf-8")).hexdigest()[:10] + ".mp3"
 
 
 _EMOJI_RE = re.compile(
@@ -2065,7 +2133,8 @@ def generar_audio_consignas(textos):
     consignas son texto FIJO del player (nunca personalizado por compra), así
     que se graban UNA VEZ acá y se sirven como asset del repo — igual
     criterio que player.js/las fuentes, NO se regeneran por token. Reusa el
-    mismo motor de voz del audiolibro (ElevenLabs Lizy, acento argentino).
+    mismo motor de voz del audiolibro (ElevenLabs) pero con la voz de las
+    ACTIVIDADES (`VOZ_ACTIVIDADES` = Valeria), no la del audiolibro.
 
     QA de duración (piso Y techo por conteo de vocales, ver _duracion_minima/
     _duracion_maxima): hasta 4 tomas con seeds distintos, se queda con la
@@ -2093,7 +2162,10 @@ def generar_audio_consignas(textos):
         maximo = _duracion_maxima(limpio)
         mejor = None
         for intento in range(4):
-            mp3 = audiolibro._tts_elevenlabs(limpio, seed=4242 + intento * 137)
+            # voice_id explícito: sin él sale la voz DEFAULT del audiolibro (Lizy), que
+            # es justamente la que se cambió para las actividades.
+            mp3 = audiolibro._tts_elevenlabs(limpio, seed=4242 + intento * 137,
+                                             voice_id=VOZ_ACTIVIDADES)
             if not mp3:
                 # Sin ElevenLabs (falta la key o falló el TTS) _tts_elevenlabs devuelve
                 # None y _dur_mp3_128(None) tiraba "len(None)". Error claro en su lugar.
@@ -2125,9 +2197,15 @@ def html(token):
 
 _ASSET_RE = re.compile(
     r"^(data\.json|extras\.json|player\.js|motor_adaptativo\.js|actividades_curriculum\.js|f[12]\.ttf|[ps]\d{2}\.png|colorear_\d\.png|escena\.jpg|portada\.jpg"
-    r"|audio_manifest\.json|c_[a-f0-9]{10}\.mp3)$")
+    r"|audio_manifest\.json|c_[a-f0-9]{10}\.mp3"
+    # lecciones en video del botón "¿Cómo es?": salen del REPO como el player y el
+    # audio de consignas — una sola copia para todos los tokens, así mejorar una
+    # lección llega también a los links ya vendidos.
+    r"|lec_[a-z0-9_]{1,40}\.mp4)$")
+LECCION_DIR = os.path.join(BASEDIR, "lecciones_video")
 _CT = {".json": "application/json; charset=utf-8", ".js": "text/javascript; charset=utf-8",
-       ".ttf": "font/ttf", ".png": "image/png", ".jpg": "image/jpeg", ".mp3": "audio/mpeg"}
+       ".ttf": "font/ttf", ".png": "image/png", ".jpg": "image/jpeg", ".mp3": "audio/mpeg",
+       ".mp4": "video/mp4"}
 
 
 def archivo(token, nombre):
@@ -2150,6 +2228,8 @@ def archivo(token, nombre):
         p = os.path.join(BASEDIR, "fonts", "Nunito-VF.ttf")
     elif nombre == "audio_manifest.json" or nombre.endswith(".mp3"):
         p = os.path.join(AUDIO_DIR, "manifest.json" if nombre == "audio_manifest.json" else nombre)
+    elif nombre.endswith(".mp4"):
+        p = os.path.join(LECCION_DIR, nombre)
     else:
         p = os.path.join(ACT_DIR, token, nombre)
     if not os.path.isfile(p):

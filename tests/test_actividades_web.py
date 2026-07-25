@@ -396,7 +396,7 @@ def test_generar_audio_consignas_idempotente_y_sirve_por_archivo(tmp_path, monke
 
     class FakeAudiolibro:
         @staticmethod
-        def _tts_elevenlabs(texto, seed=None):
+        def _tts_elevenlabs(texto, seed=None, voice_id=None, settings=None):
             llamadas.append(texto)
             return b"FAKE-MP3-BYTES" * 2000   # "dura" de sobra para pasar el piso de QA
 
@@ -439,7 +439,7 @@ def test_generar_audio_consignas_descarta_toma_demasiado_larga(tmp_path, monkeyp
 
     class FakeAudiolibro:
         @staticmethod
-        def _tts_elevenlabs(texto, seed=None):
+        def _tts_elevenlabs(texto, seed=None, voice_id=None, settings=None):
             llamadas.append(seed)
             return tomas[len(llamadas) - 1]
 
@@ -568,6 +568,66 @@ def test_generar_audio_consignas_error_claro_sin_key(monkeypatch):
     monkeypatch.setattr(audiolibro, "_tts_elevenlabs", lambda *a, **k: None)
     with pytest.raises(RuntimeError, match="ELEVENLABS"):
         aw.generar_audio_consignas(["Encontrá las palabras escondidas."])
+
+
+# ── voz de las actividades (Valeria) vs. voz del audiolibro (Lizy) ──────────────
+def test_las_consignas_se_graban_con_la_voz_de_las_actividades(tmp_path, monkeypatch):
+    """Pablo eligió Valeria para las actividades. Sin pasar `voice_id` explícito, el
+    TTS sale con la voz DEFAULT del audiolibro — que es justo la que descartó."""
+    import sys
+    import actividades_web as aw
+    monkeypatch.setattr(aw, "AUDIO_DIR", str(tmp_path))
+    vistos = []
+
+    class Fake:
+        @staticmethod
+        def _tts_elevenlabs(texto, seed=None, voice_id=None, settings=None):
+            vistos.append(voice_id)
+            return b"X" * 40000
+
+        @staticmethod
+        def _dur_mp3_128(mp3):
+            return len(mp3) * 8 / 128000.0
+
+    monkeypatch.setitem(sys.modules, "audiolibro", Fake)
+    aw.generar_audio_consignas(["Contá cuántos hay."])
+    assert vistos and all(v == aw.VOZ_ACTIVIDADES for v in vistos), \
+        "las consignas se estarían grabando con la voz del audiolibro: %s" % vistos
+
+
+def test_cambiar_la_voz_cambia_el_nombre_del_archivo():
+    """LA garantía contra el cuaderno con dos voces.
+
+    El nombre salía de hashear SÓLO el texto: al cambiar de voz, los 215 clips ya
+    grabados seguían sirviéndose con la voz vieja y sólo lo nuevo salía con la nueva.
+    El chico escuchaba dos voces distintas — peor que no haber cambiado nada."""
+    import actividades_web as aw
+    txt = "Encontrá las palabras escondidas."
+    assert aw._slug_audio(txt, voz="voz-A") != aw._slug_audio(txt, voz="voz-B")
+    # y sin argumento usa la voz configurada, no una cualquiera
+    assert aw._slug_audio(txt) == aw._slug_audio(txt, voz=aw.VOZ_ACTIVIDADES)
+
+
+def test_el_audiolibro_no_cambia_de_voz():
+    """El cambio es SÓLO de las actividades. Hay audiolibros ya vendidos narrados con
+    Lizy: cambiar su default les cambiaría la voz a mitad del catálogo."""
+    import audiolibro
+    import actividades_web as aw
+    assert audiolibro._EL_VOICE != aw.VOZ_ACTIVIDADES, \
+        "el default del audiolibro no debería ser la voz de las actividades"
+    assert audiolibro._EL_VOICE == "rrErIO88ehxTnspOjKvf", "el audiolibro dejó de ser Lizy"
+
+
+def test_el_cache_dinamico_tambien_separa_por_voz():
+    """El mismo problema del manifest, en el caché on-demand: si la clave no incluye
+    la voz, lo ya cacheado se sigue sirviendo con la voz vieja."""
+    import os
+    src = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                            "servicio.py"), encoding="utf-8").read()
+    i = src.index("def _tts_dinamico")
+    cuerpo = src[i:i + 2000]
+    assert "VOZ_ACTIVIDADES" in cuerpo, "el caché dinámico no separa por voz"
+    assert "voice_id=" in cuerpo, "el TTS dinámico saldría con la voz del audiolibro"
 
 
 def test_niveles_activacion_escalable(tmp_path, monkeypatch):
