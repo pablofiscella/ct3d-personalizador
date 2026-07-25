@@ -146,3 +146,21 @@ estándar. Agrandarlos es data entry sobre el catálogo, sin tocar código.
 1. Mecánica `parametrica` → destraba 11 actividades de 2° y ataca la memorización.
 2. Audio de consignas → destraba las 5 de sistema de escritura, el gap más grave del grado.
 3. Engrosar los bancos cargados de 14-16 a 30.
+
+---
+
+## 6. QR con explicación para los padres
+
+**Pedido de Pablo (25-jul-2026):** un QR que lleve a una explicación para las familias —
+qué es el cuaderno, cómo se usa, qué ve el padre desde su cuenta.
+
+**Contexto:** surgió planeando **regalarle el cuaderno a un 4° grado entero** para que lo
+prueben. Ahí el QR es el vehículo natural: se reparte en papel y cada familia entra sola,
+sin depender de que alguien explique uno por uno.
+
+**Qué tendría que explicar, como mínimo:** que el chico juega desde su link, que el adulto
+ve el progreso desde su cuenta, y que en "¿qué ven en la escuela?" puede sumar lo que estén
+viendo. Son las tres cosas que un padre no descubre solo.
+
+**Estado:** anotado, sin empezar. No bloquea el regalo al 4°, pero lo hace mucho más
+probable de que se use.
