@@ -1210,18 +1210,29 @@ def _escena(tema, d):
 # Cuando el chico DOMINA su nivel, el player avisa (registrar_solicitud motivo=
 # 'domino') → la TIENDA le manda el mail al comprador para desbloquear el
 # siguiente con 50% off (esa parte vive en /opt/ct3d).
-# Demo: Pablo define el mapa real; acá van actividades de 4° como muestra.
+#
+# 25-jul-2026 — DECISIÓN DE PABLO, y es la que manda: **ningún tema de la currícula
+# del grado vive detrás de un candado.** El mapa de abajo quedó VACÍO a propósito.
+#
+# Por qué: las diez actividades que estaban acá (fracciones, decimales, ángulos,
+# problemas, comprensión lectora, prefijos y sufijos) no eran "contenido extra": eran
+# diez de los 58 temas que el Diseño Curricular le fija a 4°. Con el mapa anterior, un
+# chico con `nivel_max: 1` no podía llegar nunca a la comprensión lectora ni a los
+# ángulos, que son contenido del año que está cursando.
+#
+# Los niveles 2 y 3 pasan a ser lo que la investigación (ALEKS, DreamBox) dice que
+# tienen que ser: escalones de DIFICULTAD del mismo tema, que se abren solos cuando el
+# chico domina —gratis, sin pedir permiso ni pagar—. Eso ya lo hace `ctx.bonusDominio`
+# adentro de cada juego. La escalera comercial, si la hay, es el GRADO siguiente, no un
+# candado sobre el año en curso.
+#
+# La maquinaria de niveles se deja intacta: con el mapa vacío el menú sale plano y
+# todo abierto, y si algún día se declara un nivel se vuelve a activar sola.
+# La regla se verifica en tests/test_cobertura_dc.py contra actividades_cobertura.py.
 NIVEL_NOMBRES = {1: "Explorador", 2: "Aventurero", 3: "Experto"}
 NIVEL_ICONOS = {1: "🌱", 2: "🧭", 3: "🏆"}
 # actividad → nivel (las que NO figuran acá quedan en el nivel 1, gratis).
-_NIVEL_ACTIVIDAD = {
-    # Nivel 2 (intermedio): se abre cuando domina el Nivel 1
-    "fracciones_equivalentes": 2, "duelo_fracciones": 2, "reparto_fracciones": 2,
-    "completar_entero": 2, "recta_numerica": 2,
-    # Nivel 3 (avanzado): se abre cuando domina el Nivel 2
-    "problemas_mult_div": 3, "duelo_decimales": 3, "angulos": 3,
-    "comprension_lectora": 3, "prefijos_sufijos": 3,
-}
+_NIVEL_ACTIVIDAD = {}
 def _nivel_de(actividad):
     return _NIVEL_ACTIVIDAD.get(actividad, 1)
 
