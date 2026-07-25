@@ -8816,6 +8816,189 @@ GAMES.angulos = {
    Capa 0 C3: si eligen 180−θ, se nombra el error ("esa es la otra escala"). Los
    ángulos son múltiplos de 10 (lectura exacta) y evitan 90 (ahí las dos escalas
    coinciden y no hay nada que confundir). ── */
+GAMES.transportador = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 8;
+    ctx.rondas(rondas);
+    let usados = [], ronda = 0;
+    const P = (cx, cy, r, a) => [cx + r * Math.cos(a * Math.PI / 180), cy - r * Math.sin(a * Math.PI / 180)];
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Cuántos grados mide el ángulo?");
+      ctx.juego.innerHTML = "";
+      const th = _generarAnguloTransportador(ctx.bonusDominio, usados);
+      usados.push(th);
+      ctx.item("transportador#" + th);
+
+      const cx = 175, cy = 185, R = 150;
+      let s = '<svg viewBox="0 0 350 214" class="transp-svg">';
+      // semicircunferencia + base
+      let arc = "";
+      for (let a = 0; a <= 180; a += 3) { const [x, y] = P(cx, cy, R, a); arc += (a ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1) + " "; }
+      s += '<path d="' + arc + '" class="transp-arco"/>';
+      s += '<line x1="' + (cx - R) + '" y1="' + cy + '" x2="' + (cx + R) + '" y2="' + cy + '" class="transp-arco"/>';
+      // marcas + números de las DOS escalas (externa = a, interna = 180−a) cada 10°
+      for (let a = 0; a <= 180; a += 10) {
+        const [x1, y1] = P(cx, cy, R, a), [x2, y2] = P(cx, cy, R - 13, a);
+        s += '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" class="transp-tick"/>';
+        const [ox, oy] = P(cx, cy, R + 12, a), [ix, iy] = P(cx, cy, R - 26, a);
+        s += '<text x="' + ox.toFixed(1) + '" y="' + (oy + 3).toFixed(1) + '" class="transp-num out">' + a + '</text>';
+        s += '<text x="' + ix.toFixed(1) + '" y="' + (iy + 3).toFixed(1) + '" class="transp-num in">' + (180 - a) + '</text>';
+      }
+      // sector sombreado del ángulo (0 → th)
+      let sec = "M " + cx + " " + cy + " ";
+      for (let a = 0; a <= th; a += 3) { const [x, y] = P(cx, cy, R * 0.55, a); sec += "L " + x.toFixed(1) + " " + y.toFixed(1) + " "; }
+      const [sxE, syE] = P(cx, cy, R * 0.55, th); sec += "L " + sxE.toFixed(1) + " " + syE.toFixed(1) + " Z";
+      s += '<path d="' + sec + '" class="transp-sector"/>';
+      // lados: base (0°, apoyado en la derecha) y móvil (th)
+      const [bx, by] = P(cx, cy, R, 0), [mx, my] = P(cx, cy, R, th);
+      s += '<line x1="' + cx + '" y1="' + cy + '" x2="' + bx + '" y2="' + by + '" class="transp-lado base"/>';
+      s += '<line x1="' + cx + '" y1="' + cy + '" x2="' + mx.toFixed(1) + '" y2="' + my.toFixed(1) + '" class="transp-lado movil"/>';
+      // resaltar las DOS lecturas posibles en la marca del lado móvil
+      const [hox, hoy] = P(cx, cy, R + 12, th), [hix, hiy] = P(cx, cy, R - 26, th);
+      s += '<circle cx="' + hox.toFixed(1) + '" cy="' + (hoy - 3).toFixed(1) + '" r="13" class="transp-halo"/>';
+      s += '<circle cx="' + hix.toFixed(1) + '" cy="' + (hiy - 3).toFixed(1) + '" r="13" class="transp-halo"/>';
+      s += '<circle cx="' + cx + '" cy="' + cy + '" r="4.5" class="transp-vert"/>';
+      s += '</svg>';
+      const arriba = el("div", "tablero transp-wrap"); arriba.innerHTML = s;
+      ctx.juego.appendChild(arriba);
+
+      // opciones: la correcta + la escala equivocada (180−th) + un error de ±1 marca
+      const wrong = 180 - th;
+      const tercero = [th + 10, th - 10, th + 20, th - 20].find((v) => v > 0 && v < 180 && v !== th && v !== wrong);
+      const ops = [{ v: th, ok: true }, { v: wrong, escala: true }, { v: tercero }];
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(ops).forEach((o) => {
+        const b = el("button", "op", o.v + "°");
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) {
+            resuelto = true; b.classList.add("bien", "anim-pop"); ctx.bien();
+            ronda++; await espera(850);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          } else if (o.escala) {
+            b.classList.add("casi");
+            ctx.casi("Esa es la OTRA escala. El lado de abajo apoya en el 0 de la derecha, así que se lee " + th + "°, no " + wrong + "°.");
+          } else {
+            b.classList.add("casi");
+            ctx.casi("Casi. Contá las marcas de a 10 desde el 0 de la derecha.");
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── ¿QUÉ HORA ES? (leer el reloj — docs/auditoria-dc-caba/: medida del tiempo,
+   2°-3°, mecánica nodal que faltaba entera). Reloj analógico SVG real con dos
+   punteros (el corto/grueso = hora, el largo/fino = minutos). Ataca las 2
+   misconceptions clásicas: (1) redondear mal la hora — leer el puntero corto como
+   el número más cercano cuando está entre dos (3:40 → "las 4"); (2) leer el
+   puntero largo CRUDO en vez de ×5 (marca el 8 → "8" en vez de 40). nivel 1 (2°):
+   en punto y y media. nivel 2 (3°): cuartos y de a 5/10. Capa 0 C2/C3: cada error
+   baja la estrella al primer intento y nombra el error. ── */
+
+GAMES.reloj = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 8;
+    const nivel = (ctx.cfg.nivel || 1) + ctx.bonusDominio;   // adaptativo (grados bajos: horas más difíciles al dominar)
+    ctx.rondas(rondas);
+    let ronda = 0, previas = [];
+    const P = (cx, cy, r, a) => [cx + r * Math.cos(a * Math.PI / 180), cy - r * Math.sin(a * Math.PI / 180)];
+    const fmt = (h, m) => h + ":" + String(m).padStart(2, "0");
+    const jugar = () => {
+      ctx.ronda(ronda);
+      ctx.consigna("¿Qué hora marca el reloj?");
+      ctx.juego.innerHTML = "";
+      const mins = nivel >= 2 ? [0, 10, 15, 20, 30, 40, 45, 50] : [0, 30];
+      let H, M, key, guard = 0;
+      do { H = rint(1, 12); M = mins[rint(0, mins.length - 1)]; key = fmt(H, M); guard++; }
+      while (previas.includes(key) && guard < 30);
+      previas.push(key); if (previas.length > 6) previas.shift();
+      ctx.item("reloj#" + key);
+
+      const cx = 150, cy = 150, R = 132;
+      let s = '<svg viewBox="0 0 300 300" class="reloj-svg" data-hora="' + key + '">';
+      s += '<circle cx="' + cx + '" cy="' + cy + '" r="' + R + '" class="reloj-cara"/>';
+      for (let i = 0; i < 60; i++) {
+        const a = 90 - i * 6, larga = i % 5 === 0;
+        const [x1, y1] = P(cx, cy, R - 4, a), [x2, y2] = P(cx, cy, R - (larga ? 16 : 9), a);
+        s += '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" class="reloj-tick' + (larga ? " larga" : "") + '"/>';
+      }
+      for (let n = 1; n <= 12; n++) {
+        const a = 90 - n * 30, [x, y] = P(cx, cy, R - 32, a);
+        s += '<text x="' + x.toFixed(1) + '" y="' + (y + 8).toFixed(1) + '" class="reloj-num">' + n + '</text>';
+      }
+      const ah = 90 - ((H % 12) + M / 60) * 30, am = 90 - M * 6;
+      const [hx, hy] = P(cx, cy, R * 0.52, ah), [mx, my] = P(cx, cy, R * 0.78, am);
+      s += '<line x1="' + cx + '" y1="' + cy + '" x2="' + hx.toFixed(1) + '" y2="' + hy.toFixed(1) + '" class="reloj-hora"/>';
+      s += '<line x1="' + cx + '" y1="' + cy + '" x2="' + mx.toFixed(1) + '" y2="' + my.toFixed(1) + '" class="reloj-min"/>';
+      s += '<circle cx="' + cx + '" cy="' + cy + '" r="7" class="reloj-centro"/>';
+      s += '</svg>';
+      const arriba = el("div", "tablero reloj-wrap"); arriba.innerHTML = s;
+      ctx.juego.appendChild(arriba);
+
+      const correcto = fmt(H, M);
+      const wrongHora = fmt(H === 12 ? 1 : H + 1, M);   // redondeó mal la hora (puntero corto)
+      const crudo = M / 5;                               // leyó el puntero largo crudo (÷5)
+      const wrongMin = fmt(H, crudo);                    // "3:08" en vez de 3:40
+      const ops = [{ v: correcto, ok: true }];
+      const add = (o) => { if (ops.length < 3 && !ops.some((x) => x.v === o.v)) ops.push(o); };
+      if (wrongMin !== correcto) add({ v: wrongMin, min: true });
+      add({ v: wrongHora, hora: true });
+      let tries = 0;
+      while (ops.length < 3 && tries++ < 30) {
+        const v = fmt(rint(1, 12), mins[rint(0, mins.length - 1)]);
+        if (!ops.some((x) => x.v === v)) add({ v: v });
+      }
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle(ops).forEach((o) => {
+        const b = el("button", "op reloj-op", o.v);
+        b.addEventListener("click", async () => {
+          if (resuelto) return;
+          if (o.ok) {
+            resuelto = true; b.classList.add("bien", "anim-pop"); ctx.bien();
+            ronda++; await espera(850); if (ronda >= rondas) ctx.win(); else jugar();
+          } else if (o.min) {
+            b.classList.add("casi");
+            ctx.casi("El puntero largo cuenta los minutos de a 5. Si marca el " + crudo + ", son " + M + " minutos.");
+          } else if (o.hora) {
+            b.classList.add("casi");
+            ctx.casi("El puntero corto es la hora, y todavía no llegó al " + (H === 12 ? 1 : H + 1) + ". Son las " + H + ".");
+          } else {
+            b.classList.add("casi"); ctx.casi("Mirá bien los dos punteros: el corto es la hora, el largo los minutos.");
+          }
+        });
+        fila.appendChild(b);
+      });
+      ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── ÁRBOL DE PROBABILIDAD (azar y combinatoria, 6°-7° — docs/auditoria-dc-caba/:
+   nociones de probabilidad + diagrama de árbol + principio multiplicativo; faltaba
+   entero). Dibuja el DIAGRAMA DE ÁRBOL de un experimento de 2 etapas (elegí A y B)
+   y el chico lee de ahí. Dos modos: (1) contar los resultados posibles (principio
+   multiplicativo a×b) y (2) probabilidad simple de una hoja (1 en a×b, con el
+   camino resaltado). Ataca LA misconception: SUMAR (a+b) en vez de multiplicar. Los
+   escenarios evitan 2×2 (ahí a+b=a×b y el distractor coincidiría con la respuesta).
+   Capa 0 C3: el error se explica sobre las HOJAS del árbol. ── */
+const ARBOL_ESCENAS = [
+  { a: { t: "remera", op: ["roja", "azul", "verde"] }, b: { t: "gorra", op: ["negra", "blanca"] } },
+  { a: { t: "sabor", op: ["chocolate", "frutilla", "limón"] }, b: { t: "cucurucho", op: ["simple", "doble"] } },
+  { a: { t: "jugo", op: ["naranja", "manzana"] }, b: { t: "galleta", op: ["dulce", "salada", "de agua"] } },
+  { a: { t: "entrada", op: ["empanada", "tarta"] }, b: { t: "postre", op: ["flan", "helado", "fruta"] } },
+  { a: { t: "media", op: ["blanca", "negra", "a rayas"] }, b: { t: "zapatilla", op: ["roja", "azul", "verde"] } },
+  { a: { t: "color", op: ["rojo", "verde", "azul", "amarillo"] }, b: { t: "moneda", op: ["cara", "cruz"] } },
+];
+
 GAMES.arbol_probabilidad = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 8;
