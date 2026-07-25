@@ -571,10 +571,16 @@ def test_generar_audio_consignas_error_claro_sin_key(monkeypatch):
 
 
 def test_niveles_activacion_escalable(tmp_path, monkeypatch):
-    """Activación escalable por NIVELES (19-jul-2026): un token premium agrupa el
-    menú en niveles (1 gratis, 2/3 con candado), desbloquear_nivel sube el
-    nivel_max de forma monótona y registrar_solicitud captura el evento para el
-    mail al comprador. Gateado por token → los links normales no cambian."""
+    """La MAQUINARIA de niveles sigue entera: desbloquear_nivel sube el nivel_max de
+    forma monótona, se preserva al regenerar el token y registrar_solicitud captura el
+    evento para el mail al comprador. Gateado por token → los links normales no cambian.
+
+    Lo que cambió el 25-jul-2026 (decisión de Pablo): ya no hay temas del grado en los
+    niveles 2 y 3. `_NIVEL_ACTIVIDAD` está vacío porque las diez actividades que estaban
+    ahí eran diez de los 58 temas que el DC le fija a 4° —comprensión lectora, ángulos,
+    fracciones— y un chico con `nivel_max: 1` no llegaba nunca a ellas. Los niveles pasan
+    a ser escalones de dificultad gratis adentro de cada juego (`ctx.bonusDominio`).
+    Ver tests/test_cobertura_dc.py, que es el que hace cumplir esa regla."""
     tok = "test-niv-11223344"
     d = os.path.join(aw.ACT_DIR, tok)
     shutil.rmtree(d, ignore_errors=True)
@@ -584,9 +590,11 @@ def test_niveles_activacion_escalable(tmp_path, monkeypatch):
         # el token premium expone el modelo de niveles
         assert dj.get("premium_on") is True
         assert dj.get("nivel_max") == 1
-        assert len(dj.get("niveles") or []) > 1, "un token de 4° tiene varios niveles"
         assert all("nivel" in m for m in dj["menu"]), "cada item del menú lleva su nivel"
-        assert {m["nivel"] for m in dj["menu"]} >= {1, 2}, "hay actividades más allá del nivel 1"
+        # y NADA del grado queda con candado: con nivel_max=1 se ve el año entero
+        assert {m["nivel"] for m in dj["menu"]} == {1}, (
+            "hay actividades de 4° fuera del nivel 1: %s"
+            % sorted({m["id"] for m in dj["menu"] if m.get("nivel") != 1}))
 
         # desbloquear_nivel: sube, es monótono (no baja) y falla claro si no existe
         assert aw.desbloquear_nivel(tok, 2) == 2
@@ -609,6 +617,22 @@ def test_niveles_activacion_escalable(tmp_path, monkeypatch):
         assert sols[1]["nivel"] == 3 and sols[1]["motivo"] == "pidio"
     finally:
         shutil.rmtree(d, ignore_errors=True)
+
+
+def test_el_agrupador_de_niveles_sigue_funcionando(monkeypatch):
+    """`_NIVEL_ACTIVIDAD` está vacío hoy, pero la maquinaria tiene que seguir sana.
+
+    Sin este test, el agrupador quedaría sin cobertura y podría pudrirse sin que nadie
+    se entere: el día que se declare un nivel (por ejemplo, contenido del grado que
+    SIGUE, que sí puede ir con candado) tiene que andar. Se declara uno a mano y se
+    verifica que el menú lo separe y que el resumen lo cuente."""
+    monkeypatch.setattr(aw, "_NIVEL_ACTIVIDAD", {"acentuacion": 2})
+    menu = aw._marcar_niveles([{"id": "acentuacion"}, {"id": "dividir"}])
+    assert [m["nivel"] for m in menu] == [2, 1], "el mapa no se está aplicando"
+    meta = aw._niveles_meta(menu)
+    assert [m["nivel"] for m in meta] == [1, 2], "el resumen sale ordenado por nivel"
+    assert [m["cantidad"] for m in meta] == [1, 1]
+    assert meta[1]["nombre"] == aw.NIVEL_NOMBRES[2]
 
 
 def test_token_normal_sin_niveles_no_bloquea():
