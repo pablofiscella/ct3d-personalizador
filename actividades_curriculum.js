@@ -1673,3 +1673,1673 @@ const CUR_FORMA_REDONDO_PLANTILLA = {
   "m": "Pensá cuánto le falta a {a} para llegar. La respuesta es {ok}."
 };
 GAMES.forma_redondo = juegoParametrico(CUR_FORMA_REDONDO_PLANTILLA, "¿Cuánto falta?", "forma_redo");
+
+/* 6° · Clasificá pronombres — pronombres_clasif
+   DC: Pronombres personales, posesivos y demostrativos
+   Fuente: docs/auditoria-dc-caba/grado-6.md · L6 */
+const CUR_PRONOMBRES_CLASIF_BANCO = [
+  {
+    "it": "ELLA llegó temprano.",
+    "cat": "personal",
+    "m": "«Ella» reemplaza a una persona: es personal."
+  },
+  {
+    "it": "Ese libro es MÍO.",
+    "cat": "posesivo",
+    "m": "«Mío» indica de quién es: posesivo."
+  },
+  {
+    "it": "ESTE me gusta más.",
+    "cat": "demostrativo",
+    "m": "«Este» señala cuál: demostrativo."
+  },
+  {
+    "it": "NOSOTROS vamos al club.",
+    "cat": "personal",
+    "m": "«Nosotros» son personas: personal."
+  },
+  {
+    "it": "La bici es TUYA.",
+    "cat": "posesivo",
+    "m": "«Tuya» dice de quién es: posesivo."
+  },
+  {
+    "it": "AQUELLOS quedaron lejos.",
+    "cat": "demostrativo",
+    "m": "«Aquellos» señalan cuáles y dónde: demostrativo."
+  },
+  {
+    "it": "YO no fui.",
+    "cat": "personal",
+    "m": "«Yo» es la persona que habla: personal."
+  },
+  {
+    "it": "El error fue NUESTRO.",
+    "cat": "posesivo",
+    "m": "«Nuestro» indica pertenencia: posesivo."
+  },
+  {
+    "it": "ESA es la respuesta.",
+    "cat": "demostrativo",
+    "m": "«Esa» señala cuál: demostrativo."
+  },
+  {
+    "it": "USTEDES llegaron primero.",
+    "cat": "personal",
+    "m": "«Ustedes» son personas: personal."
+  },
+  {
+    "it": "Los zapatos son SUYOS.",
+    "cat": "posesivo",
+    "m": "«Suyos» dice de quién: posesivo."
+  },
+  {
+    "it": "ESTOS están rotos.",
+    "cat": "demostrativo",
+    "m": "«Estos» señalan cuáles: demostrativo."
+  },
+  {
+    "it": "ÉL me lo contó.",
+    "cat": "personal",
+    "m": "«Él» reemplaza a una persona."
+  },
+  {
+    "it": "La culpa no es MÍA.",
+    "cat": "posesivo",
+    "m": "«Mía» indica de quién: posesivo."
+  }
+];
+GAMES.pronombres_clasif = juegoClasificar(CUR_PRONOMBRES_CLASIF_BANCO, "¿Qué clase de pronombre es el resaltado?", [{"cat": "personal", "label": "🙋 Personal"}, {"cat": "posesivo", "label": "🔑 Posesivo"}, {"cat": "demostrativo", "label": "👉 Demostrativo"}], "pronombres");
+
+/* 6° · ¿Fuente confiable? — fuente_confiable
+   DC: Evaluar la confiabilidad de las fuentes de información
+   Fuente: docs/auditoria-dc-caba/grado-6.md · L4 */
+const CUR_FUENTE_CONFIABLE_BANCO = [
+  {
+    "q": "Para un trabajo sobre el sistema solar, ¿cuál es más confiable?",
+    "ops": [
+      "La página de un observatorio astronómico",
+      "Un video de alguien opinando",
+      "Un comentario en una red social"
+    ],
+    "m": "Un observatorio produce el conocimiento; una opinión suelta no lo respalda."
+  },
+  {
+    "q": "Encontrás dos páginas con datos distintos. ¿Qué hacés?",
+    "ops": [
+      "Buscar una tercera fuente para comparar",
+      "Elegir la que más te guste",
+      "Copiar las dos sin decir nada"
+    ],
+    "m": "Contrastar fuentes es lo que permite decidir cuál es más confiable."
+  },
+  {
+    "q": "Una página no dice quién la escribió ni cuándo. ¿Eso importa?",
+    "ops": [
+      "Sí, no poder saber quién lo dice le resta confianza",
+      "No, si está en internet es verdad",
+      "Sólo importa si tiene fotos"
+    ],
+    "m": "Autor y fecha son dos señales básicas de confiabilidad."
+  },
+  {
+    "q": "Para saber cuándo es un feriado, ¿cuál conviene?",
+    "ops": [
+      "Una página oficial del gobierno",
+      "Un chat de amigos",
+      "Un blog personal"
+    ],
+    "m": "Los feriados los fija el Estado: la fuente oficial es la que manda."
+  },
+  {
+    "q": "Un texto dice «los científicos afirman» pero no dice cuáles. ¿Qué le falta?",
+    "ops": [
+      "Decir de dónde saca esa información",
+      "Más adjetivos",
+      "Ser más largo"
+    ],
+    "m": "Sin la fuente concreta, «los científicos dicen» no se puede verificar."
+  },
+  {
+    "q": "Para un dato sobre la salud, ¿cuál elegirías?",
+    "ops": [
+      "La página de un hospital o del Ministerio de Salud",
+      "Una publicidad de un producto",
+      "Un video de humor"
+    ],
+    "m": "La publicidad quiere venderte algo: no es una fuente neutral."
+  },
+  {
+    "q": "¿Qué significa que una página termine en .gob.ar?",
+    "ops": [
+      "Que es de un organismo del Estado argentino",
+      "Que es de una empresa",
+      "Que es un blog"
+    ],
+    "m": "El .gob.ar identifica sitios oficiales del Estado."
+  },
+  {
+    "q": "Una noticia de hace 10 años sobre tecnología, ¿sirve hoy?",
+    "ops": [
+      "Hay que revisar si sigue vigente",
+      "Sí, siempre",
+      "No, nada viejo sirve"
+    ],
+    "m": "La fecha importa según el tema: en tecnología, mucho."
+  },
+  {
+    "q": "Alguien muy famoso opina sobre medicina sin ser médico. ¿Es confiable?",
+    "ops": [
+      "No, ser famoso no lo hace experto",
+      "Sí, porque lo conoce todo el mundo",
+      "Sí, si tiene muchos seguidores"
+    ],
+    "m": "La autoridad tiene que ser sobre EL TEMA, no fama en general."
+  },
+  {
+    "q": "Para una biografía de San Martín, ¿cuál es mejor?",
+    "ops": [
+      "Un libro de historia o un museo histórico",
+      "Una película de acción",
+      "Un meme"
+    ],
+    "m": "La película puede inventar; el museo y el libro de historia investigan."
+  },
+  {
+    "q": "¿Por qué conviene mirar más de una fuente?",
+    "ops": [
+      "Porque cada una puede tener errores o su punto de vista",
+      "Porque así el trabajo es más largo",
+      "No conviene, es perder tiempo"
+    ],
+    "m": "Comparar es lo que te permite darte cuenta de un error o un sesgo."
+  },
+  {
+    "q": "Un sitio lleno de mayúsculas y signos («¡¡¡INCREÍBLE!!!»), ¿qué señal da?",
+    "ops": [
+      "Que busca impactar más que informar",
+      "Que es muy serio",
+      "Que tiene mucha información"
+    ],
+    "m": "El tono exagerado suele acompañar información poco cuidada."
+  },
+  {
+    "q": "Wikipedia, ¿sirve?",
+    "ops": [
+      "Como punto de partida, revisando sus fuentes al final",
+      "No sirve nunca",
+      "Sí, y no hace falta revisar nada"
+    ],
+    "m": "Cualquiera puede editarla, pero cita fuentes: ahí está lo verificable."
+  },
+  {
+    "q": "¿Qué hacés si un dato te parece raro?",
+    "ops": [
+      "Lo verificás en otra fuente antes de usarlo",
+      "Lo usás igual",
+      "Lo borrás del trabajo"
+    ],
+    "m": "Verificar es exactamente lo que hace confiable a un trabajo."
+  }
+];
+GAMES.fuente_confiable = juegoTriviaTexto(CUR_FUENTE_CONFIABLE_BANCO, "¿Cuál conviene usar para un trabajo de la escuela?", "fuente_con");
+
+/* 7° · Derechos en el trabajo — derechos_trabajo
+   DC: Derechos laborales y sociales; el trabajo en la Argentina contemporánea
+   Fuente: docs/auditoria-dc-caba/grado-7.md · S */
+const CUR_DERECHOS_TRABAJO_BANCO = [
+  {
+    "q": "¿Qué son las vacaciones pagas?",
+    "ops": [
+      "Días de descanso que se cobran igual",
+      "Días que se descuentan del sueldo",
+      "Un premio que da la empresa si quiere"
+    ],
+    "m": "Son un derecho: descansar sin perder el sueldo."
+  },
+  {
+    "q": "¿Puede una empresa hacer trabajar a un chico de 12 años?",
+    "ops": [
+      "No, el trabajo infantil está prohibido",
+      "Sí, si él quiere",
+      "Sí, si le pagan bien"
+    ],
+    "m": "El trabajo infantil está prohibido por ley: los chicos tienen que estudiar y jugar."
+  },
+  {
+    "q": "¿Qué es el aguinaldo?",
+    "ops": [
+      "Medio sueldo extra que se paga dos veces al año",
+      "Un préstamo del empleador",
+      "Una propina"
+    ],
+    "m": "Es un derecho: se cobra en junio y en diciembre."
+  },
+  {
+    "q": "Trabajar «en negro» significa…",
+    "ops": [
+      "Sin estar registrado, y por eso sin derechos",
+      "De noche",
+      "En una fábrica"
+    ],
+    "m": "Sin registro no hay obra social, aportes ni indemnización: por eso importa."
+  },
+  {
+    "q": "¿Para qué sirve un sindicato?",
+    "ops": [
+      "Para que los trabajadores negocien juntos sus condiciones",
+      "Para cobrar impuestos",
+      "Para contratar gente"
+    ],
+    "m": "Juntos tienen más fuerza para negociar que uno solo."
+  },
+  {
+    "q": "¿Qué es la jornada laboral?",
+    "ops": [
+      "La cantidad de horas que se puede trabajar por día",
+      "El día que se cobra",
+      "El nombre del jefe"
+    ],
+    "m": "Está limitada por ley justamente para proteger la salud."
+  },
+  {
+    "q": "Una mujer embarazada, ¿puede ser despedida por estar embarazada?",
+    "ops": [
+      "No, está protegida por ley",
+      "Sí, si la empresa lo decide",
+      "Sí, siempre"
+    ],
+    "m": "La ley protege especialmente la maternidad en el trabajo."
+  },
+  {
+    "q": "¿Qué pasa si alguien se accidenta trabajando?",
+    "ops": [
+      "Tiene derecho a atención y cobertura",
+      "Se arregla solo",
+      "Pierde el trabajo"
+    ],
+    "m": "Los accidentes de trabajo tienen cobertura obligatoria."
+  },
+  {
+    "q": "¿A igual tarea, tienen que cobrar igual un varón y una mujer?",
+    "ops": [
+      "Sí, es un derecho",
+      "No, depende de la empresa",
+      "Sólo si tienen la misma edad"
+    ],
+    "m": "«Igual remuneración por igual tarea» es un principio del derecho laboral."
+  },
+  {
+    "q": "¿Qué es una obra social?",
+    "ops": [
+      "La cobertura de salud que corresponde por estar registrado",
+      "Un banco",
+      "Una escuela"
+    ],
+    "m": "Va ligada al trabajo registrado: otra razón por la que el registro importa."
+  },
+  {
+    "q": "¿Se puede obligar a alguien a trabajar sin descanso semanal?",
+    "ops": [
+      "No, el descanso semanal es un derecho",
+      "Sí, si hay mucho trabajo",
+      "Sí, si le pagan extra"
+    ],
+    "m": "El descanso está protegido por ley, no es negociable."
+  },
+  {
+    "q": "¿Qué es una indemnización por despido?",
+    "ops": [
+      "Un pago que corresponde si te despiden sin causa",
+      "Una multa al trabajador",
+      "Un adelanto de sueldo"
+    ],
+    "m": "Compensa la pérdida del trabajo cuando no hubo culpa del trabajador."
+  },
+  {
+    "q": "¿Por qué existe el salario mínimo?",
+    "ops": [
+      "Para que ningún sueldo quede por debajo de lo necesario para vivir",
+      "Para que nadie gane mucho",
+      "Para cobrar impuestos"
+    ],
+    "m": "Es un piso: protege a quien tiene menos poder de negociación."
+  },
+  {
+    "q": "¿Quién controla que se cumplan los derechos laborales?",
+    "ops": [
+      "El Estado, además de los sindicatos",
+      "Nadie",
+      "Sólo las empresas"
+    ],
+    "m": "El Estado inspecciona y los sindicatos reclaman: los dos."
+  }
+];
+GAMES.derechos_trabajo = juegoTriviaTexto(CUR_DERECHOS_TRABAJO_BANCO, "Elegí la respuesta correcta.", "derechos_t");
+
+/* 1° · ¿Con cuál empieza? — suena_igual
+   DC: Correspondencia entre sonido y letra al inicio de la palabra
+   Fuente: docs/auditoria-dc-caba/grado-1.md · L */
+const CUR_SUENA_IGUAL_BANCO = [
+  {
+    "q": "🍎 MANZANA empieza con…",
+    "ops": [
+      "M",
+      "N",
+      "S"
+    ],
+    "m": "MA-: empieza con M."
+  },
+  {
+    "q": "🐱 GATO empieza con…",
+    "ops": [
+      "G",
+      "J",
+      "C"
+    ],
+    "m": "GA-: empieza con G."
+  },
+  {
+    "q": "☀️ SOL empieza con…",
+    "ops": [
+      "S",
+      "C",
+      "Z"
+    ],
+    "m": "SOL empieza con S."
+  },
+  {
+    "q": "🐟 PEZ empieza con…",
+    "ops": [
+      "P",
+      "B",
+      "F"
+    ],
+    "m": "PEZ empieza con P."
+  },
+  {
+    "q": "🌙 LUNA empieza con…",
+    "ops": [
+      "L",
+      "N",
+      "R"
+    ],
+    "m": "LU-: empieza con L."
+  },
+  {
+    "q": "🏠 CASA empieza con…",
+    "ops": [
+      "C",
+      "K",
+      "Q"
+    ],
+    "m": "CASA empieza con C."
+  },
+  {
+    "q": "🐘 ELEFANTE empieza con…",
+    "ops": [
+      "E",
+      "A",
+      "I"
+    ],
+    "m": "E-lefante: con E."
+  },
+  {
+    "q": "🌻 FLOR empieza con…",
+    "ops": [
+      "F",
+      "V",
+      "B"
+    ],
+    "m": "FLOR empieza con F."
+  },
+  {
+    "q": "🚗 AUTO empieza con…",
+    "ops": [
+      "A",
+      "O",
+      "E"
+    ],
+    "m": "AU-: empieza con A."
+  },
+  {
+    "q": "🐝 ABEJA empieza con…",
+    "ops": [
+      "A",
+      "E",
+      "O"
+    ],
+    "m": "ABEJA empieza con A."
+  },
+  {
+    "q": "🍌 BANANA empieza con…",
+    "ops": [
+      "B",
+      "P",
+      "D"
+    ],
+    "m": "BA-: empieza con B."
+  },
+  {
+    "q": "🥛 LECHE empieza con…",
+    "ops": [
+      "L",
+      "Ll",
+      "N"
+    ],
+    "m": "LE-: empieza con L."
+  },
+  {
+    "q": "🐭 RATÓN empieza con…",
+    "ops": [
+      "R",
+      "D",
+      "L"
+    ],
+    "m": "RA-: empieza con R."
+  },
+  {
+    "q": "🧦 MEDIA empieza con…",
+    "ops": [
+      "M",
+      "N",
+      "B"
+    ],
+    "m": "ME-: empieza con M."
+  }
+];
+GAMES.suena_igual = juegoTriviaTexto(CUR_SUENA_IGUAL_BANCO, "¿Con qué letra empieza?", "suena_igua");
+
+/* 1° · ¿Cuántos quedan? — mas_o_menos_1
+   DC: Restar cantidades pequeñas en situaciones de quitar
+   Fuente: docs/auditoria-dc-caba/grado-1.md · M */
+const CUR_MAS_O_MENOS_1_PLANTILLA = {
+  "q": "Tenías {a} y se fueron {b}. ¿Cuántos quedan?",
+  "vars": {
+    "a": {
+      "rango": [
+        4,
+        20
+      ],
+      "paso": 1
+    },
+    "b": {
+      "rango": [
+        1,
+        9
+      ],
+      "paso": 1
+    }
+  },
+  "ok": "a - b",
+  "distractores": [
+    "a + b",
+    "a - b + 1",
+    "a - b - 1"
+  ],
+  "tope": 20,
+  "m": "Si se van, hay que restar: quedan {ok}."
+};
+GAMES.mas_o_menos_1 = juegoParametrico(CUR_MAS_O_MENOS_1_PLANTILLA, "¿Cuánto queda?", "mas_o_meno");
+
+/* 4° · ¿Quién come a quién? — cadena_alimentaria
+   DC: Relaciones alimentarias entre los seres vivos
+   Fuente: docs/auditoria-dc-caba/grado-4.md · N */
+const CUR_CADENA_ALIMENTARIA_BANCO = [
+  {
+    "it": "El pasto",
+    "cat": "productor",
+    "m": "Las plantas fabrican su alimento: son productoras."
+  },
+  {
+    "it": "La vaca",
+    "cat": "herbivoro",
+    "m": "La vaca come pasto: herbívora."
+  },
+  {
+    "it": "El puma",
+    "cat": "carnivoro",
+    "m": "El puma come otros animales: carnívoro."
+  },
+  {
+    "it": "El árbol",
+    "cat": "productor",
+    "m": "Fabrica su alimento con la luz del sol."
+  },
+  {
+    "it": "El conejo",
+    "cat": "herbivoro",
+    "m": "Come plantas: herbívoro."
+  },
+  {
+    "it": "El zorro",
+    "cat": "carnivoro",
+    "m": "Caza otros animales."
+  },
+  {
+    "it": "El helecho",
+    "cat": "productor",
+    "m": "Es una planta: productora."
+  },
+  {
+    "it": "La oveja",
+    "cat": "herbivoro",
+    "m": "Come pasto."
+  },
+  {
+    "it": "El águila",
+    "cat": "carnivoro",
+    "m": "Caza otros animales."
+  },
+  {
+    "it": "El alga",
+    "cat": "productor",
+    "m": "Fabrica su alimento en el agua con la luz."
+  },
+  {
+    "it": "La oruga",
+    "cat": "herbivoro",
+    "m": "Come hojas."
+  },
+  {
+    "it": "La araña",
+    "cat": "carnivoro",
+    "m": "Come insectos: es carnívora."
+  },
+  {
+    "it": "El yuyo",
+    "cat": "productor",
+    "m": "Es una planta."
+  },
+  {
+    "it": "El caballo",
+    "cat": "herbivoro",
+    "m": "Come pasto y avena."
+  }
+];
+GAMES.cadena_alimentaria = juegoClasificar(CUR_CADENA_ALIMENTARIA_BANCO, "¿Qué lugar ocupa en la cadena?", [{"cat": "productor", "label": "🌱 Produce"}, {"cat": "herbivoro", "label": "🐰 Come plantas"}, {"cat": "carnivoro", "label": "🦊 Come animales"}], "cadena_ali");
+
+/* 4° · ¿Quién se ocupa? — gobierno_argentina
+   DC: Organización del gobierno; niveles municipal, provincial y nacional
+   Fuente: docs/auditoria-dc-caba/grado-4.md · S */
+const CUR_GOBIERNO_ARGENTINA_BANCO = [
+  {
+    "q": "¿Quién se ocupa de la recolección de basura de tu barrio?",
+    "ops": [
+      "El municipio",
+      "El gobierno nacional",
+      "Ningún gobierno"
+    ],
+    "m": "Lo cercano —basura, alumbrado, plazas— lo resuelve el municipio."
+  },
+  {
+    "q": "¿Quién dirige una provincia?",
+    "ops": [
+      "El gobernador o la gobernadora",
+      "El intendente",
+      "El presidente"
+    ],
+    "m": "Municipio → intendente; provincia → gobernador; país → presidente."
+  },
+  {
+    "q": "¿Quién es la máxima autoridad del país?",
+    "ops": [
+      "El presidente o la presidenta",
+      "El gobernador",
+      "El intendente"
+    ],
+    "m": "El presidente encabeza el gobierno nacional."
+  },
+  {
+    "q": "¿Quiénes hacen las leyes nacionales?",
+    "ops": [
+      "Los diputados y senadores",
+      "Los jueces",
+      "Los intendentes"
+    ],
+    "m": "El Congreso —diputados y senadores— hace las leyes."
+  },
+  {
+    "q": "¿Quién se ocupa de que se cumplan las leyes y juzga?",
+    "ops": [
+      "Los jueces",
+      "Los senadores",
+      "El intendente"
+    ],
+    "m": "Ese es el Poder Judicial."
+  },
+  {
+    "q": "¿Cada cuánto se vota para presidente en Argentina?",
+    "ops": [
+      "Cada 4 años",
+      "Cada año",
+      "Cada 10 años"
+    ],
+    "m": "El mandato presidencial dura 4 años."
+  },
+  {
+    "q": "¿Quién puede votar en Argentina?",
+    "ops": [
+      "Las personas desde los 16 años",
+      "Sólo los mayores de 30",
+      "Sólo quienes trabajan"
+    ],
+    "m": "Desde los 16 se puede votar; desde los 18 es obligatorio."
+  },
+  {
+    "q": "¿Cuántos poderes tiene el gobierno?",
+    "ops": [
+      "Tres: Ejecutivo, Legislativo y Judicial",
+      "Uno solo",
+      "Dos"
+    ],
+    "m": "Se dividen para que ninguno tenga todo el poder."
+  },
+  {
+    "q": "Si se rompe una calle de tu barrio, ¿a quién le corresponde?",
+    "ops": [
+      "Al municipio",
+      "Al presidente",
+      "A los jueces"
+    ],
+    "m": "El mantenimiento del barrio es municipal."
+  },
+  {
+    "q": "¿Qué es la Constitución?",
+    "ops": [
+      "La ley más importante del país",
+      "Un libro de historia",
+      "El nombre del Congreso"
+    ],
+    "m": "Todas las demás leyes tienen que respetarla."
+  },
+  {
+    "q": "¿Quién dirige un municipio?",
+    "ops": [
+      "El intendente o la intendenta",
+      "El gobernador",
+      "Un juez"
+    ],
+    "m": "El intendente gobierna el municipio."
+  },
+  {
+    "q": "¿Las provincias pueden tener sus propias leyes?",
+    "ops": [
+      "Sí, además de las nacionales",
+      "No, ninguna",
+      "Sólo la provincia de Buenos Aires"
+    ],
+    "m": "Cada provincia tiene su constitución y sus leyes, dentro de la nacional."
+  },
+  {
+    "q": "¿Para qué sirve votar?",
+    "ops": [
+      "Para elegir a quienes nos gobiernan",
+      "Para pagar impuestos",
+      "Para elegir el feriado"
+    ],
+    "m": "Es la forma en que el pueblo elige a sus representantes."
+  },
+  {
+    "q": "¿Qué significa que Argentina sea una república?",
+    "ops": [
+      "Que gobiernan representantes elegidos por el pueblo",
+      "Que hay un rey",
+      "Que no hay gobierno"
+    ],
+    "m": "En una república el poder se elige y se divide, no se hereda."
+  }
+];
+GAMES.gobierno_argentina = juegoTriviaTexto(CUR_GOBIERNO_ARGENTINA_BANCO, "Elegí la respuesta correcta.", "gobierno_a");
+
+/* 5° · ¿Qué clase de palabra es? — clases_palabra_5
+   DC: Clases de palabras: sustantivo, adjetivo y verbo en contexto
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L */
+const CUR_CLASES_PALABRA_5_BANCO = [
+  {
+    "it": "El PERRO corre rápido.",
+    "cat": "sust",
+    "m": "«Perro» nombra: sustantivo."
+  },
+  {
+    "it": "El perro CORRE rápido.",
+    "cat": "verbo",
+    "m": "«Corre» es la acción: verbo."
+  },
+  {
+    "it": "El perro NEGRO ladra.",
+    "cat": "adj",
+    "m": "«Negro» describe al perro: adjetivo."
+  },
+  {
+    "it": "La CASA es grande.",
+    "cat": "sust",
+    "m": "«Casa» nombra una cosa."
+  },
+  {
+    "it": "La casa es GRANDE.",
+    "cat": "adj",
+    "m": "«Grande» describe la casa."
+  },
+  {
+    "it": "Ana CANTA en el coro.",
+    "cat": "verbo",
+    "m": "«Canta» es lo que hace."
+  },
+  {
+    "it": "Comí una manzana JUGOSA.",
+    "cat": "adj",
+    "m": "«Jugosa» describe la manzana."
+  },
+  {
+    "it": "COMÍ una manzana.",
+    "cat": "verbo",
+    "m": "«Comí» es la acción."
+  },
+  {
+    "it": "El MAESTRO explicó el tema.",
+    "cat": "sust",
+    "m": "«Maestro» nombra a alguien."
+  },
+  {
+    "it": "Un día LLUVIOSO.",
+    "cat": "adj",
+    "m": "«Lluvioso» describe el día."
+  },
+  {
+    "it": "Los chicos SALTARON la soga.",
+    "cat": "verbo",
+    "m": "«Saltaron» es la acción."
+  },
+  {
+    "it": "La CIUDAD tiene muchas plazas.",
+    "cat": "sust",
+    "m": "«Ciudad» nombra un lugar."
+  },
+  {
+    "it": "Un problema DIFÍCIL.",
+    "cat": "adj",
+    "m": "«Difícil» describe el problema."
+  },
+  {
+    "it": "El río CRECIÓ con la lluvia.",
+    "cat": "verbo",
+    "m": "«Creció» es lo que pasó."
+  }
+];
+GAMES.clases_palabra_5 = juegoClasificar(CUR_CLASES_PALABRA_5_BANCO, "¿Qué clase de palabra es la resaltada?", [{"cat": "sust", "label": "🏷️ Sustantivo"}, {"cat": "adj", "label": "🎨 Adjetivo"}, {"cat": "verbo", "label": "🏃 Verbo"}], "clases_pal");
+
+/* 5° · ¿De qué sistema es? — aparatos_cuerpo
+   DC: Sistemas del cuerpo humano y sus órganos
+   Fuente: docs/auditoria-dc-caba/grado-5.md · N */
+const CUR_APARATOS_CUERPO_BANCO = [
+  {
+    "it": "El estómago",
+    "cat": "digestivo",
+    "m": "Ahí se sigue digiriendo la comida."
+  },
+  {
+    "it": "Los pulmones",
+    "cat": "respiratorio",
+    "m": "Ahí entra y sale el aire."
+  },
+  {
+    "it": "El corazón",
+    "cat": "circulatorio",
+    "m": "Bombea la sangre al cuerpo."
+  },
+  {
+    "it": "El intestino delgado",
+    "cat": "digestivo",
+    "m": "Ahí se absorben los nutrientes."
+  },
+  {
+    "it": "La tráquea",
+    "cat": "respiratorio",
+    "m": "Lleva el aire hacia los pulmones."
+  },
+  {
+    "it": "Las venas",
+    "cat": "circulatorio",
+    "m": "Llevan la sangre de vuelta al corazón."
+  },
+  {
+    "it": "El esófago",
+    "cat": "digestivo",
+    "m": "Lleva la comida de la boca al estómago."
+  },
+  {
+    "it": "Los bronquios",
+    "cat": "respiratorio",
+    "m": "Reparten el aire dentro del pulmón."
+  },
+  {
+    "it": "Las arterias",
+    "cat": "circulatorio",
+    "m": "Llevan la sangre desde el corazón."
+  },
+  {
+    "it": "El hígado",
+    "cat": "digestivo",
+    "m": "Produce la bilis, que ayuda a digerir."
+  },
+  {
+    "it": "La nariz",
+    "cat": "respiratorio",
+    "m": "Por ahí entra el aire y se filtra."
+  },
+  {
+    "it": "La sangre",
+    "cat": "circulatorio",
+    "m": "Es lo que circula llevando oxígeno."
+  },
+  {
+    "it": "El intestino grueso",
+    "cat": "digestivo",
+    "m": "Absorbe el agua que queda."
+  },
+  {
+    "it": "El diafragma",
+    "cat": "respiratorio",
+    "m": "Es el músculo que te hace respirar."
+  }
+];
+GAMES.aparatos_cuerpo = juegoClasificar(CUR_APARATOS_CUERPO_BANCO, "¿A qué sistema del cuerpo pertenece?", [{"cat": "digestivo", "label": "🍽️ Digestivo"}, {"cat": "respiratorio", "label": "🫁 Respiratorio"}, {"cat": "circulatorio", "label": "🫀 Circulatorio"}], "aparatos_c");
+
+/* 6° · Recursos de nuestro país — recursos_argentina
+   DC: Recursos naturales de la Argentina y actividades económicas asociadas
+   Fuente: docs/auditoria-dc-caba/grado-6.md · S */
+const CUR_RECURSOS_ARGENTINA_BANCO = [
+  {
+    "q": "¿Qué se produce sobre todo en la región pampeana?",
+    "ops": [
+      "Cereales y ganado",
+      "Petróleo",
+      "Azúcar"
+    ],
+    "m": "La llanura pampeana tiene los mejores suelos para agricultura y ganadería."
+  },
+  {
+    "q": "¿Qué recurso se extrae en Neuquén (Vaca Muerta)?",
+    "ops": [
+      "Petróleo y gas",
+      "Oro",
+      "Algodón"
+    ],
+    "m": "Vaca Muerta es un yacimiento de petróleo y gas no convencional."
+  },
+  {
+    "q": "¿Qué es un recurso NO renovable?",
+    "ops": [
+      "Uno que se agota, como el petróleo",
+      "Uno que se repone solo",
+      "Uno que no sirve"
+    ],
+    "m": "El petróleo tardó millones de años en formarse: no se repone."
+  },
+  {
+    "q": "¿Qué se cultiva principalmente en Tucumán?",
+    "ops": [
+      "Caña de azúcar",
+      "Trigo",
+      "Vid"
+    ],
+    "m": "Tucumán es la principal provincia azucarera."
+  },
+  {
+    "q": "¿Y en Mendoza?",
+    "ops": [
+      "Vid, para hacer vino",
+      "Yerba mate",
+      "Algodón"
+    ],
+    "m": "Mendoza es la principal provincia vitivinícola."
+  },
+  {
+    "q": "¿De dónde viene la yerba mate?",
+    "ops": [
+      "De Misiones y Corrientes",
+      "De la Patagonia",
+      "De Buenos Aires"
+    ],
+    "m": "Necesita clima subtropical: se cultiva en el noreste."
+  },
+  {
+    "q": "¿Qué es la pesca de altura?",
+    "ops": [
+      "La que se hace mar adentro con barcos grandes",
+      "La que se hace desde la orilla",
+      "La pesca en ríos"
+    ],
+    "m": "Se hace lejos de la costa, con embarcaciones preparadas."
+  },
+  {
+    "q": "¿Qué energía se obtiene de una represa?",
+    "ops": [
+      "Hidroeléctrica",
+      "Solar",
+      "Eólica"
+    ],
+    "m": "Hidro = agua: la fuerza del agua mueve las turbinas."
+  },
+  {
+    "q": "¿Dónde hay más parques eólicos en Argentina?",
+    "ops": [
+      "En la Patagonia, por el viento",
+      "En el noreste",
+      "En las sierras"
+    ],
+    "m": "La Patagonia tiene vientos fuertes y constantes."
+  },
+  {
+    "q": "¿Qué actividad predomina en la Patagonia además del petróleo?",
+    "ops": [
+      "La cría de ovejas",
+      "El cultivo de caña",
+      "La yerba mate"
+    ],
+    "m": "La meseta patagónica se usa sobre todo para ganadería ovina."
+  },
+  {
+    "q": "¿Qué problema trae usar mal un recurso natural?",
+    "ops": [
+      "Se puede agotar o contaminar",
+      "Ninguno",
+      "Se multiplica"
+    ],
+    "m": "El uso sin cuidado agota el recurso y daña el ambiente."
+  },
+  {
+    "q": "¿Qué es la minería a cielo abierto?",
+    "ops": [
+      "Extraer minerales removiendo la superficie",
+      "Buscar minerales en el mar",
+      "Sembrar minerales"
+    ],
+    "m": "Se remueve gran cantidad de suelo; por eso genera debate ambiental."
+  },
+  {
+    "q": "¿Qué región produce la mayor parte de la soja?",
+    "ops": [
+      "La pampeana y parte del norte",
+      "La Patagonia",
+      "Cuyo"
+    ],
+    "m": "La soja se expandió desde la pampa hacia el norte."
+  },
+  {
+    "q": "¿Qué significa que un recurso sea renovable?",
+    "ops": [
+      "Que se repone si se usa con cuidado",
+      "Que nunca se acaba pase lo que pase",
+      "Que es artificial"
+    ],
+    "m": "Renovable no significa infinito: se repone SI se usa bien."
+  }
+];
+GAMES.recursos_argentina = juegoTriviaTexto(CUR_RECURSOS_ARGENTINA_BANCO, "Elegí la respuesta correcta.", "recursos_a");
+
+/* 7° · Recursos del poema — recursos_poema
+   DC: Recursos literarios: comparación, metáfora, personificación, hipérbole
+   Fuente: docs/auditoria-dc-caba/grado-7.md · L */
+const CUR_RECURSOS_POEMA_BANCO = [
+  {
+    "q": "«Sus ojos son dos luceros»",
+    "ops": [
+      "Metáfora",
+      "Comparación",
+      "Hipérbole"
+    ],
+    "m": "Dice que SON, sin usar «como»: metáfora."
+  },
+  {
+    "q": "«Sus ojos brillan COMO luceros»",
+    "ops": [
+      "Comparación",
+      "Metáfora",
+      "Hipérbole"
+    ],
+    "m": "Usa «como»: es una comparación."
+  },
+  {
+    "q": "«El viento susurraba entre los árboles»",
+    "ops": [
+      "Personificación",
+      "Comparación",
+      "Hipérbole"
+    ],
+    "m": "Le da al viento algo humano (susurrar): personificación."
+  },
+  {
+    "q": "«Te lo dije un millón de veces»",
+    "ops": [
+      "Hipérbole",
+      "Metáfora",
+      "Comparación"
+    ],
+    "m": "Exagera a propósito: hipérbole."
+  },
+  {
+    "q": "«La luna sonríe en el cielo»",
+    "ops": [
+      "Personificación",
+      "Comparación",
+      "Hipérbole"
+    ],
+    "m": "Sonreír es humano: personificación."
+  },
+  {
+    "q": "«Sus manos eran de hielo»",
+    "ops": [
+      "Metáfora",
+      "Comparación",
+      "Personificación"
+    ],
+    "m": "Dice que ERAN, sin «como»: metáfora."
+  },
+  {
+    "q": "«Corría como el viento»",
+    "ops": [
+      "Comparación",
+      "Metáfora",
+      "Hipérbole"
+    ],
+    "m": "El «como» marca la comparación."
+  },
+  {
+    "q": "«Tengo un hambre que me muero»",
+    "ops": [
+      "Hipérbole",
+      "Metáfora",
+      "Comparación"
+    ],
+    "m": "Exageración evidente: hipérbole."
+  },
+  {
+    "q": "«Las olas acariciaban la orilla»",
+    "ops": [
+      "Personificación",
+      "Hipérbole",
+      "Comparación"
+    ],
+    "m": "Acariciar es humano: personificación."
+  },
+  {
+    "q": "«Tus cabellos son oro»",
+    "ops": [
+      "Metáfora",
+      "Comparación",
+      "Personificación"
+    ],
+    "m": "Identifica una cosa con otra sin «como»."
+  },
+  {
+    "q": "«Duerme como un tronco»",
+    "ops": [
+      "Comparación",
+      "Metáfora",
+      "Personificación"
+    ],
+    "m": "Con «como»: comparación."
+  },
+  {
+    "q": "«El reloj devoraba los minutos»",
+    "ops": [
+      "Personificación",
+      "Comparación",
+      "Hipérbole"
+    ],
+    "m": "Devorar es propio de un ser vivo: personificación."
+  },
+  {
+    "q": "«Esperé una eternidad»",
+    "ops": [
+      "Hipérbole",
+      "Metáfora",
+      "Comparación"
+    ],
+    "m": "Exagera el tiempo: hipérbole."
+  },
+  {
+    "q": "«La vida es un viaje»",
+    "ops": [
+      "Metáfora",
+      "Comparación",
+      "Hipérbole"
+    ],
+    "m": "Identifica la vida con un viaje, sin «como»: metáfora."
+  }
+];
+GAMES.recursos_poema = juegoTriviaTexto(CUR_RECURSOS_POEMA_BANCO, "¿Qué recurso usa?", "recursos_p");
+
+/* 4° · El agua cambia — estados_agua_4
+   DC: Cambios de estado del agua y el ciclo del agua
+   Fuente: docs/auditoria-dc-caba/grado-4.md · N */
+const CUR_ESTADOS_AGUA_4_BANCO = [
+  {
+    "q": "El agua del charco desaparece con el sol. ¿Qué pasó?",
+    "ops": [
+      "Se evaporó: pasó a vapor",
+      "Se la tomó la tierra entera",
+      "Desapareció"
+    ],
+    "m": "El calor la hace pasar a estado gaseoso: se evapora."
+  },
+  {
+    "q": "¿Cómo se llama cuando el vapor vuelve a ser líquido?",
+    "ops": [
+      "Condensación",
+      "Evaporación",
+      "Congelación"
+    ],
+    "m": "Condensación: el vapor se enfría y vuelve a líquido, como en el vidrio."
+  },
+  {
+    "q": "El agua en el freezer se hace hielo. ¿Cómo se llama?",
+    "ops": [
+      "Solidificación",
+      "Evaporación",
+      "Condensación"
+    ],
+    "m": "Pasa de líquido a sólido: se solidifica."
+  },
+  {
+    "q": "¿A qué temperatura hierve el agua?",
+    "ops": [
+      "100 °C",
+      "50 °C",
+      "0 °C"
+    ],
+    "m": "A 100 °C hierve; a 0 °C se congela."
+  },
+  {
+    "q": "¿A qué temperatura se congela el agua?",
+    "ops": [
+      "0 °C",
+      "100 °C",
+      "-50 °C"
+    ],
+    "m": "A 0 °C pasa a hielo."
+  },
+  {
+    "q": "Las gotas en el vidrio frío de un vaso, ¿de dónde salen?",
+    "ops": [
+      "Del vapor del aire que se condensó",
+      "Del agua de adentro que se escapó",
+      "De la nada"
+    ],
+    "m": "El aire tiene vapor; al tocar el vidrio frío se condensa."
+  },
+  {
+    "q": "¿Qué forma las nubes?",
+    "ops": [
+      "Vapor de agua que se condensó en gotitas",
+      "Humo",
+      "Aire caliente"
+    ],
+    "m": "El vapor sube, se enfría y se condensa: eso son las nubes."
+  },
+  {
+    "q": "¿Por qué llueve?",
+    "ops": [
+      "Las gotitas de la nube se juntan y pesan demasiado",
+      "Alguien tira agua",
+      "El sol la empuja"
+    ],
+    "m": "Al juntarse, las gotas pesan y caen."
+  },
+  {
+    "q": "El hielo se derrite. ¿Cómo se llama ese cambio?",
+    "ops": [
+      "Fusión",
+      "Evaporación",
+      "Condensación"
+    ],
+    "m": "Fusión: de sólido a líquido."
+  },
+  {
+    "q": "¿El agua se gasta cuando se evapora?",
+    "ops": [
+      "No, cambia de estado y vuelve con la lluvia",
+      "Sí, desaparece",
+      "Sí, se convierte en aire"
+    ],
+    "m": "El ciclo del agua es un circuito: no se pierde, circula."
+  },
+  {
+    "q": "La ropa se seca al sol porque…",
+    "ops": [
+      "El agua se evapora",
+      "El sol se la toma",
+      "El viento la empuja"
+    ],
+    "m": "El calor evapora el agua de la tela."
+  },
+  {
+    "q": "¿Qué pasa con el agua del mar cuando se evapora?",
+    "ops": [
+      "Sube el agua y la sal queda",
+      "Sube también la sal",
+      "No se evapora"
+    ],
+    "m": "Sólo el agua se evapora: por eso la lluvia es dulce."
+  },
+  {
+    "q": "¿En qué estado está el agua en una nube?",
+    "ops": [
+      "Líquido, en gotitas muy chiquitas",
+      "Gaseoso siempre",
+      "Sólido"
+    ],
+    "m": "La nube ya es agua condensada: gotitas suspendidas."
+  },
+  {
+    "q": "¿El vapor de agua se ve?",
+    "ops": [
+      "No, es invisible; lo que se ve ya son gotitas",
+      "Sí, es el humo blanco",
+      "Sí, siempre"
+    ],
+    "m": "El «vaho» blanco de la pava ya es agua condensada, no vapor puro."
+  }
+];
+GAMES.estados_agua_4 = juegoTriviaTexto(CUR_ESTADOS_AGUA_4_BANCO, "Elegí la respuesta correcta.", "estados_ag");
+
+/* 6° · Conectores en acción — conectores_6
+   DC: Conectores temporales, causales y consecutivos
+   Fuente: docs/auditoria-dc-caba/grado-6.md · L8 */
+const CUR_CONECTORES_6_BANCO = [
+  {
+    "q": "Estudió mucho ___ aprobó el examen.",
+    "ops": [
+      "por lo tanto",
+      "aunque",
+      "mientras"
+    ],
+    "m": "Estudiar es la causa y aprobar la consecuencia: «por lo tanto»."
+  },
+  {
+    "q": "No fue a la plaza ___ estaba lloviendo.",
+    "ops": [
+      "porque",
+      "por lo tanto",
+      "además"
+    ],
+    "m": "«Porque» introduce la causa."
+  },
+  {
+    "q": "Primero hervimos el agua; ___ agregamos los fideos.",
+    "ops": [
+      "después",
+      "porque",
+      "sin embargo"
+    ],
+    "m": "Es una secuencia en el tiempo: «después»."
+  },
+  {
+    "q": "Es caro; ___ , vale la pena.",
+    "ops": [
+      "sin embargo",
+      "porque",
+      "entonces"
+    ],
+    "m": "Marca oposición: «sin embargo»."
+  },
+  {
+    "q": "Llegó tarde ___ perdió el colectivo.",
+    "ops": [
+      "porque",
+      "aunque",
+      "además"
+    ],
+    "m": "Explica la causa de llegar tarde."
+  },
+  {
+    "q": "Terminó la tarea; ___ salió a jugar.",
+    "ops": [
+      "entonces",
+      "aunque",
+      "porque"
+    ],
+    "m": "Consecuencia en el tiempo: «entonces»."
+  },
+  {
+    "q": "Me gusta el mar ___ no sé nadar.",
+    "ops": [
+      "aunque",
+      "porque",
+      "por eso"
+    ],
+    "m": "«Aunque» marca una concesión: algo que no impide lo otro."
+  },
+  {
+    "q": "Estaba cansado; ___ , siguió trabajando.",
+    "ops": [
+      "no obstante",
+      "porque",
+      "así que"
+    ],
+    "m": "Marca oposición, como «sin embargo»."
+  },
+  {
+    "q": "Juntamos los ingredientes; ___ , mezclamos todo.",
+    "ops": [
+      "luego",
+      "porque",
+      "aunque"
+    ],
+    "m": "Secuencia temporal."
+  },
+  {
+    "q": "Hacía calor, ___ abrimos las ventanas.",
+    "ops": [
+      "así que",
+      "aunque",
+      "sin embargo"
+    ],
+    "m": "«Así que» introduce la consecuencia."
+  },
+  {
+    "q": "Le gusta leer; ___ , escribe muy bien.",
+    "ops": [
+      "además",
+      "pero",
+      "porque"
+    ],
+    "m": "«Además» suma información en la misma dirección."
+  },
+  {
+    "q": "No entrenó ___ perdió el partido.",
+    "ops": [
+      "por eso",
+      "aunque",
+      "sin embargo"
+    ],
+    "m": "Causa y consecuencia: «por eso»."
+  },
+  {
+    "q": "Vinieron todos, ___ Ana, que estaba enferma.",
+    "ops": [
+      "excepto",
+      "porque",
+      "entonces"
+    ],
+    "m": "«Excepto» marca la excepción."
+  },
+  {
+    "q": "___ terminó de llover, salió el arcoíris.",
+    "ops": [
+      "Cuando",
+      "Porque",
+      "Aunque"
+    ],
+    "m": "Ubica el momento: conector temporal."
+  }
+];
+GAMES.conectores_6 = juegoTriviaTexto(CUR_CONECTORES_6_BANCO, "¿Qué conector completa mejor?", "conectores");
+
+/* 7° · La población argentina — poblacion_argentina
+   DC: Población: distribución, migraciones y condiciones de vida
+   Fuente: docs/auditoria-dc-caba/grado-7.md · S */
+const CUR_POBLACION_ARGENTINA_BANCO = [
+  {
+    "q": "¿Dónde vive la mayoría de la población argentina?",
+    "ops": [
+      "En ciudades",
+      "En el campo",
+      "En la montaña"
+    ],
+    "m": "Argentina es un país muy urbanizado: más del 90% vive en ciudades."
+  },
+  {
+    "q": "¿Qué es una migración interna?",
+    "ops": [
+      "Mudarse de una provincia a otra dentro del país",
+      "Irse a otro país",
+      "Venir de otro país"
+    ],
+    "m": "Interna = dentro del mismo país."
+  },
+  {
+    "q": "¿Por qué mucha gente migró del campo a la ciudad?",
+    "ops": [
+      "Buscando trabajo y servicios",
+      "Porque les gustaba el ruido",
+      "Porque se lo ordenaron"
+    ],
+    "m": "La industria y los servicios se concentraron en las ciudades."
+  },
+  {
+    "q": "A fines del siglo XIX llegaron muchos inmigrantes. ¿De dónde, sobre todo?",
+    "ops": [
+      "De Europa, en especial Italia y España",
+      "De Asia",
+      "De Oceanía"
+    ],
+    "m": "La inmigración europea masiva cambió la sociedad argentina."
+  },
+  {
+    "q": "¿Qué es la densidad de población?",
+    "ops": [
+      "Cuánta gente vive por kilómetro cuadrado",
+      "Cuánta gente hay en total",
+      "Cuánto mide el país"
+    ],
+    "m": "Relaciona la cantidad de gente con el espacio."
+  },
+  {
+    "q": "¿Qué provincia concentra más población?",
+    "ops": [
+      "Buenos Aires",
+      "La Rioja",
+      "Santa Cruz"
+    ],
+    "m": "Buenos Aires y el AMBA concentran alrededor de un tercio del país."
+  },
+  {
+    "q": "¿Cómo es la Patagonia en cuanto a población?",
+    "ops": [
+      "Muy poco poblada",
+      "La más poblada",
+      "Igual que Buenos Aires"
+    ],
+    "m": "Mucho territorio y poca gente: baja densidad."
+  },
+  {
+    "q": "Hoy, ¿de dónde vienen la mayoría de los inmigrantes?",
+    "ops": [
+      "De países vecinos, como Paraguay y Bolivia",
+      "De Europa",
+      "De Estados Unidos"
+    ],
+    "m": "La inmigración limítrofe es la principal en las últimas décadas."
+  },
+  {
+    "q": "¿Qué derechos tiene una persona migrante en Argentina?",
+    "ops": [
+      "Los mismos derechos: salud, educación y trabajo",
+      "Ninguno",
+      "Sólo a trabajar"
+    ],
+    "m": "La ley reconoce a la migración como un derecho humano."
+  },
+  {
+    "q": "¿Qué es el éxodo rural?",
+    "ops": [
+      "La salida de gente del campo hacia las ciudades",
+      "Un viaje de vacaciones",
+      "La llegada de gente al campo"
+    ],
+    "m": "Es el movimiento del campo a la ciudad."
+  },
+  {
+    "q": "¿Qué significa que la población esté «envejecida»?",
+    "ops": [
+      "Que hay más proporción de personas mayores",
+      "Que la gente vive poco",
+      "Que nacen más chicos"
+    ],
+    "m": "Pasa cuando bajan los nacimientos y sube la esperanza de vida."
+  },
+  {
+    "q": "¿Qué es un censo?",
+    "ops": [
+      "El conteo oficial de toda la población",
+      "Una elección",
+      "Un impuesto"
+    ],
+    "m": "Sirve para saber cuánta gente hay y cómo vive, y planificar."
+  },
+  {
+    "q": "¿Por qué importa saber cómo se distribuye la población?",
+    "ops": [
+      "Para planificar escuelas, hospitales y transporte",
+      "Para nada",
+      "Sólo por curiosidad"
+    ],
+    "m": "Sin ese dato no se puede planificar dónde hacen falta servicios."
+  },
+  {
+    "q": "Las villas y asentamientos muestran…",
+    "ops": [
+      "Un problema de acceso a la vivienda",
+      "Que sobra lugar",
+      "Que la gente prefiere vivir así"
+    ],
+    "m": "Reflejan desigualdad en el acceso a la vivienda, no una elección."
+  }
+];
+GAMES.poblacion_argentina = juegoTriviaTexto(CUR_POBLACION_ARGENTINA_BANCO, "Elegí la respuesta correcta.", "poblacion_");
+
+/* 7° · Vivir en democracia — democracia_argentina
+   DC: La democracia argentina: derechos, participación y memoria
+   Fuente: docs/auditoria-dc-caba/grado-7.md · S */
+const CUR_DEMOCRACIA_ARGENTINA_BANCO = [
+  {
+    "q": "¿Qué es una democracia?",
+    "ops": [
+      "Un sistema donde el pueblo elige a sus gobernantes",
+      "Un sistema donde manda una sola persona",
+      "Un sistema sin leyes"
+    ],
+    "m": "El poder viene del voto de la gente y se renueva."
+  },
+  {
+    "q": "¿En qué año volvió la democracia a la Argentina?",
+    "ops": [
+      "1983",
+      "1810",
+      "2001"
+    ],
+    "m": "En 1983, después de la última dictadura militar."
+  },
+  {
+    "q": "¿Qué pasó durante la última dictadura (1976-1983)?",
+    "ops": [
+      "Se violaron los derechos humanos y hubo desaparecidos",
+      "Hubo elecciones normales",
+      "No pasó nada especial"
+    ],
+    "m": "Fue un gobierno de facto: sin elecciones y con graves violaciones a los derechos humanos."
+  },
+  {
+    "q": "¿Qué se recuerda el 24 de marzo?",
+    "ops": [
+      "El Día de la Memoria por la Verdad y la Justicia",
+      "El día de la independencia",
+      "El día del trabajador"
+    ],
+    "m": "Recuerda el golpe de 1976 y a sus víctimas."
+  },
+  {
+    "q": "¿Quiénes son las Madres y Abuelas de Plaza de Mayo?",
+    "ops": [
+      "Familiares que reclaman por los desaparecidos",
+      "Un partido político",
+      "Un club"
+    ],
+    "m": "Buscan a sus hijos y nietos desde la dictadura hasta hoy."
+  },
+  {
+    "q": "¿Qué significa que el voto sea SECRETO?",
+    "ops": [
+      "Que nadie puede saber a quién votaste",
+      "Que no se cuenta",
+      "Que se vota a escondidas del Estado"
+    ],
+    "m": "Protege tu libertad: nadie puede presionarte por tu voto."
+  },
+  {
+    "q": "Además de votar, ¿cómo se puede participar?",
+    "ops": [
+      "En centros de estudiantes, asambleas, organizaciones",
+      "Sólo votando",
+      "No se puede de otra forma"
+    ],
+    "m": "La democracia no se agota en el voto: la participación es cotidiana."
+  },
+  {
+    "q": "¿Puede un gobierno democrático suspender la Constitución?",
+    "ops": [
+      "No, tiene que respetarla",
+      "Sí, cuando quiera",
+      "Sí, si gana con muchos votos"
+    ],
+    "m": "El límite de todo gobierno es la Constitución."
+  },
+  {
+    "q": "¿Qué es la libertad de expresión?",
+    "ops": [
+      "Poder opinar sin ser perseguido por eso",
+      "Poder decir mentiras sin consecuencias",
+      "Poder insultar"
+    ],
+    "m": "Es un derecho que protege la crítica, incluso al gobierno."
+  },
+  {
+    "q": "¿Qué es el voto obligatorio?",
+    "ops": [
+      "Que a partir de los 18 hay deber de votar",
+      "Que hay que votar a un partido fijo",
+      "Que se vota dos veces"
+    ],
+    "m": "Desde los 16 se puede votar; desde los 18 es un deber."
+  },
+  {
+    "q": "¿Para qué sirve que haya varios partidos políticos?",
+    "ops": [
+      "Para que haya opciones distintas para elegir",
+      "Para confundir",
+      "Para que gane siempre el mismo"
+    ],
+    "m": "El pluralismo es parte de lo que hace democrática a una elección."
+  },
+  {
+    "q": "¿Qué significa «Nunca Más»?",
+    "ops": [
+      "El compromiso de que no se repita el terrorismo de Estado",
+      "Que no haya elecciones",
+      "Que no se hable del pasado"
+    ],
+    "m": "Da nombre al informe de la CONADEP y sintetiza ese compromiso."
+  },
+  {
+    "q": "¿Los derechos humanos se pueden perder?",
+    "ops": [
+      "No, se tienen por ser persona",
+      "Sí, si te portás mal",
+      "Sí, si no votás"
+    ],
+    "m": "Son inalienables: no dependen de portarse bien ni de un gobierno."
+  },
+  {
+    "q": "¿Qué pasa si un gobierno no respeta la ley?",
+    "ops": [
+      "La Justicia puede controlarlo y limitarlo",
+      "No pasa nada",
+      "Se disuelve el país"
+    ],
+    "m": "La división de poderes existe justamente para eso."
+  }
+];
+GAMES.democracia_argentina = juegoTriviaTexto(CUR_DEMOCRACIA_ARGENTINA_BANCO, "Elegí la respuesta correcta.", "democracia");
