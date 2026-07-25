@@ -286,3 +286,27 @@ def test_todo_juego_del_grafo_existe_en_el_player():
             if j not in definidos:
                 faltan.add("%s (%s)" % (j, sid))
     assert not faltan, "el grafo apunta a juegos inexistentes: %s" % sorted(faltan)
+
+
+@pytest.mark.parametrize("grado", list(range(1, 8)))
+def test_ningun_saber_del_grado_queda_sin_juego_en_el_menu(grado):
+    """Un saber del grado cuyos juegos no están en el menú de ese grado NO se puede dominar.
+
+    El motor da un saber por dominado con CUALQUIERA de sus juegos (`saberDominado` usa
+    `.some()`), así que alcanza con que uno esté en el menú. Si no está ninguno, el saber
+    queda pendiente para siempre: no rompe nada visible en el cuaderno del chico —el
+    recomendador elige sólo entre las cartas del menú—, pero infla el denominador del
+    panel de padres y baja el techo del 80% que dispara la oferta de la materia.
+
+    Pasó de verdad (25-jul): `NAT-3-MEZCLAS` apuntaba sólo a `separador_mezclas`, que
+    había salido del menú de 3° al reemplazarlo por `estados_materia`. Naturales de 3°
+    no podía llegar a 100% aunque el chico hiciera todo."""
+    edad = str(grado + 5)
+    menu = {m["id"] for m in aw._menu(aw._banda(edad), edad) + aw._menu_curricular(edad)}
+    huerfanos = sorted(
+        "%s (%s)" % (sid, ", ".join(s.get("juegos", [])) or "sin juegos")
+        for sid, s in saberes.SABERES.items()
+        if s.get("grado") == grado and not (set(s.get("juegos", [])) & menu)
+    )
+    assert not huerfanos, (
+        "saberes de %d° que ningún juego del menú puede dominar: %s" % (grado, huerfanos))
