@@ -1020,7 +1020,12 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_header("Content-Length", str(len(data_b)))
                 self.end_headers(); self.wfile.write(data_b)
                 return
-            page = audiolibro.html(token, base_url=self.base_url())
+            # ¿ya tiene cuenta? La cookie de cliente es de .casatridimensional.com.ar,
+            # así que también llega acá (kit.*). Es HttpOnly: no se puede mirar desde el
+            # JS del visor, tiene que ser server-side. Solo decide si mostramos el banner
+            # de "creá tu cuenta" — no da acceso a nada, así que alcanza con que exista.
+            _con_cuenta = "ct3d_cliente=" in (self.headers.get("Cookie") or "")
+            page = audiolibro.html(token, base_url=self.base_url(), con_cuenta=_con_cuenta)
             if page is None:
                 est = audiolibro.estado(token)
                 if est in ("generando", "error"):
