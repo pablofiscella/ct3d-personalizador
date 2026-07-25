@@ -12,6 +12,7 @@
     servidor (se descartaba todo campo desconocido) y que el informe los lea.
 """
 import json
+import re
 import os
 import subprocess
 import sys
@@ -308,6 +309,120 @@ def test_cerrar_la_leccion_corta_la_voz():
     i = src.index("function mostrarComoEs")
     assert "pararVoz()" in src[i:i + 1200]
     assert "function pararVoz()" in src
+
+
+# ── anti-memorización: generar en vez de escribir ────────────────────────────────
+def _valpos():
+    out = _node("""
+      const fs = require('fs');
+      const src = fs.readFileSync('actividades_player.js', 'utf8');
+      const i = src.indexOf('const VALPOS_BANCO = (() => {');
+      const j = src.indexOf('GAMES.valor_posicional');
+      eval(src.slice(i, j).replace('const VALPOS_BANCO', 'var VALPOS_BANCO'));
+      console.log(JSON.stringify(VALPOS_BANCO));
+    """)
+    return json.loads(out)
+
+
+def test_valor_posicional_se_genera_y_no_se_memoriza():
+    """Eran 14 preguntas fijas: en dos partidas las vio todas y lo que medíamos era
+    memoria. Ahora el ítem sale de la regla."""
+    b = _valpos()
+    assert len(b) > 150, "con pocos ítems vuelve a ser memorizable (hay %d)" % len(b)
+
+
+def test_ninguna_pregunta_de_valor_posicional_es_ambigua():
+    """'En el número 121, ¿cuánto vale el 1?' tiene DOS respuestas correctas. Un ítem
+    ambiguo le enseña al chico que la regla no cierra."""
+    malos = []
+    for it in _valpos():
+        m = re.match(r"En el número (\d+), ¿cuánto vale el (\d)\?", it["q"])
+        assert m, "formato inesperado: %s" % it["q"]
+        num, dig = m.group(1), m.group(2)
+        if num.index(dig) != num.rindex(dig):
+            malos.append(it["q"])
+    assert not malos, "preguntas con dos respuestas posibles: %s" % malos[:5]
+
+
+def test_la_respuesta_de_valor_posicional_es_la_correcta():
+    """La primera opción es la correcta (juegoTriviaTexto usa ops[0]); tiene que ser
+    exactamente cifra × potencia de diez."""
+    malos = []
+    for it in _valpos():
+        m = re.match(r"En el número (\d+), ¿cuánto vale el (\d)\?", it["q"])
+        num, dig = m.group(1), m.group(2)
+        pos = len(num) - 1 - num.index(dig)
+        if it["ops"][0] != str(int(dig) * 10 ** pos):
+            malos.append(it["q"])
+    assert not malos, "respuesta incorrecta en: %s" % malos[:5]
+
+
+def test_las_opciones_de_valor_posicional_son_distintas():
+    """Dos opciones iguales dan dos botones correctos o dos incorrectos idénticos."""
+    malos = [it["q"] for it in _valpos() if len(set(it["ops"])) != 3]
+    assert not malos, "opciones repetidas en: %s" % malos[:5]
+
+
+def _banco(nombre):
+    out = _node("""
+      const fs = require('fs');
+      const src = fs.readFileSync('actividades_player.js', 'utf8');
+      const re = new RegExp('const %s = \\\\[([\\\\s\\\\S]*?)\\\\n\\\\];');
+      const m = src.match(re);
+      eval('var B = [' + m[1] + '\\n];');
+      console.log(JSON.stringify(B));
+    """ % nombre)
+    return json.loads(out)
+
+
+def test_los_cuerpos_geometricos_tienen_datos_correctos():
+    """Se amplió de 3 a 10. Cada cuerpo lleva caras/vértices/aristas, y si alguno está
+    mal le estamos enseñando geometría equivocada a un chico de 4°."""
+    esperado = {
+        "el cubo": (6, 8, 12), "el prisma rectangular": (6, 8, 12),
+        "la pirámide de base cuadrada": (5, 5, 8), "la pirámide de base triangular": (4, 4, 6),
+        "el prisma de base triangular": (5, 6, 9), "el prisma de base pentagonal": (7, 10, 15),
+        "el prisma de base hexagonal": (8, 12, 18),
+        "el cilindro": (3, 0, 2), "el cono": (2, 1, 1), "la esfera": (1, 0, 0),
+    }
+    banco = _banco("CUERPOS_BANCO")
+    assert len(banco) >= 10
+    for c in banco:
+        e = esperado.get(c["nombre"])
+        assert e, "cuerpo sin verificar: %s" % c["nombre"]
+        assert (c["caras"], c["vertices"], c["aristas"]) == e, \
+            "%s tiene datos mal: %s" % (c["nombre"], c)
+
+
+def test_a_los_cuerpos_redondos_no_se_les_pregunta_por_las_caras():
+    """Cuántas caras tiene una esfera depende de si el manual cuenta la superficie
+    curva. No vamos a enseñar una respuesta que la maestra pueda marcar mal."""
+    src = open(os.path.join(BASEDIR, "actividades_player.js"), encoding="utf-8").read()
+    i = src.index("GAMES.cuerpos_geometricos")
+    frag = src[i:i + 2000]
+    assert "item.redondo ?" in frag, "falta la restricción para los cuerpos redondos"
+
+
+def test_el_poligono_declara_bien_sus_lados():
+    lados = {"Triángulo": 3, "Triángulo equilátero": 3, "Triángulo isósceles": 3,
+             "Triángulo escaleno": 3, "Cuadrado": 4, "Rectángulo": 4, "Rombo": 4,
+             "Trapecio": 4, "Trapezoide": 4, "Romboide": 4, "Paralelogramo": 4,
+             "Cuadrilátero": 4, "Pentágono": 5, "Hexágono": 6, "Heptágono": 7,
+             "Octágono": 8, "Eneágono": 9, "Decágono": 10, "Endecágono": 11,
+             "Dodecágono": 12}
+    banco = _banco("POLIGONOS_BANCO")
+    assert len(banco) >= 20
+    for p in banco:
+        assert lados.get(p["nombre"]) == p["lados"], "mal: %s" % p
+
+
+def test_no_hay_animales_repetidos_en_el_banco():
+    """Repetido = el mismo animal con dos comidas distintas: el chico acierta y le
+    marcamos mal, o al revés."""
+    banco = _banco("ANIMAL_COMIDA_BANCO")
+    assert len(banco) >= 24
+    animales = [x["animal"] for x in banco]
+    assert len(animales) == len(set(animales)), "animales repetidos"
 
 
 @pytest.mark.parametrize("args", [[], ["--json"], ["--grado", "4"]])

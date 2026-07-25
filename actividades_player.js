@@ -5080,22 +5080,41 @@ GAMES.cazador_errores = juegoTriviaTexto(ORTO7_BANCO, "Tocá la palabra bien esc
 /* ── VALOR POSICIONAL (2° — docs/auditoria-dc-caba/grado-2.md gap #2: valor
    posicional hasta 1.000, ausente). Cuánto vale cada cifra, descomposición,
    unidades/decenas/centenas. Trivia (juegoTriviaTexto). ── */
-const VALPOS_BANCO = [
-  { q: "En el número 45, ¿cuánto vale el 4?", ops: ["40", "4", "400"], m: "El 4 está en las decenas: vale 40." },
-  { q: "En el número 235, ¿cuánto vale el 2?", ops: ["200", "20", "2"], m: "El 2 está en las centenas: vale 200." },
-  { q: "En el número 235, ¿cuánto vale el 3?", ops: ["30", "3", "300"], m: "El 3 está en las decenas: vale 30." },
-  { q: "En el número 235, ¿cuánto vale el 5?", ops: ["5", "50", "500"], m: "El 5 está en las unidades: vale 5." },
-  { q: "En el número 70, ¿cuánto vale el 7?", ops: ["70", "7", "700"], m: "El 7 está en las decenas: vale 70." },
-  { q: "¿Cuántas decenas hay en 60?", ops: ["6", "60", "16"], m: "60 = 6 decenas (6 grupos de 10)." },
-  { q: "¿Cuántas centenas hay en 300?", ops: ["3", "30", "300"], m: "300 = 3 centenas (3 grupos de 100)." },
-  { q: "El número 100 tiene…", ops: ["1 centena, 0 decenas y 0 unidades", "10 centenas", "100 decenas"], m: "100 = 1 centena, 0 decenas y 0 unidades." },
-  { q: "¿Qué número es 2 centenas, 4 decenas y 5 unidades?", ops: ["245", "2045", "254"], m: "2 centenas (200) + 4 decenas (40) + 5 = 245." },
-  { q: "¿Qué número es 3 decenas y 6 unidades?", ops: ["36", "360", "63"], m: "3 decenas (30) + 6 unidades = 36." },
-  { q: "En el número 508, ¿cuánto vale el 0?", ops: ["0", "50", "500"], m: "No hay decenas: el 0 vale 0." },
-  { q: "¿Cuál 5 vale MÁS: el de 52 o el de 25?", ops: ["El de 52 (vale 50)", "El de 25 (vale 5)", "Valen igual"], m: "En 52 el 5 está en las decenas (50); en 25, en las unidades (5)." },
-  { q: "300 + 40 + 5 = ", ops: ["345", "3045", "0345"], m: "3 centenas + 4 decenas + 5 unidades = 345." },
-  { q: "¿Cuántas decenas tiene el número 89?", ops: ["8", "9", "89"], m: "El 8 está en las decenas: 89 tiene 8 decenas." },
-];
+// Valor posicional COMPUTADO, no escrito a mano. Eran 14 preguntas fijas: a la segunda
+// partida el chico ya las había visto todas, así que lo que medíamos era memoria y no la
+// regla ("no quiero que aprenda por memoria sino porque entendió el saber"). Acá el ítem
+// sale de la regla misma —cifra × potencia de diez— y los distractores son los DOS errores
+// que de verdad cometen: dar la cifra suelta, o correrse una posición.
+const VALPOS_BANCO = (() => {
+  const NOMBRE = ["unidades", "decenas", "centenas", "unidades de mil"];
+  const nums = [];
+  for (let n = 12; n <= 98; n += 3) nums.push(n);          // 2 cifras
+  for (let n = 104; n <= 989; n += 17) nums.push(n);       // 3 cifras
+  for (let n = 1023; n <= 9876; n += 149) nums.push(n);    // 4 cifras
+  const out = [];
+  for (const n of nums) {
+    const s = String(n);
+    for (let i = 0; i < s.length; i++) {
+      const d = +s[i];
+      if (!d) continue;                       // "¿cuánto vale el 0?" no enseña nada
+      // si la cifra aparece dos veces, la pregunta tiene DOS respuestas correctas
+      // ("en 121, ¿cuánto vale el 1?" → 100 y 1). Se descarta: un ítem ambiguo le
+      // enseña al chico que la regla no cierra.
+      if (s.indexOf(String(d)) !== s.lastIndexOf(String(d))) continue;
+      const pos = s.length - 1 - i;           // 0 = unidades
+      const vale = d * Math.pow(10, pos);
+      const ops = [String(vale)];
+      // error 1: leer la cifra suelta · error 2: correrse una posición
+      for (const alt of [d, d * Math.pow(10, pos + 1), d * Math.pow(10, Math.max(0, pos - 1))]) {
+        if (ops.length < 3 && ops.indexOf(String(alt)) === -1) ops.push(String(alt));
+      }
+      if (ops.length < 3) continue;           // no se pudo armar 3 opciones distintas
+      out.push({ q: "En el número " + n + ", ¿cuánto vale el " + d + "?", ops: ops,
+                 m: "El " + d + " está en las " + NOMBRE[pos] + ": vale " + vale + "." });
+    }
+  }
+  return out;
+})();
 GAMES.valor_posicional = juegoTriviaTexto(VALPOS_BANCO, "Elegí la respuesta correcta.", "valpos");
 
 /* ── LOS SENTIDOS (1° — Conocimiento del Mundo, el cuerpo y los 5 sentidos).
@@ -8154,6 +8173,14 @@ const ANIMAL_COMIDA_BANCO = [
   // agregados 14-jul-2026 (banco ampliado de 5 a 10).
   { animal: "🐵", comida: "🍌" }, { animal: "🐘", comida: "🥜" }, { animal: "🐻", comida: "🍯" },
   { animal: "🐮", comida: "🌾" }, { animal: "🐿️", comida: "🌰" },
+  // 25-jul-2026: de 10 a 24. Con 10 pares y 5 rondas, dos partidas alcanzaban para
+  // verlos todos. Se eligieron animales que un chico de 1° reconoce y comidas que no
+  // se confunden entre sí (nada de dos herbívoros con la misma hoja).
+  { animal: "🐧", comida: "🐟" }, { animal: "🐴", comida: "🍏" }, { animal: "🐷", comida: "🌽" },
+  { animal: "🐐", comida: "🍃" }, { animal: "🦒", comida: "🌳" }, { animal: "🐔", comida: "🌾" },
+  { animal: "🦅", comida: "🐍" }, { animal: "🐨", comida: "🍂" }, { animal: "🦇", comida: "🦟" },
+  { animal: "🐢", comida: "🥬" }, { animal: "🦈", comida: "🐠" }, { animal: "🐸", comida: "🪰" },
+  { animal: "🐜", comida: "🍬" }, { animal: "🦜", comida: "🌻" },
 ];
 GAMES.animal_comida = {
   crear(ctx) {
@@ -8473,10 +8500,20 @@ GAMES.estaciones = {
    afuera, ver informe). Consigna de audio FIJA y genérica — la pregunta
    específica (qué cuerpo, qué propiedad) se muestra en pantalla como texto
    dinámico, mismo criterio que "Formá {objetivo}" en sumas_redondas. ── */
+// Eran 3 cuerpos: en dos partidas los vio todos. Ampliado a los que el DC pide en 4°-5°,
+// con sus caras/vértices/aristas verificados uno por uno. Los cuerpos redondos van con
+// vertices/aristas en 0 porque no tienen (la esfera no tiene ni caras planas).
 const CUERPOS_BANCO = [
   { e: "🧊", nombre: "el cubo", caras: 6, vertices: 8, aristas: 12 },
   { e: "📦", nombre: "el prisma rectangular", caras: 6, vertices: 8, aristas: 12 },
-  { e: "🔺", nombre: "la pirámide", caras: 5, vertices: 5, aristas: 8 },
+  { e: "🔺", nombre: "la pirámide de base cuadrada", caras: 5, vertices: 5, aristas: 8 },
+  { e: "⛺", nombre: "la pirámide de base triangular", caras: 4, vertices: 4, aristas: 6 },
+  { e: "🔷", nombre: "el prisma de base triangular", caras: 5, vertices: 6, aristas: 9 },
+  { e: "🛢️", nombre: "el prisma de base pentagonal", caras: 7, vertices: 10, aristas: 15 },
+  { e: "🎲", nombre: "el prisma de base hexagonal", caras: 8, vertices: 12, aristas: 18 },
+  { e: "🥫", nombre: "el cilindro", caras: 3, vertices: 0, aristas: 2, redondo: true },
+  { e: "🍦", nombre: "el cono", caras: 2, vertices: 1, aristas: 1, redondo: true },
+  { e: "⚽", nombre: "la esfera", caras: 1, vertices: 0, aristas: 0, redondo: true },
 ];
 GAMES.cuerpos_geometricos = {
   crear(ctx) {
@@ -8488,7 +8525,12 @@ GAMES.cuerpos_geometricos = {
       consignaVariada(ctx, ronda, "Contá y elegí la respuesta correcta", "f");
       ctx.juego.innerHTML = "";
       const item = CUERPOS_BANCO[rint(0, CUERPOS_BANCO.length - 1)];
-      const propKey = ["caras", "vertices", "aristas"][rint(0, 2)];
+      // A los cuerpos redondos NO se les pregunta por las caras: cuántas tiene una
+      // esfera o un cono depende de si el manual cuenta la superficie curva como cara,
+      // y no vamos a enseñar una respuesta que la maestra pueda marcar mal. Vértices y
+      // aristas sí son inequívocos (la esfera no tiene ninguno).
+      const props = item.redondo ? ["vertices", "aristas"] : ["caras", "vertices", "aristas"];
+      const propKey = props[rint(0, props.length - 1)];
       const propLabel = { caras: "caras", vertices: "vértices", aristas: "aristas" }[propKey];
       const correcta = item[propKey];
       const arriba = el("div", "tablero");
@@ -11180,6 +11222,13 @@ const POLIGONOS_BANCO = [
   // agregados 14-jul-2026 (banco ampliado de 6 a 10).
   { nombre: "Eneágono", lados: 9 }, { nombre: "Decágono", lados: 10 },
   { nombre: "Rectángulo", lados: 4 }, { nombre: "Rombo", lados: 4 },
+  // 25-jul-2026: de 10 a 20. Se suman los cuadriláteros que el DC nombra en 4°-5° y
+  // los polígonos de 11 y 12 lados, que cierran la serie de los nombres.
+  { nombre: "Trapecio", lados: 4 }, { nombre: "Trapezoide", lados: 4 },
+  { nombre: "Romboide", lados: 4 }, { nombre: "Paralelogramo", lados: 4 },
+  { nombre: "Endecágono", lados: 11 }, { nombre: "Dodecágono", lados: 12 },
+  { nombre: "Triángulo equilátero", lados: 3 }, { nombre: "Triángulo isósceles", lados: 3 },
+  { nombre: "Triángulo escaleno", lados: 3 }, { nombre: "Cuadrilátero", lados: 4 },
 ];
 GAMES.poligonos_lados = {
   crear(ctx) {

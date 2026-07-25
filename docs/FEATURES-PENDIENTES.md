@@ -7,6 +7,10 @@ dónde mirarlas.
 > Lo que ya está construido no va acá — se documenta en `docs/ACTIVIDADES-WEB.md` y en los
 > PRs. Esta lista es para lo que falta.
 
+> **Cerrado el 25-jul-2026** (ver secciones 1 y 2, y `docs/MOTOR-APRENDIZAJE.md`):
+> nivelación inicial de ALEKS, telemetría de proceso de DreamBox + el informe que la lee,
+> botón "¿Cómo es?", Modo Profe en Lengua e informe imprimible para la maestra.
+
 ---
 
 ## 1. Botón "¿Cómo es?" — video / mini-lección del concepto
@@ -25,7 +29,17 @@ además de "descubrimiento guiado" — es lo que hace DreamBox, y sería un dife
 láminas dentro del player (liviano, generado). Ver la regla Pillow-vs-Remotion que ya se
 usó para el video del audiolibro.
 
-**Estado:** anotado, nada implementado.
+**Estado (25-jul-2026): HECHO como mini-lección de texto + voz.** Botón `❓ ¿Cómo es?` en
+la barra de consigna, disponible SIEMPRE (no hace falta errar). 63 lecciones en `COMO_ES`
+(`actividades_player.js`), sólo en las actividades que enseñan una REGLA — las de dato
+(comprensión, fotosíntesis, historia) no llevan, porque un botón que dice obviedades
+enseña a ignorar el botón. Se leen en voz alta con la misma voz rioplatense.
+
+Se eligió texto y no video a propósito: un video por actividad son 149 videos que hay que
+producir, versionar y servir. El mecanismo queda abierto — si un tema puntual pide video,
+se le agrega a ESA entrada sin tocar nada más. **Eso sí sigue pendiente y es la parte que
+Pablo pidió textualmente ("me gustaría ver cómo podemos hacer eso"): decidir si algún
+tema merece video real.**
 
 ---
 
@@ -52,8 +66,23 @@ ejercicio desde la regla**, como ya hace Matemática.
 **Conecta con la venta:** vender "la misma actividad más difícil" sólo tiene sentido si el
 contenido no es memorizable. Si no, son las mismas 10 preguntas con otro nombre.
 
-**Estado:** EN CURSO — arrancando por Matemática (decisión de Pablo). `angulos` ya
-convertido a generador.
+**Estado (25-jul-2026): 111 de 176 juegos generan** (era 37 de 116 el 24-jul). Últimos
+convertidos: `angulos`, `fracciones_equivalentes`, `transportador`, `decimales_fraccion`
+y `valor_posicional` (14 preguntas fijas → 242 ítems computados, con guarda de ambigüedad:
+"en 121, ¿cuánto vale el 1?" tiene dos respuestas y esos casos se descartan).
+
+**Quedan 65 juegos con ítem fijo, y ahí hay que separar dos cosas:**
+
+- Los que TIENEN regla y todavía no se convirtieron → se convierten, sin escribir
+  contenido. Es el trabajo que sigue.
+- Los FACTUALES (fotosíntesis, historia, comprensión lectora): no se pueden generar. La
+  única salida es más ítems, y eso es volumen de autoría (~6-7k según la auditoría). En
+  esta pasada se engrosaron los más flacos: `CUERPOS_BANCO` 3→10 (con caras/vértices/
+  aristas verificados uno por uno), `ANIMAL_COMIDA_BANCO` 10→24, `POLIGONOS_BANCO` 10→20.
+
+**OJO, no todo banco chico es un hueco:** `PLANETAS_BANCO` tiene 8 porque hay 8 planetas
+—está completo— y `PLANTA_FRUTO_BANCO` tiene 6 por un techo de emoji ya documentado en el
+código. Antes de "engrosar" un banco hay que mirar si le falta algo de verdad.
 
 ---
 
@@ -85,20 +114,25 @@ propósito, hasta que haya qué entregar.
 
 Juegos por grado y materia (los que entregaría un desbloqueo):
 
-| grado | Lengua | Matemática | Naturales | Sociales |
-|------:|-------:|-----------:|----------:|---------:|
-| 1° | 3 | 3 | 3 | 1 |
-| 2° | 4 | 7 | 3 | 0 |
-| 3° | 5 | 9 | 5 | 0 |
-| 4° | 10 | 15 | 2 | 3 |
-| 5° | 3 | 9 | 3 | 5 |
-| 6° | **1** | 10 | 4 | 3 |
-| 7° | 3 | 7 | 4 | 1 |
+Actividades del menú por grado y materia, **medido el 25-jul-2026** (antes esta tabla
+mostraba Lengua de 6° en 1 y Sociales de 2°/3° en cero; ya no es así):
 
-Sociales en 2° y 3° está en **cero** y Lengua de 6° en **uno**. Mientras siga así, esas
-combinaciones no se pueden vender ni recomendar en serio.
+| grado | Lengua | Matemática | Cs. Naturales | Cs. Sociales | Conoc. del Mundo |
+|------:|-------:|-----------:|--------------:|-------------:|-----------------:|
+| 1° | 5 | 11 | — | — | 9 |
+| 2° | 9 | 19 | — | — | 6 |
+| 3° | 7 | 11 | — | — | 8 |
+| 4° | 10 | 15 | 4 | 4 | — |
+| 5° | 7 | 13 | 4 | 5 | — |
+| 6° | 7 | 17 | 4 | 4 | — |
+| 7° | 7 | 15 | 4 | 5 | — |
 
-**Estado:** pendiente. Es contenido, no código.
+En 1° a 3° no hay Naturales ni Sociales por separado **a propósito**: el DC de CABA 2024
+las tiene como área única (Conocimiento del Mundo) hasta 3°. Los guiones no son huecos.
+
+**Estado: emparejado.** Ninguna materia del DC queda por debajo de 4 actividades en ningún
+grado. Lo que sigue desparejo es la PROFUNDIDAD (Matemática de 2° tiene 19 y Lengua de 1°
+tiene 5), pero ya no hay combinaciones vacías.
 
 ---
 
