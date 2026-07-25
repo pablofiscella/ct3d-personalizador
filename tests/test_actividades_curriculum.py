@@ -43,12 +43,32 @@ def test_cada_actividad_declara_su_origen_curricular(act):
 
 
 @pytest.mark.parametrize("act", cur.CATALOGO, ids=lambda a: a["id"])
-def test_la_correcta_no_esta_siempre_primera_al_jugar(act):
-    """`ops[0]` es la correcta en los datos, pero el player baraja. Acá sólo se verifica
-    el contrato: hay una correcta declarada y al menos dos distractores distintos."""
-    for it in act["banco"]:
-        assert it["ops"][0] not in it["ops"][1:], it["q"]
-        assert len(set(it["ops"][1:])) == len(it["ops"]) - 1, it["q"]
+def test_el_banco_respeta_la_forma_de_su_mecanica(act):
+    """Cada mecánica tiene su contrato y su trampa propia; el player asume que se cumple.
+
+    trivia     → `ops[0]` es la correcta (el player baraja al mostrar): no puede repetirse
+                 entre los distractores ni haber distractores duplicados.
+    clasificar → cada categoría declarada tiene que recibir ítems; un botón que nunca es
+                 correcto se aprende a descartar y deja de ser una opción real.
+    ordenar    → el banco viene YA en el orden correcto y sin tarjetas repetidas dentro de
+                 una secuencia (si no, hay dos órdenes válidos y uno se marca mal)."""
+    mec = act["mecanica"]
+    if mec == "trivia":
+        for it in act["banco"]:
+            assert it["ops"][0] not in it["ops"][1:], it["q"]
+            assert len(set(it["ops"][1:])) == len(it["ops"]) - 1, it["q"]
+    elif mec == "clasificar":
+        declaradas = {c["cat"] for c in act["categorias"]}
+        usadas = {it["cat"] for it in act["banco"]}
+        assert declaradas == usadas, "categorías sin ítems: %s" % (declaradas - usadas)
+        for it in act["banco"]:
+            assert it["m"].strip(), it["it"]
+    elif mec == "ordenar":
+        for it in act["banco"]:
+            items = it["items"]
+            assert len(items) >= 3 and len(set(items)) == len(items), items
+    else:
+        pytest.fail("mecánica sin contrato verificado: %r" % mec)
 
 
 def test_cdm_es_una_categoria_del_menu():

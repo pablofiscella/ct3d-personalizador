@@ -401,3 +401,159 @@ const CUR_DERECHOS_ESCENARIOS_BANCO = [
   }
 ];
 GAMES.derechos_escenarios = juegoTriviaTexto(CUR_DERECHOS_ESCENARIOS_BANCO, "Elegí la respuesta correcta.", "derechos_e");
+
+/* 1° · ¿Sólido o líquido? — solido_liquido
+   DC: Los materiales y sus estados: sólido y líquido; casos límite
+   Fuente: docs/auditoria-dc-caba/grado-1.md · C3 */
+const CUR_SOLIDO_LIQUIDO_BANCO = [
+  {
+    "it": "Piedra",
+    "cat": "solido",
+    "m": "La piedra tiene forma propia: es sólida."
+  },
+  {
+    "it": "Agua",
+    "cat": "liquido",
+    "m": "El agua toma la forma del recipiente: es líquida."
+  },
+  {
+    "it": "Leche",
+    "cat": "liquido",
+    "m": "La leche se vuelca y toma la forma del vaso: líquida."
+  },
+  {
+    "it": "Madera",
+    "cat": "solido",
+    "m": "La madera mantiene su forma: es sólida."
+  },
+  {
+    "it": "Hielo",
+    "cat": "solido",
+    "m": "Ojo: el hielo es agua SÓLIDA. Tiene forma propia, no se vuelca."
+  },
+  {
+    "it": "Miel",
+    "cat": "liquido",
+    "m": "La miel es espesa, pero se vuelca y toma la forma del frasco: es líquida."
+  },
+  {
+    "it": "Harina",
+    "cat": "solido",
+    "m": "La harina parece que se vuelca, pero son muchos granitos sólidos."
+  },
+  {
+    "it": "Aceite",
+    "cat": "liquido",
+    "m": "El aceite se vuelca y toma la forma: líquido."
+  },
+  {
+    "it": "Vidrio",
+    "cat": "solido",
+    "m": "El vidrio tiene forma propia: es sólido."
+  },
+  {
+    "it": "Jugo",
+    "cat": "liquido",
+    "m": "El jugo toma la forma del vaso: líquido."
+  },
+  {
+    "it": "Arena",
+    "cat": "solido",
+    "m": "La arena se derrama, pero cada granito es sólido."
+  },
+  {
+    "it": "Goma de borrar",
+    "cat": "solido",
+    "m": "Tiene forma propia: sólida."
+  },
+  {
+    "it": "Champú",
+    "cat": "liquido",
+    "m": "Es espeso pero se vuelca: líquido."
+  },
+  {
+    "it": "Cubito de caldo",
+    "cat": "solido",
+    "m": "Tiene forma propia: es sólido."
+  }
+];
+GAMES.solido_liquido = juegoClasificar(CUR_SOLIDO_LIQUIDO_BANCO, "¿Es sólido o líquido?", [{"cat": "solido", "label": "🧊 Sólido"}, {"cat": "liquido", "label": "💧 Líquido"}], "solido_liq");
+
+/* 3° · El viaje del alimento — circuito_alimento
+   DC: Circuito productivo: de la fase agraria a la comercial
+   Fuente: docs/auditoria-dc-caba/grado-3.md · C3 */
+const CUR_CIRCUITO_ALIMENTO_BANCO = [
+  {
+    "items": [
+      "La vaca da leche en el tambo",
+      "Un camión lleva la leche a la fábrica",
+      "En la fábrica hacen el queso",
+      "El queso llega al supermercado"
+    ]
+  },
+  {
+    "items": [
+      "Se siembra el trigo",
+      "Se cosecha el trigo",
+      "En el molino lo hacen harina",
+      "La panadería hace el pan"
+    ]
+  },
+  {
+    "items": [
+      "Se plantan las papas",
+      "Se sacan las papas de la tierra",
+      "Se lavan y se embolsan",
+      "Se venden en la verdulería"
+    ]
+  },
+  {
+    "items": [
+      "La oveja da lana",
+      "Se esquila la oveja",
+      "Se hila la lana",
+      "Se teje el pulóver"
+    ]
+  },
+  {
+    "items": [
+      "Se juntan las uvas",
+      "Se llevan a la bodega",
+      "Se hace el jugo",
+      "Se vende embotellado"
+    ]
+  },
+  {
+    "items": [
+      "El árbol da naranjas",
+      "Se cosechan las naranjas",
+      "En la fábrica hacen el jugo",
+      "El jugo llega al kiosco"
+    ]
+  },
+  {
+    "items": [
+      "Se cría la gallina",
+      "Se juntan los huevos",
+      "Se guardan en maples",
+      "Se venden en el almacén"
+    ]
+  },
+  {
+    "items": [
+      "Se corta el árbol",
+      "Se lleva el tronco al aserradero",
+      "Se hacen las tablas",
+      "Se arma la silla"
+    ]
+  },
+  {
+    "items": [
+      "Se cultiva el algodón",
+      "Se cosecha el algodón",
+      "Se hila y se teje la tela",
+      "Se cose la remera"
+    ]
+  }
+];
+GAMES.circuito_alimento = juegoOrdenar(CUR_CIRCUITO_ALIMENTO_BANCO, "Ordená el recorrido: ¿qué pasa primero? Tocá en orden.", "Pensá el camino desde donde se produce hasta que llega a tu casa.", "circuito_a");

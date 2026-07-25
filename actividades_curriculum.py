@@ -21,10 +21,19 @@ contenido, es una materia que a esa edad no existe.
 
 AREA_CDM = "cdm"          # Conocimiento del Mundo — 1° a 3° (DC CABA 2024)
 
-# Mecánicas soportadas. Cada una define la forma del banco:
-#   trivia    → [{q, ops, m}]  ops[0] es la correcta (mismo contrato que juegoTriviaTexto)
-# Al sumar una mecánica nueva hay que enseñarle a `gen_curriculum.py` a emitirla.
-MECANICAS = ("trivia",)
+# Mecánicas soportadas. Cada una define la forma del banco y qué campos extra pide la
+# actividad. Al sumar una nueva hay que enseñarle a `gen_curriculum.py` a emitirla.
+#
+#   trivia     → banco [{q, ops, m}]      ops[0] es la correcta   (juegoTriviaTexto)
+#   clasificar → banco [{it, cat, m}]     + "consigna" y "categorias" [{cat,label}]
+#                                                                  (juegoClasificar)
+#   ordenar    → banco [{items: [...]}]   ya en el orden CORRECTO
+#                                          + "consigna" y "explica" (juegoOrdenar)
+#
+# El DC usa mucho clasificar y ordenar, no sólo trivia — y la propia auditoría fija que
+# "el menú nunca sirve 3 trivias seguidas": cargar todo como trivia daría un catálogo
+# completo y un producto aburrido.
+MECANICAS = ("trivia", "clasificar", "ordenar")
 
 # Tamaño mínimo de banco. La auditoría fijó "mínimo real 30 ítems, insignia 40" para 2°;
 # por debajo de 12 el banco se agota en una sola partida y la actividad mide memoria.
@@ -233,6 +242,75 @@ CATALOGO = [
              "m": "Limitar una actividad por el género es discriminación."},
         ],
     },
+
+    # ── 1° · clasificar (mecánica nueva) ─────────────────────────────────────────
+    {
+        "id": "solido_liquido",
+        "grado": 1, "area": AREA_CDM,
+        "titulo": "¿Sólido o líquido?", "icono": "💧",
+        "mecanica": "clasificar",
+        "consigna": "¿Es sólido o líquido?",
+        "categorias": [{"cat": "solido", "label": "🧊 Sólido"},
+                       {"cat": "liquido", "label": "💧 Líquido"}],
+        "dc": "Los materiales y sus estados: sólido y líquido; casos límite",
+        "fuente": "docs/auditoria-dc-caba/grado-1.md · C3",
+        "saber": {"id": "CDM-1-estados", "nombre": "Sólidos y líquidos",
+                  "prereqs": ["CDM-1-materiales"]},
+        "banco": [
+            {"it": "Piedra", "cat": "solido", "m": "La piedra tiene forma propia: es sólida."},
+            {"it": "Agua", "cat": "liquido", "m": "El agua toma la forma del recipiente: es líquida."},
+            {"it": "Leche", "cat": "liquido", "m": "La leche se vuelca y toma la forma del vaso: líquida."},
+            {"it": "Madera", "cat": "solido", "m": "La madera mantiene su forma: es sólida."},
+            {"it": "Hielo", "cat": "solido",
+             "m": "Ojo: el hielo es agua SÓLIDA. Tiene forma propia, no se vuelca."},
+            {"it": "Miel", "cat": "liquido",
+             "m": "La miel es espesa, pero se vuelca y toma la forma del frasco: es líquida."},
+            {"it": "Harina", "cat": "solido",
+             "m": "La harina parece que se vuelca, pero son muchos granitos sólidos."},
+            {"it": "Aceite", "cat": "liquido", "m": "El aceite se vuelca y toma la forma: líquido."},
+            {"it": "Vidrio", "cat": "solido", "m": "El vidrio tiene forma propia: es sólido."},
+            {"it": "Jugo", "cat": "liquido", "m": "El jugo toma la forma del vaso: líquido."},
+            {"it": "Arena", "cat": "solido",
+             "m": "La arena se derrama, pero cada granito es sólido."},
+            {"it": "Goma de borrar", "cat": "solido", "m": "Tiene forma propia: sólida."},
+            {"it": "Champú", "cat": "liquido", "m": "Es espeso pero se vuelca: líquido."},
+            {"it": "Cubito de caldo", "cat": "solido", "m": "Tiene forma propia: es sólido."},
+        ],
+    },
+
+    # ── 3° · ordenar (mecánica nueva) ────────────────────────────────────────────
+    {
+        "id": "circuito_alimento",
+        "grado": 3, "area": AREA_CDM,
+        "titulo": "El viaje del alimento", "icono": "🥛",
+        "mecanica": "ordenar",
+        "consigna": "Ordená el recorrido: ¿qué pasa primero? Tocá en orden.",
+        "explica": "Pensá el camino desde donde se produce hasta que llega a tu casa.",
+        "dc": "Circuito productivo: de la fase agraria a la comercial",
+        "fuente": "docs/auditoria-dc-caba/grado-3.md · C3",
+        "saber": {"id": "CDM-3-circuitos", "nombre": "Circuitos productivos",
+                  "prereqs": ["CDM-2-luz"]},
+        "banco": [
+            {"items": ["La vaca da leche en el tambo", "Un camión lleva la leche a la fábrica",
+                       "En la fábrica hacen el queso", "El queso llega al supermercado"]},
+            {"items": ["Se siembra el trigo", "Se cosecha el trigo",
+                       "En el molino lo hacen harina", "La panadería hace el pan"]},
+            {"items": ["Se plantan las papas", "Se sacan las papas de la tierra",
+                       "Se lavan y se embolsan", "Se venden en la verdulería"]},
+            {"items": ["La oveja da lana", "Se esquila la oveja",
+                       "Se hila la lana", "Se teje el pulóver"]},
+            {"items": ["Se juntan las uvas", "Se llevan a la bodega",
+                       "Se hace el jugo", "Se vende embotellado"]},
+            {"items": ["El árbol da naranjas", "Se cosechan las naranjas",
+                       "En la fábrica hacen el jugo", "El jugo llega al kiosco"]},
+            {"items": ["Se cría la gallina", "Se juntan los huevos",
+                       "Se guardan en maples", "Se venden en el almacén"]},
+            {"items": ["Se corta el árbol", "Se lleva el tronco al aserradero",
+                       "Se hacen las tablas", "Se arma la silla"]},
+            {"items": ["Se cultiva el algodón", "Se cosecha el algodón",
+                       "Se hila y se teje la tela", "Se cose la remera"]},
+        ],
+    },
 ]
 
 
@@ -271,6 +349,63 @@ def saberes():
 
 
 # ── validación ──────────────────────────────────────────────────────────────────
+def _validar_banco(ref, mecanica, act, banco):
+    """Chequeos propios de cada mecánica. Cada una tiene su forma y sus trampas."""
+    problemas, vistas = [], set()
+    if mecanica == "trivia":
+        for i, it in enumerate(banco):
+            donde = "%s ítem %d" % (ref, i)
+            if not it.get("q") or not it.get("m"):
+                problemas.append("%s: sin consigna o sin explicación del error" % donde)
+            ops = it.get("ops") or []
+            if len(ops) < 3:
+                problemas.append("%s: %d opciones, mínimo 3" % (donde, len(ops)))
+            if len(set(ops)) != len(ops):
+                problemas.append("%s: opciones repetidas" % donde)
+            if it.get("q") in vistas:
+                problemas.append("%s: consigna repetida en el mismo banco" % donde)
+            vistas.add(it.get("q"))
+    elif mecanica == "clasificar":
+        cats = act.get("categorias") or []
+        if not act.get("consigna"):
+            problemas.append("%s: falta 'consigna'" % ref)
+        if not 2 <= len(cats) <= 4:
+            problemas.append("%s: %d categorías; el DC usa 2, 3 o 4" % (ref, len(cats)))
+        claves = {c.get("cat") for c in cats}
+        if len(claves) != len(cats):
+            problemas.append("%s: categorías repetidas" % ref)
+        usadas = set()
+        for i, it in enumerate(banco):
+            donde = "%s ítem %d" % (ref, i)
+            if not it.get("it") or not it.get("m"):
+                problemas.append("%s: sin ítem o sin explicación del error" % donde)
+            if it.get("cat") not in claves:
+                problemas.append("%s: categoría %r no declarada" % (donde, it.get("cat")))
+            if it.get("it") in vistas:
+                problemas.append("%s: ítem repetido en el mismo banco" % donde)
+            vistas.add(it.get("it"))
+            usadas.add(it.get("cat"))
+        # una categoría sin ítems es un botón que nunca es correcto: se aprende a
+        # descartarlo y deja de ser una opción real
+        for c in claves - usadas:
+            problemas.append("%s: la categoría %r no tiene ningún ítem" % (ref, c))
+    elif mecanica == "ordenar":
+        if not act.get("consigna") or not act.get("explica"):
+            problemas.append("%s: falta 'consigna' o 'explica'" % ref)
+        for i, it in enumerate(banco):
+            donde = "%s secuencia %d" % (ref, i)
+            items = it.get("items") or []
+            if len(items) < 3:
+                problemas.append("%s: %d tarjetas, mínimo 3" % (donde, len(items)))
+            if len(set(items)) != len(items):
+                problemas.append("%s: tarjetas repetidas dentro de la secuencia" % donde)
+            clave = tuple(items)
+            if clave in vistas:
+                problemas.append("%s: secuencia repetida en el mismo banco" % donde)
+            vistas.add(clave)
+    return problemas
+
+
 def validar():
     """Devuelve la lista de problemas del catálogo (vacía = está sano).
 
@@ -291,22 +426,14 @@ def validar():
         if a.get("area") == AREA_CDM and a.get("grado") not in (1, 2, 3):
             problemas.append("%s: Conocimiento del Mundo sólo existe en 1°-3° del DC" % ref)
         banco = a.get("banco") or []
-        if len(banco) < BANCO_MINIMO:
+        mec = a.get("mecanica")
+        # "ordenar" mide por SECUENCIAS, no por ítems sueltos: 12 secuencias de 4-5
+        # tarjetas ya son muchas rondas distintas, así que el piso es más bajo.
+        minimo = 8 if mec == "ordenar" else BANCO_MINIMO
+        if len(banco) < minimo:
             problemas.append("%s: banco de %d ítems, mínimo %d (si no se agota en una "
-                             "partida y mide memoria)" % (ref, len(banco), BANCO_MINIMO))
-        vistas = set()
-        for i, it in enumerate(banco):
-            donde = "%s ítem %d" % (ref, i)
-            if not it.get("q") or not it.get("m"):
-                problemas.append("%s: sin consigna o sin explicación del error" % donde)
-            ops = it.get("ops") or []
-            if len(ops) < 3:
-                problemas.append("%s: %d opciones, mínimo 3" % (donde, len(ops)))
-            if len(set(ops)) != len(ops):
-                problemas.append("%s: opciones repetidas" % donde)
-            if it.get("q") in vistas:
-                problemas.append("%s: consigna repetida en el mismo banco" % donde)
-            vistas.add(it.get("q"))
+                             "partida y mide memoria)" % (ref, len(banco), minimo))
+        problemas.extend(_validar_banco(ref, mec, a, banco))
         s = a.get("saber") or {}
         if s.get("id") in saberes_vistos:
             problemas.append("%s: saber repetido %s" % (ref, s.get("id")))

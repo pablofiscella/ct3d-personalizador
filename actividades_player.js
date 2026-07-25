@@ -3630,6 +3630,74 @@ GAMES.plurales_z = {
    junto (no de a una). Si se equivoca, explica el porqué (Capa 0 · C3) y vuelve
    a mezclar la MISMA tanda para reintentar (cero fail state). Reusable: línea de
    tiempo, ordenar el cuento, secuencias de proceso, etc. ── */
+/* ── Helper genérico de CLASIFICAR: mostrar un ítem y mandarlo a su categoría.
+
+   Es la mecánica que más usa el Diseño Curricular en Conocimiento del Mundo (opaco /
+   traslúcido / transparente, emite / refleja / no se ve, sólido / líquido / gaseoso,
+   antes / hoy / en los dos…) y estaba escrita a mano en cada juego. Acá se generaliza
+   igual que juegoTriviaTexto/juegoOrdenar, para que una actividad del catálogo sea datos.
+
+   Soporta 2, 3 o 4 categorías: la auditoría usa las tres variantes, y varias de sus
+   correcciones consistían justamente en pasar un binario a tres categorías porque la
+   tercera ERA el contenido (que la Luna refleja no se puede enseñar con "sí/no").
+
+   BANCO: [{it, cat, m}] — `it` es lo que se muestra (emoji o texto), `cat` la categoría
+   correcta y `m` la explicación que aparece al errar (Capa 0 · C3).
+   CATS:  [{cat, label}] en el orden en que se muestran los botones. ── */
+function juegoClasificar(BANCO, consignaTxt, CATS, idPrefijo) {
+  return {
+    crear(ctx) {
+      const rondas = ctx.cfg.rondas || Math.min(8, BANCO.length);
+      ctx.rondas(rondas);
+      let usados = [], ronda = 0;
+      const jugar = () => {
+        ctx.ronda(ronda);
+        consignaVariada(ctx, ronda, consignaTxt, "n");
+        ctx.juego.innerHTML = "";
+        let disp = BANCO.filter((x) => !usados.includes(x.it));
+        if (!disp.length) { usados = []; disp = BANCO.slice(); }
+        // al dominar, prioriza lo que todavía no acertó al primer intento
+        disp = _filtrarPorDominio(ctx, disp, (x) => idPrefijo + "#" + BANCO.indexOf(x));
+        const item = disp[rint(0, disp.length - 1)];
+        ctx.item(idPrefijo + "#" + BANCO.indexOf(item));   // C1: telemetría por ítem real
+        usados.push(item.it);
+        const arriba = el("div", "tablero");
+        // un ítem corto se muestra grande como emoji; uno largo, como texto legible
+        const grande = String(item.it).length <= 3;
+        const cont = el("div", "spriteQuieto anim-pop",
+          `<span style="font-size:${grande ? 80 : 21}px;${grande ? "" : "font-family:'Baloo',sans-serif;padding:0 10px"}">${item.it}</span>`);
+        arriba.appendChild(cont);
+        ctx.juego.appendChild(arriba);
+        const fila = el("div", "filaSprites");
+        let resuelto = false;
+        CATS.forEach(({ cat, label }) => {
+          const b = el("button", "spriteBtn",
+            `<span style="font-size:17px;font-family:'Baloo',sans-serif">${label}</span>`);
+          b.addEventListener("click", async () => {
+            if (resuelto) return;
+            if (cat === item.cat) {
+              resuelto = true;
+              cont.classList.add("anim-brinco");
+              ctx.bien();
+              ronda++;
+              await espera(700);
+              if (ronda >= rondas) ctx.win();
+              else jugar();
+            } else {
+              b.style.animation = "sacudir .4s ease";
+              setTimeout(() => (b.style.animation = ""), 450);
+              ctx.casi(item.m);
+            }
+          });
+          fila.appendChild(b);
+        });
+        ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+      };
+      jugar();
+    },
+  };
+}
+
 function juegoOrdenar(BANCO, consignaTxt, explicaTxt, idPrefijo) {
   return {
     crear(ctx) {

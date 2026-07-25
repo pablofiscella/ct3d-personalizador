@@ -32,9 +32,22 @@ for a in cur.CATALOGO:
                % (a["grado"], a["titulo"], a["id"], a["dc"], a["fuente"]))
     out.append("const %s = %s;" % (banco, json.dumps(a["banco"], ensure_ascii=False,
                                                      indent=2)))
+    pfx = a["id"][:10]
     if a["mecanica"] == "trivia":
-        out.append('GAMES.%s = juegoTriviaTexto(%s, "Elegí la respuesta correcta.", "%s");'
-                   % (a["id"], banco, a["id"][:10]))
+        out.append('GAMES.%s = juegoTriviaTexto(%s, %s, "%s");'
+                   % (a["id"], banco, json.dumps(a.get("consigna") or
+                                                 "Elegí la respuesta correcta.",
+                                                 ensure_ascii=False), pfx))
+    elif a["mecanica"] == "clasificar":
+        out.append('GAMES.%s = juegoClasificar(%s, %s, %s, "%s");'
+                   % (a["id"], banco,
+                      json.dumps(a["consigna"], ensure_ascii=False),
+                      json.dumps(a["categorias"], ensure_ascii=False), pfx))
+    elif a["mecanica"] == "ordenar":
+        out.append('GAMES.%s = juegoOrdenar(%s, %s, %s, "%s");'
+                   % (a["id"], banco,
+                      json.dumps(a["consigna"], ensure_ascii=False),
+                      json.dumps(a["explica"], ensure_ascii=False), pfx))
     else:                                    # validar() ya lo impide, red de seguridad
         raise SystemExit("mecánica sin emisor: %r" % a["mecanica"])
     out.append("")
