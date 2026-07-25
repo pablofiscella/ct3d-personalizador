@@ -30,6 +30,7 @@ ARTE_DIR = os.path.join(BASEDIR, "actividades_arte")   # arte escolar por grado 
 TEMPLATE_HTML = os.path.join(BASEDIR, "actividades_player.html")
 TEMPLATE_JS = os.path.join(BASEDIR, "actividades_player.js")
 TEMPLATE_MOTOR = os.path.join(BASEDIR, "motor_adaptativo.js")  # capa de saberes (piloto, gateada)
+TEMPLATE_CURRICULUM = os.path.join(BASEDIR, "actividades_curriculum.js")  # catálogo curricular (generado)
 AUDIO_DIR = os.path.join(BASEDIR, "audio_consignas")
 VIGENCIA_DIAS = 7300         # igual que el audiolibro: respalda "Mis compras"
 _TOKEN_RE = r"[A-Za-z0-9_-]{8,32}"
@@ -1266,6 +1267,26 @@ def revocar(token, on=True):
     return dj["revocado"]
 
 
+def _menu_curricular(edad):
+    """Actividades del catálogo CURRICULAR que le corresponden a esa edad.
+
+    El catálogo (`actividades_curriculum.py`) declara cada actividad UNA vez —con el
+    contenido del DC que cubre y el documento del que salió— y de ahí sale el menú, la
+    categoría y el saber. Antes había que tocar cuatro archivos para sumar una.
+
+    Nunca lanza: si el catálogo tuviera un problema, el cuaderno sale con el menú de
+    siempre en vez de no salir."""
+    try:
+        import actividades_curriculum as cur
+        grado = int(str(edad).strip()) - 5
+    except (TypeError, ValueError, ImportError):
+        return []
+    try:
+        return cur.menu_de_grado(grado)
+    except Exception:
+        return []
+
+
 def _armar_data(tema, nombre, edad, seed, escolar=False):
     """El data.json del token: paleta + menú + puzzles verificados."""
     from cuaderno import _tema_nombre, _tema_palabras, PALABRAS
@@ -1302,7 +1323,7 @@ def _armar_data(tema, nombre, edad, seed, escolar=False):
         laberintos_chicos = [_lab_json(n, seed + 900 + i * 23) for i, n in enumerate(tams_chicos)]
 
     titulo = ("Las actividades de %s" % nombre) if nombre else "Cuaderno de actividades"
-    menu_niv = _marcar_niveles(_menu(banda, edad))
+    menu_niv = _marcar_niveles(_menu(banda, edad) + _menu_curricular(edad))
     return {
         "v": 1, "tema": tema, "tema_nombre": _mundo_de_grado(edad, escolar) or _tema_nombre(tema),
         "nombre": nombre, "edad": edad, "banda": banda, "titulo": titulo,
@@ -2047,7 +2068,7 @@ def html(token):
 
 
 _ASSET_RE = re.compile(
-    r"^(data\.json|extras\.json|player\.js|motor_adaptativo\.js|f[12]\.ttf|[ps]\d{2}\.png|colorear_\d\.png|escena\.jpg|portada\.jpg"
+    r"^(data\.json|extras\.json|player\.js|motor_adaptativo\.js|actividades_curriculum\.js|f[12]\.ttf|[ps]\d{2}\.png|colorear_\d\.png|escena\.jpg|portada\.jpg"
     r"|audio_manifest\.json|c_[a-f0-9]{10}\.mp3)$")
 _CT = {".json": "application/json; charset=utf-8", ".js": "text/javascript; charset=utf-8",
        ".ttf": "font/ttf", ".png": "image/png", ".jpg": "image/jpeg", ".mp3": "audio/mpeg"}
@@ -2065,6 +2086,8 @@ def archivo(token, nombre):
         p = TEMPLATE_JS
     elif nombre == "motor_adaptativo.js":
         p = TEMPLATE_MOTOR
+    elif nombre == "actividades_curriculum.js":
+        p = TEMPLATE_CURRICULUM
     elif nombre == "f1.ttf":
         p = os.path.join(BASEDIR, "fonts", "Baloo2-VF.ttf")
     elif nombre == "f2.ttf":

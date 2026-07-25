@@ -316,6 +316,15 @@ SABERES = {
                          "prerrequisitos": [], "juegos": ["estaciones"], "dificultad": 2},
 }
 
+# Saberes del catálogo CURRICULAR (actividades_curriculum.py): las actividades nuevas
+# declaran su saber en la MISMA entrada que el resto de la actividad, así sumar una no
+# obliga a editar también este archivo. Si el catálogo fallara, el grafo queda como está.
+try:
+    import actividades_curriculum as _cur
+    SABERES.update(_cur.saberes())
+except Exception:
+    pass
+
 EJE_LABEL = {
     "numeracion": "Numeración", "operaciones": "Operaciones", "fracciones": "Fracciones",
     "decimales": "Decimales", "medida": "Medida y dinero", "geometria": "Geometría",

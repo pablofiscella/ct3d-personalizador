@@ -180,16 +180,29 @@ CATEGORIA = {
 
 
 def categoria_de(juego_id, default=None):
-    """Categoría de un juego por su id (el mismo que usa GAMES.<id> / el menú)."""
-    return CATEGORIA.get(juego_id, default)
+    """Categoría de un juego por su id (el mismo que usa GAMES.<id> / el menú).
+
+    Incluye las del catálogo curricular (`actividades_curriculum`), que declaran su área
+    en la misma entrada que el resto de la actividad — así agregar una no obliga a
+    acordarse de registrarla también acá."""
+    if juego_id in CATEGORIA:
+        return CATEGORIA[juego_id]
+    try:
+        import actividades_curriculum as _cur
+        return _cur.categorias().get(juego_id, default)
+    except Exception:
+        return default
 
 
 # Orden y etiqueta visible de los carriles en el lateral. "logica" se muestra como
 # "Ingenio" (juegos transversales sin materia). Labels cambiables sin tocar la lógica.
-CATEGORIA_ORDEN = ["lengua", "matematica", "naturales", "sociales", "logica"]
+# "cdm" = Conocimiento del Mundo: en el DC 2024 de CABA, 1° a 3° NO tienen Naturales y
+# Sociales separadas — son un área única. Recién se separan en 4°. Va antes que ellas en
+# el orden porque en los grados donde aparece, las otras dos están vacías.
+CATEGORIA_ORDEN = ["lengua", "matematica", "cdm", "naturales", "sociales", "logica"]
 CATEGORIA_LABEL = {
-    "lengua": "Lengua", "matematica": "Matemática", "naturales": "Cs. Naturales",
-    "sociales": "Cs. Sociales", "logica": "Extras",
+    "lengua": "Lengua", "matematica": "Matemática", "cdm": "Conocimiento del Mundo",
+    "naturales": "Cs. Naturales", "sociales": "Cs. Sociales", "logica": "Extras",
 }
 
 
