@@ -67,6 +67,13 @@ def test_el_banco_respeta_la_forma_de_su_mecanica(act):
         for it in act["banco"]:
             items = it["items"]
             assert len(items) >= 3 and len(set(items)) == len(items), items
+    elif mec == "parametrica":
+        # no tiene banco: el contrato es que la plantilla GENERE ejercicios válidos y
+        # variados. Se simula de verdad, con las mismas guardas que el player.
+        pl = act["plantilla"]
+        ejercicios = {cur._simular(pl) for _ in range(600)} - {None}
+        assert len(ejercicios) >= 20, \
+            "%s: sólo %d ejercicios distintos" % (act["id"], len(ejercicios))
     else:
         pytest.fail("mecánica sin contrato verificado: %r" % mec)
 
@@ -118,6 +125,14 @@ def test_el_js_generado_esta_sincronizado():
     for a in cur.CATALOGO:
         assert "GAMES.%s = " % a["id"] in js, \
             "%s está en el catálogo pero no en el JS: falta regenerar" % a["id"]
+        if a["mecanica"] == "parametrica":
+            # emite la PLANTILLA, no un banco; tiene que ser la misma que el catálogo
+            pl = re.search(r"const CUR_%s_PLANTILLA = (\{.*?\n\});" % a["id"].upper(),
+                           js, re.S)
+            assert pl, a["id"]
+            assert json.loads(pl.group(1)) == a["plantilla"], \
+                "%s: la plantilla del JS quedó vieja" % a["id"]
+            continue
         # el banco tiene que estar completo, no una versión vieja más corta
         banco = re.search(r"const CUR_%s_BANCO = (\[.*?\n\]);" % a["id"].upper(), js, re.S)
         assert banco, a["id"]

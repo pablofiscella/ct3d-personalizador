@@ -3630,6 +3630,138 @@ GAMES.plurales_z = {
    junto (no de a una). Si se equivoca, explica el porqué (Capa 0 · C3) y vuelve
    a mezclar la MISMA tanda para reintentar (cero fail state). Reusable: línea de
    tiempo, ordenar el cuento, secuencias de proceso, etc. ── */
+/* ── Helper genérico PARAMÉTRICO: el ejercicio se GENERA desde una plantilla.
+
+   Es lo que la auditoría llama "paramétrica": ítems infinitos desde plantillas con rangos
+   por nivel y guardas de colisión obligatorias. A diferencia de un banco, no hay nada que
+   memorizar — cada partida trae números nuevos. Es la mecánica que resuelve de raíz el
+   pedido de Pablo ("que no aprenda por memoria sino porque entendió el saber").
+
+   La plantilla es DATOS (viene del catálogo curricular), no código:
+     q            "¿Cuánto es {a} + {b}?"        — {var} se reemplaza por su valor
+     vars         {a: {rango:[10,99], paso:1}, b: {opciones:[1,10,100]}}
+     ok           "a + b"                        — expresión sobre las vars
+     distractores ["a + b*10", "a - b"]          — errores TÍPICOS, no ruido al azar
+     tope         1000                           — nada puede pasarse (nodal del grado)
+
+   GUARDAS (las exige la auditoría, y sin ellas la actividad se rompe sola): distractor ≠
+   correcta, sin duplicados entre distractores, sin negativos y sin cruzar el tope. Si una
+   tirada no cumple, se descarta y se genera otra. ── */
+function _evalExpr(expr, vars) {
+  // Evaluador ACOTADO: números, variables y + - * / con paréntesis. Nada de eval():
+  // la plantilla viene de datos y no tiene por qué poder ejecutar código.
+  const txt = String(expr);
+  // La expresión tiene que estar formada SÓLO por lo permitido. Sin este chequeo, el
+  // tokenizador descartaba en silencio lo que no reconocía ("a.constructor" se leía como
+  // "a") y la plantilla devolvía una respuesta incorrecta sin fallar nunca.
+  if (!/^[\d\s+\-*/().a-zA-Z_]*$/.test(txt) || /[.]\D/.test(txt)) {
+    throw new Error("expresión no permitida: " + txt);
+  }
+  const tok = txt.match(/\d+\.?\d*|[a-zA-Z_]\w*|[+\-*/()]/g) || [];
+  let i = 0;
+  const peek = () => tok[i];
+  const expresion = () => {
+    let v = termino();
+    while (peek() === "+" || peek() === "-") { const o = tok[i++]; const r = termino(); v = o === "+" ? v + r : v - r; }
+    return v;
+  };
+  const termino = () => {
+    let v = factor();
+    while (peek() === "*" || peek() === "/") { const o = tok[i++]; const r = factor(); v = o === "*" ? v * r : v / r; }
+    return v;
+  };
+  const factor = () => {
+    const t = tok[i++];
+    if (t === "(") { const v = expresion(); i++; return v; }
+    if (t === "-") return -factor();
+    if (/^\d/.test(t)) return parseFloat(t);
+    if (!(t in vars)) throw new Error("variable desconocida: " + t);
+    return vars[t];
+  };
+  const v = expresion();
+  // si sobraron tokens, la expresión no se entendió entera: mejor romper que responder mal
+  if (i !== tok.length) throw new Error("expresión mal formada: " + txt);
+  if (!isFinite(v)) throw new Error("expresión inválida: " + txt);
+  return v;
+}
+
+function _sortearVars(defs) {
+  const vars = {};
+  for (const nombre in defs) {
+    const d = defs[nombre];
+    if (d.opciones) vars[nombre] = d.opciones[rint(0, d.opciones.length - 1)];
+    else {
+      const paso = d.paso || 1;
+      vars[nombre] = rint(Math.ceil(d.rango[0] / paso), Math.floor(d.rango[1] / paso)) * paso;
+    }
+  }
+  return vars;
+}
+
+function juegoParametrico(PLANTILLA, consignaTxt, idPrefijo) {
+  return {
+    crear(ctx) {
+      const rondas = ctx.cfg.rondas || 10;
+      ctx.rondas(rondas);
+      let ronda = 0;
+      const generar = () => {
+        const tope = PLANTILLA.tope || Infinity;
+        for (let intento = 0; intento < 60; intento++) {
+          let vars, ok;
+          try { vars = _sortearVars(PLANTILLA.vars); ok = _evalExpr(PLANTILLA.ok, vars); }
+          catch (e) { continue; }
+          if (!Number.isInteger(ok) || ok < 0 || ok > tope) continue;   // guarda
+          const ds = [];
+          for (const expr of PLANTILLA.distractores) {
+            let d;
+            try { d = _evalExpr(expr, vars); } catch (e) { continue; }
+            // guardas: entero, no negativo, dentro del tope, distinto de la correcta
+            // y sin repetir otro distractor
+            if (!Number.isInteger(d) || d < 0 || d > tope || d === ok || ds.includes(d)) continue;
+            ds.push(d);
+          }
+          if (ds.length < 2) continue;
+          let q = PLANTILLA.q;
+          for (const n in vars) q = q.split("{" + n + "}").join(vars[n]);
+          const clave = Object.keys(vars).sort().map((n) => n + vars[n]).join("_");
+          return { q: q, ok: ok, d: ds.slice(0, 2), clave: clave,
+                   m: (PLANTILLA.m || "").replace("{ok}", ok) };
+        }
+        return null;
+      };
+      const jugar = () => {
+        ctx.ronda(ronda);
+        const it = generar();
+        if (!it) { ctx.win(); return; }        // plantilla imposible: no deja al chico trabado
+        ctx.item(idPrefijo + "#" + it.clave);
+        ctx.consigna(it.q);
+        ctx.juego.innerHTML = "";
+        const opciones = shuffle([{ v: it.ok, ok: true }].concat(it.d.map((x) => ({ v: x }))));
+        const fila = el("div", "ops");
+        let resuelto = false;
+        opciones.forEach((o) => {
+          const b = el("button", "op", String(o.v));
+          b.addEventListener("click", async () => {
+            if (resuelto) return;
+            if (o.ok) {
+              resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++;
+              await espera(900);
+              if (ronda >= rondas) ctx.win(); else jugar();
+            } else {
+              b.classList.add("casi");
+              setTimeout(() => b.classList.remove("casi"), 450);
+              ctx.casi(it.m);
+            }
+          });
+          fila.appendChild(b);
+        });
+        ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+      };
+      jugar();
+    },
+  };
+}
+
 /* ── Helper genérico de CLASIFICAR: mostrar un ítem y mandarlo a su categoría.
 
    Es la mecánica que más usa el Diseño Curricular en Conocimiento del Mundo (opaco /
