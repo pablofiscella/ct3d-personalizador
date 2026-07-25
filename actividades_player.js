@@ -2728,7 +2728,10 @@ GAMES.campo_ciudad = {
       ctx.juego.innerHTML = "";
       let disp = CAMPO_CIUDAD_BANCO.filter((x) => !usados.includes(x.e));
       if (!disp.length) { usados = []; disp = CAMPO_CIUDAD_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "campociu#" + CAMPO_CIUDAD_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("campociu#" + CAMPO_CIUDAD_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.e);
       const arriba = el("div", "tablero");
       const cont = el("div", "spriteQuieto anim-pop", `<span style="font-size:80px">${item.e}</span>`);
@@ -2791,7 +2794,10 @@ GAMES.planta_fruto = {
       ctx.juego.innerHTML = "";
       let disp = PLANTA_FRUTO_BANCO.filter((x) => !usados.includes(x.planta));
       if (!disp.length) { usados = []; disp = PLANTA_FRUTO_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "plantafr#" + PLANTA_FRUTO_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("plantafr#" + PLANTA_FRUTO_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.planta);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto", `<span style="font-size:80px">${item.planta}</span>`));
@@ -5344,7 +5350,8 @@ GAMES.equivalencias_medida = {
     const jugar = () => {
       ctx.ronda(ronda);
       const c = CONV[rint(0, CONV.length - 1)];
-      const N = rint(1, 9);
+      // adaptativo: al dominar, cantidades más grandes (misma conversión, cuenta mayor)
+      const N = rint(1, 9 + Math.min(15, ctx.bonusDominio * 5));
       const correcto = N * c.f;
       ctx.item("medida#" + N + "_" + c.u1 + "_" + c.u2);
       ctx.consigna("¿Cuántos " + c.u2 + " hay en " + N + " " + (N === 1 ? c.u1 : c.u1p) + "?");
@@ -5415,6 +5422,7 @@ GAMES.verbos_pasado = {
       ctx.ronda(ronda);
       let disp = VERBOS_PASADO_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
       if (!disp.length) { usados = []; disp = VERBOS_PASADO_BANCO.map((_, i) => i); }
+      disp = _ordenPorDominio(ctx, disp, "verbopas");   // al dominar, lo que aún no sabe
       const idx = disp[rint(0, disp.length - 1)]; usados.push(idx);
       const it = VERBOS_PASADO_BANCO[idx];
       ctx.item("verbopas#" + idx);
@@ -5474,6 +5482,7 @@ GAMES.buenos_aires = {
       ctx.ronda(ronda);
       let disp = BUENOS_AIRES_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
       if (!disp.length) { usados = []; disp = BUENOS_AIRES_BANCO.map((_, i) => i); }
+      disp = _ordenPorDominio(ctx, disp, "baires");   // al dominar, lo que aún no sabe
       const idx = disp[rint(0, disp.length - 1)]; usados.push(idx);
       const it = BUENOS_AIRES_BANCO[idx];
       ctx.item("baires#" + idx);
@@ -5834,6 +5843,7 @@ GAMES.decimales_fraccion = {
       ctx.ronda(ronda);
       let disp = DEC_FRAC_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
       if (!disp.length) { usados = []; disp = DEC_FRAC_BANCO.map((_, i) => i); }
+      disp = _ordenPorDominio(ctx, disp, "decfrac");   // al dominar, lo que aún no sabe
       const idx = disp[rint(0, disp.length - 1)]; usados.push(idx);
       const it = DEC_FRAC_BANCO[idx];
       ctx.item("decfrac#" + idx);
@@ -5867,7 +5877,8 @@ GAMES.suma_fracciones = {
     let ronda = 0;
     const jugar = () => {
       ctx.ronda(ronda);
-      const den = rint(4, 9);
+      // adaptativo: al dominar, denominadores más grandes (misma regla, cuenta más dura)
+      const den = rint(4, 9 + Math.min(6, ctx.bonusDominio * 3));
       const a = rint(1, den - 2);
       const b = rint(1, den - 1 - a);            // a+b < den → resultado propio
       const sum = a + b;
@@ -6412,7 +6423,10 @@ GAMES.materiales = {
       ctx.juego.innerHTML = "";
       let disp = MATERIALES_BANCO.filter((x) => !usados.includes(x.obj));
       if (!disp.length) { usados = []; disp = MATERIALES_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "matmat#" + MATERIALES_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("matmat#" + MATERIALES_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.obj);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto", `<span style="font-size:80px">${item.obj}</span>`));
@@ -6532,7 +6546,10 @@ GAMES.sustantivos = {
       ctx.juego.innerHTML = "";
       let disp = SUSTANTIVOS_BANCO.filter((x) => !usados.includes(x.p));
       if (!disp.length) { usados = []; disp = SUSTANTIVOS_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "sustan#" + SUSTANTIVOS_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("sustan#" + SUSTANTIVOS_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.p);
       const arriba = el("div", "tablero");
       const cont = el("div", "spriteQuieto anim-pop",
@@ -6681,7 +6698,10 @@ GAMES.sinonimos_antonimos = {
       ctx.juego.innerHTML = "";
       let disp = SINANT_BANCO.filter((x) => !usados.includes(x.p));
       if (!disp.length) { usados = []; disp = SINANT_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "sinant#" + SINANT_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("sinant#" + SINANT_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.p);
       ctx.consigna(item.rel === "sin" ? "¿Cuál es el sinónimo?" : "¿Cuál es el antónimo?");
       const arriba = el("div", "tablero");
@@ -6805,7 +6825,10 @@ GAMES.conductor_aislante = {
       ctx.juego.innerHTML = "";
       let disp = CONDUCTOR_BANCO.filter((x) => !usados.includes(x.e));
       if (!disp.length) { usados = []; disp = CONDUCTOR_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "conduct#" + CONDUCTOR_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("conduct#" + CONDUCTOR_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.e);
       const arriba = el("div", "tablero");
       const cont = el("div", "spriteQuieto anim-pop", `<span style="font-size:80px">${item.e}</span>`);
@@ -6879,7 +6902,10 @@ GAMES.familia_palabras = {
       ctx.juego.innerHTML = "";
       let disp = FAMILIA_BANCO.filter((x) => !usados.includes(x.raiz));
       if (!disp.length) { usados = []; disp = FAMILIA_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "familia#" + FAMILIA_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("familia#" + FAMILIA_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.raiz);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto",
@@ -6944,7 +6970,10 @@ GAMES.trivia_espacial = {
       ctx.juego.innerHTML = "";
       let disp = ESPACIAL_BANCO.filter((x) => !usados.includes(x.e));
       if (!disp.length) { usados = []; disp = ESPACIAL_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "espacial#" + ESPACIAL_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("espacial#" + ESPACIAL_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.e);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto", `<span style="font-size:80px">${item.e}</span>`));
@@ -7085,7 +7114,10 @@ GAMES.animal_comida = {
       ctx.juego.innerHTML = "";
       let disp = ANIMAL_COMIDA_BANCO.filter((x) => !usados.includes(x.animal));
       if (!disp.length) { usados = []; disp = ANIMAL_COMIDA_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "animalco#" + ANIMAL_COMIDA_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("animalco#" + ANIMAL_COMIDA_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.animal);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto", `<span style="font-size:80px">${item.animal}</span>`));
@@ -7151,7 +7183,10 @@ GAMES.partes_oracion = {
       ctx.juego.innerHTML = "";
       let disp = PARTES_ORACION_BANCO.filter((x) => !usados.includes(x.p));
       if (!disp.length) { usados = []; disp = PARTES_ORACION_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "partesor#" + PARTES_ORACION_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("partesor#" + PARTES_ORACION_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.p);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto anim-pop",
@@ -7270,7 +7305,10 @@ GAMES.tiempos_verbales = {
       ctx.juego.innerHTML = "";
       let disp = TIEMPOS_BANCO.filter((x) => !usados.includes(x.p));
       if (!disp.length) { usados = []; disp = TIEMPOS_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "tiempos#" + TIEMPOS_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("tiempos#" + TIEMPOS_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.p);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto anim-pop",
@@ -7337,7 +7375,10 @@ GAMES.estaciones = {
       ctx.juego.innerHTML = "";
       let disp = ESTACIONES_BANCO.filter((x) => !usados.includes(x.e));
       if (!disp.length) { usados = []; disp = ESTACIONES_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "estacion#" + ESTACIONES_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("estacion#" + ESTACIONES_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.e);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto", `<span style="font-size:80px">${item.e}</span>`));
@@ -7479,7 +7520,10 @@ GAMES.separador_mezclas = {
       ctx.juego.innerHTML = "";
       let disp = MEZCLAS_BANCO.filter((x) => !usados.includes(x.mezcla));
       if (!disp.length) { usados = []; disp = MEZCLAS_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "mezclas#" + MEZCLAS_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("mezclas#" + MEZCLAS_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.mezcla);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto",
@@ -7925,7 +7969,10 @@ GAMES.laboratorio_electrico = {
       ctx.juego.innerHTML = "";
       let disp = ELECTRICO_BANCO.filter((x) => !usados.includes(x.e));
       if (!disp.length) { usados = []; disp = ELECTRICO_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "electrico#" + ELECTRICO_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("electrico#" + ELECTRICO_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.e);
       const arriba = el("div", "tablero");
       const cont = el("div", "spriteQuieto anim-pop", `<span style="font-size:80px">${item.e}</span>`);
@@ -8514,6 +8561,8 @@ GAMES.transportador = {
       ctx.juego.innerHTML = "";
       let disp = TRANSPORTADOR_BANCO.filter((x) => !usados.includes(x));
       if (!disp.length) { usados = []; disp = TRANSPORTADOR_BANCO; }
+      // al dominar, prioriza los ángulos que todavía no midió bien de una
+      disp = _filtrarPorDominio(ctx, disp, (x) => "transportador#" + x);
       const th = disp[rint(0, disp.length - 1)]; usados.push(th);
       ctx.item("transportador#" + th);
 
@@ -8887,7 +8936,10 @@ GAMES.trivia_colonial = {
       ctx.juego.innerHTML = "";
       let disp = COLONIAL_BANCO.filter((x) => !usados.includes(x.afirmacion));
       if (!disp.length) { usados = []; disp = COLONIAL_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "colonial#" + COLONIAL_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("colonial#" + COLONIAL_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.afirmacion);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto",
@@ -9029,7 +9081,10 @@ GAMES.fracciones_avanzado = {
       ctx.juego.innerHTML = "";
       let disp = FRACCIONES_AVANZADO_BANCO.filter((x) => !usados.includes(x.num + "/" + x.den));
       if (!disp.length) { usados = []; disp = FRACCIONES_AVANZADO_BANCO; }
+      // al dominar, prioriza las fracciones que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "fracav#" + x.num + "/" + x.den);
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("fracav#" + item.num + "/" + item.den);   // C1: telemetría por ítem real
       usados.push(item.num + "/" + item.den);
       const arriba = el("div", "tablero");
       arriba.appendChild(barra(item.num, item.den));
@@ -9112,7 +9167,10 @@ GAMES.analisis_sintactico = {
       ctx.juego.innerHTML = "";
       let disp = SINTACTICO_BANCO.filter((x) => !usados.includes(x.oracion));
       if (!disp.length) { usados = []; disp = SINTACTICO_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "sintac#" + SINTACTICO_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("sintac#" + SINTACTICO_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.oracion);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto",
@@ -9353,7 +9411,10 @@ GAMES.actividad_economica = {
       ctx.juego.innerHTML = "";
       let disp = ECONOMIA_BANCO.filter((x) => !usados.includes(x.p));
       if (!disp.length) { usados = []; disp = ECONOMIA_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "economia#" + ECONOMIA_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("economia#" + ECONOMIA_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.p);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto",
@@ -9493,7 +9554,10 @@ GAMES.derechos_constitucion = {
       ctx.juego.innerHTML = "";
       let disp = DERECHOS_BANCO.filter((x) => !usados.includes(x.afirmacion));
       if (!disp.length) { usados = []; disp = DERECHOS_BANCO; }
+      // al dominar, prioriza lo que todavía no acertó al primer intento
+      disp = _filtrarPorDominio(ctx, disp, (x) => "derechos#" + DERECHOS_BANCO.indexOf(x));
       const item = disp[rint(0, disp.length - 1)];
+      ctx.item("derechos#" + DERECHOS_BANCO.indexOf(item));   // C1: telemetría por ítem real
       usados.push(item.afirmacion);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto",
