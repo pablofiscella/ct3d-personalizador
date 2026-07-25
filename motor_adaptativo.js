@@ -34,6 +34,26 @@ const Adapt = {
     for (const sid in SABERES_MOTOR) if (this.saberDominado(sid)) set.add(sid);
     return set;
   },
+  // ── nivelación inicial (ALEKS) ──────────────────────────────────────────────
+  // ALEKS abre con un diagnóstico que UBICA al alumno; sin eso todos arrancan de
+  // cero aunque ya sepan, y el motor les hace perder el tiempo con lo que ya
+  // saben hacer. `ubicado` es el resultado de ese sondeo y es DISTINTO de
+  // `dominado` a propósito: dominado es evidencia ganada practicando en días
+  // distintos —es lo que ve el padre y lo que dispara la oferta— mientras que
+  // ubicado sólo dice DÓNDE EMPEZAR. Mezclarlos daría por dominado algo que el
+  // chico contestó bien una vez.
+  saberUbicado(sid) {
+    const st = this._store();
+    return !!(st && st.ubicado && st.ubicado(sid));
+  },
+  // Lo que el motor considera "ya lo sabe hacer" para no volver a ofrecerlo y para
+  // dar por cumplido un prerrequisito. El panel de padres NO usa esto.
+  _conocidos() {
+    const set = this._dominados();
+    const st = this._store();
+    if (st && st.ubicados) for (const sid of st.ubicados()) if (SABERES_MOTOR[sid]) set.add(sid);
+    return set;
+  },
   _prereqsOk(sid, dom) { return SABERES_MOTOR[sid].prereqs.every((p) => dom.has(p)); },
   // 'repaso' | 'dominado' | 'recomendado' | 'disponible' | 'reforzar'
   estadoActividad(actId) {
@@ -43,8 +63,53 @@ const Adapt = {
     if (!saberes.length) return "disponible";  // sin saber del grado (Extras/otra materia/otro grado)
     const dom = this._dominados();
     if (saberes.every((s) => dom.has(s))) return "dominado";
-    if (saberes.some((s) => !dom.has(s) && this._prereqsOk(s, dom))) return "recomendado";
+    // el frente se calcula con lo CONOCIDO (dominado + ubicado por el sondeo): un
+    // prerrequisito que el chico ya sabe hacer no puede seguir frenándolo.
+    const con = this._conocidos();
+    if (saberes.every((s) => con.has(s))) return "disponible";   // lo ubicó el sondeo: no se lo insiste
+    if (saberes.some((s) => !con.has(s) && this._prereqsOk(s, con))) return "recomendado";
     return "reforzar";
+  },
+  // Saberes a sondear: uno por materia del grado, de dificultad media-alta (el que
+  // más información da — si lo sabe, se infieren sus prerrequisitos; si no, no se
+  // asume nada). Devuelve [{sid, juego, categoria}].
+  planSondeo(menuIds) {
+    const enMenu = new Set(menuIds || []);
+    const g = this._grado();
+    const prof = (sid, vistos) => {          // profundidad en la cadena de prereqs
+      if (vistos.has(sid)) return 0;         // corta ciclos por las dudas
+      vistos.add(sid);
+      const s = SABERES_MOTOR[sid];
+      if (!s || !s.prereqs.length) return 0;
+      return 1 + Math.max(...s.prereqs.map((p) => prof(p, vistos)));
+    };
+    const porCat = {};
+    for (const sid in SABERES_MOTOR) {
+      const s = SABERES_MOTOR[sid];
+      if (s.grado !== g) continue;
+      const juego = s.juegos.find((j) => enMenu.has(j));
+      if (!juego) continue;                  // sin juego abrible no se puede sondear
+      const cat = this.categoria(juego);
+      (porCat[cat] = porCat[cat] || []).push({ sid, juego, cat, d: prof(sid, new Set()) });
+    }
+    const plan = [];
+    for (const cat of CATEGORIA_ORDEN) {
+      const arr = porCat[cat];
+      if (!arr || !arr.length || cat === "logica") continue;   // Extras no es materia
+      arr.sort((a, b) => a.d - b.d);
+      plan.push(arr[Math.min(arr.length - 1, Math.floor(arr.length * 0.6))]);
+    }
+    return plan;
+  },
+  // Si el chico resolvió bien el sondeo de un saber, se dan por sabidos también sus
+  // prerrequisitos: es la inferencia de ALEKS (no se puede resolver lo de arriba sin
+  // lo de abajo) y es lo que hace que un sondeo corto ubique mucho.
+  saberYPrereqs(sid, acc) {
+    acc = acc || new Set();
+    if (!SABERES_MOTOR[sid] || acc.has(sid)) return acc;
+    acc.add(sid);
+    for (const p of SABERES_MOTOR[sid].prereqs) this.saberYPrereqs(p, acc);
+    return acc;
   },
   _ORDEN: { repaso: 0, recomendado: 1, disponible: 2, dominado: 3, reforzar: 4 },
   peso(actId) { return this._ORDEN[this.estadoActividad(actId)]; },

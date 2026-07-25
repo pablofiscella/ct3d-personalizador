@@ -1076,6 +1076,10 @@ class Handler(BaseHTTPRequestHandler):
         m_prog = re.match(r"^/act/([A-Za-z0-9_-]+)/progreso$", path)
         if m_prog:
             return self._act_progreso_get(m_prog.group(1))
+        # informe imprimible para la maestra (lo lleva la familia, no lo pide la escuela)
+        m_inf = re.match(r"^/act/([A-Za-z0-9_-]+)/informe$", path)
+        if m_inf:
+            return self._act_informe(m_inf.group(1))
         # actividades EXTRA que el padre eligió ("¿qué ven en la escuela?")
         m_ext = re.match(r"^/act/([A-Za-z0-9_-]+)/extras$", path)
         if m_ext:
@@ -1509,6 +1513,15 @@ class Handler(BaseHTTPRequestHandler):
             "motivo": (str(ev.get("motivo"))[:120] if ev.get("motivo") else None),
             "t": int(ev.get("t") or 0) if str(ev.get("t") or "0").isdigit() else 0,
         }
+        # telemetría de PROCESO (DreamBox): ms hasta el primer toque, ms hasta responder
+        # y toques dados. Se sanean acá igual que el resto — el player es código que
+        # corre en el dispositivo del chico, así que nada de lo que manda es confiable.
+        for k, tope in (("ms1", 300000), ("ms", 300000), ("toq", 999)):
+            v = ev.get(k)
+            try:
+                rec[k] = None if v is None else max(0, min(tope, int(v)))
+            except (TypeError, ValueError):
+                rec[k] = None
         p = os.path.join(d, "telemetria.jsonl")
         try:
             # tope defensivo: no dejar crecer sin límite si alguien spamea con el token.
@@ -1568,6 +1581,123 @@ class Handler(BaseHTTPRequestHandler):
         r = aw.extras_guardar(token, body["items"],
                               compradas=compradas if isinstance(compradas, list) else None)
         return self._json(200 if r.get("ok") else 400, r)
+
+    def _act_informe(self, token):
+        """Informe imprimible de lo que el chico trabajó en casa, para la maestra.
+
+        Por qué existe y por qué es ASÍ: la dirección de Pablo fue que el producto NO
+        dependa de la maestra —hacer que la familia tenga que pedirle que habilite
+        temas es otro "trabado"—, pero que la escuela pueda VER lo que el chico hizo.
+        Por eso es una SALIDA: la genera la familia y se la lleva. No hay login docente,
+        ni panel, ni nada que la escuela tenga que adoptar para que el producto sirva.
+
+        Habla en lenguaje curricular (nombre del saber y eje del Diseño Curricular),
+        no en lenguaje de juego: a la maestra "tablas ninja: 3 estrellas" no le dice
+        nada, "multiplicación por una cifra: dominado" sí.
+
+        Distingue DOMINADO de "lo trabajó": dominado es evidencia sostenida en días
+        distintos. Decirle a una maestra que un chico domina algo porque acertó una
+        vez sería exactamente el tipo de dato que hace que no vuelva a confiar en el
+        informe."""
+        import actividades_web as aw
+        import html as _html
+        d = os.path.join(aw.ACT_DIR, token)
+        if not os.path.isdir(d):
+            return self._json(404, {"ok": False})
+        try:
+            data = json.load(open(os.path.join(d, "data.json"), encoding="utf-8"))
+        except Exception:
+            data = {}
+        try:
+            prog = json.load(open(os.path.join(d, "progreso.json"), encoding="utf-8"))
+        except Exception:
+            prog = {"profiles": {}}
+        try:
+            import saberes as _sab
+            import actividades_categorias as _cat
+            SAB = _sab.SABERES
+            LABEL = _cat.CATEGORIA_LABEL
+            ORDEN = _cat.CATEGORIA_ORDEN
+        except Exception:
+            SAB, LABEL, ORDEN = {}, {}, []
+        try:
+            grado = int(str(data.get("edad")).strip()) - 5
+        except (TypeError, ValueError):
+            grado = 0
+
+        def _cat_de(sid):
+            js = (SAB.get(sid) or {}).get("juegos") or []
+            for j in js:
+                c = _cat.categoria_de(j) if hasattr(_cat, "categoria_de") else None
+                if c:
+                    return c
+            return None
+
+        # saberes del grado agrupados por materia, en el orden en que se muestran
+        porcat = {}
+        for sid, s in SAB.items():
+            if s.get("grado") != grado:
+                continue
+            c = _cat_de(sid)
+            if not c or c == "logica":
+                continue
+            porcat.setdefault(c, []).append((sid, s))
+
+        filas = []
+        for perfil, info in sorted((prog.get("profiles") or {}).items()):
+            dom = set(info.get("dominados") or [])
+            bloques = []
+            for c in ORDEN:
+                items = porcat.get(c) or []
+                if not items:
+                    continue
+                lis = "".join(
+                    '<li class="%s">%s <span class="eje">%s</span></li>'
+                    % ("dom" if sid in dom else "pend",
+                       _html.escape(s.get("nombre") or sid),
+                       _html.escape((s.get("eje") or "").replace("_", " ")))
+                    for sid, s in sorted(items, key=lambda kv: kv[1].get("nombre") or ""))
+                n = sum(1 for sid, _ in items if sid in dom)
+                bloques.append(
+                    '<section><h3>%s <small>%d de %d dominados</small></h3><ul>%s</ul></section>'
+                    % (_html.escape(LABEL.get(c, c)), n, len(items), lis))
+            filas.append('<article><h2>%s</h2>%s</article>'
+                         % (_html.escape(perfil), "".join(bloques) or "<p>Todavía sin actividad registrada.</p>"))
+
+        cuerpo = "".join(filas) or "<p>Todavía no hay progreso para informar.</p>"
+        doc = """<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Informe para la escuela — %(grado)s.º grado</title><style>
+ body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;max-width:820px;margin:0 auto;
+      padding:26px 20px 60px;color:#1c2430;line-height:1.45}
+ h1{font-size:25px;margin:0 0 4px} .sub{opacity:.7;margin:0 0 20px;font-size:15px}
+ article{border:1px solid #dde3ea;border-radius:14px;padding:16px 18px;margin:0 0 18px;break-inside:avoid}
+ h2{font-size:20px;margin:0 0 10px;border-bottom:2px solid #eef2f6;padding-bottom:6px}
+ h3{font-size:15px;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.04em}
+ h3 small{font-weight:400;text-transform:none;letter-spacing:0;opacity:.65;margin-left:6px}
+ ul{margin:0;padding-left:20px} li{margin-bottom:3px}
+ li.dom::marker{content:"\\2713  "} li.dom{color:#14663a}
+ li.pend::marker{content:"\\25CB  "} li.pend{opacity:.6}
+ .eje{opacity:.5;font-size:13px} .nota{margin-top:26px;font-size:13.5px;opacity:.75;
+      border-top:1px solid #dde3ea;padding-top:12px}
+ @media print{body{padding:0} article{border-color:#bbb}}
+</style></head><body>
+<h1>Lo que trabajó en casa</h1>
+<p class="sub">%(grado)s.º grado · cuaderno de actividades · generado por la familia</p>
+%(cuerpo)s
+<p class="nota"><b>Cómo leerlo.</b> ✓ marca un saber <b>dominado</b>: el chico lo resolvió
+bien de manera sostenida y en días distintos, no una sola vez. ○ marca lo que todavía no
+aparece dominado — puede ser que no lo hayan visto todavía, y no significa dificultad.
+Los nombres y ejes siguen el Diseño Curricular. Este informe lo genera la familia desde
+su casa; no hace falta que la escuela cargue ni configure nada.</p>
+</body></html>""" % {"grado": grado or "—", "cuerpo": cuerpo}
+        body = doc.encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
     def _act_progreso_set(self, token):
         """El player manda un snapshot del progreso de un chico (best-effort, sendBeacon).
