@@ -99,3 +99,50 @@ Sociales en 2° y 3° está en **cero** y Lengua de 6° en **uno**. Mientras sig
 combinaciones no se pueden vender ni recomendar en serio.
 
 **Estado:** pendiente. Es contenido, no código.
+
+---
+
+## 5. Contenido de 1° a 3°: qué está cargado y qué falta (y por qué)
+
+El catálogo (`actividades_curriculum.py`) tiene **17 actividades / 221 ítems**, todas con
+su contenido del DC y el documento del que salieron. Pero la auditoría especifica **51
+actividades sólo para 2°**, y hay dos bloqueos suyos que impiden cargar la mayoría:
+
+### Bloqueo A — 11 actividades de 2° son PARAMÉTRICAS
+
+La auditoría las define como *"ítems infinitos desde plantillas con rangos por nivel y
+guardas de colisión obligatorias"*. No son bancos: son generadores. El catálogo hoy sólo
+emite mecánicas de banco (trivia, clasificar, ordenar).
+
+Falta una mecánica `parametrica` que declare plantilla + rangos + guardas. Es además la
+que resuelve de raíz la memorización (ver punto 2), así que es el mismo trabajo.
+
+Afecta: M1 serie con saltos, M3 formá 100/1.000, M4 cálculo redondo, M5 suma paso a paso,
+M6 ¿cuál es mayor?, M7 bingo numérico, M11 tabla proporcional, M13 doble o mitad, y las
+equivalentes de 1° y 3°.
+
+### Bloqueo B — el contenido insignia de 2° EXIGE AUDIO
+
+Regla NRP, textual de la auditoría: *"Todas las actividades de sistema de escritura son
+fonética CON AUDIO; dependen de `generar_audio_consignas`; **sin ese audio NO se
+publican**"*.
+
+Eso incluye lo que la propia auditoría llama el contenido insignia del grado y su gap más
+grave: **dígrafos (ll, ch, qu, gu, rr) y opacidades ortográficas (b/v, s/c/z, y/ll, g/j)**.
+Cargarlas como trivia de texto sería publicar algo que enseña mal — el chico elegiría por
+cómo se ve la palabra escrita, que es justo lo contrario de lo que la actividad mide.
+
+Afecta: L1 fichas de sonido, L2 ¿con cuál va?, L3 suena fuerte/suave, L4 detective mb/nv/h,
+L19 palabras bien separadas.
+
+### Tamaño de banco
+
+La auditoría fija para 2° **mínimo 30 ítems, 40 los insignia**. Los bancos cargados van
+entre **14 y 16**: son válidos y jugables (el validador exige 12), pero por debajo de ese
+estándar. Agrandarlos es data entry sobre el catálogo, sin tocar código.
+
+### Orden sugerido
+
+1. Mecánica `parametrica` → destraba 11 actividades de 2° y ataca la memorización.
+2. Audio de consignas → destraba las 5 de sistema de escritura, el gap más grave del grado.
+3. Engrosar los bancos cargados de 14-16 a 30.
