@@ -72,10 +72,23 @@ def test_el_banco_respeta_la_forma_de_su_mecanica(act):
 
 
 def test_cdm_es_una_categoria_del_menu():
+    """Conocimiento del Mundo tiene que ser una categoría de verdad (1°-3° del DC), y
+    todas las áreas que declara el catálogo tienen que existir en el menú — si no, la
+    actividad se carga pero queda sin carril y el chico no la ve agrupada."""
     assert "cdm" in ac.CATEGORIA_ORDEN
     assert ac.CATEGORIA_LABEL["cdm"] == "Conocimiento del Mundo"
+    assert cur.actividades_de(area=cur.AREA_CDM), "el catálogo perdió las de CdM"
     for a in cur.CATALOGO:
-        assert ac.categoria_de(a["id"]) == "cdm"
+        # cada actividad se agrupa en el área que declaró, sea cdm, lengua o matemática
+        assert ac.categoria_de(a["id"]) == a["area"], a["id"]
+        assert a["area"] in ac.CATEGORIA_ORDEN, \
+            "%s declara el área %r, que no es un carril del menú" % (a["id"], a["area"])
+
+
+def test_cdm_solo_en_primer_ciclo():
+    """En 4°+ el DC separa Naturales y Sociales: declarar CdM ahí sería contradecirlo."""
+    for a in cur.actividades_de(area=cur.AREA_CDM):
+        assert a["grado"] in (1, 2, 3), a["id"]
 
 
 def test_los_saberes_entran_al_grafo_sin_romperlo():
