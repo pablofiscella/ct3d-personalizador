@@ -1464,6 +1464,90 @@ def _catalogo_juegos():
     return out
 
 
+# ── ACTIVIDADES EXTRA elegidas por el PADRE ("¿qué ven en la escuela?") ─────────
+# El motor recomienda por el grado del chico, pero la escuela real no va sincronizada:
+# un tema puede adelantarse o quedar para más adelante. Acá el padre suma al menú de su
+# hijo actividades de CUALQUIER grado — decisión de Pablo (24-jul) — porque la regla de
+# oro del motor es que nada bloquea y cada habilidad avanza por su cuenta.
+# Es GRATIS con TOPE por materia: sincronizar con la escuela no puede ser un paywall
+# (era justamente la traba que había que sacar), pero el tope evita que el padre se arme
+# el grado siguiente entero y vacíe el desbloqueo por materia que sí se cobra.
+EXTRAS_TOPE_POR_MATERIA = 5
+
+
+def catalogo_actividades():
+    """Todas las actividades por grado, para el selector del padre:
+    {grado: [{id, titulo, icono, cfg, categoria}]}. Un mismo juego aparece en varios
+    grados con cfg distinto (más difícil arriba) — se conserva el del grado elegido,
+    que es justamente lo que hace que "la de 5°" no sea igual a "la de 4°"."""
+    from actividades_categorias import categoria_de
+    out = {}
+    for grado in range(1, 8):
+        edad = str(grado + 5)
+        items = []
+        for m in _menu(_banda(edad), edad):
+            it = dict(m)
+            it["categoria"] = categoria_de(m["id"]) or "extras"
+            items.append(it)
+        out[grado] = items
+    return out
+
+
+def _extras_path(token):
+    return os.path.join(ACT_DIR, token, "extras.json")
+
+
+def extras_leer(token):
+    """{"items": [...]} — vacío si el token no tiene ninguna. Nunca lanza."""
+    try:
+        d = json.load(open(_extras_path(token), encoding="utf-8"))
+        return d if isinstance(d, dict) and isinstance(d.get("items"), list) else {"items": []}
+    except Exception:
+        return {"items": []}
+
+
+def extras_guardar(token, pedidos):
+    """Guarda las actividades extra de un token. `pedidos` = [{id, grado}, ...].
+
+    Valida contra el catálogo REAL (un id inventado no entra) y aplica el tope por
+    materia. Devuelve {"ok", "items", "rechazadas"} — las rechazadas se informan en vez
+    de recortar en silencio, así el padre entiende por qué no entró la que eligió."""
+    d = os.path.join(ACT_DIR, token)
+    if not os.path.isdir(d):
+        return {"ok": False, "error": "token inexistente"}
+    cat = catalogo_actividades()
+    porcat, items, rechazadas = {}, [], []
+    vistos = set()
+    for pedido in (pedidos or [])[:200]:
+        if not isinstance(pedido, dict):
+            continue
+        jid = str(pedido.get("id") or "")[:60]
+        try:
+            grado = int(pedido.get("grado") or 0)
+        except (TypeError, ValueError):
+            grado = 0
+        entrada = next((m for m in cat.get(grado, []) if m["id"] == jid), None)
+        if entrada is None:
+            rechazadas.append({"id": jid, "grado": grado, "motivo": "no existe en ese grado"})
+            continue
+        if (jid, grado) in vistos:
+            continue
+        vistos.add((jid, grado))
+        c = entrada.get("categoria") or "extras"
+        porcat[c] = porcat.get(c, 0) + 1
+        if porcat[c] > EXTRAS_TOPE_POR_MATERIA:
+            rechazadas.append({"id": jid, "grado": grado, "titulo": entrada.get("titulo"),
+                               "motivo": "tope de %d por materia" % EXTRAS_TOPE_POR_MATERIA})
+            continue
+        it = dict(entrada)
+        it["grado"] = grado
+        it["origen"] = "escuela"          # lo eligió el padre, no se compró
+        items.append(it)
+    with open(_extras_path(token), "w", encoding="utf-8") as f:
+        json.dump({"items": items, "ts": int(time.time())}, f, ensure_ascii=False)
+    return {"ok": True, "items": items, "rechazadas": rechazadas}
+
+
 def incluidos_por_edad():
     """{edad: [títulos incluidos]} para las edades del dropdown (2 a 12) —
     Pablo 13-jul-2026: "cuando cambio de edad... creo que no cambian las
@@ -1963,7 +2047,7 @@ def html(token):
 
 
 _ASSET_RE = re.compile(
-    r"^(data\.json|player\.js|motor_adaptativo\.js|f[12]\.ttf|[ps]\d{2}\.png|colorear_\d\.png|escena\.jpg|portada\.jpg"
+    r"^(data\.json|extras\.json|player\.js|motor_adaptativo\.js|f[12]\.ttf|[ps]\d{2}\.png|colorear_\d\.png|escena\.jpg|portada\.jpg"
     r"|audio_manifest\.json|c_[a-f0-9]{10}\.mp3)$")
 _CT = {".json": "application/json; charset=utf-8", ".js": "text/javascript; charset=utf-8",
        ".ttf": "font/ttf", ".png": "image/png", ".jpg": "image/jpeg", ".mp3": "audio/mpeg"}
