@@ -119,36 +119,36 @@ CATEGORIA = {
     "valor_posicional": "matematica",
 
     # ─────────── CS. NATURALES ───────────
-    "animal_comida": "naturales",         # (a retirar, pero mientras exista → Naturales)
+    "animal_comida": "cdm",         # (a retirar, pero mientras exista → Naturales)
     "camino_digestivo": "naturales",
     "celula_partes": "naturales",
     "cerebro_defensas": "naturales",
-    "cielo": "naturales",                 # astronomía
-    "conductor_aislante": "naturales",
+    "cielo": "cdm",                 # astronomía
+    "conductor_aislante": "cdm",
     "detectives_cielo": "naturales",
     "energia_renovable": "naturales",
-    "estaciones": "naturales",
-    "estados_materia": "naturales",
+    "estaciones": "cdm",
+    "estados_materia": "cdm",
     "fotosintesis": "naturales",
     "laboratorio_electrico": "naturales",
-    "luz_materiales": "naturales",
-    "materiales": "naturales",
+    "luz_materiales": "cdm",
+    "materiales": "cdm",
     "planetas_tipo": "naturales",
-    "planta_fruto": "naturales",
+    "planta_fruto": "cdm",
     "planta_potabilizadora": "naturales", # confirmado: proceso del agua como recurso natural (captación→distribución)
     "pubertad": "naturales",
     "red_trofica": "naturales",
-    "sentidos": "naturales",
-    "separador_mezclas": "naturales",
+    "sentidos": "cdm",
+    "separador_mezclas": "cdm",
     "sistema_nervioso": "naturales",
     "sistema_reproductor": "naturales",
-    "trivia_espacial": "naturales",
+    "trivia_espacial": "cdm",
 
     # ─────────── CS. SOCIALES ───────────
     "actividad_economica": "sociales",
     "argentina_sigloXX": "sociales",      # Argentina siglo XX (id camelCase)
     "buenos_aires": "sociales",
-    "campo_ciudad": "sociales",
+    "campo_ciudad": "cdm",
     "derechos_constitucion": "sociales",
     "historia_originarios": "sociales",
     "independencia_arg": "sociales",
