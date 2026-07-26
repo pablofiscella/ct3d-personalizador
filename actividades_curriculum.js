@@ -1674,216 +1674,6 @@ const CUR_FORMA_REDONDO_PLANTILLA = {
 };
 GAMES.forma_redondo = juegoParametrico(CUR_FORMA_REDONDO_PLANTILLA, "¿Cuánto falta?", "forma_redo");
 
-/* 6° · Clasificá pronombres — pronombres_clasif
-   DC: Pronombres personales, posesivos y demostrativos
-   Fuente: docs/auditoria-dc-caba/grado-6.md · L6 */
-const CUR_PRONOMBRES_CLASIF_BANCO = [
-  {
-    "it": "ELLA llegó temprano.",
-    "cat": "personal",
-    "m": "«Ella» reemplaza a una persona: es personal."
-  },
-  {
-    "it": "Ese libro es MÍO.",
-    "cat": "posesivo",
-    "m": "«Mío» indica de quién es: posesivo."
-  },
-  {
-    "it": "ESTE me gusta más.",
-    "cat": "demostrativo",
-    "m": "«Este» señala cuál: demostrativo."
-  },
-  {
-    "it": "NOSOTROS vamos al club.",
-    "cat": "personal",
-    "m": "«Nosotros» son personas: personal."
-  },
-  {
-    "it": "La bici es TUYA.",
-    "cat": "posesivo",
-    "m": "«Tuya» dice de quién es: posesivo."
-  },
-  {
-    "it": "AQUELLOS quedaron lejos.",
-    "cat": "demostrativo",
-    "m": "«Aquellos» señalan cuáles y dónde: demostrativo."
-  },
-  {
-    "it": "YO no fui.",
-    "cat": "personal",
-    "m": "«Yo» es la persona que habla: personal."
-  },
-  {
-    "it": "El error fue NUESTRO.",
-    "cat": "posesivo",
-    "m": "«Nuestro» indica pertenencia: posesivo."
-  },
-  {
-    "it": "ESA es la respuesta.",
-    "cat": "demostrativo",
-    "m": "«Esa» señala cuál: demostrativo."
-  },
-  {
-    "it": "USTEDES llegaron primero.",
-    "cat": "personal",
-    "m": "«Ustedes» son personas: personal."
-  },
-  {
-    "it": "Los zapatos son SUYOS.",
-    "cat": "posesivo",
-    "m": "«Suyos» dice de quién: posesivo."
-  },
-  {
-    "it": "ESTOS están rotos.",
-    "cat": "demostrativo",
-    "m": "«Estos» señalan cuáles: demostrativo."
-  },
-  {
-    "it": "ÉL me lo contó.",
-    "cat": "personal",
-    "m": "«Él» reemplaza a una persona."
-  },
-  {
-    "it": "La culpa no es MÍA.",
-    "cat": "posesivo",
-    "m": "«Mía» indica de quién: posesivo."
-  }
-];
-GAMES.pronombres_clasif = juegoClasificar(CUR_PRONOMBRES_CLASIF_BANCO, "¿Qué clase de pronombre es el resaltado?", [{"cat": "personal", "label": "🙋 Personal"}, {"cat": "posesivo", "label": "🔑 Posesivo"}, {"cat": "demostrativo", "label": "👉 Demostrativo"}], "pronombres");
-
-/* 6° · ¿Fuente confiable? — fuente_confiable
-   DC: Evaluar la confiabilidad de las fuentes de información
-   Fuente: docs/auditoria-dc-caba/grado-6.md · L4 */
-const CUR_FUENTE_CONFIABLE_BANCO = [
-  {
-    "q": "Para un trabajo sobre el sistema solar, ¿cuál es más confiable?",
-    "ops": [
-      "La página de un observatorio astronómico",
-      "Un video de alguien opinando",
-      "Un comentario en una red social"
-    ],
-    "m": "Un observatorio produce el conocimiento; una opinión suelta no lo respalda."
-  },
-  {
-    "q": "Encontrás dos páginas con datos distintos. ¿Qué hacés?",
-    "ops": [
-      "Buscar una tercera fuente para comparar",
-      "Elegir la que más te guste",
-      "Copiar las dos sin decir nada"
-    ],
-    "m": "Contrastar fuentes es lo que permite decidir cuál es más confiable."
-  },
-  {
-    "q": "Una página no dice quién la escribió ni cuándo. ¿Eso importa?",
-    "ops": [
-      "Sí, no poder saber quién lo dice le resta confianza",
-      "No, si está en internet es verdad",
-      "Sólo importa si tiene fotos"
-    ],
-    "m": "Autor y fecha son dos señales básicas de confiabilidad."
-  },
-  {
-    "q": "Para saber cuándo es un feriado, ¿cuál conviene?",
-    "ops": [
-      "Una página oficial del gobierno",
-      "Un chat de amigos",
-      "Un blog personal"
-    ],
-    "m": "Los feriados los fija el Estado: la fuente oficial es la que manda."
-  },
-  {
-    "q": "Un texto dice «los científicos afirman» pero no dice cuáles. ¿Qué le falta?",
-    "ops": [
-      "Decir de dónde saca esa información",
-      "Más adjetivos",
-      "Ser más largo"
-    ],
-    "m": "Sin la fuente concreta, «los científicos dicen» no se puede verificar."
-  },
-  {
-    "q": "Para un dato sobre la salud, ¿cuál elegirías?",
-    "ops": [
-      "La página de un hospital o del Ministerio de Salud",
-      "Una publicidad de un producto",
-      "Un video de humor"
-    ],
-    "m": "La publicidad quiere venderte algo: no es una fuente neutral."
-  },
-  {
-    "q": "¿Qué significa que una página termine en .gob.ar?",
-    "ops": [
-      "Que es de un organismo del Estado argentino",
-      "Que es de una empresa",
-      "Que es un blog"
-    ],
-    "m": "El .gob.ar identifica sitios oficiales del Estado."
-  },
-  {
-    "q": "Una noticia de hace 10 años sobre tecnología, ¿sirve hoy?",
-    "ops": [
-      "Hay que revisar si sigue vigente",
-      "Sí, siempre",
-      "No, nada viejo sirve"
-    ],
-    "m": "La fecha importa según el tema: en tecnología, mucho."
-  },
-  {
-    "q": "Alguien muy famoso opina sobre medicina sin ser médico. ¿Es confiable?",
-    "ops": [
-      "No, ser famoso no lo hace experto",
-      "Sí, porque lo conoce todo el mundo",
-      "Sí, si tiene muchos seguidores"
-    ],
-    "m": "La autoridad tiene que ser sobre EL TEMA, no fama en general."
-  },
-  {
-    "q": "Para una biografía de San Martín, ¿cuál es mejor?",
-    "ops": [
-      "Un libro de historia o un museo histórico",
-      "Una película de acción",
-      "Un meme"
-    ],
-    "m": "La película puede inventar; el museo y el libro de historia investigan."
-  },
-  {
-    "q": "¿Por qué conviene mirar más de una fuente?",
-    "ops": [
-      "Porque cada una puede tener errores o su punto de vista",
-      "Porque así el trabajo es más largo",
-      "No conviene, es perder tiempo"
-    ],
-    "m": "Comparar es lo que te permite darte cuenta de un error o un sesgo."
-  },
-  {
-    "q": "Un sitio lleno de mayúsculas y signos («¡¡¡INCREÍBLE!!!»), ¿qué señal da?",
-    "ops": [
-      "Que busca impactar más que informar",
-      "Que es muy serio",
-      "Que tiene mucha información"
-    ],
-    "m": "El tono exagerado suele acompañar información poco cuidada."
-  },
-  {
-    "q": "Wikipedia, ¿sirve?",
-    "ops": [
-      "Como punto de partida, revisando sus fuentes al final",
-      "No sirve nunca",
-      "Sí, y no hace falta revisar nada"
-    ],
-    "m": "Cualquiera puede editarla, pero cita fuentes: ahí está lo verificable."
-  },
-  {
-    "q": "¿Qué hacés si un dato te parece raro?",
-    "ops": [
-      "Lo verificás en otra fuente antes de usarlo",
-      "Lo usás igual",
-      "Lo borrás del trabajo"
-    ],
-    "m": "Verificar es exactamente lo que hace confiable a un trabajo."
-  }
-];
-GAMES.fuente_confiable = juegoTriviaTexto(CUR_FUENTE_CONFIABLE_BANCO, "¿Cuál conviene usar para un trabajo de la escuela?", "fuente_con");
-
 /* 7° · Derechos en el trabajo — derechos_trabajo
    DC: Derechos laborales y sociales; el trabajo en la Argentina contemporánea
    Fuente: docs/auditoria-dc-caba/grado-7.md · S */
@@ -2944,139 +2734,6 @@ const CUR_ESTADOS_AGUA_4_BANCO = [
   }
 ];
 GAMES.estados_agua_4 = juegoTriviaTexto(CUR_ESTADOS_AGUA_4_BANCO, "Elegí la respuesta correcta.", "estados_ag");
-
-/* 6° · Conectores en acción — conectores_6
-   DC: Conectores temporales, causales y consecutivos
-   Fuente: docs/auditoria-dc-caba/grado-6.md · L8 */
-const CUR_CONECTORES_6_BANCO = [
-  {
-    "q": "Estudió mucho ___ aprobó el examen.",
-    "ops": [
-      "por lo tanto",
-      "aunque",
-      "mientras"
-    ],
-    "m": "Estudiar es la causa y aprobar la consecuencia: «por lo tanto»."
-  },
-  {
-    "q": "No fue a la plaza ___ estaba lloviendo.",
-    "ops": [
-      "porque",
-      "por lo tanto",
-      "además"
-    ],
-    "m": "«Porque» introduce la causa."
-  },
-  {
-    "q": "Primero hervimos el agua; ___ agregamos los fideos.",
-    "ops": [
-      "después",
-      "porque",
-      "sin embargo"
-    ],
-    "m": "Es una secuencia en el tiempo: «después»."
-  },
-  {
-    "q": "Es caro; ___ , vale la pena.",
-    "ops": [
-      "sin embargo",
-      "porque",
-      "entonces"
-    ],
-    "m": "Marca oposición: «sin embargo»."
-  },
-  {
-    "q": "Llegó tarde ___ perdió el colectivo.",
-    "ops": [
-      "porque",
-      "aunque",
-      "además"
-    ],
-    "m": "Explica la causa de llegar tarde."
-  },
-  {
-    "q": "Terminó la tarea; ___ salió a jugar.",
-    "ops": [
-      "entonces",
-      "aunque",
-      "porque"
-    ],
-    "m": "Consecuencia en el tiempo: «entonces»."
-  },
-  {
-    "q": "Me gusta el mar ___ no sé nadar.",
-    "ops": [
-      "aunque",
-      "porque",
-      "por eso"
-    ],
-    "m": "«Aunque» marca una concesión: algo que no impide lo otro."
-  },
-  {
-    "q": "Estaba cansado; ___ , siguió trabajando.",
-    "ops": [
-      "no obstante",
-      "porque",
-      "así que"
-    ],
-    "m": "Marca oposición, como «sin embargo»."
-  },
-  {
-    "q": "Juntamos los ingredientes; ___ , mezclamos todo.",
-    "ops": [
-      "luego",
-      "porque",
-      "aunque"
-    ],
-    "m": "Secuencia temporal."
-  },
-  {
-    "q": "Hacía calor, ___ abrimos las ventanas.",
-    "ops": [
-      "así que",
-      "aunque",
-      "sin embargo"
-    ],
-    "m": "«Así que» introduce la consecuencia."
-  },
-  {
-    "q": "Le gusta leer; ___ , escribe muy bien.",
-    "ops": [
-      "además",
-      "pero",
-      "porque"
-    ],
-    "m": "«Además» suma información en la misma dirección."
-  },
-  {
-    "q": "No entrenó ___ perdió el partido.",
-    "ops": [
-      "por eso",
-      "aunque",
-      "sin embargo"
-    ],
-    "m": "Causa y consecuencia: «por eso»."
-  },
-  {
-    "q": "Vinieron todos, ___ Ana, que estaba enferma.",
-    "ops": [
-      "excepto",
-      "porque",
-      "entonces"
-    ],
-    "m": "«Excepto» marca la excepción."
-  },
-  {
-    "q": "___ terminó de llover, salió el arcoíris.",
-    "ops": [
-      "Cuando",
-      "Porque",
-      "Aunque"
-    ],
-    "m": "Ubica el momento: conector temporal."
-  }
-];
-GAMES.conectores_6 = juegoTriviaTexto(CUR_CONECTORES_6_BANCO, "¿Qué conector completa mejor?", "conectores");
 
 /* 7° · La población argentina — poblacion_argentina
    DC: Población: distribución, migraciones y condiciones de vida
@@ -22678,3 +22335,2178 @@ const CUR_PROBABILIDAD_6_BANCO = [
   }
 ];
 GAMES.probabilidad_6 = juegoClasificar(CUR_PROBABILIDAD_6_BANCO, "¿Qué chance tiene de pasar?", [{"cat": "seguro", "label": "✅ Seguro"}, {"cat": "posible", "label": "🤔 Posible"}, {"cat": "imposible", "label": "🚫 Imposible"}], "probabilid");
+
+/* 6° · Leé y respondé — comprension_lectora_6
+   DC: Comprensión lectora: literal, inferencial y predictiva
+   Fuente: docs/auditoria-dc-caba/grado-6.md · L0 */
+const CUR_COMPRENSION_LECTORA_6_BANCO = [
+  {
+    "q": "«El aula quedó en silencio cuando la directora entró sin golpear.» ¿Qué se deduce?",
+    "ops": [
+      "Que pasaba algo serio",
+      "Que la directora era simpática",
+      "Que los chicos estaban solos"
+    ],
+    "m": "Dos pistas juntas: el silencio repentino y entrar sin golpear."
+  },
+  {
+    "q": "«Guardó el paraguas mojado y prendió la estufa.» ¿Cómo estaba el día?",
+    "ops": [
+      "Frío y lluvioso",
+      "Caluroso",
+      "Ventoso pero seco"
+    ],
+    "m": "El paraguas mojado da la lluvia; la estufa, el frío."
+  },
+  {
+    "q": "«Tomás revisó la mochila tres veces antes de salir.» ¿Qué muestra?",
+    "ops": [
+      "Que estaba nervioso o inseguro",
+      "Que la mochila estaba rota",
+      "Que tenía mucho tiempo"
+    ],
+    "m": "Repetir una acción de control es la pista de la ansiedad."
+  },
+  {
+    "q": "«El equipo entrenó todo el verano. La final es el sábado.» ¿Qué es probable que pase?",
+    "ops": [
+      "Que lleguen preparados a la final",
+      "Que suspendan el partido",
+      "Que dejen de entrenar"
+    ],
+    "m": "Predecir es continuar la línea que el texto ya trazó."
+  },
+  {
+    "q": "«La panadería tenía las persianas bajas un martes a las diez.» ¿Qué se deduce?",
+    "ops": [
+      "Que ese día no abrió",
+      "Que ya había cerrado por la tarde",
+      "Que estaba llena de gente"
+    ],
+    "m": "Un martes a las diez es horario comercial: la persiana baja es lo raro."
+  },
+  {
+    "q": "«Le devolvió el libro sin mirarlo a los ojos.» ¿Qué sugiere?",
+    "ops": [
+      "Que estaba incómodo o avergonzado",
+      "Que tenía apuro",
+      "Que no leyó el libro"
+    ],
+    "m": "Esquivar la mirada es el detalle que el texto elige contar."
+  },
+  {
+    "q": "En un texto, ¿qué es la idea principal?",
+    "ops": [
+      "Lo más importante que quiere decir",
+      "El primer renglón siempre",
+      "El dato más curioso"
+    ],
+    "m": "Puede estar en cualquier parte del texto, no necesariamente al principio."
+  },
+  {
+    "q": "«Se escuchó el timbre y todos guardaron los útiles.» ¿Qué momento es?",
+    "ops": [
+      "El final de la clase",
+      "El comienzo del día",
+      "El recreo largo"
+    ],
+    "m": "Guardar los útiles marca el cierre, no el comienzo."
+  },
+  {
+    "q": "«El perro no ladró cuando entró el hombre.» ¿Qué se puede deducir?",
+    "ops": [
+      "Que el perro lo conocía",
+      "Que el perro estaba enfermo",
+      "Que el hombre era silencioso"
+    ],
+    "m": "Lo que NO pasa también es una pista: el silencio del perro es el dato."
+  },
+  {
+    "q": "«Después de tres días sin dormir, Vera se equivocó en la suma más fácil.» ¿Por qué se equivocó?",
+    "ops": [
+      "Por el cansancio",
+      "Porque no sabía sumar",
+      "Porque la suma era difícil"
+    ],
+    "m": "El texto pone la causa antes del efecto: hay que unirlas."
+  },
+  {
+    "q": "«Las valijas estaban en la puerta y el taxi esperaba.» ¿Qué va a pasar?",
+    "ops": [
+      "Alguien se va de viaje",
+      "Alguien acaba de llegar",
+      "Se mudan a la casa de al lado"
+    ],
+    "m": "Las valijas en la puerta con el taxi afuera apuntan a la salida, no a la llegada."
+  },
+  {
+    "q": "¿Qué diferencia hay entre lo que el texto DICE y lo que se DEDUCE?",
+    "ops": [
+      "Lo que dice está escrito; lo que se deduce se arma con las pistas",
+      "Son lo mismo",
+      "Lo que se deduce se inventa libremente"
+    ],
+    "m": "Inferir no es inventar: la deducción tiene que apoyarse en algo del texto."
+  },
+  {
+    "q": "«El pan estaba duro y la leche cortada.» ¿Qué se deduce?",
+    "ops": [
+      "Hacía días que nadie estaba en la casa",
+      "Recién habían hecho las compras",
+      "La heladera andaba bien"
+    ],
+    "m": "Dos alimentos vencidos a la vez apuntan al tiempo transcurrido."
+  },
+  {
+    "q": "«Aunque le habían dicho que no, Julia volvió a intentarlo.» ¿Cómo es Julia?",
+    "ops": [
+      "Perseverante",
+      "Distraída",
+      "Obediente"
+    ],
+    "m": "El «aunque» marca que actuó EN CONTRA de lo que le dijeron."
+  },
+  {
+    "q": "«El profesor bajó la nota a toda la clase menos a dos.» ¿Qué se deduce de esos dos?",
+    "ops": [
+      "Que hicieron algo distinto del resto",
+      "Que faltaron ese día",
+      "Que eran los más callados"
+    ],
+    "m": "La excepción se explica por una diferencia, y el texto la señala sin nombrarla."
+  },
+  {
+    "q": "«La cancha estaba vacía y el marcador seguía encendido.» ¿Qué pasó?",
+    "ops": [
+      "El partido acababa de terminar",
+      "El partido no había empezado",
+      "Se cortó la luz"
+    ],
+    "m": "El marcador encendido indica que hubo partido; la cancha vacía, que ya terminó."
+  },
+  {
+    "q": "«Se puso el abrigo más grueso y buscó los guantes.» ¿En qué estación estamos?",
+    "ops": [
+      "Invierno",
+      "Verano",
+      "Primavera"
+    ],
+    "m": "El abrigo grueso más los guantes acumulan la pista del frío intenso."
+  },
+  {
+    "q": "«Nadie contestó el teléfono, ni la primera ni la quinta vez.» ¿Qué sugiere la insistencia?",
+    "ops": [
+      "Que quien llamaba estaba preocupado",
+      "Que el teléfono estaba roto",
+      "Que era una llamada equivocada"
+    ],
+    "m": "Llamar cinco veces es la pista de la urgencia de quien llama."
+  }
+];
+GAMES.comprension_lectora_6 = juegoTriviaTexto(CUR_COMPRENSION_LECTORA_6_BANCO, "Leé con atención y pensá qué se deduce.", "comprensio");
+
+/* 6° · Idea principal y cuadro sinóptico — idea_principal_6
+   DC: Técnicas de estudio: idea central y jerarquización de la información
+   Fuente: docs/auditoria-dc-caba/grado-6.md · L0b */
+const CUR_IDEA_PRINCIPAL_6_BANCO = [
+  {
+    "q": "«Los pingüinos son aves que no vuelan. Nadan muy bien y viven en colonias. El emperador es el más grande.» ¿Cuál es la idea principal?",
+    "ops": [
+      "Los pingüinos son aves que no vuelan pero nadan muy bien",
+      "El emperador es el pingüino más grande",
+      "Los pingüinos viven en colonias"
+    ],
+    "m": "Las otras dos son detalles que dependen de la primera."
+  },
+  {
+    "q": "¿Cómo se reconoce una idea secundaria?",
+    "ops": [
+      "Amplía o ejemplifica a la principal",
+      "Siempre va al final",
+      "Es la oración más larga"
+    ],
+    "m": "Lo que manda es la función, no el lugar ni el largo."
+  },
+  {
+    "q": "En un cuadro sinóptico, ¿qué va a la izquierda?",
+    "ops": [
+      "El concepto más general",
+      "Los ejemplos",
+      "Los detalles"
+    ],
+    "m": "El cuadro se lee de lo general a lo particular."
+  },
+  {
+    "q": "«El agua puede estar sólida, líquida o gaseosa.» Para un cuadro sinóptico, ¿qué es «sólida»?",
+    "ops": [
+      "Una subdivisión de «estados del agua»",
+      "El concepto general",
+      "Un ejemplo sin relación"
+    ],
+    "m": "Es una de las ramas que se abren del concepto principal."
+  },
+  {
+    "q": "¿Para qué sirve subrayar al estudiar?",
+    "ops": [
+      "Para quedarse con lo que después hay que repasar",
+      "Para que la carpeta quede linda",
+      "Para marcar lo que no se entiende"
+    ],
+    "m": "Si subrayás todo, no subrayaste nada: la técnica es elegir."
+  },
+  {
+    "q": "«Muchos animales migran. Las ballenas recorren miles de kilómetros. Las golondrinas cruzan continentes.» ¿Cuál es la idea principal?",
+    "ops": [
+      "Muchos animales migran",
+      "Las ballenas recorren miles de kilómetros",
+      "Las golondrinas cruzan continentes"
+    ],
+    "m": "Las otras dos son ejemplos de la primera."
+  },
+  {
+    "q": "¿Qué es un resumen?",
+    "ops": [
+      "El texto reducido conservando las ideas principales",
+      "Las partes que más gustaron",
+      "Una opinión sobre el texto"
+    ],
+    "m": "Un resumen no agrega opinión ni elige por gusto."
+  },
+  {
+    "q": "Si un párrafo habla de las causas de la lluvia, su idea principal es…",
+    "ops": [
+      "Por qué llueve",
+      "Cuándo llueve más",
+      "Cuánto llueve"
+    ],
+    "m": "La idea principal responde a la pregunta que el párrafo se hace."
+  },
+  {
+    "q": "En un texto de estudio, ¿qué suelen indicar los subtítulos?",
+    "ops": [
+      "Los grandes temas en que se divide",
+      "Las palabras difíciles",
+      "Las opiniones del autor"
+    ],
+    "m": "Los subtítulos son el esqueleto del texto: sirven para armar el cuadro."
+  },
+  {
+    "q": "¿Qué diferencia hay entre resumir y copiar?",
+    "ops": [
+      "Resumir exige decidir qué es importante",
+      "Ninguna, es lo mismo",
+      "Copiar lleva más tiempo"
+    ],
+    "m": "Copiar no obliga a entender; resumir sí."
+  },
+  {
+    "q": "«El sistema solar tiene ocho planetas. Cuatro son rocosos y cuatro gaseosos.» ¿Cómo se jerarquiza?",
+    "ops": [
+      "Sistema solar → planetas → rocosos y gaseosos",
+      "Rocosos → gaseosos → sistema solar",
+      "Planetas → sistema solar → ocho"
+    ],
+    "m": "Siempre de lo que contiene a lo contenido."
+  },
+  {
+    "q": "¿Qué palabras suelen anunciar una idea principal?",
+    "ops": [
+      "«Lo importante es», «en síntesis»",
+      "«Por ejemplo», «como»",
+      "«Además», «también»"
+    ],
+    "m": "«Por ejemplo» y «además» anuncian lo secundario, no lo central."
+  },
+  {
+    "q": "Si sacás una idea secundaria del texto, ¿qué pasa?",
+    "ops": [
+      "El texto se entiende igual, con menos detalle",
+      "El texto pierde el sentido",
+      "El texto se vuelve más importante"
+    ],
+    "m": "Ésa es justamente la prueba para distinguirla de la principal."
+  },
+  {
+    "q": "¿Un cuadro sinóptico sirve para…?",
+    "ops": [
+      "Ver de un vistazo cómo se organiza un tema",
+      "Escribir el texto completo con letra chica",
+      "Guardar las opiniones propias"
+    ],
+    "m": "Si copiás todo el texto adentro del cuadro, dejás de ver la estructura."
+  }
+];
+GAMES.idea_principal_6 = juegoTriviaTexto(CUR_IDEA_PRINCIPAL_6_BANCO, "Separá lo central de lo que acompaña.", "idea_princ");
+
+/* 6° · Anatomía de la noticia — noticia_partes_6
+   DC: Partes de la noticia; la crónica periodística
+   Fuente: docs/auditoria-dc-caba/grado-6.md · L1 */
+const CUR_NOTICIA_PARTES_6_BANCO = [
+  {
+    "q": "¿Qué es el copete de una noticia?",
+    "ops": [
+      "El párrafo que resume lo esencial antes del cuerpo",
+      "El título más grande",
+      "La foto con su texto"
+    ],
+    "m": "Va entre el título y el cuerpo, y adelanta lo principal."
+  },
+  {
+    "q": "¿Qué es la volanta?",
+    "ops": [
+      "La línea chica que va ARRIBA del título",
+      "La línea que va abajo del título",
+      "El nombre del periodista"
+    ],
+    "m": "Ubica el tema; el que va abajo del título es el subtítulo o bajada."
+  },
+  {
+    "q": "¿Qué es el epígrafe?",
+    "ops": [
+      "El texto que explica una foto",
+      "El título de la sección",
+      "La firma del autor"
+    ],
+    "m": "Siempre acompaña a una imagen."
+  },
+  {
+    "q": "¿Qué preguntas debe responder una buena noticia?",
+    "ops": [
+      "Qué, quién, cuándo, dónde, cómo y por qué",
+      "Sólo qué y quién",
+      "Cuándo y cuánto cuesta"
+    ],
+    "m": "Son las seis preguntas básicas del periodismo."
+  },
+  {
+    "q": "¿Qué es la pirámide invertida?",
+    "ops": [
+      "Poner lo más importante al principio",
+      "Poner lo más importante al final",
+      "Escribir en orden cronológico"
+    ],
+    "m": "Si el lector abandona a la mitad, ya se enteró de lo esencial."
+  },
+  {
+    "q": "¿En qué se diferencia la crónica de la noticia?",
+    "ops": [
+      "La crónica narra los hechos en orden y con más detalle",
+      "La crónica es más corta",
+      "La crónica no lleva título"
+    ],
+    "m": "La crónica recupera el orden temporal que la noticia rompe."
+  },
+  {
+    "q": "En una noticia, ¿qué es el cuerpo?",
+    "ops": [
+      "El desarrollo con los detalles y las declaraciones",
+      "El resumen inicial",
+      "El título"
+    ],
+    "m": "Va después del copete y amplía lo ya anunciado."
+  },
+  {
+    "q": "¿Qué es una fuente en periodismo?",
+    "ops": [
+      "De dónde salió la información",
+      "El tipo de letra",
+      "El lugar del hecho"
+    ],
+    "m": "Una noticia sin fuente no se puede verificar."
+  },
+  {
+    "q": "«Tres heridos en un choque en Avenida Rivadavia» es…",
+    "ops": [
+      "Un título",
+      "Un epígrafe",
+      "Una volanta"
+    ],
+    "m": "Sintetiza el hecho en una línea: es la función del título."
+  },
+  {
+    "q": "¿La noticia debe incluir la opinión del periodista?",
+    "ops": [
+      "No, para eso está la columna de opinión",
+      "Sí, siempre",
+      "Sólo si el hecho es grave"
+    ],
+    "m": "La noticia informa; opinar es otro género con su propio lugar."
+  },
+  {
+    "q": "¿Qué diferencia hay entre un hecho y una opinión?",
+    "ops": [
+      "El hecho se puede verificar; la opinión, no",
+      "El hecho es más largo",
+      "La opinión siempre es falsa"
+    ],
+    "m": "Una opinión puede estar bien fundada y seguir siendo opinión."
+  },
+  {
+    "q": "¿Para qué sirve una declaración entre comillas en una noticia?",
+    "ops": [
+      "Para reproducir textualmente lo que alguien dijo",
+      "Para marcar que es mentira",
+      "Para destacar una palabra difícil"
+    ],
+    "m": "Las comillas indican que ésas son las palabras exactas de la fuente."
+  },
+  {
+    "q": "¿Qué es el lead o entrada de una noticia?",
+    "ops": [
+      "El arranque que concentra lo más importante",
+      "El cierre con la conclusión",
+      "El listado de fuentes"
+    ],
+    "m": "Es lo primero que se lee después del título."
+  },
+  {
+    "q": "Si una noticia no dice CUÁNDO ocurrió el hecho, ¿qué le falta?",
+    "ops": [
+      "Una de las seis preguntas básicas",
+      "El epígrafe",
+      "La volanta"
+    ],
+    "m": "Sin el cuándo, el lector no puede ubicar el hecho en el tiempo."
+  }
+];
+GAMES.noticia_partes_6 = juegoTriviaTexto(CUR_NOTICIA_PARTES_6_BANCO, "¿Qué parte de la noticia es?", "noticia_pa");
+
+/* 6° · Resolvé el caso — relato_policial_6
+   DC: Relato policial: enigma, pistas, hipótesis y resolución
+   Fuente: docs/auditoria-dc-caba/grado-6.md · L2 */
+const CUR_RELATO_POLICIAL_6_BANCO = [
+  {
+    "it": "Apareció la vitrina vacía y la puerta sin forzar",
+    "cat": "enigma",
+    "m": "Plantea el misterio que hay que resolver: es el arranque."
+  },
+  {
+    "it": "En el piso había una huella de zapato mojada",
+    "cat": "pista",
+    "m": "Es un dato observable que el detective recoge."
+  },
+  {
+    "it": "«Tal vez el ladrón tenía la llave», pensó el detective",
+    "cat": "hipotesis",
+    "m": "Es una explicación posible todavía sin confirmar."
+  },
+  {
+    "it": "Era el sereno: sólo él tenía copia de la llave",
+    "cat": "resolucion",
+    "m": "Cierra el caso y explica todas las pistas."
+  },
+  {
+    "it": "El cuadro desapareció durante la noche",
+    "cat": "enigma",
+    "m": "El hecho a explicar, sin explicación todavía."
+  },
+  {
+    "it": "El reloj de la sala estaba parado a las 3:15",
+    "cat": "pista",
+    "m": "Un detalle concreto que después va a servir."
+  },
+  {
+    "it": "«Si el reloj se paró, alguien lo tocó», supuso",
+    "cat": "hipotesis",
+    "m": "Deduce a partir de la pista, pero todavía no lo probó."
+  },
+  {
+    "it": "Confesó que había parado el reloj para fingir la hora",
+    "cat": "resolucion",
+    "m": "La confirmación de la hipótesis cierra el relato."
+  },
+  {
+    "it": "Nadie escuchó nada, aunque la ventana estaba rota",
+    "cat": "enigma",
+    "m": "La contradicción es lo que arma el misterio."
+  },
+  {
+    "it": "Los vidrios estaban del lado de AFUERA",
+    "cat": "pista",
+    "m": "Un dato que cambia todo, pero todavía hay que interpretarlo."
+  },
+  {
+    "it": "«Si los vidrios cayeron afuera, la rompieron desde adentro»",
+    "cat": "hipotesis",
+    "m": "Razonamiento a partir de la pista, todavía por comprobar."
+  },
+  {
+    "it": "El robo fue simulado por el propio dueño",
+    "cat": "resolucion",
+    "m": "Explica el enigma y le da sentido a cada pista."
+  },
+  {
+    "it": "La caja fuerte estaba abierta sin marcas de violencia",
+    "cat": "enigma",
+    "m": "Presenta el hecho extraño."
+  },
+  {
+    "it": "En la agenda figuraba la combinación anotada",
+    "cat": "pista",
+    "m": "Dato objetivo que aparece durante la investigación."
+  },
+  {
+    "it": "«Quien la abrió conocía la combinación», dedujo",
+    "cat": "hipotesis",
+    "m": "Una explicación tentativa que reduce los sospechosos."
+  },
+  {
+    "it": "La secretaria había visto la agenda esa mañana",
+    "cat": "resolucion",
+    "m": "El dato final que cierra la cadena."
+  },
+  {
+    "it": "El perro guardián no ladró en toda la noche",
+    "cat": "pista",
+    "m": "Lo que NO pasó también es una pista."
+  },
+  {
+    "it": "«El ladrón era alguien conocido por el perro»",
+    "cat": "hipotesis",
+    "m": "Interpreta la pista del silencio."
+  }
+];
+GAMES.relato_policial_6 = juegoClasificar(CUR_RELATO_POLICIAL_6_BANCO, "¿Qué parte del relato policial es?", [{"cat": "enigma", "label": "❓ Enigma"}, {"cat": "pista", "label": "🔍 Pista"}, {"cat": "hipotesis", "label": "💭 Hipótesis"}, {"cat": "resolucion", "label": "✅ Resolución"}], "relato_pol");
+
+/* 6° · Bestiario de la ciencia ficción — ciencia_ficcion_6
+   DC: Ciencia ficción: robot, androide, cyborg, científico
+   Fuente: docs/auditoria-dc-caba/grado-6.md · L3 */
+const CUR_CIENCIA_FICCION_6_BANCO = [
+  {
+    "q": "¿Qué es un robot?",
+    "ops": [
+      "Una máquina que hace tareas, sin forma humana necesariamente",
+      "Una máquina con forma humana siempre",
+      "Una persona con partes de máquina"
+    ],
+    "m": "La forma humana es lo propio del androide, no del robot en general."
+  },
+  {
+    "q": "¿Qué es un androide?",
+    "ops": [
+      "Un robot con apariencia humana",
+      "Un humano con piezas mecánicas",
+      "Un programa sin cuerpo"
+    ],
+    "m": "«Andro-» viene de hombre: lo que lo define es parecerse a una persona."
+  },
+  {
+    "q": "¿Qué es un cyborg?",
+    "ops": [
+      "Un ser vivo con partes mecánicas incorporadas",
+      "Una máquina con forma humana",
+      "Un robot que se programa solo"
+    ],
+    "m": "Empieza siendo un ser vivo. El androide, en cambio, es máquina desde el principio."
+  },
+  {
+    "q": "¿Qué rol suele tener el científico en la ciencia ficción?",
+    "ops": [
+      "Crear el invento que desata el conflicto",
+      "Ser siempre el villano",
+      "Narrar la historia desde afuera"
+    ],
+    "m": "Puede ser héroe o villano; lo que no falla es que su invento mueve la trama."
+  },
+  {
+    "q": "¿Qué caracteriza a la ciencia ficción?",
+    "ops": [
+      "Imagina un futuro posible a partir de la ciencia",
+      "Cuenta hechos históricos reales",
+      "Usa magia y hechizos"
+    ],
+    "m": "La magia es de la fantasía; la ciencia ficción se apoya en lo científicamente imaginable."
+  },
+  {
+    "q": "¿En qué se diferencia la ciencia ficción de la fantasía?",
+    "ops": [
+      "La ciencia ficción explica lo raro con ciencia; la fantasía, no lo explica",
+      "La fantasía siempre pasa en el futuro",
+      "No hay diferencia"
+    ],
+    "m": "Un viaje en nave es ciencia ficción; uno en alfombra voladora, fantasía."
+  },
+  {
+    "q": "Un personaje que perdió un brazo y lleva uno biónico es…",
+    "ops": [
+      "Un cyborg",
+      "Un androide",
+      "Un robot"
+    ],
+    "m": "Sigue siendo una persona con una parte mecánica."
+  },
+  {
+    "q": "Una aspiradora que limpia sola es…",
+    "ops": [
+      "Un robot",
+      "Un androide",
+      "Un cyborg"
+    ],
+    "m": "Hace una tarea sin ayuda y no tiene forma humana."
+  },
+  {
+    "q": "¿Qué es una distopía?",
+    "ops": [
+      "Un futuro imaginado que salió mal",
+      "Un futuro perfecto",
+      "Un pasado inventado"
+    ],
+    "m": "Es lo contrario de la utopía."
+  },
+  {
+    "q": "En la ciencia ficción, ¿qué suele preguntarse sobre los androides?",
+    "ops": [
+      "Si pueden pensar y sentir como las personas",
+      "Cuánto pesan",
+      "De qué color son"
+    ],
+    "m": "El conflicto del género es qué los separa de nosotros."
+  },
+  {
+    "q": "¿Qué es la inteligencia artificial en un relato de ciencia ficción?",
+    "ops": [
+      "Una máquina capaz de decidir por su cuenta",
+      "Una computadora muy rápida",
+      "Un robot con forma humana"
+    ],
+    "m": "Lo que la define es decidir, no la velocidad ni la forma."
+  },
+  {
+    "q": "«La nave llegó a un planeta con dos soles.» ¿A qué género pertenece?",
+    "ops": [
+      "Ciencia ficción",
+      "Policial",
+      "Crónica periodística"
+    ],
+    "m": "Viaje espacial y mundo imaginado son marcas del género."
+  },
+  {
+    "q": "¿Un robot puede ser también un androide?",
+    "ops": [
+      "Sí, si tiene apariencia humana",
+      "No, nunca",
+      "Sólo si es un cyborg"
+    ],
+    "m": "Androide es un tipo de robot, no algo distinto."
+  },
+  {
+    "q": "¿Qué elemento NO es típico de la ciencia ficción?",
+    "ops": [
+      "Un hechizo que resucita a un rey",
+      "Un viaje en el tiempo",
+      "Una colonia en Marte"
+    ],
+    "m": "El hechizo pertenece a la fantasía: no busca explicación científica."
+  }
+];
+GAMES.ciencia_ficcion_6 = juegoTriviaTexto(CUR_CIENCIA_FICCION_6_BANCO, "¿Quién es quién en la ciencia ficción?", "ciencia_fi");
+
+/* 6° · ¿Fuente confiable? — fuente_confiable_6
+   DC: Evaluación de fuentes; hecho verificable vs opinión fundamentada
+   Fuente: docs/auditoria-dc-caba/grado-6.md · L4 */
+const CUR_FUENTE_CONFIABLE_6_BANCO = [
+  {
+    "q": "Para un trabajo sobre vacunas, ¿qué fuente es más confiable?",
+    "ops": [
+      "La página del Ministerio de Salud",
+      "Un video de alguien opinando",
+      "Un comentario en una red social"
+    ],
+    "m": "El organismo oficial responde por lo que publica; un comentario, no."
+  },
+  {
+    "q": "¿Qué indica el dominio .gob o .gov?",
+    "ops": [
+      "Que es un sitio de un organismo del Estado",
+      "Que es una empresa",
+      "Que es un blog personal"
+    ],
+    "m": "No garantiza que sea perfecto, pero sí quién se hace responsable."
+  },
+  {
+    "q": "¿Qué suele indicar el dominio .edu?",
+    "ops": [
+      "Que es una institución educativa",
+      "Que es una tienda",
+      "Que es una organización sin fines de lucro"
+    ],
+    "m": "Sin fines de lucro es .org; la tienda suele ser .com."
+  },
+  {
+    "q": "Una página sin fecha ni autor, ¿es confiable?",
+    "ops": [
+      "Menos confiable: no se sabe quién ni cuándo lo escribió",
+      "Sí, si está bien escrita",
+      "Sí, si aparece primera en el buscador"
+    ],
+    "m": "Aparecer primero mide popularidad, no veracidad."
+  },
+  {
+    "q": "¿Qué es un hecho verificable?",
+    "ops": [
+      "Algo que se puede comprobar con datos",
+      "Algo que mucha gente cree",
+      "Algo que suena razonable"
+    ],
+    "m": "Que muchos lo crean no lo vuelve comprobable."
+  },
+  {
+    "q": "«El agua hierve a 100 °C al nivel del mar.» Es…",
+    "ops": [
+      "Un hecho verificable",
+      "Una opinión",
+      "Una exageración"
+    ],
+    "m": "Se puede medir y cualquiera obtiene el mismo resultado."
+  },
+  {
+    "q": "«Este es el mejor libro que se escribió.» Es…",
+    "ops": [
+      "Una opinión",
+      "Un hecho verificable",
+      "Un dato estadístico"
+    ],
+    "m": "«Mejor» depende de quién juzgue: no hay medición posible."
+  },
+  {
+    "q": "¿Qué es una opinión fundamentada?",
+    "ops": [
+      "Una opinión que se apoya en datos y razones",
+      "Una opinión que dice mucha gente",
+      "Cualquier opinión escrita con seguridad"
+    ],
+    "m": "Sigue siendo opinión, pero se puede discutir sobre las razones que da."
+  },
+  {
+    "q": "Si dos fuentes se contradicen, ¿qué conviene hacer?",
+    "ops": [
+      "Buscar una tercera y ver quién respalda cada dato",
+      "Elegir la más corta",
+      "Quedarse con la primera que se encontró"
+    ],
+    "m": "Contrastar es el único modo de decidir con criterio."
+  },
+  {
+    "q": "Un titular que promete «lo que nadie te contó» suele ser señal de…",
+    "ops": [
+      "Que busca el clic más que informar",
+      "Que tiene información exclusiva",
+      "Que la fuente es oficial"
+    ],
+    "m": "El clickbait apela a la curiosidad, no a la evidencia."
+  },
+  {
+    "q": "¿Por qué importa la FECHA de una fuente?",
+    "ops": [
+      "Porque la información puede haber quedado vieja",
+      "Porque las páginas viejas son más confiables",
+      "No importa"
+    ],
+    "m": "En ciencia y actualidad, un dato de hace diez años puede estar superado."
+  },
+  {
+    "q": "Una enciclopedia que cualquiera puede editar…",
+    "ops": [
+      "Sirve para empezar, pero conviene chequear sus fuentes",
+      "No sirve para nada",
+      "Es la fuente más confiable que existe"
+    ],
+    "m": "Suele citar de dónde saca cada dato: ahí está lo verificable."
+  },
+  {
+    "q": "«Nueve de cada diez dentistas lo recomiendan», dice una publicidad. ¿Qué falta?",
+    "ops": [
+      "Saber quién hizo el estudio y a cuántos preguntó",
+      "Nada, es un dato claro",
+      "El precio del producto"
+    ],
+    "m": "Un número sin fuente ni método parece un dato pero no se puede verificar."
+  },
+  {
+    "q": "¿Qué es citar una fuente?",
+    "ops": [
+      "Decir de dónde se sacó la información",
+      "Copiar el texto entero",
+      "Poner un link cualquiera"
+    ],
+    "m": "Citar permite que otro vaya a chequearlo."
+  },
+  {
+    "q": "Un sitio .com, ¿es necesariamente poco confiable?",
+    "ops": [
+      "No, pero conviene ver quién está detrás",
+      "Sí, siempre",
+      "No, los .com son los más confiables"
+    ],
+    "m": "Muchos diarios serios son .com: el dominio orienta, no decide solo."
+  }
+];
+GAMES.fuente_confiable_6 = juegoTriviaTexto(CUR_FUENTE_CONFIABLE_6_BANCO, "¿De cuál te fiarías más?", "fuente_con");
+
+/* 6° · Del directo al indirecto — directo_indirecto_6
+   DC: Discurso directo e indirecto; biografía y autobiografía
+   Fuente: docs/auditoria-dc-caba/grado-6.md · L5 */
+const CUR_DIRECTO_INDIRECTO_6_BANCO = [
+  {
+    "q": "«Tengo hambre», dijo Ana. En indirecto:",
+    "ops": [
+      "Ana dijo que tenía hambre",
+      "Ana dijo que tengo hambre",
+      "Ana dijo: tenía hambre"
+    ],
+    "m": "Cambian la persona (tengo → tenía) y hay que agregar «que»."
+  },
+  {
+    "q": "«Voy a llegar tarde», avisó Luis. En indirecto:",
+    "ops": [
+      "Luis avisó que iba a llegar tarde",
+      "Luis avisó que voy a llegar tarde",
+      "Luis avisó: iba a llegar tarde"
+    ],
+    "m": "El verbo pasa al pasado y la persona cambia de primera a tercera."
+  },
+  {
+    "q": "¿Qué marca gráfica es propia del discurso directo?",
+    "ops": [
+      "Las comillas o la raya de diálogo",
+      "El paréntesis",
+      "El punto y coma"
+    ],
+    "m": "Sirven para mostrar que ésas son las palabras exactas."
+  },
+  {
+    "q": "Marta dijo que estaba cansada. En directo:",
+    "ops": [
+      "«Estoy cansada», dijo Marta",
+      "«Estaba cansada», dijo Marta",
+      "Marta: estaba cansada"
+    ],
+    "m": "Al volver a directo, el verbo recupera el presente de quien habló."
+  },
+  {
+    "q": "¿Qué es una autobiografía?",
+    "ops": [
+      "El relato de la propia vida, escrito por uno mismo",
+      "El relato de la vida de otro",
+      "Una novela inventada"
+    ],
+    "m": "«Auto-» significa uno mismo."
+  },
+  {
+    "q": "¿Qué es una biografía?",
+    "ops": [
+      "El relato de la vida de otra persona",
+      "El relato de la propia vida",
+      "Un diario íntimo"
+    ],
+    "m": "Está escrita en tercera persona, sobre alguien más."
+  },
+  {
+    "q": "¿En qué persona gramatical se escribe una autobiografía?",
+    "ops": [
+      "Primera",
+      "Tercera",
+      "Segunda"
+    ],
+    "m": "El que escribe es el protagonista: «yo nací…»."
+  },
+  {
+    "q": "«¿Venís mañana?», preguntó Sol. En indirecto:",
+    "ops": [
+      "Sol preguntó si iba mañana",
+      "Sol preguntó que venís mañana",
+      "Sol preguntó: venías mañana"
+    ],
+    "m": "Las preguntas pasan a indirecto con «si», no con «que»."
+  },
+  {
+    "q": "«Ayer estuve acá», dijo. En indirecto, «ayer» se transforma en…",
+    "ops": [
+      "El día anterior",
+      "Mañana",
+      "Hoy"
+    ],
+    "m": "Los marcadores de tiempo también se corren, no sólo los verbos."
+  },
+  {
+    "q": "En indirecto, «acá» suele transformarse en…",
+    "ops": [
+      "Allá o ahí",
+      "Acá igual",
+      "Adentro"
+    ],
+    "m": "Cambia el punto de vista: ya no habla desde el mismo lugar."
+  },
+  {
+    "q": "«Cerrá la puerta», ordenó. En indirecto:",
+    "ops": [
+      "Ordenó que cerrara la puerta",
+      "Ordenó que cerrá la puerta",
+      "Ordenó: cerrara la puerta"
+    ],
+    "m": "La orden pasa al subjuntivo del pasado."
+  },
+  {
+    "q": "¿Qué verbo NO sirve para introducir discurso indirecto?",
+    "ops": [
+      "Correr",
+      "Afirmar",
+      "Preguntar"
+    ],
+    "m": "Hace falta un verbo de decir o pensar."
+  },
+  {
+    "q": "«Mi hermano nació en 1998» aparece en un texto sobre otra persona. Es…",
+    "ops": [
+      "Una biografía",
+      "Una autobiografía",
+      "Una noticia"
+    ],
+    "m": "Habla de alguien más, no del propio autor."
+  },
+  {
+    "q": "¿Qué se conserva EXACTAMENTE en el discurso directo?",
+    "ops": [
+      "Las palabras tal como se dijeron",
+      "Sólo la idea general",
+      "El tiempo verbal del narrador"
+    ],
+    "m": "Por eso lleva comillas: nada se reformula."
+  },
+  {
+    "q": "«Estoy leyendo», dijo Juan. En indirecto:",
+    "ops": [
+      "Juan dijo que estaba leyendo",
+      "Juan dijo que estoy leyendo",
+      "Juan dijo estaba leyendo"
+    ],
+    "m": "Cambia la persona y el tiempo, y hace falta el «que»."
+  }
+];
+GAMES.directo_indirecto_6 = juegoTriviaTexto(CUR_DIRECTO_INDIRECTO_6_BANCO, "Pasá lo que dijo a lo que se cuenta.", "directo_in");
+
+/* 6° · Clasificá pronombres — pronombres_6
+   DC: Pronombres personales, posesivos, demostrativos e indefinidos
+   Fuente: docs/auditoria-dc-caba/grado-6.md · L6 */
+const CUR_PRONOMBRES_6_BANCO = [
+  {
+    "it": "yo",
+    "cat": "personal",
+    "m": "Nombra a quien habla: es personal."
+  },
+  {
+    "it": "mío",
+    "cat": "posesivo",
+    "m": "Indica de quién es algo."
+  },
+  {
+    "it": "este",
+    "cat": "demostrativo",
+    "m": "Señala algo por su distancia: cerca."
+  },
+  {
+    "it": "alguien",
+    "cat": "indefinido",
+    "m": "No precisa quién: por eso es indefinido."
+  },
+  {
+    "it": "nosotros",
+    "cat": "personal",
+    "m": "Nombra a un grupo que incluye al que habla."
+  },
+  {
+    "it": "tuyo",
+    "cat": "posesivo",
+    "m": "Marca la pertenencia a la segunda persona."
+  },
+  {
+    "it": "aquel",
+    "cat": "demostrativo",
+    "m": "Señala algo lejano."
+  },
+  {
+    "it": "nadie",
+    "cat": "indefinido",
+    "m": "Habla de una cantidad sin precisar: ninguno."
+  },
+  {
+    "it": "ella",
+    "cat": "personal",
+    "m": "Reemplaza a una tercera persona."
+  },
+  {
+    "it": "nuestro",
+    "cat": "posesivo",
+    "m": "Pertenece a un grupo que incluye al que habla."
+  },
+  {
+    "it": "ese",
+    "cat": "demostrativo",
+    "m": "Señala algo a distancia media."
+  },
+  {
+    "it": "algunos",
+    "cat": "indefinido",
+    "m": "No dice cuántos ni cuáles."
+  },
+  {
+    "it": "vos",
+    "cat": "personal",
+    "m": "Nombra a quien escucha."
+  },
+  {
+    "it": "suyo",
+    "cat": "posesivo",
+    "m": "Pertenencia de la tercera persona."
+  },
+  {
+    "it": "esta",
+    "cat": "demostrativo",
+    "m": "Señala algo cercano, en femenino."
+  },
+  {
+    "it": "ninguno",
+    "cat": "indefinido",
+    "m": "Cantidad imprecisa: cero, sin decir quién."
+  },
+  {
+    "it": "ustedes",
+    "cat": "personal",
+    "m": "Nombra a varios oyentes."
+  },
+  {
+    "it": "mía",
+    "cat": "posesivo",
+    "m": "Pertenencia de la primera persona, en femenino."
+  },
+  {
+    "it": "aquellos",
+    "cat": "demostrativo",
+    "m": "Señala varios elementos lejanos."
+  },
+  {
+    "it": "todos",
+    "cat": "indefinido",
+    "m": "Cantidad global, sin identificar a cada uno."
+  }
+];
+GAMES.pronombres_6 = juegoClasificar(CUR_PRONOMBRES_6_BANCO, "¿Qué tipo de pronombre es?", [{"cat": "personal", "label": "🙋 Personal"}, {"cat": "posesivo", "label": "🔒 Posesivo"}, {"cat": "demostrativo", "label": "👉 Demostrativo"}, {"cat": "indefinido", "label": "❔ Indefinido"}], "pronombres");
+
+/* 6° · Radiografía de la oración — sintagma_6
+   DC: Sintagma nominal y verbal; núcleo, especificador y modificadores
+   Fuente: docs/auditoria-dc-caba/grado-6.md · L7a */
+const CUR_SINTAGMA_6_BANCO = [
+  {
+    "q": "En «el perro negro», ¿cuál es el núcleo?",
+    "ops": [
+      "perro",
+      "el",
+      "negro"
+    ],
+    "m": "El sustantivo es el núcleo; «el» y «negro» lo acompañan."
+  },
+  {
+    "q": "En «el perro negro», ¿qué función cumple «el»?",
+    "ops": [
+      "Especificador (artículo)",
+      "Núcleo",
+      "Modificador directo"
+    ],
+    "m": "Los artículos especifican de cuál se habla."
+  },
+  {
+    "q": "En «una casa muy grande», ¿cuál es el núcleo?",
+    "ops": [
+      "casa",
+      "grande",
+      "una"
+    ],
+    "m": "Sacá «casa» y no queda de qué se habla."
+  },
+  {
+    "q": "¿Qué es un modificador directo?",
+    "ops": [
+      "Un adjetivo que acompaña al núcleo sin nexo",
+      "Un adjetivo unido por preposición",
+      "Otro sustantivo aclarando entre comas"
+    ],
+    "m": "Si hay preposición, es indirecto; si hay comas, es aposición."
+  },
+  {
+    "q": "En «la casa de madera», «de madera» es…",
+    "ops": [
+      "Modificador indirecto",
+      "Modificador directo",
+      "Núcleo"
+    ],
+    "m": "Va unido por la preposición «de»: por eso es indirecto."
+  },
+  {
+    "q": "En «Buenos Aires, la capital, creció mucho», «la capital» es…",
+    "ops": [
+      "Una aposición",
+      "Un modificador directo",
+      "El núcleo"
+    ],
+    "m": "Va entre comas y podría reemplazar al núcleo: es aposición."
+  },
+  {
+    "q": "En «los chicos corrieron rápido», ¿cuál es el núcleo del predicado?",
+    "ops": [
+      "corrieron",
+      "chicos",
+      "rápido"
+    ],
+    "m": "El núcleo del predicado siempre es el verbo."
+  },
+  {
+    "q": "¿Qué es un sintagma nominal?",
+    "ops": [
+      "Un grupo de palabras cuyo núcleo es un sustantivo",
+      "Un grupo cuyo núcleo es un verbo",
+      "Una oración completa"
+    ],
+    "m": "Si el núcleo es un verbo, es un sintagma verbal."
+  },
+  {
+    "q": "En «mi mejor amiga», ¿cuál es el núcleo?",
+    "ops": [
+      "amiga",
+      "mi",
+      "mejor"
+    ],
+    "m": "Los otros dos dicen algo SOBRE la amiga."
+  },
+  {
+    "q": "En «el gato duerme en el sillón», ¿cuál es el sujeto?",
+    "ops": [
+      "el gato",
+      "duerme",
+      "en el sillón"
+    ],
+    "m": "Preguntale al verbo: ¿quién duerme?"
+  },
+  {
+    "q": "¿Puede una oración tener sujeto sin que aparezca escrito?",
+    "ops": [
+      "Sí, se llama sujeto tácito",
+      "No, nunca",
+      "Sólo en las preguntas"
+    ],
+    "m": "En «Corrimos toda la tarde», el sujeto «nosotros» está sobreentendido."
+  },
+  {
+    "q": "En «una tarde de lluvia», ¿cuál es el núcleo?",
+    "ops": [
+      "tarde",
+      "lluvia",
+      "una"
+    ],
+    "m": "«De lluvia» modifica a «tarde», así que «tarde» manda."
+  },
+  {
+    "q": "¿Cuántos núcleos puede tener un sujeto?",
+    "ops": [
+      "Uno o más de uno",
+      "Siempre uno solo",
+      "Siempre dos"
+    ],
+    "m": "En «Ana y Juan llegaron» hay dos: el sujeto es compuesto."
+  },
+  {
+    "q": "En «el libro rojo de tapa dura», ¿cuántos modificadores tiene el núcleo?",
+    "ops": [
+      "Dos: «rojo» y «de tapa dura»",
+      "Uno solo",
+      "Ninguno"
+    ],
+    "m": "Uno es directo y el otro indirecto, pero los dos modifican a «libro»."
+  },
+  {
+    "q": "¿Qué pasa si sacás el núcleo de un sintagma?",
+    "ops": [
+      "La construcción se rompe",
+      "No cambia nada",
+      "Queda más clara"
+    ],
+    "m": "Ésa es justamente la prueba para encontrarlo."
+  }
+];
+GAMES.sintagma_6 = juegoTriviaTexto(CUR_SINTAGMA_6_BANCO, "Encontrá el núcleo y lo que lo acompaña.", "sintagma_6");
+
+/* 6° · OD, OI y transitividad — od_oi_6
+   DC: Objeto directo e indirecto; complementos vs adjuntos; verbos transitivos
+   Fuente: docs/auditoria-dc-caba/grado-6.md · L7b */
+const CUR_OD_OI_6_BANCO = [
+  {
+    "q": "En «Ana compró un libro», ¿cuál es el objeto directo?",
+    "ops": [
+      "un libro",
+      "Ana",
+      "compró"
+    ],
+    "m": "Se reemplaza por LO: «Ana LO compró»."
+  },
+  {
+    "q": "En «Le di el regalo a mi hermana», ¿cuál es el objeto indirecto?",
+    "ops": [
+      "a mi hermana",
+      "el regalo",
+      "Le di"
+    ],
+    "m": "Se reemplaza por LE. El regalo es el OD."
+  },
+  {
+    "q": "¿Con qué pronombre se reemplaza el objeto directo?",
+    "ops": [
+      "LO o LA",
+      "LE",
+      "SE"
+    ],
+    "m": "LE es la marca del indirecto."
+  },
+  {
+    "q": "¿Qué es un verbo transitivo?",
+    "ops": [
+      "El que necesita un objeto directo",
+      "El que nunca lleva objeto",
+      "El que se conjuga en pasado"
+    ],
+    "m": "«Comprar» pide qué: sin objeto la oración queda colgada."
+  },
+  {
+    "q": "¿Cuál de estos verbos es intransitivo?",
+    "ops": [
+      "nacer",
+      "comprar",
+      "leer"
+    ],
+    "m": "«Nacer» no admite objeto directo: nadie nace algo."
+  },
+  {
+    "q": "En «Corrimos en el parque», «en el parque» es…",
+    "ops": [
+      "Un adjunto de lugar",
+      "Un objeto directo",
+      "Un objeto indirecto"
+    ],
+    "m": "Se puede sacar y la oración sigue en pie: por eso es adjunto, no complemento."
+  },
+  {
+    "q": "¿Cómo se distingue un complemento de un adjunto?",
+    "ops": [
+      "El complemento no se puede sacar sin que la oración quede incompleta",
+      "El adjunto siempre va al final",
+      "El complemento siempre lleva preposición"
+    ],
+    "m": "El adjunto agrega información circunstancial; el complemento es exigido por el verbo."
+  },
+  {
+    "q": "En «Le escribí una carta a Pedro», ¿cuál es el OD?",
+    "ops": [
+      "una carta",
+      "a Pedro",
+      "Le"
+    ],
+    "m": "Se reemplaza por LA: «se LA escribí»."
+  },
+  {
+    "q": "En «Vimos la película ayer», ¿qué es «ayer»?",
+    "ops": [
+      "Un adjunto de tiempo",
+      "El objeto directo",
+      "El objeto indirecto"
+    ],
+    "m": "El OD es «la película»; «ayer» se puede sacar sin romper nada."
+  },
+  {
+    "q": "«Juan durmió» es una oración con verbo…",
+    "ops": [
+      "Intransitivo",
+      "Transitivo",
+      "Copulativo"
+    ],
+    "m": "«Dormir» no admite objeto directo."
+  },
+  {
+    "q": "En «Regalé flores a mi mamá», ¿cuál es el OI?",
+    "ops": [
+      "a mi mamá",
+      "flores",
+      "Regalé"
+    ],
+    "m": "Es quien recibe la acción: se reemplaza por LE."
+  },
+  {
+    "q": "¿Puede una oración tener OD y OI a la vez?",
+    "ops": [
+      "Sí, es muy frecuente",
+      "No, nunca",
+      "Sólo en preguntas"
+    ],
+    "m": "«Le di el libro a Ana» tiene los dos."
+  },
+  {
+    "q": "En «Ana LO vio», ¿qué reemplaza «lo»?",
+    "ops": [
+      "El objeto directo",
+      "El sujeto",
+      "El objeto indirecto"
+    ],
+    "m": "LO y LA son las marcas del directo."
+  },
+  {
+    "q": "¿Qué pregunta se le hace al verbo para encontrar el OD?",
+    "ops": [
+      "¿Qué? o ¿a quién?",
+      "¿Para quién?",
+      "¿Cuándo?"
+    ],
+    "m": "«¿Para quién?» apunta al indirecto y «¿cuándo?» a un adjunto."
+  },
+  {
+    "q": "En «El tren llegó a Retiro», «a Retiro» es…",
+    "ops": [
+      "Un adjunto de lugar",
+      "Un objeto indirecto",
+      "Un objeto directo"
+    ],
+    "m": "Que lleve «a» no la vuelve objeto indirecto: acá indica destino."
+  }
+];
+GAMES.od_oi_6 = juegoTriviaTexto(CUR_OD_OI_6_BANCO, "Preguntale al verbo qué y a quién.", "od_oi_6");
+
+/* 6° · Conectores en acción — conectores_6
+   DC: Conectores temporales, locativos, causales-consecutivos y de síntesis
+   Fuente: docs/auditoria-dc-caba/grado-6.md · L8 */
+const CUR_CONECTORES_6_BANCO = [
+  {
+    "it": "después",
+    "cat": "temporal",
+    "m": "Ordena dos hechos en el tiempo."
+  },
+  {
+    "it": "porque",
+    "cat": "causal",
+    "m": "Introduce la causa de lo anterior."
+  },
+  {
+    "it": "allí",
+    "cat": "locativo",
+    "m": "Ubica en el espacio."
+  },
+  {
+    "it": "en resumen",
+    "cat": "sintesis",
+    "m": "Cierra recogiendo lo dicho."
+  },
+  {
+    "it": "mientras tanto",
+    "cat": "temporal",
+    "m": "Marca simultaneidad."
+  },
+  {
+    "it": "por lo tanto",
+    "cat": "causal",
+    "m": "Introduce la consecuencia."
+  },
+  {
+    "it": "más adelante",
+    "cat": "locativo",
+    "m": "Señala un punto del espacio hacia delante."
+  },
+  {
+    "it": "en síntesis",
+    "cat": "sintesis",
+    "m": "Anuncia el cierre de lo desarrollado."
+  },
+  {
+    "it": "antes",
+    "cat": "temporal",
+    "m": "Indica anterioridad."
+  },
+  {
+    "it": "por eso",
+    "cat": "causal",
+    "m": "Presenta lo que se sigue de lo anterior."
+  },
+  {
+    "it": "debajo",
+    "cat": "locativo",
+    "m": "Indica posición en el espacio."
+  },
+  {
+    "it": "para concluir",
+    "cat": "sintesis",
+    "m": "Cierra el texto."
+  },
+  {
+    "it": "finalmente",
+    "cat": "temporal",
+    "m": "Marca el último hecho de la serie."
+  },
+  {
+    "it": "ya que",
+    "cat": "causal",
+    "m": "Introduce el motivo."
+  },
+  {
+    "it": "enfrente",
+    "cat": "locativo",
+    "m": "Ubica algo respecto de otra cosa."
+  },
+  {
+    "it": "en conclusión",
+    "cat": "sintesis",
+    "m": "Anuncia el balance final."
+  },
+  {
+    "it": "luego",
+    "cat": "temporal",
+    "m": "Ordena en el tiempo lo que sigue."
+  },
+  {
+    "it": "así que",
+    "cat": "causal",
+    "m": "Presenta la consecuencia."
+  },
+  {
+    "it": "alrededor",
+    "cat": "locativo",
+    "m": "Ubica en el entorno de algo."
+  },
+  {
+    "it": "en pocas palabras",
+    "cat": "sintesis",
+    "m": "Resume lo desarrollado."
+  }
+];
+GAMES.conectores_6 = juegoClasificar(CUR_CONECTORES_6_BANCO, "¿Qué relación arma este conector?", [{"cat": "temporal", "label": "⏱️ Temporal"}, {"cat": "causal", "label": "➡️ Causa o consecuencia"}, {"cat": "locativo", "label": "📍 De lugar"}, {"cat": "sintesis", "label": "📌 De síntesis"}], "conectores");
+
+/* 6° · Basta de repetir — cohesion_6
+   DC: Cohesión léxica: sinónimo, hiperónimo y referencia pronominal
+   Fuente: docs/auditoria-dc-caba/grado-6.md · L9 */
+const CUR_COHESION_6_BANCO = [
+  {
+    "q": "«Compré un perro. El perro es marrón.» ¿Cómo evitar la repetición?",
+    "ops": [
+      "El animal es marrón",
+      "Perro es marrón",
+      "Un perro es marrón"
+    ],
+    "m": "«Animal» es un hiperónimo: una palabra más general que abarca a «perro»."
+  },
+  {
+    "q": "¿Qué es un hiperónimo?",
+    "ops": [
+      "Una palabra más general que incluye a otra",
+      "Un sinónimo exacto",
+      "Una palabra más específica"
+    ],
+    "m": "«Flor» es hiperónimo de «rosa»; «rosa» es hipónimo de «flor»."
+  },
+  {
+    "q": "«Vino Sofía. Sofía trajo la torta.» El mejor reemplazo es…",
+    "ops": [
+      "Ella trajo la torta",
+      "La chica Sofía trajo la torta",
+      "Sofía ella trajo la torta"
+    ],
+    "m": "El pronombre personal evita repetir el nombre."
+  },
+  {
+    "q": "¿Qué es un sinónimo?",
+    "ops": [
+      "Una palabra con significado parecido",
+      "Una palabra con significado opuesto",
+      "Una palabra más general"
+    ],
+    "m": "El opuesto es el antónimo; la más general, el hiperónimo."
+  },
+  {
+    "q": "Un hiperónimo de «rosa», «margarita» y «tulipán» es…",
+    "ops": [
+      "flor",
+      "planta hermosa",
+      "jardín"
+    ],
+    "m": "El jardín es el lugar, no la categoría de esas tres."
+  },
+  {
+    "q": "«El auto quedó en el taller. El vehículo estaba roto.» ¿Qué recurso se usó?",
+    "ops": [
+      "Un hiperónimo",
+      "Un pronombre",
+      "Una repetición"
+    ],
+    "m": "«Vehículo» es más general que «auto»."
+  },
+  {
+    "q": "«Juan y Ana llegaron. Ellos traían regalos.» ¿A quiénes se refiere «ellos»?",
+    "ops": [
+      "A Juan y Ana",
+      "Sólo a Juan",
+      "A los regalos"
+    ],
+    "m": "El pronombre retoma lo nombrado justo antes."
+  },
+  {
+    "q": "¿Por qué es un problema repetir siempre la misma palabra?",
+    "ops": [
+      "Hace el texto pesado y monótono",
+      "Es un error de ortografía",
+      "Alarga demasiado el texto"
+    ],
+    "m": "No es un error de escritura, es un problema de calidad del texto."
+  },
+  {
+    "q": "Un sinónimo de «rápido» es…",
+    "ops": [
+      "veloz",
+      "lento",
+      "movimiento"
+    ],
+    "m": "«Lento» es el antónimo."
+  },
+  {
+    "q": "«Compré manzanas y peras. Las frutas estaban frescas.» ¿Qué es «frutas»?",
+    "ops": [
+      "Un hiperónimo de las dos",
+      "Un sinónimo de manzana",
+      "Un pronombre"
+    ],
+    "m": "Abarca a las dos en una sola palabra."
+  },
+  {
+    "q": "Si un pronombre no queda claro a quién se refiere, el texto…",
+    "ops": [
+      "Se vuelve ambiguo",
+      "Queda más elegante",
+      "Se acorta"
+    ],
+    "m": "La referencia tiene que poder rastrearse sin dudas."
+  },
+  {
+    "q": "«El profesor explicó el tema. El docente dio ejemplos.» ¿Qué recurso se usó?",
+    "ops": [
+      "Un sinónimo",
+      "Un pronombre",
+      "Un hiperónimo"
+    ],
+    "m": "«Docente» y «profesor» significan prácticamente lo mismo."
+  },
+  {
+    "q": "¿Qué es la elipsis en un texto?",
+    "ops": [
+      "Omitir una palabra que ya se entiende",
+      "Repetirla para insistir",
+      "Cambiarla por su opuesto"
+    ],
+    "m": "En «Ana estudia y (Ana) trabaja», el segundo sujeto se omite."
+  },
+  {
+    "q": "Un hiperónimo de «martillo», «pinza» y «destornillador» es…",
+    "ops": [
+      "herramienta",
+      "ferretería",
+      "trabajo"
+    ],
+    "m": "La ferretería es el lugar donde se venden, no la categoría."
+  }
+];
+GAMES.cohesion_6 = juegoTriviaTexto(CUR_COHESION_6_BANCO, "Buscá el mejor reemplazo.", "cohesion_6");
+
+/* 6° · Sonidos del poema — recursos_poeticos_6
+   DC: Aliteración, onomatopeya, personificación, comparación e hipérbole
+   Fuente: docs/auditoria-dc-caba/grado-6.md · L10 */
+const CUR_RECURSOS_POETICOS_6_BANCO = [
+  {
+    "q": "«El silbo de los silbos silbaba en la sierra.» ¿Qué recurso es?",
+    "ops": [
+      "Aliteración",
+      "Onomatopeya",
+      "Hipérbole"
+    ],
+    "m": "Repite el mismo sonido varias veces para armar un efecto sonoro."
+  },
+  {
+    "q": "«El reloj hacía tic-tac toda la noche.» ¿Qué recurso es?",
+    "ops": [
+      "Onomatopeya",
+      "Aliteración",
+      "Comparación"
+    ],
+    "m": "La palabra imita directamente el sonido real."
+  },
+  {
+    "q": "«El viento acariciaba las hojas.» ¿Qué recurso es?",
+    "ops": [
+      "Personificación",
+      "Comparación",
+      "Onomatopeya"
+    ],
+    "m": "Le da al viento una acción humana: acariciar."
+  },
+  {
+    "q": "«Sus ojos eran como dos faroles.» ¿Qué recurso es?",
+    "ops": [
+      "Comparación",
+      "Personificación",
+      "Hipérbole"
+    ],
+    "m": "El «como» es la marca de la comparación."
+  },
+  {
+    "q": "«Te lo dije un millón de veces.» ¿Qué recurso es?",
+    "ops": [
+      "Hipérbole",
+      "Comparación",
+      "Aliteración"
+    ],
+    "m": "Exagera a propósito para dar énfasis."
+  },
+  {
+    "q": "¿Qué diferencia hay entre comparación y metáfora?",
+    "ops": [
+      "La comparación usa «como»; la metáfora, no",
+      "La metáfora es más larga",
+      "No hay diferencia"
+    ],
+    "m": "«Sus ojos son faroles» es metáfora; «como faroles», comparación."
+  },
+  {
+    "q": "«La luna me miraba desde la ventana.» ¿Qué recurso es?",
+    "ops": [
+      "Personificación",
+      "Hipérbole",
+      "Onomatopeya"
+    ],
+    "m": "Mirar es una acción de un ser vivo."
+  },
+  {
+    "q": "«¡Zas! cayó el vaso.» ¿Qué recurso es?",
+    "ops": [
+      "Onomatopeya",
+      "Aliteración",
+      "Personificación"
+    ],
+    "m": "Reproduce con letras el ruido del golpe."
+  },
+  {
+    "q": "«Tres tristes tigres tragaban trigo.» ¿Qué recurso es?",
+    "ops": [
+      "Aliteración",
+      "Onomatopeya",
+      "Comparación"
+    ],
+    "m": "Se repite la «tr» en casi todas las palabras."
+  },
+  {
+    "q": "«Lloré un océano.» ¿Qué recurso es?",
+    "ops": [
+      "Hipérbole",
+      "Comparación",
+      "Personificación"
+    ],
+    "m": "Exagera muchísimo la cantidad para expresar la intensidad."
+  },
+  {
+    "q": "«Duerme como un tronco.» ¿Qué recurso es?",
+    "ops": [
+      "Comparación",
+      "Metáfora",
+      "Hipérbole"
+    ],
+    "m": "Con «como» explícito, es comparación."
+  },
+  {
+    "q": "«Las nubes lloraban sobre el pueblo.» ¿Qué recurso es?",
+    "ops": [
+      "Personificación",
+      "Onomatopeya",
+      "Aliteración"
+    ],
+    "m": "Llorar es propio de las personas."
+  },
+  {
+    "q": "¿Para qué sirven los recursos poéticos?",
+    "ops": [
+      "Para producir un efecto en quien lee",
+      "Para hacer el texto más largo",
+      "Para respetar la ortografía"
+    ],
+    "m": "Buscan una sensación, no cumplir una regla."
+  },
+  {
+    "q": "«Su risa era música.» ¿Qué recurso es?",
+    "ops": [
+      "Metáfora",
+      "Comparación",
+      "Onomatopeya"
+    ],
+    "m": "Identifica una cosa con otra sin usar «como»."
+  },
+  {
+    "q": "«Miau, miau», se escuchó detrás de la puerta. ¿Qué recurso es?",
+    "ops": [
+      "Onomatopeya",
+      "Personificación",
+      "Hipérbole"
+    ],
+    "m": "Imita el sonido del gato con letras."
+  }
+];
+GAMES.recursos_poeticos_6 = juegoTriviaTexto(CUR_RECURSOS_POETICOS_6_BANCO, "¿Qué recurso usó el poeta?", "recursos_p");
+
+/* 6° · Conjugá el verbo — conjugacion_6
+   DC: Conjugación del modo indicativo; imperfecto vs perfecto simple
+   Fuente: docs/auditoria-dc-caba/grado-6.md · L11 */
+const CUR_CONJUGACION_6_BANCO = [
+  {
+    "q": "«Todos los veranos ___ a la playa.» ¿Qué forma va?",
+    "ops": [
+      "íbamos",
+      "fuimos",
+      "iremos"
+    ],
+    "m": "«Todos los veranos» marca una costumbre repetida: eso pide imperfecto."
+  },
+  {
+    "q": "«Ayer ___ al cine.» ¿Qué forma va?",
+    "ops": [
+      "fui",
+      "iba",
+      "iré"
+    ],
+    "m": "Un hecho puntual y terminado pide perfecto simple."
+  },
+  {
+    "q": "«Mientras yo ___, sonó el timbre.» ¿Qué forma va?",
+    "ops": [
+      "cocinaba",
+      "cociné",
+      "cocinaré"
+    ],
+    "m": "La acción que estaba en curso va en imperfecto; la que la interrumpe, en perfecto simple."
+  },
+  {
+    "q": "¿Qué expresa el pretérito imperfecto?",
+    "ops": [
+      "Una acción que duraba o se repetía en el pasado",
+      "Una acción terminada en un momento preciso",
+      "Una acción futura"
+    ],
+    "m": "No marca el final de la acción: la muestra transcurriendo."
+  },
+  {
+    "q": "¿Qué expresa el pretérito perfecto simple?",
+    "ops": [
+      "Una acción del pasado ya terminada",
+      "Una costumbre del pasado",
+      "Una acción que sigue pasando"
+    ],
+    "m": "Cierra la acción: pasó y se acabó."
+  },
+  {
+    "q": "«Cuando era chico, ___ mucho al fútbol.»",
+    "ops": [
+      "jugaba",
+      "jugué",
+      "jugaría"
+    ],
+    "m": "«Cuando era chico» abre un período, no un instante."
+  },
+  {
+    "q": "«El año pasado ___ la escuela primaria.»",
+    "ops": [
+      "terminé",
+      "terminaba",
+      "termino"
+    ],
+    "m": "Terminar es un hecho puntual con fecha."
+  },
+  {
+    "q": "¿En qué tiempo está «habré llegado»?",
+    "ops": [
+      "Futuro perfecto",
+      "Futuro simple",
+      "Pretérito perfecto"
+    ],
+    "m": "Habla de algo que estará terminado en un momento futuro."
+  },
+  {
+    "q": "¿En qué tiempo está «he estudiado»?",
+    "ops": [
+      "Pretérito perfecto compuesto",
+      "Pretérito perfecto simple",
+      "Pretérito imperfecto"
+    ],
+    "m": "Se arma con «haber» más el participio."
+  },
+  {
+    "q": "«Todos los días ___ el mismo colectivo.» (en pasado)",
+    "ops": [
+      "tomaba",
+      "tomé",
+      "tomaré"
+    ],
+    "m": "«Todos los días» marca repetición: imperfecto."
+  },
+  {
+    "q": "«De pronto ___ un ruido fuerte.»",
+    "ops": [
+      "se escuchó",
+      "se escuchaba",
+      "se escuchará"
+    ],
+    "m": "«De pronto» marca un hecho puntual."
+  },
+  {
+    "q": "¿Cuál es el infinitivo de «tuvimos»?",
+    "ops": [
+      "tener",
+      "tuvir",
+      "tenir"
+    ],
+    "m": "Es un verbo irregular: la raíz cambia pero el infinitivo es «tener»."
+  },
+  {
+    "q": "¿Cuántos modos verbales hay en español?",
+    "ops": [
+      "Tres: indicativo, subjuntivo e imperativo",
+      "Dos",
+      "Cinco"
+    ],
+    "m": "El indicativo informa, el subjuntivo expresa deseo o duda, el imperativo ordena."
+  },
+  {
+    "q": "¿Qué expresa el modo indicativo?",
+    "ops": [
+      "Hechos que se presentan como reales",
+      "Deseos y dudas",
+      "Órdenes"
+    ],
+    "m": "Los deseos van en subjuntivo y las órdenes en imperativo."
+  },
+  {
+    "q": "«Nosotros ___ la tarea antes de salir.» (pasado terminado)",
+    "ops": [
+      "hicimos",
+      "hacíamos",
+      "haremos"
+    ],
+    "m": "«Antes de salir» cierra la acción: perfecto simple."
+  }
+];
+GAMES.conjugacion_6 = juegoTriviaTexto(CUR_CONJUGACION_6_BANCO, "Elegí el tiempo que pide la oración.", "conjugacio");
+
+/* 6° · Tildes rebeldes — tildes_6
+   DC: Acentuación completa: reglas generales, tilde diacrítica, -mente e hiato
+   Fuente: docs/auditoria-dc-caba/grado-6.md · L12a */
+const CUR_TILDES_6_BANCO = [
+  {
+    "q": "¿Cómo se escribe el vehículo grande de pasajeros?",
+    "ops": [
+      "camión",
+      "camion",
+      "cámion"
+    ],
+    "m": "Aguda terminada en n: lleva tilde."
+  },
+  {
+    "q": "¿Cómo se escribe el útil con el que se dibuja?",
+    "ops": [
+      "lápiz",
+      "lapiz",
+      "lapíz"
+    ],
+    "m": "Grave terminada en z: lleva tilde porque no termina en n, s ni vocal."
+  },
+  {
+    "q": "¿Cómo se escribe el adverbio de «fácil»?",
+    "ops": [
+      "fácilmente",
+      "facilmente",
+      "facílmente"
+    ],
+    "m": "Los adverbios en -mente conservan la tilde del adjetivo: fácil → fácilmente."
+  },
+  {
+    "q": "«___ querés un café?» ¿Qué va?",
+    "ops": [
+      "¿Vos",
+      "Vós",
+      "Bos"
+    ],
+    "m": "«Vos» es monosílabo: no lleva tilde."
+  },
+  {
+    "q": "«No sé ___ decir.» ¿Qué va?",
+    "ops": [
+      "qué",
+      "que",
+      "qué que"
+    ],
+    "m": "En pregunta indirecta, «qué» lleva tilde diacrítica."
+  },
+  {
+    "q": "«Quiero ___ vengas.» ¿Qué va?",
+    "ops": [
+      "que",
+      "qué",
+      "qué que"
+    ],
+    "m": "Acá «que» es un nexo, no una pregunta: sin tilde."
+  },
+  {
+    "q": "«___ tomo el café solo.» ¿Qué va?",
+    "ops": [
+      "Yo",
+      "Yó",
+      "Ió"
+    ],
+    "m": "Monosílabo sin necesidad de diacrítica: no lleva tilde."
+  },
+  {
+    "q": "«Dame ___ libro a mí.» ¿Qué va?",
+    "ops": [
+      "el",
+      "él",
+      "êl"
+    ],
+    "m": "Artículo: sin tilde. «Él» con tilde es el pronombre."
+  },
+  {
+    "q": "«___ llegó tarde.» ¿Qué va?",
+    "ops": [
+      "Él",
+      "El",
+      "Ell"
+    ],
+    "m": "Acá es el pronombre: lleva tilde diacrítica para distinguirlo del artículo."
+  },
+  {
+    "q": "«Quiero ___ té, no café.» ¿Qué va?",
+    "ops": [
+      "un",
+      "ún",
+      "uno"
+    ],
+    "m": "Monosílabo átono: no lleva tilde."
+  },
+  {
+    "q": "¿Cómo se escribe el ave nocturna de ojos grandes?",
+    "ops": [
+      "búho",
+      "buho",
+      "buhó"
+    ],
+    "m": "Hiato con vocal cerrada tónica: lleva tilde aunque haya una h en el medio."
+  },
+  {
+    "q": "¿Cómo se escribe ese nombre de mujer?",
+    "ops": [
+      "María",
+      "Maria",
+      "Mária"
+    ],
+    "m": "La i tónica junto a otra vocal forma hiato y lleva tilde."
+  },
+  {
+    "q": "¿Cómo se escribe el adverbio de «rápido»?",
+    "ops": [
+      "rápidamente",
+      "rapidamente",
+      "rapídamente"
+    ],
+    "m": "«Rápido» lleva tilde, así que «rápidamente» también."
+  },
+  {
+    "q": "¿Cómo se escribe el plural de «examen»?",
+    "ops": [
+      "exámenes",
+      "examenes",
+      "examénes"
+    ],
+    "m": "«Examen» es grave sin tilde, pero el plural es esdrújula y sí la lleva."
+  },
+  {
+    "q": "¿Cómo se escribe el cofre para guardar ropa?",
+    "ops": [
+      "baúl",
+      "baul",
+      "bául"
+    ],
+    "m": "La u tónica en hiato lleva tilde siempre."
+  },
+  {
+    "q": "«___ vas a venir?» ¿Qué va?",
+    "ops": [
+      "¿Cuándo",
+      "¿Cuando",
+      "¿Quando"
+    ],
+    "m": "En pregunta, los interrogativos llevan tilde."
+  },
+  {
+    "q": "«Vino ___ terminó de trabajar.» ¿Qué va?",
+    "ops": [
+      "cuando",
+      "cuándo",
+      "quando"
+    ],
+    "m": "Acá no pregunta nada: es un conector de tiempo, sin tilde."
+  },
+  {
+    "q": "¿Cómo se escribe el número 16?",
+    "ops": [
+      "dieciséis",
+      "dieciseis",
+      "diecíseis"
+    ],
+    "m": "Aguda terminada en s: lleva tilde."
+  }
+];
+GAMES.tildes_6 = juegoTriviaTexto(CUR_TILDES_6_BANCO, "¿Lleva tilde o no?", "tildes_6");
+
+/* 6° · Puntuación fina — puntuacion_6
+   DC: Coma, punto, paréntesis, comillas y puntos suspensivos
+   Fuente: docs/auditoria-dc-caba/grado-6.md · L12b */
+const CUR_PUNTUACION_6_BANCO = [
+  {
+    "q": "«Compré pan___ leche y queso.» ¿Qué signo va?",
+    "ops": [
+      "coma",
+      "punto",
+      "dos puntos"
+    ],
+    "m": "La coma separa los elementos de una enumeración."
+  },
+  {
+    "q": "«Mi abuela ___la que vive en Salta___ vino de visita.» ¿Qué signos van?",
+    "ops": [
+      "comas o paréntesis",
+      "comillas",
+      "puntos suspensivos"
+    ],
+    "m": "La aclaración va entre comas o paréntesis, no entre comillas."
+  },
+  {
+    "q": "«Y entonces pasó lo peor___» ¿Qué signo deja la frase en suspenso?",
+    "ops": [
+      "puntos suspensivos",
+      "punto final",
+      "dos puntos"
+    ],
+    "m": "Los suspensivos dejan algo sin decir a propósito."
+  },
+  {
+    "q": "¿Para qué sirven las comillas?",
+    "ops": [
+      "Para citar palabras textuales de alguien",
+      "Para separar una enumeración",
+      "Para cerrar una idea"
+    ],
+    "m": "Marcan que ésas son las palabras exactas de otro."
+  },
+  {
+    "q": "«Ana, ___ traés el mapa?» En una frase donde llamás a alguien, ¿qué la separa?",
+    "ops": [
+      "Una coma antes del nombre",
+      "Dos puntos",
+      "Un punto"
+    ],
+    "m": "El vocativo —a quién le hablás— siempre va entre comas."
+  },
+  {
+    "q": "¿Cuándo se usan los dos puntos?",
+    "ops": [
+      "Antes de una enumeración o una cita",
+      "Para separar palabras de una lista",
+      "Al final de un párrafo"
+    ],
+    "m": "Anuncian que viene algo: la lista o las palabras citadas."
+  },
+  {
+    "q": "¿Qué diferencia hay entre punto y seguido y punto y aparte?",
+    "ops": [
+      "El punto y aparte cambia de párrafo",
+      "El punto y seguido cierra el texto",
+      "Son lo mismo"
+    ],
+    "m": "El punto y seguido continúa en el mismo párrafo."
+  },
+  {
+    "q": "¿Para qué sirve el paréntesis?",
+    "ops": [
+      "Para agregar un dato secundario",
+      "Para citar textualmente",
+      "Para separar una enumeración"
+    ],
+    "m": "Lo que va adentro se puede sacar sin romper la oración."
+  },
+  {
+    "q": "«No vino ___ estaba enfermo.» ¿Qué signo va antes de la explicación?",
+    "ops": [
+      "dos puntos",
+      "punto",
+      "signo de pregunta"
+    ],
+    "m": "Los dos puntos anuncian la causa que viene después."
+  },
+  {
+    "q": "«¿Vas a venir___» ¿Con qué se cierra una pregunta en español?",
+    "ops": [
+      "Con signo de interrogación de cierre",
+      "Con punto",
+      "Sólo con el de apertura"
+    ],
+    "m": "En español las preguntas se abren y se cierran."
+  },
+  {
+    "q": "¿Se pone coma entre el sujeto y el verbo?",
+    "ops": [
+      "No, nunca",
+      "Sí, siempre",
+      "Sólo si el sujeto es largo"
+    ],
+    "m": "«Los chicos, juegan» está mal: nada separa al sujeto de su verbo."
+  },
+  {
+    "q": "«Pedro dijo: ___Ya llego___» ¿Qué signos encierran lo que dijo?",
+    "ops": [
+      "comillas",
+      "paréntesis",
+      "puntos suspensivos"
+    ],
+    "m": "Las palabras textuales van entre comillas."
+  },
+  {
+    "q": "¿Cuándo se usa el punto y coma?",
+    "ops": [
+      "Para separar partes de una oración que ya tienen comas",
+      "Para cerrar el texto",
+      "Para abrir una cita"
+    ],
+    "m": "Marca una pausa más fuerte que la coma pero menos que el punto."
+  },
+  {
+    "q": "«Vinieron Ana, Luis y Sol___» ¿Qué signo cierra la oración?",
+    "ops": [
+      "punto",
+      "coma",
+      "dos puntos"
+    ],
+    "m": "Termina la idea completa: va punto."
+  },
+  {
+    "q": "En una enumeración, ¿va coma antes del «y» final?",
+    "ops": [
+      "No, en español no se pone",
+      "Sí, siempre",
+      "Sólo si son más de cinco"
+    ],
+    "m": "«Pan, leche y queso»: el «y» reemplaza a la última coma."
+  }
+];
+GAMES.puntuacion_6 = juegoTriviaTexto(CUR_PUNTUACION_6_BANCO, "¿Qué signo va acá?", "puntuacion");
