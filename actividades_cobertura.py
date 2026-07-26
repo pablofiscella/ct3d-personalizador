@@ -236,6 +236,24 @@ DC = {
     4: GRADO_4,
 }
 
+# Grados que se están construyendo AHORA. Mientras un grado esté acá, que le falten
+# temas NO rompe la suite: se informa el avance y listo.
+#
+# Existe para poder construir un grado de a tandas. Un grado son 45-70 actividades y no
+# entran en una sentada; sin esto, apenas se declara el manifiesto la suite queda en rojo
+# por 50 temas "faltantes" que en realidad todavía no tocaba construir, y entonces no hay
+# forma de commitear la mitad del trabajo. Con esto, cada tanda se commitea y pushea
+# verde, y si algo se corta (se acaba el crédito, se cae la sesión) lo peor que se pierde
+# es la tanda en curso.
+#
+# Lo que SÍ sigue fallando aunque el grado esté en construcción: un tema que declara una
+# actividad inexistente, o una que quedó en un nivel con candado. "Todavía no lo hice" es
+# esperable; "lo hice mal" no lo es nunca.
+#
+# Al terminar el grado se saca de este set y pasa a exigirse completo. Que quede vacío es
+# el estado normal.
+EN_CONSTRUCCION = set()
+
 # Actividades que están en el menú del grado pero NO cubren un tema de su currícula.
 # No son un error: son comodines de descanso y refuerzos del año anterior. Se declaran
 # para que el informe pueda distinguir "extra a propósito" de "tema que se nos escapó".
@@ -294,15 +312,21 @@ def problemas(grado):
       1. todo tema del DC tiene actividad declarada,
       2. esa actividad EXISTE en el menú real del grado,
       3. y está en el NIVEL 1 (ningún tema del año detrás de un candado).
+
+    Si el grado está en EN_CONSTRUCCION se saltea (1) —todavía se está construyendo— pero
+    (2) y (3) se siguen exigiendo: no haberlo hecho es esperable, haberlo hecho mal no.
     """
     fallas = []
     if int(grado) not in DC:
         return fallas
+    en_obra = int(grado) in EN_CONSTRUCCION
     menu = _menu_real(grado)
     for t in temas(grado):
         ids = _ids(t)
         if not ids:
-            fallas.append("%s %s: sin actividad — falta construirla" % (t["cod"], t["tema"]))
+            if not en_obra:
+                fallas.append("%s %s: sin actividad — falta construirla"
+                              % (t["cod"], t["tema"]))
             continue
         for aid in ids:
             if aid not in menu:
@@ -321,8 +345,10 @@ def informe(grado=4):
         print("%d° todavía no tiene manifiesto de cobertura." % grado)
         return
     faltan = faltantes(grado)
-    print("%d° — %d temas del DC · cubiertos %d · faltan %d"
-          % (grado, len(ts), len(ts) - len(faltan), len(faltan)))
+    hechos = len(ts) - len(faltan)
+    estado = " · EN CONSTRUCCIÓN" if int(grado) in EN_CONSTRUCCION else ""
+    print("%d° — %d temas del DC · cubiertos %d (%d%%) · faltan %d%s"
+          % (grado, len(ts), hechos, round(100.0 * hechos / len(ts)), len(faltan), estado))
     areas = {}
     for t in ts:
         a = areas.setdefault(t["area"], [0, 0])
