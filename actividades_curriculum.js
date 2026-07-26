@@ -28223,3 +28223,1553 @@ const CUR_ECONOMIA_CIRCULAR_6_BANCO = [
   }
 ];
 GAMES.economia_circular_6 = juegoClasificar(CUR_ECONOMIA_CIRCULAR_6_BANCO, "¿Es economía lineal o circular?", [{"cat": "lineal", "label": "➡️ Lineal"}, {"cat": "circular", "label": "🔄 Circular"}], "economia_c");
+
+/* 7° · Potencias y raíces — potencias_7
+   DC: Potenciación y raíz cuadrada; reversibilidad entre las dos
+   Fuente: docs/auditoria-dc-caba/grado-7.md · M1 */
+const CUR_POTENCIAS_7_PLANTILLA = {
+  "q": "¿Cuánto es {a} al cuadrado?",
+  "vars": {
+    "a": {
+      "rango": [
+        2,
+        30
+      ],
+      "paso": 1
+    }
+  },
+  "ok": "a * a",
+  "distractores": [
+    "a * 2",
+    "a * a - a",
+    "a * a + a"
+  ],
+  "tope": 1000,
+  "m": "Al cuadrado es {a} × {a} = {ok}. Multiplicar por 2 da otra cosa: el exponente dice cuántas VECES se repite el número como factor."
+};
+GAMES.potencias_7 = juegoParametrico(CUR_POTENCIAS_7_PLANTILLA, "Calculá la potencia.", "potencias_");
+
+/* 7° · Expresión objetivo — expresion_objetivo_7
+   DC: Cálculos combinados; jerarquía; propiedades de las operaciones
+   Fuente: docs/auditoria-dc-caba/grado-7.md · M4 */
+const CUR_EXPRESION_OBJETIVO_7_PLANTILLA = {
+  "q": "({a} + {b}) × {c}",
+  "vars": {
+    "a": {
+      "rango": [
+        2,
+        40
+      ],
+      "paso": 1
+    },
+    "b": {
+      "rango": [
+        2,
+        40
+      ],
+      "paso": 1
+    },
+    "c": {
+      "rango": [
+        2,
+        12
+      ],
+      "paso": 1
+    }
+  },
+  "ok": "(a + b) * c",
+  "distractores": [
+    "a + b * c",
+    "a + b + c",
+    "a * b * c"
+  ],
+  "tope": 1000,
+  "m": "El paréntesis manda: primero {a} + {b}, y ese resultado por {c}. Da {ok}. Sin el paréntesis la multiplicación iría primero y daría otra cosa."
+};
+GAMES.expresion_objetivo_7 = juegoParametrico(CUR_EXPRESION_OBJETIVO_7_PLANTILLA, "Resolvé respetando el paréntesis.", "expresion_");
+
+/* 7° · Problemas de varios pasos — problemas_pasos_7
+   DC: Problemas de varios pasos; tratamiento de la información del enunciado
+   Fuente: docs/auditoria-dc-caba/grado-7.md · M5b */
+const CUR_PROBLEMAS_PASOS_7_PLANTILLA = {
+  "q": "Una librería compra {b} cajas de {a} cuadernos. Si vende {c} cuadernos, ¿cuántos le quedan?",
+  "vars": {
+    "a": {
+      "rango": [
+        10,
+        60
+      ],
+      "paso": 1
+    },
+    "b": {
+      "opciones": [
+        3,
+        4,
+        5,
+        6,
+        8
+      ]
+    },
+    "c": {
+      "rango": [
+        12,
+        90
+      ],
+      "paso": 1
+    }
+  },
+  "ok": "a * b - c",
+  "distractores": [
+    "a * b",
+    "a * b + c",
+    "a + b - c"
+  ],
+  "tope": 500,
+  "m": "Dos pasos: primero cuántos entraron ({a} × {b}) y recién después restás los {c} vendidos. Da {ok}. Contestar el total es el error más común."
+};
+GAMES.problemas_pasos_7 = juegoParametrico(CUR_PROBLEMAS_PASOS_7_PLANTILLA, "Leé el enunciado y resolvé.", "problemas_");
+
+/* 7° · Razón y porcentaje — razon_porcentaje_7
+   DC: Razón; uso de los racionales para expresar porcentajes
+   Fuente: docs/auditoria-dc-caba/grado-7.md · M8 */
+const CUR_RAZON_PORCENTAJE_7_PLANTILLA = {
+  "q": "En un club de {a} chicos, el {p}% juega al fútbol. ¿Cuántos son?",
+  "vars": {
+    "a": {
+      "rango": [
+        10,
+        150
+      ],
+      "paso": 10
+    },
+    "p": {
+      "opciones": [
+        10,
+        20,
+        50
+      ]
+    }
+  },
+  "ok": "a * p / 100",
+  "distractores": [
+    "a * p / 10",
+    "a - a * p / 100",
+    "a + p"
+  ],
+  "tope": 2000,
+  "m": "El {p}% son {p} de cada 100: {a} × {p} ÷ 100 = {ok}. Ojo con correr mal la coma y con contestar los que NO juegan."
+};
+GAMES.razon_porcentaje_7 = juegoParametrico(CUR_RAZON_PORCENTAJE_7_PLANTILLA, "¿Cuántos son?", "razon_porc");
+
+/* 7° · Proporcionalidad inversa — proporcionalidad_inversa_7
+   DC: Proporcionalidad inversa; distinguirla de la directa
+   Fuente: docs/auditoria-dc-caba/grado-7.md · M10 */
+const CUR_PROPORCIONALIDAD_INVERSA_7_PLANTILLA = {
+  "q": "Un trabajo lleva {a} días-persona. Si lo hacen {b} personas, ¿cuántos días tardan?",
+  "vars": {
+    "a": {
+      "rango": [
+        12,
+        96
+      ],
+      "paso": 12
+    },
+    "b": {
+      "opciones": [
+        2,
+        3,
+        4,
+        6
+      ]
+    }
+  },
+  "ok": "a / b",
+  "distractores": [
+    "a * b",
+    "a - b",
+    "a / 2"
+  ],
+  "tope": 200,
+  "m": "Si son más personas, tardan MENOS: hay que dividir. {a} ÷ {b} = {ok} días. Multiplicar sería tratarla como proporcionalidad directa."
+};
+GAMES.proporcionalidad_inversa_7 = juegoParametrico(CUR_PROPORCIONALIDAD_INVERSA_7_PLANTILLA, "Más gente, menos días.", "proporcion");
+
+/* 7° · Áreas del paralelogramo — areas_7
+   DC: Área de paralelogramo, trapecio y romboide; perímetro y área del círculo
+   Fuente: docs/auditoria-dc-caba/grado-7.md · M11 */
+const CUR_AREAS_7_PLANTILLA = {
+  "q": "Un paralelogramo tiene base {a} cm y altura {b} cm. ¿Cuál es su área?",
+  "vars": {
+    "a": {
+      "rango": [
+        3,
+        24
+      ],
+      "paso": 1
+    },
+    "b": {
+      "rango": [
+        2,
+        18
+      ],
+      "paso": 1
+    }
+  },
+  "ok": "a * b",
+  "distractores": [
+    "2 * (a + b)",
+    "a * b / 2",
+    "a + b"
+  ],
+  "tope": 600,
+  "m": "Área es base × altura: {a} × {b} = {ok} cm². Sumar los lados da el perímetro, y dividir por 2 da el triángulo."
+};
+GAMES.areas_7 = juegoParametrico(CUR_AREAS_7_PLANTILLA, "Calculá el área.", "areas_7");
+
+/* 7° · Número y sistema de numeración — numeracion_7
+   DC: Valor posicional, descomposición polinómica y sistema sexagesimal
+   Fuente: docs/auditoria-dc-caba/grado-7.md · M0 */
+const CUR_NUMERACION_7_BANCO = [
+  {
+    "q": "En 4.708, ¿cuánto vale el 7?",
+    "ops": [
+      "700",
+      "70",
+      "7"
+    ],
+    "m": "Está en el lugar de las centenas: vale 7 × 100."
+  },
+  {
+    "q": "En 25.031, ¿cuánto vale el 5?",
+    "ops": [
+      "5.000",
+      "500",
+      "50"
+    ],
+    "m": "Ocupa el lugar de las unidades de mil."
+  },
+  {
+    "q": "¿Cómo se descompone 3.406?",
+    "ops": [
+      "3×1.000 + 4×100 + 0×10 + 6",
+      "3×100 + 4×10 + 6",
+      "34×100 + 6"
+    ],
+    "m": "Cada cifra se multiplica por la potencia de 10 de su lugar."
+  },
+  {
+    "q": "¿Cuál es la descomposición polinómica de 250?",
+    "ops": [
+      "2×10² + 5×10¹ + 0",
+      "2×10 + 5",
+      "25×10"
+    ],
+    "m": "Polinómica quiere decir con potencias de 10, no cualquier forma de escribirlo."
+  },
+  {
+    "q": "¿Cuántos minutos hay en 2 horas y 15 minutos?",
+    "ops": [
+      "135",
+      "215",
+      "75"
+    ],
+    "m": "Cada hora son 60 minutos: 2 × 60 + 15. El sistema sexagesimal no es decimal."
+  },
+  {
+    "q": "¿Cuántos segundos hay en 3 minutos?",
+    "ops": [
+      "180",
+      "300",
+      "30"
+    ],
+    "m": "Cada minuto tiene 60 segundos, no 100."
+  },
+  {
+    "q": "¿Cuánto es 90 minutos en horas y minutos?",
+    "ops": [
+      "1 hora y 30 minutos",
+      "9 horas",
+      "1 hora y 9 minutos"
+    ],
+    "m": "60 forman una hora y sobran 30."
+  },
+  {
+    "q": "En el número 8.888, ¿las cuatro cifras valen lo mismo?",
+    "ops": [
+      "No: valen 8.000, 800, 80 y 8",
+      "Sí, todas valen 8",
+      "Sí, porque son iguales"
+    ],
+    "m": "Ésa es la idea de valor posicional: la misma cifra vale distinto según el lugar."
+  },
+  {
+    "q": "¿Cuál es mayor: 10² o 2¹⁰?",
+    "ops": [
+      "2¹⁰, que es 1.024",
+      "10², que es 100",
+      "Son iguales"
+    ],
+    "m": "10² = 100 y 2¹⁰ = 1.024. El exponente pesa más de lo que parece."
+  },
+  {
+    "q": "¿Cuánto es 10⁴?",
+    "ops": [
+      "10.000",
+      "40",
+      "1.000"
+    ],
+    "m": "El exponente cuenta los ceros: 10⁴ es un 1 con cuatro ceros."
+  },
+  {
+    "q": "¿Cuántos grados tiene un ángulo de 1 hora en un reloj analógico?",
+    "ops": [
+      "30°",
+      "60°",
+      "12°"
+    ],
+    "m": "360° repartidos en 12 horas: 360 ÷ 12."
+  },
+  {
+    "q": "¿Cuánto es 1 hora y 45 minutos en minutos?",
+    "ops": [
+      "105",
+      "145",
+      "60"
+    ],
+    "m": "60 + 45. Pegar los números como si fuera decimal es el error clásico."
+  },
+  {
+    "q": "¿Qué representa el 0 en el número 507?",
+    "ops": [
+      "Que no hay decenas",
+      "Que el número vale menos",
+      "Nada, se puede sacar"
+    ],
+    "m": "Sacarlo daría 57: el cero guarda el lugar."
+  },
+  {
+    "q": "¿Cuál de estos números es mayor?",
+    "ops": [
+      "1.000.000",
+      "999.999",
+      "100.000"
+    ],
+    "m": "Contá las cifras primero: siete gana contra seis."
+  },
+  {
+    "q": "¿Cuántas horas son 210 minutos?",
+    "ops": [
+      "3 horas y 30 minutos",
+      "2 horas y 10 minutos",
+      "21 horas"
+    ],
+    "m": "210 ÷ 60 da 3 y sobran 30."
+  },
+  {
+    "q": "En 7,25 ¿cuánto vale el 2?",
+    "ops": [
+      "2 décimos",
+      "2 centésimos",
+      "2 unidades"
+    ],
+    "m": "El primer lugar después de la coma son los décimos."
+  }
+];
+GAMES.numeracion_7 = juegoTriviaTexto(CUR_NUMERACION_7_BANCO, "Pensá cuánto vale cada cifra.", "numeracion");
+
+/* 7° · Tribunal de divisibilidad — divisibilidad_7
+   DC: Criterios de divisibilidad por 3, 4, 6, 8 y 9
+   Fuente: docs/auditoria-dc-caba/grado-7.md · M2 */
+const CUR_DIVISIBILIDAD_7_BANCO = [
+  {
+    "q": "¿Cuál es el criterio de divisibilidad por 3?",
+    "ops": [
+      "Que la suma de sus cifras sea múltiplo de 3",
+      "Que termine en 3",
+      "Que sea impar"
+    ],
+    "m": "Terminar en 3 no dice nada: 13 no es múltiplo de 3."
+  },
+  {
+    "q": "¿Es 234 divisible por 3?",
+    "ops": [
+      "Sí: 2+3+4 = 9",
+      "No",
+      "Sólo por 2"
+    ],
+    "m": "9 es múltiplo de 3, así que 234 también lo es."
+  },
+  {
+    "q": "¿Cuál es el criterio por 9?",
+    "ops": [
+      "Que la suma de sus cifras sea múltiplo de 9",
+      "Que termine en 9",
+      "Que sea múltiplo de 3 y de 6"
+    ],
+    "m": "Es el mismo mecanismo que el de 3, pero exigiendo múltiplo de 9."
+  },
+  {
+    "q": "¿Es 4.518 divisible por 9?",
+    "ops": [
+      "Sí: 4+5+1+8 = 18",
+      "No",
+      "Sólo por 3"
+    ],
+    "m": "18 es múltiplo de 9. Todo múltiplo de 9 es además múltiplo de 3."
+  },
+  {
+    "q": "¿Cuál es el criterio por 4?",
+    "ops": [
+      "Que las dos últimas cifras formen un múltiplo de 4",
+      "Que sea par",
+      "Que termine en 4"
+    ],
+    "m": "Ser par no alcanza: 14 es par y no es múltiplo de 4."
+  },
+  {
+    "q": "¿Es 1.316 divisible por 4?",
+    "ops": [
+      "Sí: 16 es múltiplo de 4",
+      "No",
+      "Sólo por 2"
+    ],
+    "m": "Alcanza con mirar las dos últimas cifras."
+  },
+  {
+    "q": "¿Cuál es el criterio por 6?",
+    "ops": [
+      "Que sea divisible por 2 Y por 3 a la vez",
+      "Que termine en 6",
+      "Que sea divisible por 3 solamente"
+    ],
+    "m": "6 = 2 × 3, así que tiene que cumplir los dos criterios."
+  },
+  {
+    "q": "¿Es 132 divisible por 6?",
+    "ops": [
+      "Sí: es par y 1+3+2 = 6",
+      "No",
+      "Sólo por 2"
+    ],
+    "m": "Cumple los dos criterios a la vez."
+  },
+  {
+    "q": "¿Es 246 divisible por 4?",
+    "ops": [
+      "No: 46 no es múltiplo de 4",
+      "Sí, porque es par",
+      "Sí, porque 2+4+6 = 12"
+    ],
+    "m": "La suma de cifras sirve para 3 y 9, no para 4."
+  },
+  {
+    "q": "¿Cuál es el criterio por 8?",
+    "ops": [
+      "Que las tres últimas cifras formen un múltiplo de 8",
+      "Que sea múltiplo de 4 y de 2",
+      "Que termine en 8"
+    ],
+    "m": "Ser múltiplo de 4 no alcanza: 12 es múltiplo de 4 y no de 8."
+  },
+  {
+    "q": "Si un número es divisible por 9, ¿es divisible por 3?",
+    "ops": [
+      "Sí, siempre",
+      "No, nunca",
+      "Sólo si es par"
+    ],
+    "m": "Todo múltiplo de 9 lo es de 3, porque 9 contiene al 3."
+  },
+  {
+    "q": "Si un número es divisible por 3, ¿es divisible por 9?",
+    "ops": [
+      "No necesariamente",
+      "Sí, siempre",
+      "Sólo si es impar"
+    ],
+    "m": "12 es múltiplo de 3 y no de 9. La implicación va en un solo sentido."
+  },
+  {
+    "q": "¿Es 720 divisible por 8?",
+    "ops": [
+      "Sí: 720 ÷ 8 = 90",
+      "No",
+      "Sólo por 4"
+    ],
+    "m": "Las tres últimas cifras son 720, que es múltiplo de 8."
+  },
+  {
+    "q": "¿Por qué sirve conocer los criterios?",
+    "ops": [
+      "Para simplificar fracciones y factorizar sin hacer la división",
+      "Para sumar más rápido",
+      "Para escribir números grandes"
+    ],
+    "m": "Es la herramienta que hace rápida la simplificación."
+  },
+  {
+    "q": "¿Es 555 divisible por 3?",
+    "ops": [
+      "Sí: 5+5+5 = 15",
+      "No, es impar",
+      "Sólo por 5"
+    ],
+    "m": "La paridad no tiene nada que ver con el criterio del 3."
+  }
+];
+GAMES.divisibilidad_7 = juegoTriviaTexto(CUR_DIVISIBILIDAD_7_BANCO, "Aplicá el criterio, no dividas.", "divisibili");
+
+/* 7° · Múltiplo y divisor común — mcm_dcm_7
+   DC: Mínimo común múltiplo y divisor común mayor en problemas
+   Fuente: docs/auditoria-dc-caba/grado-7.md · M3 */
+const CUR_MCM_DCM_7_BANCO = [
+  {
+    "q": "¿Cuál es el mcm de 6 y 8?",
+    "ops": [
+      "24",
+      "48",
+      "2"
+    ],
+    "m": "48 también es múltiplo común, pero el MÍNIMO es 24. El 2 es el divisor."
+  },
+  {
+    "q": "¿Cuál es el DCM de 12 y 18?",
+    "ops": [
+      "6",
+      "36",
+      "3"
+    ],
+    "m": "36 es el mcm. Entre los divisores comunes (1, 2, 3, 6) el mayor es 6."
+  },
+  {
+    "q": "El mcm de dos números, ¿es mayor o menor que ellos?",
+    "ops": [
+      "Mayor o igual",
+      "Siempre menor",
+      "Siempre igual al más chico"
+    ],
+    "m": "Es un múltiplo, así que nunca puede ser más chico."
+  },
+  {
+    "q": "El DCM de dos números, ¿es mayor o menor que ellos?",
+    "ops": [
+      "Menor o igual",
+      "Siempre mayor",
+      "Siempre 1"
+    ],
+    "m": "Es un divisor: nunca supera al más chico de los dos."
+  },
+  {
+    "q": "Dos colectivos salen cada 12 y cada 18 minutos. ¿Cada cuánto coinciden?",
+    "ops": [
+      "Cada 36 minutos (mcm)",
+      "Cada 6 minutos (DCM)",
+      "Cada 30 minutos"
+    ],
+    "m": "«Coincidir» pide el momento común: eso es un múltiplo, no un divisor."
+  },
+  {
+    "q": "Quiero cortar cintas de 24 y 36 cm en trozos iguales lo más largos posible. ¿Cuánto miden?",
+    "ops": [
+      "12 cm (DCM)",
+      "72 cm (mcm)",
+      "6 cm"
+    ],
+    "m": "«Repartir en partes iguales lo más grandes posible» pide el divisor común mayor."
+  },
+  {
+    "q": "¿Cuál es el mcm de 4 y 5?",
+    "ops": [
+      "20",
+      "9",
+      "1"
+    ],
+    "m": "Como no comparten factores, el mcm es el producto."
+  },
+  {
+    "q": "¿Cuál es el DCM de 7 y 9?",
+    "ops": [
+      "1",
+      "63",
+      "7"
+    ],
+    "m": "No comparten ningún factor: se llaman coprimos y su DCM es 1."
+  },
+  {
+    "q": "¿Cuál es el mcm de 3 y 12?",
+    "ops": [
+      "12",
+      "36",
+      "3"
+    ],
+    "m": "Cuando uno es múltiplo del otro, el mcm es el mayor."
+  },
+  {
+    "q": "¿Cuál es el DCM de 5 y 20?",
+    "ops": [
+      "5",
+      "20",
+      "1"
+    ],
+    "m": "Cuando uno divide al otro, el DCM es el menor."
+  },
+  {
+    "q": "¿Para qué sirve el mcm al sumar fracciones?",
+    "ops": [
+      "Para encontrar el denominador común más chico",
+      "Para simplificar",
+      "Para invertir la fracción"
+    ],
+    "m": "Simplificar usa el DCM; el común denominador usa el mcm."
+  },
+  {
+    "q": "¿Para qué sirve el DCM al simplificar una fracción?",
+    "ops": [
+      "Para llevarla de una vez a su mínima expresión",
+      "Para agrandarla",
+      "Para sumarla"
+    ],
+    "m": "Dividiendo por el DCM llegás en un solo paso a la mínima expresión."
+  },
+  {
+    "q": "¿Cuál es el mcm de 2, 3 y 4?",
+    "ops": [
+      "12",
+      "24",
+      "6"
+    ],
+    "m": "12 es múltiplo de los tres, y es el más chico que lo cumple."
+  },
+  {
+    "q": "Dos luces parpadean cada 6 y cada 10 segundos. ¿Cada cuánto coinciden?",
+    "ops": [
+      "Cada 30 segundos",
+      "Cada 60 segundos",
+      "Cada 2 segundos"
+    ],
+    "m": "El mcm de 6 y 10 es 30; 60 también es común pero no es el mínimo."
+  }
+];
+GAMES.mcm_dcm_7 = juegoTriviaTexto(CUR_MCM_DCM_7_BANCO, "¿Te piden un múltiplo o un divisor?", "mcm_dcm_7");
+
+/* 7° · Multiplicar y dividir fracciones — multiplicar_fracciones_7
+   DC: Multiplicación y división de fracciones; la fracción inversa
+   Fuente: docs/auditoria-dc-caba/grado-7.md · M5 */
+const CUR_MULTIPLICAR_FRACCIONES_7_BANCO = [
+  {
+    "q": "2/3 × 3/5 =",
+    "ops": [
+      "2/5",
+      "5/8",
+      "6/8"
+    ],
+    "m": "6/15, que simplificado es 2/5. Los denominadores se multiplican, no se suman."
+  },
+  {
+    "q": "1/2 ÷ 1/4 =",
+    "ops": [
+      "2",
+      "1/8",
+      "1/2"
+    ],
+    "m": "Es 1/2 × 4/1 = 4/2 = 2. Preguntate cuántos cuartos entran en un medio."
+  },
+  {
+    "q": "3/4 ÷ 1/2 =",
+    "ops": [
+      "3/2",
+      "3/8",
+      "1/2"
+    ],
+    "m": "3/4 × 2/1 = 6/4 = 3/2. Multiplicar en vez de invertir da 3/8."
+  },
+  {
+    "q": "Para dividir por 2/5 hay que multiplicar por…",
+    "ops": [
+      "5/2",
+      "2/5",
+      "1/5"
+    ],
+    "m": "La inversa se obtiene dando vuelta los dos términos."
+  },
+  {
+    "q": "1/3 × 6 =",
+    "ops": [
+      "2",
+      "18",
+      "1/18"
+    ],
+    "m": "6/3 = 2. Un tercio de seis."
+  },
+  {
+    "q": "¿Dividir por 1/2 agranda o achica?",
+    "ops": [
+      "Agranda: da el doble",
+      "Achica: da la mitad",
+      "No cambia"
+    ],
+    "m": "Preguntate cuántas mitades entran: en 3 entran 6."
+  },
+  {
+    "q": "5/6 × 2/5 =",
+    "ops": [
+      "1/3",
+      "7/11",
+      "10/11"
+    ],
+    "m": "10/30, que simplificado es 1/3."
+  },
+  {
+    "q": "2 ÷ 1/4 =",
+    "ops": [
+      "8",
+      "1/2",
+      "2/4"
+    ],
+    "m": "¿Cuántos cuartos entran en 2? Ocho."
+  },
+  {
+    "q": "¿Cuánto da 4/7 × 7/4?",
+    "ops": [
+      "1",
+      "28/28 y algo",
+      "8/11"
+    ],
+    "m": "Son inversas: el producto siempre es el entero."
+  },
+  {
+    "q": "3/5 ÷ 3 =",
+    "ops": [
+      "1/5",
+      "9/5",
+      "3/15 y no se puede simplificar"
+    ],
+    "m": "3 es 3/1, así que se multiplica por 1/3: 3/15 = 1/5."
+  },
+  {
+    "q": "¿Cómo se multiplican dos fracciones?",
+    "ops": [
+      "Numerador por numerador y denominador por denominador",
+      "Buscando común denominador",
+      "Invirtiendo la primera"
+    ],
+    "m": "El común denominador hace falta para sumar, no para multiplicar."
+  },
+  {
+    "q": "1/2 × 1/2 × 1/2 =",
+    "ops": [
+      "1/8",
+      "3/6",
+      "1/6"
+    ],
+    "m": "Cada mitad parte de nuevo: 2 × 2 × 2 = 8 partes."
+  },
+  {
+    "q": "¿Cuál es la inversa de 1/6?",
+    "ops": [
+      "6",
+      "1/6",
+      "6/6"
+    ],
+    "m": "1/6 dado vuelta es 6/1, que es 6."
+  },
+  {
+    "q": "6 ÷ 2/3 =",
+    "ops": [
+      "9",
+      "4",
+      "12/3 sin simplificar"
+    ],
+    "m": "6 × 3/2 = 18/2 = 9. En 6 entran nueve dos tercios."
+  }
+];
+GAMES.multiplicar_fracciones_7 = juegoTriviaTexto(CUR_MULTIPLICAR_FRACCIONES_7_BANCO, "Para dividir, multiplicá por la inversa.", "multiplica");
+
+/* 7° · Decimales y el período escondido — decimales_periodo_7
+   DC: Multiplicación y división de decimales; expresiones periódicas
+   Fuente: docs/auditoria-dc-caba/grado-7.md · M6 */
+const CUR_DECIMALES_PERIODO_7_BANCO = [
+  {
+    "q": "1 ÷ 3 =",
+    "ops": [
+      "0,333… (periódica)",
+      "0,3 exacto",
+      "3"
+    ],
+    "m": "El 3 se repite para siempre: es una expresión periódica."
+  },
+  {
+    "q": "1 ÷ 4 =",
+    "ops": [
+      "0,25 (exacta)",
+      "0,4",
+      "0,25 periódica"
+    ],
+    "m": "La división termina: no hay período."
+  },
+  {
+    "q": "¿Qué es una expresión decimal periódica?",
+    "ops": [
+      "Una en la que un grupo de cifras se repite sin fin",
+      "Una que tiene muchos decimales",
+      "Una que termina en cero"
+    ],
+    "m": "Tener muchos decimales no alcanza: lo que define es la repetición."
+  },
+  {
+    "q": "2 ÷ 3 =",
+    "ops": [
+      "0,666…",
+      "0,66 exacto",
+      "0,23"
+    ],
+    "m": "El 6 se repite indefinidamente."
+  },
+  {
+    "q": "¿Cuál de estas es exacta?",
+    "ops": [
+      "3 ÷ 8",
+      "1 ÷ 6",
+      "5 ÷ 9"
+    ],
+    "m": "3 ÷ 8 = 0,375 y ahí termina. Las otras dos tienen período."
+  },
+  {
+    "q": "1 ÷ 6 =",
+    "ops": [
+      "0,1666…",
+      "0,16 exacto",
+      "0,6"
+    ],
+    "m": "El 6 se repite después del 1: el período no siempre arranca al principio."
+  },
+  {
+    "q": "0,4 × 0,5 =",
+    "ops": [
+      "0,2",
+      "2",
+      "0,9"
+    ],
+    "m": "Dos decimales en total, y multiplicar por menos de 1 achica."
+  },
+  {
+    "q": "1,2 ÷ 0,4 =",
+    "ops": [
+      "3",
+      "0,3",
+      "4,8"
+    ],
+    "m": "¿Cuántas veces entra 0,4 en 1,2? Tres."
+  },
+  {
+    "q": "¿Cuánto es 2,5 ÷ 100?",
+    "ops": [
+      "0,025",
+      "0,25",
+      "250"
+    ],
+    "m": "Dos lugares a la izquierda."
+  },
+  {
+    "q": "¿Cuánto es 0,07 × 1.000?",
+    "ops": [
+      "70",
+      "7",
+      "700"
+    ],
+    "m": "Tres lugares a la derecha: 0,07 → 0,7 → 7 → 70."
+  },
+  {
+    "q": "¿Toda fracción se puede escribir como decimal?",
+    "ops": [
+      "Sí, exacto o periódico",
+      "No, algunas no se pueden",
+      "Sólo las que dan exacto"
+    ],
+    "m": "Siempre pasa una de las dos cosas."
+  },
+  {
+    "q": "¿Cuál es el período de 0,4545…?",
+    "ops": [
+      "45",
+      "4",
+      "0,45"
+    ],
+    "m": "El período es el grupo de cifras que se repite."
+  },
+  {
+    "q": "7 ÷ 2 =",
+    "ops": [
+      "3,5",
+      "3",
+      "0,35"
+    ],
+    "m": "Sobra 1 y se sigue después de la coma: no se trunca."
+  },
+  {
+    "q": "0,3 × 0,3 =",
+    "ops": [
+      "0,09",
+      "0,6",
+      "0,9"
+    ],
+    "m": "Un decimal más un decimal dan dos decimales en el resultado."
+  }
+];
+GAMES.decimales_periodo_7 = juegoTriviaTexto(CUR_DECIMALES_PERIODO_7_BANCO, "¿Se corta o se repite?", "decimales_");
+
+/* 7° · Zoom infinito — densidad_7
+   DC: Densidad de los racionales; orden con reglas distintas de los naturales
+   Fuente: docs/auditoria-dc-caba/grado-7.md · M7 */
+const CUR_DENSIDAD_7_BANCO = [
+  {
+    "q": "¿Qué número está entre 1/2 y 3/4?",
+    "ops": [
+      "5/8",
+      "1/4",
+      "4/4"
+    ],
+    "m": "A octavos: 4/8, 5/8 y 6/8. El 5/8 cae justo en el medio."
+  },
+  {
+    "q": "¿Cuántos racionales hay entre 0 y 1?",
+    "ops": [
+      "Infinitos",
+      "Cien",
+      "Ninguno"
+    ],
+    "m": "Ésa es la propiedad de densidad."
+  },
+  {
+    "q": "Entre 3 y 4, ¿hay algún NATURAL?",
+    "ops": [
+      "No, ninguno",
+      "Sí, uno",
+      "Infinitos"
+    ],
+    "m": "Los naturales son discretos: 3 y 4 son consecutivos. Los racionales no funcionan así."
+  },
+  {
+    "q": "¿Cuál es MAYOR: 3/7 o 4/9?",
+    "ops": [
+      "4/9",
+      "3/7",
+      "Son iguales"
+    ],
+    "m": "A denominador 63: 27/63 contra 28/63. Gana 4/9 por poco."
+  },
+  {
+    "q": "¿Cómo se busca un número entre dos fracciones?",
+    "ops": [
+      "Se las lleva a un denominador común más grande",
+      "Se suman los numeradores",
+      "Se restan"
+    ],
+    "m": "Ampliando aparecen lugares intermedios que antes no se veían."
+  },
+  {
+    "q": "¿Qué número está entre 0,25 y 0,26?",
+    "ops": [
+      "0,255",
+      "0,3",
+      "0,2"
+    ],
+    "m": "Agregando un decimal más siempre aparece uno en el medio."
+  },
+  {
+    "q": "¿Cuál es MENOR: 5/8 o 2/3?",
+    "ops": [
+      "5/8",
+      "2/3",
+      "Son iguales"
+    ],
+    "m": "A denominador 24: 15/24 contra 16/24."
+  },
+  {
+    "q": "Con los naturales, ¿cuál sigue después del 7?",
+    "ops": [
+      "El 8",
+      "El 7,5",
+      "Hay infinitos"
+    ],
+    "m": "Entre naturales hay un siguiente; entre racionales no existe «el siguiente»."
+  },
+  {
+    "q": "¿Cuál es MAYOR: 0,8 o 4/5?",
+    "ops": [
+      "Son iguales",
+      "0,8",
+      "4/5"
+    ],
+    "m": "4/5 es exactamente 0,8: son dos escrituras del mismo número."
+  },
+  {
+    "q": "¿Qué fracción está entre 1/3 y 1/2?",
+    "ops": [
+      "5/12",
+      "1/4",
+      "2/3"
+    ],
+    "m": "A doceavos: 4/12 y 6/12; el 5/12 queda justo en el medio."
+  },
+  {
+    "q": "¿Un número con más cifras decimales es siempre mayor?",
+    "ops": [
+      "No: 0,25 es menor que 0,3",
+      "Sí, siempre",
+      "Sólo si empieza con 0"
+    ],
+    "m": "Hay que comparar lugar por lugar desde la izquierda."
+  },
+  {
+    "q": "¿Cuántos números hay entre 0,999 y 1?",
+    "ops": [
+      "Infinitos",
+      "Uno",
+      "Ninguno"
+    ],
+    "m": "Aunque parezcan pegados, siempre se puede agregar un decimal más."
+  },
+  {
+    "q": "Ordenados de menor a mayor: 2/5 · 1/2 · 3/8",
+    "ops": [
+      "3/8 · 2/5 · 1/2",
+      "2/5 · 3/8 · 1/2",
+      "1/2 · 2/5 · 3/8"
+    ],
+    "m": "A cuarentavos: 15/40, 16/40 y 20/40."
+  },
+  {
+    "q": "¿Cuál está entre 2 y 2,1?",
+    "ops": [
+      "2,05",
+      "2,5",
+      "1,95"
+    ],
+    "m": "Hay que mirar el segundo decimal."
+  }
+];
+GAMES.densidad_7 = juegoTriviaTexto(CUR_DENSIDAD_7_BANCO, "Siempre entra otro en el medio.", "densidad_7");
+
+/* 7° · Proporcionalidad en el plano — proporcionalidad_grafico_7
+   DC: Representación cartesiana de la proporcionalidad directa
+   Fuente: docs/auditoria-dc-caba/grado-7.md · M9 */
+const CUR_PROPORCIONALIDAD_GRAFICO_7_BANCO = [
+  {
+    "q": "¿Cómo se ve en el plano una proporcionalidad directa?",
+    "ops": [
+      "Una recta que pasa por el origen",
+      "Una curva",
+      "Una recta que corta el eje arriba del cero"
+    ],
+    "m": "Si no pasa por el (0,0), hay un valor fijo de arranque y ya no es proporcional."
+  },
+  {
+    "q": "Si 1 kg cuesta $500, ¿cuánto cuestan 4 kg?",
+    "ops": [
+      "$2.000",
+      "$504",
+      "$125"
+    ],
+    "m": "La constante es 500: se multiplica."
+  },
+  {
+    "q": "¿Qué es la constante de proporcionalidad?",
+    "ops": [
+      "El número por el que se multiplica siempre",
+      "El punto de partida",
+      "El valor más alto de la tabla"
+    ],
+    "m": "Es lo que se mantiene al dividir cada par de valores."
+  },
+  {
+    "q": "En una tabla proporcional, si divido cada y por su x, ¿qué obtengo?",
+    "ops": [
+      "Siempre el mismo número",
+      "Números distintos",
+      "Cero"
+    ],
+    "m": "Ése es el test para saber si una tabla es proporcional."
+  },
+  {
+    "q": "Un remís cobra $1.000 de bajada más $200 por km. ¿Es proporcional?",
+    "ops": [
+      "No: hay un costo fijo de arranque",
+      "Sí, siempre",
+      "Sí, porque crece"
+    ],
+    "m": "Con 0 km ya se pagan $1.000, así que la recta no pasa por el origen."
+  },
+  {
+    "q": "¿Qué eje suele llevar la variable que uno elige?",
+    "ops": [
+      "El horizontal (x)",
+      "El vertical (y)",
+      "Cualquiera"
+    ],
+    "m": "En y va la que depende de la otra."
+  },
+  {
+    "q": "Si 3 lápices cuestan $600, ¿cuál es la constante?",
+    "ops": [
+      "200",
+      "600",
+      "3"
+    ],
+    "m": "Es el precio de UNO: 600 ÷ 3."
+  },
+  {
+    "q": "Una tabla da (2, 6), (4, 12) y (5, 16). ¿Es proporcional?",
+    "ops": [
+      "No: 16 ÷ 5 no da 3",
+      "Sí, siempre crece",
+      "Sí, porque los dos suben"
+    ],
+    "m": "Crecer no alcanza: el cociente tiene que ser SIEMPRE el mismo."
+  },
+  {
+    "q": "Una tabla da (1, 4), (3, 12) y (5, 20). ¿Es proporcional?",
+    "ops": [
+      "Sí: la constante es 4",
+      "No",
+      "Sólo en los dos primeros pares"
+    ],
+    "m": "4 ÷ 1, 12 ÷ 3 y 20 ÷ 5 dan todos 4."
+  },
+  {
+    "q": "En una proporcionalidad, si x se duplica, ¿qué pasa con y?",
+    "ops": [
+      "Se duplica",
+      "Se mantiene",
+      "Se reduce a la mitad"
+    ],
+    "m": "Reducirse a la mitad sería una proporcionalidad inversa."
+  },
+  {
+    "q": "¿Qué punto siempre pertenece a una proporcionalidad directa?",
+    "ops": [
+      "El (0, 0)",
+      "El (1, 1)",
+      "El (0, 1)"
+    ],
+    "m": "Si no hay cantidad, no hay costo: por eso arranca en el origen."
+  },
+  {
+    "q": "Un gráfico de proporcionalidad inversa se ve como…",
+    "ops": [
+      "Una curva que baja y nunca toca los ejes",
+      "Una recta por el origen",
+      "Una línea horizontal"
+    ],
+    "m": "El producto se mantiene constante, así que la curva se acerca a los ejes sin tocarlos."
+  },
+  {
+    "q": "Si la constante es 2,5 y x vale 6, ¿cuánto vale y?",
+    "ops": [
+      "15",
+      "8,5",
+      "2,4"
+    ],
+    "m": "y = constante × x."
+  }
+];
+GAMES.proporcionalidad_grafico_7 = juegoTriviaTexto(CUR_PROPORCIONALIDAD_GRAFICO_7_BANCO, "Mirá si pasa por el origen.", "proporcion");
+
+/* 7° · ¿Moda, mediana o media? — media_mediana_moda_7
+   DC: Moda, mediana y media; cuál es pertinente según la situación
+   Fuente: docs/auditoria-dc-caba/grado-7.md · M12 */
+const CUR_MEDIA_MEDIANA_MODA_7_BANCO = [
+  {
+    "q": "¿Cuál es la media de 2, 4, 6 y 8?",
+    "ops": [
+      "5",
+      "6",
+      "4"
+    ],
+    "m": "Se suman (20) y se divide por la cantidad (4)."
+  },
+  {
+    "q": "¿Cuál es la mediana de 3, 5, 7, 9 y 11?",
+    "ops": [
+      "7",
+      "5",
+      "35"
+    ],
+    "m": "Ordenados, es el valor del medio."
+  },
+  {
+    "q": "¿Cuál es la moda de 4, 4, 5, 7 y 9?",
+    "ops": [
+      "4",
+      "5",
+      "9"
+    ],
+    "m": "Es el que más se repite, no el más grande ni el del medio."
+  },
+  {
+    "q": "Sueldos de 1.000, 1.100, 1.200 y 20.000. ¿Qué medida representa mejor?",
+    "ops": [
+      "La mediana, porque el 20.000 desvía la media",
+      "La media, siempre es la mejor",
+      "La moda"
+    ],
+    "m": "La media daría 5.825, un número que no describe a casi nadie del grupo."
+  },
+  {
+    "q": "¿Cómo se calcula la mediana con una cantidad PAR de datos?",
+    "ops": [
+      "Es el promedio de los dos del medio",
+      "Es el mayor de los dos del medio",
+      "No se puede calcular"
+    ],
+    "m": "Con cantidad par no hay un único valor central."
+  },
+  {
+    "q": "¿Cuál es la mediana de 2, 4, 6 y 10?",
+    "ops": [
+      "5",
+      "6",
+      "4"
+    ],
+    "m": "Los del medio son 4 y 6: su promedio es 5."
+  },
+  {
+    "q": "¿Qué medida usarías para saber el talle de calzado más vendido?",
+    "ops": [
+      "La moda",
+      "La media",
+      "La mediana"
+    ],
+    "m": "Un talle promedio de 39,4 no existe como producto."
+  },
+  {
+    "q": "¿Qué es un valor atípico o extremo?",
+    "ops": [
+      "Un dato muy alejado del resto",
+      "El dato que más se repite",
+      "El del medio"
+    ],
+    "m": "Es el que puede distorsionar la media."
+  },
+  {
+    "q": "¿Cuál es la media de 10, 10, 10 y 30?",
+    "ops": [
+      "15",
+      "10",
+      "30"
+    ],
+    "m": "60 ÷ 4 = 15, aunque tres de los cuatro datos valgan 10."
+  },
+  {
+    "q": "En ese mismo grupo (10, 10, 10 y 30), ¿cuál es la mediana?",
+    "ops": [
+      "10",
+      "15",
+      "20"
+    ],
+    "m": "Los dos del medio son 10 y 10: la mediana resiste al extremo."
+  },
+  {
+    "q": "¿Puede una distribución tener más de una moda?",
+    "ops": [
+      "Sí, si hay empate en cantidad de apariciones",
+      "No, nunca",
+      "Sólo si hay 3 datos"
+    ],
+    "m": "Se la llama bimodal cuando hay dos."
+  },
+  {
+    "q": "¿Qué medida NO cambia si le agrego un dato altísimo?",
+    "ops": [
+      "La moda, casi siempre",
+      "La media",
+      "El total"
+    ],
+    "m": "La media es la más sensible a los extremos."
+  },
+  {
+    "q": "¿Cuál es la media de 5, 5, 5 y 5?",
+    "ops": [
+      "5",
+      "20",
+      "0"
+    ],
+    "m": "Si todos los datos son iguales, la media es ese valor."
+  },
+  {
+    "q": "Para informar «el argentino promedio», ¿qué se usa?",
+    "ops": [
+      "Depende: con datos muy dispares conviene la mediana",
+      "Siempre la media",
+      "Siempre la moda"
+    ],
+    "m": "Elegir la medida pertinente ES el contenido del tema."
+  }
+];
+GAMES.media_mediana_moda_7 = juegoTriviaTexto(CUR_MEDIA_MEDIANA_MODA_7_BANCO, "Elegí la medida que mejor representa.", "media_medi");
+
+/* 7° · Árbol de la probabilidad — probabilidad_arbol_7
+   DC: Diagramas de árbol; equiprobabilidad; casos favorables y posibles
+   Fuente: docs/auditoria-dc-caba/grado-7.md · M13 */
+const CUR_PROBABILIDAD_ARBOL_7_BANCO = [
+  {
+    "q": "Al tirar dos monedas, ¿cuántos resultados posibles hay?",
+    "ops": [
+      "Cuatro",
+      "Tres",
+      "Dos"
+    ],
+    "m": "Cara-cara, cara-ceca, ceca-cara y ceca-ceca. Las dos del medio son distintas."
+  },
+  {
+    "q": "¿Cuál es la probabilidad de sacar dos caras con dos monedas?",
+    "ops": [
+      "1 de 4",
+      "1 de 2",
+      "1 de 3"
+    ],
+    "m": "Un caso favorable sobre cuatro posibles."
+  },
+  {
+    "q": "Al tirar un dado, ¿cuál es la probabilidad de sacar par?",
+    "ops": [
+      "3 de 6",
+      "2 de 6",
+      "1 de 6"
+    ],
+    "m": "Los favorables son 2, 4 y 6."
+  },
+  {
+    "q": "¿Qué significa que dos resultados sean equiprobables?",
+    "ops": [
+      "Que tienen la misma chance",
+      "Que son seguros",
+      "Que son imposibles"
+    ],
+    "m": "En un dado no cargado, las seis caras lo son."
+  },
+  {
+    "q": "Al tirar dos dados, ¿cuántos resultados posibles hay?",
+    "ops": [
+      "36",
+      "12",
+      "6"
+    ],
+    "m": "Seis del primero por seis del segundo."
+  },
+  {
+    "q": "Al tirar dos dados, ¿qué suma es la MÁS probable?",
+    "ops": [
+      "7",
+      "2",
+      "12"
+    ],
+    "m": "El 7 se puede armar de seis maneras; el 2 y el 12, de una sola cada uno."
+  },
+  {
+    "q": "¿Para qué sirve un diagrama de árbol?",
+    "ops": [
+      "Para listar ordenadamente todos los casos posibles",
+      "Para calcular la media",
+      "Para ordenar de mayor a menor"
+    ],
+    "m": "Cada rama es una posibilidad y ninguna se pierde."
+  },
+  {
+    "q": "¿Cuál es la probabilidad de un suceso imposible?",
+    "ops": [
+      "0",
+      "1",
+      "1/2"
+    ],
+    "m": "Cero casos favorables sobre los posibles."
+  },
+  {
+    "q": "¿Cuál es la probabilidad de un suceso seguro?",
+    "ops": [
+      "1",
+      "0",
+      "100"
+    ],
+    "m": "Todos los casos posibles son favorables: la razón da 1, o sea el 100%."
+  },
+  {
+    "q": "Si tiro una moneda 5 veces y sale cara las 5, ¿qué chance tiene la sexta?",
+    "ops": [
+      "La misma: 1 de 2",
+      "Más chance de ceca",
+      "Más chance de cara"
+    ],
+    "m": "La moneda no tiene memoria. Ésta es la falacia del jugador."
+  },
+  {
+    "q": "En una bolsa con 3 rojas y 7 azules, ¿qué probabilidad hay de sacar roja?",
+    "ops": [
+      "3 de 10",
+      "3 de 7",
+      "1 de 3"
+    ],
+    "m": "Favorables sobre el TOTAL, no sobre las otras."
+  },
+  {
+    "q": "¿Puede una probabilidad ser mayor que 1?",
+    "ops": [
+      "No, nunca",
+      "Sí, si hay muchos casos",
+      "Sí, si el suceso es seguro"
+    ],
+    "m": "Los favorables nunca superan a los posibles."
+  },
+  {
+    "q": "Con tres monedas, ¿cuántos resultados posibles hay?",
+    "ops": [
+      "8",
+      "6",
+      "3"
+    ],
+    "m": "2 × 2 × 2: cada moneda duplica las ramas del árbol."
+  },
+  {
+    "q": "¿Cuál es la probabilidad de sacar un número mayor que 4 en un dado?",
+    "ops": [
+      "2 de 6",
+      "3 de 6",
+      "4 de 6"
+    ],
+    "m": "Sólo el 5 y el 6. El 4 no cuenta porque pide MAYOR que 4."
+  }
+];
+GAMES.probabilidad_arbol_7 = juegoTriviaTexto(CUR_PROBABILIDAD_ARBOL_7_BANCO, "Contá los casos favorables y los posibles.", "probabilid");
+
+/* 7° · Traductor algebraico — traductor_algebraico_7
+   DC: Expresiones con y sin letras; traducir un enunciado a una expresión
+   Fuente: docs/auditoria-dc-caba/grado-7.md · M14 */
+const CUR_TRADUCTOR_ALGEBRAICO_7_BANCO = [
+  {
+    "q": "«El doble de un número» se escribe…",
+    "ops": [
+      "2x",
+      "x²",
+      "x+2"
+    ],
+    "m": "x² es el cuadrado y x+2 es «dos más»."
+  },
+  {
+    "q": "«El doble de un número aumentado en 1» se escribe…",
+    "ops": [
+      "2(x+1)",
+      "2x+1",
+      "2x−1"
+    ],
+    "m": "Primero se aumenta y DESPUÉS se duplica: por eso va el paréntesis."
+  },
+  {
+    "q": "«El doble de un número, aumentado en 1» se escribe…",
+    "ops": [
+      "2x+1",
+      "2(x+1)",
+      "x+2"
+    ],
+    "m": "Acá la coma cambia el orden: primero el doble, después el +1."
+  },
+  {
+    "q": "«La mitad de un número» se escribe…",
+    "ops": [
+      "x/2",
+      "2x",
+      "x−2"
+    ],
+    "m": "Dividir por 2 es tomar la mitad."
+  },
+  {
+    "q": "«La mitad de la suma de un número y 2» se escribe…",
+    "ops": [
+      "(x+2)/2",
+      "x/2+2",
+      "x+2/2"
+    ],
+    "m": "Se suma primero, y todo eso se divide."
+  },
+  {
+    "q": "«El cuadrado de un número» se escribe…",
+    "ops": [
+      "x²",
+      "2x",
+      "√x"
+    ],
+    "m": "2x es el doble; la raíz es la operación inversa."
+  },
+  {
+    "q": "«Un número disminuido en 5» se escribe…",
+    "ops": [
+      "x−5",
+      "5−x",
+      "x/5"
+    ],
+    "m": "El orden importa: 5−x sería «5 disminuido en el número»."
+  },
+  {
+    "q": "«El triple de un número menos 4» se escribe…",
+    "ops": [
+      "3x−4",
+      "3(x−4)",
+      "x−12"
+    ],
+    "m": "Sin paréntesis, el triple se aplica sólo al número."
+  },
+  {
+    "q": "«El siguiente de un número» se escribe…",
+    "ops": [
+      "x+1",
+      "x−1",
+      "2x"
+    ],
+    "m": "El anterior sería x−1."
+  },
+  {
+    "q": "«La suma de dos números consecutivos» se escribe…",
+    "ops": [
+      "x + (x+1)",
+      "2x",
+      "x + 2"
+    ],
+    "m": "El consecutivo de x es x+1."
+  },
+  {
+    "q": "Si x = 5, ¿cuánto vale 2(x+3)?",
+    "ops": [
+      "16",
+      "13",
+      "10"
+    ],
+    "m": "Primero el paréntesis: 5+3 = 8, y 8 × 2 = 16."
+  },
+  {
+    "q": "Si x = 5, ¿cuánto vale 2x+3?",
+    "ops": [
+      "13",
+      "16",
+      "10"
+    ],
+    "m": "Acá el 2 multiplica sólo a x: 10+3."
+  },
+  {
+    "q": "«El área de un cuadrado de lado L» se escribe…",
+    "ops": [
+      "L²",
+      "4L",
+      "2L"
+    ],
+    "m": "4L sería el perímetro."
+  },
+  {
+    "q": "«Un número par cualquiera» se escribe…",
+    "ops": [
+      "2n",
+      "n+2",
+      "n²"
+    ],
+    "m": "Todo par es el doble de algún entero."
+  }
+];
+GAMES.traductor_algebraico_7 = juegoTriviaTexto(CUR_TRADUCTOR_ALGEBRAICO_7_BANCO, "Pasá la frase a una expresión.", "traductor_");
