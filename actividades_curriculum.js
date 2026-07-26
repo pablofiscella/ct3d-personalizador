@@ -7168,3 +7168,1886 @@ const CUR_EQUIVALENCIAS_MEDIDA_4_BANCO = [
   }
 ];
 GAMES.equivalencias_medida_4 = juegoTriviaTexto(CUR_EQUIVALENCIAS_MEDIDA_4_BANCO, "¿Cuánto es lo mismo?", "equivalenc");
+
+/* 5° · Cazador de recursos — recursos_poeticos_5
+   DC: Personificación, comparación y metáfora
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L2 */
+const CUR_RECURSOS_POETICOS_5_BANCO = [
+  {
+    "it": "«La luna me miraba desde el techo»",
+    "cat": "personificacion",
+    "m": "Mirar es algo que hacen las personas: se lo presta a la luna."
+  },
+  {
+    "it": "«Sus ojos son como dos faroles»",
+    "cat": "comparacion",
+    "m": "Dice 'como': compara dos cosas sin decir que sean la misma."
+  },
+  {
+    "it": "«Sus ojos son dos faroles»",
+    "cat": "metafora",
+    "m": "Sin el 'como', la reemplaza directamente: eso es metáfora."
+  },
+  {
+    "it": "«El viento aullaba toda la noche»",
+    "cat": "personificacion",
+    "m": "Aullar es de un animal o una persona; se lo da al viento."
+  },
+  {
+    "it": "«Corre tan rápido como el agua»",
+    "cat": "comparacion",
+    "m": "El 'tan… como' marca la comparación."
+  },
+  {
+    "it": "«Tu risa es una campana»",
+    "cat": "metafora",
+    "m": "No dice que se PAREZCA a una campana: dice que ES una campana."
+  },
+  {
+    "it": "«Las estrellas bailaban en el cielo»",
+    "cat": "personificacion",
+    "m": "Bailar es acción humana."
+  },
+  {
+    "it": "«Blanca como la nieve»",
+    "cat": "comparacion",
+    "m": "El 'como' compara el color con la nieve."
+  },
+  {
+    "it": "«La ciudad es una selva de cemento»",
+    "cat": "metafora",
+    "m": "Reemplaza la ciudad por la selva, sin comparar."
+  },
+  {
+    "it": "«El reloj se quejaba en la pared»",
+    "cat": "personificacion",
+    "m": "Quejarse es de alguien que siente."
+  },
+  {
+    "it": "«Es más lento que una tortuga»",
+    "cat": "comparacion",
+    "m": "'Más… que' compara."
+  },
+  {
+    "it": "«El otoño es una carta amarilla»",
+    "cat": "metafora",
+    "m": "Sustituye una cosa por otra."
+  },
+  {
+    "it": "«Las hojas susurraban un secreto»",
+    "cat": "personificacion",
+    "m": "Susurrar un secreto lo hace alguien que habla."
+  },
+  {
+    "it": "«Duro como una piedra»",
+    "cat": "comparacion",
+    "m": "'Como' otra vez: comparación."
+  },
+  {
+    "it": "«Sus manos eran dos pájaros nerviosos»",
+    "cat": "metafora",
+    "m": "Las manos SON pájaros: reemplazo, no comparación."
+  },
+  {
+    "it": "«El sol se despertó temprano»",
+    "cat": "personificacion",
+    "m": "Despertarse es de un ser vivo."
+  },
+  {
+    "it": "«Tan callado como un ratón»",
+    "cat": "comparacion",
+    "m": "El 'tan… como' es la marca."
+  },
+  {
+    "it": "«La noche es un manto negro»",
+    "cat": "metafora",
+    "m": "La noche ES el manto, sin 'como'."
+  }
+];
+GAMES.recursos_poeticos_5 = juegoClasificar(CUR_RECURSOS_POETICOS_5_BANCO, "¿Qué recurso usó el poeta?", [{"cat": "personificacion", "label": "🌙 Personificación"}, {"cat": "comparacion", "label": "⚖️ Comparación"}, {"cat": "metafora", "label": "🔮 Metáfora"}], "recursos_p");
+
+/* 5° · Verbos en tres cajas — verbos_clases_5
+   DC: Verbos de acción, de estado y psicológicos
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L3 */
+const CUR_VERBOS_CLASES_5_BANCO = [
+  {
+    "it": "correr",
+    "cat": "accion",
+    "m": "Se hace con el cuerpo y se ve."
+  },
+  {
+    "it": "ser",
+    "cat": "estado",
+    "m": "No indica acción: dice cómo se está o se es."
+  },
+  {
+    "it": "pensar",
+    "cat": "psicologico",
+    "m": "Pasa adentro de la cabeza: es un proceso mental."
+  },
+  {
+    "it": "saltar",
+    "cat": "accion",
+    "m": "Acción visible."
+  },
+  {
+    "it": "estar",
+    "cat": "estado",
+    "m": "Verbo de estado por excelencia."
+  },
+  {
+    "it": "querer",
+    "cat": "psicologico",
+    "m": "Es un sentimiento, no una acción."
+  },
+  {
+    "it": "escribir",
+    "cat": "accion",
+    "m": "Se hace y se ve."
+  },
+  {
+    "it": "parecer",
+    "cat": "estado",
+    "m": "Indica un estado o una apariencia."
+  },
+  {
+    "it": "odiar",
+    "cat": "psicologico",
+    "m": "Sentimiento."
+  },
+  {
+    "it": "cocinar",
+    "cat": "accion",
+    "m": "Acción."
+  },
+  {
+    "it": "permanecer",
+    "cat": "estado",
+    "m": "Seguir en un estado."
+  },
+  {
+    "it": "recordar",
+    "cat": "psicologico",
+    "m": "Proceso mental."
+  },
+  {
+    "it": "nadar",
+    "cat": "accion",
+    "m": "Acción del cuerpo."
+  },
+  {
+    "it": "resultar",
+    "cat": "estado",
+    "m": "Verbo copulativo: une con un estado."
+  },
+  {
+    "it": "imaginar",
+    "cat": "psicologico",
+    "m": "Pasa en la mente."
+  },
+  {
+    "it": "construir",
+    "cat": "accion",
+    "m": "Acción."
+  },
+  {
+    "it": "temer",
+    "cat": "psicologico",
+    "m": "Sentimiento de miedo."
+  },
+  {
+    "it": "quedar",
+    "cat": "estado",
+    "m": "Indica el estado en que algo queda."
+  },
+  {
+    "it": "gritar",
+    "cat": "accion",
+    "m": "Acción, se oye."
+  },
+  {
+    "it": "creer",
+    "cat": "psicologico",
+    "m": "Actividad de la mente."
+  },
+  {
+    "it": "seguir",
+    "cat": "estado",
+    "m": "Ojo: cuando dice 'sigue enojado' es de estado. Si fuera 'sigue al perro' sería de acción: el contexto decide."
+  },
+  {
+    "it": "extrañar",
+    "cat": "psicologico",
+    "m": "Sentimiento."
+  }
+];
+GAMES.verbos_clases_5 = juegoClasificar(CUR_VERBOS_CLASES_5_BANCO, "¿Qué tipo de verbo es?", [{"cat": "accion", "label": "🏃 De acción"}, {"cat": "estado", "label": "🪑 De estado"}, {"cat": "psicologico", "label": "💭 Psicológico"}], "verbos_cla");
+
+/* 5° · ¿Objeto directo o indirecto? — od_oi_5
+   DC: Objeto directo e indirecto; prueba de sustitución por lo/le
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L4 */
+const CUR_OD_OI_5_BANCO = [
+  {
+    "q": "Ana compró **un libro**. ¿Qué es 'un libro'?",
+    "ops": [
+      "Objeto directo",
+      "Objeto indirecto",
+      "Sujeto"
+    ],
+    "m": "Probá reemplazarlo: 'Ana LO compró'. Si entra lo/la, es directo."
+  },
+  {
+    "q": "Ana le dio el libro **a su hermano**. ¿Qué es 'a su hermano'?",
+    "ops": [
+      "Objeto indirecto",
+      "Objeto directo",
+      "Sujeto"
+    ],
+    "m": "'Ana LE dio el libro'. Si entra le/les, es indirecto."
+  },
+  {
+    "q": "Escribí **una carta**. ¿Qué es?",
+    "ops": [
+      "Objeto directo",
+      "Objeto indirecto",
+      "Predicado"
+    ],
+    "m": "'La escribí': entra 'la', así que es directo."
+  },
+  {
+    "q": "Le conté el chiste **a Julia**. ¿Qué es 'a Julia'?",
+    "ops": [
+      "Objeto indirecto",
+      "Objeto directo",
+      "Sujeto"
+    ],
+    "m": "'LE conté el chiste': indirecto."
+  },
+  {
+    "q": "Vi **a Julia** en la plaza. ¿Qué es 'a Julia'?",
+    "ops": [
+      "Objeto directo",
+      "Objeto indirecto",
+      "Sujeto"
+    ],
+    "m": "Trampa clásica: lleva 'a' pero es DIRECTO, porque se dice 'LA vi'. La 'a' aparece cuando el objeto directo es una persona."
+  },
+  {
+    "q": "Regalamos flores **a la maestra**. ¿Qué es?",
+    "ops": [
+      "Objeto indirecto",
+      "Objeto directo",
+      "Circunstancial"
+    ],
+    "m": "'LE regalamos flores': indirecto."
+  },
+  {
+    "q": "El perro mordió **la pelota**. ¿Qué es 'la pelota'?",
+    "ops": [
+      "Objeto directo",
+      "Objeto indirecto",
+      "Sujeto"
+    ],
+    "m": "'LA mordió': directo."
+  },
+  {
+    "q": "Mandé un mensaje **a mis primos**. ¿Qué es?",
+    "ops": [
+      "Objeto indirecto",
+      "Objeto directo",
+      "Sujeto"
+    ],
+    "m": "'LES mandé un mensaje': indirecto."
+  },
+  {
+    "q": "Compré **pan** para la cena. ¿Qué es 'pan'?",
+    "ops": [
+      "Objeto directo",
+      "Objeto indirecto",
+      "Circunstancial"
+    ],
+    "m": "'LO compré': directo."
+  },
+  {
+    "q": "En 'Le presté la bici a Tomás', ¿cuál es el objeto directo?",
+    "ops": [
+      "la bici",
+      "a Tomás",
+      "Le"
+    ],
+    "m": "'La presté': el directo es la bici. 'A Tomás' es el indirecto."
+  },
+  {
+    "q": "¿Con qué pronombres se reemplaza el objeto directo?",
+    "ops": [
+      "lo, la, los, las",
+      "le, les",
+      "me, te"
+    ],
+    "m": "Es la prueba más rápida para distinguirlos."
+  },
+  {
+    "q": "¿Y el objeto indirecto?",
+    "ops": [
+      "le, les",
+      "lo, la",
+      "el, la"
+    ],
+    "m": "Le/les es la marca del indirecto."
+  },
+  {
+    "q": "Explicó **la lección** a los chicos. ¿Qué es 'la lección'?",
+    "ops": [
+      "Objeto directo",
+      "Objeto indirecto",
+      "Sujeto"
+    ],
+    "m": "'LA explicó': directo."
+  },
+  {
+    "q": "Cociné **una torta** para vos. ¿Qué es 'una torta'?",
+    "ops": [
+      "Objeto directo",
+      "Objeto indirecto",
+      "Sujeto"
+    ],
+    "m": "'LA cociné': directo."
+  },
+  {
+    "q": "Pedí un favor **a mi vecina**. ¿Qué es 'a mi vecina'?",
+    "ops": [
+      "Objeto indirecto",
+      "Objeto directo",
+      "Circunstancial"
+    ],
+    "m": "'LE pedí un favor': indirecto."
+  },
+  {
+    "q": "Saludé **a los abuelos**. ¿Qué es?",
+    "ops": [
+      "Objeto directo",
+      "Objeto indirecto",
+      "Sujeto"
+    ],
+    "m": "Otra vez la 'a' con personas: 'LOS saludé', así que es directo."
+  },
+  {
+    "q": "El objeto directo, ¿de qué verbo depende?",
+    "ops": [
+      "Del verbo principal del predicado",
+      "Del sujeto",
+      "De ninguno"
+    ],
+    "m": "Los dos objetos completan al verbo, por eso se llaman complementos."
+  },
+  {
+    "q": "Trajimos **los cuadernos**. ¿Qué es?",
+    "ops": [
+      "Objeto directo",
+      "Objeto indirecto",
+      "Sujeto"
+    ],
+    "m": "'LOS trajimos': directo."
+  },
+  {
+    "q": "Contale la novedad **a tu mamá**. ¿Qué es?",
+    "ops": [
+      "Objeto indirecto",
+      "Objeto directo",
+      "Sujeto"
+    ],
+    "m": "'ContaLE la novedad': indirecto."
+  },
+  {
+    "q": "Rompieron **la ventana**. ¿Qué es?",
+    "ops": [
+      "Objeto directo",
+      "Objeto indirecto",
+      "Sujeto"
+    ],
+    "m": "'LA rompieron': directo."
+  }
+];
+GAMES.od_oi_5 = juegoTriviaTexto(CUR_OD_OI_5_BANCO, "Mirá la parte destacada de la oración.", "od_oi_5");
+
+/* 5° · Grados del adjetivo — grados_adjetivo_5
+   DC: Comparativo y superlativo
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L5 */
+const CUR_GRADOS_ADJETIVO_5_BANCO = [
+  {
+    "q": "Juan es alto. Pedro es MÁS alto. ¿Qué grado es 'más alto'?",
+    "ops": [
+      "Comparativo",
+      "Superlativo",
+      "Positivo"
+    ],
+    "m": "El comparativo pone dos cosas una al lado de la otra."
+  },
+  {
+    "q": "Pedro es EL MÁS alto de todos. ¿Qué grado es?",
+    "ops": [
+      "Superlativo",
+      "Comparativo",
+      "Positivo"
+    ],
+    "m": "El superlativo lo pone arriba de todo el grupo."
+  },
+  {
+    "q": "El comparativo de 'bueno' es…",
+    "ops": [
+      "mejor",
+      "más bueno",
+      "buenísimo"
+    ],
+    "m": "'Bueno' tiene comparativo propio: mejor. 'Más bueno' suena raro."
+  },
+  {
+    "q": "El comparativo de 'malo' es…",
+    "ops": [
+      "peor",
+      "más malo",
+      "malísimo"
+    ],
+    "m": "Igual que bueno/mejor: malo/peor."
+  },
+  {
+    "q": "El comparativo de 'grande' es…",
+    "ops": [
+      "mayor",
+      "más grandoso",
+      "grandote"
+    ],
+    "m": "Grande tiene mayor, aunque también se usa 'más grande'."
+  },
+  {
+    "q": "El comparativo de 'pequeño' es…",
+    "ops": [
+      "menor",
+      "más pequeñito",
+      "pequeñísimo"
+    ],
+    "m": "Pequeño/menor, como grande/mayor."
+  },
+  {
+    "q": "¿Cuál es el superlativo de 'rápido' con el sufijo -ísimo?",
+    "ops": [
+      "rapidísimo",
+      "más rápido",
+      "muy rápido"
+    ],
+    "m": "El sufijo -ísimo arma el superlativo en una sola palabra."
+  },
+  {
+    "q": "El superlativo de 'fácil' es…",
+    "ops": [
+      "facilísimo",
+      "más fácil",
+      "fácilmente"
+    ],
+    "m": "Se le agrega -ísimo."
+  },
+  {
+    "q": "«Este libro es TAN largo COMO el otro». ¿Qué compara?",
+    "ops": [
+      "Que son iguales",
+      "Que uno es más largo",
+      "Que uno es el más largo"
+    ],
+    "m": "'Tan… como' es el comparativo de igualdad."
+  },
+  {
+    "q": "«Este libro es MENOS largo QUE el otro». ¿Qué compara?",
+    "ops": [
+      "Que este tiene menos",
+      "Que son iguales",
+      "Que este es el más largo"
+    ],
+    "m": "'Menos… que' es el comparativo de inferioridad."
+  },
+  {
+    "q": "El superlativo de 'feliz' es…",
+    "ops": [
+      "felicísimo",
+      "más feliz",
+      "felizmente"
+    ],
+    "m": "Con -ísimo; ojo que la z cambia a c."
+  },
+  {
+    "q": "«Es la casa MÁS linda DEL barrio». ¿Qué grado es?",
+    "ops": [
+      "Superlativo",
+      "Comparativo",
+      "Positivo"
+    ],
+    "m": "'El más… de' señala el tope del grupo: superlativo."
+  },
+  {
+    "q": "«La casa es linda». ¿Qué grado es?",
+    "ops": [
+      "Positivo",
+      "Comparativo",
+      "Superlativo"
+    ],
+    "m": "El grado positivo es el adjetivo solo, sin comparar."
+  },
+  {
+    "q": "El superlativo de 'antiguo' es…",
+    "ops": [
+      "antiquísimo",
+      "más antiguo",
+      "antigüedad"
+    ],
+    "m": "Antiquísimo: la palabra cambia un poco al agregar -ísimo."
+  },
+  {
+    "q": "«Sos MÁS alto QUE yo». ¿Qué tipo de comparativo es?",
+    "ops": [
+      "De superioridad",
+      "De igualdad",
+      "De inferioridad"
+    ],
+    "m": "'Más… que' marca superioridad."
+  },
+  {
+    "q": "El superlativo de 'bueno' con -ísimo es…",
+    "ops": [
+      "buenísimo",
+      "mejorísimo",
+      "más bueno"
+    ],
+    "m": "'Buenísimo' existe; 'mejorísimo' no."
+  }
+];
+GAMES.grados_adjetivo_5 = juegoTriviaTexto(CUR_GRADOS_ADJETIVO_5_BANCO, "¿Cómo se dice?", "grados_adj");
+
+/* 5° · Futuro o condicional — futuro_condicional_5
+   DC: Futuro y condicional; perífrasis 'voy a + infinitivo'
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L6 */
+const CUR_FUTURO_CONDICIONAL_5_BANCO = [
+  {
+    "q": "Mañana ___ al club.",
+    "ops": [
+      "iré",
+      "iría",
+      "iba"
+    ],
+    "m": "'Mañana' es futuro seguro: iré."
+  },
+  {
+    "q": "Si tuviera tiempo, ___ al club.",
+    "ops": [
+      "iría",
+      "iré",
+      "fui"
+    ],
+    "m": "'Si tuviera' plantea algo hipotético: pide el condicional."
+  },
+  {
+    "q": "El año que viene ___ quinto grado.",
+    "ops": [
+      "terminaré",
+      "terminaría",
+      "terminaba"
+    ],
+    "m": "Hecho futuro concreto: futuro."
+  },
+  {
+    "q": "Yo que vos, ___ con la maestra.",
+    "ops": [
+      "hablaría",
+      "hablaré",
+      "hablé"
+    ],
+    "m": "'Yo que vos' da un consejo: condicional."
+  },
+  {
+    "q": "¿___ pasarme la goma, por favor?",
+    "ops": [
+      "Podrías",
+      "Podrás",
+      "Pudiste"
+    ],
+    "m": "El condicional también sirve para pedir con cortesía. 'Podrás' suena a orden."
+  },
+  {
+    "q": "El sábado ___ el partido.",
+    "ops": [
+      "jugaremos",
+      "jugaríamos",
+      "jugábamos"
+    ],
+    "m": "Fecha concreta a futuro."
+  },
+  {
+    "q": "Me dijo que ___ más tarde.",
+    "ops": [
+      "llegaría",
+      "llegará",
+      "llegó"
+    ],
+    "m": "Es un futuro visto desde el pasado: se usa el condicional."
+  },
+  {
+    "q": "«Voy a estudiar esta tarde» es…",
+    "ops": [
+      "Una forma de hablar del futuro",
+      "Pasado",
+      "Condicional"
+    ],
+    "m": "La perífrasis 'voy a + infinitivo' expresa futuro; se usa muchísimo al hablar."
+  },
+  {
+    "q": "Con esta lluvia, ___ que suspenden el acto.",
+    "ops": [
+      "diría",
+      "diré",
+      "dije"
+    ],
+    "m": "Es una suposición: condicional."
+  },
+  {
+    "q": "En dos horas ___ la película.",
+    "ops": [
+      "empezará",
+      "empezaría",
+      "empezaba"
+    ],
+    "m": "Futuro cierto."
+  },
+  {
+    "q": "¿Cuál es el futuro de 'hacer'?",
+    "ops": [
+      "haré",
+      "haría",
+      "hacía"
+    ],
+    "m": "Hacer es irregular: haré, harás, hará."
+  },
+  {
+    "q": "¿Cuál es el condicional de 'poder'?",
+    "ops": [
+      "podría",
+      "podré",
+      "pude"
+    ],
+    "m": "Podría, podrías, podría."
+  },
+  {
+    "q": "Nos ___ encantado ir, pero no pudimos.",
+    "ops": [
+      "habría",
+      "habrá",
+      "hubo"
+    ],
+    "m": "Habla de algo que no pasó: condicional."
+  },
+  {
+    "q": "¿Cuál es el futuro de 'tener'?",
+    "ops": [
+      "tendré",
+      "tendría",
+      "tenía"
+    ],
+    "m": "Tener es irregular: tendré."
+  },
+  {
+    "q": "Seguro que ya ___ en casa.",
+    "ops": [
+      "estará",
+      "estaría",
+      "estuvo"
+    ],
+    "m": "El futuro también sirve para suponer algo del presente: 'ya estará en casa'."
+  },
+  {
+    "q": "Prometió que ___ el libro.",
+    "ops": [
+      "devolvería",
+      "devolverá",
+      "devolvió"
+    ],
+    "m": "Lo prometió en pasado, así que el futuro de ese momento es condicional."
+  },
+  {
+    "q": "Cuando sea grande ___ veterinaria.",
+    "ops": [
+      "seré",
+      "sería",
+      "era"
+    ],
+    "m": "Plan a futuro: futuro."
+  },
+  {
+    "q": "¿___ un poco de agua? Tengo mucha sed.",
+    "ops": [
+      "Tendrías",
+      "Tendrás",
+      "Tuviste"
+    ],
+    "m": "Pedido cortés: condicional."
+  },
+  {
+    "q": "El lunes ___ los resultados.",
+    "ops": [
+      "conoceremos",
+      "conoceríamos",
+      "conocíamos"
+    ],
+    "m": "Día concreto a futuro."
+  },
+  {
+    "q": "Me ___ quedar, pero tengo que irme.",
+    "ops": [
+      "gustaría",
+      "gustará",
+      "gustó"
+    ],
+    "m": "Deseo que no se cumple: condicional."
+  }
+];
+GAMES.futuro_condicional_5 = juegoTriviaTexto(CUR_FUTURO_CONDICIONAL_5_BANCO, "¿Cuál completa mejor la frase?", "futuro_con");
+
+/* 5° · Vaya, valla o baya — homofonos_5
+   DC: Homófonos heterógrafos: ay/hay, casar/cazar, vaya/valla/baya
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L7 */
+const CUR_HOMOFONOS_5_BANCO = [
+  {
+    "q": "Ojalá ___ todo bien en la prueba.",
+    "ops": [
+      "vaya",
+      "valla",
+      "baya"
+    ],
+    "m": "'Vaya' es del verbo ir. La 'valla' es una cerca y la 'baya' es un fruto."
+  },
+  {
+    "q": "Saltó la ___ del terreno.",
+    "ops": [
+      "valla",
+      "vaya",
+      "baya"
+    ],
+    "m": "La cerca es 'valla', con doble L."
+  },
+  {
+    "q": "El arándano es una ___ .",
+    "ops": [
+      "baya",
+      "valla",
+      "vaya"
+    ],
+    "m": "La fruta chiquita y carnosa es la 'baya', con B."
+  },
+  {
+    "q": "___ , me golpeé el codo.",
+    "ops": [
+      "Ay",
+      "Hay",
+      "Ahí"
+    ],
+    "m": "El quejido es '¡Ay!'. 'Hay' es del verbo haber y 'ahí' es el lugar."
+  },
+  {
+    "q": "___ tres sillas libres.",
+    "ops": [
+      "Hay",
+      "Ay",
+      "Ahí"
+    ],
+    "m": "Del verbo haber: hay."
+  },
+  {
+    "q": "Dejalo ___ , sobre la mesa.",
+    "ops": [
+      "ahí",
+      "hay",
+      "ay"
+    ],
+    "m": "Indica lugar: ahí, con tilde."
+  },
+  {
+    "q": "Se van a ___ en diciembre.",
+    "ops": [
+      "casar",
+      "cazar",
+      "cansar"
+    ],
+    "m": "Formar pareja es 'casar', con S. 'Cazar' con Z es perseguir animales."
+  },
+  {
+    "q": "Salieron a ___ en el monte.",
+    "ops": [
+      "cazar",
+      "casar",
+      "calzar"
+    ],
+    "m": "Perseguir animales: cazar, con Z."
+  },
+  {
+    "q": "El equipo ___ ganando.",
+    "ops": [
+      "va",
+      "vah",
+      "bá"
+    ],
+    "m": "Del verbo ir: va."
+  },
+  {
+    "q": "Le regaló un ramo de flores muy ___ .",
+    "ops": [
+      "bellas",
+      "vellas",
+      "veyas"
+    ],
+    "m": "'Bellas' es hermosas, con B."
+  },
+  {
+    "q": "El bebé tiene mucho ___ en la cabeza.",
+    "ops": [
+      "vello",
+      "bello",
+      "veyo"
+    ],
+    "m": "El pelito fino es 'vello', con V. 'Bello' con B es hermoso."
+  },
+  {
+    "q": "Es un paisaje muy ___ .",
+    "ops": [
+      "bello",
+      "vello",
+      "veyo"
+    ],
+    "m": "Hermoso es 'bello', con B."
+  },
+  {
+    "q": "Se ___ el pelo todas las mañanas.",
+    "ops": [
+      "ata",
+      "hata",
+      "haya"
+    ],
+    "m": "Del verbo atar, sin H."
+  },
+  {
+    "q": "Espero que ___ llegado bien.",
+    "ops": [
+      "haya",
+      "halla",
+      "aya"
+    ],
+    "m": "'Haya' es del verbo haber. 'Halla' es de hallar (encontrar)."
+  },
+  {
+    "q": "El que busca, ___ .",
+    "ops": [
+      "halla",
+      "haya",
+      "aya"
+    ],
+    "m": "De hallar: encontrar."
+  },
+  {
+    "q": "Le dieron un ___ por su trabajo.",
+    "ops": [
+      "premio",
+      "premmio",
+      "prehmio"
+    ],
+    "m": "Premio, con una sola M."
+  },
+  {
+    "q": "Puso los platos ___ la mesa.",
+    "ops": [
+      "sobre",
+      "sobrre",
+      "zobre"
+    ],
+    "m": "Sobre, con B."
+  },
+  {
+    "q": "Ese ___ tiene mucha agua.",
+    "ops": [
+      "pozo",
+      "poso",
+      "posso"
+    ],
+    "m": "El agujero con agua es 'pozo', con Z. 'Poso' es lo que queda en el fondo."
+  },
+  {
+    "q": "Quedó un ___ de café en la taza.",
+    "ops": [
+      "poso",
+      "pozo",
+      "posso"
+    ],
+    "m": "Lo que se deposita abajo es el 'poso', con S."
+  },
+  {
+    "q": "___ tú a saber qué pasó.",
+    "ops": [
+      "Vaya",
+      "Valla",
+      "Baya"
+    ],
+    "m": "Otra vez del verbo ir: vaya."
+  },
+  {
+    "q": "El campo estaba cercado con una ___ de madera.",
+    "ops": [
+      "valla",
+      "vaya",
+      "baya"
+    ],
+    "m": "La cerca: valla."
+  },
+  {
+    "q": "Comimos ___ silvestres en la montaña.",
+    "ops": [
+      "bayas",
+      "vallas",
+      "vayas"
+    ],
+    "m": "Las frutas: bayas."
+  }
+];
+GAMES.homofonos_5 = juegoTriviaTexto(CUR_HOMOFONOS_5_BANCO, "Suenan igual. ¿Cuál va acá?", "homofonos_");
+
+/* 5° · Tilde diacrítica — acentuacion_5
+   DC: Acentuación general, tilde diacrítica y adverbios en -mente
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L8 */
+const CUR_ACENTUACION_5_BANCO = [
+  {
+    "q": "¿___ hora es?",
+    "ops": [
+      "Qué",
+      "Que",
+      "Qué o que, da igual"
+    ],
+    "m": "En pregunta lleva tilde: qué."
+  },
+  {
+    "q": "Me dijo ___ venía tarde.",
+    "ops": [
+      "que",
+      "qué",
+      "qué o que, da igual"
+    ],
+    "m": "Acá no pregunta ni exclama: va sin tilde."
+  },
+  {
+    "q": "___ es mi hermano.",
+    "ops": [
+      "Él",
+      "El",
+      "Èl"
+    ],
+    "m": "El pronombre (la persona) lleva tilde: él. El artículo (el perro) no."
+  },
+  {
+    "q": "Abrí ___ cajón.",
+    "ops": [
+      "el",
+      "él",
+      "èl"
+    ],
+    "m": "Acá 'el' es artículo, va sin tilde."
+  },
+  {
+    "q": "Ese libro es para ___ .",
+    "ops": [
+      "mí",
+      "mi",
+      "mî"
+    ],
+    "m": "El pronombre lleva tilde: mí."
+  },
+  {
+    "q": "___ mochila es azul.",
+    "ops": [
+      "Mi",
+      "Mí",
+      "Mî"
+    ],
+    "m": "'Mi mochila' es posesivo: sin tilde."
+  },
+  {
+    "q": "Yo no ___ nada de eso.",
+    "ops": [
+      "sé",
+      "se",
+      "sê"
+    ],
+    "m": "Del verbo saber lleva tilde: sé."
+  },
+  {
+    "q": "___ lava las manos antes de comer.",
+    "ops": [
+      "Se",
+      "Sé",
+      "Sê"
+    ],
+    "m": "El pronombre 'se' va sin tilde."
+  },
+  {
+    "q": "¿Querés ___ o café?",
+    "ops": [
+      "té",
+      "te",
+      "tê"
+    ],
+    "m": "La infusión lleva tilde: té."
+  },
+  {
+    "q": "___ espero en la puerta.",
+    "ops": [
+      "Te",
+      "Té",
+      "Tê"
+    ],
+    "m": "El pronombre 'te' no lleva tilde."
+  },
+  {
+    "q": "No sé ___ hacer.",
+    "ops": [
+      "qué",
+      "que",
+      "qué o que, da igual"
+    ],
+    "m": "Es una pregunta indirecta: igual lleva tilde."
+  },
+  {
+    "q": "___ mucho más de lo que parece.",
+    "ops": [
+      "Sé",
+      "Se",
+      "Sê"
+    ],
+    "m": "Del verbo saber: sé."
+  },
+  {
+    "q": "¿___ viene a buscarte?",
+    "ops": [
+      "Quién",
+      "Quien",
+      "Quièn"
+    ],
+    "m": "En pregunta, quién lleva tilde."
+  },
+  {
+    "q": "El chico ___ vino ayer es mi primo.",
+    "ops": [
+      "que",
+      "qué",
+      "quê"
+    ],
+    "m": "No pregunta: sin tilde."
+  },
+  {
+    "q": "¿___ vivís?",
+    "ops": [
+      "Dónde",
+      "Donde",
+      "Dônde"
+    ],
+    "m": "Pregunta: dónde con tilde."
+  },
+  {
+    "q": "La casa ___ vivo es amarilla.",
+    "ops": [
+      "donde",
+      "dónde",
+      "dônde"
+    ],
+    "m": "Sin pregunta: sin tilde."
+  },
+  {
+    "q": "¿___ llegaste tarde?",
+    "ops": [
+      "Por qué",
+      "Porque",
+      "Porqué"
+    ],
+    "m": "Al preguntar va separado y con tilde: por qué."
+  },
+  {
+    "q": "Llegué tarde ___ perdí el colectivo.",
+    "ops": [
+      "porque",
+      "por qué",
+      "por que"
+    ],
+    "m": "Al responder va junto y sin tilde: porque."
+  },
+  {
+    "q": "El adverbio de 'rápida' es…",
+    "ops": [
+      "rápidamente",
+      "rapidamente",
+      "rápidamentè"
+    ],
+    "m": "Los adverbios en -mente conservan la tilde del adjetivo original."
+  },
+  {
+    "q": "El adverbio de 'fácil' es…",
+    "ops": [
+      "fácilmente",
+      "facilmente",
+      "fàcilmente"
+    ],
+    "m": "Fácil lleva tilde, así que fácilmente también."
+  },
+  {
+    "q": "El adverbio de 'lento' es…",
+    "ops": [
+      "lentamente",
+      "léntamente",
+      "lentaménte"
+    ],
+    "m": "'Lento' no lleva tilde, así que lentamente tampoco."
+  },
+  {
+    "q": "'Cántaro' es una palabra…",
+    "ops": [
+      "Esdrújula",
+      "Grave",
+      "Aguda"
+    ],
+    "m": "La fuerza está en la antepenúltima sílaba: CÁN-ta-ro. Todas las esdrújulas llevan tilde."
+  },
+  {
+    "q": "'Ratón' es una palabra…",
+    "ops": [
+      "Aguda",
+      "Grave",
+      "Esdrújula"
+    ],
+    "m": "La fuerza está en la última: ra-TÓN. Lleva tilde por terminar en N."
+  },
+  {
+    "q": "'Árbol' es una palabra…",
+    "ops": [
+      "Grave",
+      "Aguda",
+      "Esdrújula"
+    ],
+    "m": "ÁR-bol: la fuerza en la anteúltima. Lleva tilde porque NO termina en n, s ni vocal."
+  }
+];
+GAMES.acentuacion_5 = juegoTriviaTexto(CUR_ACENTUACION_5_BANCO, "¿Lleva tilde o no?", "acentuacio");
+
+/* 5° · Prefijos poderosos — prefijos_5
+   DC: Prefijos in-, des-, micro-, sub-, anti-
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L9 */
+const CUR_PREFIJOS_5_BANCO = [
+  {
+    "q": "'Incompleto' significa…",
+    "ops": [
+      "Que no está completo",
+      "Muy completo",
+      "Completo de nuevo"
+    ],
+    "m": "El prefijo in- niega."
+  },
+  {
+    "q": "'Deshacer' significa…",
+    "ops": [
+      "Hacer al revés",
+      "Hacer mucho",
+      "Hacer después"
+    ],
+    "m": "Des- invierte la acción."
+  },
+  {
+    "q": "'Microscopio' sirve para ver cosas…",
+    "ops": [
+      "Muy chiquitas",
+      "Muy lejanas",
+      "Muy grandes"
+    ],
+    "m": "Micro- quiere decir pequeño."
+  },
+  {
+    "q": "'Submarino' significa…",
+    "ops": [
+      "Debajo del mar",
+      "Sobre el mar",
+      "Contra el mar"
+    ],
+    "m": "Sub- es debajo."
+  },
+  {
+    "q": "'Antivirus' es algo que…",
+    "ops": [
+      "Actúa contra los virus",
+      "Ayuda a los virus",
+      "Es un virus chiquito"
+    ],
+    "m": "Anti- es contra."
+  },
+  {
+    "q": "'Injusto' significa…",
+    "ops": [
+      "Que no es justo",
+      "Muy justo",
+      "Justo otra vez"
+    ],
+    "m": "In- niega."
+  },
+  {
+    "q": "'Desarmar' significa…",
+    "ops": [
+      "Sacar las partes de algo armado",
+      "Armar mejor",
+      "Armar de nuevo"
+    ],
+    "m": "Des- deshace la acción de armar."
+  },
+  {
+    "q": "'Subsuelo' es…",
+    "ops": [
+      "Lo que está debajo del suelo",
+      "El suelo de arriba",
+      "Un suelo chiquito"
+    ],
+    "m": "Sub- otra vez: debajo."
+  },
+  {
+    "q": "'Antibiótico' actúa…",
+    "ops": [
+      "Contra bacterias que enferman",
+      "A favor de las bacterias",
+      "Debajo de la piel"
+    ],
+    "m": "Anti- es contra; bio es vida."
+  },
+  {
+    "q": "'Microondas' usa ondas…",
+    "ops": [
+      "Muy chiquitas",
+      "Muy grandes",
+      "De agua"
+    ],
+    "m": "Micro- es pequeño."
+  },
+  {
+    "q": "En 'insecto', ¿el 'in-' es un prefijo que niega?",
+    "ops": [
+      "No, es parte de la palabra",
+      "Sí, significa 'no secto'",
+      "Sí, significa 'muy secto'"
+    ],
+    "m": "Trampa importante: no todo lo que empieza con 'in' lleva prefijo. 'Secto' no existe. Si al sacar el prefijo no queda una palabra real, no era prefijo."
+  },
+  {
+    "q": "En 'destino', ¿el 'des-' es un prefijo?",
+    "ops": [
+      "No, es parte de la palabra",
+      "Sí, es 'no tino'",
+      "Sí, es 'tino al revés'"
+    ],
+    "m": "Misma trampa: 'tino' existe pero destino no significa 'lo contrario de tino'. El prefijo tiene que cambiar el significado de forma previsible."
+  },
+  {
+    "q": "'Desordenado' significa…",
+    "ops": [
+      "Que no tiene orden",
+      "Muy ordenado",
+      "Ordenado de nuevo"
+    ],
+    "m": "Des- niega el orden."
+  },
+  {
+    "q": "'Imposible' significa…",
+    "ops": [
+      "Que no se puede",
+      "Que se puede mucho",
+      "Que se puede después"
+    ],
+    "m": "In- se transforma en im- antes de p: imposible, impaciente."
+  },
+  {
+    "q": "'Subrayar' significa…",
+    "ops": [
+      "Hacer una raya debajo",
+      "Rayar mucho",
+      "Rayar contra algo"
+    ],
+    "m": "Sub- es debajo; rayar es hacer la raya."
+  },
+  {
+    "q": "'Antiaéreo' significa…",
+    "ops": [
+      "Contra lo que viene por el aire",
+      "Que vuela mucho",
+      "Debajo del aire"
+    ],
+    "m": "Anti- es contra."
+  },
+  {
+    "q": "'Incapaz' significa…",
+    "ops": [
+      "Que no es capaz",
+      "Muy capaz",
+      "Capaz otra vez"
+    ],
+    "m": "In- niega."
+  },
+  {
+    "q": "'Descongelar' significa…",
+    "ops": [
+      "Sacar el congelamiento",
+      "Congelar más",
+      "Congelar de nuevo"
+    ],
+    "m": "Des- invierte la acción."
+  },
+  {
+    "q": "'Microbio' es un ser vivo…",
+    "ops": [
+      "Tan chico que no se ve a simple vista",
+      "Enorme",
+      "Que vive debajo del agua"
+    ],
+    "m": "Micro- pequeño, bio vida."
+  },
+  {
+    "q": "En 'independiente', ¿qué niega el prefijo?",
+    "ops": [
+      "Que dependa de otro",
+      "Que sea diente",
+      "Que esté debajo"
+    ],
+    "m": "In- + dependiente: que no depende."
+  }
+];
+GAMES.prefijos_5 = juegoTriviaTexto(CUR_PREFIJOS_5_BANCO, "¿Qué significa la palabra?", "prefijos_5");
+
+/* 5° · Una palabra, varios sentidos — polisemia_5
+   DC: Polisemia; la acepción según el contexto
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L10 */
+const CUR_POLISEMIA_5_BANCO = [
+  {
+    "q": "«Se lastimó la HOJA del cuchillo». ¿Qué es la hoja?",
+    "ops": [
+      "La parte que corta",
+      "La de un árbol",
+      "La del cuaderno"
+    ],
+    "m": "La misma palabra nombra cosas distintas según el contexto."
+  },
+  {
+    "q": "«Junté una HOJA seca del patio».",
+    "ops": [
+      "La de un árbol",
+      "La que corta",
+      "La del libro"
+    ],
+    "m": "Acá manda 'seca' y 'del patio'."
+  },
+  {
+    "q": "«Me duele la MUÑECA de tanto escribir».",
+    "ops": [
+      "La articulación del brazo",
+      "El juguete",
+      "Un adorno"
+    ],
+    "m": "'Me duele' y 'de escribir' definen el sentido."
+  },
+  {
+    "q": "«Le regalaron una MUÑECA de trapo».",
+    "ops": [
+      "El juguete",
+      "La articulación",
+      "Una herramienta"
+    ],
+    "m": "'De trapo' resuelve la ambigüedad."
+  },
+  {
+    "q": "«El BANCO me cobró comisión».",
+    "ops": [
+      "La entidad donde está la plata",
+      "El asiento de la plaza",
+      "Un banco de peces"
+    ],
+    "m": "'Me cobró comisión' sólo tiene sentido con la entidad."
+  },
+  {
+    "q": "«Nos sentamos en un BANCO de la plaza».",
+    "ops": [
+      "El asiento",
+      "La entidad financiera",
+      "Un banco de arena"
+    ],
+    "m": "'Nos sentamos' define el sentido."
+  },
+  {
+    "q": "«La SIERRA cortó la madera».",
+    "ops": [
+      "La herramienta",
+      "La cadena de montañas",
+      "Un tipo de tela"
+    ],
+    "m": "'Cortó la madera': herramienta."
+  },
+  {
+    "q": "«Fuimos de campamento a la SIERRA».",
+    "ops": [
+      "La zona de montañas",
+      "La herramienta",
+      "Un río"
+    ],
+    "m": "'De campamento a la…': el lugar."
+  },
+  {
+    "q": "«El GATO del auto está en el baúl».",
+    "ops": [
+      "La herramienta para levantar el auto",
+      "El animal",
+      "Un juego"
+    ],
+    "m": "'Del auto' y 'en el baúl' lo definen."
+  },
+  {
+    "q": "«El GATO maulló toda la noche».",
+    "ops": [
+      "El animal",
+      "La herramienta",
+      "Un baile"
+    ],
+    "m": "'Maulló': el animal."
+  },
+  {
+    "q": "«Me puse el saco porque hacía frío».",
+    "ops": [
+      "La prenda de abrigo",
+      "La bolsa grande",
+      "Un golpe"
+    ],
+    "m": "'Me puse' y 'frío': la prenda."
+  },
+  {
+    "q": "«Cargó un SACO de papas».",
+    "ops": [
+      "La bolsa grande",
+      "La prenda",
+      "Un mueble"
+    ],
+    "m": "'De papas': la bolsa."
+  },
+  {
+    "q": "«La PLANTA baja del edificio».",
+    "ops": [
+      "El piso",
+      "El vegetal",
+      "La fábrica"
+    ],
+    "m": "'Del edificio': el piso."
+  },
+  {
+    "q": "«Regué la PLANTA del balcón».",
+    "ops": [
+      "El vegetal",
+      "El piso",
+      "La fábrica"
+    ],
+    "m": "'Regué': el vegetal."
+  },
+  {
+    "q": "«Trabaja en una PLANTA automotriz».",
+    "ops": [
+      "Una fábrica",
+      "El vegetal",
+      "El piso de abajo"
+    ],
+    "m": "Tercera acepción: la fábrica."
+  },
+  {
+    "q": "«Perdió la LLAVE de casa».",
+    "ops": [
+      "La de abrir la puerta",
+      "La del agua",
+      "Una llave de lucha"
+    ],
+    "m": "'De casa': la de la puerta."
+  },
+  {
+    "q": "«Cerrá la LLAVE del agua».",
+    "ops": [
+      "El grifo",
+      "La de la puerta",
+      "Una llave inglesa"
+    ],
+    "m": "'Del agua': la canilla."
+  },
+  {
+    "q": "¿Qué es una palabra polisémica?",
+    "ops": [
+      "Una que tiene varios significados",
+      "Una que suena igual que otra",
+      "Una muy larga"
+    ],
+    "m": "Polisemia: muchos sentidos en UNA misma palabra. Distinto de los homófonos, que se escriben distinto."
+  }
+];
+GAMES.polisemia_5 = juegoTriviaTexto(CUR_POLISEMIA_5_BANCO, "¿Qué significa acá?", "polisemia_");
+
+/* 5° · Arquitecto de textos — estructura_textos_5
+   DC: Estructura de la carta y el mail, la entrevista y la noticia
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L11 */
+const CUR_ESTRUCTURA_TEXTOS_5_BANCO = [
+  {
+    "items": [
+      "Asunto: Pedido de permiso",
+      "Estimada directora:",
+      "Le escribo para pedirle permiso para la salida.",
+      "Saludos cordiales, Martina"
+    ]
+  },
+  {
+    "items": [
+      "Buenos Aires, 12 de mayo",
+      "Querida abuela:",
+      "Te cuento que empecé quinto grado.",
+      "Te mando un beso, Nico"
+    ]
+  },
+  {
+    "items": [
+      "Título: Hallaron un fósil en la Patagonia",
+      "Bajada: Tiene 70 millones de años",
+      "El equipo encontró los restos el martes.",
+      "Epígrafe: Los científicos junto al hallazgo"
+    ]
+  },
+  {
+    "items": [
+      "Presentación del entrevistado",
+      "Primera pregunta",
+      "Respuesta",
+      "Despedida y agradecimiento"
+    ]
+  },
+  {
+    "items": [
+      "Asunto: Consulta por el taller",
+      "Hola, buen día:",
+      "Quería saber si quedan lugares.",
+      "Muchas gracias, Lucía"
+    ]
+  },
+  {
+    "items": [
+      "Título de la noticia",
+      "Bajada que amplía el título",
+      "Cuerpo con los detalles"
+    ]
+  },
+  {
+    "items": [
+      "Rosario, 3 de agosto",
+      "Estimado señor Pérez:",
+      "Me dirijo a usted por el aviso del diario.",
+      "Atentamente, Ana Gómez"
+    ]
+  },
+  {
+    "items": [
+      "Se presenta a quién se va a entrevistar",
+      "Se hacen las preguntas",
+      "Se cierra con un agradecimiento"
+    ]
+  },
+  {
+    "items": [
+      "Asunto del mail",
+      "Saludo inicial",
+      "Cuerpo del mensaje",
+      "Despedida y firma"
+    ]
+  },
+  {
+    "items": [
+      "Qué pasó",
+      "Dónde pasó",
+      "Cuándo pasó",
+      "Por qué pasó"
+    ]
+  },
+  {
+    "items": [
+      "Lugar y fecha",
+      "Destinatario",
+      "Cuerpo de la carta",
+      "Firma"
+    ]
+  },
+  {
+    "items": [
+      "Encabezado con el nombre del entrevistado",
+      "Pregunta sobre su trabajo",
+      "Respuesta del entrevistado",
+      "Pregunta final",
+      "Cierre"
+    ]
+  }
+];
+GAMES.estructura_textos_5 = juegoOrdenar(CUR_ESTRUCTURA_TEXTOS_5_BANCO, "Ordená las partes del texto. Tocá en orden.", "Cada tipo de texto tiene sus partes y siempre van en el mismo orden.", "estructura");
+
+/* 5° · Dos puntos y raya — dos_puntos_5
+   DC: Dos puntos en el discurso directo; voz del narrador frente al diálogo
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L12 */
+const CUR_DOS_PUNTOS_5_BANCO = [
+  {
+    "q": "¿Cuál está bien puntuada?",
+    "ops": [
+      "Ana dijo: —Ya llego.",
+      "Ana dijo —Ya llego.",
+      "Ana dijo, —Ya llego."
+    ],
+    "m": "Los dos puntos anuncian que empieza la voz del personaje; la raya la abre."
+  },
+  {
+    "q": "¿Para qué sirven los dos puntos en el diálogo?",
+    "ops": [
+      "Anuncian que va a hablar el personaje",
+      "Terminan la oración",
+      "Separan el sujeto del verbo"
+    ],
+    "m": "Avisan que lo que viene es textual."
+  },
+  {
+    "q": "¿Qué signo abre lo que dice el personaje?",
+    "ops": [
+      "La raya de diálogo (—)",
+      "El guion corto (-)",
+      "El paréntesis"
+    ],
+    "m": "Es una raya larga, distinta del guion de 'físico-química'."
+  },
+  {
+    "q": "«—¿Venís? —preguntó Juan.» ¿Qué hace la segunda raya?",
+    "ops": [
+      "Abre la voz del narrador",
+      "Cierra la pregunta",
+      "Marca una pausa"
+    ],
+    "m": "Cuando el narrador se mete en el medio, también va con raya."
+  },
+  {
+    "q": "En «—Vamos —dijo ella—, se hace tarde», ¿qué está entre rayas?",
+    "ops": [
+      "Lo que cuenta el narrador",
+      "Lo que dice el personaje",
+      "Un pensamiento"
+    ],
+    "m": "El personaje dice 'Vamos, se hace tarde'; 'dijo ella' es el narrador."
+  },
+  {
+    "q": "¿La raya de diálogo lleva espacio antes de lo que dice el personaje?",
+    "ops": [
+      "No, va pegada a la palabra",
+      "Sí, siempre",
+      "Sólo si es pregunta"
+    ],
+    "m": "—Hola, no — Hola."
+  },
+  {
+    "q": "¿Cuál está bien?",
+    "ops": [
+      "El maestro anunció: —Mañana hay prueba.",
+      "El maestro anunció. —Mañana hay prueba.",
+      "El maestro anunció; —Mañana hay prueba."
+    ],
+    "m": "Después del verbo de decir van dos puntos."
+  },
+  {
+    "q": "Los dos puntos también sirven para…",
+    "ops": [
+      "Introducir una enumeración",
+      "Terminar un párrafo",
+      "Separar palabras"
+    ],
+    "m": "«Traje tres cosas: pan, queso y fruta»."
+  },
+  {
+    "q": "«Compré: manzanas, peras y uvas». ¿Está bien?",
+    "ops": [
+      "Sí, los dos puntos anuncian la lista",
+      "No, va punto y coma",
+      "No, va coma"
+    ],
+    "m": "Anuncian la enumeración que viene."
+  },
+  {
+    "q": "¿Cómo se marca que habla OTRO personaje?",
+    "ops": [
+      "Se empieza un renglón nuevo con raya",
+      "Se usa coma",
+      "Se pone entre paréntesis"
+    ],
+    "m": "Cada intervención va en su renglón: así se sabe quién habla sin que lo aclaren."
+  },
+  {
+    "q": "En «—Tengo hambre —dijo Pedro.», ¿quién dice 'Tengo hambre'?",
+    "ops": [
+      "Pedro",
+      "El narrador",
+      "No se sabe"
+    ],
+    "m": "Lo que va después de la raya inicial es del personaje."
+  },
+  {
+    "q": "¿Cuál NO es una función de los dos puntos?",
+    "ops": [
+      "Separar el sujeto del predicado",
+      "Anunciar un diálogo",
+      "Anunciar una enumeración"
+    ],
+    "m": "Entre sujeto y predicado no va ningún signo."
+  },
+  {
+    "q": "«Estimada directora:» — ¿por qué lleva dos puntos?",
+    "ops": [
+      "Porque después del saludo de una carta van dos puntos",
+      "Porque es una pregunta",
+      "Porque hay una lista"
+    ],
+    "m": "En cartas y mails, el saludo inicial cierra con dos puntos."
+  },
+  {
+    "q": "«—No sé —respondió—. Preguntale a él.» El punto después de la raya, ¿de qué es?",
+    "ops": [
+      "Cierra lo que dijo el narrador",
+      "Cierra la pregunta",
+      "Está de más"
+    ],
+    "m": "El narrador terminó su aclaración y ahí sigue hablando el personaje."
+  },
+  {
+    "q": "¿La raya de diálogo se usa también en la carta?",
+    "ops": [
+      "No, sólo cuando hay personajes hablando",
+      "Sí, siempre",
+      "Sólo al final"
+    ],
+    "m": "La carta tiene una sola voz: la de quien escribe."
+  },
+  {
+    "q": "¿Qué diferencia hay entre la voz del narrador y la del personaje?",
+    "ops": [
+      "El narrador cuenta; el personaje habla y va con raya",
+      "Son lo mismo",
+      "El narrador siempre va con raya"
+    ],
+    "m": "Distinguirlas es lo que hace que se entienda un cuento con diálogos."
+  }
+];
+GAMES.dos_puntos_5 = juegoTriviaTexto(CUR_DOS_PUNTOS_5_BANCO, "¿Cómo se puntúa el diálogo?", "dos_puntos");
+
+/* 5° · ¿Opinión o argumento? — opinion_argumento_5
+   DC: Textos argumentativos: notas de opinión y publicidades
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L13 */
+const CUR_OPINION_ARGUMENTO_5_BANCO = [
+  {
+    "it": "«La escuela tiene 320 alumnos»",
+    "cat": "hecho",
+    "m": "Se puede verificar: contás y listo."
+  },
+  {
+    "it": "«La escuela es la mejor del barrio»",
+    "cat": "opinion",
+    "m": "Es una valoración: alguien puede pensar distinto y no está mintiendo."
+  },
+  {
+    "it": "«La escuela es la mejor del barrio porque tiene la biblioteca más grande»",
+    "cat": "argumento",
+    "m": "Es una opinión MÁS una razón que la sostiene. Ese 'porque' es la clave."
+  },
+  {
+    "it": "«El recreo dura 20 minutos»",
+    "cat": "hecho",
+    "m": "Se mide con el reloj."
+  },
+  {
+    "it": "«El recreo es demasiado corto»",
+    "cat": "opinion",
+    "m": "Valoración."
+  },
+  {
+    "it": "«El recreo debería ser más largo, porque después del almuerzo cuesta concentrarse»",
+    "cat": "argumento",
+    "m": "Postura + razón."
+  },
+  {
+    "it": "«Ayer llovió 30 milímetros»",
+    "cat": "hecho",
+    "m": "Dato medible."
+  },
+  {
+    "it": "«Los días de lluvia son horribles»",
+    "cat": "opinion",
+    "m": "A alguien pueden gustarle."
+  },
+  {
+    "it": "«Conviene salir con paraguas, ya que el pronóstico da 80% de lluvia»",
+    "cat": "argumento",
+    "m": "Recomienda algo y da el motivo."
+  },
+  {
+    "it": "«Este celular tiene 128 GB de memoria»",
+    "cat": "hecho",
+    "m": "Dato del producto, verificable."
+  },
+  {
+    "it": "«Este celular es el mejor del mercado»",
+    "cat": "opinion",
+    "m": "Frase típica de publicidad: suena a dato pero es valoración."
+  },
+  {
+    "it": "«Elegí este celular: es el único con garantía de 3 años»",
+    "cat": "argumento",
+    "m": "Da una razón concreta y comprobable para la recomendación."
+  },
+  {
+    "it": "«El museo abre de martes a domingo»",
+    "cat": "hecho",
+    "m": "Se chequea en la cartelera."
+  },
+  {
+    "it": "«El museo es aburrido»",
+    "cat": "opinion",
+    "m": "Valoración personal."
+  },
+  {
+    "it": "«Vale la pena ir al museo, porque la muestra se va en dos semanas»",
+    "cat": "argumento",
+    "m": "Recomendación con razón."
+  },
+  {
+    "it": "«El Aconcagua mide 6.960 metros»",
+    "cat": "hecho",
+    "m": "Dato geográfico."
+  },
+  {
+    "it": "«Hay que cuidar el agua porque es un recurso que no se repone solo»",
+    "cat": "argumento",
+    "m": "Postura + razón."
+  },
+  {
+    "it": "«El verano es la mejor estación»",
+    "cat": "opinion",
+    "m": "Gustos."
+  },
+  {
+    "it": "«La biblioteca tiene 4.000 libros»",
+    "cat": "hecho",
+    "m": "Se cuenta."
+  },
+  {
+    "it": "«Leé más: los que leen entienden mejor las consignas»",
+    "cat": "argumento",
+    "m": "Consejo sostenido en una razón."
+  }
+];
+GAMES.opinion_argumento_5 = juegoClasificar(CUR_OPINION_ARGUMENTO_5_BANCO, "¿Qué tipo de enunciado es?", [{"cat": "hecho", "label": "📅 Hecho"}, {"cat": "opinion", "label": "💭 Opinión"}, {"cat": "argumento", "label": "🧩 Argumento"}], "opinion_ar");
