@@ -103,8 +103,7 @@ VIDEO_PENDIENTE = {
     "programar_camino", "serie", "tablas_ninja", "fracciones_avanzado", "pago_exacto",
     "aparatos_cuerpo", "camino_digestivo", "detectives_cielo",     "planta_potabilizadora", "provincias_region",
     # 5° — sumadas al cerrar la currícula (PR #242)
-    "recursos_poeticos_5",     "futuro_condicional_5",     "estructura_textos_5", "opinion_argumento_5",     "problemas_pasos_5",             "mapa_america_5", "variables_5", "sensores_5", "phishing_5", "presupuesto_5",
-    # 5° — ya tenían texto de antes, pero nunca video: la regla ahora también las alcanza
+    "recursos_poeticos_5",     "futuro_condicional_5",     "opinion_argumento_5",                     # 5° — ya tenían texto de antes, pero nunca video: la regla ahora también las alcanza
     "analisis_sintactico", "clases_palabra_5", "decimales_fraccion",
     "equivalencias_medida", "suma_fracciones", "transportador", "verbos_pasado",
 }

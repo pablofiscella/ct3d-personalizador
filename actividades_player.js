@@ -1480,6 +1480,37 @@ const COMO_ES_VIDEO = {
     partes: [{ t: "Cómo se arma el plato", f: "lec_plato_gapa_5.mp4", s: 34 }],
   },
 
+
+  // ── Las 7 que cierran 5°: geografía, tecnología, Ed. Financiera y las dos sueltas.
+  mapa_america_5: {
+    auto: "lec_mapa_america_5.mp4",
+    partes: [{ t: "Leer un mapa", f: "lec_mapa_america_5.mp4", s: 36 }],
+  },
+  variables_5: {
+    auto: "lec_variables_5.mp4",
+    partes: [{ t: "Guardar no es sumar", f: "lec_variables_5.mp4", s: 40 }],
+  },
+  sensores_5: {
+    auto: "lec_sensores_5.mp4",
+    partes: [{ t: "Sensor, regla y actuador", f: "lec_sensores_5.mp4", s: 35 }],
+  },
+  phishing_5: {
+    auto: "lec_phishing_5.mp4",
+    partes: [{ t: "Las tres señales", f: "lec_phishing_5.mp4", s: 44 }],
+  },
+  presupuesto_5: {
+    auto: "lec_presupuesto_5.mp4",
+    partes: [{ t: "Entra, sale y qué se recorta", f: "lec_presupuesto_5.mp4", s: 27 }],
+  },
+  estructura_textos_5: {
+    auto: "lec_estructura_textos_5.mp4",
+    partes: [{ t: "Las partes de cada texto", f: "lec_estructura_textos_5.mp4", s: 36 }],
+  },
+  problemas_pasos_5: {
+    auto: "lec_problemas_pasos_5.mp4",
+    partes: [{ t: "Un paso por vez", f: "lec_problemas_pasos_5.mp4", s: 33 }],
+  },
+
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
