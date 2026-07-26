@@ -74,6 +74,18 @@ def test_el_banco_respeta_la_forma_de_su_mecanica(act):
         ejercicios = {cur._simular(pl) for _ in range(600)} - {None}
         assert len(ejercicios) >= 20, \
             "%s: sólo %d ejercicios distintos" % (act["id"], len(ejercicios))
+    elif mec == "manipular":
+        # tampoco tiene banco: el contrato es que con esas piezas se pueda armar una
+        # variedad real de objetivos, y que el chico llegue a cada uno tocando `cuantas`.
+        # Se verifica combinando de verdad, no confiando en la declaración.
+        import itertools
+        pl = act["plantilla"]
+        n = pl.get("cuantas", 2)
+        objetivos = {sum(c) for c in itertools.combinations_with_replacement(pl["piezas"], n)}
+        assert len(objetivos) >= 8, \
+            "%s: sólo %d objetivos distintos" % (act["id"], len(objetivos))
+        assert all(isinstance(v, int) and v > 0 for v in pl["piezas"]), act["id"]
+        assert pl.get("m"), "%s: sin explicación al errar" % act["id"]
     else:
         pytest.fail("mecánica sin contrato verificado: %r" % mec)
 
@@ -125,9 +137,11 @@ def test_el_js_generado_esta_sincronizado():
     for a in cur.CATALOGO:
         assert "GAMES.%s = " % a["id"] in js, \
             "%s está en el catálogo pero no en el JS: falta regenerar" % a["id"]
-        if a["mecanica"] == "parametrica":
-            # emite la PLANTILLA, no un banco; tiene que ser la misma que el catálogo
-            pl = re.search(r"const CUR_%s_PLANTILLA = (\{.*?\n\});" % a["id"].upper(),
+        if a["mecanica"] in ("parametrica", "manipular"):
+            # emiten la PLANTILLA, no un banco; tiene que ser la misma que el catálogo.
+            # El sufijo difiere porque cada emisor nombra su constante distinto.
+            suf = "PLANTILLA" if a["mecanica"] == "parametrica" else "PIEZAS"
+            pl = re.search(r"const CUR_%s_%s = (\{.*?\n\});" % (a["id"].upper(), suf),
                            js, re.S)
             assert pl, a["id"]
             assert json.loads(pl.group(1)) == a["plantilla"], \

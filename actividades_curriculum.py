@@ -36,7 +36,7 @@ AREA_CDM = "cdm"          # Conocimiento del Mundo — 1° a 3° (DC CABA 2024)
 #   parametrica → SIN banco: "plantilla" {q, vars, ok, distractores, tope, m}
 #                  El ejercicio se genera cada vez, así que no hay nada que memorizar —
 #                  es la mecánica que la auditoría llama "paramétrica".  (juegoParametrico)
-MECANICAS = ("trivia", "clasificar", "ordenar", "parametrica")
+MECANICAS = ("trivia", "clasificar", "ordenar", "parametrica", "manipular")
 
 # Tamaño mínimo de banco. La auditoría fijó "mínimo real 30 ítems, insignia 40" para 2°;
 # por debajo de 12 el banco se agota en una sola partida y la actividad mide memoria.
@@ -5702,6 +5702,42 @@ CATALOGO = [
              "m": "Barato y no se discute."},
         ],
     },
+
+    # ══ 3° · las primeras MANIPULATIVAS ═════════════════════════════════════════
+    # Estrenan la mecánica `manipular`. El DC de 3° pide componer cantidades con
+    # material, no reconocerlas: por eso acá el chico ARMA el monto tocando billetes
+    # en vez de elegir entre tres opciones.
+    {
+        "id": "cajero_miles_3", "grado": 3, "area": "matematica",
+        "titulo": "Cajero de miles", "icono": "💵",
+        "mecanica": "manipular",
+        "consigna": "Tocá los billetes que sumen el monto exacto.",
+        "dc": "Valor posicional; composición aditiva de números de 4 cifras",
+        "fuente": "docs/auditoria-dc-caba/grado-3.md · M3",
+        "saber": {"id": "MAT-3-cajero", "nombre": "Composición con billetes", "prereqs": []},
+        "plantilla": {
+            "piezas": [10, 50, 100, 500, 1000],
+            "cuantas": 2,
+            "unidad": "$",
+            "m": "Fijate cuánto te falta para llegar y buscá un billete de ese valor.",
+        },
+    },
+    {
+        "id": "parejas_mil_3", "grado": 3, "area": "matematica",
+        "titulo": "Parejas que dan 1.000", "icono": "🤝",
+        "mecanica": "manipular",
+        "consigna": "Tocá los dos números que juntos den el total.",
+        "dc": "Repertorio de sumas que dan 1.000 y 10.000",
+        "fuente": "docs/auditoria-dc-caba/grado-3.md · M7",
+        "saber": {"id": "MAT-3-parejas", "nombre": "Parejas que suman mil",
+                  "prereqs": ["MAT-3-cajero"]},
+        "plantilla": {
+            "piezas": [100, 200, 300, 400, 500, 600, 700, 800, 900],
+            "cuantas": 2,
+            "unidad": "",
+            "m": "Pensá cuánto le falta al primero para llegar al total.",
+        },
+    },
 ]
 
 
@@ -5715,12 +5751,14 @@ def actividades_de(grado=None, area=None):
 
 def menu_de_grado(grado):
     """Entradas de menú (mismo formato que `actividades_web._menu`) para ese grado."""
-    # una paramétrica no tiene banco: genera ejercicios sin límite, así que va a rondas
-    # fijas. (Este `len(a["banco"])` sin guarda tiraba KeyError y, como `_menu_curricular`
-    # atrapa cualquier excepción para no dejar al chico sin cuaderno, borraba EN SILENCIO
-    # todas las actividades del grado. El fallback defensivo escondía el bug.)
+    # las que GENERAN el ejercicio (paramétrica y manipular) no tienen banco: van a
+    # rondas fijas. (Este `len(a["banco"])` sin guarda tiraba KeyError y, como
+    # `_menu_curricular` atrapa cualquier excepción para no dejar al chico sin cuaderno,
+    # borraba EN SILENCIO todas las actividades del grado. El fallback defensivo escondía
+    # el bug — y volvió a aparecer al sumar `manipular`, por eso ahora es una tupla.)
+    SIN_BANCO = ("parametrica", "manipular")
     return [{"id": a["id"], "titulo": a["titulo"], "icono": a["icono"],
-             "cfg": {"rondas": 10 if a["mecanica"] == "parametrica"
+             "cfg": {"rondas": 10 if a["mecanica"] in SIN_BANCO
                      else min(10, max(6, len(a["banco"]) // 2))}}
             for a in actividades_de(grado)]
 
@@ -5773,6 +5811,35 @@ def _validar_plantilla(ref, act):
     if len(vistos) < 20:
         problemas.append("%s: sólo %d ejercicios distintos; una paramétrica con tan poca "
                          "variedad no evita la memorización" % (ref, len(vistos)))
+    return problemas
+
+
+def _validar_manipular(ref, act):
+    """Una manipulativa mal declarada deja al chico tocando piezas que nunca suman.
+
+    Se valida SIMULANDO: con las piezas declaradas tiene que poder armarse una variedad
+    real de objetivos, y el pozo tiene que poder rellenarse sin generar una segunda
+    combinación válida (dos respuestas correctas y una sola marcada rompen el feedback)."""
+    import itertools
+    problemas = []
+    pl = act.get("plantilla") or {}
+    piezas = pl.get("piezas") or []
+    if len(piezas) < 3:
+        problemas.append("%s: %d piezas, mínimo 3 (con menos no hay pozo)" % (ref, len(piezas)))
+    if any(not isinstance(v, int) or v <= 0 for v in piezas):
+        problemas.append("%s: las piezas tienen que ser enteros positivos" % ref)
+    n = pl.get("cuantas", 2)
+    if n not in (2, 3):
+        problemas.append("%s: 'cuantas' es %r; sólo 2 o 3 (con más, el chico pierde la cuenta)"
+                         % (ref, n))
+    if not pl.get("m"):
+        problemas.append("%s: la plantilla no declara 'm' (la explicación al errar)" % ref)
+    if problemas:
+        return problemas
+    objetivos = {sum(c) for c in itertools.combinations_with_replacement(piezas, n)}
+    if len(objetivos) < 8:
+        problemas.append("%s: sólo %d objetivos distintos; con tan poca variedad se "
+                         "memoriza" % (ref, len(objetivos)))
     return problemas
 
 
@@ -5892,7 +5959,8 @@ def validar():
         # una paramétrica no tiene banco: su contenido es la plantilla
         obligatorios = ["id", "grado", "area", "titulo", "icono", "mecanica", "dc",
                         "fuente", "saber"]
-        obligatorios.append("plantilla" if a.get("mecanica") == "parametrica" else "banco")
+        obligatorios.append("plantilla" if a.get("mecanica") in ("parametrica", "manipular")
+                    else "banco")
         for campo in obligatorios:
             if not a.get(campo):
                 problemas.append("%s: falta '%s'" % (ref, campo))
@@ -5907,6 +5975,9 @@ def validar():
         mec = a.get("mecanica")
         if mec == "parametrica":
             problemas.extend(_validar_plantilla(ref, a))
+            continue
+        if mec == "manipular":
+            problemas.extend(_validar_manipular(ref, a))
             continue                      # no tiene banco: el ejercicio se genera
         # "ordenar" mide por SECUENCIAS, no por ítems sueltos: 12 secuencias de 4-5
         # tarjetas ya son muchas rondas distintas, así que el piso es más bajo.

@@ -30,6 +30,15 @@ for a in cur.CATALOGO:
     out.append("/* %d° · %s — %s\n   DC: %s\n   Fuente: %s */"
                % (a["grado"], a["titulo"], a["id"], a["dc"], a["fuente"]))
     pfx = a["id"][:10]
+    if a["mecanica"] == "manipular":
+        # misma forma que la paramétrica: sin banco, el ejercicio se genera
+        pl = "CUR_%s_PIEZAS" % a["id"].upper()
+        out.append("const %s = %s;" % (pl, json.dumps(a["plantilla"], ensure_ascii=False,
+                                                      indent=2)))
+        out.append('GAMES.%s = juegoManipular(%s, %s, "%s");'
+                   % (a["id"], pl, json.dumps(a["consigna"], ensure_ascii=False), pfx))
+        out.append("")
+        continue
     if a["mecanica"] == "parametrica":
         # no tiene banco: el ejercicio se genera desde la plantilla en cada ronda
         pl = "CUR_%s_PLANTILLA" % a["id"].upper()
