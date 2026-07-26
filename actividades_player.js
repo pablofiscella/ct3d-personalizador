@@ -2256,6 +2256,41 @@ const COMO_ES_VIDEO = {
     partes: [{ t: "Armar un monto", f: "lec_cajero_miles_3.mp4", s: 25 }],
   },
 
+
+  // ── CdM y Tecnología de 3° (26-jul-2026).
+  cambios_material_3: {
+    auto: "lec_cambios_material_3.mp4",
+    partes: [{ t: "Tres tipos de cambio", f: "lec_cambios_material_3.mp4", s: 30 }],
+  },
+  constelaciones_3: {
+    auto: "lec_constelaciones_3.mp4",
+    partes: [{ t: "Las figuras del cielo", f: "lec_constelaciones_3.mp4", s: 29 }],
+  },
+  viaje_alimento_3: {
+    auto: "lec_viaje_alimento_3.mp4",
+    partes: [{ t: "El camino de la comida", f: "lec_viaje_alimento_3.mp4", s: 27 }],
+  },
+  bugs_3: {
+    auto: "lec_bugs_3.mp4",
+    partes: [{ t: "Buscar el error", f: "lec_bugs_3.mp4", s: 29 }],
+  },
+  contador_3: {
+    auto: "lec_contador_3.mp4",
+    partes: [{ t: "Guardar no es sumar", f: "lec_contador_3.mp4", s: 26 }],
+  },
+  senales_3: {
+    auto: "lec_senales_3.mp4",
+    partes: [{ t: "Qué dice cada señal", f: "lec_senales_3.mp4", s: 27 }],
+  },
+  confiable_3: {
+    auto: "lec_confiable_3.mp4",
+    partes: [{ t: "¿Se puede creer?", f: "lec_confiable_3.mp4", s: 22 }],
+  },
+  compost_3: {
+    auto: "lec_compost_3.mp4",
+    partes: [{ t: "Cada residuo a su lugar", f: "lec_compost_3.mp4", s: 29 }],
+  },
+
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
