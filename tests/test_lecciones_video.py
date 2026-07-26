@@ -90,9 +90,7 @@ def test_los_videos_salen_del_repo_no_del_token():
 # entrada acá que ya tiene su video (para que la lista se vacíe sola y no se pudra).
 VIDEO_PENDIENTE = {
     # 4° — sumadas al cerrar la currícula (PR #240)
-        "clases_palabra_4", "tiempos_verbales_4", "hiperonimos_4",
-    "homofonos_4", "grupos_ortograficos_4", "mito_leyenda_4", "paratexto_4",
-    "proposito_texto_4", "historieta_4", "erosion_4", "fosiles_4", "movimiento_cuerpo_4",
+                "historieta_4", "erosion_4", "fosiles_4", "movimiento_cuerpo_4",
     "imanes_4", "objeto_material_4", "cielo_4", "ambientes_4", "urbano_rural_4",
     "mecanismos_4", "fuentes_digitales_4", "residuos_4", "necesidad_deseo_4",
     "convivencia_4",
