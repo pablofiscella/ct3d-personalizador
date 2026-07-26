@@ -2662,6 +2662,19 @@ function abrirPerfil() {
   $("#perfilInput").setSelectionRange(largo, largo);
 }
 function cerrarPerfil() { $("#perfil").classList.remove("ver"); }
+
+/* ── muestra pública (landing) ──────────────────────────────────────────────
+   `?muestra=<id>` abre UN juego directo, sin pedir el nombre. Es el "Probalo ahora"
+   de la landing de Kydo: la página enlaza una muestra por materia y el visitante cae
+   jugando, no en un formulario.
+   Devuelve el id SÓLO si ese juego existe en este cuaderno — con un id desconocido
+   (o sin parámetro) cae al arranque normal, nunca a una pantalla vacía. */
+const NOMBRE_INVITADO = "Invitado";
+function muestraPedida() {
+  const m = /[?&]muestra=([A-Za-z0-9_]{1,40})(?:&|$)/.exec(location.search);
+  const id = m && m[1];
+  return (id && typeof GAMES !== "undefined" && GAMES[id]) ? id : null;
+}
 /* El nombre con el que se crea un cuaderno escolar es un PLACEHOLDER, no un chico:
    el canje del código no sabe cómo se llama, así que pone "Peque". */
 const NOMBRE_GENERICO = "Peque";
@@ -3513,7 +3526,16 @@ async function boot() {
     const im = new Image(); im.onload = im.onerror = res; im.src = src;
   })));
   $("#cargando").remove();
-  if (Store.data.activeProfile && Store.data.profiles[Store.data.activeProfile]) {
+  // ?muestra=<juego> · MUESTRA pública de la landing: abre ESE juego directo, sin pasar
+  // por "¿Quién juega?". Un padre que llega de un anuncio tiene que ver el producto antes
+  // que un formulario — el nombre se le pide cuando ya sabe qué está mirando.
+  // Sólo actúa en el link que trae el parámetro; sin él, el arranque es el de siempre.
+  const _muestra = muestraPedida();
+  if (_muestra) {
+    if (!Store.data.activeProfile) elegirPerfil(NOMBRE_INVITADO);
+    pintarHeader();
+    Shell.abrir(_muestra);   // va DESPUÉS de elegirPerfil: pisa el menú (o el sondeo) que pintó
+  } else if (Store.data.activeProfile && Store.data.profiles[Store.data.activeProfile]) {
     pintarHeader(); pintarMenu();
   } else {
     abrirPerfil();   // primera vez con este link: preguntar quién juega
