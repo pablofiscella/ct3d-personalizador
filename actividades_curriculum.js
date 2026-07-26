@@ -32057,3 +32057,1374 @@ const CUR_INGLES_LECTURA_7_BANCO = [
   }
 ];
 GAMES.ingles_lectura_7 = juegoTriviaTexto(CUR_INGLES_LECTURA_7_BANCO, "Leé el texto corto y respondé.", "ingles_lec");
+
+/* 7° · Constructor de redes tróficas — redes_troficas_7
+   DC: Cadenas y redes tróficas; roles en el ecosistema
+   Fuente: docs/auditoria-dc-caba/grado-7.md · CN1 */
+const CUR_REDES_TROFICAS_7_BANCO = [
+  {
+    "it": "El fitoplancton del océano",
+    "cat": "productor",
+    "m": "Hace fotosíntesis: es la base de casi toda la red marina."
+  },
+  {
+    "it": "La anchoíta que se alimenta de plancton",
+    "cat": "consumidor",
+    "m": "Consumidor de primer orden."
+  },
+  {
+    "it": "Las bacterias que degradan un pez muerto",
+    "cat": "descomponedor",
+    "m": "Devuelven los nutrientes al agua."
+  },
+  {
+    "it": "El alga marina",
+    "cat": "productor",
+    "m": "Tiene clorofila y produce su alimento."
+  },
+  {
+    "it": "El lobo marino que come peces",
+    "cat": "consumidor",
+    "m": "Obtiene la energía de otros seres vivos."
+  },
+  {
+    "it": "Los hongos del suelo del bosque",
+    "cat": "descomponedor",
+    "m": "Transforman la materia muerta en nutrientes disponibles."
+  },
+  {
+    "it": "El pastizal de la pampa",
+    "cat": "productor",
+    "m": "Convierte luz en materia orgánica."
+  },
+  {
+    "it": "El zorro que caza roedores",
+    "cat": "consumidor",
+    "m": "Consumidor de segundo o tercer orden."
+  },
+  {
+    "it": "Las lombrices que procesan hojarasca",
+    "cat": "descomponedor",
+    "m": "Fragmentan la materia muerta y la incorporan al suelo."
+  },
+  {
+    "it": "El musgo sobre la roca húmeda",
+    "cat": "productor",
+    "m": "Es una planta: hace fotosíntesis."
+  },
+  {
+    "it": "El puma",
+    "cat": "consumidor",
+    "m": "Depredador tope: sigue siendo consumidor."
+  },
+  {
+    "it": "El moho sobre la fruta olvidada",
+    "cat": "descomponedor",
+    "m": "Un hongo que se alimenta de materia ya elaborada."
+  },
+  {
+    "it": "La cianobacteria fotosintética",
+    "cat": "productor",
+    "m": "Aunque sea bacteria, hace fotosíntesis: produce."
+  },
+  {
+    "it": "El carancho que come animales muertos",
+    "cat": "consumidor",
+    "m": "Es carroñero, pero no descompone la materia químicamente."
+  },
+  {
+    "it": "Las bacterias que fijan nitrógeno en las raíces",
+    "cat": "descomponedor",
+    "m": "Participan del reciclado de materia en el suelo."
+  },
+  {
+    "it": "El helecho del sotobosque",
+    "cat": "productor",
+    "m": "Planta con clorofila."
+  }
+];
+GAMES.redes_troficas_7 = juegoClasificar(CUR_REDES_TROFICAS_7_BANCO, "¿Qué rol cumple en la red?", [{"cat": "productor", "label": "🌱 Productor"}, {"cat": "consumidor", "label": "🦊 Consumidor"}, {"cat": "descomponedor", "label": "🍄 Descomponedor"}], "redes_trof");
+
+/* 7° · Flujo de energía y reciclaje — flujo_energia_7
+   DC: Flujo de energía; la energía disminuye en cada nivel trófico
+   Fuente: docs/auditoria-dc-caba/grado-7.md · CN2 */
+const CUR_FLUJO_ENERGIA_7_BANCO = [
+  {
+    "q": "¿De dónde entra la energía a casi todos los ecosistemas?",
+    "ops": [
+      "Del Sol, por la fotosíntesis",
+      "Del suelo",
+      "De los descomponedores"
+    ],
+    "m": "Del suelo se toman nutrientes, no energía."
+  },
+  {
+    "q": "¿Qué le pasa a la energía al pasar de un nivel al siguiente?",
+    "ops": [
+      "Se pierde una gran parte como calor",
+      "Se multiplica",
+      "Se mantiene igual"
+    ],
+    "m": "Sólo una fracción chica llega al nivel de arriba."
+  },
+  {
+    "q": "¿Por qué hay muchas más plantas que grandes carnívoros?",
+    "ops": [
+      "Porque la energía disponible se achica en cada nivel",
+      "Porque los carnívoros comen poco",
+      "Por el clima"
+    ],
+    "m": "La pirámide de energía explica la pirámide de números."
+  },
+  {
+    "q": "¿La materia también se pierde en cada nivel?",
+    "ops": [
+      "No: la materia se recicla gracias a los descomponedores",
+      "Sí, igual que la energía",
+      "Sí, más que la energía"
+    ],
+    "m": "Ésa es la diferencia clave: la energía FLUYE, la materia CICLA."
+  },
+  {
+    "q": "¿Hacia dónde apuntan las flechas de una cadena alimentaria?",
+    "ops": [
+      "Hacia el que come",
+      "Hacia el que es comido",
+      "Hacia los dos lados"
+    ],
+    "m": "Indican el sentido en que fluye la energía."
+  },
+  {
+    "q": "¿Qué pasaría si desaparecieran todos los descomponedores?",
+    "ops": [
+      "Los nutrientes quedarían atrapados en la materia muerta",
+      "No pasaría nada",
+      "Habría más energía disponible"
+    ],
+    "m": "El ciclo de la materia se cortaría."
+  },
+  {
+    "q": "¿Aproximadamente cuánta energía pasa de un nivel al siguiente?",
+    "ops": [
+      "Alrededor del 10%",
+      "Casi el 100%",
+      "Alrededor del 90%"
+    ],
+    "m": "El resto se usa en respirar, moverse y se disipa como calor."
+  },
+  {
+    "q": "¿Qué es un nivel trófico?",
+    "ops": [
+      "El escalón que ocupa un ser vivo en la cadena",
+      "Un tipo de ecosistema",
+      "Una especie"
+    ],
+    "m": "Productores, consumidores de primer orden, de segundo…"
+  },
+  {
+    "q": "¿Puede un animal ocupar más de un nivel trófico?",
+    "ops": [
+      "Sí, si come plantas y animales",
+      "No, nunca",
+      "Sólo los descomponedores"
+    ],
+    "m": "Los omnívoros son el ejemplo típico."
+  },
+  {
+    "q": "¿Por qué las cadenas alimentarias suelen tener pocos eslabones?",
+    "ops": [
+      "Porque la energía se agota",
+      "Porque no hay suficientes especies",
+      "Por el tamaño de los animales"
+    ],
+    "m": "Después de cuatro o cinco niveles ya casi no queda energía."
+  },
+  {
+    "q": "¿Es correcto decir que la energía «se gasta»?",
+    "ops": [
+      "Se transforma y se degrada como calor, no desaparece",
+      "Sí, desaparece",
+      "No, se conserva intacta"
+    ],
+    "m": "La energía se conserva, pero se degrada a formas menos útiles."
+  },
+  {
+    "q": "Los descomponedores, ¿aportan energía a los niveles superiores?",
+    "ops": [
+      "Aportan materia; la energía ya se degradó",
+      "Sí, devuelven toda la energía",
+      "No hacen nada"
+    ],
+    "m": "Cierran el ciclo de la materia, no el de la energía."
+  },
+  {
+    "q": "En una pirámide de energía, ¿dónde está el escalón más ancho?",
+    "ops": [
+      "En la base, con los productores",
+      "En la punta",
+      "En el medio"
+    ],
+    "m": "Es donde hay más energía disponible."
+  },
+  {
+    "q": "¿Qué diferencia hay entre cadena y red trófica?",
+    "ops": [
+      "La red muestra que cada especie come de varias fuentes",
+      "Son sinónimos",
+      "La cadena es más grande"
+    ],
+    "m": "La red es más realista: casi ningún animal come una sola cosa."
+  }
+];
+GAMES.flujo_energia_7 = juegoTriviaTexto(CUR_FLUJO_ENERGIA_7_BANCO, "Seguí la energía por la cadena.", "flujo_ener");
+
+/* 7° · Sucesión ecológica — sucesion_ecologica_7
+   DC: Sucesión tras un disturbio; efecto en cascada de una especie
+   Fuente: docs/auditoria-dc-caba/grado-7.md · CN3 */
+const CUR_SUCESION_ECOLOGICA_7_BANCO = [
+  {
+    "q": "¿Qué es una sucesión ecológica?",
+    "ops": [
+      "El cambio ordenado de las comunidades de un lugar a lo largo del tiempo",
+      "La migración de una especie",
+      "Una cadena alimentaria"
+    ],
+    "m": "No es un cambio al azar: sigue etapas reconocibles."
+  },
+  {
+    "q": "Después de un incendio, ¿qué aparece primero?",
+    "ops": [
+      "Pastos y hierbas de crecimiento rápido",
+      "Árboles grandes",
+      "Los grandes mamíferos"
+    ],
+    "m": "Las especies pioneras son las que colonizan primero."
+  },
+  {
+    "q": "¿Qué son las especies pioneras?",
+    "ops": [
+      "Las primeras en colonizar un ambiente alterado",
+      "Las que llegan al final",
+      "Las más grandes"
+    ],
+    "m": "Toleran condiciones duras y preparan el suelo para las siguientes."
+  },
+  {
+    "q": "¿Qué es la comunidad clímax?",
+    "ops": [
+      "La etapa final y estable de la sucesión",
+      "La primera etapa",
+      "El momento del incendio"
+    ],
+    "m": "Es la comunidad que se mantiene si no hay nuevos disturbios."
+  },
+  {
+    "q": "Si se elimina al depredador tope de un ecosistema, ¿qué suele pasar?",
+    "ops": [
+      "Sus presas se multiplican y afectan al resto",
+      "No cambia nada",
+      "Se extingue todo"
+    ],
+    "m": "Eso es un efecto en cascada: el impacto se propaga por la red."
+  },
+  {
+    "q": "¿Qué es una especie exótica invasora?",
+    "ops": [
+      "Una traída de otro lugar que se expande y desplaza a las nativas",
+      "Una especie muy rara",
+      "Una que está en peligro"
+    ],
+    "m": "Sin sus depredadores naturales, puede crecer sin control."
+  },
+  {
+    "q": "El castor introducido en Tierra del Fuego es un ejemplo de…",
+    "ops": [
+      "Especie invasora que transformó el ambiente",
+      "Especie pionera nativa",
+      "Comunidad clímax"
+    ],
+    "m": "Sus diques inundaron bosques que no se regeneran."
+  },
+  {
+    "q": "¿Qué es un disturbio ecológico?",
+    "ops": [
+      "Un evento que altera la comunidad, como un incendio o una tala",
+      "Un cambio de estación",
+      "La llegada de la noche"
+    ],
+    "m": "Puede ser natural o provocado por la actividad humana."
+  },
+  {
+    "q": "¿La sucesión ocurre siempre a la misma velocidad?",
+    "ops": [
+      "No: depende del clima, el suelo y el disturbio",
+      "Sí, siempre igual",
+      "Sólo en los bosques"
+    ],
+    "m": "Un bosque puede tardar décadas; un pastizal, pocos años."
+  },
+  {
+    "q": "¿Qué es la sucesión primaria?",
+    "ops": [
+      "La que empieza donde no había suelo, como en una roca desnuda",
+      "La que sigue a un incendio",
+      "La más rápida"
+    ],
+    "m": "La que empieza con suelo ya formado es secundaria y va más rápido."
+  },
+  {
+    "q": "¿Por qué la biodiversidad aumenta durante la sucesión?",
+    "ops": [
+      "Porque cada etapa crea condiciones para nuevas especies",
+      "Porque llegan más animales de golpe",
+      "No aumenta"
+    ],
+    "m": "Las pioneras modifican el ambiente y lo hacen habitable para otras."
+  },
+  {
+    "q": "¿Qué pasa si se introduce una especie sin depredadores naturales?",
+    "ops": [
+      "Puede crecer sin control y desplazar a las nativas",
+      "Se extingue rápido",
+      "Se equilibra sola"
+    ],
+    "m": "Es lo que convierte a una exótica en invasora."
+  },
+  {
+    "q": "Un pastizal que se abandona y con los años se llena de arbustos y árboles muestra…",
+    "ops": [
+      "Una sucesión secundaria",
+      "Una sucesión primaria",
+      "Un disturbio"
+    ],
+    "m": "El suelo ya estaba: por eso avanza relativamente rápido."
+  },
+  {
+    "q": "¿Los seres vivos modifican el ambiente donde viven?",
+    "ops": [
+      "Sí, y eso es motor de la sucesión",
+      "No, sólo se adaptan",
+      "Sólo las plantas"
+    ],
+    "m": "Las pioneras generan suelo y sombra, y así cambian las condiciones."
+  }
+];
+GAMES.sucesion_ecologica_7 = juegoTriviaTexto(CUR_SUCESION_ECOLOGICA_7_BANCO, "Pensá cómo se recupera un ambiente.", "sucesion_e");
+
+/* 7° · Camino del estímulo — sistema_nervioso_7
+   DC: Sentidos y sistema nervioso; central y periférico; efectos del alcohol
+   Fuente: docs/auditoria-dc-caba/grado-7.md · CN4 */
+const CUR_SISTEMA_NERVIOSO_7_BANCO = [
+  {
+    "q": "¿Cuál es el orden correcto del camino del estímulo?",
+    "ops": [
+      "Receptor → nervio → centro nervioso → nervio → efector",
+      "Efector → receptor → centro",
+      "Centro → receptor → efector"
+    ],
+    "m": "Primero se capta, después se procesa y al final se responde."
+  },
+  {
+    "q": "¿Qué órganos forman el sistema nervioso CENTRAL?",
+    "ops": [
+      "El encéfalo y la médula espinal",
+      "Los nervios de los brazos",
+      "Los órganos de los sentidos"
+    ],
+    "m": "Los nervios que salen de ahí forman el periférico."
+  },
+  {
+    "q": "¿Qué es una neurona?",
+    "ops": [
+      "La célula que transmite el impulso nervioso",
+      "Un órgano del cerebro",
+      "Un tipo de músculo"
+    ],
+    "m": "Es la unidad funcional del sistema nervioso."
+  },
+  {
+    "q": "¿Qué es un acto reflejo?",
+    "ops": [
+      "Una respuesta rápida que se resuelve en la médula",
+      "Una decisión pensada",
+      "Un movimiento voluntario"
+    ],
+    "m": "No pasa por el cerebro: por eso es tan rápido."
+  },
+  {
+    "q": "Sacar la mano de algo caliente antes de darse cuenta es…",
+    "ops": [
+      "Un acto reflejo",
+      "Un acto voluntario",
+      "Un error del sistema"
+    ],
+    "m": "La médula responde antes de que el cerebro procese el dolor."
+  },
+  {
+    "q": "¿Qué es un receptor?",
+    "ops": [
+      "La estructura que capta el estímulo",
+      "El músculo que responde",
+      "El nervio que transmite"
+    ],
+    "m": "Están en los órganos de los sentidos y en la piel."
+  },
+  {
+    "q": "¿Qué es un efector?",
+    "ops": [
+      "El músculo o la glándula que ejecuta la respuesta",
+      "El que capta el estímulo",
+      "El centro nervioso"
+    ],
+    "m": "Es el que produce el movimiento o la secreción."
+  },
+  {
+    "q": "¿Cómo afecta el alcohol al sistema nervioso?",
+    "ops": [
+      "Lo deprime: enlentece los reflejos y el juicio",
+      "Lo estimula y mejora los reflejos",
+      "No lo afecta"
+    ],
+    "m": "La sensación inicial de desinhibición engaña: es un depresor."
+  },
+  {
+    "q": "¿Por qué el alcohol y conducir son incompatibles?",
+    "ops": [
+      "Porque alarga el tiempo de reacción",
+      "Porque da sueño solamente",
+      "Porque afecta la vista nada más"
+    ],
+    "m": "Unos décimos de segundo más de reacción son metros de más de frenado."
+  },
+  {
+    "q": "¿Qué es la sinapsis?",
+    "ops": [
+      "La conexión por la que pasa el impulso entre neuronas",
+      "El núcleo de la neurona",
+      "Un tipo de nervio"
+    ],
+    "m": "Es donde se transmite la señal de una neurona a la siguiente."
+  },
+  {
+    "q": "¿Qué parte del encéfalo coordina el equilibrio y los movimientos finos?",
+    "ops": [
+      "El cerebelo",
+      "El bulbo raquídeo",
+      "La médula espinal"
+    ],
+    "m": "El bulbo controla funciones automáticas como respirar."
+  },
+  {
+    "q": "¿Qué controla el bulbo raquídeo?",
+    "ops": [
+      "Funciones automáticas como respirar y el latido",
+      "El pensamiento",
+      "El equilibrio"
+    ],
+    "m": "Por eso es una zona vital."
+  },
+  {
+    "q": "¿El sistema nervioso trabaja solo o con otros sistemas?",
+    "ops": [
+      "Con otros, sobre todo con el endocrino",
+      "Solo, siempre",
+      "Sólo con el muscular"
+    ],
+    "m": "Nervioso y endocrino coordinan juntos el funcionamiento del cuerpo."
+  },
+  {
+    "q": "¿Qué pasa con el tiempo de reacción cuando alguien está cansado?",
+    "ops": [
+      "Se alarga",
+      "Se acorta",
+      "No cambia"
+    ],
+    "m": "El cansancio afecta al sistema nervioso igual que otras sustancias."
+  }
+];
+GAMES.sistema_nervioso_7 = juegoTriviaTexto(CUR_SISTEMA_NERVIOSO_7_BANCO, "Seguí el recorrido del estímulo a la respuesta.", "sistema_ne");
+
+/* 7° · Barreras y defensas — inmune_7
+   DC: Defensa inespecífica y específica; respuesta primaria y secundaria
+   Fuente: docs/auditoria-dc-caba/grado-7.md · CN5 */
+const CUR_INMUNE_7_BANCO = [
+  {
+    "q": "¿Cuál es la primera barrera de defensa del cuerpo?",
+    "ops": [
+      "La piel y las mucosas",
+      "Los anticuerpos",
+      "Los linfocitos"
+    ],
+    "m": "Es una barrera física: impide la entrada."
+  },
+  {
+    "q": "¿Qué es una defensa INESPECÍFICA?",
+    "ops": [
+      "La que actúa igual contra cualquier invasor",
+      "La que ataca a uno solo",
+      "La que da la vacuna"
+    ],
+    "m": "La piel, la fiebre y la inflamación no distinguen de qué microbio se trata."
+  },
+  {
+    "q": "¿Qué es una defensa ESPECÍFICA?",
+    "ops": [
+      "La que reconoce y ataca a un invasor puntual",
+      "La barrera de la piel",
+      "La fiebre"
+    ],
+    "m": "Los anticuerpos se fabrican a medida de cada antígeno."
+  },
+  {
+    "q": "¿Qué es un anticuerpo?",
+    "ops": [
+      "Una proteína que reconoce a un invasor específico",
+      "Un tipo de virus",
+      "Una célula de la piel"
+    ],
+    "m": "Se produce después del contacto con el antígeno."
+  },
+  {
+    "q": "¿Por qué la segunda vez que aparece el mismo microbio la respuesta es más rápida?",
+    "ops": [
+      "Porque hay células de memoria",
+      "Porque el microbio es más débil",
+      "Porque la piel se hizo más gruesa"
+    ],
+    "m": "Ésa es la base de cómo funcionan las vacunas."
+  },
+  {
+    "q": "¿Para qué sirve la fiebre?",
+    "ops": [
+      "Dificulta la reproducción de los microbios",
+      "Es sólo un síntoma inútil",
+      "Enfría el cuerpo"
+    ],
+    "m": "Es parte de la respuesta, aunque haya que controlarla si sube demasiado."
+  },
+  {
+    "q": "¿Qué es la inflamación?",
+    "ops": [
+      "Una respuesta que lleva más defensas a la zona afectada",
+      "Una infección",
+      "Un daño permanente"
+    ],
+    "m": "El enrojecimiento y el calor vienen del aumento de la circulación."
+  },
+  {
+    "q": "¿Los antibióticos sirven contra los virus?",
+    "ops": [
+      "No: actúan sobre las bacterias",
+      "Sí, contra todos",
+      "Sí, si la dosis es alta"
+    ],
+    "m": "Tomarlos de más favorece la resistencia bacteriana."
+  },
+  {
+    "q": "¿Qué es un antígeno?",
+    "ops": [
+      "Una sustancia que el cuerpo reconoce como extraña",
+      "Un anticuerpo",
+      "Un tipo de glóbulo rojo"
+    ],
+    "m": "Es lo que dispara la respuesta específica."
+  },
+  {
+    "q": "¿Qué células producen los anticuerpos?",
+    "ops": [
+      "Los linfocitos",
+      "Los glóbulos rojos",
+      "Las plaquetas"
+    ],
+    "m": "Los glóbulos rojos transportan oxígeno; las plaquetas coagulan."
+  },
+  {
+    "q": "El moco de las vías respiratorias, ¿qué función cumple?",
+    "ops": [
+      "Atrapa partículas y microbios antes de que entren",
+      "Sólo molesta",
+      "Transporta oxígeno"
+    ],
+    "m": "Es parte de las barreras inespecíficas."
+  },
+  {
+    "q": "¿Por qué la respuesta secundaria es más intensa?",
+    "ops": [
+      "Porque el sistema ya reconoce al invasor y reacciona antes",
+      "Porque el cuerpo está más débil",
+      "Porque hay más microbios"
+    ],
+    "m": "Las células de memoria acortan el tiempo de reacción."
+  },
+  {
+    "q": "El ácido del estómago, ¿es una defensa?",
+    "ops": [
+      "Sí, inespecífica: destruye muchos microbios que se tragan",
+      "No, sólo digiere",
+      "Sólo si hay fiebre"
+    ],
+    "m": "Es una barrera química."
+  },
+  {
+    "q": "¿Qué es la inmunidad?",
+    "ops": [
+      "La capacidad de defenderse de un agente al que ya se enfrentó",
+      "No enfermarse nunca",
+      "Tener fiebre alta"
+    ],
+    "m": "Se puede adquirir por haber cursado la enfermedad o por vacunación."
+  }
+];
+GAMES.inmune_7 = juegoTriviaTexto(CUR_INMUNE_7_BANCO, "¿Cómo se defiende el cuerpo?", "inmune_7");
+
+/* 7° · Cómo actúa una vacuna — vacunas_7
+   DC: Acción de las vacunas; calendario; protección colectiva
+   Fuente: docs/auditoria-dc-caba/grado-7.md · CN6 */
+const CUR_VACUNAS_7_BANCO = [
+  {
+    "q": "¿Qué hace una vacuna?",
+    "ops": [
+      "Entrena al sistema inmune sin producir la enfermedad",
+      "Mata a los microbios que ya están",
+      "Cura una infección en curso"
+    ],
+    "m": "Es preventiva: se da ANTES de enfermarse."
+  },
+  {
+    "q": "¿Qué contiene una vacuna?",
+    "ops": [
+      "El microbio inactivado o una parte de él",
+      "Antibióticos",
+      "El microbio activo y completo"
+    ],
+    "m": "Alcanza con que el sistema reconozca al antígeno."
+  },
+  {
+    "q": "¿Por qué algunas vacunas necesitan refuerzos?",
+    "ops": [
+      "Porque la memoria inmunitaria se va debilitando",
+      "Porque la primera dosis falla",
+      "Porque el microbio se hace más fuerte"
+    ],
+    "m": "El refuerzo vuelve a activar las células de memoria."
+  },
+  {
+    "q": "¿Qué es la inmunidad de rebaño o protección colectiva?",
+    "ops": [
+      "Cuando hay tantos vacunados que el microbio casi no circula",
+      "Cuando se vacuna a los animales",
+      "Cuando nadie se enferma nunca"
+    ],
+    "m": "Protege también a quien no puede vacunarse por razones médicas."
+  },
+  {
+    "q": "En la Argentina, las vacunas del calendario son…",
+    "ops": [
+      "Gratuitas y obligatorias",
+      "Pagas",
+      "Optativas y pagas"
+    ],
+    "m": "Es una política de salud pública, no una decisión individual."
+  },
+  {
+    "q": "¿Una vacuna puede darle la enfermedad a la persona?",
+    "ops": [
+      "No: el microbio está inactivado o incompleto",
+      "Sí, siempre",
+      "Sí, si es la primera dosis"
+    ],
+    "m": "Puede haber molestias leves, que no son la enfermedad."
+  },
+  {
+    "q": "¿Por qué se erradicó la viruela?",
+    "ops": [
+      "Por una campaña mundial de vacunación",
+      "Porque el virus mutó",
+      "Por casualidad"
+    ],
+    "m": "Es el único caso de erradicación completa de una enfermedad humana."
+  },
+  {
+    "q": "¿Contra qué protege la vacuna triple viral?",
+    "ops": [
+      "Sarampión, rubéola y paperas",
+      "Gripe, covid y neumonía",
+      "Tétanos, difteria y tos convulsa"
+    ],
+    "m": "La triple bacteriana es la del tétanos, la difteria y la tos convulsa."
+  },
+  {
+    "q": "¿Por qué hay que vacunarse contra la gripe todos los años?",
+    "ops": [
+      "Porque el virus cambia y la vacuna se actualiza",
+      "Porque la vacuna es de mala calidad",
+      "Porque el cuerpo la rechaza"
+    ],
+    "m": "Cada año se prepara con las cepas que se esperan circulando."
+  },
+  {
+    "q": "¿A qué edad se dan la mayoría de las vacunas del calendario?",
+    "ops": [
+      "Durante los primeros años de vida",
+      "Recién en la adultez",
+      "Sólo en la adolescencia"
+    ],
+    "m": "Aunque hay dosis en la adolescencia y en la adultez también."
+  },
+  {
+    "q": "Si alguien no puede vacunarse por una enfermedad, ¿cómo se protege?",
+    "ops": [
+      "Con la protección colectiva de los que sí se vacunan",
+      "No se puede proteger",
+      "Tomando antibióticos"
+    ],
+    "m": "Por eso vacunarse es también un acto de cuidado hacia otros."
+  },
+  {
+    "q": "¿Qué diferencia hay entre vacuna y antibiótico?",
+    "ops": [
+      "La vacuna previene; el antibiótico trata una infección bacteriana",
+      "Son lo mismo",
+      "El antibiótico previene y la vacuna cura"
+    ],
+    "m": "Una actúa antes; el otro, cuando la infección ya está."
+  },
+  {
+    "q": "La vacuna contra el VPH se da…",
+    "ops": [
+      "En la adolescencia, a todos",
+      "Sólo a las mujeres adultas",
+      "Al nacer"
+    ],
+    "m": "Está en el calendario nacional a los 11 años, para todos."
+  },
+  {
+    "q": "¿Qué pasa si baja mucho la cobertura de vacunación de una población?",
+    "ops": [
+      "Pueden reaparecer enfermedades que estaban controladas",
+      "No pasa nada",
+      "Mejora la inmunidad natural"
+    ],
+    "m": "El sarampión volvió a brotar en varios países por esa razón."
+  }
+];
+GAMES.vacunas_7 = juegoTriviaTexto(CUR_VACUNAS_7_BANCO, "Pensá qué hace la vacuna en el cuerpo.", "vacunas_7");
+
+/* 7° · Transformá la energía — transformar_energia_7
+   DC: Transformación, conservación y degradación de la energía
+   Fuente: docs/auditoria-dc-caba/grado-7.md · CN7 */
+const CUR_TRANSFORMAR_ENERGIA_7_BANCO = [
+  {
+    "q": "En una lamparita, la energía eléctrica se transforma en…",
+    "ops": [
+      "Luz y calor",
+      "Sólo luz",
+      "Sólo movimiento"
+    ],
+    "m": "Parte siempre se degrada como calor: por eso se calienta."
+  },
+  {
+    "q": "En un ventilador, la energía eléctrica se transforma en…",
+    "ops": [
+      "Movimiento y algo de calor",
+      "Sólo luz",
+      "Sólo sonido"
+    ],
+    "m": "El motor convierte electricidad en energía mecánica."
+  },
+  {
+    "q": "¿Qué dice el principio de conservación de la energía?",
+    "ops": [
+      "No se crea ni se destruye: se transforma",
+      "Se gasta y desaparece",
+      "Se multiplica al usarla"
+    ],
+    "m": "Lo que cambia es la FORMA, no la cantidad total."
+  },
+  {
+    "q": "¿Qué significa que la energía se DEGRADA?",
+    "ops": [
+      "Que se convierte en formas menos aprovechables, como calor disperso",
+      "Que desaparece",
+      "Que se contamina"
+    ],
+    "m": "Se conserva la cantidad, pero se pierde la calidad."
+  },
+  {
+    "q": "En una represa hidroeléctrica, ¿qué transformación ocurre?",
+    "ops": [
+      "Energía del movimiento del agua en energía eléctrica",
+      "Energía química en luz",
+      "Calor en sonido"
+    ],
+    "m": "El agua mueve las turbinas, y las turbinas los generadores."
+  },
+  {
+    "q": "En un panel solar, ¿qué se transforma?",
+    "ops": [
+      "La energía de la radiación solar en eléctrica",
+      "Calor en movimiento",
+      "Movimiento en luz"
+    ],
+    "m": "El efecto fotovoltaico convierte luz en corriente."
+  },
+  {
+    "q": "Al comer, ¿qué transformación hace el cuerpo?",
+    "ops": [
+      "Energía química del alimento en movimiento y calor",
+      "Luz en energía química",
+      "Sonido en movimiento"
+    ],
+    "m": "Por eso el cuerpo se calienta al hacer ejercicio."
+  },
+  {
+    "q": "¿Por qué ninguna máquina es 100% eficiente?",
+    "ops": [
+      "Porque siempre se pierde energía como calor",
+      "Porque están mal diseñadas",
+      "Porque se rompen"
+    ],
+    "m": "La degradación es inevitable, no un defecto de fabricación."
+  },
+  {
+    "q": "En una estufa eléctrica, ¿la transformación es eficiente?",
+    "ops": [
+      "Sí, porque lo que se busca ES el calor",
+      "No, se pierde todo",
+      "Sólo en invierno"
+    ],
+    "m": "Cuando el calor es el objetivo, no cuenta como pérdida."
+  },
+  {
+    "q": "En una central térmica, ¿qué transformaciones hay?",
+    "ops": [
+      "Química → calor → movimiento → eléctrica",
+      "Eléctrica → química",
+      "Sólo calor → eléctrica"
+    ],
+    "m": "Se quema combustible, el vapor mueve la turbina y ésta el generador."
+  },
+  {
+    "q": "¿La energía de una pila se acaba?",
+    "ops": [
+      "Se transforma hasta que los reactivos se agotan",
+      "Desaparece sin más",
+      "Se recicla sola"
+    ],
+    "m": "La cantidad se conserva; lo que se agota es la sustancia que la almacena."
+  },
+  {
+    "q": "En un molino eólico, ¿qué se transforma?",
+    "ops": [
+      "Energía del viento en eléctrica",
+      "Calor en movimiento",
+      "Luz en calor"
+    ],
+    "m": "El viento mueve las palas y éstas el generador."
+  },
+  {
+    "q": "Al frenar un auto, ¿adónde va la energía del movimiento?",
+    "ops": [
+      "Se transforma en calor en los frenos",
+      "Desaparece",
+      "Vuelve al motor"
+    ],
+    "m": "Por eso los frenos se calientan tanto."
+  },
+  {
+    "q": "¿Se puede recuperar toda la energía degradada como calor disperso?",
+    "ops": [
+      "No, en la práctica no",
+      "Sí, con la máquina adecuada",
+      "Sí, siempre"
+    ],
+    "m": "Ésa es la diferencia entre conservación y degradación."
+  }
+];
+GAMES.transformar_energia_7 = juegoTriviaTexto(CUR_TRANSFORMAR_ENERGIA_7_BANCO, "¿En qué se transforma?", "transforma");
+
+/* 7° · ¿Química o física? — quimica_fisica_7
+   DC: Transformaciones químicas y físicas; reactivos y productos; combustión
+   Fuente: docs/auditoria-dc-caba/grado-7.md · CN8 */
+const CUR_QUIMICA_FISICA_7_BANCO = [
+  {
+    "it": "El hielo se derrite",
+    "cat": "fisica",
+    "m": "Sigue siendo agua: sólo cambió de estado."
+  },
+  {
+    "it": "Un papel se quema",
+    "cat": "quimica",
+    "m": "Aparecen sustancias nuevas: cenizas y gases. No hay vuelta atrás."
+  },
+  {
+    "it": "El agua hierve",
+    "cat": "fisica",
+    "m": "El vapor sigue siendo agua."
+  },
+  {
+    "it": "Un clavo se oxida",
+    "cat": "quimica",
+    "m": "El hierro se combina con el oxígeno y forma óxido, otra sustancia."
+  },
+  {
+    "it": "Se rompe un vaso",
+    "cat": "fisica",
+    "m": "Cambió la forma, no el vidrio."
+  },
+  {
+    "it": "La leche se corta",
+    "cat": "quimica",
+    "m": "Las proteínas se transforman: ya no es leche."
+  },
+  {
+    "it": "Se disuelve azúcar en agua",
+    "cat": "fisica",
+    "m": "El azúcar sigue ahí: se puede recuperar evaporando el agua."
+  },
+  {
+    "it": "Se hornea una torta",
+    "cat": "quimica",
+    "m": "Los ingredientes reaccionan y forman algo nuevo."
+  },
+  {
+    "it": "Se corta una madera con serrucho",
+    "cat": "fisica",
+    "m": "Sigue siendo madera, en trozos más chicos."
+  },
+  {
+    "it": "Una fruta se pudre",
+    "cat": "quimica",
+    "m": "Los microorganismos transforman su materia."
+  },
+  {
+    "it": "Un alambre de cobre se dobla",
+    "cat": "fisica",
+    "m": "Cambió la forma; el cobre es el mismo."
+  },
+  {
+    "it": "Se enciende una vela y la cera arde",
+    "cat": "quimica",
+    "m": "La combustión produce dióxido de carbono y agua."
+  },
+  {
+    "it": "Se evapora el agua de un charco",
+    "cat": "fisica",
+    "m": "Cambio de estado, no de sustancia."
+  },
+  {
+    "it": "Se agrega vinagre al bicarbonato y burbujea",
+    "cat": "quimica",
+    "m": "El gas que sale es una sustancia nueva."
+  },
+  {
+    "it": "Se muele café en grano",
+    "cat": "fisica",
+    "m": "El polvo sigue siendo café."
+  },
+  {
+    "it": "Una manzana cortada se pone marrón",
+    "cat": "quimica",
+    "m": "Se oxida al contacto con el aire."
+  }
+];
+GAMES.quimica_fisica_7 = juegoClasificar(CUR_QUIMICA_FISICA_7_BANCO, "¿Cambió la sustancia o sólo su forma?", [{"cat": "fisica", "label": "🧊 Física"}, {"cat": "quimica", "label": "🔥 Química"}], "quimica_fi");
+
+/* 7° · Día, noche, estaciones y fases — movimientos_tierra_7
+   DC: Rotación y traslación; eje inclinado; fases lunares
+   Fuente: docs/auditoria-dc-caba/grado-7.md · CN9 */
+const CUR_MOVIMIENTOS_TIERRA_7_BANCO = [
+  {
+    "q": "¿Qué produce el día y la noche?",
+    "ops": [
+      "La rotación de la Tierra",
+      "La traslación alrededor del Sol",
+      "El movimiento de la Luna"
+    ],
+    "m": "La rotación dura 24 horas; la traslación, un año."
+  },
+  {
+    "q": "¿Qué produce las estaciones del año?",
+    "ops": [
+      "La inclinación del eje terrestre durante la traslación",
+      "La distancia al Sol",
+      "La rotación"
+    ],
+    "m": "Éste es EL error del tema: la distancia casi no influye. De hecho la Tierra está más cerca del Sol en enero, que es verano acá y invierno en el norte."
+  },
+  {
+    "q": "Cuando es verano en la Argentina, en Europa es…",
+    "ops": [
+      "Invierno",
+      "Verano también",
+      "Otoño"
+    ],
+    "m": "Los hemisferios reciben la luz con distinta inclinación al mismo tiempo."
+  },
+  {
+    "q": "¿Cuánto tarda la Tierra en dar una vuelta sobre su eje?",
+    "ops": [
+      "24 horas",
+      "365 días",
+      "28 días"
+    ],
+    "m": "365 días es la traslación."
+  },
+  {
+    "q": "¿Cuánto tarda la Luna en dar una vuelta alrededor de la Tierra?",
+    "ops": [
+      "Alrededor de 28 días",
+      "24 horas",
+      "365 días"
+    ],
+    "m": "Por eso el ciclo de las fases dura aproximadamente un mes."
+  },
+  {
+    "q": "¿Por qué vemos siempre la misma cara de la Luna?",
+    "ops": [
+      "Porque tarda lo mismo en rotar que en girar alrededor de la Tierra",
+      "Porque no rota",
+      "Porque está muy lejos"
+    ],
+    "m": "Se llama rotación sincrónica."
+  },
+  {
+    "q": "¿Por qué la Luna cambia de forma?",
+    "ops": [
+      "Porque vemos distinta parte de su mitad iluminada",
+      "Porque la sombra de la Tierra la tapa",
+      "Porque cambia de tamaño"
+    ],
+    "m": "La sombra de la Tierra sólo actúa en un eclipse de Luna, que es otra cosa."
+  },
+  {
+    "q": "En el solsticio de verano, ¿qué pasa?",
+    "ops": [
+      "Es el día más largo del año en ese hemisferio",
+      "El día y la noche duran igual",
+      "Es el día más corto"
+    ],
+    "m": "En el equinoccio duran igual."
+  },
+  {
+    "q": "¿Qué es un equinoccio?",
+    "ops": [
+      "El día en que la noche y el día duran lo mismo",
+      "El día más largo",
+      "El día más corto"
+    ],
+    "m": "Ocurre dos veces al año, en marzo y en septiembre."
+  },
+  {
+    "q": "¿En qué orden van las fases de la Luna?",
+    "ops": [
+      "Nueva, creciente, llena, menguante",
+      "Llena, nueva, creciente, menguante",
+      "Creciente, nueva, menguante, llena"
+    ],
+    "m": "El ciclo empieza cuando no la vemos y vuelve a empezar."
+  },
+  {
+    "q": "¿Cuánta parte de la Luna está iluminada por el Sol en cualquier momento?",
+    "ops": [
+      "Siempre la mitad",
+      "Toda",
+      "Depende de la fase"
+    ],
+    "m": "Lo que cambia es cuánto de esa mitad vemos desde acá."
+  },
+  {
+    "q": "Si el eje de la Tierra no estuviera inclinado, ¿qué pasaría?",
+    "ops": [
+      "No habría estaciones marcadas",
+      "No habría día y noche",
+      "El año duraría menos"
+    ],
+    "m": "La inclinación es lo que hace que la luz llegue distinta según la época."
+  },
+  {
+    "q": "¿Qué es un año bisiesto y por qué existe?",
+    "ops": [
+      "Porque la traslación tarda un poco más de 365 días",
+      "Porque la Luna cambia",
+      "Porque el calendario está mal"
+    ],
+    "m": "Cada cuatro años se acumula casi un día entero."
+  },
+  {
+    "q": "¿El Sol se mueve alrededor de la Tierra?",
+    "ops": [
+      "No: es un movimiento aparente por la rotación terrestre",
+      "Sí, una vez por día",
+      "Sí, una vez por año"
+    ],
+    "m": "Ese movimiento aparente sostuvo al geocentrismo durante siglos."
+  }
+];
+GAMES.movimientos_tierra_7 = juegoTriviaTexto(CUR_MOVIMIENTOS_TIERRA_7_BANCO, "Pensá qué movimiento produce cada cosa.", "movimiento");
+
+/* 7° · Eclipses y el universo — eclipses_universo_7
+   DC: Eclipses; escalas; modelo actual del universo y exoplanetas
+   Fuente: docs/auditoria-dc-caba/grado-7.md · CN10 */
+const CUR_ECLIPSES_UNIVERSO_7_BANCO = [
+  {
+    "q": "En un eclipse de SOL, ¿qué tapa a qué?",
+    "ops": [
+      "La Luna tapa al Sol",
+      "La Tierra tapa al Sol",
+      "El Sol tapa a la Luna"
+    ],
+    "m": "La Luna se interpone entre el Sol y nosotros."
+  },
+  {
+    "q": "En un eclipse de LUNA, ¿qué pasa?",
+    "ops": [
+      "La sombra de la Tierra cae sobre la Luna",
+      "La Luna tapa al Sol",
+      "La Luna se apaga"
+    ],
+    "m": "La Tierra queda en el medio."
+  },
+  {
+    "q": "¿Por qué la Luna, siendo chiquita, puede tapar al Sol?",
+    "ops": [
+      "Porque el Sol es 400 veces más grande pero está 400 veces más lejos",
+      "Porque la Luna crece",
+      "Porque el Sol se achica"
+    ],
+    "m": "Es una coincidencia de escalas que hace posible el eclipse total."
+  },
+  {
+    "q": "¿Por qué no hay un eclipse cada mes?",
+    "ops": [
+      "Porque la órbita de la Luna está inclinada respecto de la de la Tierra",
+      "Porque la Luna se aleja",
+      "Porque el Sol se mueve"
+    ],
+    "m": "Sólo se alinean en ciertos momentos del año."
+  },
+  {
+    "q": "¿Se puede mirar un eclipse de Sol a ojo desnudo?",
+    "ops": [
+      "No: daña la vista de forma permanente",
+      "Sí, si es corto",
+      "Sí, con anteojos de sol comunes"
+    ],
+    "m": "Hacen falta filtros especiales certificados."
+  },
+  {
+    "q": "¿Qué es la Vía Láctea?",
+    "ops": [
+      "La galaxia donde está el Sol",
+      "Un cúmulo de planetas",
+      "Otra galaxia lejana"
+    ],
+    "m": "El Sol es una de sus cientos de miles de millones de estrellas."
+  },
+  {
+    "q": "¿Dónde está el Sol dentro de la Vía Láctea?",
+    "ops": [
+      "En un brazo, lejos del centro",
+      "En el centro exacto",
+      "Fuera de la galaxia"
+    ],
+    "m": "Está a unos 26.000 años luz del centro."
+  },
+  {
+    "q": "¿Qué es un año luz?",
+    "ops": [
+      "La distancia que recorre la luz en un año",
+      "El tiempo que tarda la luz en llegar",
+      "Un año en otro planeta"
+    ],
+    "m": "Es una unidad de DISTANCIA, no de tiempo."
+  },
+  {
+    "q": "¿Qué es un exoplaneta?",
+    "ops": [
+      "Un planeta que orbita otra estrella",
+      "Un planeta muy grande",
+      "Un planeta sin atmósfera"
+    ],
+    "m": "Ya se confirmaron miles."
+  },
+  {
+    "q": "¿Qué es el Big Bang según el modelo actual?",
+    "ops": [
+      "El estado inicial denso y caliente del que el universo se expande",
+      "Una explosión en el espacio vacío",
+      "El fin del universo"
+    ],
+    "m": "No fue una explosión EN el espacio: el espacio mismo se expande."
+  },
+  {
+    "q": "¿El universo se está expandiendo?",
+    "ops": [
+      "Sí, y la expansión se acelera",
+      "No, es estático",
+      "Se está contrayendo"
+    ],
+    "m": "Se observa por el corrimiento al rojo de las galaxias lejanas."
+  },
+  {
+    "q": "Cuando mirás una estrella muy lejana, ¿qué estás viendo?",
+    "ops": [
+      "Cómo era hace mucho tiempo, porque la luz tardó en llegar",
+      "Cómo es ahora mismo",
+      "Un reflejo del Sol"
+    ],
+    "m": "Mirar lejos es mirar al pasado."
+  },
+  {
+    "q": "¿Cuánto tarda la luz del Sol en llegar a la Tierra?",
+    "ops": [
+      "Unos 8 minutos",
+      "Un segundo",
+      "Un año"
+    ],
+    "m": "Por eso vemos al Sol como era hace ocho minutos."
+  },
+  {
+    "q": "¿Qué es una galaxia?",
+    "ops": [
+      "Un conjunto enorme de estrellas, gas y polvo ligados por la gravedad",
+      "Un sistema de planetas",
+      "Una nube de gas sin estrellas"
+    ],
+    "m": "Un sistema de planetas alrededor de una estrella es un sistema planetario."
+  }
+];
+GAMES.eclipses_universo_7 = juegoTriviaTexto(CUR_ECLIPSES_UNIVERSO_7_BANCO, "Pensá en las escalas y en las sombras.", "eclipses_u");
+
+/* 7° · Sistema reproductor — reproductor_7
+   DC: Anatomía y función del sistema reproductor (ESI)
+   Fuente: docs/auditoria-dc-caba/grado-7.md · CN11 */
+const CUR_REPRODUCTOR_7_BANCO = [
+  {
+    "q": "¿Qué órgano produce los óvulos?",
+    "ops": [
+      "El ovario",
+      "El útero",
+      "La trompa de Falopio"
+    ],
+    "m": "El útero es donde se implantaría el embrión."
+  },
+  {
+    "q": "¿Qué órganos producen los espermatozoides?",
+    "ops": [
+      "Los testículos",
+      "La próstata",
+      "La uretra"
+    ],
+    "m": "La próstata aporta parte del líquido seminal, no las células."
+  },
+  {
+    "q": "¿Cuál es la función del útero?",
+    "ops": [
+      "Alojar y nutrir al embrión durante el embarazo",
+      "Producir óvulos",
+      "Transportar la orina"
+    ],
+    "m": "Producir óvulos es función del ovario."
+  },
+  {
+    "q": "¿Dónde ocurre habitualmente la fecundación?",
+    "ops": [
+      "En la trompa de Falopio",
+      "En el útero",
+      "En el ovario"
+    ],
+    "m": "Después el cigoto viaja hasta el útero."
+  },
+  {
+    "q": "¿Qué es la menarca?",
+    "ops": [
+      "La primera menstruación",
+      "El fin del ciclo menstrual",
+      "La primera ovulación de la vida"
+    ],
+    "m": "Marca el inicio de los ciclos, aunque al principio sean irregulares."
+  },
+  {
+    "q": "¿Qué hormonas participan del ciclo menstrual?",
+    "ops": [
+      "Estrógenos y progesterona",
+      "Insulina y adrenalina",
+      "Tiroxina y cortisol"
+    ],
+    "m": "Son hormonas sexuales producidas principalmente en los ovarios."
+  },
+  {
+    "q": "¿Qué es la vulva?",
+    "ops": [
+      "El conjunto de los órganos genitales externos",
+      "El útero",
+      "La vagina"
+    ],
+    "m": "La vagina es un conducto interno: no son sinónimos."
+  },
+  {
+    "q": "¿Cuál es la función del escroto?",
+    "ops": [
+      "Mantener los testículos a una temperatura menor que la del cuerpo",
+      "Producir hormonas",
+      "Almacenar orina"
+    ],
+    "m": "Los espermatozoides necesitan algunos grados menos para formarse bien."
+  },
+  {
+    "q": "¿Qué es la pubertad desde el punto de vista del aparato reproductor?",
+    "ops": [
+      "El momento en que empieza a ser funcional",
+      "El fin del desarrollo",
+      "Una enfermedad"
+    ],
+    "m": "Es una etapa normal del desarrollo."
+  },
+  {
+    "q": "¿Qué produce la próstata?",
+    "ops": [
+      "Parte del líquido seminal",
+      "Los espermatozoides",
+      "Las hormonas femeninas"
+    ],
+    "m": "Los espermatozoides se producen en los testículos."
+  },
+  {
+    "q": "¿Los sistemas reproductores funcionan aislados del resto del cuerpo?",
+    "ops": [
+      "No: están regulados por el sistema endocrino",
+      "Sí, funcionan solos",
+      "Sólo dependen del nervioso"
+    ],
+    "m": "Las hormonas coordinan su funcionamiento."
+  },
+  {
+    "q": "¿Por qué importa usar los nombres correctos de las partes del cuerpo?",
+    "ops": [
+      "Porque permite pedir ayuda y cuidarse con precisión",
+      "Porque queda mejor",
+      "No importa"
+    ],
+    "m": "Es una de las razones por las que la ESI insiste en nombrar bien."
+  },
+  {
+    "q": "¿Qué son las trompas de Falopio?",
+    "ops": [
+      "Los conductos que unen los ovarios con el útero",
+      "Glándulas hormonales",
+      "Parte de la vejiga"
+    ],
+    "m": "Por ahí viaja el óvulo."
+  },
+  {
+    "q": "¿A quién conviene consultarle dudas sobre salud sexual?",
+    "ops": [
+      "A un profesional de la salud o un adulto de confianza",
+      "A nadie",
+      "Sólo a internet"
+    ],
+    "m": "En los centros de salud la consulta es gratuita y confidencial."
+  }
+];
+GAMES.reproductor_7 = juegoTriviaTexto(CUR_REPRODUCTOR_7_BANCO, "Reconocé cada órgano y su función.", "reproducto");
