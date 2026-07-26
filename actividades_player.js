@@ -1620,6 +1620,41 @@ const COMO_ES_VIDEO = {
     ],
   },
 
+
+  // ── Ciencias Naturales de 4°: octava tanda (26-jul-2026).
+  erosion_4: {
+    auto: "lec_erosion_4.mp4",
+    partes: [{ t: "Erosión, transporte y depósito", f: "lec_erosion_4.mp4", s: 34 }],
+  },
+  fosiles_4: {
+    auto: "lec_fosiles_4.mp4",
+    partes: [{ t: "Leer el tiempo en las capas", f: "lec_fosiles_4.mp4", s: 31 }],
+  },
+  movimiento_cuerpo_4: {
+    auto: "lec_movimiento_cuerpo_4.mp4",
+    partes: [{ t: "Los músculos TIRAN", f: "lec_movimiento_cuerpo_4.mp4", s: 34 }],
+  },
+  imanes_4: {
+    auto: "lec_imanes_4.mp4",
+    partes: [{ t: "Siempre dos polos", f: "lec_imanes_4.mp4", s: 34 }],
+  },
+  objeto_material_4: {
+    auto: "lec_objeto_material_4.mp4",
+    partes: [{ t: "Objeto no es material", f: "lec_objeto_material_4.mp4", s: 33 }],
+  },
+  cielo_4: {
+    auto: "lec_cielo_4.mp4",
+    partes: [{ t: "El día, la noche y las estaciones", f: "lec_cielo_4.mp4", s: 37 }],
+  },
+  placas_4: {
+    auto: "lec_placas_4.mp4",
+    partes: [{ t: "La corteza está partida", f: "lec_placas_4.mp4", s: 32 }],
+  },
+  laboratorio_electrico: {
+    auto: "lec_laboratorio_electrico.mp4",
+    partes: [{ t: "La corriente tiene que volver", f: "lec_laboratorio_electrico.mp4", s: 30 }],
+  },
+
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
