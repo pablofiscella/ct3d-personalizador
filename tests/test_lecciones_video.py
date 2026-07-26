@@ -74,26 +74,94 @@ def test_los_videos_salen_del_repo_no_del_token():
 
 
 # ── cuándo se muestra ───────────────────────────────────────────────────────────
-def test_toda_explicacion_de_cuarto_tiene_video():
-    """Pablo (25-jul): "quiero en las explicaciones siempre videos que expliquen el
-    contenido de forma visual".
+# Actividades con mini-lección de texto cuyo VIDEO todavía se está produciendo.
+#
+# Pablo (26-jul-2026): "me gusta que los que necesiten tenga un video de explicación,
+# siempre es mejor cuando te lo explican con una animación que tener que leerlo uno" —
+# y después "el texto está bien pero que pueda elegir ver también el video". O sea: la
+# regla no cambió, el texto se queda Y el video se suma como opción.
+#
+# Al completar la currícula de 4° y 5° se escribieron 77 mini-lecciones nuevas de golpe.
+# Cada video es guion + escenas + narración + render, así que se producen de a tandas.
+# Esta lista es la deuda declarada: lo que está acá tiene texto y todavía no video.
+#
+# El test de abajo NO la usa para mirar para otro lado: falla igual si aparece una
+# actividad con texto y sin video que NO esté declarada, y falla también si queda una
+# entrada acá que ya tiene su video (para que la lista se vacíe sola y no se pudra).
+VIDEO_PENDIENTE = {
+    # 4° — sumadas al cerrar la currícula (PR #240)
+    "valor_posicional_4", "resta_canje_4", "triangulos_4", "cuerpos_caras_4",
+    "equivalencias_medida_4", "clases_palabra_4", "tiempos_verbales_4", "hiperonimos_4",
+    "homofonos_4", "grupos_ortograficos_4", "mito_leyenda_4", "paratexto_4",
+    "proposito_texto_4", "historieta_4", "erosion_4", "fosiles_4", "movimiento_cuerpo_4",
+    "imanes_4", "objeto_material_4", "cielo_4", "ambientes_4", "urbano_rural_4",
+    "mecanismos_4", "fuentes_digitales_4", "residuos_4", "necesidad_deseo_4",
+    "convivencia_4",
+    # compartidas entre grados, que nunca habían tenido explicación
+    "duelo_decimales", "duelo_fracciones", "reparto_fracciones", "mejor_oferta",
+    "problemas_mult_div", "laboratorio_electrico", "estados_agua_4", "placas_4",
+    "programar_camino", "serie", "tablas_ninja", "fracciones_avanzado", "pago_exacto",
+    "aparatos_cuerpo", "camino_digestivo", "detectives_cielo", "plato_gapa_5",
+    "planta_potabilizadora", "provincias_region",
+    # 5° — sumadas al cerrar la currícula (PR #242)
+    "recursos_poeticos_5", "verbos_clases_5", "od_oi_5", "grados_adjetivo_5",
+    "futuro_condicional_5", "homofonos_5", "acentuacion_5", "prefijos_5", "polisemia_5",
+    "estructura_textos_5", "dos_puntos_5", "opinion_argumento_5", "romanos_5",
+    "problemas_pasos_5", "combinatoria_5", "cuenta_escondida_5", "divisibilidad_5",
+    "reconstruir_entero_5", "proporcionalidad_5", "perimetro_area_5", "graficos_5",
+    "ciclo_agua_5", "mezclas_5", "disolucion_5", "luz_materiales_5", "sonido_5",
+    "mapa_america_5", "variables_5", "sensores_5", "phishing_5", "presupuesto_5",
+    # 5° — ya tenían texto de antes, pero nunca video: la regla ahora también las alcanza
+    "analisis_sintactico", "clases_palabra_5", "decimales_fraccion",
+    "equivalencias_medida", "suma_fracciones", "transportador", "verbos_pasado",
+}
 
-    O sea: si una actividad de 4° enseña una regla y tiene mini-lección de texto, tiene
-    que tener también su video. Yo había argumentado que algunas reglas simples no lo
-    necesitaban; su criterio fue que sí, y este test lo fija — si mañana se agrega una
-    actividad con texto y sin video, salta acá y no en el aula."""
-    import sys
-    sys.path.insert(0, BASEDIR)
-    import actividades_web as aw
-    menu = {m["id"] for m in aw._menu(aw._banda("9"), "9") + aw._menu_curricular("9")}
+
+def _texto_y_video():
     i = PLAYER.index("const COMO_ES = {")
     f = PLAYER.index("\nconst FRASES_BIEN")
     texto = set(re.findall(r"^  (\w+): \{ t:", PLAYER[i:f], re.M))
     j = PLAYER.index("const COMO_ES_VIDEO = {")
     k = PLAYER.index("function videoDe(")
     video = set(re.findall(r"^  (\w+): \{", PLAYER[j:k], re.M))
-    faltan = sorted((menu & texto) - video)
-    assert not faltan, "actividades de 4° con texto y SIN video: %s" % faltan
+    return texto, video
+
+
+@pytest.mark.parametrize("edad", ["9", "10"])
+def test_toda_explicacion_tiene_video(edad):
+    """Pablo (25-jul): "quiero en las explicaciones siempre videos que expliquen el
+    contenido de forma visual".
+
+    O sea: si una actividad enseña una regla y tiene mini-lección de texto, tiene que
+    tener también su video. Yo había argumentado que algunas reglas simples no lo
+    necesitaban; su criterio fue que sí, y este test lo fija — si mañana se agrega una
+    actividad con texto y sin video, salta acá y no en el aula.
+
+    Lo declarado en VIDEO_PENDIENTE se saltea: es deuda visible, no un descuido."""
+    import sys
+    sys.path.insert(0, BASEDIR)
+    import actividades_web as aw
+    menu = {m["id"] for m in aw._menu(aw._banda(edad), edad) + aw._menu_curricular(edad)}
+    texto, video = _texto_y_video()
+    faltan = sorted((menu & texto) - video - VIDEO_PENDIENTE)
+    assert not faltan, (
+        "actividades con texto y SIN video que tampoco están declaradas en "
+        "VIDEO_PENDIENTE: %s" % faltan)
+
+
+def test_la_deuda_de_video_no_tiene_entradas_muertas():
+    """Cada id de VIDEO_PENDIENTE tiene que seguir siendo deuda de verdad.
+
+    Si ya se le produjo el video, se saca de la lista; si se le borró el texto, no era
+    deuda. Sin esto la lista se llena de entradas viejas y deja de significar nada —
+    que es como una compuerta temporal se vuelve permanente."""
+    texto, video = _texto_y_video()
+    ya_tienen = sorted(VIDEO_PENDIENTE & video)
+    assert not ya_tienen, ("estos ya tienen video: sacalos de VIDEO_PENDIENTE: %s"
+                           % ya_tienen)
+    sin_texto = sorted(VIDEO_PENDIENTE - texto)
+    assert not sin_texto, ("estos no tienen mini-lección, así que no son deuda de "
+                           "video: %s" % sin_texto)
 
 
 def test_el_popup_abre_con_texto_y_el_video_queda_a_un_toque():
