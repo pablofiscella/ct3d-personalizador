@@ -1690,6 +1690,69 @@ const COMO_ES_VIDEO = {
     partes: [{ t: "La forma del globo", f: "lec_historieta_4.mp4", s: 33 }],
   },
 
+
+  // ── Las 15 que cierran la deuda de 4° y 5° (26-jul-2026).
+  estados_agua_4: {
+    auto: "lec_estados_agua_4.mp4",
+    partes: [{ t: "Los estados del agua", f: "lec_estados_agua_4.mp4", s: 27 }],
+  },
+  programar_camino: {
+    auto: "lec_programar_camino.mp4",
+    partes: [{ t: "Orden, repetir y depurar", f: "lec_programar_camino.mp4", s: 31 }],
+  },
+  provincias_region: {
+    auto: "lec_provincias_region.mp4",
+    partes: [{ t: "Provincias y regiones", f: "lec_provincias_region.mp4", s: 25 }],
+  },
+  analisis_sintactico: {
+    auto: "lec_analisis_sintactico.mp4",
+    partes: [{ t: "El orden que no falla", f: "lec_analisis_sintactico.mp4", s: 27 }],
+  },
+  aparatos_cuerpo: {
+    auto: "lec_aparatos_cuerpo.mp4",
+    partes: [{ t: "Los sistemas trabajan juntos", f: "lec_aparatos_cuerpo.mp4", s: 25 }],
+  },
+  camino_digestivo: {
+    auto: "lec_camino_digestivo.mp4",
+    partes: [{ t: "El recorrido del alimento", f: "lec_camino_digestivo.mp4", s: 25 }],
+  },
+  clases_palabra_5: {
+    auto: "lec_clases_palabra_5.mp4",
+    partes: [{ t: "El contexto decide", f: "lec_clases_palabra_5.mp4", s: 29 }],
+  },
+  detectives_cielo: {
+    auto: "lec_detectives_cielo.mp4",
+    partes: [{ t: "Por qué cambia la Luna", f: "lec_detectives_cielo.mp4", s: 26 }],
+  },
+  equivalencias_medida: {
+    auto: "lec_equivalencias_medida.mp4",
+    partes: [{ t: "Cuántos entran en cuántos", f: "lec_equivalencias_medida.mp4", s: 27 }],
+  },
+  futuro_condicional_5: {
+    auto: "lec_futuro_condicional_5.mp4",
+    partes: [{ t: "Iré o iría", f: "lec_futuro_condicional_5.mp4", s: 30 }],
+  },
+  opinion_argumento_5: {
+    auto: "lec_opinion_argumento_5.mp4",
+    partes: [{ t: "Hecho, opinión y argumento", f: "lec_opinion_argumento_5.mp4", s: 32 }],
+  },
+  planta_potabilizadora: {
+    auto: "lec_planta_potabilizadora.mp4",
+    partes: [{ t: "Filtrar y desinfectar", f: "lec_planta_potabilizadora.mp4", s: 26 }],
+  },
+  recursos_poeticos_5: {
+    auto: "lec_recursos_poeticos_5.mp4",
+    partes: [{ t: "El truco del «como»", f: "lec_recursos_poeticos_5.mp4", s: 37 }],
+  },
+  transportador: {
+    auto: "lec_transportador.mp4",
+    partes: [{ t: "Las dos escalas", f: "lec_transportador.mp4", s: 23 }],
+  },
+  verbos_pasado: {
+    auto: "lec_verbos_pasado.mp4",
+    partes: [{ t: "Cantó o cantaba", f: "lec_verbos_pasado.mp4", s: 34 }],
+  },
+
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
