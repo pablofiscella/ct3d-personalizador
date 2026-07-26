@@ -1581,6 +1581,45 @@ const COMO_ES_VIDEO = {
     partes: [{ t: "Qué hacer con el resto", f: "lec_problemas_mult_div.mp4", s: 28 }],
   },
 
+
+  // ── Lengua de 4°: séptima tanda (26-jul-2026).
+  tiempos_verbales_4: {
+    auto: "lec_tiempos_verbales_4.mp4",
+    partes: [{ t: "Imperfecto y perfecto simple", f: "lec_tiempos_verbales_4.mp4", s: 38 }],
+  },
+  hiperonimos_4: {
+    auto: "lec_hiperonimos_4.mp4",
+    partes: [{ t: "La palabra que abarca", f: "lec_hiperonimos_4.mp4", s: 30 }],
+  },
+  homofonos_4: {
+    auto: "lec_homofonos_4.mp4",
+    partes: [{ t: "Hola, ola u olla", f: "lec_homofonos_4.mp4", s: 30 }],
+  },
+  grupos_ortograficos_4: {
+    auto: "lec_grupos_ortograficos_4.mp4",
+    partes: [{ t: "Grupos que se repiten", f: "lec_grupos_ortograficos_4.mp4", s: 45 }],
+  },
+  mito_leyenda_4: {
+    auto: "lec_mito_leyenda_4.mp4",
+    partes: [{ t: "Mito o leyenda", f: "lec_mito_leyenda_4.mp4", s: 35 }],
+  },
+  paratexto_4: {
+    auto: "lec_paratexto_4.mp4",
+    partes: [{ t: "Todo lo que rodea al texto", f: "lec_paratexto_4.mp4", s: 28 }],
+  },
+  proposito_texto_4: {
+    auto: "lec_proposito_texto_4.mp4",
+    partes: [{ t: "Los cinco propósitos", f: "lec_proposito_texto_4.mp4", s: 39 }],
+  },
+  // Entera daba 50 s: se parte en sustantivo / adjetivo.
+  clases_palabra_4: {
+    auto: "lec_clases_palabra_4a.mp4",
+    partes: [
+      { t: "El sustantivo", f: "lec_clases_palabra_4a.mp4", s: 28 },
+      { t: "El adjetivo y los gentilicios", f: "lec_clases_palabra_4b.mp4", s: 22 },
+    ],
+  },
+
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
