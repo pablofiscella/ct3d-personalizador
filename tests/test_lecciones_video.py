@@ -89,6 +89,40 @@ def test_los_videos_salen_del_repo_no_del_token():
 # actividad con texto y sin video que NO esté declarada, y falla también si queda una
 # entrada acá que ya tiene su video (para que la lista se vacíe sola y no se pudra).
 VIDEO_PENDIENTE = {
+    # Cierre de las 9 deudas del manifiesto de cobertura (26-jul-2026). El video
+    # quedó pendiente por falta de crédito de ElevenLabs, no por decisión de diseño.
+    "club_lectura_5",
+    "cuerpo_etapas_1",
+    "eclipses_5",
+    "geometria_5",
+    "planta_partes_1",
+    "recta_millon_5",
+    "recursos_5",
+    "unitario_federal_5",
+
+    # Las 20 que quedaban sin mini-lección, escritas el 26-jul. Mismo motivo: el
+    # texto ya está en el player, el video espera crédito de ElevenLabs.
+    "adivina_figura",
+    "america_1492_4",
+    "animales_cobertura",
+    "antes_y_hoy",
+    "artesanal_industrial",
+    "calculo_redondo",
+    "campo_a_casa",
+    "causas_revolucion_5",
+    "circuito_alimento",
+    "debate_mayo_5",
+    "derechos_escenarios",
+    "forma_redondo",
+    "linea_siglo_xx",
+    "linterna_magica",
+    "mas_o_menos_1",
+    "objeto_material",
+    "ordenar_pasos",
+    "que_cuenta_resuelve",
+    "sociedad_colonial_4",
+    "solido_liquido",
+
     # 1°, 2° y 3° — mini-lecciones nuevas, video pendiente (26-jul-2026)
     "acentuacion_2",
     "agua_2",
