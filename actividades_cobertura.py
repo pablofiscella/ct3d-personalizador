@@ -1079,36 +1079,36 @@ GRADO_6 = [
     # ── Tecnología, Diseño y Programación (5) ────────────────────────────────────
     {"cod": "T1",  "area": "naturales", "tema": "Elegí el instrumento",
      "dc": "Tecnología: instrumento y escala de medida; sensor→procesamiento→display",
-     "cubre": None},
+     "cubre": "instrumentos_medida_6"},
     {"cod": "T2",  "area": "logica", "tema": "¿Secuencial o condicional?",
      "dc": "Tecnología: algoritmos no lineales; comparación de algoritmos",
-     "cubre": None},
+     "cubre": "secuencial_condicional_6"},
     {"cod": "T3",  "area": "logica", "tema": "Bloques ↔ código",
      "dc": "Tecnología: programación en bloques y su relación con el código",
-     "cubre": None},
+     "cubre": "bloques_codigo_6"},
     {"cod": "T4",  "area": "logica", "tema": "Las 5 etapas del diseño",
      "dc": "Tecnología: empatizar, definir, idear, prototipar y evaluar",
-     "cubre": None},
+     "cubre": "etapas_diseno_6"},
     {"cod": "T5",  "area": "logica", "tema": "Sensores y control reactivo",
      "dc": "Tecnología: control reactivo; sensores analógicos y digitales; autoría e IA",
-     "cubre": None},
+     "cubre": "sensores_6"},
 
     # ── Transversales (5) ────────────────────────────────────────────────────────
     {"cod": "Tr1", "area": "sociales", "tema": "Chat seguro ⚠ESI",
      "dc": "Transversal ESI + Educación Digital: grooming como delito; cómo actuar",
-     "cubre": None},
+     "cubre": "chat_seguro_6"},
     {"cod": "Tr2", "area": "naturales", "tema": "Mitos, ITS y tipos de violencia ⚠ESI",
      "dc": "Transversal ESI: vías de transmisión y prevención de ITS; tipos de violencia",
-     "cubre": None},
+     "cubre": "its_violencia_6"},
     {"cod": "Tr3", "area": "sociales", "tema": "Los tres poderes y la ley",
      "dc": "Transversal FEC: división de poderes; sanción de las leyes; sufragio",
-     "cubre": None},
+     "cubre": "tres_poderes_6"},
     {"cod": "Tr4", "area": "matematica", "tema": "Billetera virtual y presupuesto",
      "dc": "Transversal Educación Financiera: medios de pago, seguridad y presupuesto",
-     "cubre": None},
+     "cubre": "presupuesto_6"},
     {"cod": "Tr5", "area": "sociales", "tema": "Economía circular y el Riachuelo",
      "dc": "Transversal Educación Ambiental: economía lineal vs circular; cuenca del Riachuelo",
-     "cubre": None},
+     "cubre": "economia_circular_6"},
 ]
 
 # Grado → temas del DC. Un grado ausente todavía no está auditado: el test lo saltea.
@@ -1137,12 +1137,16 @@ DC = {
 #
 # Al terminar el grado se saca de este set y pasa a exigirse completo. Que quede vacío es
 # el estado normal.
-EN_CONSTRUCCION = {6}
+EN_CONSTRUCCION = set()
 
 # Actividades que están en el menú del grado pero NO cubren un tema de su currícula.
 # No son un error: son comodines de descanso y refuerzos del año anterior. Se declaran
 # para que el informe pueda distinguir "extra a propósito" de "tema que se nos escapó".
 EXTRAS_OK = {
+    # 6°: los 3 evergreen que la auditoría deja como pausa/recompensa, más
+    # `recursos_argentina`, que ya estaba y no corresponde a ningún tema del año.
+    6: {"colorear", "memotest", "laberinto", "simon", "sopa", "sudoku",
+        "recursos_argentina"},
     1: {"colorear", "memotest", "laberinto", "patron", "simon", "quefalta",
         "sopa", "sudoku", "puntos", "mas_menos", "recta_numerica",
         "anterior_siguiente"},
