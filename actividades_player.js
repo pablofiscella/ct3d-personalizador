@@ -1511,6 +1511,41 @@ const COMO_ES_VIDEO = {
     partes: [{ t: "Un paso por vez", f: "lec_problemas_pasos_5.mp4", s: 33 }],
   },
 
+
+  // ── Compartidas entre 4° y 5°: un video acá cubre los dos grados (26-jul-2026).
+  duelo_decimales: {
+    auto: "lec_duelo_decimales.mp4",
+    partes: [{ t: "La trampa de los decimales", f: "lec_duelo_decimales.mp4", s: 36 }],
+  },
+  duelo_fracciones: {
+    auto: "lec_duelo_fracciones.mp4",
+    partes: [{ t: "Comparar fracciones", f: "lec_duelo_fracciones.mp4", s: 35 }],
+  },
+  fracciones_avanzado: {
+    auto: "lec_fracciones_avanzado.mp4",
+    partes: [{ t: "Fracciones equivalentes", f: "lec_fracciones_avanzado.mp4", s: 33 }],
+  },
+  suma_fracciones: {
+    auto: "lec_suma_fracciones.mp4",
+    partes: [{ t: "Sumar fracciones", f: "lec_suma_fracciones.mp4", s: 37 }],
+  },
+  decimales_fraccion: {
+    auto: "lec_decimales_fraccion.mp4",
+    partes: [{ t: "Del décimo a la coma", f: "lec_decimales_fraccion.mp4", s: 33 }],
+  },
+  pago_exacto: {
+    auto: "lec_pago_exacto.mp4",
+    partes: [{ t: "Plata con coma", f: "lec_pago_exacto.mp4", s: 28 }],
+  },
+  tablas_ninja: {
+    auto: "lec_tablas_ninja.mp4",
+    partes: [{ t: "Multiplicar y dividir", f: "lec_tablas_ninja.mp4", s: 32 }],
+  },
+  serie: {
+    auto: "lec_serie.mp4",
+    partes: [{ t: "Descubrir la regla", f: "lec_serie.mp4", s: 29 }],
+  },
+
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }

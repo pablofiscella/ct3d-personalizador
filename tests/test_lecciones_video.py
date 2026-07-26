@@ -98,14 +98,12 @@ VIDEO_PENDIENTE = {
     "mecanismos_4", "fuentes_digitales_4", "residuos_4", "necesidad_deseo_4",
     "convivencia_4",
     # compartidas entre grados, que nunca habían tenido explicación
-    "duelo_decimales", "duelo_fracciones", "reparto_fracciones", "mejor_oferta",
+    "reparto_fracciones", "mejor_oferta",
     "problemas_mult_div", "laboratorio_electrico", "estados_agua_4", "placas_4",
-    "programar_camino", "serie", "tablas_ninja", "fracciones_avanzado", "pago_exacto",
-    "aparatos_cuerpo", "camino_digestivo", "detectives_cielo",     "planta_potabilizadora", "provincias_region",
+    "programar_camino",     "aparatos_cuerpo", "camino_digestivo", "detectives_cielo",     "planta_potabilizadora", "provincias_region",
     # 5° — sumadas al cerrar la currícula (PR #242)
     "recursos_poeticos_5",     "futuro_condicional_5",     "opinion_argumento_5",                     # 5° — ya tenían texto de antes, pero nunca video: la regla ahora también las alcanza
-    "analisis_sintactico", "clases_palabra_5", "decimales_fraccion",
-    "equivalencias_medida", "suma_fracciones", "transportador", "verbos_pasado",
+    "analisis_sintactico", "clases_palabra_5",     "equivalencias_medida", "transportador", "verbos_pasado",
 }
 
 
