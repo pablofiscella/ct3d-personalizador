@@ -381,16 +381,16 @@ GRADO_5 = [
      "cubre": "independencia_arg"},
     {"cod": "S2",  "area": "sociales", "tema": "¿Causa interna o externa?",
      "dc": "Crisis del orden colonial: circunstancias internas y externas; multicausalidad",
-     "cubre": None, "previsto": "causas_revolucion_5"},
+     "cubre": "causas_revolucion_5"},
     {"cod": "S3",  "area": "sociales", "tema": "El debate de Mayo",
      "dc": "El debate entre Moreno y Saavedra",
-     "cubre": None, "previsto": "debate_mayo_5"},
+     "cubre": "debate_mayo_5"},
     {"cod": "S4",  "area": "sociales", "tema": "Los símbolos de la Asamblea",
      "dc": "Asamblea del año XIII: libertad de vientres, moneda y símbolos",
-     "cubre": None, "previsto": "asamblea_xiii_5"},
+     "cubre": "asamblea_xiii_5"},
     {"cod": "S5",  "area": "sociales", "tema": "Próceres y gestas",
      "dc": "Gesta sanmartiniana; Belgrano; Güemes",
-     "cubre": None, "previsto": "proceres_5"},
+     "cubre": "proceres_5"},
     {"cod": "S6",  "area": "sociales", "tema": "¿Unitario o federal?",
      "dc": "Unitarios y federales; la Constitución de 1853 como acuerdo y ley suprema",
      "cubre": "derechos_constitucion",
@@ -398,7 +398,7 @@ GRADO_5 = [
               "unitario/federal con sus consecuencias"},
     {"cod": "S7",  "area": "sociales", "tema": "El mapa de América",
      "dc": "Mapa político de América; subcontinentes, límites y escalas",
-     "cubre": None, "previsto": "mapa_america_5"},
+     "cubre": "mapa_america_5"},
     {"cod": "S8",  "area": "sociales", "tema": "Clasificador de recursos",
      "dc": "Recursos forestales, mineros y panorámicos; su valorización",
      "cubre": "actividad_economica",
@@ -411,19 +411,19 @@ GRADO_5 = [
     # ── Tecnología y transversales (5) ───────────────────────────────────────────
     {"cod": "T1",  "area": "tecnologia", "tema": "La caja de la variable",
      "dc": "Variables: declaración, asignación, contar y sumar",
-     "cubre": None, "previsto": "variables_5"},
+     "cubre": "variables_5"},
     {"cod": "T2",  "area": "tecnologia", "tema": "El bloque que falta",
      "dc": "Bucles, condicionales y depuración",
      "cubre": "programar_camino"},
     {"cod": "T3",  "area": "tecnologia", "tema": "Si el sensor detecta…",
      "dc": "Entrada y salida; sensores y actuadores; sistemas temporizados",
-     "cubre": None, "previsto": "sensores_5"},
+     "cubre": "sensores_5"},
     {"cod": "T4",  "area": "tecnologia", "tema": "¿Es phishing?",
      "dc": "Phishing; datos personales; identidad digital",
-     "cubre": None, "previsto": "phishing_5"},
+     "cubre": "phishing_5"},
     {"cod": "T5",  "area": "transversal", "tema": "Presupuesto del proyecto",
      "dc": "Ed. Financiera: ingreso y gasto, necesario y prescindible, ahorro y deuda",
-     "cubre": None, "previsto": "presupuesto_5"},
+     "cubre": "presupuesto_5"},
 ]
 
 # Grado → temas del DC. Un grado ausente todavía no está auditado: el test lo saltea.
@@ -448,7 +448,7 @@ DC = {
 #
 # Al terminar el grado se saca de este set y pasa a exigirse completo. Que quede vacío es
 # el estado normal.
-EN_CONSTRUCCION = {5}
+EN_CONSTRUCCION = set()
 
 # Actividades que están en el menú del grado pero NO cubren un tema de su currícula.
 # No son un error: son comodines de descanso y refuerzos del año anterior. Se declaran
