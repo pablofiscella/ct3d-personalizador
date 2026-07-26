@@ -198,24 +198,47 @@ Al escribirlos, dos reglas que ya vienen de las auditorías:
 Pendiente de revisión: los 5 temas de Sociales de 5° y los de 4° que la auditoría marcó
 con "revisión docente externa obligatoria".
 
-## Estado al 25-jul-2026
+## Estado al 26-jul-2026
 
-| Grado | Manifiesto | Cobertura |
-|---|---|---|
-| 4° | sí | **58/58** — 1 deuda (S8: faltan las 24 capitales y las 5 regiones) |
-| 5° | sí | **56/56** — 6 deudas (M1 recta al millón, M14 geometría, L1 30 textos, N8 eclipses, S6 unitario/federal, S8 recursos) |
-| 1°, 2°, 3°, 6°, 7° | **no** | sin auditar contra su `grado-N.md`; el test los saltea |
+| Grado | Manifiesto | Cobertura | Deudas |
+|---|---|---|---|
+| 1° | sí | **45/45** | 0 |
+| 2° | sí | **53/53** | 0 |
+| 3° | sí | **53/53** | 0 |
+| 4° | sí | **58/58** | 0 |
+| 5° | sí | **56/56** | 0 |
+| 6° | sí | **70/70** | 0 |
+| 7° | **no** | sin auditar contra `grado-7.md`; el test lo saltea | — |
 
-Objetivos de los que faltan, según su auditoría: 1° → 45 temas, 2° → 51, 3° → 53,
-6° → 70, 7° → 68.
+`EN_CONSTRUCCION` está vacío: los seis grados se exigen completos y el guardián falla
+si alguno pierde un tema.
 
-**7° necesita una decisión antes de empezar:** suma **Inglés** como área nueva (3
-actividades) y el menú tiene 6 carriles fijos. O entra un carril nuevo —y eso cambia la
-pantalla de categorías de todos los grados— o se mapea a Lengua.
+**7° es lo único que queda, y necesita una decisión antes de empezar:** suma **Inglés**
+como área nueva (3 actividades) y el menú tiene 6 carriles fijos. O entra un carril
+nuevo —y eso cambia la pantalla de categorías de todos los grados— o se mapea a Lengua.
+Su auditoría propone 68 temas.
 
-**1° y 2° conviene hacerlos último.** Su matemática es casi toda manipulativa (cajero de
-fichas, material concreto) y las 4 mecánicas del catálogo no la expresan: saldría una
-trivia donde el DC pide mover objetos. Antes de esos dos grados conviene agregar una
-mecánica `manipular`.
+**Revisión docente pendiente** (ningún test la reemplaza): los 5 temas de Sociales de
+5°, los de 4° marcados en su auditoría, y de 6° el bloque entero de Sociales (S1-S9)
+más el de ESI (N4, N5, N6, Tr1, Tr2). La auditoría de 6° pide además que el producto
+**avise a la familia** antes de que el chico se encuentre con el bloque ESI: eso
+todavía no está hecho.
+
+### Lo que se aprendió construyendo 6°
+
+- **El evaluador de plantillas sólo admite `+ - * / ( )`.** Sin condicionales, sin
+  potencias, sin `%`. Las guardas van en el DISEÑO de los rangos: si el total es
+  múltiplo de 120 y el denominador divide siempre, el resultado cae entero solo. Un
+  `ok` con ternario devuelve 0 de 400 tiradas válidas y el juego se queda sin ejercicios.
+- **Antes de escribir, buscá si el grado ya tiene actividades.** 6° tenía cuatro, y tres
+  cubrían su tema a medias (pronombres sin indefinidos, conectores sin locativos). Se
+  reemplazan conservando el mismo `saber`, así el grafo adaptativo no se mueve.
+- **Las fracciones y los decimales no se parametrizan**: se escriben como texto y el
+  evaluador sólo hace aritmética con enteros. Esos temas van con banco fijo, grande.
+- **`ordenar` necesita 8 secuencias DISTINTAS.** Para un proceso de etapas fijas (las 5
+  del diseño), la variedad sale de cambiar el PROYECTO, no las etapas: nueve problemas
+  distintos recorridos por las mismas cinco etapas.
+- **Una consigna repetida dentro del banco falla.** «¿Cuál está bien escrita?» nueve
+  veces no pasa el validador: cada ítem pide su propia pregunta.
 
 Para cada grado que sigue: paso 1 y listo, el informe dice el resto.
