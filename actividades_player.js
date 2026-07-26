@@ -1453,6 +1453,33 @@ const COMO_ES_VIDEO = {
     ],
   },
 
+
+  // ── Ciencias Naturales de 5°: tercera tanda (26-jul-2026).
+  ciclo_agua_5: {
+    auto: "lec_ciclo_agua_5.mp4",
+    partes: [{ t: "El agua da vueltas", f: "lec_ciclo_agua_5.mp4", s: 38 }],
+  },
+  mezclas_5: {
+    auto: "lec_mezclas_5.mp4",
+    partes: [{ t: "Homogénea, heterogénea o ninguna", f: "lec_mezclas_5.mp4", s: 36 }],
+  },
+  disolucion_5: {
+    auto: "lec_disolucion_5.mp4",
+    partes: [{ t: "Qué hace que se disuelva antes", f: "lec_disolucion_5.mp4", s: 43 }],
+  },
+  luz_materiales_5: {
+    auto: "lec_luz_materiales_5.mp4",
+    partes: [{ t: "Cómo pasa la luz", f: "lec_luz_materiales_5.mp4", s: 37 }],
+  },
+  sonido_5: {
+    auto: "lec_sonido_5.mp4",
+    partes: [{ t: "El sonido es vibración", f: "lec_sonido_5.mp4", s: 37 }],
+  },
+  plato_gapa_5: {
+    auto: "lec_plato_gapa_5.mp4",
+    partes: [{ t: "Cómo se arma el plato", f: "lec_plato_gapa_5.mp4", s: 34 }],
+  },
+
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
