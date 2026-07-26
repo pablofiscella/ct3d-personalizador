@@ -1289,48 +1289,48 @@ GRADO_7 = [
     # ── Tecnología, Diseño y Programación (6) ────────────────────────────────────
     {"cod": "T1",  "area": "naturales", "tema": "Fuentes: ¿sustentable o no?",
      "dc": "Tecnología: energía tradicional y alternativa; sobreexplotación",
-     "cubre": None},
+     "cubre": "fuentes_sustentables_7"},
     {"cod": "T2",  "area": "naturales", "tema": "De la central al enchufe",
      "dc": "Tecnología: generación, transporte y distribución de la energía",
-     "cubre": None},
+     "cubre": "central_enchufe_7"},
     {"cod": "T3",  "area": "logica", "tema": "Nodos, enlaces y capas de la red",
      "dc": "Tecnología: nodos y enlaces; infraestructura, plataforma y servicio; IoT",
-     "cubre": None},
+     "cubre": "capas_red_7"},
     {"cod": "T4",  "area": "logica", "tema": "Evento, acción y paralelismo",
      "dc": "Tecnología: algoritmos no lineales, eventos y tareas en paralelo",
-     "cubre": None},
+     "cubre": "eventos_paralelismo_7"},
     {"cod": "T5",  "area": "logica", "tema": "El dataset sesgado",
      "dc": "Tecnología: sesgo algorítmico; datos de entrenamiento; privacidad",
-     "cubre": None},
+     "cubre": "dataset_sesgado_7"},
     {"cod": "T6",  "area": "logica", "tema": "De la máquina-producto a la industria 4.0",
      "dc": "Tecnología: sistemas de producción; configuración por el usuario",
-     "cubre": None},
+     "cubre": "industria_40_7"},
 
     # ── Transversales (8) ────────────────────────────────────────────────────────
     {"cod": "X1",  "area": "naturales", "tema": "Anticoncepción y prevención ⚠ESI",
      "dc": "Transversal ESI: métodos; ITS y VIH; el preservativo como doble prevención",
-     "cubre": None},
+     "cubre": "anticoncepcion_7"},
     {"cod": "X2",  "area": "sociales", "tema": "Señales de alerta en línea ⚠ESI",
      "dc": "Transversal ESI + Digital: grooming como delito; qué hacer y dónde reportar",
-     "cubre": None},
+     "cubre": "alerta_en_linea_7"},
     {"cod": "X3",  "area": "sociales", "tema": "Los nuevos derechos del 94",
      "dc": "Transversal FEC: reforma de 1994; ambiente, consumidor y datos personales",
-     "cubre": None},
+     "cubre": "derechos_94_7"},
     {"cod": "X4",  "area": "sociales", "tema": "El gobierno de la Ciudad",
      "dc": "Transversal FEC: división de poderes en CABA; Legislatura; comunas",
-     "cubre": None},
+     "cubre": "gobierno_ciudad_7"},
     {"cod": "X5",  "area": "matematica", "tema": "Presupuesto con inflación",
      "dc": "Transversal Financiera: presupuesto, inflación e interés simple",
-     "cubre": None},
+     "cubre": "presupuesto_inflacion_7"},
     {"cod": "X6",  "area": "naturales", "tema": "Matriz energética y transición",
      "dc": "Transversal Ambiental: transición energética; mitigación y adaptación",
-     "cubre": None},
+     "cubre": "matriz_energetica_7"},
     {"cod": "X7",  "area": "logica", "tema": "¿Quién es la fuente?",
      "dc": "Transversal Digital: autoría incluida la de IA; desinformación; licencias",
-     "cubre": None},
+     "cubre": "fuente_licencias_7"},
     {"cod": "X8",  "area": "sociales", "tema": "¿Consumo o consumismo?",
      "dc": "Transversal Consumos: consumo problemático; apuestas online; estafas",
-     "cubre": None},
+     "cubre": "consumo_consumismo_7"},
 
     # ── Inglés (3) · va en el carril de Lengua, ver la nota de arriba ────────────
     {"cod": "IN1", "area": "lengua", "tema": "Vocabulario en inglés",
@@ -1371,12 +1371,18 @@ DC = {
 #
 # Al terminar el grado se saca de este set y pasa a exigirse completo. Que quede vacío es
 # el estado normal.
-EN_CONSTRUCCION = {7}
+EN_CONSTRUCCION = set()
 
 # Actividades que están en el menú del grado pero NO cubren un tema de su currícula.
 # No son un error: son comodines de descanso y refuerzos del año anterior. Se declaran
 # para que el informe pueda distinguir "extra a propósito" de "tema que se nos escapó".
 EXTRAS_OK = {
+    # 7°: los evergreen, más las cuatro actividades que el grado ya tenía y que son
+    # repaso, no temas del DC del año (derechos laborales, recursos poéticos de 5°-6°,
+    # población y democracia, que 7° retoma con CS3, CS5 y X3 mucho más completos).
+    7: {"colorear", "memotest", "laberinto", "simon", "sopa", "sudoku",
+        "derechos_trabajo", "recursos_poema", "poblacion_argentina",
+        "democracia_argentina"},
     # 6°: los 3 evergreen que la auditoría deja como pausa/recompensa, más
     # `recursos_argentina`, que ya estaba y no corresponde a ningún tema del año.
     6: {"colorear", "memotest", "laberinto", "simon", "sopa", "sudoku",
