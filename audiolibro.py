@@ -155,6 +155,12 @@ _EL_VOCES_ALT = {
 # llega por URL antes de tocar disco o llamar a un TTS).
 _VOCES_VALIDAS = frozenset({"lizy"} | set(VOCES) | set(_EL_VOCES_ALT))
 
+# Voz por defecto cuando la compra no especifica ninguna (Pablo, 25-jul-2026).
+# Era "lizy", que es NEUTRA — contradecía la regla de que la voz del producto tiene
+# que ser rioplatense. Valeria ya era el default de las actividades
+# (actividades_web.VOZ_ACTIVIDADES_NOMBRE), así que ahora toda la línea suena igual.
+VOZ_DEFAULT = "valeria"
+
 # Etiquetas de emoción v3 automáticas y CONSERVADORAS (receta investigada:
 # 1 etiqueta por página máximo, whitelist dulce, al inicio del segmento; las
 # 2 páginas finales llevan el ritardando del cierre para dormir). Solo para la
@@ -277,7 +283,7 @@ def tts_mp3(api_key, texto, timeout=120, voz=None, seed=None):
     (fijo por libro) mantiene la consistencia entre páginas (v3 no tiene
     request stitching) y reintenta con seed+1 si la toma sale con ritmo raro
     (QA de duración)."""
-    v = (str(voz or "").strip().lower())
+    v = (str(voz or "").strip().lower()) or VOZ_DEFAULT
     alt = _EL_VOCES_ALT.get(v)
     if alt or v not in VOCES:             # default, 'lizy' o alt → ElevenLabs
         base = seed if seed is not None else 4242
@@ -291,7 +297,7 @@ def tts_mp3(api_key, texto, timeout=120, voz=None, seed=None):
                 if mp3 and intento == 2:  # 3 tomas raras: devolver la última
                     return mp3
             except Exception as e:
-                print("[tts] ElevenLabs (%s) falló (%s)" % (v or "lizy", e), flush=True)
+                print("[tts] ElevenLabs (%s) falló (%s)" % (v, e), flush=True)
                 break
         v = _VOZ
     return _tts_openai(api_key, texto, timeout, v)
@@ -431,7 +437,7 @@ def crear(data, tema, api_key, escenas_dir=None, progress=None, token=None):
         json.dump({"tema": tema, "nombre": data.get("nombre", ""),
                    "titulo": _titulo_libro(data),
                    "paginas": total, "creado": int(time.time()),
-                   "voz": voz or "lizy"},
+                   "voz": voz or VOZ_DEFAULT},
                   f, ensure_ascii=False)
     _quitar_generando(token)
     _limpiar_vencidos()
@@ -473,6 +479,8 @@ def muestra_voz(token, voz, reg=None):
     reg = reg or _cargar(token)
     if not reg:
         return None
+    # OJO: "lizy" y no VOZ_DEFAULT — un manifest sin voz es de ANTES del cambio
+    # de default, y ese audio se narró con Lizy. Acá se LEE historia, no se crea.
     if v == (reg.get("voz") or "lizy"):
         p = os.path.join(AUDIOLIBROS_DIR, token, "pag_02.mp3")
         if not os.path.isfile(p):

@@ -102,7 +102,10 @@ def test_tts_mp3_rutea_voz_alternativa_elevenlabs(monkeypatch):
 
     llamadas.clear()
     al.tts_mp3(api_key="k", texto="Hola", voz=None, seed=1)
-    assert llamadas[-1] == ("el", None, None)   # default → Lizy (sin override)
+    # 25-jul-2026: sin voz explícita ya NO cae al preset de ElevenLabs (Lizy, neutra)
+    # sino a VOZ_DEFAULT (Valeria, rioplatense) con su voice_id propio.
+    assert llamadas[-1] == ("el", al._EL_VOCES_ALT[al.VOZ_DEFAULT]["voice_id"],
+                            al._EL_VOCES_ALT[al.VOZ_DEFAULT]["settings"])
 
     llamadas.clear()
     al.tts_mp3(api_key="k", texto="Hola", voz="fable", seed=1)
