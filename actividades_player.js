@@ -3302,6 +3302,24 @@ function muestraPedida() {
   const id = m && m[1];
   return (id && typeof GAMES !== "undefined" && GAMES[id]) ? id : null;
 }
+
+/* La muestra es UNA actividad, no una puerta al grado entero.
+   Pablo (26-jul-2026): "cuando entras a probar una actividad y pones atrás tenés acceso a
+   todas las actividades de cuarto grado. Creo que desde la página no debería poder ir para
+   atrás". Tenía razón: el token de la muestra es PÚBLICO, así que el ← regalaba los 39
+   juegos de 4.º a cualquiera que llegara de la landing.
+   Se esconden las tres salidas al menú —el ←, el 📚 de la biblioteca y el nombre del
+   header, que también abre el selector de perfil— y `volverMenu` deja de pintar el menú:
+   al terminar la actividad se vuelve a ofrecer la MISMA. Sólo en modo muestra; un cuaderno
+   comprado no cambia en nada. */
+let MUESTRA_SOLA = null;
+function cerrarSalidasDeMuestra(juego) {
+  MUESTRA_SOLA = juego;
+  ["btnAtras", "btnBiblioteca", "hdrTitulo"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = "none";
+  });
+}
 /* El nombre con el que se crea un cuaderno escolar es un PLACEHOLDER, no un chico:
    el canje del código no sabe cómo se llama, así que pone "Peque". */
 const NOMBRE_GENERICO = "Peque";
@@ -3536,12 +3554,21 @@ const Sondeo = {
 };
 
 function pintarMenu() {
+  // PUNTO ÚNICO de la muestra: cualquier camino que quiera pintar el menú (el ←, terminar
+  // la ronda, "¡Seguir jugando!", cerrar el panel de grandes, el diploma) reabre la misma
+  // actividad. Cerrar sólo los botones no alcanzaba: el token de la muestra es PÚBLICO y
+  // basta UN camino olvidado para regalar los 39 juegos de 4.º.
+  if (MUESTRA_SOLA) return Shell.abrir(MUESTRA_SOLA);
   if (D.premium_on && (D.niveles || []).length > 1) return pintarNivel(nivelInicial());
   return pintarMenuPlano(D.menu);
 }
 // "atrás" de un juego: si está en un nivel, vuelve a las actividades de ese
 // nivel; si no, al menú.
 function volverMenu() {
+  // En modo muestra no hay menú al que volver: se reabre la misma actividad. Sin esto,
+  // cualquier camino que llame a volverMenu (terminar la ronda, un "¡Seguir jugando!")
+  // destapaba el grado completo desde un link público.
+  if (MUESTRA_SOLA) return Shell.abrir(MUESTRA_SOLA);
   if (D.premium_on && Shell.nivelActual) return pintarNivel(Shell.nivelActual);
   return pintarMenu();
 }
@@ -4161,6 +4188,7 @@ async function boot() {
   if (_muestra) {
     if (!Store.data.activeProfile) elegirPerfil(NOMBRE_INVITADO);
     pintarHeader();
+    cerrarSalidasDeMuestra(_muestra);   // ANTES de abrir: el juego no puede pintar el ←
     Shell.abrir(_muestra);   // va DESPUÉS de elegirPerfil: pisa el menú (o el sondeo) que pintó
   } else if (Store.data.activeProfile && Store.data.profiles[Store.data.activeProfile]) {
     pintarHeader(); pintarMenu();
