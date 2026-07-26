@@ -180,11 +180,42 @@ tres escalones por tema en la columna "Dificultad" de cada tabla (por ejemplo, d
   banco no da para lo que pide el DC, va con `deuda` o se construye.
 - **No se pone un grado a la venta con `FALTA` en el informe.**
 
+## Contenido que pide revisión docente
+
+Hay temas que se pueden escribir bien y aun así no deberían salir sin que los mire una
+persona: **Ciencias Sociales** (afirmaciones históricas) y **ESI**. Ningún test valida
+que una interpretación histórica sea justa.
+
+Al escribirlos, dos reglas que ya vienen de las auditorías:
+
+- **No fijar tesis historiográficas discutidas como si fueran hechos.** Por eso 5° tiene
+  la categoría "antecedente, no causa directa" (la Revolución Francesa influyó, pero no
+  causó la Revolución de Mayo) y 4° trata a los indígenas bajo encomienda y a las
+  personas africanas esclavizadas como estratos con estatus legal **distinto**.
+- **Nombrar lo incompleto.** La libertad de vientres fue un avance real Y no abolió la
+  esclavitud: las dos cosas son ciertas y el ítem lo dice.
+
+Pendiente de revisión: los 5 temas de Sociales de 5° y los de 4° que la auditoría marcó
+con "revisión docente externa obligatoria".
+
 ## Estado al 25-jul-2026
 
 | Grado | Manifiesto | Cobertura |
 |---|---|---|
 | 4° | sí | **58/58** — 1 deuda (S8: faltan las 24 capitales y las 5 regiones) |
-| 1°, 2°, 3°, 5°, 6°, 7° | **no** | sin auditar contra su `grado-N.md`; el test los saltea |
+| 5° | sí | **56/56** — 6 deudas (M1 recta al millón, M14 geometría, L1 30 textos, N8 eclipses, S6 unitario/federal, S8 recursos) |
+| 1°, 2°, 3°, 6°, 7° | **no** | sin auditar contra su `grado-N.md`; el test los saltea |
+
+Objetivos de los que faltan, según su auditoría: 1° → 45 temas, 2° → 51, 3° → 53,
+6° → 70, 7° → 68.
+
+**7° necesita una decisión antes de empezar:** suma **Inglés** como área nueva (3
+actividades) y el menú tiene 6 carriles fijos. O entra un carril nuevo —y eso cambia la
+pantalla de categorías de todos los grados— o se mapea a Lengua.
+
+**1° y 2° conviene hacerlos último.** Su matemática es casi toda manipulativa (cajero de
+fichas, material concreto) y las 4 mecánicas del catálogo no la expresan: saldría una
+trivia donde el DC pide mover objetos. Antes de esos dos grados conviene agregar una
+mecánica `manipular`.
 
 Para cada grado que sigue: paso 1 y listo, el informe dice el resto.

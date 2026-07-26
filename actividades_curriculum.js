@@ -7168,3 +7168,4566 @@ const CUR_EQUIVALENCIAS_MEDIDA_4_BANCO = [
   }
 ];
 GAMES.equivalencias_medida_4 = juegoTriviaTexto(CUR_EQUIVALENCIAS_MEDIDA_4_BANCO, "¿Cuánto es lo mismo?", "equivalenc");
+
+/* 5° · Cazador de recursos — recursos_poeticos_5
+   DC: Personificación, comparación y metáfora
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L2 */
+const CUR_RECURSOS_POETICOS_5_BANCO = [
+  {
+    "it": "«La luna me miraba desde el techo»",
+    "cat": "personificacion",
+    "m": "Mirar es algo que hacen las personas: se lo presta a la luna."
+  },
+  {
+    "it": "«Sus ojos son como dos faroles»",
+    "cat": "comparacion",
+    "m": "Dice 'como': compara dos cosas sin decir que sean la misma."
+  },
+  {
+    "it": "«Sus ojos son dos faroles»",
+    "cat": "metafora",
+    "m": "Sin el 'como', la reemplaza directamente: eso es metáfora."
+  },
+  {
+    "it": "«El viento aullaba toda la noche»",
+    "cat": "personificacion",
+    "m": "Aullar es de un animal o una persona; se lo da al viento."
+  },
+  {
+    "it": "«Corre tan rápido como el agua»",
+    "cat": "comparacion",
+    "m": "El 'tan… como' marca la comparación."
+  },
+  {
+    "it": "«Tu risa es una campana»",
+    "cat": "metafora",
+    "m": "No dice que se PAREZCA a una campana: dice que ES una campana."
+  },
+  {
+    "it": "«Las estrellas bailaban en el cielo»",
+    "cat": "personificacion",
+    "m": "Bailar es acción humana."
+  },
+  {
+    "it": "«Blanca como la nieve»",
+    "cat": "comparacion",
+    "m": "El 'como' compara el color con la nieve."
+  },
+  {
+    "it": "«La ciudad es una selva de cemento»",
+    "cat": "metafora",
+    "m": "Reemplaza la ciudad por la selva, sin comparar."
+  },
+  {
+    "it": "«El reloj se quejaba en la pared»",
+    "cat": "personificacion",
+    "m": "Quejarse es de alguien que siente."
+  },
+  {
+    "it": "«Es más lento que una tortuga»",
+    "cat": "comparacion",
+    "m": "'Más… que' compara."
+  },
+  {
+    "it": "«El otoño es una carta amarilla»",
+    "cat": "metafora",
+    "m": "Sustituye una cosa por otra."
+  },
+  {
+    "it": "«Las hojas susurraban un secreto»",
+    "cat": "personificacion",
+    "m": "Susurrar un secreto lo hace alguien que habla."
+  },
+  {
+    "it": "«Duro como una piedra»",
+    "cat": "comparacion",
+    "m": "'Como' otra vez: comparación."
+  },
+  {
+    "it": "«Sus manos eran dos pájaros nerviosos»",
+    "cat": "metafora",
+    "m": "Las manos SON pájaros: reemplazo, no comparación."
+  },
+  {
+    "it": "«El sol se despertó temprano»",
+    "cat": "personificacion",
+    "m": "Despertarse es de un ser vivo."
+  },
+  {
+    "it": "«Tan callado como un ratón»",
+    "cat": "comparacion",
+    "m": "El 'tan… como' es la marca."
+  },
+  {
+    "it": "«La noche es un manto negro»",
+    "cat": "metafora",
+    "m": "La noche ES el manto, sin 'como'."
+  }
+];
+GAMES.recursos_poeticos_5 = juegoClasificar(CUR_RECURSOS_POETICOS_5_BANCO, "¿Qué recurso usó el poeta?", [{"cat": "personificacion", "label": "🌙 Personificación"}, {"cat": "comparacion", "label": "⚖️ Comparación"}, {"cat": "metafora", "label": "🔮 Metáfora"}], "recursos_p");
+
+/* 5° · Verbos en tres cajas — verbos_clases_5
+   DC: Verbos de acción, de estado y psicológicos
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L3 */
+const CUR_VERBOS_CLASES_5_BANCO = [
+  {
+    "it": "correr",
+    "cat": "accion",
+    "m": "Se hace con el cuerpo y se ve."
+  },
+  {
+    "it": "ser",
+    "cat": "estado",
+    "m": "No indica acción: dice cómo se está o se es."
+  },
+  {
+    "it": "pensar",
+    "cat": "psicologico",
+    "m": "Pasa adentro de la cabeza: es un proceso mental."
+  },
+  {
+    "it": "saltar",
+    "cat": "accion",
+    "m": "Acción visible."
+  },
+  {
+    "it": "estar",
+    "cat": "estado",
+    "m": "Verbo de estado por excelencia."
+  },
+  {
+    "it": "querer",
+    "cat": "psicologico",
+    "m": "Es un sentimiento, no una acción."
+  },
+  {
+    "it": "escribir",
+    "cat": "accion",
+    "m": "Se hace y se ve."
+  },
+  {
+    "it": "parecer",
+    "cat": "estado",
+    "m": "Indica un estado o una apariencia."
+  },
+  {
+    "it": "odiar",
+    "cat": "psicologico",
+    "m": "Sentimiento."
+  },
+  {
+    "it": "cocinar",
+    "cat": "accion",
+    "m": "Acción."
+  },
+  {
+    "it": "permanecer",
+    "cat": "estado",
+    "m": "Seguir en un estado."
+  },
+  {
+    "it": "recordar",
+    "cat": "psicologico",
+    "m": "Proceso mental."
+  },
+  {
+    "it": "nadar",
+    "cat": "accion",
+    "m": "Acción del cuerpo."
+  },
+  {
+    "it": "resultar",
+    "cat": "estado",
+    "m": "Verbo copulativo: une con un estado."
+  },
+  {
+    "it": "imaginar",
+    "cat": "psicologico",
+    "m": "Pasa en la mente."
+  },
+  {
+    "it": "construir",
+    "cat": "accion",
+    "m": "Acción."
+  },
+  {
+    "it": "temer",
+    "cat": "psicologico",
+    "m": "Sentimiento de miedo."
+  },
+  {
+    "it": "quedar",
+    "cat": "estado",
+    "m": "Indica el estado en que algo queda."
+  },
+  {
+    "it": "gritar",
+    "cat": "accion",
+    "m": "Acción, se oye."
+  },
+  {
+    "it": "creer",
+    "cat": "psicologico",
+    "m": "Actividad de la mente."
+  },
+  {
+    "it": "seguir",
+    "cat": "estado",
+    "m": "Ojo: cuando dice 'sigue enojado' es de estado. Si fuera 'sigue al perro' sería de acción: el contexto decide."
+  },
+  {
+    "it": "extrañar",
+    "cat": "psicologico",
+    "m": "Sentimiento."
+  }
+];
+GAMES.verbos_clases_5 = juegoClasificar(CUR_VERBOS_CLASES_5_BANCO, "¿Qué tipo de verbo es?", [{"cat": "accion", "label": "🏃 De acción"}, {"cat": "estado", "label": "🪑 De estado"}, {"cat": "psicologico", "label": "💭 Psicológico"}], "verbos_cla");
+
+/* 5° · ¿Objeto directo o indirecto? — od_oi_5
+   DC: Objeto directo e indirecto; prueba de sustitución por lo/le
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L4 */
+const CUR_OD_OI_5_BANCO = [
+  {
+    "q": "Ana compró **un libro**. ¿Qué es 'un libro'?",
+    "ops": [
+      "Objeto directo",
+      "Objeto indirecto",
+      "Sujeto"
+    ],
+    "m": "Probá reemplazarlo: 'Ana LO compró'. Si entra lo/la, es directo."
+  },
+  {
+    "q": "Ana le dio el libro **a su hermano**. ¿Qué es 'a su hermano'?",
+    "ops": [
+      "Objeto indirecto",
+      "Objeto directo",
+      "Sujeto"
+    ],
+    "m": "'Ana LE dio el libro'. Si entra le/les, es indirecto."
+  },
+  {
+    "q": "Escribí **una carta**. ¿Qué es?",
+    "ops": [
+      "Objeto directo",
+      "Objeto indirecto",
+      "Predicado"
+    ],
+    "m": "'La escribí': entra 'la', así que es directo."
+  },
+  {
+    "q": "Le conté el chiste **a Julia**. ¿Qué es 'a Julia'?",
+    "ops": [
+      "Objeto indirecto",
+      "Objeto directo",
+      "Sujeto"
+    ],
+    "m": "'LE conté el chiste': indirecto."
+  },
+  {
+    "q": "Vi **a Julia** en la plaza. ¿Qué es 'a Julia'?",
+    "ops": [
+      "Objeto directo",
+      "Objeto indirecto",
+      "Sujeto"
+    ],
+    "m": "Trampa clásica: lleva 'a' pero es DIRECTO, porque se dice 'LA vi'. La 'a' aparece cuando el objeto directo es una persona."
+  },
+  {
+    "q": "Regalamos flores **a la maestra**. ¿Qué es?",
+    "ops": [
+      "Objeto indirecto",
+      "Objeto directo",
+      "Circunstancial"
+    ],
+    "m": "'LE regalamos flores': indirecto."
+  },
+  {
+    "q": "El perro mordió **la pelota**. ¿Qué es 'la pelota'?",
+    "ops": [
+      "Objeto directo",
+      "Objeto indirecto",
+      "Sujeto"
+    ],
+    "m": "'LA mordió': directo."
+  },
+  {
+    "q": "Mandé un mensaje **a mis primos**. ¿Qué es?",
+    "ops": [
+      "Objeto indirecto",
+      "Objeto directo",
+      "Sujeto"
+    ],
+    "m": "'LES mandé un mensaje': indirecto."
+  },
+  {
+    "q": "Compré **pan** para la cena. ¿Qué es 'pan'?",
+    "ops": [
+      "Objeto directo",
+      "Objeto indirecto",
+      "Circunstancial"
+    ],
+    "m": "'LO compré': directo."
+  },
+  {
+    "q": "En 'Le presté la bici a Tomás', ¿cuál es el objeto directo?",
+    "ops": [
+      "la bici",
+      "a Tomás",
+      "Le"
+    ],
+    "m": "'La presté': el directo es la bici. 'A Tomás' es el indirecto."
+  },
+  {
+    "q": "¿Con qué pronombres se reemplaza el objeto directo?",
+    "ops": [
+      "lo, la, los, las",
+      "le, les",
+      "me, te"
+    ],
+    "m": "Es la prueba más rápida para distinguirlos."
+  },
+  {
+    "q": "¿Y el objeto indirecto?",
+    "ops": [
+      "le, les",
+      "lo, la",
+      "el, la"
+    ],
+    "m": "Le/les es la marca del indirecto."
+  },
+  {
+    "q": "Explicó **la lección** a los chicos. ¿Qué es 'la lección'?",
+    "ops": [
+      "Objeto directo",
+      "Objeto indirecto",
+      "Sujeto"
+    ],
+    "m": "'LA explicó': directo."
+  },
+  {
+    "q": "Cociné **una torta** para vos. ¿Qué es 'una torta'?",
+    "ops": [
+      "Objeto directo",
+      "Objeto indirecto",
+      "Sujeto"
+    ],
+    "m": "'LA cociné': directo."
+  },
+  {
+    "q": "Pedí un favor **a mi vecina**. ¿Qué es 'a mi vecina'?",
+    "ops": [
+      "Objeto indirecto",
+      "Objeto directo",
+      "Circunstancial"
+    ],
+    "m": "'LE pedí un favor': indirecto."
+  },
+  {
+    "q": "Saludé **a los abuelos**. ¿Qué es?",
+    "ops": [
+      "Objeto directo",
+      "Objeto indirecto",
+      "Sujeto"
+    ],
+    "m": "Otra vez la 'a' con personas: 'LOS saludé', así que es directo."
+  },
+  {
+    "q": "El objeto directo, ¿de qué verbo depende?",
+    "ops": [
+      "Del verbo principal del predicado",
+      "Del sujeto",
+      "De ninguno"
+    ],
+    "m": "Los dos objetos completan al verbo, por eso se llaman complementos."
+  },
+  {
+    "q": "Trajimos **los cuadernos**. ¿Qué es?",
+    "ops": [
+      "Objeto directo",
+      "Objeto indirecto",
+      "Sujeto"
+    ],
+    "m": "'LOS trajimos': directo."
+  },
+  {
+    "q": "Contale la novedad **a tu mamá**. ¿Qué es?",
+    "ops": [
+      "Objeto indirecto",
+      "Objeto directo",
+      "Sujeto"
+    ],
+    "m": "'ContaLE la novedad': indirecto."
+  },
+  {
+    "q": "Rompieron **la ventana**. ¿Qué es?",
+    "ops": [
+      "Objeto directo",
+      "Objeto indirecto",
+      "Sujeto"
+    ],
+    "m": "'LA rompieron': directo."
+  }
+];
+GAMES.od_oi_5 = juegoTriviaTexto(CUR_OD_OI_5_BANCO, "Mirá la parte destacada de la oración.", "od_oi_5");
+
+/* 5° · Grados del adjetivo — grados_adjetivo_5
+   DC: Comparativo y superlativo
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L5 */
+const CUR_GRADOS_ADJETIVO_5_BANCO = [
+  {
+    "q": "Juan es alto. Pedro es MÁS alto. ¿Qué grado es 'más alto'?",
+    "ops": [
+      "Comparativo",
+      "Superlativo",
+      "Positivo"
+    ],
+    "m": "El comparativo pone dos cosas una al lado de la otra."
+  },
+  {
+    "q": "Pedro es EL MÁS alto de todos. ¿Qué grado es?",
+    "ops": [
+      "Superlativo",
+      "Comparativo",
+      "Positivo"
+    ],
+    "m": "El superlativo lo pone arriba de todo el grupo."
+  },
+  {
+    "q": "El comparativo de 'bueno' es…",
+    "ops": [
+      "mejor",
+      "más bueno",
+      "buenísimo"
+    ],
+    "m": "'Bueno' tiene comparativo propio: mejor. 'Más bueno' suena raro."
+  },
+  {
+    "q": "El comparativo de 'malo' es…",
+    "ops": [
+      "peor",
+      "más malo",
+      "malísimo"
+    ],
+    "m": "Igual que bueno/mejor: malo/peor."
+  },
+  {
+    "q": "El comparativo de 'grande' es…",
+    "ops": [
+      "mayor",
+      "más grandoso",
+      "grandote"
+    ],
+    "m": "Grande tiene mayor, aunque también se usa 'más grande'."
+  },
+  {
+    "q": "El comparativo de 'pequeño' es…",
+    "ops": [
+      "menor",
+      "más pequeñito",
+      "pequeñísimo"
+    ],
+    "m": "Pequeño/menor, como grande/mayor."
+  },
+  {
+    "q": "¿Cuál es el superlativo de 'rápido' con el sufijo -ísimo?",
+    "ops": [
+      "rapidísimo",
+      "más rápido",
+      "muy rápido"
+    ],
+    "m": "El sufijo -ísimo arma el superlativo en una sola palabra."
+  },
+  {
+    "q": "El superlativo de 'fácil' es…",
+    "ops": [
+      "facilísimo",
+      "más fácil",
+      "fácilmente"
+    ],
+    "m": "Se le agrega -ísimo."
+  },
+  {
+    "q": "«Este libro es TAN largo COMO el otro». ¿Qué compara?",
+    "ops": [
+      "Que son iguales",
+      "Que uno es más largo",
+      "Que uno es el más largo"
+    ],
+    "m": "'Tan… como' es el comparativo de igualdad."
+  },
+  {
+    "q": "«Este libro es MENOS largo QUE el otro». ¿Qué compara?",
+    "ops": [
+      "Que este tiene menos",
+      "Que son iguales",
+      "Que este es el más largo"
+    ],
+    "m": "'Menos… que' es el comparativo de inferioridad."
+  },
+  {
+    "q": "El superlativo de 'feliz' es…",
+    "ops": [
+      "felicísimo",
+      "más feliz",
+      "felizmente"
+    ],
+    "m": "Con -ísimo; ojo que la z cambia a c."
+  },
+  {
+    "q": "«Es la casa MÁS linda DEL barrio». ¿Qué grado es?",
+    "ops": [
+      "Superlativo",
+      "Comparativo",
+      "Positivo"
+    ],
+    "m": "'El más… de' señala el tope del grupo: superlativo."
+  },
+  {
+    "q": "«La casa es linda». ¿Qué grado es?",
+    "ops": [
+      "Positivo",
+      "Comparativo",
+      "Superlativo"
+    ],
+    "m": "El grado positivo es el adjetivo solo, sin comparar."
+  },
+  {
+    "q": "El superlativo de 'antiguo' es…",
+    "ops": [
+      "antiquísimo",
+      "más antiguo",
+      "antigüedad"
+    ],
+    "m": "Antiquísimo: la palabra cambia un poco al agregar -ísimo."
+  },
+  {
+    "q": "«Sos MÁS alto QUE yo». ¿Qué tipo de comparativo es?",
+    "ops": [
+      "De superioridad",
+      "De igualdad",
+      "De inferioridad"
+    ],
+    "m": "'Más… que' marca superioridad."
+  },
+  {
+    "q": "El superlativo de 'bueno' con -ísimo es…",
+    "ops": [
+      "buenísimo",
+      "mejorísimo",
+      "más bueno"
+    ],
+    "m": "'Buenísimo' existe; 'mejorísimo' no."
+  }
+];
+GAMES.grados_adjetivo_5 = juegoTriviaTexto(CUR_GRADOS_ADJETIVO_5_BANCO, "¿Cómo se dice?", "grados_adj");
+
+/* 5° · Futuro o condicional — futuro_condicional_5
+   DC: Futuro y condicional; perífrasis 'voy a + infinitivo'
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L6 */
+const CUR_FUTURO_CONDICIONAL_5_BANCO = [
+  {
+    "q": "Mañana ___ al club.",
+    "ops": [
+      "iré",
+      "iría",
+      "iba"
+    ],
+    "m": "'Mañana' es futuro seguro: iré."
+  },
+  {
+    "q": "Si tuviera tiempo, ___ al club.",
+    "ops": [
+      "iría",
+      "iré",
+      "fui"
+    ],
+    "m": "'Si tuviera' plantea algo hipotético: pide el condicional."
+  },
+  {
+    "q": "El año que viene ___ quinto grado.",
+    "ops": [
+      "terminaré",
+      "terminaría",
+      "terminaba"
+    ],
+    "m": "Hecho futuro concreto: futuro."
+  },
+  {
+    "q": "Yo que vos, ___ con la maestra.",
+    "ops": [
+      "hablaría",
+      "hablaré",
+      "hablé"
+    ],
+    "m": "'Yo que vos' da un consejo: condicional."
+  },
+  {
+    "q": "¿___ pasarme la goma, por favor?",
+    "ops": [
+      "Podrías",
+      "Podrás",
+      "Pudiste"
+    ],
+    "m": "El condicional también sirve para pedir con cortesía. 'Podrás' suena a orden."
+  },
+  {
+    "q": "El sábado ___ el partido.",
+    "ops": [
+      "jugaremos",
+      "jugaríamos",
+      "jugábamos"
+    ],
+    "m": "Fecha concreta a futuro."
+  },
+  {
+    "q": "Me dijo que ___ más tarde.",
+    "ops": [
+      "llegaría",
+      "llegará",
+      "llegó"
+    ],
+    "m": "Es un futuro visto desde el pasado: se usa el condicional."
+  },
+  {
+    "q": "«Voy a estudiar esta tarde» es…",
+    "ops": [
+      "Una forma de hablar del futuro",
+      "Pasado",
+      "Condicional"
+    ],
+    "m": "La perífrasis 'voy a + infinitivo' expresa futuro; se usa muchísimo al hablar."
+  },
+  {
+    "q": "Con esta lluvia, ___ que suspenden el acto.",
+    "ops": [
+      "diría",
+      "diré",
+      "dije"
+    ],
+    "m": "Es una suposición: condicional."
+  },
+  {
+    "q": "En dos horas ___ la película.",
+    "ops": [
+      "empezará",
+      "empezaría",
+      "empezaba"
+    ],
+    "m": "Futuro cierto."
+  },
+  {
+    "q": "¿Cuál es el futuro de 'hacer'?",
+    "ops": [
+      "haré",
+      "haría",
+      "hacía"
+    ],
+    "m": "Hacer es irregular: haré, harás, hará."
+  },
+  {
+    "q": "¿Cuál es el condicional de 'poder'?",
+    "ops": [
+      "podría",
+      "podré",
+      "pude"
+    ],
+    "m": "Podría, podrías, podría."
+  },
+  {
+    "q": "Nos ___ encantado ir, pero no pudimos.",
+    "ops": [
+      "habría",
+      "habrá",
+      "hubo"
+    ],
+    "m": "Habla de algo que no pasó: condicional."
+  },
+  {
+    "q": "¿Cuál es el futuro de 'tener'?",
+    "ops": [
+      "tendré",
+      "tendría",
+      "tenía"
+    ],
+    "m": "Tener es irregular: tendré."
+  },
+  {
+    "q": "Seguro que ya ___ en casa.",
+    "ops": [
+      "estará",
+      "estaría",
+      "estuvo"
+    ],
+    "m": "El futuro también sirve para suponer algo del presente: 'ya estará en casa'."
+  },
+  {
+    "q": "Prometió que ___ el libro.",
+    "ops": [
+      "devolvería",
+      "devolverá",
+      "devolvió"
+    ],
+    "m": "Lo prometió en pasado, así que el futuro de ese momento es condicional."
+  },
+  {
+    "q": "Cuando sea grande ___ veterinaria.",
+    "ops": [
+      "seré",
+      "sería",
+      "era"
+    ],
+    "m": "Plan a futuro: futuro."
+  },
+  {
+    "q": "¿___ un poco de agua? Tengo mucha sed.",
+    "ops": [
+      "Tendrías",
+      "Tendrás",
+      "Tuviste"
+    ],
+    "m": "Pedido cortés: condicional."
+  },
+  {
+    "q": "El lunes ___ los resultados.",
+    "ops": [
+      "conoceremos",
+      "conoceríamos",
+      "conocíamos"
+    ],
+    "m": "Día concreto a futuro."
+  },
+  {
+    "q": "Me ___ quedar, pero tengo que irme.",
+    "ops": [
+      "gustaría",
+      "gustará",
+      "gustó"
+    ],
+    "m": "Deseo que no se cumple: condicional."
+  }
+];
+GAMES.futuro_condicional_5 = juegoTriviaTexto(CUR_FUTURO_CONDICIONAL_5_BANCO, "¿Cuál completa mejor la frase?", "futuro_con");
+
+/* 5° · Vaya, valla o baya — homofonos_5
+   DC: Homófonos heterógrafos: ay/hay, casar/cazar, vaya/valla/baya
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L7 */
+const CUR_HOMOFONOS_5_BANCO = [
+  {
+    "q": "Ojalá ___ todo bien en la prueba.",
+    "ops": [
+      "vaya",
+      "valla",
+      "baya"
+    ],
+    "m": "'Vaya' es del verbo ir. La 'valla' es una cerca y la 'baya' es un fruto."
+  },
+  {
+    "q": "Saltó la ___ del terreno.",
+    "ops": [
+      "valla",
+      "vaya",
+      "baya"
+    ],
+    "m": "La cerca es 'valla', con doble L."
+  },
+  {
+    "q": "El arándano es una ___ .",
+    "ops": [
+      "baya",
+      "valla",
+      "vaya"
+    ],
+    "m": "La fruta chiquita y carnosa es la 'baya', con B."
+  },
+  {
+    "q": "___ , me golpeé el codo.",
+    "ops": [
+      "Ay",
+      "Hay",
+      "Ahí"
+    ],
+    "m": "El quejido es '¡Ay!'. 'Hay' es del verbo haber y 'ahí' es el lugar."
+  },
+  {
+    "q": "___ tres sillas libres.",
+    "ops": [
+      "Hay",
+      "Ay",
+      "Ahí"
+    ],
+    "m": "Del verbo haber: hay."
+  },
+  {
+    "q": "Dejalo ___ , sobre la mesa.",
+    "ops": [
+      "ahí",
+      "hay",
+      "ay"
+    ],
+    "m": "Indica lugar: ahí, con tilde."
+  },
+  {
+    "q": "Se van a ___ en diciembre.",
+    "ops": [
+      "casar",
+      "cazar",
+      "cansar"
+    ],
+    "m": "Formar pareja es 'casar', con S. 'Cazar' con Z es perseguir animales."
+  },
+  {
+    "q": "Salieron a ___ en el monte.",
+    "ops": [
+      "cazar",
+      "casar",
+      "calzar"
+    ],
+    "m": "Perseguir animales: cazar, con Z."
+  },
+  {
+    "q": "El equipo ___ ganando.",
+    "ops": [
+      "va",
+      "vah",
+      "bá"
+    ],
+    "m": "Del verbo ir: va."
+  },
+  {
+    "q": "Le regaló un ramo de flores muy ___ .",
+    "ops": [
+      "bellas",
+      "vellas",
+      "veyas"
+    ],
+    "m": "'Bellas' es hermosas, con B."
+  },
+  {
+    "q": "El bebé tiene mucho ___ en la cabeza.",
+    "ops": [
+      "vello",
+      "bello",
+      "veyo"
+    ],
+    "m": "El pelito fino es 'vello', con V. 'Bello' con B es hermoso."
+  },
+  {
+    "q": "Es un paisaje muy ___ .",
+    "ops": [
+      "bello",
+      "vello",
+      "veyo"
+    ],
+    "m": "Hermoso es 'bello', con B."
+  },
+  {
+    "q": "Se ___ el pelo todas las mañanas.",
+    "ops": [
+      "ata",
+      "hata",
+      "haya"
+    ],
+    "m": "Del verbo atar, sin H."
+  },
+  {
+    "q": "Espero que ___ llegado bien.",
+    "ops": [
+      "haya",
+      "halla",
+      "aya"
+    ],
+    "m": "'Haya' es del verbo haber. 'Halla' es de hallar (encontrar)."
+  },
+  {
+    "q": "El que busca, ___ .",
+    "ops": [
+      "halla",
+      "haya",
+      "aya"
+    ],
+    "m": "De hallar: encontrar."
+  },
+  {
+    "q": "Le dieron un ___ por su trabajo.",
+    "ops": [
+      "premio",
+      "premmio",
+      "prehmio"
+    ],
+    "m": "Premio, con una sola M."
+  },
+  {
+    "q": "Puso los platos ___ la mesa.",
+    "ops": [
+      "sobre",
+      "sobrre",
+      "zobre"
+    ],
+    "m": "Sobre, con B."
+  },
+  {
+    "q": "Ese ___ tiene mucha agua.",
+    "ops": [
+      "pozo",
+      "poso",
+      "posso"
+    ],
+    "m": "El agujero con agua es 'pozo', con Z. 'Poso' es lo que queda en el fondo."
+  },
+  {
+    "q": "Quedó un ___ de café en la taza.",
+    "ops": [
+      "poso",
+      "pozo",
+      "posso"
+    ],
+    "m": "Lo que se deposita abajo es el 'poso', con S."
+  },
+  {
+    "q": "___ tú a saber qué pasó.",
+    "ops": [
+      "Vaya",
+      "Valla",
+      "Baya"
+    ],
+    "m": "Otra vez del verbo ir: vaya."
+  },
+  {
+    "q": "El campo estaba cercado con una ___ de madera.",
+    "ops": [
+      "valla",
+      "vaya",
+      "baya"
+    ],
+    "m": "La cerca: valla."
+  },
+  {
+    "q": "Comimos ___ silvestres en la montaña.",
+    "ops": [
+      "bayas",
+      "vallas",
+      "vayas"
+    ],
+    "m": "Las frutas: bayas."
+  }
+];
+GAMES.homofonos_5 = juegoTriviaTexto(CUR_HOMOFONOS_5_BANCO, "Suenan igual. ¿Cuál va acá?", "homofonos_");
+
+/* 5° · Tilde diacrítica — acentuacion_5
+   DC: Acentuación general, tilde diacrítica y adverbios en -mente
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L8 */
+const CUR_ACENTUACION_5_BANCO = [
+  {
+    "q": "¿___ hora es?",
+    "ops": [
+      "Qué",
+      "Que",
+      "Qué o que, da igual"
+    ],
+    "m": "En pregunta lleva tilde: qué."
+  },
+  {
+    "q": "Me dijo ___ venía tarde.",
+    "ops": [
+      "que",
+      "qué",
+      "qué o que, da igual"
+    ],
+    "m": "Acá no pregunta ni exclama: va sin tilde."
+  },
+  {
+    "q": "___ es mi hermano.",
+    "ops": [
+      "Él",
+      "El",
+      "Èl"
+    ],
+    "m": "El pronombre (la persona) lleva tilde: él. El artículo (el perro) no."
+  },
+  {
+    "q": "Abrí ___ cajón.",
+    "ops": [
+      "el",
+      "él",
+      "èl"
+    ],
+    "m": "Acá 'el' es artículo, va sin tilde."
+  },
+  {
+    "q": "Ese libro es para ___ .",
+    "ops": [
+      "mí",
+      "mi",
+      "mî"
+    ],
+    "m": "El pronombre lleva tilde: mí."
+  },
+  {
+    "q": "___ mochila es azul.",
+    "ops": [
+      "Mi",
+      "Mí",
+      "Mî"
+    ],
+    "m": "'Mi mochila' es posesivo: sin tilde."
+  },
+  {
+    "q": "Yo no ___ nada de eso.",
+    "ops": [
+      "sé",
+      "se",
+      "sê"
+    ],
+    "m": "Del verbo saber lleva tilde: sé."
+  },
+  {
+    "q": "___ lava las manos antes de comer.",
+    "ops": [
+      "Se",
+      "Sé",
+      "Sê"
+    ],
+    "m": "El pronombre 'se' va sin tilde."
+  },
+  {
+    "q": "¿Querés ___ o café?",
+    "ops": [
+      "té",
+      "te",
+      "tê"
+    ],
+    "m": "La infusión lleva tilde: té."
+  },
+  {
+    "q": "___ espero en la puerta.",
+    "ops": [
+      "Te",
+      "Té",
+      "Tê"
+    ],
+    "m": "El pronombre 'te' no lleva tilde."
+  },
+  {
+    "q": "No sé ___ hacer.",
+    "ops": [
+      "qué",
+      "que",
+      "qué o que, da igual"
+    ],
+    "m": "Es una pregunta indirecta: igual lleva tilde."
+  },
+  {
+    "q": "___ mucho más de lo que parece.",
+    "ops": [
+      "Sé",
+      "Se",
+      "Sê"
+    ],
+    "m": "Del verbo saber: sé."
+  },
+  {
+    "q": "¿___ viene a buscarte?",
+    "ops": [
+      "Quién",
+      "Quien",
+      "Quièn"
+    ],
+    "m": "En pregunta, quién lleva tilde."
+  },
+  {
+    "q": "El chico ___ vino ayer es mi primo.",
+    "ops": [
+      "que",
+      "qué",
+      "quê"
+    ],
+    "m": "No pregunta: sin tilde."
+  },
+  {
+    "q": "¿___ vivís?",
+    "ops": [
+      "Dónde",
+      "Donde",
+      "Dônde"
+    ],
+    "m": "Pregunta: dónde con tilde."
+  },
+  {
+    "q": "La casa ___ vivo es amarilla.",
+    "ops": [
+      "donde",
+      "dónde",
+      "dônde"
+    ],
+    "m": "Sin pregunta: sin tilde."
+  },
+  {
+    "q": "¿___ llegaste tarde?",
+    "ops": [
+      "Por qué",
+      "Porque",
+      "Porqué"
+    ],
+    "m": "Al preguntar va separado y con tilde: por qué."
+  },
+  {
+    "q": "Llegué tarde ___ perdí el colectivo.",
+    "ops": [
+      "porque",
+      "por qué",
+      "por que"
+    ],
+    "m": "Al responder va junto y sin tilde: porque."
+  },
+  {
+    "q": "El adverbio de 'rápida' es…",
+    "ops": [
+      "rápidamente",
+      "rapidamente",
+      "rápidamentè"
+    ],
+    "m": "Los adverbios en -mente conservan la tilde del adjetivo original."
+  },
+  {
+    "q": "El adverbio de 'fácil' es…",
+    "ops": [
+      "fácilmente",
+      "facilmente",
+      "fàcilmente"
+    ],
+    "m": "Fácil lleva tilde, así que fácilmente también."
+  },
+  {
+    "q": "El adverbio de 'lento' es…",
+    "ops": [
+      "lentamente",
+      "léntamente",
+      "lentaménte"
+    ],
+    "m": "'Lento' no lleva tilde, así que lentamente tampoco."
+  },
+  {
+    "q": "'Cántaro' es una palabra…",
+    "ops": [
+      "Esdrújula",
+      "Grave",
+      "Aguda"
+    ],
+    "m": "La fuerza está en la antepenúltima sílaba: CÁN-ta-ro. Todas las esdrújulas llevan tilde."
+  },
+  {
+    "q": "'Ratón' es una palabra…",
+    "ops": [
+      "Aguda",
+      "Grave",
+      "Esdrújula"
+    ],
+    "m": "La fuerza está en la última: ra-TÓN. Lleva tilde por terminar en N."
+  },
+  {
+    "q": "'Árbol' es una palabra…",
+    "ops": [
+      "Grave",
+      "Aguda",
+      "Esdrújula"
+    ],
+    "m": "ÁR-bol: la fuerza en la anteúltima. Lleva tilde porque NO termina en n, s ni vocal."
+  }
+];
+GAMES.acentuacion_5 = juegoTriviaTexto(CUR_ACENTUACION_5_BANCO, "¿Lleva tilde o no?", "acentuacio");
+
+/* 5° · Prefijos poderosos — prefijos_5
+   DC: Prefijos in-, des-, micro-, sub-, anti-
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L9 */
+const CUR_PREFIJOS_5_BANCO = [
+  {
+    "q": "'Incompleto' significa…",
+    "ops": [
+      "Que no está completo",
+      "Muy completo",
+      "Completo de nuevo"
+    ],
+    "m": "El prefijo in- niega."
+  },
+  {
+    "q": "'Deshacer' significa…",
+    "ops": [
+      "Hacer al revés",
+      "Hacer mucho",
+      "Hacer después"
+    ],
+    "m": "Des- invierte la acción."
+  },
+  {
+    "q": "'Microscopio' sirve para ver cosas…",
+    "ops": [
+      "Muy chiquitas",
+      "Muy lejanas",
+      "Muy grandes"
+    ],
+    "m": "Micro- quiere decir pequeño."
+  },
+  {
+    "q": "'Submarino' significa…",
+    "ops": [
+      "Debajo del mar",
+      "Sobre el mar",
+      "Contra el mar"
+    ],
+    "m": "Sub- es debajo."
+  },
+  {
+    "q": "'Antivirus' es algo que…",
+    "ops": [
+      "Actúa contra los virus",
+      "Ayuda a los virus",
+      "Es un virus chiquito"
+    ],
+    "m": "Anti- es contra."
+  },
+  {
+    "q": "'Injusto' significa…",
+    "ops": [
+      "Que no es justo",
+      "Muy justo",
+      "Justo otra vez"
+    ],
+    "m": "In- niega."
+  },
+  {
+    "q": "'Desarmar' significa…",
+    "ops": [
+      "Sacar las partes de algo armado",
+      "Armar mejor",
+      "Armar de nuevo"
+    ],
+    "m": "Des- deshace la acción de armar."
+  },
+  {
+    "q": "'Subsuelo' es…",
+    "ops": [
+      "Lo que está debajo del suelo",
+      "El suelo de arriba",
+      "Un suelo chiquito"
+    ],
+    "m": "Sub- otra vez: debajo."
+  },
+  {
+    "q": "'Antibiótico' actúa…",
+    "ops": [
+      "Contra bacterias que enferman",
+      "A favor de las bacterias",
+      "Debajo de la piel"
+    ],
+    "m": "Anti- es contra; bio es vida."
+  },
+  {
+    "q": "'Microondas' usa ondas…",
+    "ops": [
+      "Muy chiquitas",
+      "Muy grandes",
+      "De agua"
+    ],
+    "m": "Micro- es pequeño."
+  },
+  {
+    "q": "En 'insecto', ¿el 'in-' es un prefijo que niega?",
+    "ops": [
+      "No, es parte de la palabra",
+      "Sí, significa 'no secto'",
+      "Sí, significa 'muy secto'"
+    ],
+    "m": "Trampa importante: no todo lo que empieza con 'in' lleva prefijo. 'Secto' no existe. Si al sacar el prefijo no queda una palabra real, no era prefijo."
+  },
+  {
+    "q": "En 'destino', ¿el 'des-' es un prefijo?",
+    "ops": [
+      "No, es parte de la palabra",
+      "Sí, es 'no tino'",
+      "Sí, es 'tino al revés'"
+    ],
+    "m": "Misma trampa: 'tino' existe pero destino no significa 'lo contrario de tino'. El prefijo tiene que cambiar el significado de forma previsible."
+  },
+  {
+    "q": "'Desordenado' significa…",
+    "ops": [
+      "Que no tiene orden",
+      "Muy ordenado",
+      "Ordenado de nuevo"
+    ],
+    "m": "Des- niega el orden."
+  },
+  {
+    "q": "'Imposible' significa…",
+    "ops": [
+      "Que no se puede",
+      "Que se puede mucho",
+      "Que se puede después"
+    ],
+    "m": "In- se transforma en im- antes de p: imposible, impaciente."
+  },
+  {
+    "q": "'Subrayar' significa…",
+    "ops": [
+      "Hacer una raya debajo",
+      "Rayar mucho",
+      "Rayar contra algo"
+    ],
+    "m": "Sub- es debajo; rayar es hacer la raya."
+  },
+  {
+    "q": "'Antiaéreo' significa…",
+    "ops": [
+      "Contra lo que viene por el aire",
+      "Que vuela mucho",
+      "Debajo del aire"
+    ],
+    "m": "Anti- es contra."
+  },
+  {
+    "q": "'Incapaz' significa…",
+    "ops": [
+      "Que no es capaz",
+      "Muy capaz",
+      "Capaz otra vez"
+    ],
+    "m": "In- niega."
+  },
+  {
+    "q": "'Descongelar' significa…",
+    "ops": [
+      "Sacar el congelamiento",
+      "Congelar más",
+      "Congelar de nuevo"
+    ],
+    "m": "Des- invierte la acción."
+  },
+  {
+    "q": "'Microbio' es un ser vivo…",
+    "ops": [
+      "Tan chico que no se ve a simple vista",
+      "Enorme",
+      "Que vive debajo del agua"
+    ],
+    "m": "Micro- pequeño, bio vida."
+  },
+  {
+    "q": "En 'independiente', ¿qué niega el prefijo?",
+    "ops": [
+      "Que dependa de otro",
+      "Que sea diente",
+      "Que esté debajo"
+    ],
+    "m": "In- + dependiente: que no depende."
+  }
+];
+GAMES.prefijos_5 = juegoTriviaTexto(CUR_PREFIJOS_5_BANCO, "¿Qué significa la palabra?", "prefijos_5");
+
+/* 5° · Una palabra, varios sentidos — polisemia_5
+   DC: Polisemia; la acepción según el contexto
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L10 */
+const CUR_POLISEMIA_5_BANCO = [
+  {
+    "q": "«Se lastimó la HOJA del cuchillo». ¿Qué es la hoja?",
+    "ops": [
+      "La parte que corta",
+      "La de un árbol",
+      "La del cuaderno"
+    ],
+    "m": "La misma palabra nombra cosas distintas según el contexto."
+  },
+  {
+    "q": "«Junté una HOJA seca del patio».",
+    "ops": [
+      "La de un árbol",
+      "La que corta",
+      "La del libro"
+    ],
+    "m": "Acá manda 'seca' y 'del patio'."
+  },
+  {
+    "q": "«Me duele la MUÑECA de tanto escribir».",
+    "ops": [
+      "La articulación del brazo",
+      "El juguete",
+      "Un adorno"
+    ],
+    "m": "'Me duele' y 'de escribir' definen el sentido."
+  },
+  {
+    "q": "«Le regalaron una MUÑECA de trapo».",
+    "ops": [
+      "El juguete",
+      "La articulación",
+      "Una herramienta"
+    ],
+    "m": "'De trapo' resuelve la ambigüedad."
+  },
+  {
+    "q": "«El BANCO me cobró comisión».",
+    "ops": [
+      "La entidad donde está la plata",
+      "El asiento de la plaza",
+      "Un banco de peces"
+    ],
+    "m": "'Me cobró comisión' sólo tiene sentido con la entidad."
+  },
+  {
+    "q": "«Nos sentamos en un BANCO de la plaza».",
+    "ops": [
+      "El asiento",
+      "La entidad financiera",
+      "Un banco de arena"
+    ],
+    "m": "'Nos sentamos' define el sentido."
+  },
+  {
+    "q": "«La SIERRA cortó la madera».",
+    "ops": [
+      "La herramienta",
+      "La cadena de montañas",
+      "Un tipo de tela"
+    ],
+    "m": "'Cortó la madera': herramienta."
+  },
+  {
+    "q": "«Fuimos de campamento a la SIERRA».",
+    "ops": [
+      "La zona de montañas",
+      "La herramienta",
+      "Un río"
+    ],
+    "m": "'De campamento a la…': el lugar."
+  },
+  {
+    "q": "«El GATO del auto está en el baúl».",
+    "ops": [
+      "La herramienta para levantar el auto",
+      "El animal",
+      "Un juego"
+    ],
+    "m": "'Del auto' y 'en el baúl' lo definen."
+  },
+  {
+    "q": "«El GATO maulló toda la noche».",
+    "ops": [
+      "El animal",
+      "La herramienta",
+      "Un baile"
+    ],
+    "m": "'Maulló': el animal."
+  },
+  {
+    "q": "«Me puse el saco porque hacía frío».",
+    "ops": [
+      "La prenda de abrigo",
+      "La bolsa grande",
+      "Un golpe"
+    ],
+    "m": "'Me puse' y 'frío': la prenda."
+  },
+  {
+    "q": "«Cargó un SACO de papas».",
+    "ops": [
+      "La bolsa grande",
+      "La prenda",
+      "Un mueble"
+    ],
+    "m": "'De papas': la bolsa."
+  },
+  {
+    "q": "«La PLANTA baja del edificio».",
+    "ops": [
+      "El piso",
+      "El vegetal",
+      "La fábrica"
+    ],
+    "m": "'Del edificio': el piso."
+  },
+  {
+    "q": "«Regué la PLANTA del balcón».",
+    "ops": [
+      "El vegetal",
+      "El piso",
+      "La fábrica"
+    ],
+    "m": "'Regué': el vegetal."
+  },
+  {
+    "q": "«Trabaja en una PLANTA automotriz».",
+    "ops": [
+      "Una fábrica",
+      "El vegetal",
+      "El piso de abajo"
+    ],
+    "m": "Tercera acepción: la fábrica."
+  },
+  {
+    "q": "«Perdió la LLAVE de casa».",
+    "ops": [
+      "La de abrir la puerta",
+      "La del agua",
+      "Una llave de lucha"
+    ],
+    "m": "'De casa': la de la puerta."
+  },
+  {
+    "q": "«Cerrá la LLAVE del agua».",
+    "ops": [
+      "El grifo",
+      "La de la puerta",
+      "Una llave inglesa"
+    ],
+    "m": "'Del agua': la canilla."
+  },
+  {
+    "q": "¿Qué es una palabra polisémica?",
+    "ops": [
+      "Una que tiene varios significados",
+      "Una que suena igual que otra",
+      "Una muy larga"
+    ],
+    "m": "Polisemia: muchos sentidos en UNA misma palabra. Distinto de los homófonos, que se escriben distinto."
+  }
+];
+GAMES.polisemia_5 = juegoTriviaTexto(CUR_POLISEMIA_5_BANCO, "¿Qué significa acá?", "polisemia_");
+
+/* 5° · Arquitecto de textos — estructura_textos_5
+   DC: Estructura de la carta y el mail, la entrevista y la noticia
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L11 */
+const CUR_ESTRUCTURA_TEXTOS_5_BANCO = [
+  {
+    "items": [
+      "Asunto: Pedido de permiso",
+      "Estimada directora:",
+      "Le escribo para pedirle permiso para la salida.",
+      "Saludos cordiales, Martina"
+    ]
+  },
+  {
+    "items": [
+      "Buenos Aires, 12 de mayo",
+      "Querida abuela:",
+      "Te cuento que empecé quinto grado.",
+      "Te mando un beso, Nico"
+    ]
+  },
+  {
+    "items": [
+      "Título: Hallaron un fósil en la Patagonia",
+      "Bajada: Tiene 70 millones de años",
+      "El equipo encontró los restos el martes.",
+      "Epígrafe: Los científicos junto al hallazgo"
+    ]
+  },
+  {
+    "items": [
+      "Presentación del entrevistado",
+      "Primera pregunta",
+      "Respuesta",
+      "Despedida y agradecimiento"
+    ]
+  },
+  {
+    "items": [
+      "Asunto: Consulta por el taller",
+      "Hola, buen día:",
+      "Quería saber si quedan lugares.",
+      "Muchas gracias, Lucía"
+    ]
+  },
+  {
+    "items": [
+      "Título de la noticia",
+      "Bajada que amplía el título",
+      "Cuerpo con los detalles"
+    ]
+  },
+  {
+    "items": [
+      "Rosario, 3 de agosto",
+      "Estimado señor Pérez:",
+      "Me dirijo a usted por el aviso del diario.",
+      "Atentamente, Ana Gómez"
+    ]
+  },
+  {
+    "items": [
+      "Se presenta a quién se va a entrevistar",
+      "Se hacen las preguntas",
+      "Se cierra con un agradecimiento"
+    ]
+  },
+  {
+    "items": [
+      "Asunto del mail",
+      "Saludo inicial",
+      "Cuerpo del mensaje",
+      "Despedida y firma"
+    ]
+  },
+  {
+    "items": [
+      "Qué pasó",
+      "Dónde pasó",
+      "Cuándo pasó",
+      "Por qué pasó"
+    ]
+  },
+  {
+    "items": [
+      "Lugar y fecha",
+      "Destinatario",
+      "Cuerpo de la carta",
+      "Firma"
+    ]
+  },
+  {
+    "items": [
+      "Encabezado con el nombre del entrevistado",
+      "Pregunta sobre su trabajo",
+      "Respuesta del entrevistado",
+      "Pregunta final",
+      "Cierre"
+    ]
+  }
+];
+GAMES.estructura_textos_5 = juegoOrdenar(CUR_ESTRUCTURA_TEXTOS_5_BANCO, "Ordená las partes del texto. Tocá en orden.", "Cada tipo de texto tiene sus partes y siempre van en el mismo orden.", "estructura");
+
+/* 5° · Dos puntos y raya — dos_puntos_5
+   DC: Dos puntos en el discurso directo; voz del narrador frente al diálogo
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L12 */
+const CUR_DOS_PUNTOS_5_BANCO = [
+  {
+    "q": "¿Cuál está bien puntuada?",
+    "ops": [
+      "Ana dijo: —Ya llego.",
+      "Ana dijo —Ya llego.",
+      "Ana dijo, —Ya llego."
+    ],
+    "m": "Los dos puntos anuncian que empieza la voz del personaje; la raya la abre."
+  },
+  {
+    "q": "¿Para qué sirven los dos puntos en el diálogo?",
+    "ops": [
+      "Anuncian que va a hablar el personaje",
+      "Terminan la oración",
+      "Separan el sujeto del verbo"
+    ],
+    "m": "Avisan que lo que viene es textual."
+  },
+  {
+    "q": "¿Qué signo abre lo que dice el personaje?",
+    "ops": [
+      "La raya de diálogo (—)",
+      "El guion corto (-)",
+      "El paréntesis"
+    ],
+    "m": "Es una raya larga, distinta del guion de 'físico-química'."
+  },
+  {
+    "q": "«—¿Venís? —preguntó Juan.» ¿Qué hace la segunda raya?",
+    "ops": [
+      "Abre la voz del narrador",
+      "Cierra la pregunta",
+      "Marca una pausa"
+    ],
+    "m": "Cuando el narrador se mete en el medio, también va con raya."
+  },
+  {
+    "q": "En «—Vamos —dijo ella—, se hace tarde», ¿qué está entre rayas?",
+    "ops": [
+      "Lo que cuenta el narrador",
+      "Lo que dice el personaje",
+      "Un pensamiento"
+    ],
+    "m": "El personaje dice 'Vamos, se hace tarde'; 'dijo ella' es el narrador."
+  },
+  {
+    "q": "¿La raya de diálogo lleva espacio antes de lo que dice el personaje?",
+    "ops": [
+      "No, va pegada a la palabra",
+      "Sí, siempre",
+      "Sólo si es pregunta"
+    ],
+    "m": "—Hola, no — Hola."
+  },
+  {
+    "q": "¿Cuál está bien?",
+    "ops": [
+      "El maestro anunció: —Mañana hay prueba.",
+      "El maestro anunció. —Mañana hay prueba.",
+      "El maestro anunció; —Mañana hay prueba."
+    ],
+    "m": "Después del verbo de decir van dos puntos."
+  },
+  {
+    "q": "Los dos puntos también sirven para…",
+    "ops": [
+      "Introducir una enumeración",
+      "Terminar un párrafo",
+      "Separar palabras"
+    ],
+    "m": "«Traje tres cosas: pan, queso y fruta»."
+  },
+  {
+    "q": "«Compré: manzanas, peras y uvas». ¿Está bien?",
+    "ops": [
+      "Sí, los dos puntos anuncian la lista",
+      "No, va punto y coma",
+      "No, va coma"
+    ],
+    "m": "Anuncian la enumeración que viene."
+  },
+  {
+    "q": "¿Cómo se marca que habla OTRO personaje?",
+    "ops": [
+      "Se empieza un renglón nuevo con raya",
+      "Se usa coma",
+      "Se pone entre paréntesis"
+    ],
+    "m": "Cada intervención va en su renglón: así se sabe quién habla sin que lo aclaren."
+  },
+  {
+    "q": "En «—Tengo hambre —dijo Pedro.», ¿quién dice 'Tengo hambre'?",
+    "ops": [
+      "Pedro",
+      "El narrador",
+      "No se sabe"
+    ],
+    "m": "Lo que va después de la raya inicial es del personaje."
+  },
+  {
+    "q": "¿Cuál NO es una función de los dos puntos?",
+    "ops": [
+      "Separar el sujeto del predicado",
+      "Anunciar un diálogo",
+      "Anunciar una enumeración"
+    ],
+    "m": "Entre sujeto y predicado no va ningún signo."
+  },
+  {
+    "q": "«Estimada directora:» — ¿por qué lleva dos puntos?",
+    "ops": [
+      "Porque después del saludo de una carta van dos puntos",
+      "Porque es una pregunta",
+      "Porque hay una lista"
+    ],
+    "m": "En cartas y mails, el saludo inicial cierra con dos puntos."
+  },
+  {
+    "q": "«—No sé —respondió—. Preguntale a él.» El punto después de la raya, ¿de qué es?",
+    "ops": [
+      "Cierra lo que dijo el narrador",
+      "Cierra la pregunta",
+      "Está de más"
+    ],
+    "m": "El narrador terminó su aclaración y ahí sigue hablando el personaje."
+  },
+  {
+    "q": "¿La raya de diálogo se usa también en la carta?",
+    "ops": [
+      "No, sólo cuando hay personajes hablando",
+      "Sí, siempre",
+      "Sólo al final"
+    ],
+    "m": "La carta tiene una sola voz: la de quien escribe."
+  },
+  {
+    "q": "¿Qué diferencia hay entre la voz del narrador y la del personaje?",
+    "ops": [
+      "El narrador cuenta; el personaje habla y va con raya",
+      "Son lo mismo",
+      "El narrador siempre va con raya"
+    ],
+    "m": "Distinguirlas es lo que hace que se entienda un cuento con diálogos."
+  }
+];
+GAMES.dos_puntos_5 = juegoTriviaTexto(CUR_DOS_PUNTOS_5_BANCO, "¿Cómo se puntúa el diálogo?", "dos_puntos");
+
+/* 5° · ¿Opinión o argumento? — opinion_argumento_5
+   DC: Textos argumentativos: notas de opinión y publicidades
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L13 */
+const CUR_OPINION_ARGUMENTO_5_BANCO = [
+  {
+    "it": "«La escuela tiene 320 alumnos»",
+    "cat": "hecho",
+    "m": "Se puede verificar: contás y listo."
+  },
+  {
+    "it": "«La escuela es la mejor del barrio»",
+    "cat": "opinion",
+    "m": "Es una valoración: alguien puede pensar distinto y no está mintiendo."
+  },
+  {
+    "it": "«La escuela es la mejor del barrio porque tiene la biblioteca más grande»",
+    "cat": "argumento",
+    "m": "Es una opinión MÁS una razón que la sostiene. Ese 'porque' es la clave."
+  },
+  {
+    "it": "«El recreo dura 20 minutos»",
+    "cat": "hecho",
+    "m": "Se mide con el reloj."
+  },
+  {
+    "it": "«El recreo es demasiado corto»",
+    "cat": "opinion",
+    "m": "Valoración."
+  },
+  {
+    "it": "«El recreo debería ser más largo, porque después del almuerzo cuesta concentrarse»",
+    "cat": "argumento",
+    "m": "Postura + razón."
+  },
+  {
+    "it": "«Ayer llovió 30 milímetros»",
+    "cat": "hecho",
+    "m": "Dato medible."
+  },
+  {
+    "it": "«Los días de lluvia son horribles»",
+    "cat": "opinion",
+    "m": "A alguien pueden gustarle."
+  },
+  {
+    "it": "«Conviene salir con paraguas, ya que el pronóstico da 80% de lluvia»",
+    "cat": "argumento",
+    "m": "Recomienda algo y da el motivo."
+  },
+  {
+    "it": "«Este celular tiene 128 GB de memoria»",
+    "cat": "hecho",
+    "m": "Dato del producto, verificable."
+  },
+  {
+    "it": "«Este celular es el mejor del mercado»",
+    "cat": "opinion",
+    "m": "Frase típica de publicidad: suena a dato pero es valoración."
+  },
+  {
+    "it": "«Elegí este celular: es el único con garantía de 3 años»",
+    "cat": "argumento",
+    "m": "Da una razón concreta y comprobable para la recomendación."
+  },
+  {
+    "it": "«El museo abre de martes a domingo»",
+    "cat": "hecho",
+    "m": "Se chequea en la cartelera."
+  },
+  {
+    "it": "«El museo es aburrido»",
+    "cat": "opinion",
+    "m": "Valoración personal."
+  },
+  {
+    "it": "«Vale la pena ir al museo, porque la muestra se va en dos semanas»",
+    "cat": "argumento",
+    "m": "Recomendación con razón."
+  },
+  {
+    "it": "«El Aconcagua mide 6.960 metros»",
+    "cat": "hecho",
+    "m": "Dato geográfico."
+  },
+  {
+    "it": "«Hay que cuidar el agua porque es un recurso que no se repone solo»",
+    "cat": "argumento",
+    "m": "Postura + razón."
+  },
+  {
+    "it": "«El verano es la mejor estación»",
+    "cat": "opinion",
+    "m": "Gustos."
+  },
+  {
+    "it": "«La biblioteca tiene 4.000 libros»",
+    "cat": "hecho",
+    "m": "Se cuenta."
+  },
+  {
+    "it": "«Leé más: los que leen entienden mejor las consignas»",
+    "cat": "argumento",
+    "m": "Consejo sostenido en una razón."
+  }
+];
+GAMES.opinion_argumento_5 = juegoClasificar(CUR_OPINION_ARGUMENTO_5_BANCO, "¿Qué tipo de enunciado es?", [{"cat": "hecho", "label": "📅 Hecho"}, {"cat": "opinion", "label": "💭 Opinión"}, {"cat": "argumento", "label": "🧩 Argumento"}], "opinion_ar");
+
+/* 5° · Traductor romano — romanos_5
+   DC: Sistema romano: diferencias con el decimal (posicionalidad, el cero)
+   Fuente: docs/auditoria-dc-caba/grado-5.md · M2 */
+const CUR_ROMANOS_5_BANCO = [
+  {
+    "q": "¿Cuánto vale V?",
+    "ops": [
+      "5",
+      "4",
+      "10"
+    ],
+    "m": "Las letras base: I=1, V=5, X=10, L=50, C=100, D=500, M=1000."
+  },
+  {
+    "q": "¿Cuánto vale XV?",
+    "ops": [
+      "15",
+      "5",
+      "51"
+    ],
+    "m": "X (10) + V (5). Cuando la letra menor va DESPUÉS, se suma."
+  },
+  {
+    "q": "¿Cuánto vale IX?",
+    "ops": [
+      "9",
+      "11",
+      "10"
+    ],
+    "m": "La I ADELANTE de la X resta: 10 − 1 = 9. Ésa es la regla sustractiva."
+  },
+  {
+    "q": "¿Cuánto vale XI?",
+    "ops": [
+      "11",
+      "9",
+      "10"
+    ],
+    "m": "Ahora la I va después: se suma. XI = 11, IX = 9. El orden cambia todo."
+  },
+  {
+    "q": "¿Cuánto vale XL?",
+    "ops": [
+      "40",
+      "60",
+      "410"
+    ],
+    "m": "X delante de L resta: 50 − 10 = 40."
+  },
+  {
+    "q": "¿Cuánto vale LX?",
+    "ops": [
+      "60",
+      "40",
+      "510"
+    ],
+    "m": "Ahora se suma: 50 + 10."
+  },
+  {
+    "q": "¿Cuánto vale CM?",
+    "ops": [
+      "900",
+      "1100",
+      "100000"
+    ],
+    "m": "C delante de M resta: 1000 − 100 = 900."
+  },
+  {
+    "q": "¿Cuánto vale MC?",
+    "ops": [
+      "1100",
+      "900",
+      "1000100"
+    ],
+    "m": "Se suma: 1000 + 100."
+  },
+  {
+    "q": "¿Cómo se escribe 14?",
+    "ops": [
+      "XIV",
+      "XIIII",
+      "VIX"
+    ],
+    "m": "10 + 4, y el 4 es IV. No se repite una letra más de tres veces."
+  },
+  {
+    "q": "¿Cómo se escribe 2026?",
+    "ops": [
+      "MMXXVI",
+      "MMXXVV",
+      "MXXVI"
+    ],
+    "m": "1000+1000+10+10+5+1."
+  },
+  {
+    "q": "¿Cuánto vale XXIX?",
+    "ops": [
+      "29",
+      "31",
+      "21"
+    ],
+    "m": "XX (20) + IX (9)."
+  },
+  {
+    "q": "¿Cómo se escribe 90?",
+    "ops": [
+      "XC",
+      "LXXXX",
+      "CX"
+    ],
+    "m": "100 − 10. No se escriben cuatro X seguidas."
+  },
+  {
+    "q": "¿Cuál es la diferencia más grande con nuestro sistema?",
+    "ops": [
+      "El romano no tiene cero",
+      "El romano usa más números",
+      "El romano se lee al revés"
+    ],
+    "m": "No hay símbolo para el cero, y por eso tampoco hay valor posicional: en 'XX' las dos equis valen lo mismo, en '22' los dos doses no."
+  },
+  {
+    "q": "En el número 55, ¿los dos cincos valen lo mismo?",
+    "ops": [
+      "No: uno vale 50 y el otro 5",
+      "Sí, los dos valen 5",
+      "Sí, los dos valen 50"
+    ],
+    "m": "Eso es el valor posicional, y el sistema romano no lo tiene."
+  },
+  {
+    "q": "¿Cuánto vale MMXIV?",
+    "ops": [
+      "2014",
+      "2016",
+      "2024"
+    ],
+    "m": "2000 + 10 + 4."
+  },
+  {
+    "q": "¿Se puede escribir el cero en números romanos?",
+    "ops": [
+      "No existe símbolo para el cero",
+      "Sí, es la O",
+      "Sí, es la N"
+    ],
+    "m": "Es la gran limitación del sistema: sin cero, hacer cuentas escritas es durísimo."
+  },
+  {
+    "q": "¿Cuánto vale XLIV?",
+    "ops": [
+      "44",
+      "56",
+      "64"
+    ],
+    "m": "XL (40) + IV (4)."
+  },
+  {
+    "q": "¿Cómo se escribe 400?",
+    "ops": [
+      "CD",
+      "CCCC",
+      "DC"
+    ],
+    "m": "500 − 100. DC sería 600."
+  }
+];
+GAMES.romanos_5 = juegoTriviaTexto(CUR_ROMANOS_5_BANCO, "¿Cuánto vale?", "romanos_5");
+
+/* 5° · Misiones de varios pasos — problemas_pasos_5
+   DC: Problemas de varios pasos con las cuatro operaciones
+   Fuente: docs/auditoria-dc-caba/grado-5.md · M3 */
+const CUR_PROBLEMAS_PASOS_5_PLANTILLA = {
+  "q": "En el club hay {b} grupos de {a} chicos cada uno. Si se van {c}, ¿cuántos quedan?",
+  "vars": {
+    "a": {
+      "rango": [
+        6,
+        24
+      ],
+      "paso": 1
+    },
+    "b": {
+      "opciones": [
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    "c": {
+      "rango": [
+        2,
+        17
+      ],
+      "paso": 1
+    }
+  },
+  "ok": "a * b - c",
+  "distractores": [
+    "a * b + c",
+    "a * b",
+    "a + b - c"
+  ],
+  "tope": 1000,
+  "m": "Son DOS pasos: primero cuántos hay en total ({a} × {b}) y recién después restás los que se van. Da {ok}."
+};
+GAMES.problemas_pasos_5 = juegoParametrico(CUR_PROBLEMAS_PASOS_5_PLANTILLA, "Resolvé el problema.", "problemas_");
+
+/* 5° · Combinador de conjuntos — combinatoria_5
+   DC: Combinatoria; pasaje a la escritura multiplicativa
+   Fuente: docs/auditoria-dc-caba/grado-5.md · M4 */
+const CUR_COMBINATORIA_5_PLANTILLA = {
+  "q": "Tenés {a} remeras y {b} pantalones. ¿Cuántos conjuntos distintos podés armar?",
+  "vars": {
+    "a": {
+      "rango": [
+        2,
+        9
+      ],
+      "paso": 1
+    },
+    "b": {
+      "rango": [
+        2,
+        9
+      ],
+      "paso": 1
+    }
+  },
+  "ok": "a * b",
+  "distractores": [
+    "a + b",
+    "a * b - a",
+    "a * b + b"
+  ],
+  "tope": 200,
+  "m": "Cada remera se puede combinar con TODOS los pantalones, así que se multiplica: {a} × {b} = {ok}. El error típico es sumar."
+};
+GAMES.combinatoria_5 = juegoParametrico(CUR_COMBINATORIA_5_PLANTILLA, "¿Cuántas combinaciones distintas salen?", "combinator");
+
+/* 5° · La cuenta escondida — cuenta_escondida_5
+   DC: Relación c×d+r=D con r<d; análisis del resto
+   Fuente: docs/auditoria-dc-caba/grado-5.md · M5 */
+const CUR_CUENTA_ESCONDIDA_5_PLANTILLA = {
+  "q": "Una división da cociente {c}, divisor {d} y resto {r}. ¿Cuál era el dividendo?",
+  "vars": {
+    "c": {
+      "rango": [
+        4,
+        60
+      ],
+      "paso": 1
+    },
+    "d": {
+      "opciones": [
+        7,
+        8,
+        9,
+        11,
+        12
+      ]
+    },
+    "r": {
+      "opciones": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    }
+  },
+  "ok": "c * d + r",
+  "distractores": [
+    "c * d",
+    "c * d - r",
+    "c + d + r"
+  ],
+  "tope": 1000,
+  "m": "La regla es dividendo = cociente × divisor + resto. Sin sumar el resto te falta. Da {ok}."
+};
+GAMES.cuenta_escondida_5 = juegoParametrico(CUR_CUENTA_ESCONDIDA_5_PLANTILLA, "Reconstruí el dividendo.", "cuenta_esc");
+
+/* 5° · Cazamúltiplos — divisibilidad_5
+   DC: Divisibilidad: múltiplos, divisores y descomposición multiplicativa
+   Fuente: docs/auditoria-dc-caba/grado-5.md · M6 */
+const CUR_DIVISIBILIDAD_5_BANCO = [
+  {
+    "q": "¿Cuál de estos es múltiplo de 5?",
+    "ops": [
+      "45",
+      "42",
+      "48"
+    ],
+    "m": "Los múltiplos de 5 terminan en 0 o en 5."
+  },
+  {
+    "q": "¿Cuál NO es múltiplo de 2?",
+    "ops": [
+      "37",
+      "36",
+      "38"
+    ],
+    "m": "Los múltiplos de 2 terminan en cifra par."
+  },
+  {
+    "q": "¿Cuál es múltiplo de 10?",
+    "ops": [
+      "70",
+      "75",
+      "77"
+    ],
+    "m": "Terminan en 0."
+  },
+  {
+    "q": "¿Cuál es múltiplo de 3?",
+    "ops": [
+      "27",
+      "26",
+      "28"
+    ],
+    "m": "Sumá sus cifras: 2+7=9, que es múltiplo de 3. Ése es el truco."
+  },
+  {
+    "q": "¿Es 24 múltiplo de 6?",
+    "ops": [
+      "Sí, porque 6×4=24",
+      "No",
+      "Sólo si se divide por 2"
+    ],
+    "m": "Un número es múltiplo de otro si lo contiene una cantidad exacta de veces."
+  },
+  {
+    "q": "¿Cuáles son los divisores de 12?",
+    "ops": [
+      "1, 2, 3, 4, 6 y 12",
+      "1, 2, 3 y 12",
+      "2, 4 y 6"
+    ],
+    "m": "Divisores son los que dividen SIN resto. El 1 y el propio número siempre están."
+  },
+  {
+    "q": "¿Cuántos divisores tiene el 7?",
+    "ops": [
+      "Dos: 1 y 7",
+      "Uno: el 7",
+      "Tres: 1, 3 y 7"
+    ],
+    "m": "Los que tienen sólo dos divisores se llaman primos."
+  },
+  {
+    "q": "¿Cuál de estos es primo?",
+    "ops": [
+      "13",
+      "15",
+      "21"
+    ],
+    "m": "13 sólo se divide por 1 y por 13. Los otros dos tienen más divisores."
+  },
+  {
+    "q": "¿El 1 es primo?",
+    "ops": [
+      "No, tiene un solo divisor",
+      "Sí, es el primero",
+      "Sí, porque es impar"
+    ],
+    "m": "Para ser primo hacen falta DOS divisores distintos, y el 1 sólo tiene uno."
+  },
+  {
+    "q": "¿Cuál es múltiplo de 4?",
+    "ops": [
+      "36",
+      "34",
+      "38"
+    ],
+    "m": "4 × 9 = 36."
+  },
+  {
+    "q": "¿Qué número es múltiplo de 2 Y de 3 a la vez?",
+    "ops": [
+      "18",
+      "15",
+      "16"
+    ],
+    "m": "18 es par y sus cifras suman 9. Es múltiplo de 6."
+  },
+  {
+    "q": "24 = 4 × 6. ¿Qué otra descomposición sirve?",
+    "ops": [
+      "2 × 12",
+      "5 × 5",
+      "3 × 9"
+    ],
+    "m": "Un número se puede descomponer de varias formas multiplicativas."
+  },
+  {
+    "q": "¿Es 9 divisor de 45?",
+    "ops": [
+      "Sí, 45 ÷ 9 = 5 exacto",
+      "No",
+      "Sólo si se suma 5"
+    ],
+    "m": "Divide sin dejar resto: es divisor."
+  },
+  {
+    "q": "¿Cuál es el menor múltiplo común de 4 y 6?",
+    "ops": [
+      "12",
+      "24",
+      "10"
+    ],
+    "m": "Los de 4: 4, 8, 12… Los de 6: 6, 12… El primero que comparten es 12."
+  },
+  {
+    "q": "El 0, ¿es múltiplo de 5?",
+    "ops": [
+      "Sí, porque 5×0=0",
+      "No, es demasiado chico",
+      "Sólo del 1"
+    ],
+    "m": "El 0 es múltiplo de todos, porque cualquier número por cero da cero."
+  },
+  {
+    "q": "¿Cuál de estos es múltiplo de 9?",
+    "ops": [
+      "54",
+      "52",
+      "56"
+    ],
+    "m": "5+4=9. El truco de sumar las cifras también sirve para el 9."
+  },
+  {
+    "q": "Si 8 es divisor de 40, entonces 40 es…",
+    "ops": [
+      "Múltiplo de 8",
+      "Divisor de 8",
+      "Primo"
+    ],
+    "m": "Son las dos caras de la misma relación: 8 divide a 40, 40 es múltiplo de 8."
+  },
+  {
+    "q": "¿Cuál tiene MÁS divisores?",
+    "ops": [
+      "24",
+      "23",
+      "29"
+    ],
+    "m": "23 y 29 son primos: sólo dos divisores cada uno. 24 tiene ocho."
+  }
+];
+GAMES.divisibilidad_5 = juegoTriviaTexto(CUR_DIVISIBILIDAD_5_BANCO, "Pensá en múltiplos y divisores.", "divisibili");
+
+/* 5° · Reconstruí el entero — reconstruir_entero_5
+   DC: Reconstrucción de la unidad; fracción de un número natural
+   Fuente: docs/auditoria-dc-caba/grado-5.md · M9 */
+const CUR_RECONSTRUIR_ENTERO_5_PLANTILLA = {
+  "q": "Si 1/{d} de una colección son {p} figuritas, ¿cuántas hay en total?",
+  "vars": {
+    "d": {
+      "opciones": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        8,
+        10
+      ]
+    },
+    "p": {
+      "rango": [
+        3,
+        40
+      ],
+      "paso": 1
+    }
+  },
+  "ok": "p * d",
+  "distractores": [
+    "p + d",
+    "p * d - p",
+    "p * d + p"
+  ],
+  "tope": 500,
+  "m": "Si {p} es UNA de las {d} partes iguales, el total tiene {d} veces esa parte: {p} × {d} = {ok}. El error típico es sumar en vez de multiplicar."
+};
+GAMES.reconstruir_entero_5 = juegoParametrico(CUR_RECONSTRUIR_ENTERO_5_PLANTILLA, "Si conocés la parte, ¿cuál es el total?", "reconstrui");
+
+/* 5° · ¿Proporcional o no? — proporcionalidad_5
+   DC: Proporcionalidad directa; distinguir lo proporcional de lo que no lo es
+   Fuente: docs/auditoria-dc-caba/grado-5.md · M13 */
+const CUR_PROPORCIONALIDAD_5_BANCO = [
+  {
+    "it": "1 kg de pan cuesta $2.000. ¿Cuánto cuestan 3 kg?",
+    "cat": "si",
+    "m": "El triple de kilos, el triple de precio: es proporcional."
+  },
+  {
+    "it": "Un chico de 8 años mide 1,30 m. ¿Cuánto mide a los 16?",
+    "cat": "no",
+    "m": "El doble de edad NO da el doble de altura. Crecer no es proporcional."
+  },
+  {
+    "it": "Un auto tarda 2 horas en llegar. ¿Cuánto tardan 2 autos?",
+    "cat": "no",
+    "m": "Tardan lo mismo: el tiempo no depende de cuántos autos vayan."
+  },
+  {
+    "it": "3 lápices cuestan $900. ¿Cuánto cuestan 6?",
+    "cat": "si",
+    "m": "El doble de lápices, el doble de precio."
+  },
+  {
+    "it": "Una canilla llena el tanque en 20 min. ¿Y dos canillas iguales?",
+    "cat": "no",
+    "m": "Tardan la MITAD, no el doble: cuando una crece y la otra baja, no es proporcionalidad directa."
+  },
+  {
+    "it": "Un libro cuesta $8.000. ¿Cuánto cuestan 4 libros?",
+    "cat": "si",
+    "m": "Cuatro veces más."
+  },
+  {
+    "it": "Con 2 huevos salen 12 panqueques. ¿Con 4 huevos?",
+    "cat": "si",
+    "m": "El doble de ingredientes, el doble de panqueques."
+  },
+  {
+    "it": "Juan tiene 10 años y su hermana 5. ¿Cuántos tendrá ella cuando él tenga 20?",
+    "cat": "no",
+    "m": "Tendrá 15, no 10: la diferencia de edad se mantiene, no se duplica."
+  },
+  {
+    "it": "Una remera cuesta $10.000. ¿Cuánto cuestan 3?",
+    "cat": "nosesabe",
+    "m": "Si hay promo 3×2 no son $30.000. Sin saber si hay descuento por cantidad, no se puede afirmar."
+  },
+  {
+    "it": "1 hora de trabajo se paga $5.000. ¿Y 10 horas?",
+    "cat": "nosesabe",
+    "m": "Las horas extra suelen pagarse distinto. Con el dato que hay, no alcanza."
+  },
+  {
+    "it": "4 entradas cuestan $12.000. ¿Cuánto cuesta 1?",
+    "cat": "si",
+    "m": "$3.000 cada una: el valor unitario."
+  },
+  {
+    "it": "Un tren tarda 3 h a 80 km/h. ¿Cuánto tarda a 160 km/h?",
+    "cat": "no",
+    "m": "Tarda la mitad. Al doble de velocidad, la mitad de tiempo."
+  },
+  {
+    "it": "2 metros de tela cuestan $6.000. ¿Y 5 metros?",
+    "cat": "si",
+    "m": "$3.000 el metro por 5."
+  },
+  {
+    "it": "Una pizza alcanza para 4 chicos. ¿Cuántas para 12?",
+    "cat": "si",
+    "m": "El triple de chicos, el triple de pizzas."
+  },
+  {
+    "it": "Con 20 años de edad pesás 60 kg. ¿Cuánto a los 40?",
+    "cat": "no",
+    "m": "El peso no se duplica con la edad."
+  },
+  {
+    "it": "El taxi cobra $3.000 de bajada de bandera más $500 por km. ¿El doble de km cuesta el doble?",
+    "cat": "no",
+    "m": "No, porque la bajada de bandera se paga UNA vez. Cuando hay un valor fijo, la relación deja de ser proporcional."
+  },
+  {
+    "it": "Un envío pesa 2 kg y sale $4.000. ¿Cuánto sale uno de 8 kg?",
+    "cat": "nosesabe",
+    "m": "Muchos envíos cobran por franjas de peso, no por kilo exacto."
+  },
+  {
+    "it": "6 alfajores cuestan $4.800. ¿Cuánto cuestan 3?",
+    "cat": "si",
+    "m": "La mitad de alfajores, la mitad de precio: $2.400."
+  }
+];
+GAMES.proporcionalidad_5 = juegoClasificar(CUR_PROPORCIONALIDAD_5_BANCO, "¿La relación es proporcional?", [{"cat": "si", "label": "✅ Sí, proporcional"}, {"cat": "no", "label": "❌ No lo es"}, {"cat": "nosesabe", "label": "🤷 No alcanza el dato"}], "proporcion");
+
+/* 5° · Perímetro y baldosas — perimetro_area_5
+   DC: Fórmulas de perímetro; área con unidades no convencionales
+   Fuente: docs/auditoria-dc-caba/grado-5.md · M15 */
+const CUR_PERIMETRO_AREA_5_PLANTILLA = {
+  "q": "Un rectángulo mide {a} cm de largo y {b} cm de ancho. ¿Cuál es su perímetro?",
+  "vars": {
+    "a": {
+      "rango": [
+        4,
+        25
+      ],
+      "paso": 1
+    },
+    "b": {
+      "rango": [
+        2,
+        18
+      ],
+      "paso": 1
+    }
+  },
+  "ok": "2 * (a + b)",
+  "distractores": [
+    "a * b",
+    "a + b",
+    "2 * a + b"
+  ],
+  "tope": 200,
+  "m": "El perímetro es el contorno: se recorren los cuatro lados, 2 × ({a} + {b}) = {ok}. Si multiplicaste, calculaste el ÁREA, que es lo que entra adentro."
+};
+GAMES.perimetro_area_5 = juegoParametrico(CUR_PERIMETRO_AREA_5_PLANTILLA, "¿Cuánto mide el contorno?", "perimetro_");
+
+/* 5° · Encuesta y gráfico — graficos_5
+   DC: Tablas de frecuencias; gráficos de barras y circulares
+   Fuente: docs/auditoria-dc-caba/grado-5.md · M16 */
+const CUR_GRAFICOS_5_BANCO = [
+  {
+    "q": "En una encuesta: fútbol 12, básquet 7, vóley 5. ¿Cuántos contestaron?",
+    "ops": [
+      "24",
+      "12",
+      "19"
+    ],
+    "m": "Se suman todas las frecuencias: 12+7+5."
+  },
+  {
+    "q": "Con esos datos, ¿cuál es el deporte más elegido?",
+    "ops": [
+      "Fútbol",
+      "Básquet",
+      "Vóley"
+    ],
+    "m": "El de mayor frecuencia."
+  },
+  {
+    "q": "¿Qué es la frecuencia en una tabla?",
+    "ops": [
+      "Cuántas veces se repite cada respuesta",
+      "El total de encuestados",
+      "El nombre de la categoría"
+    ],
+    "m": "Es el conteo de cada opción."
+  },
+  {
+    "q": "En un gráfico de barras, ¿qué representa la altura?",
+    "ops": [
+      "La frecuencia de esa categoría",
+      "El nombre",
+      "El total"
+    ],
+    "m": "Barra más alta, categoría más elegida."
+  },
+  {
+    "q": "Perro 10, gato 10, pez 4. ¿Qué se puede decir?",
+    "ops": [
+      "Perro y gato empatan",
+      "Gana el perro",
+      "Gana el pez"
+    ],
+    "m": "Frecuencias iguales: empate."
+  },
+  {
+    "q": "¿Para qué sirve un gráfico circular (de torta)?",
+    "ops": [
+      "Para ver qué parte del total es cada categoría",
+      "Para ver cómo cambia algo en el tiempo",
+      "Para contar de a uno"
+    ],
+    "m": "La torta muestra partes de un total; las barras comparan cantidades."
+  },
+  {
+    "q": "Si una categoría se lleva la mitad de la torta, ¿qué significa?",
+    "ops": [
+      "La eligió la mitad de la gente",
+      "La eligieron 2 personas",
+      "Es la que menos votos tuvo"
+    ],
+    "m": "Media torta = 50% del total."
+  },
+  {
+    "q": "Verano 15, invierno 5, otoño 5, primavera 5. ¿Cuántos contestaron?",
+    "ops": [
+      "30",
+      "15",
+      "20"
+    ],
+    "m": "15+5+5+5."
+  },
+  {
+    "q": "Con esos datos, ¿qué fracción eligió verano?",
+    "ops": [
+      "La mitad",
+      "Un cuarto",
+      "Un tercio"
+    ],
+    "m": "15 de 30 es la mitad."
+  },
+  {
+    "q": "¿Qué hay que poner SIEMPRE en un gráfico?",
+    "ops": [
+      "El título y qué mide cada eje",
+      "Sólo los colores",
+      "El nombre de quien lo hizo"
+    ],
+    "m": "Sin título ni referencias, el gráfico no se puede interpretar."
+  },
+  {
+    "q": "Un gráfico de barras muestra 8, 6 y 6. ¿Cuál es el total?",
+    "ops": [
+      "20",
+      "8",
+      "14"
+    ],
+    "m": "Se suman todas las barras."
+  },
+  {
+    "q": "Si en la encuesta hay 25 chicos y 10 eligieron pizza, ¿cuántos NO la eligieron?",
+    "ops": [
+      "15",
+      "10",
+      "25"
+    ],
+    "m": "25 − 10."
+  },
+  {
+    "q": "¿Se puede concluir algo de toda la escuela con una encuesta a 5 chicos?",
+    "ops": [
+      "No, son muy pocos",
+      "Sí, siempre",
+      "Sí, si son de distintos grados"
+    ],
+    "m": "Con una muestra muy chica la conclusión no es confiable."
+  },
+  {
+    "q": "En una tabla, ¿qué va en la primera columna?",
+    "ops": [
+      "Las categorías",
+      "Las frecuencias",
+      "Los totales"
+    ],
+    "m": "Primero qué se midió, después cuántos."
+  },
+  {
+    "q": "Chocolate 9, frutilla 6, limón 3. ¿Cuántos MÁS eligieron chocolate que limón?",
+    "ops": [
+      "6",
+      "3",
+      "12"
+    ],
+    "m": "9 − 3 = 6. 'Cuántos más' es una resta, no una suma."
+  },
+  {
+    "q": "¿Cuándo conviene un gráfico de barras y no una torta?",
+    "ops": [
+      "Cuando querés comparar cantidades entre sí",
+      "Cuando hay una sola categoría",
+      "Cuando los datos son texto"
+    ],
+    "m": "Las barras comparan mejor; la torta muestra proporciones del total."
+  }
+];
+GAMES.graficos_5 = juegoTriviaTexto(CUR_GRAFICOS_5_BANCO, "Leé la tabla y decidí.", "graficos_5");
+
+/* 5° · El ciclo del agua — ciclo_agua_5
+   DC: Ciclo hidrológico como modelo; los tres estados en los subsistemas
+   Fuente: docs/auditoria-dc-caba/grado-5.md · N1 */
+const CUR_CICLO_AGUA_5_BANCO = [
+  {
+    "items": [
+      "El sol calienta el agua del mar",
+      "El agua se evapora y sube",
+      "Arriba se enfría y forma nubes",
+      "Cae como lluvia"
+    ]
+  },
+  {
+    "items": [
+      "Llueve sobre la montaña",
+      "El agua baja por el arroyo",
+      "El arroyo desemboca en el río",
+      "El río llega al mar"
+    ]
+  },
+  {
+    "items": [
+      "El agua se filtra en la tierra",
+      "Queda guardada bajo el suelo",
+      "Se saca con una bomba",
+      "Llega a la canilla"
+    ]
+  },
+  {
+    "items": [
+      "Nieva en la cordillera",
+      "La nieve se acumula todo el invierno",
+      "En primavera se derrite",
+      "El deshielo alimenta el río"
+    ]
+  },
+  {
+    "items": [
+      "El agua del charco se evapora",
+      "El vapor sube al aire",
+      "Se condensa en gotitas",
+      "Se forma la nube"
+    ]
+  },
+  {
+    "items": [
+      "La planta toma agua por la raíz",
+      "El agua sube por el tallo",
+      "Sale por las hojas como vapor"
+    ]
+  },
+  {
+    "items": [
+      "Cae granizo",
+      "El granizo se derrite en el suelo",
+      "El agua corre hacia el arroyo"
+    ]
+  },
+  {
+    "items": [
+      "El vapor de la olla toca la tapa fría",
+      "Se forman gotas en la tapa",
+      "Las gotas caen de nuevo a la olla"
+    ]
+  },
+  {
+    "items": [
+      "El río deja el agua en el lago",
+      "El sol la evapora",
+      "Se forma la nube sobre el lago",
+      "Vuelve a llover sobre el lago"
+    ]
+  },
+  {
+    "items": [
+      "Sale el sol sobre el pasto mojado",
+      "El rocío se evapora",
+      "El aire se lleva el vapor"
+    ]
+  },
+  {
+    "items": [
+      "El agua de lluvia entra a la alcantarilla",
+      "Va por los caños hasta la planta",
+      "Se limpia en la planta",
+      "Vuelve al río"
+    ]
+  },
+  {
+    "items": [
+      "El hielo del glaciar se derrite",
+      "El agua líquida corre ladera abajo",
+      "Se junta en la laguna"
+    ]
+  }
+];
+GAMES.ciclo_agua_5 = juegoOrdenar(CUR_CICLO_AGUA_5_BANCO, "Ordená el recorrido del agua. Tocá en orden.", "Seguí el agua: de dónde sale, por dónde pasa y a dónde vuelve.", "ciclo_agua");
+
+/* 5° · Homogénea o heterogénea — mezclas_5
+   DC: Mezclas y su clasificación
+   Fuente: docs/auditoria-dc-caba/grado-5.md · N2 */
+const CUR_MEZCLAS_5_BANCO = [
+  {
+    "it": "Agua con sal disuelta",
+    "cat": "homogenea",
+    "m": "La sal sigue ahí, pero no se distinguen los componentes: es homogénea. Que no se vea NO quiere decir que no sea mezcla."
+  },
+  {
+    "it": "Ensalada de lechuga y tomate",
+    "cat": "heterogenea",
+    "m": "Se ve cada parte por separado."
+  },
+  {
+    "it": "Agua destilada",
+    "cat": "nomezcla",
+    "m": "Es agua pura, un solo componente: no hay nada mezclado."
+  },
+  {
+    "it": "Agua con aceite",
+    "cat": "heterogenea",
+    "m": "Se ven las dos capas."
+  },
+  {
+    "it": "Aire",
+    "cat": "homogenea",
+    "m": "Es una mezcla de gases que no se distinguen a simple vista."
+  },
+  {
+    "it": "Un vaso de agua con arena en el fondo",
+    "cat": "heterogenea",
+    "m": "Se ve la arena separada."
+  },
+  {
+    "it": "Oro puro de 24 quilates",
+    "cat": "nomezcla",
+    "m": "Un solo material, sin nada agregado."
+  },
+  {
+    "it": "Café con leche bien revuelto",
+    "cat": "homogenea",
+    "m": "Queda un solo color parejo."
+  },
+  {
+    "it": "Granola con frutas secas",
+    "cat": "heterogenea",
+    "m": "Se distingue cada ingrediente."
+  },
+  {
+    "it": "Agua con azúcar disuelta",
+    "cat": "homogenea",
+    "m": "El azúcar está pero no se ve."
+  },
+  {
+    "it": "Un vaso de agua mineral sin gas",
+    "cat": "homogenea",
+    "m": "Tiene minerales disueltos: es mezcla, aunque parezca agua sola."
+  },
+  {
+    "it": "Un trozo de hierro",
+    "cat": "nomezcla",
+    "m": "Un solo material."
+  },
+  {
+    "it": "Sopa de verduras con trozos",
+    "cat": "heterogenea",
+    "m": "Se ven los pedazos."
+  },
+  {
+    "it": "Vinagre",
+    "cat": "homogenea",
+    "m": "Es ácido acético disuelto en agua: no se distinguen."
+  },
+  {
+    "it": "Arena de la playa con caracoles",
+    "cat": "heterogenea",
+    "m": "Se ven los componentes."
+  },
+  {
+    "it": "Un cubito de hielo",
+    "cat": "nomezcla",
+    "m": "Es agua sólida: un solo material en otro estado."
+  },
+  {
+    "it": "Leche chocolatada",
+    "cat": "homogenea",
+    "m": "Bien mezclada queda pareja."
+  },
+  {
+    "it": "Gaseosa con burbujas",
+    "cat": "heterogenea",
+    "m": "Se ven las burbujas de gas separadas del líquido."
+  }
+];
+GAMES.mezclas_5 = juegoClasificar(CUR_MEZCLAS_5_BANCO, "¿Qué tipo de mezcla es?", [{"cat": "homogenea", "label": "🥛 Homogénea"}, {"cat": "heterogenea", "label": "🥗 Heterogénea"}, {"cat": "nomezcla", "label": "🚫 No es mezcla"}], "mezclas_5");
+
+/* 5° · Laboratorio de disolución — disolucion_5
+   DC: Modelo de partículas; factores: tamaño, temperatura y agitación
+   Fuente: docs/auditoria-dc-caba/grado-5.md · N3 */
+const CUR_DISOLUCION_5_BANCO = [
+  {
+    "q": "Mismo vaso, misma agua: azúcar en polvo o en terrón. ¿Cuál se disuelve antes?",
+    "ops": [
+      "El polvo",
+      "El terrón",
+      "Los dos igual"
+    ],
+    "m": "En polvo hay más superficie en contacto con el agua."
+  },
+  {
+    "q": "Misma azúcar, misma cantidad: agua fría o caliente. ¿Cuál se disuelve antes?",
+    "ops": [
+      "La caliente",
+      "La fría",
+      "Igual"
+    ],
+    "m": "Con más temperatura las partículas se mueven más rápido."
+  },
+  {
+    "q": "Dos vasos iguales: uno se revuelve y el otro no. ¿Cuál se disuelve antes?",
+    "ops": [
+      "El que se revuelve",
+      "El que no",
+      "Igual"
+    ],
+    "m": "Agitar acerca agua nueva al sólido todo el tiempo."
+  },
+  {
+    "q": "Cuando el azúcar se disuelve, ¿qué le pasa?",
+    "ops": [
+      "Sus partículas se separan y se meten entre las del agua",
+      "Desaparece",
+      "Se convierte en agua"
+    ],
+    "m": "Sigue estando: por eso el agua queda dulce y pesa más."
+  },
+  {
+    "q": "Si disolvés 10 g de sal en 100 g de agua, ¿cuánto pesa la mezcla?",
+    "ops": [
+      "110 g",
+      "100 g",
+      "10 g"
+    ],
+    "m": "La materia no se pierde al disolverse."
+  },
+  {
+    "q": "¿Se puede recuperar la sal del agua salada?",
+    "ops": [
+      "Sí, dejando evaporar el agua",
+      "No, ya no existe",
+      "Sí, colando con un filtro"
+    ],
+    "m": "La sal queda; el filtro no sirve porque las partículas son muy chicas."
+  },
+  {
+    "q": "¿Por qué el filtro NO separa el agua salada?",
+    "ops": [
+      "Porque las partículas de sal son más chicas que los poros",
+      "Porque la sal desapareció",
+      "Porque el filtro se moja"
+    ],
+    "m": "Filtrar sirve para mezclas heterogéneas, no para lo disuelto."
+  },
+  {
+    "q": "¿Qué pasa si seguís agregando azúcar a un vaso de agua?",
+    "ops": [
+      "Llega un punto en que no se disuelve más",
+      "Se disuelve infinitamente",
+      "El agua se evapora"
+    ],
+    "m": "Ahí la solución está saturada."
+  },
+  {
+    "q": "Si calentás una solución saturada, ¿se puede disolver más?",
+    "ops": [
+      "Sí, en general sí",
+      "No, nunca",
+      "Sólo si la enfriás"
+    ],
+    "m": "Más temperatura, más capacidad de disolver."
+  },
+  {
+    "q": "El café instantáneo se disuelve más rápido que los granos. ¿Por qué?",
+    "ops": [
+      "Porque está molido muy fino",
+      "Porque es más dulce",
+      "Porque tiene más agua"
+    ],
+    "m": "Otra vez el tamaño: más finito, más superficie."
+  },
+  {
+    "q": "Para comparar si el agua caliente disuelve mejor, ¿qué NO hay que cambiar?",
+    "ops": [
+      "La cantidad de azúcar y de agua",
+      "La temperatura",
+      "Nada, se cambia todo"
+    ],
+    "m": "Ésta es la idea clave: para saber qué causa qué, se cambia UN factor por vez y todo lo demás queda igual."
+  },
+  {
+    "q": "Si un vaso está caliente Y se revuelve, y el otro está frío y quieto, ¿qué se aprende?",
+    "ops": [
+      "Nada seguro: cambiaron dos cosas a la vez",
+      "Que la temperatura es lo que importa",
+      "Que revolver es lo que importa"
+    ],
+    "m": "Con dos factores cambiados no se puede saber cuál fue el responsable."
+  },
+  {
+    "q": "El aceite en agua, ¿se disuelve?",
+    "ops": [
+      "No, forma dos capas",
+      "Sí, si revolvés mucho",
+      "Sí, si lo calentás"
+    ],
+    "m": "No todos los materiales se disuelven en agua."
+  },
+  {
+    "q": "¿Qué es el soluto?",
+    "ops": [
+      "Lo que se disuelve",
+      "El líquido que disuelve",
+      "La mezcla entera"
+    ],
+    "m": "El azúcar es el soluto; el agua, el solvente."
+  },
+  {
+    "q": "¿Y el solvente?",
+    "ops": [
+      "El que disuelve, casi siempre el agua",
+      "Lo que se disuelve",
+      "El recipiente"
+    ],
+    "m": "El agua es el solvente más común: se la llama solvente universal."
+  },
+  {
+    "q": "¿La sal disuelta se ve con lupa?",
+    "ops": [
+      "No, sus partículas son demasiado chicas",
+      "Sí, se ven los granitos",
+      "Sí, si el agua está fría"
+    ],
+    "m": "Por eso la mezcla es homogénea."
+  },
+  {
+    "q": "Si el azúcar se hunde y queda en el fondo sin revolver, ¿está disuelta?",
+    "ops": [
+      "No, todavía se ve separada",
+      "Sí, ya está",
+      "Sí, porque tocó el agua"
+    ],
+    "m": "Mientras se vea el sólido, no está disuelta."
+  },
+  {
+    "q": "¿Por qué el agua fría del mar tiene sal igual?",
+    "ops": [
+      "Porque la sal se disuelve también en frío, sólo que más lento",
+      "Porque el mar no tiene sal en invierno",
+      "Porque el frío crea sal"
+    ],
+    "m": "La temperatura cambia la VELOCIDAD y la cantidad máxima, no el hecho de que se disuelva."
+  }
+];
+GAMES.disolucion_5 = juegoTriviaTexto(CUR_DISOLUCION_5_BANCO, "Antes de probar: ¿qué va a pasar?", "disolucion");
+
+/* 5° · El plato saludable — plato_gapa_5
+   DC: Guías alimentarias; etiquetado frontal
+   Fuente: docs/auditoria-dc-caba/grado-5.md · N4 */
+const CUR_PLATO_GAPA_5_BANCO = [
+  {
+    "it": "Manzana",
+    "cat": "verduras",
+    "m": "Fruta: es el grupo más grande del plato."
+  },
+  {
+    "it": "Arroz",
+    "cat": "cereales",
+    "m": "Cereal."
+  },
+  {
+    "it": "Huevo",
+    "cat": "proteinas",
+    "m": "Aporta proteínas."
+  },
+  {
+    "it": "Gaseosa",
+    "cat": "opcional",
+    "m": "Mucha azúcar y ningún nutriente: consumo ocasional."
+  },
+  {
+    "it": "Brócoli",
+    "cat": "verduras",
+    "m": "Verdura."
+  },
+  {
+    "it": "Lentejas",
+    "cat": "cereales",
+    "m": "Las legumbres van con los cereales en la guía argentina."
+  },
+  {
+    "it": "Yogur",
+    "cat": "proteinas",
+    "m": "Lácteo."
+  },
+  {
+    "it": "Alfajor",
+    "cat": "opcional",
+    "m": "Azúcar y grasas: ocasional."
+  },
+  {
+    "it": "Zanahoria",
+    "cat": "verduras",
+    "m": "Verdura."
+  },
+  {
+    "it": "Fideos",
+    "cat": "cereales",
+    "m": "Derivado del trigo."
+  },
+  {
+    "it": "Pollo",
+    "cat": "proteinas",
+    "m": "Carne."
+  },
+  {
+    "it": "Papas fritas de paquete",
+    "cat": "opcional",
+    "m": "Mucha sal y grasa."
+  },
+  {
+    "it": "Naranja",
+    "cat": "verduras",
+    "m": "Fruta."
+  },
+  {
+    "it": "Pan integral",
+    "cat": "cereales",
+    "m": "Cereal."
+  },
+  {
+    "it": "Queso",
+    "cat": "proteinas",
+    "m": "Lácteo."
+  },
+  {
+    "it": "Caramelos",
+    "cat": "opcional",
+    "m": "Azúcar pura."
+  },
+  {
+    "it": "Espinaca",
+    "cat": "verduras",
+    "m": "Verdura de hoja."
+  },
+  {
+    "it": "Porotos",
+    "cat": "cereales",
+    "m": "Legumbre."
+  },
+  {
+    "it": "Pescado",
+    "cat": "proteinas",
+    "m": "Carne."
+  },
+  {
+    "it": "Un sello negro que dice EXCESO EN AZÚCARES",
+    "cat": "opcional",
+    "m": "El etiquetado frontal avisa de un vistazo: si tiene sellos negros, es de consumo ocasional."
+  }
+];
+GAMES.plato_gapa_5 = juegoClasificar(CUR_PLATO_GAPA_5_BANCO, "¿A qué grupo pertenece?", [{"cat": "verduras", "label": "🥦 Verduras y frutas"}, {"cat": "cereales", "label": "🍞 Cereales y legumbres"}, {"cat": "proteinas", "label": "🥚 Carnes, huevos y lácteos"}, {"cat": "opcional", "label": "🍬 Opcionales, de consumo ocasional"}], "plato_gapa");
+
+/* 5° · Luz y materiales — luz_materiales_5
+   DC: Opaco, traslúcido y transparente; propagación rectilínea; reflexión
+   Fuente: docs/auditoria-dc-caba/grado-5.md · N6 */
+const CUR_LUZ_MATERIALES_5_BANCO = [
+  {
+    "it": "El vidrio de la ventana",
+    "cat": "transparente",
+    "m": "Pasa la luz y se ve nítido del otro lado."
+  },
+  {
+    "it": "Una hoja de papel de calcar",
+    "cat": "traslucido",
+    "m": "Pasa luz pero las formas se ven borrosas."
+  },
+  {
+    "it": "Un ladrillo",
+    "cat": "opaco",
+    "m": "No pasa nada de luz: hace sombra."
+  },
+  {
+    "it": "El agua limpia de un vaso",
+    "cat": "transparente",
+    "m": "Se ve a través."
+  },
+  {
+    "it": "Una bolsa de plástico blanca",
+    "cat": "traslucido",
+    "m": "Se ve el resplandor pero no la forma."
+  },
+  {
+    "it": "Una puerta de madera",
+    "cat": "opaco",
+    "m": "Bloquea la luz."
+  },
+  {
+    "it": "El celofán transparente",
+    "cat": "transparente",
+    "m": "Se ve a través, aunque tenga color."
+  },
+  {
+    "it": "Un vidrio esmerilado del baño",
+    "cat": "traslucido",
+    "m": "Justamente por eso se usa: pasa luz pero no se ve."
+  },
+  {
+    "it": "Una cuchara de metal",
+    "cat": "opaco",
+    "m": "No pasa luz; además refleja."
+  },
+  {
+    "it": "Un vaso de vidrio limpio",
+    "cat": "transparente",
+    "m": "Se ve a través."
+  },
+  {
+    "it": "Una tela de gasa fina",
+    "cat": "traslucido",
+    "m": "Pasa algo de luz, difusa."
+  },
+  {
+    "it": "Tu mano",
+    "cat": "opaco",
+    "m": "Con una linterna fuerte se ve rojiza, pero no deja ver del otro lado."
+  },
+  {
+    "it": "El aire",
+    "cat": "transparente",
+    "m": "Por eso vemos a lo lejos."
+  },
+  {
+    "it": "Un vidrio empañado",
+    "cat": "traslucido",
+    "m": "Las gotitas dispersan la luz."
+  },
+  {
+    "it": "Una piedra",
+    "cat": "opaco",
+    "m": "No pasa luz."
+  },
+  {
+    "it": "Papel manteca",
+    "cat": "traslucido",
+    "m": "Pasa luz difusa."
+  },
+  {
+    "it": "Una lámina de aluminio",
+    "cat": "opaco",
+    "m": "No pasa nada y refleja bastante."
+  },
+  {
+    "it": "Agua con mucho barro",
+    "cat": "opaco",
+    "m": "El agua sola es transparente, pero con barro deja de serlo: depende de la mezcla, no sólo del material."
+  }
+];
+GAMES.luz_materiales_5 = juegoClasificar(CUR_LUZ_MATERIALES_5_BANCO, "Si le apuntás con una linterna, ¿qué pasa?", [{"cat": "transparente", "label": "🪟 Deja pasar y se ve"}, {"cat": "traslucido", "label": "🌫️ Pasa luz, no se ve bien"}, {"cat": "opaco", "label": "🧱 No pasa nada"}], "luz_materi");
+
+/* 5° · El sonido — sonido_5
+   DC: El sonido como vibración; no se propaga en el vacío; volumen, altura y timbre
+   Fuente: docs/auditoria-dc-caba/grado-5.md · N7 */
+const CUR_SONIDO_5_BANCO = [
+  {
+    "q": "¿Qué produce el sonido?",
+    "ops": [
+      "Algo que vibra",
+      "Algo que brilla",
+      "Algo caliente"
+    ],
+    "m": "Toda fuente de sonido vibra: la cuerda, el parlante, tus cuerdas vocales."
+  },
+  {
+    "q": "¿Se escucha un sonido en el espacio, donde no hay aire?",
+    "ops": [
+      "No, el sonido necesita un medio",
+      "Sí, más fuerte",
+      "Sí, pero más agudo"
+    ],
+    "m": "El sonido necesita partículas para viajar. En el vacío no hay nada que vibre: por eso las explosiones del espacio en las películas son mentira."
+  },
+  {
+    "q": "¿En cuál viaja MÁS RÁPIDO el sonido?",
+    "ops": [
+      "En el metal",
+      "En el aire",
+      "En el vacío"
+    ],
+    "m": "Cuanto más juntas están las partículas, más rápido se transmite."
+  },
+  {
+    "q": "Si golpeás un tambor más fuerte, ¿qué cambia?",
+    "ops": [
+      "El volumen",
+      "La altura",
+      "El timbre"
+    ],
+    "m": "Más energía, más volumen. Sigue siendo la misma nota."
+  },
+  {
+    "q": "Una cuerda más finita y tensa suena…",
+    "ops": [
+      "Más aguda",
+      "Más grave",
+      "Más fuerte"
+    ],
+    "m": "Vibra más rápido: sonido más agudo."
+  },
+  {
+    "q": "Una cuerda gruesa y floja suena…",
+    "ops": [
+      "Más grave",
+      "Más aguda",
+      "Más bajo"
+    ],
+    "m": "Vibra más lento: más grave."
+  },
+  {
+    "q": "La misma nota en un piano y en una guitarra se distingue por…",
+    "ops": [
+      "El timbre",
+      "El volumen",
+      "La altura"
+    ],
+    "m": "El timbre es el 'color' del sonido: por eso reconocés una voz."
+  },
+  {
+    "q": "¿Qué es el eco?",
+    "ops": [
+      "El sonido que rebota y vuelve",
+      "Un sonido más agudo",
+      "Un sonido sin fuente"
+    ],
+    "m": "El sonido se refleja en una superficie y vuelve con retraso."
+  },
+  {
+    "q": "¿Por qué el trueno se escucha DESPUÉS del relámpago?",
+    "ops": [
+      "Porque la luz viaja mucho más rápido que el sonido",
+      "Porque se producen en momentos distintos",
+      "Porque el sonido baja del cielo"
+    ],
+    "m": "Los dos pasan a la vez; la luz llega casi al instante y el sonido tarda."
+  },
+  {
+    "q": "Si ponés la mano en la garganta mientras hablás, ¿qué sentís?",
+    "ops": [
+      "Vibración",
+      "Calor",
+      "Nada"
+    ],
+    "m": "Son las cuerdas vocales vibrando."
+  },
+  {
+    "q": "¿El sonido viaja bajo el agua?",
+    "ops": [
+      "Sí, y más rápido que en el aire",
+      "No",
+      "Sólo si hay burbujas"
+    ],
+    "m": "Por eso las ballenas se comunican a kilómetros."
+  },
+  {
+    "q": "Un sonido muy fuerte y sostenido, ¿puede dañar el oído?",
+    "ops": [
+      "Sí, conviene bajar el volumen",
+      "No, el oído se acostumbra",
+      "Sólo si es agudo"
+    ],
+    "m": "El daño por volumen alto no se recupera."
+  },
+  {
+    "q": "¿Qué mide la altura de un sonido?",
+    "ops": [
+      "Si es agudo o grave",
+      "Si es fuerte o débil",
+      "De qué instrumento viene"
+    ],
+    "m": "Altura = agudo/grave. No confundir con volumen."
+  },
+  {
+    "q": "Si el parlante deja de vibrar, ¿qué pasa?",
+    "ops": [
+      "Deja de haber sonido",
+      "El sonido sigue un rato",
+      "El sonido se hace agudo"
+    ],
+    "m": "Sin vibración no hay sonido."
+  },
+  {
+    "q": "¿Por qué en una sala vacía se escucha más eco?",
+    "ops": [
+      "Porque no hay muebles ni cortinas que absorban el sonido",
+      "Porque hay más aire",
+      "Porque hace más frío"
+    ],
+    "m": "Las superficies blandas absorben; las duras reflejan."
+  },
+  {
+    "q": "Una flauta y un violín tocando la misma nota, ¿qué comparten?",
+    "ops": [
+      "La altura",
+      "El timbre",
+      "Nada"
+    ],
+    "m": "La misma nota es la misma altura; lo que cambia es el timbre."
+  },
+  {
+    "q": "¿Se puede ver el sonido?",
+    "ops": [
+      "No, pero se pueden ver sus efectos, como el agua que vibra",
+      "Sí, es de color azul",
+      "Sí, con una linterna"
+    ],
+    "m": "Poner arroz sobre un parlante deja ver la vibración."
+  },
+  {
+    "q": "El sonido, ¿es una onda?",
+    "ops": [
+      "Sí, una onda que viaja por el medio",
+      "No, es una partícula",
+      "Sí, pero sólo en el agua"
+    ],
+    "m": "Viaja como onda, empujando las partículas del medio."
+  }
+];
+GAMES.sonido_5 = juegoTriviaTexto(CUR_SONIDO_5_BANCO, "Pensá cómo viaja el sonido.", "sonido_5");
+
+/* 5° · ¿Causa interna o externa? — causas_revolucion_5
+   DC: Crisis del orden colonial: circunstancias internas y externas; multicausalidad
+   Fuente: docs/auditoria-dc-caba/grado-5.md · S2 */
+const CUR_CAUSAS_REVOLUCION_5_BANCO = [
+  {
+    "it": "Napoleón invade España y toma prisionero al rey Fernando VII",
+    "cat": "externa",
+    "m": "Pasó en Europa y dejó al virreinato sin rey a quien obedecer."
+  },
+  {
+    "it": "Los criollos no podían ocupar los cargos más altos",
+    "cat": "interna",
+    "m": "Un malestar de acá, acumulado durante años."
+  },
+  {
+    "it": "Las Invasiones Inglesas de 1806 y 1807",
+    "cat": "interna",
+    "m": "Pasaron acá y dejaron algo decisivo: milicias criollas armadas y la certeza de que se podían defender solos."
+  },
+  {
+    "it": "La Revolución Francesa de 1789",
+    "cat": "antecedente",
+    "m": "Difundió ideas de libertad e igualdad, pero pasó veinte años antes y lejos: preparó el clima, no desató la Revolución."
+  },
+  {
+    "it": "El monopolio comercial con España molestaba a los comerciantes locales",
+    "cat": "interna",
+    "m": "Sólo se podía comerciar con España, y acá querían comerciar con todos."
+  },
+  {
+    "it": "La independencia de Estados Unidos en 1776",
+    "cat": "antecedente",
+    "m": "Mostró que una colonia podía independizarse, pero no fue la causa directa de lo que pasó acá."
+  },
+  {
+    "it": "La Junta de Sevilla, que gobernaba en nombre del rey, cae en 1810",
+    "cat": "externa",
+    "m": "Ésta es la noticia que llega en mayo de 1810 y precipita todo."
+  },
+  {
+    "it": "El virrey Cisneros no había sido elegido por los vecinos de Buenos Aires",
+    "cat": "interna",
+    "m": "Sin rey, se discutía de dónde venía su autoridad."
+  },
+  {
+    "it": "Los criollos habían ganado prestigio militar defendiendo la ciudad",
+    "cat": "interna",
+    "m": "Consecuencia directa de las Invasiones Inglesas."
+  },
+  {
+    "it": "Las ideas de la Ilustración sobre el origen del poder",
+    "cat": "antecedente",
+    "m": "Dieron argumentos a los que discutían en el Cabildo, pero circulaban desde mucho antes."
+  },
+  {
+    "it": "España queda ocupada por tropas francesas",
+    "cat": "externa",
+    "m": "El vacío de poder en España es lo que abre la puerta."
+  },
+  {
+    "it": "Buenos Aires había crecido como puerto y quería decidir su comercio",
+    "cat": "interna",
+    "m": "Intereses económicos locales."
+  },
+  {
+    "it": "Inglaterra necesitaba mercados nuevos para vender sus productos",
+    "cat": "externa",
+    "m": "Presión desde afuera a favor de abrir el comercio."
+  },
+  {
+    "it": "La creación del Virreinato del Río de la Plata en 1776",
+    "cat": "antecedente",
+    "m": "Le dio importancia a Buenos Aires y preparó el terreno, pero fue 34 años antes."
+  },
+  {
+    "it": "El descontento por los impuestos que se pagaban a España",
+    "cat": "interna",
+    "m": "Malestar económico local."
+  },
+  {
+    "it": "El rey de España ya no podía gobernar sus colonias",
+    "cat": "externa",
+    "m": "Sin rey efectivo, la pregunta era quién manda acá."
+  }
+];
+GAMES.causas_revolucion_5 = juegoClasificar(CUR_CAUSAS_REVOLUCION_5_BANCO, "Para la Revolución de Mayo, ¿qué tipo de causa es?", [{"cat": "interna", "label": "🏠 Interna"}, {"cat": "externa", "label": "🌎 Externa"}, {"cat": "antecedente", "label": "🕰️ Antecedente, no causa directa"}], "causas_rev");
+
+/* 5° · El debate de Mayo — debate_mayo_5
+   DC: El debate entre Moreno y Saavedra
+   Fuente: docs/auditoria-dc-caba/grado-5.md · S3 */
+const CUR_DEBATE_MAYO_5_BANCO = [
+  {
+    "it": "Quería cambios profundos y rápidos",
+    "cat": "moreno",
+    "m": "Moreno empujaba por transformar en poco tiempo."
+  },
+  {
+    "it": "Prefería avanzar con prudencia, sin apurar",
+    "cat": "saavedra",
+    "m": "Saavedra temía que ir muy rápido rompiera todo."
+  },
+  {
+    "it": "Estaba a favor de la Primera Junta",
+    "cat": "ambos",
+    "m": "Los dos formaron parte de la Junta: discutían el CÓMO, no si había que hacerlo."
+  },
+  {
+    "it": "Escribía en La Gazeta para difundir las ideas de la Revolución",
+    "cat": "moreno",
+    "m": "Moreno fundó el primer periódico oficial."
+  },
+  {
+    "it": "Era militar y jefe del regimiento de Patricios",
+    "cat": "saavedra",
+    "m": "Su prestigio venía de las Invasiones Inglesas."
+  },
+  {
+    "it": "Quería que el gobierno quedara en manos de los criollos y no del virrey",
+    "cat": "ambos",
+    "m": "En esto no había discusión entre ellos."
+  },
+  {
+    "it": "Impulsó el Plan de Operaciones, con medidas duras contra los opositores",
+    "cat": "moreno",
+    "m": "Su postura era la más radical."
+  },
+  {
+    "it": "Apoyaba incorporar a los diputados del interior a la Junta",
+    "cat": "saavedra",
+    "m": "Ésa fue la diferencia concreta que terminó de separarlos: la Junta Grande."
+  },
+  {
+    "it": "Participó de los sucesos de la Semana de Mayo de 1810",
+    "cat": "ambos",
+    "m": "Los dos estuvieron ahí."
+  },
+  {
+    "it": "Fue secretario de la Primera Junta",
+    "cat": "moreno",
+    "m": "Moreno fue secretario; Saavedra, presidente."
+  },
+  {
+    "it": "Fue presidente de la Primera Junta",
+    "cat": "saavedra",
+    "m": "Saavedra la presidió."
+  },
+  {
+    "it": "Quería terminar con el monopolio comercial español",
+    "cat": "ambos",
+    "m": "Abrir el comercio era un punto compartido."
+  },
+  {
+    "it": "Murió en alta mar camino a Inglaterra, en 1811",
+    "cat": "moreno",
+    "m": "Se lo envió en misión diplomática y murió durante el viaje."
+  },
+  {
+    "it": "Pensaba que el interior tenía que tener voz en el gobierno",
+    "cat": "saavedra",
+    "m": "Buenos Aires sola o con las provincias: ése era el fondo del debate."
+  },
+  {
+    "it": "Defendía que el poder ya no venía del rey sino del pueblo",
+    "cat": "ambos",
+    "m": "Es la idea que sostiene toda la Revolución; discrepaban en cómo aplicarla."
+  }
+];
+GAMES.debate_mayo_5 = juegoClasificar(CUR_DEBATE_MAYO_5_BANCO, "¿De quién era esta postura?", [{"cat": "moreno", "label": "📜 Moreno"}, {"cat": "saavedra", "label": "🎖️ Saavedra"}, {"cat": "ambos", "label": "🤝 Coincidían los dos"}], "debate_may");
+
+/* 5° · La Asamblea del año XIII — asamblea_xiii_5
+   DC: Asamblea del año XIII: libertad de vientres, moneda y símbolos
+   Fuente: docs/auditoria-dc-caba/grado-5.md · S4 */
+const CUR_ASAMBLEA_XIII_5_BANCO = [
+  {
+    "q": "¿En qué año se reunió la Asamblea del Año XIII?",
+    "ops": [
+      "1813",
+      "1810",
+      "1816"
+    ],
+    "m": "Por eso se la llama 'del año XIII'."
+  },
+  {
+    "q": "¿Qué fue la libertad de vientres?",
+    "ops": [
+      "Los hijos de esclavas nacían libres",
+      "Se liberó a todas las personas esclavizadas",
+      "Se prohibió trabajar de noche"
+    ],
+    "m": "Importante: NO abolió la esclavitud. Los que ya eran esclavos seguían siéndolo; sólo los que nacían desde entonces eran libres."
+  },
+  {
+    "q": "¿La Asamblea abolió la esclavitud?",
+    "ops": [
+      "No, sólo liberó a los que nacían desde 1813",
+      "Sí, a todos",
+      "No hizo nada al respecto"
+    ],
+    "m": "La abolición completa llegó recién décadas después."
+  },
+  {
+    "q": "¿Qué símbolo patrio aprobó la Asamblea?",
+    "ops": [
+      "El Himno Nacional",
+      "La escarapela",
+      "El Cabildo"
+    ],
+    "m": "Aprobó el Himno y mandó acuñar la primera moneda patria."
+  },
+  {
+    "q": "¿Qué tenía de nuevo la primera moneda patria?",
+    "ops": [
+      "No llevaba la cara del rey de España",
+      "Era de papel",
+      "Valía más que la española"
+    ],
+    "m": "Llevaba el escudo: era una declaración de que ya no se dependía del rey."
+  },
+  {
+    "q": "¿Qué otro símbolo se aprobó en esa época?",
+    "ops": [
+      "El Escudo Nacional",
+      "La bandera de Belgrano en 1812",
+      "El Cabildo abierto"
+    ],
+    "m": "La bandera es de 1812, un año antes; el escudo sale de la Asamblea."
+  },
+  {
+    "q": "¿Qué eliminó la Asamblea sobre los pueblos originarios?",
+    "ops": [
+      "El tributo, la mita y la encomienda",
+      "Sus tierras",
+      "Su idioma"
+    ],
+    "m": "Eliminó las obligaciones de trabajo forzado heredadas de la colonia."
+  },
+  {
+    "q": "¿Qué pasó con los títulos de nobleza?",
+    "ops": [
+      "Se eliminaron",
+      "Se mantuvieron",
+      "Se crearon nuevos"
+    ],
+    "m": "Se buscaba una sociedad sin privilegios de nacimiento."
+  },
+  {
+    "q": "¿La Asamblea declaró la independencia?",
+    "ops": [
+      "No, eso pasó en 1816 en Tucumán",
+      "Sí, en 1813",
+      "Sí, pero en secreto"
+    ],
+    "m": "Es una confusión muy común: la Asamblea tomó muchas medidas pero no declaró la independencia."
+  },
+  {
+    "q": "¿Qué instrumento de tortura prohibió la Asamblea?",
+    "ops": [
+      "Los instrumentos de tortura en los juicios",
+      "Las armas de fuego",
+      "Los látigos del campo"
+    ],
+    "m": "Mandó quemarlos en la plaza pública."
+  },
+  {
+    "q": "¿Quién compuso la música del Himno?",
+    "ops": [
+      "Blas Parera",
+      "Vicente López y Planes",
+      "Juan Bautista Alberdi"
+    ],
+    "m": "La letra es de Vicente López y Planes; la música, de Blas Parera."
+  },
+  {
+    "q": "¿Por qué se dice que la Asamblea fue 'soberana'?",
+    "ops": [
+      "Porque decidía sin depender del rey de España",
+      "Porque la presidía un rey",
+      "Porque era secreta"
+    ],
+    "m": "Soberanía es decidir por sí misma."
+  },
+  {
+    "q": "¿Qué buscaba la Asamblea al crear símbolos propios?",
+    "ops": [
+      "Mostrar que se estaba formando un país nuevo",
+      "Copiar a España",
+      "Vender más monedas"
+    ],
+    "m": "Los símbolos construyen identidad."
+  },
+  {
+    "q": "La libertad de vientres, ¿alcanzó para terminar con la esclavitud?",
+    "ops": [
+      "No, fue un paso pero quedó incompleto",
+      "Sí, de inmediato",
+      "No cambió nada"
+    ],
+    "m": "Fue un avance real y, al mismo tiempo, insuficiente: las dos cosas son ciertas."
+  },
+  {
+    "q": "¿Dónde funcionó la Asamblea?",
+    "ops": [
+      "En Buenos Aires",
+      "En Tucumán",
+      "En Córdoba"
+    ],
+    "m": "En Buenos Aires; el Congreso de 1816 sí fue en Tucumán."
+  }
+];
+GAMES.asamblea_xiii_5 = juegoTriviaTexto(CUR_ASAMBLEA_XIII_5_BANCO, "¿Qué decidió la Asamblea?", "asamblea_x");
+
+/* 5° · Próceres y gestas — proceres_5
+   DC: Gesta sanmartiniana; Belgrano; Güemes
+   Fuente: docs/auditoria-dc-caba/grado-5.md · S5 */
+const CUR_PROCERES_5_BANCO = [
+  {
+    "q": "Antes de ser militar, Belgrano se había recibido de…",
+    "ops": [
+      "Abogado",
+      "Médico",
+      "Ingeniero"
+    ],
+    "m": "Estudió leyes en España; lo de militar vino después y por necesidad."
+  },
+  {
+    "q": "¿Qué cargo económico tuvo Belgrano antes de 1810?",
+    "ops": [
+      "Secretario del Consulado de Comercio",
+      "Virrey",
+      "Jefe de la aduana"
+    ],
+    "m": "Desde ahí impulsó la agricultura, las escuelas y el comercio."
+  },
+  {
+    "q": "¿Qué hizo Belgrano con el dinero del premio que le dieron por sus victorias?",
+    "ops": [
+      "Lo donó para construir cuatro escuelas",
+      "Compró tierras",
+      "Lo repartió entre sus soldados"
+    ],
+    "m": "Donó los 40.000 pesos para escuelas."
+  },
+  {
+    "q": "¿Qué fue el Éxodo Jujeño?",
+    "ops": [
+      "La población se fue y quemó todo para no dejarle nada al enemigo",
+      "Una fiesta popular",
+      "Una migración por el hambre"
+    ],
+    "m": "Belgrano ordenó la retirada; la gente se llevó o destruyó todo."
+  },
+  {
+    "q": "¿Qué hizo Güemes en el norte?",
+    "ops": [
+      "Frenó a los realistas con la guerra de guerrillas",
+      "Cruzó los Andes",
+      "Firmó la independencia"
+    ],
+    "m": "Con los gauchos salteños contuvo las invasiones desde el norte y protegió la retaguardia de San Martín."
+  },
+  {
+    "q": "¿Por qué la guerra de Güemes se llama 'guerra gaucha'?",
+    "ops": [
+      "Porque la hacían gauchos con tácticas de emboscada",
+      "Porque se peleaba en la ciudad",
+      "Porque no hubo combates"
+    ],
+    "m": "Conocían el terreno y atacaban por sorpresa."
+  },
+  {
+    "q": "¿Para qué cruzó San Martín los Andes?",
+    "ops": [
+      "Para liberar Chile y desde ahí atacar Perú por mar",
+      "Para conquistar Chile",
+      "Para huir del enemigo"
+    ],
+    "m": "Era un plan estratégico: Perú era el centro del poder realista y por tierra era inalcanzable."
+  },
+  {
+    "q": "¿Quién ayudó a organizar el cruce desde Cuyo?",
+    "ops": [
+      "Todo el pueblo cuyano y Remedios de Escalada con las damas mendocinas",
+      "Sólo el ejército",
+      "Los ingleses"
+    ],
+    "m": "Las mujeres de Mendoza cosieron las banderas y aportaron sus joyas."
+  },
+  {
+    "q": "¿Qué fue el Combate de San Lorenzo?",
+    "ops": [
+      "El bautismo de fuego de los Granaderos",
+      "Una batalla naval",
+      "El cruce de los Andes"
+    ],
+    "m": "Ahí San Martín estrenó el regimiento que había creado."
+  },
+  {
+    "q": "¿Quién creó la bandera y en qué año?",
+    "ops": [
+      "Belgrano, en 1812",
+      "San Martín, en 1816",
+      "Güemes, en 1810"
+    ],
+    "m": "La enarboló a orillas del Paraná, en Rosario."
+  },
+  {
+    "q": "¿Qué batallas ganó Belgrano en el norte?",
+    "ops": [
+      "Tucumán y Salta",
+      "Chacabuco y Maipú",
+      "San Lorenzo"
+    ],
+    "m": "Chacabuco y Maipú son de San Martín, en Chile."
+  },
+  {
+    "q": "¿Belgrano quería ser militar?",
+    "ops": [
+      "No, aceptó el mando porque hacía falta",
+      "Sí, desde chico",
+      "Sí, se formó como militar en España"
+    ],
+    "m": "Era abogado y economista; asumió el mando sin formación militar."
+  },
+  {
+    "q": "¿Cómo murió Belgrano?",
+    "ops": [
+      "Enfermo y pobre, en 1820",
+      "En combate",
+      "En el exilio"
+    ],
+    "m": "Murió el 20 de junio de 1820, en la mayor pobreza."
+  },
+  {
+    "q": "¿Dónde pasó San Martín sus últimos años?",
+    "ops": [
+      "En Francia",
+      "En Chile",
+      "En Perú"
+    ],
+    "m": "Se fue a Europa y murió en Boulogne-sur-Mer en 1850."
+  },
+  {
+    "q": "¿Qué tenían en común Belgrano, San Martín y Güemes?",
+    "ops": [
+      "Los tres pusieron su propio patrimonio al servicio de la causa",
+      "Los tres eran militares de carrera",
+      "Los tres nacieron en Buenos Aires"
+    ],
+    "m": "Belgrano era abogado y Güemes nació en Salta: lo que compartieron fue el compromiso, no el origen ni la profesión."
+  },
+  {
+    "q": "¿Por qué era importante el norte que defendía Güemes?",
+    "ops": [
+      "Era la puerta de entrada de los ejércitos realistas",
+      "Tenía las minas de oro",
+      "Era la capital"
+    ],
+    "m": "Si caía el norte, quedaba abierto el camino a Buenos Aires."
+  }
+];
+GAMES.proceres_5 = juegoTriviaTexto(CUR_PROCERES_5_BANCO, "¿Quién fue y qué hizo?", "proceres_5");
+
+/* 5° · El mapa de América — mapa_america_5
+   DC: Mapa político de América; subcontinentes, límites y escalas
+   Fuente: docs/auditoria-dc-caba/grado-5.md · S7 */
+const CUR_MAPA_AMERICA_5_BANCO = [
+  {
+    "q": "¿En qué subcontinente está la Argentina?",
+    "ops": [
+      "América del Sur",
+      "América Central",
+      "América del Norte"
+    ],
+    "m": "América se divide en del Norte, Central y del Sur."
+  },
+  {
+    "q": "¿Cuántos países limitan con la Argentina?",
+    "ops": [
+      "Cinco",
+      "Tres",
+      "Siete"
+    ],
+    "m": "Chile, Bolivia, Paraguay, Brasil y Uruguay."
+  },
+  {
+    "q": "¿Con qué país tiene la Argentina el límite más largo?",
+    "ops": [
+      "Chile",
+      "Brasil",
+      "Bolivia"
+    ],
+    "m": "Toda la cordillera de los Andes es el límite con Chile."
+  },
+  {
+    "q": "¿Qué cordillera recorre el oeste de América del Sur?",
+    "ops": [
+      "Los Andes",
+      "Los Alpes",
+      "Las Rocosas"
+    ],
+    "m": "Los Andes van desde Venezuela hasta Tierra del Fuego."
+  },
+  {
+    "q": "¿En qué subcontinente está México?",
+    "ops": [
+      "América del Norte",
+      "América Central",
+      "América del Sur"
+    ],
+    "m": "México está en América del Norte, junto con Estados Unidos y Canadá."
+  },
+  {
+    "q": "¿Cuál de estos está en América Central?",
+    "ops": [
+      "Costa Rica",
+      "Ecuador",
+      "Paraguay"
+    ],
+    "m": "América Central es la franja angosta entre México y Colombia."
+  },
+  {
+    "q": "¿Qué océano baña la costa argentina?",
+    "ops": [
+      "El Atlántico",
+      "El Pacífico",
+      "El Índico"
+    ],
+    "m": "El Pacífico baña la costa chilena, del otro lado de los Andes."
+  },
+  {
+    "q": "¿Qué país sudamericano NO tiene salida al mar, además de Bolivia?",
+    "ops": [
+      "Paraguay",
+      "Perú",
+      "Uruguay"
+    ],
+    "m": "Bolivia y Paraguay son los dos países mediterráneos de Sudamérica."
+  },
+  {
+    "q": "¿Para qué sirve la escala de un mapa?",
+    "ops": [
+      "Para saber a cuánto equivale en la realidad cada centímetro del mapa",
+      "Para saber los colores",
+      "Para ubicar el norte"
+    ],
+    "m": "Sin escala no se puede calcular una distancia real."
+  },
+  {
+    "q": "Si la escala dice 1:1.000.000, ¿qué significa?",
+    "ops": [
+      "1 cm del mapa es 1.000.000 cm reales (10 km)",
+      "El mapa mide un millón de cm",
+      "Hay un millón de ciudades"
+    ],
+    "m": "Se lee 'uno en un millón'."
+  },
+  {
+    "q": "¿Qué muestran las referencias de un mapa?",
+    "ops": [
+      "Qué significa cada color y cada símbolo",
+      "La fecha",
+      "El nombre del autor"
+    ],
+    "m": "Sin referencias el mapa no se puede leer."
+  },
+  {
+    "q": "¿Cuál es el país más extenso de América del Sur?",
+    "ops": [
+      "Brasil",
+      "Argentina",
+      "Perú"
+    ],
+    "m": "Brasil es el más grande; la Argentina es el segundo."
+  },
+  {
+    "q": "¿Qué diferencia hay entre un mapa político y uno físico?",
+    "ops": [
+      "El político muestra países; el físico, el relieve",
+      "Son lo mismo",
+      "El político es más grande"
+    ],
+    "m": "Uno muestra fronteras, el otro montañas y ríos."
+  },
+  {
+    "q": "¿Qué país limita con la Argentina sólo al noreste?",
+    "ops": [
+      "Brasil",
+      "Chile",
+      "Bolivia"
+    ],
+    "m": "Brasil limita con Misiones y Corrientes."
+  },
+  {
+    "q": "¿Cuál es la capital de Uruguay?",
+    "ops": [
+      "Montevideo",
+      "Asunción",
+      "Santiago"
+    ],
+    "m": "Asunción es de Paraguay y Santiago de Chile."
+  },
+  {
+    "q": "¿Qué río forma buena parte del límite con Uruguay?",
+    "ops": [
+      "El río Uruguay",
+      "El Paraná",
+      "El Colorado"
+    ],
+    "m": "Por eso el país se llama así."
+  },
+  {
+    "q": "¿Dónde está el punto más alto de América?",
+    "ops": [
+      "En la Argentina: el Aconcagua",
+      "En Brasil",
+      "En México"
+    ],
+    "m": "El Aconcagua, en Mendoza, con casi 6.961 metros."
+  },
+  {
+    "q": "En un planisferio, ¿hacia dónde queda el sur?",
+    "ops": [
+      "Abajo, según la convención más usada",
+      "Arriba",
+      "A la derecha"
+    ],
+    "m": "Es una convención: hay mapas invertidos, y no están mal."
+  },
+  {
+    "q": "¿Cuántos países tiene América del Sur?",
+    "ops": [
+      "Doce países independientes",
+      "Cinco",
+      "Veinte"
+    ],
+    "m": "Doce, más la Guayana Francesa que es territorio de Francia."
+  },
+  {
+    "q": "¿Qué es un límite natural?",
+    "ops": [
+      "Un río o una montaña que separa dos países",
+      "Una línea recta trazada",
+      "Un muro"
+    ],
+    "m": "Los Andes con Chile y el río Uruguay son límites naturales."
+  }
+];
+GAMES.mapa_america_5 = juegoTriviaTexto(CUR_MAPA_AMERICA_5_BANCO, "Ubicate en el mapa.", "mapa_ameri");
+
+/* 5° · La caja de la variable — variables_5
+   DC: Variables: declaración, asignación, contar y sumar
+   Fuente: docs/auditoria-dc-caba/grado-5.md · T1 */
+const CUR_VARIABLES_5_BANCO = [
+  {
+    "q": "La caja PUNTOS está vacía. Usás el bloque «guardar 5 en PUNTOS». ¿Qué tiene?",
+    "ops": [
+      "5",
+      "0",
+      "Nada"
+    ],
+    "m": "Guardar pone un valor adentro de la caja."
+  },
+  {
+    "q": "PUNTOS tiene 5. Usás «sumar 3 a PUNTOS». ¿Qué tiene ahora?",
+    "ops": [
+      "8",
+      "3",
+      "5"
+    ],
+    "m": "Sumar cambia lo que había: 5 + 3."
+  },
+  {
+    "q": "PUNTOS tiene 8. Usás «guardar 2 en PUNTOS». ¿Qué tiene?",
+    "ops": [
+      "2",
+      "10",
+      "8"
+    ],
+    "m": "Guardar PISA lo que había. Sumar acumula; guardar reemplaza."
+  },
+  {
+    "q": "VIDAS tiene 3. Usás «restar 1 a VIDAS» dos veces. ¿Qué tiene?",
+    "ops": [
+      "1",
+      "2",
+      "3"
+    ],
+    "m": "3 − 1 − 1."
+  },
+  {
+    "q": "¿Para qué sirve una variable?",
+    "ops": [
+      "Para guardar un dato y usarlo después",
+      "Para dibujar",
+      "Para borrar el programa"
+    ],
+    "m": "Es una caja con nombre donde el programa deja algo."
+  },
+  {
+    "q": "MONEDAS tiene 0. Repetís 4 veces «sumar 2 a MONEDAS». ¿Qué tiene?",
+    "ops": [
+      "8",
+      "2",
+      "4"
+    ],
+    "m": "Se suma 2 cuatro veces: 0+2+2+2+2."
+  },
+  {
+    "q": "Tenés dos cajas: A con 5 y B con 9. Hacés «guardar A en B». ¿Qué tiene B?",
+    "ops": [
+      "5",
+      "9",
+      "14"
+    ],
+    "m": "B toma el valor de A. Lo que tenía B se pierde."
+  },
+  {
+    "q": "En ese mismo caso, ¿qué queda en A?",
+    "ops": [
+      "5, no cambió",
+      "9",
+      "Nada"
+    ],
+    "m": "Copiar de A a B no vacía A."
+  },
+  {
+    "q": "Querés intercambiar lo que hay en A y en B. ¿Alcanza con «guardar A en B» y «guardar B en A»?",
+    "ops": [
+      "No, se pierde uno de los dos valores",
+      "Sí, queda intercambiado",
+      "Sí, si se hace rápido"
+    ],
+    "m": "Al pisar B se pierde su valor original. Hace falta una tercera caja temporal: es el clásico problema del intercambio."
+  },
+  {
+    "q": "¿Qué nombre le conviene a una variable?",
+    "ops": [
+      "Uno que diga qué guarda, como PUNTAJE",
+      "Cualquiera, como x1",
+      "El más corto posible"
+    ],
+    "m": "Un buen nombre hace que el programa se entienda solo."
+  },
+  {
+    "q": "TIEMPO tiene 10. Usás «restar 1 a TIEMPO» dentro de un repetir 10 veces. ¿En cuánto termina?",
+    "ops": [
+      "0",
+      "10",
+      "1"
+    ],
+    "m": "Se resta 1 diez veces."
+  },
+  {
+    "q": "Si nunca guardás nada en una caja, ¿qué tiene?",
+    "ops": [
+      "Nada, está vacía",
+      "Un número al azar",
+      "Siempre 1"
+    ],
+    "m": "Por eso conviene darle un valor inicial antes de usarla."
+  },
+  {
+    "q": "Para contar cuántas veces pasa algo, ¿qué usás?",
+    "ops": [
+      "Una variable que suma 1 cada vez",
+      "Un dibujo",
+      "Un sonido"
+    ],
+    "m": "Se llama contador."
+  },
+  {
+    "q": "PUNTOS tiene 7. «sumar PUNTOS a PUNTOS». ¿Qué queda?",
+    "ops": [
+      "14",
+      "7",
+      "0"
+    ],
+    "m": "Se suma a sí misma: 7 + 7."
+  },
+  {
+    "q": "¿Se puede cambiar el valor de una variable muchas veces?",
+    "ops": [
+      "Sí, para eso sirve",
+      "No, una sola vez",
+      "Sólo dos veces"
+    ],
+    "m": "Justamente por eso se llama variable."
+  },
+  {
+    "q": "En un juego, el marcador que sube al juntar monedas, ¿qué es?",
+    "ops": [
+      "Una variable",
+      "Un dibujo fijo",
+      "Un sonido"
+    ],
+    "m": "Guarda un valor que va cambiando."
+  },
+  {
+    "q": "VIDAS tiene 1. «restar 1 a VIDAS». ¿Qué conviene hacer después?",
+    "ops": [
+      "Preguntar si llegó a 0 y terminar el juego",
+      "Sumar 10",
+      "Nada"
+    ],
+    "m": "Las variables se combinan con condicionales para decidir qué pasa."
+  },
+  {
+    "q": "¿Dos cajas pueden llamarse igual?",
+    "ops": [
+      "No, el programa no sabría cuál es cuál",
+      "Sí, siempre",
+      "Sí, si guardan lo mismo"
+    ],
+    "m": "El nombre es lo que las identifica."
+  }
+];
+GAMES.variables_5 = juegoTriviaTexto(CUR_VARIABLES_5_BANCO, "¿Qué queda guardado en la caja?", "variables_");
+
+/* 5° · Si el sensor detecta… — sensores_5
+   DC: Entrada y salida; sensores y actuadores; sistemas temporizados
+   Fuente: docs/auditoria-dc-caba/grado-5.md · T3 */
+const CUR_SENSORES_5_BANCO = [
+  {
+    "q": "¿Qué hace un sensor?",
+    "ops": [
+      "Detecta algo del ambiente",
+      "Mueve una pieza",
+      "Guarda información"
+    ],
+    "m": "El sensor es la ENTRADA: mide o detecta."
+  },
+  {
+    "q": "¿Qué hace un actuador?",
+    "ops": [
+      "Realiza una acción, como mover o encender",
+      "Detecta la temperatura",
+      "Guarda datos"
+    ],
+    "m": "El actuador es la SALIDA: hace algo en el mundo."
+  },
+  {
+    "q": "En una puerta automática, ¿cuál es el sensor?",
+    "ops": [
+      "El detector de movimiento",
+      "El motor que la abre",
+      "El vidrio"
+    ],
+    "m": "Detecta que te acercás."
+  },
+  {
+    "q": "Y en esa puerta, ¿cuál es el actuador?",
+    "ops": [
+      "El motor que la abre",
+      "El detector",
+      "La alarma"
+    ],
+    "m": "El motor ejecuta la acción."
+  },
+  {
+    "q": "Una luz de patio se prende cuando oscurece. ¿Qué sensor usa?",
+    "ops": [
+      "Uno de luz",
+      "Uno de temperatura",
+      "Uno de humedad"
+    ],
+    "m": "Mide cuánta luz hay."
+  },
+  {
+    "q": "Un riego automático se prende si la tierra está seca. ¿Qué sensor usa?",
+    "ops": [
+      "Uno de humedad",
+      "Uno de luz",
+      "Uno de sonido"
+    ],
+    "m": "Mide cuánta agua tiene la tierra."
+  },
+  {
+    "q": "«SI hace más de 26 grados, ENTONCES prender el ventilador». ¿Qué es esto?",
+    "ops": [
+      "Una regla con condición",
+      "Un sensor",
+      "Un actuador"
+    ],
+    "m": "El sistema decide según lo que mide."
+  },
+  {
+    "q": "Si el sensor de temperatura marca 22 grados con esa regla, ¿qué pasa?",
+    "ops": [
+      "No se prende el ventilador",
+      "Se prende",
+      "Se apaga la luz"
+    ],
+    "m": "22 no es más que 26: la condición no se cumple."
+  },
+  {
+    "q": "Un riego temporizado riega todos los días a las 7. ¿Qué necesita?",
+    "ops": [
+      "Un reloj, no un sensor de humedad",
+      "Un sensor de luz",
+      "Un sensor de sonido"
+    ],
+    "m": "Un sistema temporizado actúa por tiempo, no por lo que detecta."
+  },
+  {
+    "q": "¿Qué problema tiene regar por horario y no por humedad?",
+    "ops": [
+      "Riega igual aunque haya llovido",
+      "No riega nunca",
+      "Gasta menos agua"
+    ],
+    "m": "Por eso a veces conviene combinar reloj y sensor."
+  },
+  {
+    "q": "El termostato de una estufa, ¿qué hace?",
+    "ops": [
+      "Mide la temperatura y apaga o prende para mantenerla",
+      "Sólo calienta",
+      "Sólo mide"
+    ],
+    "m": "Combina sensor y actuador en un mismo sistema."
+  },
+  {
+    "q": "En un semáforo con botón para peatones, ¿qué es el botón?",
+    "ops": [
+      "Una entrada del sistema",
+      "Un actuador",
+      "Una salida"
+    ],
+    "m": "Es la señal que entra al sistema."
+  },
+  {
+    "q": "«SI se detecta humo, ENTONCES sonar la alarma». ¿Cuál es la salida?",
+    "ops": [
+      "La alarma que suena",
+      "El humo",
+      "El detector"
+    ],
+    "m": "La alarma es el actuador."
+  },
+  {
+    "q": "Una regla con DOS condiciones: «si está oscuro Y hay movimiento, prender la luz». Si está oscuro pero nadie pasa…",
+    "ops": [
+      "No se prende",
+      "Se prende igual",
+      "Se prende a la mitad"
+    ],
+    "m": "Con 'Y' se tienen que cumplir las dos."
+  },
+  {
+    "q": "¿El celular tiene sensores?",
+    "ops": [
+      "Sí, muchos: luz, movimiento, huella",
+      "No, ninguno",
+      "Sólo la cámara"
+    ],
+    "m": "Por eso la pantalla se gira sola y baja el brillo de noche."
+  },
+  {
+    "q": "Un ascensor que frena en el piso indicado, ¿cómo sabe dónde está?",
+    "ops": [
+      "Con sensores de posición",
+      "Adivinando",
+      "Con un reloj"
+    ],
+    "m": "Necesita medir dónde está para decidir cuándo frenar."
+  }
+];
+GAMES.sensores_5 = juegoTriviaTexto(CUR_SENSORES_5_BANCO, "¿Qué hace el sistema?", "sensores_5");
+
+/* 5° · ¿Es phishing? — phishing_5
+   DC: Phishing; datos personales; identidad digital
+   Fuente: docs/auditoria-dc-caba/grado-5.md · T4 */
+const CUR_PHISHING_5_BANCO = [
+  {
+    "it": "«¡GANASTE UN CELULAR! Entrá acá y poné tus datos»",
+    "cat": "trampa",
+    "m": "Premio que no jugaste + urgencia + pide datos: las tres señales juntas."
+  },
+  {
+    "it": "Un mail de tu escuela desde la dirección de siempre, con la circular del mes",
+    "cat": "seguro",
+    "m": "Remitente conocido y contenido esperable."
+  },
+  {
+    "it": "Un mensaje de un amigo pidiéndote plata con mucha urgencia",
+    "cat": "verificar",
+    "m": "Pudieron hackearle la cuenta. Llamalo por otro medio antes de hacer nada."
+  },
+  {
+    "it": "«Tu cuenta será cerrada en 24 horas si no confirmás tu contraseña»",
+    "cat": "trampa",
+    "m": "Ninguna empresa seria pide la contraseña por mail. La urgencia es para que no pienses."
+  },
+  {
+    "it": "Un compañero te pide por chat en qué barrio vivís para juntarse a estudiar",
+    "cat": "verificar",
+    "m": "El barrio se puede decir; la dirección exacta, no. Y conviene chequear con un adulto que sea realmente él."
+  },
+  {
+    "it": "«Hola, soy del banco. Pasame el código que te llegó por SMS»",
+    "cat": "trampa",
+    "m": "El código es de un solo uso y NUNCA se comparte: el banco jamás lo pide."
+  },
+  {
+    "it": "Una notificación de la app de la escuela dentro de la propia app",
+    "cat": "seguro",
+    "m": "Viene de adentro de la app oficial."
+  },
+  {
+    "it": "«Mirá este video» con un link raro, de alguien que no te escribe nunca",
+    "cat": "trampa",
+    "m": "Link inesperado de un contacto inactivo: clásico."
+  },
+  {
+    "it": "Un mail de una tienda donde compraste, con el número de tu pedido",
+    "cat": "seguro",
+    "m": "Tiene un dato que sólo ellos y vos conocen."
+  },
+  {
+    "it": "Un mail que dice ser de una tienda pero el remitente termina en «.info»",
+    "cat": "trampa",
+    "m": "El dominio del remitente es la pista más fuerte: miralo siempre."
+  },
+  {
+    "it": "Un juego online te pide el nombre de tu escuela para «armar equipos»",
+    "cat": "trampa",
+    "m": "Un juego no necesita saber a qué escuela vas. Eso es dato personal."
+  },
+  {
+    "it": "Alguien que decís conocer te escribe desde un número nuevo",
+    "cat": "verificar",
+    "m": "Puede ser real o puede ser alguien haciéndose pasar. Chequealo por el número viejo."
+  },
+  {
+    "it": "«Tu paquete no pudo entregarse, pagá $500 acá» y no encargaste nada",
+    "cat": "trampa",
+    "m": "Si no esperabas ningún paquete, es estafa."
+  },
+  {
+    "it": "El profe te comparte un documento desde el mail de la escuela",
+    "cat": "seguro",
+    "m": "Fuente conocida y esperable."
+  },
+  {
+    "it": "Un mail de «soporté técnico» con faltas de ortografía",
+    "cat": "trampa",
+    "m": "Los errores son una señal, aunque cada vez menos: hay estafas bien escritas."
+  },
+  {
+    "it": "Una encuesta que promete un descuento y pide tu DNI y tu dirección",
+    "cat": "trampa",
+    "m": "Ninguna encuesta necesita tu DNI."
+  },
+  {
+    "it": "Un mail de tu club avisando el cambio de horario, con el logo de siempre",
+    "cat": "verificar",
+    "m": "El logo se copia fácil. Si algo cambia, confirmalo por el canal habitual."
+  },
+  {
+    "it": "«Te mando el link de la reunión de mañana», del grupo de la escuela",
+    "cat": "seguro",
+    "m": "Esperable y del grupo conocido."
+  },
+  {
+    "it": "Alguien que conociste jugando te pide una foto tuya",
+    "cat": "trampa",
+    "m": "No se mandan fotos a desconocidos, por más amable que sea. Contale a un adulto."
+  },
+  {
+    "it": "Un mensaje que dice «reenviá esto a 10 contactos o tendrás mala suerte»",
+    "cat": "trampa",
+    "m": "Cadena: no se reenvía."
+  },
+  {
+    "it": "Un mail del banco de tus padres que llega a TU casilla",
+    "cat": "verificar",
+    "m": "Raro que le escriban a tu mail. Mostráselo a ellos antes de tocar nada."
+  },
+  {
+    "it": "Una app que pide permiso para usar el micrófono siendo una calculadora",
+    "cat": "trampa",
+    "m": "Si el permiso no tiene nada que ver con lo que hace la app, desconfiá."
+  }
+];
+GAMES.phishing_5 = juegoClasificar(CUR_PHISHING_5_BANCO, "¿Qué harías con este mensaje?", [{"cat": "seguro", "label": "✅ Es seguro"}, {"cat": "trampa", "label": "🚨 Es trampa"}, {"cat": "verificar", "label": "🔍 Verificar antes"}], "phishing_5");
+
+/* 5° · Presupuesto del proyecto — presupuesto_5
+   DC: Ed. Financiera: ingreso y gasto, necesario y prescindible, ahorro y deuda
+   Fuente: docs/auditoria-dc-caba/grado-5.md · T5 */
+const CUR_PRESUPUESTO_5_BANCO = [
+  {
+    "it": "Lo que se junta en la rifa",
+    "cat": "ingreso",
+    "m": "Entra plata al proyecto."
+  },
+  {
+    "it": "El micro que los lleva",
+    "cat": "necesario",
+    "m": "Sin transporte no hay viaje."
+  },
+  {
+    "it": "Remeras personalizadas con el nombre de cada uno",
+    "cat": "prescindible",
+    "m": "Está buenísimo, pero el viaje se hace igual sin ellas."
+  },
+  {
+    "it": "La venta de pastelitos en el acto",
+    "cat": "ingreso",
+    "m": "Entra plata."
+  },
+  {
+    "it": "El alojamiento",
+    "cat": "necesario",
+    "m": "Hay que dormir en algún lado."
+  },
+  {
+    "it": "Un fotógrafo profesional para todo el viaje",
+    "cat": "prescindible",
+    "m": "Con los celulares alcanza si el presupuesto está justo."
+  },
+  {
+    "it": "Lo que aporta cada familia por mes",
+    "cat": "ingreso",
+    "m": "Es la cuota que entra."
+  },
+  {
+    "it": "Las comidas",
+    "cat": "necesario",
+    "m": "Comer no es opcional."
+  },
+  {
+    "it": "Souvenirs para todos",
+    "cat": "prescindible",
+    "m": "Es lo primero que se recorta si falta plata."
+  },
+  {
+    "it": "El seguro del viaje",
+    "cat": "necesario",
+    "m": "Parece un gasto evitable pero no lo es: si pasa algo, cubre."
+  },
+  {
+    "it": "Una fiesta extra la última noche",
+    "cat": "prescindible",
+    "m": "Lindo, no imprescindible."
+  },
+  {
+    "it": "La donación de un comercio del barrio",
+    "cat": "ingreso",
+    "m": "Entra plata sin que nadie la ponga del bolsillo."
+  },
+  {
+    "it": "Las entradas al parque que van a visitar",
+    "cat": "necesario",
+    "m": "Es la actividad principal del viaje."
+  },
+  {
+    "it": "Globos y decoración para la despedida",
+    "cat": "prescindible",
+    "m": "Recortable."
+  },
+  {
+    "it": "Lo que sobró del año pasado",
+    "cat": "ingreso",
+    "m": "Es plata disponible."
+  },
+  {
+    "it": "Un botiquín de primeros auxilios",
+    "cat": "necesario",
+    "m": "Barato y no se discute."
+  }
+];
+GAMES.presupuesto_5 = juegoClasificar(CUR_PRESUPUESTO_5_BANCO, "Para el viaje de egresados, ¿qué es cada cosa?", [{"cat": "ingreso", "label": "💵 Ingreso"}, {"cat": "necesario", "label": "✅ Gasto necesario"}, {"cat": "prescindible", "label": "🎈 Gasto prescindible"}], "presupuest");
