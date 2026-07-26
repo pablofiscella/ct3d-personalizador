@@ -115,6 +115,41 @@ Reglas de contenido que el validador exige y conviene entender:
   ya están: `34.000.507` (escribir el número como se dice), `4-5-9` en triángulos (la
   suma de los cortos IGUALA al largo y no cierra), `a - b + 10` (quedarse con el canje).
 
+### 4-bis. Construir de a tandas, commiteando cada una
+
+Un grado son 45-70 actividades y **no entran en una sentada**. La construcción se hace
+por tandas —normalmente un área por tanda— y **cada tanda se commitea y pushea**.
+
+Apenas escribís el manifiesto, sumá el grado a `EN_CONSTRUCCION` en
+`actividades_cobertura.py`:
+
+```python
+EN_CONSTRUCCION = {5}
+```
+
+Con eso, los temas que todavía no construiste **no rompen la suite** — pero un id
+inexistente o una actividad con candado siguen fallando. Sin esta compuerta, declarar el
+manifiesto pone la suite en rojo por 50 temas pendientes y ya no se puede commitear nada
+hasta terminar el grado entero, que es exactamente lo que hay que evitar.
+
+El ciclo por tanda:
+
+```bash
+# escribir las N actividades del área
+python3 gen_curriculum.py && python3 gen_motor_adaptativo.py
+python3 -m pytest tests/test_cobertura_dc.py tests/test_actividades_curriculum.py -q
+git add -A && git commit -m "feat(escolar): N° — <área> (X de Y temas)" && git push
+```
+
+**Por qué importa:** si se corta la sesión, se acaba el crédito o se cae la corrida, lo
+único que se pierde es la tanda en curso. Todo lo anterior está pusheado, validado y
+verde, y la rama se retoma desde ahí sin rehacer nada. El motor tampoco se rompe nunca en
+el medio: un grado a medio construir es un grado con menos actividades, todas
+funcionando.
+
+Cuando el informe da 0 FALTA, **sacá el grado de `EN_CONSTRUCCION`** y corré la suite: ahí
+recién se exige completo. Ese es el commit que cierra el grado.
+
 ### 5. Verificar
 
 ```bash

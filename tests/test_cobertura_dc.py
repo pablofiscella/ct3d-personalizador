@@ -34,10 +34,41 @@ def test_hay_al_menos_un_grado_auditado():
 
 @pytest.mark.parametrize("grado", GRADOS_AUDITADOS)
 def test_todos_los_temas_del_dc_tienen_actividad(grado):
-    """Ningún tema del año puede quedar sin construir."""
+    """Ningún tema del año puede quedar sin construir.
+
+    Un grado en `EN_CONSTRUCCION` se saltea: se está armando de a tandas y que le falten
+    temas es el estado esperado hasta que se termina."""
+    if grado in cob.EN_CONSTRUCCION:
+        pytest.skip("%d° está EN_CONSTRUCCION: faltan %d de %d temas"
+                    % (grado, len(cob.faltantes(grado)), len(cob.temas(grado))))
     faltan = cob.faltantes(grado)
     assert not faltan, "%d°: %d temas del DC sin actividad: %s" % (
         grado, len(faltan), ", ".join("%s %s" % (t["cod"], t["tema"]) for t in faltan))
+
+
+def test_un_grado_en_construccion_no_tapa_los_errores_de_verdad():
+    """EN_CONSTRUCCION perdona lo que FALTA, nunca lo que está MAL.
+
+    Es la línea que hace que el modo incremental sea seguro: si además de perdonar los
+    temas pendientes tapara un id inexistente o una actividad con candado, construir de a
+    tandas sería construir a ciegas. Se verifica sobre un grado inventado para no
+    depender de cómo esté el catálogo real."""
+    grado = 99
+    cob.DC[grado] = [
+        {"cod": "Z1", "area": "matematica", "tema": "sin construir", "dc": "x",
+         "cubre": None},
+        {"cod": "Z2", "area": "matematica", "tema": "id inventado", "dc": "x",
+         "cubre": "no_existe_jamas_9x"},
+    ]
+    cob.EN_CONSTRUCCION.add(grado)
+    try:
+        fallas = cob.problemas(grado)
+        assert len(fallas) == 1, fallas
+        assert "no_existe_jamas_9x" in fallas[0], fallas
+        assert "sin construir" not in fallas[0], "no debería quejarse de lo pendiente"
+    finally:
+        cob.EN_CONSTRUCCION.discard(grado)
+        cob.DC.pop(grado, None)
 
 
 @pytest.mark.parametrize("grado", GRADOS_AUDITADOS)
