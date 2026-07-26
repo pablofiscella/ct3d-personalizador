@@ -2221,6 +2221,41 @@ const COMO_ES_VIDEO = {
     partes: [{ t: "Puntuar el diálogo", f: "lec_dialogo_signos_3.mp4", s: 25 }],
   },
 
+
+  // ── Matemática de 3° (26-jul-2026).
+  mil_mas_menos_3: {
+    auto: "lec_mil_mas_menos_3.mp4",
+    partes: [{ t: "Sumar de a cien y de a mil", f: "lec_mil_mas_menos_3.mp4", s: 30 }],
+  },
+  rayo_por_diez_3: {
+    auto: "lec_rayo_por_diez_3.mp4",
+    partes: [{ t: "Por 10, 100 y 1.000", f: "lec_rayo_por_diez_3.mp4", s: 25 }],
+  },
+  multi_partes_3: {
+    auto: "lec_multi_partes_3.mp4",
+    partes: [{ t: "Multiplicar por partes", f: "lec_multi_partes_3.mp4", s: 25 }],
+  },
+  bandeja_huevos_3: {
+    auto: "lec_bandeja_huevos_3.mp4",
+    partes: [{ t: "Contar sin contar de a uno", f: "lec_bandeja_huevos_3.mp4", s: 23 }],
+  },
+  cuadricula_3: {
+    auto: "lec_cuadricula_3.mp4",
+    partes: [{ t: "Ubicarse en la cuadrícula", f: "lec_cuadricula_3.mp4", s: 24 }],
+  },
+  figuras_3: {
+    auto: "lec_figuras_3.mp4",
+    partes: [{ t: "Lados, vértices y diagonales", f: "lec_figuras_3.mp4", s: 30 }],
+  },
+  medir_3: {
+    auto: "lec_medir_3.mp4",
+    partes: [{ t: "Elegir la unidad justa", f: "lec_medir_3.mp4", s: 29 }],
+  },
+  cajero_miles_3: {
+    auto: "lec_cajero_miles_3.mp4",
+    partes: [{ t: "Armar un monto", f: "lec_cajero_miles_3.mp4", s: 25 }],
+  },
+
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
