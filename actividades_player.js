@@ -5507,6 +5507,118 @@ function _sortearVars(defs) {
   return vars;
 }
 
+/* ── MANIPULAR: tocar N piezas que juntas lleguen al objetivo ─────────────────────
+   Generaliza el patrón que ya estaba escrito a mano en cajero_automatico,
+   pago_exacto y suma_rapida: un pozo de piezas con valor, y hay que elegir las que
+   suman lo pedido. Es la mecánica que pide el DC de 1° y 2° para composición y
+   descomposición, donde una trivia no alcanza — el chico tiene que ARMAR la cantidad,
+   no reconocerla.
+
+   `plantilla`:
+     piezas   valores disponibles (los billetes, las fichas)
+     cuantas  cuántas hay que tocar para resolver (2 o 3)
+     unidad   prefijo de la etiqueta ("$", "" para fichas sueltas)
+     m        la explicación que se lee al errar
+
+   Guardas que importan: el pozo NUNCA trae un par alternativo que también dé el
+   objetivo (si no, hay dos respuestas correctas y el feedback miente), y se valida
+   recién al completar las `cuantas` piezas — commit-then-check, como el resto. */
+function juegoManipular(PLANTILLA, consignaTxt, idPrefijo) {
+  return {
+    crear(ctx) {
+      const rondas = ctx.cfg.rondas || 8;
+      ctx.rondas(rondas);
+      const P = PLANTILLA.piezas.slice();
+      const N = Math.max(2, Math.min(3, PLANTILLA.cuantas || 2));
+      const U = PLANTILLA.unidad || "";
+      let ronda = 0;
+      const jugar = () => {
+        ctx.ronda(ronda);
+        consignaVariada(ctx, ronda, consignaTxt, "n");
+        ctx.juego.innerHTML = "";
+        // la solución: N piezas al azar (pueden repetirse de valor, son piezas distintas)
+        const sol = [];
+        for (let i = 0; i < N; i++) sol.push(P[rint(0, P.length - 1)]);
+        const objetivo = sol.reduce((a, b) => a + b, 0);
+        ctx.item(idPrefijo + "#" + objetivo + "x" + N);
+        const arriba = el("div", "tablero");
+        arriba.appendChild(el("div", "spriteQuieto",
+          '<span style="font-size:30px;font-family:\'Baloo\',sans-serif">Armá ' + U + objetivo + "</span>"));
+        ctx.juego.appendChild(arriba);
+        // el pozo: la solución + relleno que NO forme otra combinación válida
+        const pozo = sol.slice();
+        let guardas = 0;
+        while (pozo.length < Math.min(6, N + 3) && guardas < 200) {
+          guardas++;
+          const v = P[rint(0, P.length - 1)];
+          const tmp = pozo.concat([v]);
+          if (!hayOtraSolucion(tmp, sol, objetivo, N)) pozo.push(v);
+        }
+        let elegidas = [];
+        let resuelto = false;
+        const fila = el("div", "filaSprites");
+        shuffle(pozo.map((v, i) => ({ v: v, i: i }))).forEach((pieza) => {
+          const btn = el("button", "spriteBtn",
+            '<span style="font-size:20px;font-family:\'Baloo\',sans-serif">' + U + pieza.v + "</span>");
+          btn.addEventListener("click", async () => {
+            if (resuelto || btn.disabled) return;
+            const yaEsta = elegidas.findIndex((e) => e.btn === btn);
+            if (yaEsta >= 0) {                      // destocar: se puede corregir sin fallar
+              elegidas.splice(yaEsta, 1);
+              btn.classList.remove("elegido");
+              return;
+            }
+            elegidas.push({ v: pieza.v, btn: btn });
+            btn.classList.add("elegido");
+            if (elegidas.length < N) return;        // commit-then-check: recién con N
+            const suma = elegidas.reduce((a, e) => a + e.v, 0);
+            if (suma === objetivo) {
+              resuelto = true;
+              elegidas.forEach((e) => { e.btn.disabled = true; e.btn.classList.add("anim-pop"); });
+              ctx.bien();
+              ronda++;
+              await espera(900);
+              if (ronda >= rondas) ctx.win();
+              else jugar();
+            } else {
+              const previas = elegidas.slice();     // capturar ANTES de resetear
+              elegidas = [];
+              previas.forEach((e) => {
+                e.btn.classList.remove("elegido");
+                e.btn.style.animation = "sacudir .4s ease";
+                setTimeout(() => { e.btn.style.animation = ""; }, 420);
+              });
+              ctx.casi((PLANTILLA.m || "") + " Te dio " + U + suma + " y buscabas " + U + objetivo + ".");
+            }
+          });
+          fila.appendChild(btn);
+        });
+        ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+      };
+      jugar();
+    },
+  };
+}
+
+/* ¿El pozo permite otra combinación de N piezas que dé el objetivo? Si la permite, el
+   relleno se descarta: dos respuestas correctas y una sola marcada rompen el feedback. */
+function hayOtraSolucion(pozo, sol, objetivo, N) {
+  const idxSol = [];
+  const usado = pozo.slice();
+  sol.forEach((v) => { const i = usado.indexOf(v); if (i >= 0) { idxSol.push(i); usado[i] = null; } });
+  const combos = [];
+  const armar = (desde, actual) => {
+    if (actual.length === N) { combos.push(actual.slice()); return; }
+    for (let i = desde; i < pozo.length; i++) { actual.push(i); armar(i + 1, actual); actual.pop(); }
+  };
+  armar(0, []);
+  return combos.some((c) => {
+    if (c.length !== N) return false;
+    if (c.slice().sort().join() === idxSol.slice().sort().join()) return false;  // es LA solución
+    return c.reduce((a, i) => a + pozo[i], 0) === objetivo;
+  });
+}
+
 function juegoParametrico(PLANTILLA, consignaTxt, idPrefijo) {
   return {
     crear(ctx) {

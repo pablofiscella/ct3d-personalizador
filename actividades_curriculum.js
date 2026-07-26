@@ -11731,3 +11731,41 @@ const CUR_PRESUPUESTO_5_BANCO = [
   }
 ];
 GAMES.presupuesto_5 = juegoClasificar(CUR_PRESUPUESTO_5_BANCO, "Para el viaje de egresados, ¿qué es cada cosa?", [{"cat": "ingreso", "label": "💵 Ingreso"}, {"cat": "necesario", "label": "✅ Gasto necesario"}, {"cat": "prescindible", "label": "🎈 Gasto prescindible"}], "presupuest");
+
+/* 3° · Cajero de miles — cajero_miles_3
+   DC: Valor posicional; composición aditiva de números de 4 cifras
+   Fuente: docs/auditoria-dc-caba/grado-3.md · M3 */
+const CUR_CAJERO_MILES_3_PIEZAS = {
+  "piezas": [
+    10,
+    50,
+    100,
+    500,
+    1000
+  ],
+  "cuantas": 2,
+  "unidad": "$",
+  "m": "Fijate cuánto te falta para llegar y buscá un billete de ese valor."
+};
+GAMES.cajero_miles_3 = juegoManipular(CUR_CAJERO_MILES_3_PIEZAS, "Tocá los billetes que sumen el monto exacto.", "cajero_mil");
+
+/* 3° · Parejas que dan 1.000 — parejas_mil_3
+   DC: Repertorio de sumas que dan 1.000 y 10.000
+   Fuente: docs/auditoria-dc-caba/grado-3.md · M7 */
+const CUR_PAREJAS_MIL_3_PIEZAS = {
+  "piezas": [
+    100,
+    200,
+    300,
+    400,
+    500,
+    600,
+    700,
+    800,
+    900
+  ],
+  "cuantas": 2,
+  "unidad": "",
+  "m": "Pensá cuánto le falta al primero para llegar al total."
+};
+GAMES.parejas_mil_3 = juegoManipular(CUR_PAREJAS_MIL_3_PIEZAS, "Tocá los dos números que juntos den el total.", "parejas_mi");
