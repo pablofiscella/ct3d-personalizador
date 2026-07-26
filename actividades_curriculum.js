@@ -15808,3 +15808,1031 @@ const CUR_ENTRADA_SALIDA_2_BANCO = [
   }
 ];
 GAMES.entrada_salida_2 = juegoClasificar(CUR_ENTRADA_SALIDA_2_BANCO, "¿Entra o sale información?", [{"cat": "entrada", "label": "➡️ Entra"}, {"cat": "salida", "label": "⬅️ Sale"}], "entrada_sa");
+
+/* 2° · Parejas que dan 100 — parejas_cien_2
+   DC: Repertorio de sumas que dan 100, 500 y 1.000
+   Fuente: docs/auditoria-dc-caba/grado-2.md · M3 */
+const CUR_PAREJAS_CIEN_2_PIEZAS = {
+  "piezas": [
+    10,
+    20,
+    30,
+    40,
+    50,
+    60,
+    70,
+    80,
+    90
+  ],
+  "cuantas": 2,
+  "unidad": "",
+  "m": "Pensá cuánto le falta al primero para llegar al total."
+};
+GAMES.parejas_cien_2 = juegoManipular(CUR_PAREJAS_CIEN_2_PIEZAS, "Tocá los dos números que juntos den el total.", "parejas_ci");
+
+/* 2° · Reparto justo — reparto_2
+   DC: Reparto exacto, con resto y partición
+   Fuente: docs/auditoria-dc-caba/grado-2.md · M12 */
+const CUR_REPARTO_2_BANCO = [
+  {
+    "q": "12 galletitas entre 4 chicos: a cada uno le tocan…",
+    "ops": [
+      "3",
+      "4",
+      "8"
+    ],
+    "m": "12 repartido en 4 partes iguales."
+  },
+  {
+    "q": "10 figuritas entre 2: a cada uno…",
+    "ops": [
+      "5",
+      "2",
+      "8"
+    ],
+    "m": "La mitad."
+  },
+  {
+    "q": "9 caramelos entre 3: a cada uno…",
+    "ops": [
+      "3",
+      "6",
+      "1"
+    ],
+    "m": "9 en 3 partes."
+  },
+  {
+    "q": "7 alfajores entre 2: a cada uno 3, y…",
+    "ops": [
+      "sobra 1",
+      "sobran 2",
+      "no sobra nada"
+    ],
+    "m": "3 y 3 son 6: queda 1 sin repartir."
+  },
+  {
+    "q": "11 chicos en autos de 4. ¿Cuántos autos hacen falta?",
+    "ops": [
+      "3",
+      "2",
+      "4"
+    ],
+    "m": "En 2 autos entran 8 y quedan 3 a pie. Hace falta un tercero."
+  },
+  {
+    "q": "20 flores en floreros de 5: ¿cuántos floreros?",
+    "ops": [
+      "4",
+      "5",
+      "15"
+    ],
+    "m": "Acá se pregunta cuántos grupos, no cuánto le toca a cada uno."
+  },
+  {
+    "q": "8 chocolates entre 4: a cada uno…",
+    "ops": [
+      "2",
+      "4",
+      "12"
+    ],
+    "m": "8 en 4 partes."
+  },
+  {
+    "q": "15 lápices entre 5: a cada uno…",
+    "ops": [
+      "3",
+      "5",
+      "10"
+    ],
+    "m": "15 en 5 partes."
+  },
+  {
+    "q": "Si sobran caramelos, ¿el reparto está mal?",
+    "ops": [
+      "No, a veces sobra",
+      "Sí, siempre da justo",
+      "Hay que tirarlos"
+    ],
+    "m": "Lo que sobra se llama resto, y es parte del resultado."
+  },
+  {
+    "q": "6 globos entre 4 chicos: a cada uno 1, y…",
+    "ops": [
+      "sobran 2",
+      "sobra 1",
+      "no sobra"
+    ],
+    "m": "4 repartidos, quedan 2."
+  },
+  {
+    "q": "18 stickers entre 3: a cada uno…",
+    "ops": [
+      "6",
+      "3",
+      "15"
+    ],
+    "m": "18 en 3 partes."
+  },
+  {
+    "q": "¿Repartir es lo mismo que sumar?",
+    "ops": [
+      "No, es partir en grupos iguales",
+      "Sí",
+      "Sólo a veces"
+    ],
+    "m": "Repartir es lo contrario de juntar."
+  }
+];
+GAMES.reparto_2 = juegoTriviaTexto(CUR_REPARTO_2_BANCO, "¿Cuánto le toca a cada uno?", "reparto_2");
+
+/* 2° · Los dobles — dobles_2
+   DC: Dobles y mitades
+   Fuente: docs/auditoria-dc-caba/grado-2.md · M13 */
+const CUR_DOBLES_2_PLANTILLA = {
+  "q": "El doble de {a}",
+  "vars": {
+    "a": {
+      "rango": [
+        3,
+        60
+      ],
+      "paso": 1
+    }
+  },
+  "ok": "a * 2",
+  "distractores": [
+    "a + 2",
+    "a * 2 + 1",
+    "a * 2 - 1"
+  ],
+  "tope": 200,
+  "m": "El doble es sumarlo consigo mismo: {a} + {a}. Da {ok}."
+};
+GAMES.dobles_2 = juegoParametrico(CUR_DOBLES_2_PLANTILLA, "¿Cuánto es el doble?", "dobles_2");
+
+/* 2° · ¿Dónde está? — posiciones_2
+   DC: Posiciones, trayectos y puntos de vista
+   Fuente: docs/auditoria-dc-caba/grado-2.md · M14 */
+const CUR_POSICIONES_2_BANCO = [
+  {
+    "q": "Si el gato está ARRIBA de la mesa, la mesa está…",
+    "ops": [
+      "Debajo del gato",
+      "Arriba del gato",
+      "Al lado"
+    ],
+    "m": "Es la misma relación mirada al revés."
+  },
+  {
+    "q": "Si camino hacia adelante y me doy vuelta, ahora voy…",
+    "ops": [
+      "Hacia atrás",
+      "Hacia adelante",
+      "Hacia arriba"
+    ],
+    "m": "Darse vuelta invierte el sentido."
+  },
+  {
+    "q": "La puerta está a MI derecha. Si me doy vuelta, queda a mi…",
+    "ops": [
+      "Izquierda",
+      "Derecha",
+      "Espalda"
+    ],
+    "m": "Al girar, se invierten los lados."
+  },
+  {
+    "q": "Si estoy ENTRE Ana y Luis, ¿cuántos hay a cada lado?",
+    "ops": [
+      "Uno de cada lado",
+      "Los dos de un lado",
+      "Ninguno"
+    ],
+    "m": "Estar entre es tener uno a cada lado."
+  },
+  {
+    "q": "Vista desde ARRIBA, una pelota se ve…",
+    "ops": [
+      "Como un círculo",
+      "Como un cuadrado",
+      "Como un triángulo"
+    ],
+    "m": "Desde arriba se ve el contorno redondo."
+  },
+  {
+    "q": "Vista desde arriba, una caja se ve…",
+    "ops": [
+      "Como un rectángulo",
+      "Como un círculo",
+      "Como un triángulo"
+    ],
+    "m": "Se ve la tapa."
+  },
+  {
+    "q": "Si voy 2 pasos adelante y 1 atrás, avancé…",
+    "ops": [
+      "1 paso",
+      "3 pasos",
+      "0"
+    ],
+    "m": "2 − 1."
+  },
+  {
+    "q": "Lo que está CERCA de mí, ¿está cerca de todos?",
+    "ops": [
+      "No, depende de dónde esté cada uno",
+      "Sí, siempre",
+      "Sólo en el aula"
+    ],
+    "m": "Cerca y lejos dependen de quién mira."
+  },
+  {
+    "q": "Si el perro está DELANTE del auto y yo miro desde el otro lado, lo veo…",
+    "ops": [
+      "Detrás del auto",
+      "Delante",
+      "Arriba"
+    ],
+    "m": "El punto de vista cambia lo que ves."
+  },
+  {
+    "q": "Para ir de A a B pasando por C, primero voy…",
+    "ops": [
+      "De A a C",
+      "De A a B",
+      "De C a B"
+    ],
+    "m": "El trayecto respeta el orden pedido."
+  },
+  {
+    "q": "Si algo está DEBAJO de la silla, la silla está…",
+    "ops": [
+      "Encima",
+      "Debajo",
+      "Al lado"
+    ],
+    "m": "Relación inversa."
+  },
+  {
+    "q": "Mi izquierda y la izquierda de alguien que me mira de frente…",
+    "ops": [
+      "Están cambiadas",
+      "Son la misma",
+      "No existen"
+    ],
+    "m": "Por eso conviene decir 'a mi izquierda' o 'a tu izquierda'."
+  }
+];
+GAMES.posiciones_2 = juegoTriviaTexto(CUR_POSICIONES_2_BANCO, "Ubicate en el espacio.", "posiciones");
+
+/* 2° · Medí con la regla — medir_regla_2
+   DC: Medición con regla; elección de unidad
+   Fuente: docs/auditoria-dc-caba/grado-2.md · M16 */
+const CUR_MEDIR_REGLA_2_BANCO = [
+  {
+    "q": "Para medir algo con la regla, ¿dónde apoyás la punta?",
+    "ops": [
+      "En el 0",
+      "En el 1",
+      "Donde caiga"
+    ],
+    "m": "Si empezás en el 1, todas las medidas te dan mal."
+  },
+  {
+    "q": "Apoyaste en el 2 y el objeto llega al 9. ¿Cuánto mide?",
+    "ops": [
+      "7 cm",
+      "9 cm",
+      "11 cm"
+    ],
+    "m": "9 − 2. Éste es EL error de medir: leer el número final sin restar."
+  },
+  {
+    "q": "Apoyaste en el 0 y llega al 12. ¿Cuánto mide?",
+    "ops": [
+      "12 cm",
+      "11 cm",
+      "13 cm"
+    ],
+    "m": "Desde el 0 se lee directo."
+  },
+  {
+    "q": "¿Con qué medirías tu lápiz?",
+    "ops": [
+      "Centímetros",
+      "Kilómetros",
+      "Litros"
+    ],
+    "m": "El centímetro es la unidad cómoda."
+  },
+  {
+    "q": "¿Y el largo de la escuela?",
+    "ops": [
+      "Metros",
+      "Milímetros",
+      "Gramos"
+    ],
+    "m": "En milímetros el número sería enorme."
+  },
+  {
+    "q": "1 metro son…",
+    "ops": [
+      "100 cm",
+      "10 cm",
+      "1.000 cm"
+    ],
+    "m": "Cien centímetros."
+  },
+  {
+    "q": "Los numeritos chiquitos entre dos centímetros son…",
+    "ops": [
+      "Milímetros",
+      "Metros",
+      "Kilos"
+    ],
+    "m": "Diez milímetros por centímetro."
+  },
+  {
+    "q": "Si medís torcido, la medida…",
+    "ops": [
+      "Da más de lo que es",
+      "Da igual",
+      "Da menos"
+    ],
+    "m": "Hay que apoyar la regla derecha, al lado del objeto."
+  },
+  {
+    "q": "¿Se puede medir con un lápiz en vez de una regla?",
+    "ops": [
+      "Sí, pero cada lápiz mide distinto",
+      "No, nunca",
+      "Sí, y da igual"
+    ],
+    "m": "Por eso existen las unidades: para que todos midan lo mismo."
+  },
+  {
+    "q": "¿Qué es más largo: 50 cm o medio metro?",
+    "ops": [
+      "Son iguales",
+      "50 cm",
+      "Medio metro"
+    ],
+    "m": "Medio metro son 50 cm."
+  },
+  {
+    "q": "¿Con qué medirías el ancho de una moneda?",
+    "ops": [
+      "Milímetros",
+      "Metros",
+      "Kilómetros"
+    ],
+    "m": "Es muy chiquita."
+  },
+  {
+    "q": "Antes de medir, ¿conviene estimar?",
+    "ops": [
+      "Sí, te avisa si el resultado tiene sentido",
+      "No, hace perder tiempo",
+      "Sólo si es grande"
+    ],
+    "m": "Si estimaste 10 cm y te da 80, algo hiciste mal."
+  }
+];
+GAMES.medir_regla_2 = juegoTriviaTexto(CUR_MEDIR_REGLA_2_BANCO, "¿Cómo se mide bien?", "medir_regl");
+
+/* 2° · ¿De qué grupo es? — animales_2
+   DC: Clasificación de animales; casos que rompen el estereotipo
+   Fuente: docs/auditoria-dc-caba/grado-2.md · C3 */
+const CUR_ANIMALES_2_BANCO = [
+  {
+    "it": "El hornero",
+    "cat": "ave",
+    "m": "Tiene plumas y pico: es ave."
+  },
+  {
+    "it": "El perro",
+    "cat": "mamifero",
+    "m": "Tiene pelo y toma leche de su mamá."
+  },
+  {
+    "it": "El salmón",
+    "cat": "pez",
+    "m": "Vive en el agua y respira por branquias."
+  },
+  {
+    "it": "El pingüino",
+    "cat": "ave",
+    "m": "No vuela, pero tiene plumas y pico: es ave."
+  },
+  {
+    "it": "El murciélago",
+    "cat": "mamifero",
+    "m": "Vuela, pero tiene pelo y toma leche: es mamífero, no ave."
+  },
+  {
+    "it": "El delfín",
+    "cat": "mamifero",
+    "m": "Vive en el mar pero respira aire y toma leche: mamífero."
+  },
+  {
+    "it": "El avestruz",
+    "cat": "ave",
+    "m": "No vuela y es ave igual."
+  },
+  {
+    "it": "El tiburón",
+    "cat": "pez",
+    "m": "Respira por branquias."
+  },
+  {
+    "it": "El gato",
+    "cat": "mamifero",
+    "m": "Pelo y leche."
+  },
+  {
+    "it": "La ballena",
+    "cat": "mamifero",
+    "m": "Es el animal más grande y es mamífero."
+  },
+  {
+    "it": "El loro",
+    "cat": "ave",
+    "m": "Plumas y pico."
+  },
+  {
+    "it": "La trucha",
+    "cat": "pez",
+    "m": "Vive en el río, con branquias."
+  },
+  {
+    "it": "El caballo",
+    "cat": "mamifero",
+    "m": "Pelo y leche."
+  },
+  {
+    "it": "El cóndor",
+    "cat": "ave",
+    "m": "El ave más grande de los Andes."
+  }
+];
+GAMES.animales_2 = juegoClasificar(CUR_ANIMALES_2_BANCO, "¿A qué grupo pertenece este animal?", [{"cat": "ave", "label": "🐦 Ave"}, {"cat": "mamifero", "label": "🐕 Mamífero"}, {"cat": "pez", "label": "🐟 Pez"}], "animales_2");
+
+/* 2° · ¿De dónde viene el agua? — agua_2
+   DC: El recorrido del agua hasta la canilla
+   Fuente: docs/auditoria-dc-caba/grado-2.md · C5 */
+const CUR_AGUA_2_BANCO = [
+  {
+    "items": [
+      "Se saca agua del río",
+      "Se limpia en la planta",
+      "Va por los caños",
+      "Sale por la canilla"
+    ]
+  },
+  {
+    "items": [
+      "Llueve sobre la montaña",
+      "El agua baja al río",
+      "El río llega a la ciudad"
+    ]
+  },
+  {
+    "items": [
+      "El agua sucia va por el desagüe",
+      "Se trata en una planta",
+      "Vuelve limpia al río"
+    ]
+  },
+  {
+    "items": [
+      "Se junta el agua en un tanque",
+      "Baja por los caños del edificio",
+      "Llega al departamento"
+    ]
+  },
+  {
+    "items": [
+      "Se abre la canilla",
+      "Sale el agua",
+      "Se cierra la canilla para no desperdiciar"
+    ]
+  },
+  {
+    "items": [
+      "El agua se filtra en la tierra",
+      "Queda bajo el suelo",
+      "Se saca con una bomba"
+    ]
+  },
+  {
+    "items": [
+      "El sol evapora el agua",
+      "Se forma la nube",
+      "Vuelve a llover"
+    ]
+  },
+  {
+    "items": [
+      "Se llena el vaso",
+      "Se toma el agua",
+      "Se lava el vaso"
+    ]
+  }
+];
+GAMES.agua_2 = juegoOrdenar(CUR_AGUA_2_BANCO, "Ordená el recorrido del agua. Tocá en orden.", "El agua no aparece en la canilla: hace un camino largo antes.", "agua_2");
+
+/* 2° · ¿Se contagia? — salud_2
+   DC: Enfermedades contagiosas y no contagiosas; prevención
+   Fuente: docs/auditoria-dc-caba/grado-2.md · C6 */
+const CUR_SALUD_2_BANCO = [
+  {
+    "it": "La gripe",
+    "cat": "contagia",
+    "m": "Se pasa por el aire al toser o estornudar."
+  },
+  {
+    "it": "La celiaquía",
+    "cat": "nocontagia",
+    "m": "No se contagia de ninguna manera. Se nace con esa condición."
+  },
+  {
+    "it": "La varicela",
+    "cat": "contagia",
+    "m": "Muy contagiosa entre chicos."
+  },
+  {
+    "it": "La diabetes",
+    "cat": "nocontagia",
+    "m": "No se pega. Compartir el mate con alguien que tiene diabetes no contagia nada."
+  },
+  {
+    "it": "Los piojos",
+    "cat": "contagia",
+    "m": "Se pasan de cabeza a cabeza."
+  },
+  {
+    "it": "El asma",
+    "cat": "nocontagia",
+    "m": "No se contagia."
+  },
+  {
+    "it": "Un resfrío",
+    "cat": "contagia",
+    "m": "Por el aire y las manos."
+  },
+  {
+    "it": "Una pierna quebrada",
+    "cat": "nocontagia",
+    "m": "Es un accidente, no se pega."
+  },
+  {
+    "it": "La conjuntivitis",
+    "cat": "contagia",
+    "m": "Por tocarse los ojos y después algo."
+  },
+  {
+    "it": "Usar anteojos",
+    "cat": "nocontagia",
+    "m": "Ver poco no se contagia."
+  },
+  {
+    "it": "Una caries",
+    "cat": "nocontagia",
+    "m": "Se produce por lo que comés y no lavarte."
+  },
+  {
+    "it": "Lavarse las manos ayuda a evitar…",
+    "cat": "contagia",
+    "m": "Es la mejor forma de cortar el contagio."
+  }
+];
+GAMES.salud_2 = juegoClasificar(CUR_SALUD_2_BANCO, "¿Esto se contagia o no?", [{"cat": "contagia", "label": "🦠 Se contagia"}, {"cat": "nocontagia", "label": "🚫 No se contagia"}], "salud_2");
+
+/* 2° · De la semilla a la planta — plantas_2
+   DC: Necesidades de las plantas; el ciclo de la planta
+   Fuente: docs/auditoria-dc-caba/grado-2.md · C8 */
+const CUR_PLANTAS_2_BANCO = [
+  {
+    "items": [
+      "La semilla",
+      "El brote",
+      "La planta con hojas",
+      "La flor"
+    ]
+  },
+  {
+    "items": [
+      "Se planta la semilla",
+      "Se riega",
+      "Sale el brote"
+    ]
+  },
+  {
+    "items": [
+      "La flor se abre",
+      "Aparece el fruto",
+      "Adentro hay semillas nuevas"
+    ]
+  },
+  {
+    "items": [
+      "La raíz toma agua de la tierra",
+      "El agua sube por el tallo",
+      "Llega a las hojas"
+    ]
+  },
+  {
+    "items": [
+      "Sale el sol",
+      "La planta recibe luz",
+      "Fabrica su alimento"
+    ]
+  },
+  {
+    "items": [
+      "Se seca la planta",
+      "Cae la semilla al suelo",
+      "Nace una planta nueva"
+    ]
+  },
+  {
+    "items": [
+      "Se prepara la tierra",
+      "Se pone la semilla",
+      "Se tapa con tierra",
+      "Se riega"
+    ]
+  },
+  {
+    "items": [
+      "La planta es chiquita",
+      "Crece",
+      "Da flores"
+    ]
+  }
+];
+GAMES.plantas_2 = juegoOrdenar(CUR_PLANTAS_2_BANCO, "Ordená lo que le pasa a la planta. Tocá en orden.", "Todo empieza por la semilla y termina dando semillas nuevas.", "plantas_2");
+
+/* 2° · ¿Dónde va? — residuos_2
+   DC: Separación de residuos y reciclado
+   Fuente: docs/auditoria-dc-caba/grado-2.md · X1 */
+const CUR_RESIDUOS_2_BANCO = [
+  {
+    "it": "Una botella de plástico enjuagada",
+    "cat": "reciclable",
+    "m": "Limpia se recicla."
+  },
+  {
+    "it": "Una servilleta sucia de comida",
+    "cat": "basura",
+    "m": "Es papel, pero sucio de grasa ya no se puede reciclar. Ése es EL error."
+  },
+  {
+    "it": "Una hoja de cuaderno escrita",
+    "cat": "reciclable",
+    "m": "El papel escrito se recicla."
+  },
+  {
+    "it": "Un envoltorio de golosina",
+    "cat": "basura",
+    "m": "Mezcla materiales pegados."
+  },
+  {
+    "it": "Una lata enjuagada",
+    "cat": "reciclable",
+    "m": "El metal se recicla muchas veces."
+  },
+  {
+    "it": "Un chicle masticado",
+    "cat": "basura",
+    "m": "No se recicla."
+  },
+  {
+    "it": "Un frasco de vidrio",
+    "cat": "reciclable",
+    "m": "El vidrio se recicla siempre."
+  },
+  {
+    "it": "Una caja de cartón",
+    "cat": "reciclable",
+    "m": "Plegada ocupa menos."
+  },
+  {
+    "it": "Un pañuelo de papel usado",
+    "cat": "basura",
+    "m": "Papel sucio: basura."
+  },
+  {
+    "it": "Una botella con restos de aceite",
+    "cat": "basura",
+    "m": "Sin enjuagar arruina todo el lote de reciclado."
+  },
+  {
+    "it": "Un diario viejo",
+    "cat": "reciclable",
+    "m": "Papel limpio y seco."
+  },
+  {
+    "it": "Antes de tirar un envase, conviene…",
+    "cat": "reciclable",
+    "m": "Enjuagarlo: así sí se puede reciclar."
+  }
+];
+GAMES.residuos_2 = juegoClasificar(CUR_RESIDUOS_2_BANCO, "¿En qué cesto va?", [{"cat": "reciclable", "label": "♻️ Reciclable"}, {"cat": "basura", "label": "🗑️ Basura"}], "residuos_2");
+
+/* 2° · ¿Cómo me alimento? — plato_2
+   DC: Alimentación equilibrada; etiquetado frontal
+   Fuente: docs/auditoria-dc-caba/grado-2.md · X2 */
+const CUR_PLATO_2_BANCO = [
+  {
+    "it": "Frutas",
+    "cat": "todos",
+    "m": "Cuanto más variadas, mejor."
+  },
+  {
+    "it": "Gaseosa",
+    "cat": "aveces",
+    "m": "Mucha azúcar y ningún nutriente."
+  },
+  {
+    "it": "Verduras",
+    "cat": "todos",
+    "m": "La mitad del plato."
+  },
+  {
+    "it": "Golosinas",
+    "cat": "aveces",
+    "m": "De vez en cuando, no prohibidas."
+  },
+  {
+    "it": "Agua",
+    "cat": "todos",
+    "m": "Es la mejor bebida."
+  },
+  {
+    "it": "Papas fritas de paquete",
+    "cat": "aveces",
+    "m": "Mucha sal y grasa."
+  },
+  {
+    "it": "Pan y cereales",
+    "cat": "todos",
+    "m": "Dan energía."
+  },
+  {
+    "it": "Un alimento con varios sellos negros",
+    "cat": "aveces",
+    "m": "Los sellos avisan de un vistazo: no lo prohíben, dicen que sea ocasional."
+  },
+  {
+    "it": "Leche o yogur",
+    "cat": "todos",
+    "m": "Aportan calcio."
+  },
+  {
+    "it": "Alfajor",
+    "cat": "aveces",
+    "m": "Azúcar y grasas."
+  },
+  {
+    "it": "Huevo",
+    "cat": "todos",
+    "m": "Aporta proteínas."
+  },
+  {
+    "it": "Jugo en polvo con azúcar",
+    "cat": "aveces",
+    "m": "Mejor agua o fruta exprimida."
+  }
+];
+GAMES.plato_2 = juegoClasificar(CUR_PLATO_2_BANCO, "¿Cada cuánto conviene comerlo?", [{"cat": "todos", "label": "🥦 Todos los días"}, {"cat": "aveces", "label": "🍬 De vez en cuando"}], "plato_2");
+
+/* 2° · En la calle — vial_2
+   DC: Educación vial; señales y semáforo
+   Fuente: docs/auditoria-dc-caba/grado-2.md · X3 */
+const CUR_VIAL_2_BANCO = [
+  {
+    "q": "El semáforo del peatón está en rojo y no viene ningún auto. ¿Qué hacés?",
+    "ops": [
+      "Esperar igual",
+      "Cruzar rápido",
+      "Cruzar por el medio"
+    ],
+    "m": "La regla no depende de si mirás o no: puede aparecer un auto que no viste."
+  },
+  {
+    "q": "¿Por dónde se cruza la calle?",
+    "ops": [
+      "Por la senda peatonal",
+      "Por donde sea",
+      "Por el medio de la cuadra"
+    ],
+    "m": "La senda es donde el auto espera que cruces."
+  },
+  {
+    "q": "Antes de cruzar, ¿qué hacés?",
+    "ops": [
+      "Mirar para los dos lados",
+      "Correr",
+      "Mirar el celular"
+    ],
+    "m": "Los autos vienen de los dos sentidos."
+  },
+  {
+    "q": "¿De qué lado de la vereda se camina?",
+    "ops": [
+      "Por la vereda, lejos del cordón",
+      "Por la calle",
+      "Por el cordón"
+    ],
+    "m": "La vereda es del peatón."
+  },
+  {
+    "q": "En el auto, ¿dónde van los chicos?",
+    "ops": [
+      "Atrás y con cinturón",
+      "Adelante",
+      "En la falda de alguien"
+    ],
+    "m": "Atrás y siempre con cinturón o sillita."
+  },
+  {
+    "q": "En bici, ¿qué hay que usar?",
+    "ops": [
+      "Casco",
+      "Nada",
+      "Auriculares"
+    ],
+    "m": "El casco protege la cabeza."
+  },
+  {
+    "q": "El semáforo en amarillo significa…",
+    "ops": [
+      "Precaución, va a cambiar",
+      "Apurate a cruzar",
+      "Podés cruzar"
+    ],
+    "m": "Avisa que va a ponerse en rojo."
+  },
+  {
+    "q": "Si viene una ambulancia con sirena, los autos…",
+    "ops": [
+      "Le dejan paso",
+      "Siguen igual",
+      "Aceleran"
+    ],
+    "m": "Tiene prioridad."
+  },
+  {
+    "q": "¿Se puede jugar a la pelota en la calle?",
+    "ops": [
+      "No, es peligroso",
+      "Sí, si hay pocos autos",
+      "Sí, de noche"
+    ],
+    "m": "La calle es de los vehículos."
+  },
+  {
+    "q": "Al bajar del auto, ¿por qué puerta salís?",
+    "ops": [
+      "Por la de la vereda",
+      "Por la de la calle",
+      "Por cualquiera"
+    ],
+    "m": "Del lado de la calle pasan los autos."
+  },
+  {
+    "q": "El cartel PARE le indica al conductor…",
+    "ops": [
+      "Que frene por completo",
+      "Que baje la velocidad",
+      "Que acelere"
+    ],
+    "m": "Es una parada total."
+  },
+  {
+    "q": "Cruzar mirando el celular…",
+    "ops": [
+      "Es peligroso, no ves lo que viene",
+      "Está bien si es rápido",
+      "No pasa nada"
+    ],
+    "m": "Cruzar pide atención completa."
+  }
+];
+GAMES.vial_2 = juegoTriviaTexto(CUR_VIAL_2_BANCO, "¿Qué corresponde hacer?", "vial_2");
+
+/* 2° · Entre todos — convivencia_2
+   DC: Acuerdos de convivencia y cuidado
+   Fuente: docs/auditoria-dc-caba/grado-2.md · X4 */
+const CUR_CONVIVENCIA_2_BANCO = [
+  {
+    "q": "Dos compañeros quieren el mismo juguete. ¿Qué conviene?",
+    "ops": [
+      "Turnarse",
+      "Que lo tenga el más fuerte",
+      "Esconderlo"
+    ],
+    "m": "Turnarse es un acuerdo que sirve para los dos."
+  },
+  {
+    "q": "Si alguien te molesta seguido, ¿qué hacés?",
+    "ops": [
+      "Se lo contás a un adulto",
+      "Te lo guardás",
+      "Le pegás"
+    ],
+    "m": "Pedir ayuda es lo que corta la situación."
+  },
+  {
+    "q": "Un compañero se queda solo en el recreo. ¿Qué podés hacer?",
+    "ops": [
+      "Invitarlo a jugar",
+      "Ignorarlo",
+      "Reírte"
+    ],
+    "m": "Incluir cuesta poco y cambia el día."
+  },
+  {
+    "q": "¿Para qué sirven los acuerdos del aula?",
+    "ops": [
+      "Para que todos puedan estar bien",
+      "Para castigar",
+      "Para que mande uno"
+    ],
+    "m": "Son reglas que se acuerdan entre todos."
+  },
+  {
+    "q": "Si rompés algo sin querer, ¿qué conviene?",
+    "ops": [
+      "Avisar",
+      "Esconderlo",
+      "Culpar a otro"
+    ],
+    "m": "Avisar es hacerse cargo."
+  },
+  {
+    "q": "Cuando alguien está hablando, ¿qué se hace?",
+    "ops": [
+      "Se escucha y se espera el turno",
+      "Se habla más fuerte",
+      "Se interrumpe"
+    ],
+    "m": "Escuchar es parte de conversar."
+  },
+  {
+    "q": "Un chiste del que se ríen todos menos uno es…",
+    "ops": [
+      "Una burla",
+      "Un chiste sin importancia",
+      "Divertido"
+    ],
+    "m": "Lo que importa es cómo se siente esa persona."
+  },
+  {
+    "q": "¿Está bien pedir perdón?",
+    "ops": [
+      "Sí, es hacerse cargo",
+      "No, es de débiles",
+      "Sólo si te obligan"
+    ],
+    "m": "Reconocer el error es lo que repara."
+  },
+  {
+    "q": "Si no estás de acuerdo con alguien, ¿qué hacés?",
+    "ops": [
+      "Decís lo que pensás sin agredir",
+      "Te enojás",
+      "No decís nada nunca"
+    ],
+    "m": "Se pueden discutir las ideas sin lastimar a la persona."
+  },
+  {
+    "q": "¿Todos tienen que jugar a lo mismo?",
+    "ops": [
+      "No, cada uno puede elegir",
+      "Sí",
+      "Sólo los grandes eligen"
+    ],
+    "m": "Respetar lo que le gusta a cada uno."
+  },
+  {
+    "q": "Si ves que alguien necesita ayuda, ¿qué podés hacer?",
+    "ops": [
+      "Ofrecer ayuda o avisar a un adulto",
+      "Nada",
+      "Reírte"
+    ],
+    "m": "No hace falta resolverlo solo: avisar ya ayuda."
+  },
+  {
+    "q": "Cuidar los materiales del aula es…",
+    "ops": [
+      "Cuidar lo de todos",
+      "Perder tiempo",
+      "Cosa de la maestra"
+    ],
+    "m": "Son de uso compartido."
+  }
+];
+GAMES.convivencia_2 = juegoTriviaTexto(CUR_CONVIVENCIA_2_BANCO, "¿Qué conviene hacer?", "convivenci");
