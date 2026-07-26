@@ -11769,3 +11769,1271 @@ const CUR_PAREJAS_MIL_3_PIEZAS = {
   "m": "Pensá cuánto le falta al primero para llegar al total."
 };
 GAMES.parejas_mil_3 = juegoManipular(CUR_PAREJAS_MIL_3_PIEZAS, "Tocá los dos números que juntos den el total.", "parejas_mi");
+
+/* 3° · Ponele la tilde — tilde_pasado_3
+   DC: Tildación del pretérito perfecto simple; reglas de acentuación
+   Fuente: docs/auditoria-dc-caba/grado-3.md · L2 */
+const CUR_TILDE_PASADO_3_BANCO = [
+  {
+    "q": "Ayer Ana ___ la carta.",
+    "ops": [
+      "mandó",
+      "mando",
+      "mándo"
+    ],
+    "m": "En pasado, la fuerza va en la última sílaba y termina en vocal: lleva tilde."
+  },
+  {
+    "q": "Yo ___ el equipo todos los días.",
+    "ops": [
+      "mando",
+      "mandó",
+      "mándo"
+    ],
+    "m": "En presente la fuerza va en la anteúltima: sin tilde."
+  },
+  {
+    "q": "El nene ___ la pelota.",
+    "ops": [
+      "pateó",
+      "pateo",
+      "páteo"
+    ],
+    "m": "Pasado terminado en vocal: con tilde."
+  },
+  {
+    "q": "Todos los días yo ___ un rato.",
+    "ops": [
+      "camino",
+      "caminó",
+      "camínó"
+    ],
+    "m": "Presente: sin tilde."
+  },
+  {
+    "q": "Anoche ___ mucho.",
+    "ops": [
+      "llovió",
+      "llovio",
+      "llóvio"
+    ],
+    "m": "Pasado con tilde en la última."
+  },
+  {
+    "q": "La maestra ___ el cuento.",
+    "ops": [
+      "leyó",
+      "leyo",
+      "léyo"
+    ],
+    "m": "Pasado: leyó."
+  },
+  {
+    "q": "Yo ___ todos los libros de la serie.",
+    "ops": [
+      "leo",
+      "leó",
+      "léo"
+    ],
+    "m": "Presente sin tilde."
+  },
+  {
+    "q": "El perro ___ toda la noche.",
+    "ops": [
+      "ladró",
+      "ladro",
+      "ládro"
+    ],
+    "m": "Pasado con tilde."
+  },
+  {
+    "q": "Mi hermano ___ la ventana sin querer.",
+    "ops": [
+      "rompió",
+      "rompio",
+      "rómpio"
+    ],
+    "m": "Pasado terminado en vocal: tilde."
+  },
+  {
+    "q": "Ella ___ la respuesta correcta.",
+    "ops": [
+      "eligió",
+      "eligio",
+      "elígio"
+    ],
+    "m": "Pasado con tilde."
+  },
+  {
+    "q": "¿Quién ___ la puerta?",
+    "ops": [
+      "cerró",
+      "cerro",
+      "cérro"
+    ],
+    "m": "Ojo: 'cerro' sin tilde es la montaña. 'Cerró' con tilde es el verbo."
+  },
+  {
+    "q": "Subimos a ese ___ el verano pasado.",
+    "ops": [
+      "cerro",
+      "cerró",
+      "cérro"
+    ],
+    "m": "Acá es la montaña: sin tilde."
+  },
+  {
+    "q": "El médico ___ un remedio.",
+    "ops": [
+      "recetó",
+      "receto",
+      "récéto"
+    ],
+    "m": "Pasado con tilde."
+  },
+  {
+    "q": "'Médico' es una palabra…",
+    "ops": [
+      "Esdrújula",
+      "Grave",
+      "Aguda"
+    ],
+    "m": "La fuerza en la antepenúltima: MÉ-di-co. Todas las esdrújulas llevan tilde."
+  }
+];
+GAMES.tilde_pasado_3 = juegoTriviaTexto(CUR_TILDE_PASADO_3_BANCO, "¿Cuál está bien escrita?", "tilde_pasa");
+
+/* 3° · Armá el diálogo — dialogo_signos_3
+   DC: Raya de diálogo; signos de pregunta y exclamación
+   Fuente: docs/auditoria-dc-caba/grado-3.md · L5 */
+const CUR_DIALOGO_SIGNOS_3_BANCO = [
+  {
+    "q": "¿Qué signo abre lo que dice un personaje?",
+    "ops": [
+      "La raya (—)",
+      "El guion corto (-)",
+      "El paréntesis"
+    ],
+    "m": "Es una raya larga, distinta del guion de 'físico-química'."
+  },
+  {
+    "q": "¿Cuántos signos de pregunta lleva una pregunta en español?",
+    "ops": [
+      "Dos: uno al principio y otro al final",
+      "Uno, al final",
+      "Uno, al principio"
+    ],
+    "m": "En español se abre y se cierra: ¿Venís?"
+  },
+  {
+    "q": "¿Y una exclamación?",
+    "ops": [
+      "Dos: ¡ y !",
+      "Uno al final",
+      "Ninguno"
+    ],
+    "m": "Igual que la pregunta: ¡Qué lindo!"
+  },
+  {
+    "q": "¿Cuál está bien escrita?",
+    "ops": [
+      "¿Venís al parque?",
+      "Venís al parque?",
+      "¿Venís al parque"
+    ],
+    "m": "Se abre y se cierra."
+  },
+  {
+    "q": "Cuando habla otro personaje, ¿qué se hace?",
+    "ops": [
+      "Se empieza un renglón nuevo con su raya",
+      "Se sigue en el mismo renglón",
+      "Se usa coma"
+    ],
+    "m": "Cada voz en su renglón: así se sabe quién habla."
+  },
+  {
+    "q": "«—Hola —dijo Ana.» ¿Qué es 'dijo Ana'?",
+    "ops": [
+      "Lo que cuenta el narrador",
+      "Lo que dice Ana",
+      "Un error"
+    ],
+    "m": "Cuando el narrador se mete, también va con raya."
+  },
+  {
+    "q": "La raya de diálogo, ¿lleva espacio antes de la palabra?",
+    "ops": [
+      "No, va pegada",
+      "Sí, siempre",
+      "Sólo si es pregunta"
+    ],
+    "m": "—Hola, no — Hola."
+  },
+  {
+    "q": "¿Cuál está bien?",
+    "ops": [
+      "¡Qué frío hace!",
+      "Que frío hace!",
+      "¡Que frío hace"
+    ],
+    "m": "Se abre y se cierra la exclamación."
+  },
+  {
+    "q": "En un diálogo, ¿para qué sirve la raya?",
+    "ops": [
+      "Para marcar que habla un personaje",
+      "Para separar palabras",
+      "Para terminar la oración"
+    ],
+    "m": "Es la marca de que empieza una voz."
+  },
+  {
+    "q": "«¿Cómo estás?» ¿Quién habla acá?",
+    "ops": [
+      "Un personaje, porque es una pregunta directa",
+      "El narrador",
+      "Nadie"
+    ],
+    "m": "Las preguntas directas son de los personajes."
+  },
+  {
+    "q": "¿Qué signo va al final de «Qué calor»?",
+    "ops": [
+      "Exclamación",
+      "Pregunta",
+      "Punto y coma"
+    ],
+    "m": "Expresa una emoción: exclamación."
+  },
+  {
+    "q": "¿Se puede escribir un diálogo sin rayas?",
+    "ops": [
+      "Se puede, pero cuesta saber quién habla",
+      "No, es obligatorio",
+      "Sí, y se entiende igual"
+    ],
+    "m": "Las rayas están justamente para que se entienda quién dice qué."
+  }
+];
+GAMES.dialogo_signos_3 = juegoTriviaTexto(CUR_DIALOGO_SIGNOS_3_BANCO, "¿Cómo se escribe lo que dicen?", "dialogo_si");
+
+/* 3° · Detrás del telón — teatro_3
+   DC: Teatro: actos y escenas; parlamentos y didascalias
+   Fuente: docs/auditoria-dc-caba/grado-3.md · L6 */
+const CUR_TEATRO_3_BANCO = [
+  {
+    "it": "«ANA: ¡No lo puedo creer!»",
+    "cat": "parlamento",
+    "m": "Lo que dice un personaje, con su nombre adelante."
+  },
+  {
+    "it": "«(Entra corriendo y cierra la puerta.)»",
+    "cat": "didascalia",
+    "m": "Va entre paréntesis: indica al actor qué hacer. No se dice en voz alta."
+  },
+  {
+    "it": "El ACTO",
+    "cat": "parte",
+    "m": "Cada gran bloque de la obra."
+  },
+  {
+    "it": "«LUIS: ¿Vos qué opinás?»",
+    "cat": "parlamento",
+    "m": "Habla un personaje."
+  },
+  {
+    "it": "«(Se apagan las luces.)»",
+    "cat": "didascalia",
+    "m": "Indicación de escena."
+  },
+  {
+    "it": "La ESCENA",
+    "cat": "parte",
+    "m": "Cada parte de un acto, según quién está."
+  },
+  {
+    "it": "«NARRADORA: Todo empezó una mañana.»",
+    "cat": "parlamento",
+    "m": "También es un personaje que habla."
+  },
+  {
+    "it": "«(Con voz temblorosa.)»",
+    "cat": "didascalia",
+    "m": "Dice CÓMO decirlo: es para el actor."
+  },
+  {
+    "it": "El TELÓN",
+    "cat": "parte",
+    "m": "Marca el comienzo y el final."
+  },
+  {
+    "it": "«PEDRO: Yo me quedo acá.»",
+    "cat": "parlamento",
+    "m": "Un personaje habla."
+  },
+  {
+    "it": "«(Silencio largo.)»",
+    "cat": "didascalia",
+    "m": "Indicación, no se dice."
+  },
+  {
+    "it": "El REPARTO",
+    "cat": "parte",
+    "m": "La lista de personajes al principio."
+  },
+  {
+    "it": "«(Señala la ventana.)»",
+    "cat": "didascalia",
+    "m": "Qué hace el actor."
+  },
+  {
+    "it": "«ANA: Mirá eso.»",
+    "cat": "parlamento",
+    "m": "Lo que se dice en voz alta."
+  }
+];
+GAMES.teatro_3 = juegoClasificar(CUR_TEATRO_3_BANCO, "En una obra de teatro, ¿qué es esto?", [{"cat": "parlamento", "label": "🗣️ Parlamento"}, {"cat": "didascalia", "label": "📋 Didascalia"}, {"cat": "parte", "label": "🎬 Parte de la obra"}], "teatro_3");
+
+/* 3° · ¿Qué globo va? — globos_3
+   DC: Historieta: tipos de globo y onomatopeyas
+   Fuente: docs/auditoria-dc-caba/grado-3.md · L7 */
+const CUR_GLOBOS_3_BANCO = [
+  {
+    "it": "«Hola, ¿cómo andás?»",
+    "cat": "habla",
+    "m": "Se lo dice a otro: globo normal."
+  },
+  {
+    "it": "«Ojalá no se dé cuenta…» (nadie más lo escucha)",
+    "cat": "piensa",
+    "m": "Sólo lo sabe el lector: globo de nubecitas."
+  },
+  {
+    "it": "«¡CUIDADOOO!»",
+    "cat": "grita",
+    "m": "Globo con picos y letra grande."
+  },
+  {
+    "it": "«¿Vos también venís?»",
+    "cat": "habla",
+    "m": "Le pregunta a alguien."
+  },
+  {
+    "it": "«Qué raro todo esto» (para sí mismo)",
+    "cat": "piensa",
+    "m": "Pensamiento."
+  },
+  {
+    "it": "«¡BASTA!»",
+    "cat": "grita",
+    "m": "Grito."
+  },
+  {
+    "it": "«Pasame el vaso, por favor.»",
+    "cat": "habla",
+    "m": "Habla normal."
+  },
+  {
+    "it": "«Si le digo la verdad se va a enojar» (no lo dice)",
+    "cat": "piensa",
+    "m": "Nadie más lo escucha."
+  },
+  {
+    "it": "«¡SOCORRO!»",
+    "cat": "grita",
+    "m": "Grito de auxilio."
+  },
+  {
+    "it": "«Buen día, señora.»",
+    "cat": "habla",
+    "m": "Saludo dicho en voz alta."
+  },
+  {
+    "it": "«Ojalá llueva» (mirando el cielo, en silencio)",
+    "cat": "piensa",
+    "m": "Deseo pensado."
+  },
+  {
+    "it": "«¡NO PUEDE SER!»",
+    "cat": "grita",
+    "m": "Exclamación fuerte."
+  },
+  {
+    "it": "«Te espero afuera.»",
+    "cat": "habla",
+    "m": "Se lo dice a alguien."
+  },
+  {
+    "it": "«Qué hambre tengo» (sin decirlo)",
+    "cat": "piensa",
+    "m": "Pensamiento."
+  }
+];
+GAMES.globos_3 = juegoClasificar(CUR_GLOBOS_3_BANCO, "¿Qué tipo de globo corresponde?", [{"cat": "habla", "label": "💬 Habla"}, {"cat": "piensa", "label": "💭 Piensa"}, {"cat": "grita", "label": "💥 Grita"}], "globos_3");
+
+/* 3° · Versos y estrofas — poema_3
+   DC: Poema: estrofas y versos; lenguaje figurado
+   Fuente: docs/auditoria-dc-caba/grado-3.md · L8 */
+const CUR_POEMA_3_BANCO = [
+  {
+    "q": "¿Qué es un verso?",
+    "ops": [
+      "Cada renglón del poema",
+      "Cada bloque",
+      "El título"
+    ],
+    "m": "El verso es una línea."
+  },
+  {
+    "q": "¿Y una estrofa?",
+    "ops": [
+      "Un grupo de versos separado por un espacio",
+      "Un renglón",
+      "La última palabra"
+    ],
+    "m": "Las estrofas se separan con un renglón en blanco."
+  },
+  {
+    "q": "Un poema de 8 renglones en 2 bloques tiene…",
+    "ops": [
+      "8 versos y 2 estrofas",
+      "2 versos y 8 estrofas",
+      "8 estrofas"
+    ],
+    "m": "Renglones = versos; bloques = estrofas."
+  },
+  {
+    "q": "¿Qué es la rima?",
+    "ops": [
+      "Que los finales de los versos suenen parecido",
+      "Que empiecen igual",
+      "Que sean largos"
+    ],
+    "m": "La rima está al final del verso."
+  },
+  {
+    "q": "'Luna' rima con…",
+    "ops": [
+      "cuna",
+      "lunes",
+      "lupa"
+    ],
+    "m": "Coinciden desde la vocal fuerte: u-na."
+  },
+  {
+    "q": "«El viento canta entre los árboles». ¿Qué recurso es?",
+    "ops": [
+      "Personificación",
+      "Rima",
+      "Comparación"
+    ],
+    "m": "Cantar lo hacen las personas: se lo presta al viento."
+  },
+  {
+    "q": "«Sus ojos son como el mar». ¿Qué recurso es?",
+    "ops": [
+      "Comparación",
+      "Personificación",
+      "Rima"
+    ],
+    "m": "El 'como' marca la comparación."
+  },
+  {
+    "q": "¿Los poemas tienen que rimar siempre?",
+    "ops": [
+      "No, hay poemas sin rima",
+      "Sí, siempre",
+      "Sólo los largos"
+    ],
+    "m": "El verso libre no rima y sigue siendo poema."
+  },
+  {
+    "q": "'Mar' rima con…",
+    "ops": [
+      "cantar",
+      "mesa",
+      "marzo"
+    ],
+    "m": "Coinciden en -ar."
+  },
+  {
+    "q": "«La noche se puso su vestido de estrellas». ¿Qué es?",
+    "ops": [
+      "Lenguaje figurado",
+      "Un dato real",
+      "Una instrucción"
+    ],
+    "m": "La noche no se viste: se dice de un modo poético."
+  },
+  {
+    "q": "¿Dónde va el título del poema?",
+    "ops": [
+      "Arriba de todo, antes de los versos",
+      "Al final",
+      "En el medio"
+    ],
+    "m": "Encabeza el poema."
+  },
+  {
+    "q": "¿Cómo se sabe dónde termina una estrofa?",
+    "ops": [
+      "Por el renglón en blanco",
+      "Por el punto",
+      "Por la rima"
+    ],
+    "m": "El espacio separa las estrofas."
+  }
+];
+GAMES.poema_3 = juegoTriviaTexto(CUR_POEMA_3_BANCO, "Mirá cómo está armado el poema.", "poema_3");
+
+/* 3° · El conector justo — conectores_3
+   DC: Conectores adversativos y continuativos; cohesión
+   Fuente: docs/auditoria-dc-caba/grado-3.md · L10 */
+const CUR_CONECTORES_3_BANCO = [
+  {
+    "q": "Quería salir, ___ estaba lloviendo.",
+    "ops": [
+      "pero",
+      "y",
+      "porque"
+    ],
+    "m": "Hay un obstáculo: va un conector que se opone."
+  },
+  {
+    "q": "Estudió mucho, ___ le fue bien.",
+    "ops": [
+      "así que",
+      "pero",
+      "aunque"
+    ],
+    "m": "Lo segundo es consecuencia de lo primero."
+  },
+  {
+    "q": "No fui ___ me sentía mal.",
+    "ops": [
+      "porque",
+      "pero",
+      "sin embargo"
+    ],
+    "m": "Da la causa."
+  },
+  {
+    "q": "Compró pan ___ leche.",
+    "ops": [
+      "y",
+      "pero",
+      "aunque"
+    ],
+    "m": "Simplemente suma."
+  },
+  {
+    "q": "Es caro; ___ , vale la pena.",
+    "ops": [
+      "sin embargo",
+      "además",
+      "porque"
+    ],
+    "m": "Se opone a lo anterior."
+  },
+  {
+    "q": "Llegó tarde, ___ no lo dejaron entrar.",
+    "ops": [
+      "por eso",
+      "aunque",
+      "pero"
+    ],
+    "m": "Marca la consecuencia."
+  },
+  {
+    "q": "Me gusta el mar ___ no sé nadar.",
+    "ops": [
+      "aunque",
+      "porque",
+      "así que"
+    ],
+    "m": "Admite algo que va en contra."
+  },
+  {
+    "q": "Terminó la tarea; ___ , ordenó su cuarto.",
+    "ops": [
+      "además",
+      "pero",
+      "porque"
+    ],
+    "m": "Agrega otra cosa que hizo."
+  },
+  {
+    "q": "Estaba cansado, ___ siguió jugando.",
+    "ops": [
+      "igual",
+      "porque",
+      "así que"
+    ],
+    "m": "Va en contra de lo esperado."
+  },
+  {
+    "q": "Primero mezclá; ___ , amasá.",
+    "ops": [
+      "después",
+      "pero",
+      "porque"
+    ],
+    "m": "Marca el orden en el tiempo."
+  },
+  {
+    "q": "No estudió ___ aprobó igual.",
+    "ops": [
+      "pero",
+      "porque",
+      "así que"
+    ],
+    "m": "Contraste: pasó lo contrario de lo esperado."
+  },
+  {
+    "q": "¿Para qué sirven los conectores?",
+    "ops": [
+      "Para unir las ideas de un texto",
+      "Para separar palabras",
+      "Para poner mayúsculas"
+    ],
+    "m": "Sin ellos el texto queda cortado y no se entiende la relación."
+  }
+];
+GAMES.conectores_3 = juegoTriviaTexto(CUR_CONECTORES_3_BANCO, "¿Qué palabra une mejor las dos partes?", "conectores");
+
+/* 3° · Fábrica de palabras — derivadas_3
+   DC: Sufijos derivativos; prefijos y sufijos frecuentes
+   Fuente: docs/auditoria-dc-caba/grado-3.md · L13 */
+const CUR_DERIVADAS_3_BANCO = [
+  {
+    "q": "El que trabaja el pan es el…",
+    "ops": [
+      "panadero",
+      "panoso",
+      "panal"
+    ],
+    "m": "El sufijo -ero nombra al que hace algo."
+  },
+  {
+    "q": "El lugar donde se hace el pan es la…",
+    "ops": [
+      "panadería",
+      "panera",
+      "panal"
+    ],
+    "m": "El sufijo -ería nombra el lugar."
+  },
+  {
+    "q": "Un zapato chiquito es un…",
+    "ops": [
+      "zapatito",
+      "zapatón",
+      "zapatero"
+    ],
+    "m": "-ito hace el diminutivo."
+  },
+  {
+    "q": "Un zapato grande es un…",
+    "ops": [
+      "zapatón",
+      "zapatito",
+      "zapatilla"
+    ],
+    "m": "-ón hace el aumentativo."
+  },
+  {
+    "q": "El que arregla zapatos es el…",
+    "ops": [
+      "zapatero",
+      "zapatón",
+      "zapatazo"
+    ],
+    "m": "-ero: el que trabaja con eso."
+  },
+  {
+    "q": "El lugar donde se venden libros es la…",
+    "ops": [
+      "librería",
+      "librito",
+      "librero"
+    ],
+    "m": "-ería: el lugar."
+  },
+  {
+    "q": "Una casa muy grande es un…",
+    "ops": [
+      "caserón",
+      "casita",
+      "casero"
+    ],
+    "m": "-ón aumentativo."
+  },
+  {
+    "q": "Una flor chiquita es una…",
+    "ops": [
+      "florcita",
+      "florón",
+      "florero"
+    ],
+    "m": "-cita diminutivo."
+  },
+  {
+    "q": "El que vende carne es el…",
+    "ops": [
+      "carnicero",
+      "carnoso",
+      "carnaval"
+    ],
+    "m": "-ero, el oficio."
+  },
+  {
+    "q": "¿Cuál NO es de la familia de 'mar'?",
+    "ops": [
+      "martes",
+      "marino",
+      "marinero"
+    ],
+    "m": "Martes no tiene nada que ver: se parece pero no comparte la raíz."
+  },
+  {
+    "q": "¿Cuál NO es de la familia de 'pan'?",
+    "ops": [
+      "pantalón",
+      "panadero",
+      "panera"
+    ],
+    "m": "Pantalón no viene de pan, aunque empiece igual."
+  },
+  {
+    "q": "Todas las palabras de una familia comparten…",
+    "ops": [
+      "La raíz",
+      "La última letra",
+      "La cantidad de sílabas"
+    ],
+    "m": "La raíz es la parte que se repite y lleva el significado."
+  }
+];
+GAMES.derivadas_3 = juegoTriviaTexto(CUR_DERIVADAS_3_BANCO, "¿Qué palabra sale de esta?", "derivadas_");
+
+/* 3° · ¿Hiato o diptongo? — hiato_diptongo_3
+   DC: Segmentación en sílabas con hiatos y diptongos
+   Fuente: docs/auditoria-dc-caba/grado-3.md · L14 */
+const CUR_HIATO_DIPTONGO_3_BANCO = [
+  {
+    "q": "«aire» se separa…",
+    "ops": [
+      "ai-re",
+      "a-i-re",
+      "air-e"
+    ],
+    "m": "Las dos vocales van juntas en la misma sílaba: es un diptongo."
+  },
+  {
+    "q": "«maestro» se separa…",
+    "ops": [
+      "ma-es-tro",
+      "maes-tro",
+      "ma-estro"
+    ],
+    "m": "A y E son dos vocales fuertes: se separan. Eso es un hiato."
+  },
+  {
+    "q": "«peine» se separa…",
+    "ops": [
+      "pei-ne",
+      "pe-i-ne",
+      "pein-e"
+    ],
+    "m": "E + I forman diptongo."
+  },
+  {
+    "q": "«leo» se separa…",
+    "ops": [
+      "le-o",
+      "leo",
+      "l-eo"
+    ],
+    "m": "E y O son fuertes: hiato."
+  },
+  {
+    "q": "¿Qué es un diptongo?",
+    "ops": [
+      "Dos vocales en la misma sílaba",
+      "Dos vocales en sílabas distintas",
+      "Dos consonantes"
+    ],
+    "m": "Van juntas."
+  },
+  {
+    "q": "¿Y un hiato?",
+    "ops": [
+      "Dos vocales en sílabas distintas",
+      "Dos vocales juntas",
+      "Una vocal sola"
+    ],
+    "m": "Se separan."
+  },
+  {
+    "q": "«ciudad» se separa…",
+    "ops": [
+      "ciu-dad",
+      "ci-u-dad",
+      "ciud-ad"
+    ],
+    "m": "I + U son dos débiles: forman diptongo."
+  },
+  {
+    "q": "«teatro» se separa…",
+    "ops": [
+      "te-a-tro",
+      "tea-tro",
+      "teat-ro"
+    ],
+    "m": "E y A son fuertes: hiato."
+  },
+  {
+    "q": "«cuaderno» se separa…",
+    "ops": [
+      "cua-der-no",
+      "cu-a-der-no",
+      "cuad-er-no"
+    ],
+    "m": "U + A forman diptongo."
+  },
+  {
+    "q": "¿Cuántas sílabas tiene «aire»?",
+    "ops": [
+      "2",
+      "3",
+      "1"
+    ],
+    "m": "ai-re: dos."
+  },
+  {
+    "q": "¿Cuántas sílabas tiene «maestro»?",
+    "ops": [
+      "3",
+      "2",
+      "4"
+    ],
+    "m": "ma-es-tro: tres, porque hay hiato."
+  },
+  {
+    "q": "Las vocales fuertes son…",
+    "ops": [
+      "a, e, o",
+      "i, u",
+      "todas"
+    ],
+    "m": "Dos fuertes juntas siempre se separan."
+  }
+];
+GAMES.hiato_diptongo_3 = juegoTriviaTexto(CUR_HIATO_DIPTONGO_3_BANCO, "¿Cómo se separa en sílabas?", "hiato_dipt");
+
+/* 3° · Inicio, desarrollo y cierre — estructura_cuento_3
+   DC: Estructura narrativa; relaciones temporales y causales
+   Fuente: docs/auditoria-dc-caba/grado-3.md · L16 */
+const CUR_ESTRUCTURA_CUENTO_3_BANCO = [
+  {
+    "items": [
+      "Sofía vivía cerca del río",
+      "Un día el río creció",
+      "Los vecinos la ayudaron a mudarse"
+    ]
+  },
+  {
+    "items": [
+      "El zorro tenía hambre",
+      "Vio unas uvas muy altas",
+      "Saltó y saltó sin alcanzarlas",
+      "Se fue diciendo que estaban verdes"
+    ]
+  },
+  {
+    "items": [
+      "Era el primer día de clases",
+      "Nico se olvidó la mochila",
+      "Su hermana se la llevó a la escuela"
+    ]
+  },
+  {
+    "items": [
+      "Había una vez un pueblo sin agua",
+      "Cavaron un pozo muy hondo",
+      "Encontraron agua y hubo fiesta"
+    ]
+  },
+  {
+    "items": [
+      "La ballena nadaba tranquila",
+      "Quedó atrapada en una red",
+      "Unos pescadores la liberaron"
+    ]
+  },
+  {
+    "items": [
+      "Tomás quería aprender a andar en bici",
+      "Se caía todo el tiempo",
+      "Su abuelo lo ayudó",
+      "Al final pudo solo"
+    ]
+  },
+  {
+    "items": [
+      "El árbol del patio estaba seco",
+      "Los chicos lo regaron todo el verano",
+      "En primavera dio flores"
+    ]
+  },
+  {
+    "items": [
+      "Ana encontró un perro perdido",
+      "Buscó al dueño por el barrio",
+      "Lo encontró gracias a un cartel"
+    ]
+  },
+  {
+    "items": [
+      "Empezó la tormenta",
+      "Se cortó la luz en todo el barrio",
+      "Cenaron a la luz de las velas"
+    ]
+  },
+  {
+    "items": [
+      "El circo llegó al pueblo",
+      "Se rompió la carpa antes de la función",
+      "Todos ayudaron a arreglarla",
+      "La función salió igual"
+    ]
+  }
+];
+GAMES.estructura_cuento_3 = juegoOrdenar(CUR_ESTRUCTURA_CUENTO_3_BANCO, "Ordená la historia. Tocá en orden.", "Todo cuento empieza presentando, después pasa algo, y al final se resuelve.", "estructura");
+
+/* 3° · ¿Cambió el material? — cambios_material_3
+   DC: Cambios de forma y de estado frente a transformaciones
+   Fuente: docs/auditoria-dc-caba/grado-3.md · C2 */
+const CUR_CAMBIOS_MATERIAL_3_BANCO = [
+  {
+    "it": "Arrugar una hoja de papel",
+    "cat": "forma",
+    "m": "Sigue siendo papel."
+  },
+  {
+    "it": "Derretir un cubito de hielo",
+    "cat": "estado",
+    "m": "Sigue siendo agua, pero líquida."
+  },
+  {
+    "it": "Quemar un papel",
+    "cat": "otro",
+    "m": "Queda ceniza: ya no se puede volver atrás."
+  },
+  {
+    "it": "Cortar una madera en dos",
+    "cat": "forma",
+    "m": "Sigue siendo madera."
+  },
+  {
+    "it": "Hervir agua hasta que se evapora",
+    "cat": "estado",
+    "m": "Agua en gas."
+  },
+  {
+    "it": "Cocinar un huevo",
+    "cat": "otro",
+    "m": "El huevo cocido no vuelve a ser crudo."
+  },
+  {
+    "it": "Doblar un alambre",
+    "cat": "forma",
+    "m": "Sigue siendo alambre."
+  },
+  {
+    "it": "Congelar agua",
+    "cat": "estado",
+    "m": "Agua sólida."
+  },
+  {
+    "it": "Hacer pan con harina y levadura",
+    "cat": "otro",
+    "m": "La fermentación hace un material nuevo."
+  },
+  {
+    "it": "Estirar un chicle",
+    "cat": "forma",
+    "m": "El mismo chicle, otra forma."
+  },
+  {
+    "it": "Derretir chocolate",
+    "cat": "estado",
+    "m": "Al enfriarse vuelve a ser chocolate sólido."
+  },
+  {
+    "it": "Oxidarse un clavo con la lluvia",
+    "cat": "otro",
+    "m": "El óxido es un material distinto del hierro."
+  },
+  {
+    "it": "Romper un vaso",
+    "cat": "forma",
+    "m": "Sigue siendo vidrio."
+  },
+  {
+    "it": "Que se pudra una fruta",
+    "cat": "otro",
+    "m": "Ya no vuelve atrás."
+  }
+];
+GAMES.cambios_material_3 = juegoClasificar(CUR_CAMBIOS_MATERIAL_3_BANCO, "¿Qué cambió acá?", [{"cat": "forma", "label": "✋ Sólo la forma"}, {"cat": "estado", "label": "🧊 El estado"}, {"cat": "otro", "label": "🔥 Se transformó en otra cosa"}], "cambios_ma");
+
+/* 3° · Constelaciones del sur — constelaciones_3
+   DC: Constelaciones como figuras; el giro del cielo
+   Fuente: docs/auditoria-dc-caba/grado-3.md · C6 */
+const CUR_CONSTELACIONES_3_BANCO = [
+  {
+    "q": "¿Qué es una constelación?",
+    "ops": [
+      "Un dibujo que inventamos uniendo estrellas",
+      "Un grupo de estrellas pegadas",
+      "Un planeta"
+    ],
+    "m": "Las estrellas están lejísimos entre sí: la figura la inventamos nosotros."
+  },
+  {
+    "q": "¿Las estrellas de una constelación están cerca entre sí?",
+    "ops": [
+      "No, sólo se ven juntas desde acá",
+      "Sí, están pegadas",
+      "Sí, se tocan"
+    ],
+    "m": "Pueden estar a distancias muy distintas."
+  },
+  {
+    "q": "¿Qué constelación se ve desde el sur y sirve para orientarse?",
+    "ops": [
+      "La Cruz del Sur",
+      "La Osa Mayor",
+      "El Carro"
+    ],
+    "m": "Su brazo más largo apunta hacia el sur."
+  },
+  {
+    "q": "¿Cuántas estrellas principales tiene la Cruz del Sur?",
+    "ops": [
+      "Cuatro",
+      "Tres",
+      "Siete"
+    ],
+    "m": "Forman una cruz."
+  },
+  {
+    "q": "Las Tres Marías son parte de…",
+    "ops": [
+      "Orión",
+      "la Cruz del Sur",
+      "la Luna"
+    ],
+    "m": "Son el cinturón de Orión."
+  },
+  {
+    "q": "¿Por qué las constelaciones parecen girar en el cielo?",
+    "ops": [
+      "Porque la Tierra gira",
+      "Porque las estrellas se mueven rápido",
+      "Porque las empuja el viento"
+    ],
+    "m": "Lo mismo que hace salir y ponerse al Sol."
+  },
+  {
+    "q": "¿Se ven las mismas constelaciones todo el año?",
+    "ops": [
+      "No, cambian según la época",
+      "Sí, siempre las mismas",
+      "Sólo en invierno"
+    ],
+    "m": "Al girar la Tierra alrededor del Sol miramos hacia otro lado del cielo."
+  },
+  {
+    "q": "¿En qué momento se ven las estrellas?",
+    "ops": [
+      "De noche, cuando no está la luz del Sol",
+      "De día",
+      "Sólo en verano"
+    ],
+    "m": "De día siguen ahí, pero el Sol las tapa."
+  },
+  {
+    "q": "¿Pueblos distintos ven las mismas figuras?",
+    "ops": [
+      "No, cada cultura inventó las suyas",
+      "Sí, todas iguales",
+      "Sólo dos culturas"
+    ],
+    "m": "Los pueblos originarios de acá veían otras figuras, como el Ñandú."
+  },
+  {
+    "q": "¿Las constelaciones tienen siempre la misma forma?",
+    "ops": [
+      "Sí, durante toda una vida humana",
+      "No, cambian cada mes",
+      "Cambian cada noche"
+    ],
+    "m": "Cambian, pero tan despacio que hacen falta miles de años."
+  },
+  {
+    "q": "¿Para qué usaban las constelaciones los navegantes?",
+    "ops": [
+      "Para orientarse en el mar",
+      "Para saber la temperatura",
+      "Para pescar"
+    ],
+    "m": "Sin GPS, el cielo era el mapa."
+  },
+  {
+    "q": "¿Qué es una estrella?",
+    "ops": [
+      "Una bola enorme de gas que produce luz propia",
+      "Una piedra que brilla",
+      "Un planeta lejano"
+    ],
+    "m": "El Sol es la estrella más cercana."
+  }
+];
+GAMES.constelaciones_3 = juegoTriviaTexto(CUR_CONSTELACIONES_3_BANCO, "Mirá el cielo del sur.", "constelaci");
+
+/* 3° · Antes y ahora — plaza_mayo_3
+   DC: Cambios y permanencias; patrimonio; inmigración
+   Fuente: docs/auditoria-dc-caba/grado-3.md · C8 */
+const CUR_PLAZA_MAYO_3_BANCO = [
+  {
+    "it": "El Cabildo sigue en la Plaza de Mayo",
+    "cat": "permanece",
+    "m": "Está desde la época colonial: es patrimonio."
+  },
+  {
+    "it": "Antes se andaba en carro y ahora en subte",
+    "cat": "cambio",
+    "m": "El transporte cambió por completo."
+  },
+  {
+    "it": "La plaza sigue siendo el lugar donde la gente se junta",
+    "cat": "permanece",
+    "m": "Cambió alrededor, pero su función es la misma."
+  },
+  {
+    "it": "Antes las calles eran de tierra",
+    "cat": "cambio",
+    "m": "Hoy están asfaltadas."
+  },
+  {
+    "it": "La Catedral sigue frente a la plaza",
+    "cat": "permanece",
+    "m": "Sigue en el mismo lugar."
+  },
+  {
+    "it": "Antes se alumbraba con faroles de gas",
+    "cat": "cambio",
+    "m": "Hoy es luz eléctrica."
+  },
+  {
+    "it": "La Casa Rosada sigue siendo la sede del gobierno",
+    "cat": "permanece",
+    "m": "Su función no cambió."
+  },
+  {
+    "it": "Antes el agua se traía en carros aguateros",
+    "cat": "cambio",
+    "m": "Hoy llega por cañerías."
+  },
+  {
+    "it": "Muchas familias del barrio vinieron de otros países",
+    "cat": "cambio",
+    "m": "La inmigración cambió la población de la ciudad."
+  },
+  {
+    "it": "El Riachuelo sigue siendo el límite sur de la ciudad",
+    "cat": "permanece",
+    "m": "El límite es el mismo."
+  },
+  {
+    "it": "Antes no existían los edificios altos",
+    "cat": "cambio",
+    "m": "La ciudad creció hacia arriba."
+  },
+  {
+    "it": "Se sigue festejando el 25 de Mayo en la plaza",
+    "cat": "permanece",
+    "m": "La costumbre se mantiene."
+  }
+];
+GAMES.plaza_mayo_3 = juegoClasificar(CUR_PLAZA_MAYO_3_BANCO, "En la ciudad, ¿esto cambió o sigue igual?", [{"cat": "cambio", "label": "🔄 Cambió"}, {"cat": "permanece", "label": "🏛️ Sigue igual"}], "plaza_mayo");
+
+/* 3° · El viaje del alimento — viaje_alimento_3
+   DC: Transformación del alimento en el organismo; alimentación equilibrada
+   Fuente: docs/auditoria-dc-caba/grado-3.md · C9 */
+const CUR_VIAJE_ALIMENTO_3_BANCO = [
+  {
+    "items": [
+      "El bocado entra por la boca",
+      "Baja por el esófago",
+      "Llega al estómago",
+      "Pasa al intestino"
+    ]
+  },
+  {
+    "items": [
+      "Los dientes cortan la comida",
+      "La saliva la ablanda",
+      "Se traga el bocado"
+    ]
+  },
+  {
+    "items": [
+      "En el intestino delgado pasan los nutrientes a la sangre",
+      "Lo que no sirve sigue al intestino grueso",
+      "Se elimina del cuerpo"
+    ]
+  },
+  {
+    "items": [
+      "Se siembra el trigo",
+      "Se cosecha",
+      "Se muele para hacer harina",
+      "Se hornea el pan"
+    ]
+  },
+  {
+    "items": [
+      "La vaca da leche",
+      "La leche va a la fábrica",
+      "Se hace el yogur",
+      "Llega al supermercado"
+    ]
+  },
+  {
+    "items": [
+      "Elegís qué comer",
+      "Masticás bien",
+      "El cuerpo aprovecha los nutrientes"
+    ]
+  },
+  {
+    "items": [
+      "Se lava la fruta",
+      "Se come",
+      "El cuerpo toma sus vitaminas"
+    ]
+  },
+  {
+    "items": [
+      "El alimento entra",
+      "Se transforma en partes chiquitas",
+      "Pasa a la sangre",
+      "Llega a todas las células"
+    ]
+  }
+];
+GAMES.viaje_alimento_3 = juegoOrdenar(CUR_VIAJE_ALIMENTO_3_BANCO, "Ordená el recorrido del alimento. Tocá en orden.", "Seguí el bocado desde que entra hasta que el cuerpo aprovecha lo que sirve.", "viaje_alim");
