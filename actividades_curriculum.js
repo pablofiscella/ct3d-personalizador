@@ -33428,3 +33428,979 @@ const CUR_REPRODUCTOR_7_BANCO = [
   }
 ];
 GAMES.reproductor_7 = juegoTriviaTexto(CUR_REPRODUCTOR_7_BANCO, "Reconocé cada órgano y su función.", "reproducto");
+
+/* 7° · Línea de tiempo del siglo XX — linea_siglo_xx_7
+   DC: 1930, sustitución de importaciones, peronismo, 1976, Malvinas, 1983
+   Fuente: docs/auditoria-dc-caba/grado-7.md · CS1 */
+const CUR_LINEA_SIGLO_XX_7_BANCO = [
+  {
+    "items": [
+      "Golpe de Estado de 1930",
+      "Primera presidencia de Perón (1946)",
+      "Golpe de Estado de 1976",
+      "Vuelta de la democracia (1983)"
+    ]
+  },
+  {
+    "items": [
+      "Crisis mundial de 1929",
+      "Comienza la sustitución de importaciones (1930s)",
+      "Voto femenino en la Argentina (1947)",
+      "Primera elección con voto de mujeres (1951)"
+    ]
+  },
+  {
+    "items": [
+      "Golpe de 1930",
+      "Golpe de 1955",
+      "Golpe de 1976",
+      "Elecciones de 1983"
+    ]
+  },
+  {
+    "items": [
+      "Segunda Guerra Mundial (1939-1945)",
+      "Creación de las Naciones Unidas (1945)",
+      "Guerra de Malvinas (1982)",
+      "Juicio a las Juntas (1985)"
+    ]
+  },
+  {
+    "items": [
+      "Ley Sáenz Peña (1912)",
+      "Golpe de 1930",
+      "Primera presidencia de Perón (1946)",
+      "Golpe de 1976"
+    ]
+  },
+  {
+    "items": [
+      "Sustitución de importaciones (década de 1930)",
+      "Voto femenino (1947)",
+      "Guerra de Malvinas (1982)",
+      "Reforma de la Constitución (1994)"
+    ]
+  },
+  {
+    "items": [
+      "Golpe de Estado de 1976",
+      "Guerra de Malvinas (1982)",
+      "Vuelta de la democracia (1983)",
+      "Juicio a las Juntas (1985)"
+    ]
+  },
+  {
+    "items": [
+      "Fin de la Segunda Guerra Mundial (1945)",
+      "Comienzo de la Guerra Fría (fines de los 40)",
+      "Caída del Muro de Berlín (1989)",
+      "Reforma constitucional argentina (1994)"
+    ]
+  },
+  {
+    "items": [
+      "Primera presidencia de Perón (1946)",
+      "Voto femenino (1947)",
+      "Golpe de 1955",
+      "Golpe de 1976"
+    ]
+  },
+  {
+    "items": [
+      "Guerra de Malvinas (1982)",
+      "Vuelta de la democracia (1983)",
+      "Juicio a las Juntas (1985)",
+      "Reforma constitucional (1994)"
+    ]
+  }
+];
+GAMES.linea_siglo_xx_7 = juegoOrdenar(CUR_LINEA_SIGLO_XX_7_BANCO, "Ordená del hecho MÁS ANTIGUO al más nuevo. Tocá en orden.", "Anclate en las fechas que ya sabés y ubicá el resto alrededor.", "linea_sigl");
+
+/* 7° · Bandos: Segunda Guerra y Guerra Fría — bandos_siglo_xx_7
+   DC: Aliados y Eje; el mundo bipolar de la Guerra Fría
+   Fuente: docs/auditoria-dc-caba/grado-7.md · CS2 */
+const CUR_BANDOS_SIGLO_XX_7_BANCO = [
+  {
+    "it": "La alianza entre Alemania, Italia y Japón",
+    "cat": "segunda_guerra",
+    "m": "Eran las potencias del Eje."
+  },
+  {
+    "it": "El Muro de Berlín",
+    "cat": "guerra_fria",
+    "m": "Se levantó en 1961 y dividió la ciudad hasta 1989."
+  },
+  {
+    "it": "El desembarco en Normandía",
+    "cat": "segunda_guerra",
+    "m": "Operación aliada de 1944."
+  },
+  {
+    "it": "La carrera espacial entre Estados Unidos y la URSS",
+    "cat": "guerra_fria",
+    "m": "La competencia se dio en la ciencia y la tecnología, no en el campo de batalla."
+  },
+  {
+    "it": "El Holocausto",
+    "cat": "segunda_guerra",
+    "m": "El exterminio sistemático perpetrado por el régimen nazi."
+  },
+  {
+    "it": "La OTAN y el Pacto de Varsovia",
+    "cat": "guerra_fria",
+    "m": "Las dos alianzas militares del mundo bipolar."
+  },
+  {
+    "it": "El bombardeo de Hiroshima y Nagasaki",
+    "cat": "segunda_guerra",
+    "m": "Agosto de 1945, al final del conflicto."
+  },
+  {
+    "it": "La crisis de los misiles en Cuba",
+    "cat": "guerra_fria",
+    "m": "1962: el momento de mayor tensión nuclear."
+  },
+  {
+    "it": "La invasión de Polonia en 1939",
+    "cat": "segunda_guerra",
+    "m": "El hecho que dio inicio a la guerra en Europa."
+  },
+  {
+    "it": "La caída del Muro en 1989",
+    "cat": "guerra_fria",
+    "m": "Marca simbólicamente el final de la Guerra Fría."
+  },
+  {
+    "it": "La alianza entre Estados Unidos, el Reino Unido y la URSS",
+    "cat": "segunda_guerra",
+    "m": "Eran los Aliados: pelearon juntos y después quedaron enfrentados."
+  },
+  {
+    "it": "La división del mundo en dos bloques ideológicos",
+    "cat": "guerra_fria",
+    "m": "Capitalismo y comunismo como modelos en disputa."
+  },
+  {
+    "it": "La creación de las Naciones Unidas en 1945",
+    "cat": "segunda_guerra",
+    "m": "Nació al terminar el conflicto, para evitar otro igual."
+  },
+  {
+    "it": "La llegada del hombre a la Luna en 1969",
+    "cat": "guerra_fria",
+    "m": "Fue un hito de la carrera espacial entre las dos potencias."
+  },
+  {
+    "it": "El juicio de Núremberg",
+    "cat": "segunda_guerra",
+    "m": "Juzgó los crímenes del régimen nazi al terminar la guerra."
+  },
+  {
+    "it": "El apoyo de las potencias a distintos bandos en conflictos de otros países",
+    "cat": "guerra_fria",
+    "m": "Los enfrentamientos eran indirectos: por eso «fría»."
+  }
+];
+GAMES.bandos_siglo_xx_7 = juegoClasificar(CUR_BANDOS_SIGLO_XX_7_BANCO, "¿De qué conflicto es este elemento?", [{"cat": "segunda_guerra", "label": "⚔️ Segunda Guerra"}, {"cat": "guerra_fria", "label": "❄️ Guerra Fría"}], "bandos_sig");
+
+/* 7° · ¿Democracia o dictadura? — democracia_dictadura_7
+   DC: Alternancia de democracias y dictaduras; terrorismo de Estado; DDHH
+   Fuente: docs/auditoria-dc-caba/grado-7.md · CS3 */
+const CUR_DEMOCRACIA_DICTADURA_7_BANCO = [
+  {
+    "q": "¿Qué caracteriza a un gobierno democrático?",
+    "ops": [
+      "Se elige por el voto y tiene límites y controles",
+      "Gobierna una sola persona sin control",
+      "No hay elecciones"
+    ],
+    "m": "No alcanza con votar: también hacen falta división de poderes y libertades."
+  },
+  {
+    "q": "¿Qué es un golpe de Estado?",
+    "ops": [
+      "La toma del poder por fuera de la Constitución",
+      "Una elección adelantada",
+      "Un cambio de ministro"
+    ],
+    "m": "Interrumpe el orden constitucional por la fuerza."
+  },
+  {
+    "q": "¿Cuántos golpes de Estado hubo en la Argentina en el siglo XX?",
+    "ops": [
+      "Seis: 1930, 1943, 1955, 1962, 1966 y 1976",
+      "Uno solo, en 1976",
+      "Ninguno"
+    ],
+    "m": "La alternancia entre gobiernos elegidos y de facto marcó buena parte del siglo."
+  },
+  {
+    "q": "¿En qué año volvió la democracia a la Argentina?",
+    "ops": [
+      "1983",
+      "1976",
+      "1994"
+    ],
+    "m": "Desde entonces no se interrumpió el orden constitucional."
+  },
+  {
+    "q": "¿Qué es el terrorismo de Estado?",
+    "ops": [
+      "Cuando el propio Estado usa su aparato para perseguir y reprimir ilegalmente",
+      "Un ataque contra el Estado",
+      "Una protesta social"
+    ],
+    "m": "Lo grave es que quien debía proteger los derechos fue el que los violó."
+  },
+  {
+    "q": "¿Qué fue un centro clandestino de detención?",
+    "ops": [
+      "Un lugar secreto donde se detenía a personas al margen de la ley",
+      "Una cárcel común",
+      "Un cuartel militar cualquiera"
+    ],
+    "m": "Clandestino significa que su existencia se negaba oficialmente."
+  },
+  {
+    "q": "¿Qué es una desaparición forzada?",
+    "ops": [
+      "Cuando el Estado detiene a alguien y niega tenerlo o dar información",
+      "Cuando alguien se muda sin avisar",
+      "Una detención con orden judicial"
+    ],
+    "m": "La negación es parte del delito: deja a la familia sin ninguna vía legal."
+  },
+  {
+    "q": "¿Qué son las Abuelas de Plaza de Mayo?",
+    "ops": [
+      "Una organización que busca a los nietos apropiados durante la dictadura",
+      "Un partido político",
+      "Un organismo del gobierno"
+    ],
+    "m": "Fue una de las apropiaciones sistemáticas de bebés que la Justicia comprobó."
+  },
+  {
+    "q": "¿Qué fue la CONADEP?",
+    "ops": [
+      "La comisión que investigó las desapariciones y publicó el informe «Nunca Más»",
+      "Un tribunal militar",
+      "Un partido político"
+    ],
+    "m": "Se creó en 1983 y su informe fue prueba en los juicios."
+  },
+  {
+    "q": "¿Qué fue el Juicio a las Juntas de 1985?",
+    "ops": [
+      "El juicio civil a los responsables de la dictadura",
+      "Un juicio militar interno",
+      "Una comisión investigadora"
+    ],
+    "m": "Fue excepcional en el mundo: un tribunal civil juzgando a los jefes de un régimen anterior."
+  },
+  {
+    "q": "¿Qué se conmemora el 24 de marzo?",
+    "ops": [
+      "El Día Nacional de la Memoria por la Verdad y la Justicia",
+      "El Día de la Independencia",
+      "La vuelta de la democracia"
+    ],
+    "m": "Recuerda el golpe de 1976. Es feriado inamovible por ley."
+  },
+  {
+    "q": "¿Qué son los derechos humanos?",
+    "ops": [
+      "Derechos que toda persona tiene por el solo hecho de serlo",
+      "Derechos que otorga cada gobierno",
+      "Derechos que se compran"
+    ],
+    "m": "No dependen de la nacionalidad ni de quién gobierne."
+  },
+  {
+    "q": "¿Qué pasa con la libertad de prensa en una dictadura?",
+    "ops": [
+      "Se restringe o se censura",
+      "Se amplía",
+      "No cambia"
+    ],
+    "m": "Controlar la información es una de las primeras medidas."
+  },
+  {
+    "q": "¿Por qué se dice que la memoria es una construcción colectiva?",
+    "ops": [
+      "Porque recordar lo que pasó ayuda a que no vuelva a pasar",
+      "Porque es obligatoria",
+      "Porque la decide el gobierno"
+    ],
+    "m": "Ésa es la razón de los espacios y las fechas de memoria."
+  },
+  {
+    "q": "¿Los delitos de lesa humanidad prescriben?",
+    "ops": [
+      "No: se pueden juzgar sin límite de tiempo",
+      "Sí, a los diez años",
+      "Sí, a los veinte años"
+    ],
+    "m": "La imprescriptibilidad es lo que permitió reabrir los juicios años después."
+  }
+];
+GAMES.democracia_dictadura_7 = juegoTriviaTexto(CUR_DEMOCRACIA_DICTADURA_7_BANCO, "Pensá quién ejerce el poder y con qué límites.", "democracia");
+
+/* 7° · Cadena productiva y regiones — cadena_productiva_7
+   DC: Encadenamientos agroindustriales; producciones por región
+   Fuente: docs/auditoria-dc-caba/grado-7.md · CS4 */
+const CUR_CADENA_PRODUCTIVA_7_BANCO = [
+  {
+    "q": "¿Cuál es el orden de una cadena productiva?",
+    "ops": [
+      "Materia prima → industrialización → distribución → consumo",
+      "Consumo → industrialización → materia prima",
+      "Distribución → materia prima → consumo"
+    ],
+    "m": "Siempre va de lo que se extrae a lo que se consume."
+  },
+  {
+    "q": "¿Qué es el valor agregado?",
+    "ops": [
+      "Lo que se suma al producto en cada etapa de elaboración",
+      "El precio de la materia prima",
+      "El costo del transporte"
+    ],
+    "m": "Por eso exportar harina rinde más que exportar trigo."
+  },
+  {
+    "q": "¿En qué región argentina se produce principalmente la yerba mate?",
+    "ops": [
+      "Misiones y Corrientes",
+      "La Patagonia",
+      "Cuyo"
+    ],
+    "m": "Necesita el clima subtropical del noreste."
+  },
+  {
+    "q": "¿Qué se produce principalmente en Cuyo?",
+    "ops": [
+      "Vid y vino",
+      "Yerba mate",
+      "Algodón"
+    ],
+    "m": "Mendoza y San Juan concentran la vitivinicultura."
+  },
+  {
+    "q": "¿Qué producción caracteriza al Alto Valle de Río Negro y Neuquén?",
+    "ops": [
+      "Manzanas y peras",
+      "Caña de azúcar",
+      "Yerba mate"
+    ],
+    "m": "La fruticultura de pepita es su actividad emblemática."
+  },
+  {
+    "q": "¿Dónde se concentra la producción de caña de azúcar?",
+    "ops": [
+      "Tucumán y el noroeste",
+      "La Patagonia",
+      "La pampa húmeda"
+    ],
+    "m": "Necesita clima cálido y húmedo."
+  },
+  {
+    "q": "¿Qué se produce principalmente en la región pampeana?",
+    "ops": [
+      "Cereales, oleaginosas y ganado",
+      "Petróleo",
+      "Yerba mate"
+    ],
+    "m": "Su suelo fértil y su clima templado la hacen el corazón agrícola."
+  },
+  {
+    "q": "¿Qué es un circuito productivo agroindustrial?",
+    "ops": [
+      "El conjunto de etapas que van del campo a la industria y al consumidor",
+      "Sólo la etapa del campo",
+      "Sólo la venta"
+    ],
+    "m": "Incluye a todos los actores, no sólo al productor."
+  },
+  {
+    "q": "¿Por qué conviene industrializar la materia prima antes de exportarla?",
+    "ops": [
+      "Porque se vende más caro y genera más trabajo local",
+      "Porque pesa menos",
+      "Porque es más fácil"
+    ],
+    "m": "El valor agregado queda en el país en vez de irse afuera."
+  },
+  {
+    "q": "¿Qué región produce lana y carne ovina?",
+    "ops": [
+      "La Patagonia",
+      "El noreste",
+      "Cuyo"
+    ],
+    "m": "Las estepas patagónicas son aptas para el ovino."
+  },
+  {
+    "q": "¿Qué es la etapa de comercialización?",
+    "ops": [
+      "Cuando el producto llega al consumidor",
+      "Cuando se cosecha",
+      "Cuando se industrializa"
+    ],
+    "m": "Es la última etapa del circuito."
+  },
+  {
+    "q": "El algodón se produce principalmente en…",
+    "ops": [
+      "Chaco y Santiago del Estero",
+      "La Patagonia",
+      "Cuyo"
+    ],
+    "m": "Es un cultivo del norte argentino."
+  },
+  {
+    "q": "¿Qué actores intervienen en un circuito productivo?",
+    "ops": [
+      "Productores, industriales, transportistas y comerciantes",
+      "Sólo los productores",
+      "Sólo el Estado"
+    ],
+    "m": "Cada uno se queda con una parte del valor final."
+  },
+  {
+    "q": "¿Qué región concentra la actividad petrolera?",
+    "ops": [
+      "Patagonia y Cuyo",
+      "El noreste",
+      "La pampa húmeda"
+    ],
+    "m": "Neuquén, Chubut, Santa Cruz y Mendoza son las principales."
+  }
+];
+GAMES.cadena_productiva_7 = juegoTriviaTexto(CUR_CADENA_PRODUCTIVA_7_BANCO, "Seguí el recorrido de la producción.", "cadena_pro");
+
+/* 7° · Flujos migratorios — migraciones_7
+   DC: Migraciones forzadas y voluntarias; áreas expulsoras y receptoras
+   Fuente: docs/auditoria-dc-caba/grado-7.md · CS5 */
+const CUR_MIGRACIONES_7_BANCO = [
+  {
+    "it": "Una ingeniera se muda a otro país porque le ofrecieron un mejor puesto",
+    "cat": "voluntaria",
+    "m": "Elige entre dos opciones posibles."
+  },
+  {
+    "it": "Una familia huye de una zona en guerra",
+    "cat": "forzada",
+    "m": "Quedarse pondría en riesgo su vida."
+  },
+  {
+    "it": "Un joven emigra porque en su región no hay trabajo desde hace años",
+    "cat": "mixta",
+    "m": "Formalmente elige, pero la falta de alternativas lo empuja."
+  },
+  {
+    "it": "Un estudiante se va a cursar un posgrado al exterior",
+    "cat": "voluntaria",
+    "m": "Es una decisión tomada entre opciones reales."
+  },
+  {
+    "it": "Una comunidad tiene que abandonar su pueblo por una inundación",
+    "cat": "forzada",
+    "m": "El desastre ambiental no deja alternativa."
+  },
+  {
+    "it": "Una familia deja el campo porque la mecanización eliminó su trabajo",
+    "cat": "mixta",
+    "m": "La causa económica estructural condiciona la decisión."
+  },
+  {
+    "it": "Alguien se muda a otra provincia porque le gusta el clima",
+    "cat": "voluntaria",
+    "m": "Motivo personal, sin presión externa."
+  },
+  {
+    "it": "Personas perseguidas por su religión piden refugio en otro país",
+    "cat": "forzada",
+    "m": "El derecho al asilo existe justamente para estos casos."
+  },
+  {
+    "it": "Una persona emigra porque en su país la inflación se comió su salario",
+    "cat": "mixta",
+    "m": "La crisis económica reduce el margen de elección."
+  },
+  {
+    "it": "Un músico se instala en otra ciudad para desarrollar su carrera",
+    "cat": "voluntaria",
+    "m": "Decisión profesional entre alternativas."
+  },
+  {
+    "it": "Una población es desplazada por la construcción de una represa",
+    "cat": "forzada",
+    "m": "El desplazamiento lo impone una obra, no la persona."
+  },
+  {
+    "it": "Una familia se muda buscando escuelas y hospitales que en su zona no hay",
+    "cat": "mixta",
+    "m": "La falta de servicios básicos empuja la decisión."
+  },
+  {
+    "it": "Una pareja se muda al exterior para estar cerca de sus hijos",
+    "cat": "voluntaria",
+    "m": "Motivo familiar, con opción de quedarse."
+  },
+  {
+    "it": "Personas escapan de un régimen que las persigue por su opinión política",
+    "cat": "forzada",
+    "m": "El exilio político es una migración forzada."
+  },
+  {
+    "it": "Un trabajador rural viaja cada año a otra provincia para la cosecha",
+    "cat": "mixta",
+    "m": "La migración estacional responde a la necesidad de trabajo."
+  },
+  {
+    "it": "Alguien se muda a otra ciudad porque le ofrecieron una beca",
+    "cat": "voluntaria",
+    "m": "Una oportunidad que se elige tomar."
+  }
+];
+GAMES.migraciones_7 = juegoClasificar(CUR_MIGRACIONES_7_BANCO, "¿La persona eligió irse o tuvo que hacerlo?", [{"cat": "voluntaria", "label": "🎒 Voluntaria"}, {"cat": "forzada", "label": "⚠️ Forzada"}, {"cat": "mixta", "label": "🔀 Mixta"}], "migracione");
+
+/* 7° · Espacios de memoria porteños — espacios_memoria_7
+   DC: Parque de la Memoria, ex ESMA, Museo del Holocausto, Museo Malvinas
+   Fuente: docs/auditoria-dc-caba/grado-7.md · CS6 */
+const CUR_ESPACIOS_MEMORIA_7_BANCO = [
+  {
+    "q": "¿Qué es el Parque de la Memoria?",
+    "ops": [
+      "Un espacio con un monumento que lleva los nombres de las víctimas del terrorismo de Estado",
+      "Un parque de juegos",
+      "Un museo de historia natural"
+    ],
+    "m": "Está sobre la costanera, frente al Río de la Plata."
+  },
+  {
+    "q": "¿Qué funcionó en el predio de la ex ESMA durante la dictadura?",
+    "ops": [
+      "Un centro clandestino de detención",
+      "Una escuela pública",
+      "Un hospital"
+    ],
+    "m": "Hoy es el Espacio Memoria y Derechos Humanos."
+  },
+  {
+    "q": "¿Qué recuerda el Museo del Holocausto de Buenos Aires?",
+    "ops": [
+      "El exterminio del pueblo judío durante la Segunda Guerra",
+      "La Guerra de Malvinas",
+      "La independencia argentina"
+    ],
+    "m": "Muchos sobrevivientes se radicaron en la Argentina."
+  },
+  {
+    "q": "¿A qué está dedicado el Museo Malvinas e Islas del Atlántico Sur?",
+    "ops": [
+      "A la historia de las islas y al conflicto de 1982",
+      "A la fauna marina solamente",
+      "A la dictadura"
+    ],
+    "m": "Funciona en el mismo predio de la ex ESMA."
+  },
+  {
+    "q": "¿Qué es la Casa Ana Frank de Buenos Aires?",
+    "ops": [
+      "Un centro educativo sobre el Holocausto y los derechos humanos",
+      "La casa donde vivió Ana Frank",
+      "Un archivo de la dictadura"
+    ],
+    "m": "Ana Frank nunca vivió en la Argentina: es una réplica con fines educativos."
+  },
+  {
+    "q": "¿Para qué sirve un espacio de memoria?",
+    "ops": [
+      "Para que las nuevas generaciones conozcan lo que pasó",
+      "Para atraer turistas",
+      "Para guardar objetos antiguos"
+    ],
+    "m": "Su función es pedagógica y de reparación."
+  },
+  {
+    "q": "¿Qué son los pañuelos blancos pintados en la Plaza de Mayo?",
+    "ops": [
+      "El símbolo de las Madres y Abuelas que reclaman por sus hijos y nietos",
+      "Una decoración",
+      "Un homenaje a los inmigrantes"
+    ],
+    "m": "Las Madres empezaron a rondar la plaza en 1977."
+  },
+  {
+    "q": "¿Qué se conmemora el 2 de abril?",
+    "ops": [
+      "El Día del Veterano y de los Caídos en la Guerra de Malvinas",
+      "La vuelta de la democracia",
+      "El golpe de 1976"
+    ],
+    "m": "Recuerda el desembarco de 1982."
+  },
+  {
+    "q": "¿Por qué se preservan los edificios donde ocurrieron los hechos?",
+    "ops": [
+      "Porque son prueba material y espacio de transmisión",
+      "Porque son antiguos",
+      "Porque no se pueden demoler"
+    ],
+    "m": "Sirvieron como evidencia en los juicios."
+  },
+  {
+    "q": "¿Qué hacen las Abuelas de Plaza de Mayo?",
+    "ops": [
+      "Buscan a los nietos apropiados y les restituyen su identidad",
+      "Administran museos",
+      "Organizan actos escolares"
+    ],
+    "m": "Ya se restituyó la identidad de más de un centenar de personas."
+  },
+  {
+    "q": "¿Qué es el derecho a la identidad?",
+    "ops": [
+      "El derecho a conocer el propio origen y llevar el nombre verdadero",
+      "El derecho a votar",
+      "El derecho a la educación"
+    ],
+    "m": "Está reconocido en la Convención sobre los Derechos del Niño."
+  },
+  {
+    "q": "¿Qué significa «Nunca Más»?",
+    "ops": [
+      "El compromiso de que el terrorismo de Estado no se repita",
+      "El nombre de un museo",
+      "Una consigna partidaria"
+    ],
+    "m": "Es el título del informe de la CONADEP y se volvió una consigna común."
+  },
+  {
+    "q": "Los espacios de memoria, ¿son sólo sobre la dictadura argentina?",
+    "ops": [
+      "No: también hay sobre el Holocausto y Malvinas",
+      "Sí, sólo sobre la dictadura",
+      "Sólo sobre Malvinas"
+    ],
+    "m": "Cada uno preserva la memoria de un proceso distinto."
+  },
+  {
+    "q": "¿Qué es una marca territorial de memoria?",
+    "ops": [
+      "Una señal en el lugar donde ocurrió un hecho, para recordarlo",
+      "Un cartel de tránsito",
+      "Una placa de obra"
+    ],
+    "m": "Convierte un punto de la ciudad en un espacio de transmisión."
+  }
+];
+GAMES.espacios_memoria_7 = juegoTriviaTexto(CUR_ESPACIOS_MEMORIA_7_BANCO, "¿Qué recuerda cada espacio?", "espacios_m");
+
+/* 7° · Mi primera billetera — billetera_7
+   DC: Sociales/FEC: ahorro, deuda e inversión; medios de pago; interés simple
+   Fuente: docs/auditoria-dc-caba/grado-7.md · CS7 */
+const CUR_BILLETERA_7_BANCO = [
+  {
+    "it": "Guardar $5.000 por mes en una caja de ahorro",
+    "cat": "ahorro",
+    "m": "Se aparta plata sin comprometerla ni arriesgarla."
+  },
+  {
+    "it": "Comprar un celular en 12 cuotas con tarjeta de crédito",
+    "cat": "deuda",
+    "m": "Se usa plata que todavía no se tiene."
+  },
+  {
+    "it": "Poner el dinero en un plazo fijo que paga interés",
+    "cat": "inversion",
+    "m": "Se busca que el dinero genere un rendimiento."
+  },
+  {
+    "it": "Juntar plata en una alcancía para las vacaciones",
+    "cat": "ahorro",
+    "m": "Guardar con un objetivo, sin riesgo ni rendimiento."
+  },
+  {
+    "it": "Pedir un préstamo al banco",
+    "cat": "deuda",
+    "m": "Hay que devolverlo con intereses."
+  },
+  {
+    "it": "Comprar herramientas para trabajar con ellas",
+    "cat": "inversion",
+    "m": "Se espera que generen ingresos futuros."
+  },
+  {
+    "it": "Dejar el sueldo en la cuenta sin tocarlo",
+    "cat": "ahorro",
+    "m": "Es ahorro, aunque no genere rendimiento."
+  },
+  {
+    "it": "Pagar el mínimo del resumen de la tarjeta",
+    "cat": "deuda",
+    "m": "Lo que no se paga sigue generando intereses: es la deuda más cara."
+  },
+  {
+    "it": "Comprar un curso para conseguir un mejor trabajo",
+    "cat": "inversion",
+    "m": "Se invierte en la propia formación."
+  },
+  {
+    "it": "Apartar una parte del sueldo apenas cobra",
+    "cat": "ahorro",
+    "m": "Ahorrar primero y gastar después es la estrategia recomendada."
+  },
+  {
+    "it": "Financiar el supermercado en cuotas",
+    "cat": "deuda",
+    "m": "Endeudarse por consumo corriente es lo más riesgoso."
+  },
+  {
+    "it": "Comprar una máquina para producir y vender",
+    "cat": "inversion",
+    "m": "Se espera recuperar lo invertido y generar ganancia."
+  },
+  {
+    "it": "Guardar plata para una emergencia",
+    "cat": "ahorro",
+    "m": "El fondo de emergencia es la primera recomendación financiera."
+  },
+  {
+    "it": "Comprar ahora y pagar el mes que viene",
+    "cat": "deuda",
+    "m": "Aunque no haya interés, se compromete el ingreso futuro."
+  },
+  {
+    "it": "Aportar a un fondo que rinde a lo largo del tiempo",
+    "cat": "inversion",
+    "m": "Busca rendimiento, y por eso también tiene riesgo."
+  },
+  {
+    "it": "Tener el dinero disponible en la billetera virtual sin gastarlo",
+    "cat": "ahorro",
+    "m": "Está guardado y disponible."
+  }
+];
+GAMES.billetera_7 = juegoClasificar(CUR_BILLETERA_7_BANCO, "¿Esto es ahorro, deuda o inversión?", [{"cat": "ahorro", "label": "🐖 Ahorro"}, {"cat": "deuda", "label": "📉 Deuda"}, {"cat": "inversion", "label": "📈 Inversión"}], "billetera_");
+
+/* 7° · Puerto Madero y el arte urbano — puerto_madero_7
+   DC: Refuncionalización urbana; murales, grafitis e intervenciones
+   Fuente: docs/auditoria-dc-caba/grado-7.md · CS8 */
+const CUR_PUERTO_MADERO_7_BANCO = [
+  {
+    "q": "¿Qué era Puerto Madero antes de su transformación?",
+    "ops": [
+      "Una zona portuaria en desuso con depósitos abandonados",
+      "Un barrio residencial",
+      "Un parque"
+    ],
+    "m": "El puerto quedó obsoleto cuando cambiaron los barcos y las cargas."
+  },
+  {
+    "q": "¿Qué significa refuncionalizar un espacio?",
+    "ops": [
+      "Darle un uso nuevo conservando parte de lo construido",
+      "Demolerlo todo",
+      "Dejarlo como estaba"
+    ],
+    "m": "Los docks de ladrillo se convirtieron en oficinas y restaurantes."
+  },
+  {
+    "q": "¿Qué es la gentrificación?",
+    "ops": [
+      "Cuando un barrio se renueva y sube tanto de precio que desplaza a sus vecinos",
+      "La construcción de plazas",
+      "La demolición de edificios viejos"
+    ],
+    "m": "Es la contracara habitual de una refuncionalización exitosa."
+  },
+  {
+    "q": "¿Qué diferencia hay entre un mural y un grafiti?",
+    "ops": [
+      "El mural suele ser una obra planificada y autorizada",
+      "El grafiti siempre es más grande",
+      "No hay diferencia"
+    ],
+    "m": "El grafiti nació como práctica espontánea y muchas veces no autorizada."
+  },
+  {
+    "q": "¿Qué es una intervención urbana?",
+    "ops": [
+      "Una acción artística que transforma temporalmente un espacio público",
+      "Una obra de construcción",
+      "Un corte de calle"
+    ],
+    "m": "Busca hacer pensar sobre el espacio, no sólo decorarlo."
+  },
+  {
+    "q": "¿Por qué se conservaron las grúas del puerto?",
+    "ops": [
+      "Porque son patrimonio industrial y cuentan la historia del lugar",
+      "Porque todavía funcionan",
+      "Porque son muy pesadas"
+    ],
+    "m": "Preservar marcas del uso anterior es parte de la refuncionalización."
+  },
+  {
+    "q": "¿Qué es el patrimonio industrial?",
+    "ops": [
+      "Construcciones y máquinas que testimonian la actividad productiva del pasado",
+      "Las fábricas actuales",
+      "Los museos de arte"
+    ],
+    "m": "Galpones, silos y grúas entran en esa categoría."
+  },
+  {
+    "q": "¿Qué barrio porteño es conocido por sus murales de gran escala?",
+    "ops": [
+      "Villa Urquiza, entre otros",
+      "Puerto Madero",
+      "Recoleta"
+    ],
+    "m": "También La Boca y Barracas tienen una tradición muralista fuerte."
+  },
+  {
+    "q": "¿Puede el arte urbano transformar la percepción de un barrio?",
+    "ops": [
+      "Sí, cambia cómo lo ven vecinos y visitantes",
+      "No, es sólo decoración",
+      "Sólo si lo hace el gobierno"
+    ],
+    "m": "Hay barrios que se volvieron circuitos turísticos por sus murales."
+  },
+  {
+    "q": "¿Qué se construyó en los antiguos diques de Puerto Madero?",
+    "ops": [
+      "Oficinas, viviendas y espacios gastronómicos",
+      "Fábricas nuevas",
+      "Un puerto más grande"
+    ],
+    "m": "Es hoy uno de los barrios más caros de la ciudad."
+  },
+  {
+    "q": "¿Qué es la Reserva Ecológica que está junto a Puerto Madero?",
+    "ops": [
+      "Un área natural formada sobre terrenos ganados al río",
+      "Un parque diseñado desde cero",
+      "Una isla natural"
+    ],
+    "m": "La naturaleza colonizó un relleno de origen artificial."
+  },
+  {
+    "q": "¿Por qué las ciudades refuncionalizan zonas en desuso?",
+    "ops": [
+      "Porque aprovechan infraestructura que ya existe",
+      "Porque es más barato demoler",
+      "Porque lo exige la ley"
+    ],
+    "m": "Reutilizar suele costar menos que urbanizar desde cero."
+  },
+  {
+    "q": "¿El arte urbano puede tener contenido político o social?",
+    "ops": [
+      "Sí, muchas veces es su razón de ser",
+      "No, es sólo estético",
+      "Sólo si lo encarga el Estado"
+    ],
+    "m": "Muchos murales denuncian o reivindican algo."
+  },
+  {
+    "q": "¿Quiénes suelen quedar afuera de una renovación urbana?",
+    "ops": [
+      "Los vecinos de menores ingresos, por el aumento de los precios",
+      "Los turistas",
+      "Los comerciantes"
+    ],
+    "m": "Por eso la gentrificación es un tema de discusión pública."
+  }
+];
+GAMES.puerto_madero_7 = juegoTriviaTexto(CUR_PUERTO_MADERO_7_BANCO, "Pensá cómo cambia la ciudad.", "puerto_mad");
+
+/* 7° · La comunicación en el tiempo — comunicacion_tiempo_7
+   DC: Avance de las tecnologías de comunicación; la historieta argentina
+   Fuente: docs/auditoria-dc-caba/grado-7.md · CS9 */
+const CUR_COMUNICACION_TIEMPO_7_BANCO = [
+  {
+    "items": [
+      "La carta en papel",
+      "El telégrafo",
+      "El teléfono fijo",
+      "El teléfono celular"
+    ]
+  },
+  {
+    "items": [
+      "La imprenta de tipos móviles",
+      "El diario impreso",
+      "La radio",
+      "La televisión"
+    ]
+  },
+  {
+    "items": [
+      "El telégrafo",
+      "El teléfono",
+      "La radio",
+      "Internet"
+    ]
+  },
+  {
+    "items": [
+      "El diario en papel",
+      "La radio a válvulas",
+      "La televisión en blanco y negro",
+      "La televisión en color"
+    ]
+  },
+  {
+    "items": [
+      "La señal de humo",
+      "La paloma mensajera",
+      "El telégrafo",
+      "El correo electrónico"
+    ]
+  },
+  {
+    "items": [
+      "El disco de vinilo",
+      "El casete",
+      "El CD",
+      "La música en streaming"
+    ]
+  },
+  {
+    "items": [
+      "La máquina de escribir",
+      "La computadora personal",
+      "El teléfono inteligente",
+      "El asistente con inteligencia artificial"
+    ]
+  },
+  {
+    "items": [
+      "El cine mudo",
+      "El cine sonoro",
+      "La televisión",
+      "Las plataformas de video"
+    ]
+  },
+  {
+    "items": [
+      "El correo postal",
+      "El fax",
+      "El correo electrónico",
+      "La mensajería instantánea"
+    ]
+  },
+  {
+    "items": [
+      "La radio a galena",
+      "La televisión abierta",
+      "El cable",
+      "El streaming"
+    ]
+  }
+];
+GAMES.comunicacion_tiempo_7 = juegoOrdenar(CUR_COMUNICACION_TIEMPO_7_BANCO, "Ordená del MÁS ANTIGUO al más nuevo. Tocá en orden.", "Cada tecnología nueva no borra a la anterior: convive con ella un tiempo.", "comunicaci");
