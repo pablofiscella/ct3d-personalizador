@@ -1411,6 +1411,48 @@ const COMO_ES_VIDEO = {
     partes: [{ t: "Dos puntos y raya", f: "lec_dos_puntos_5.mp4", s: 29 }],
   },
 
+
+  // ── Matemática de 5°: segunda tanda de la deuda de video (26-jul-2026).
+  // Divisibilidad y romanos van en DOS cortes: enteras pasaban los 45 s del tope.
+  perimetro_area_5: {
+    auto: "lec_perimetro_area_5.mp4",
+    partes: [{ t: "Perímetro no es área", f: "lec_perimetro_area_5.mp4", s: 39 }],
+  },
+  cuenta_escondida_5: {
+    auto: "lec_cuenta_escondida_5.mp4",
+    partes: [{ t: "Dividendo, divisor, cociente y resto", f: "lec_cuenta_escondida_5.mp4", s: 44 }],
+  },
+  reconstruir_entero_5: {
+    auto: "lec_reconstruir_entero_5.mp4",
+    partes: [{ t: "De la parte al entero", f: "lec_reconstruir_entero_5.mp4", s: 30 }],
+  },
+  combinatoria_5: {
+    auto: "lec_combinatoria_5.mp4",
+    partes: [{ t: "Por qué se multiplica", f: "lec_combinatoria_5.mp4", s: 30 }],
+  },
+  proporcionalidad_5: {
+    auto: "lec_proporcionalidad_5.mp4",
+    partes: [{ t: "Cuándo sí y cuándo no", f: "lec_proporcionalidad_5.mp4", s: 45 }],
+  },
+  graficos_5: {
+    auto: "lec_graficos_5.mp4",
+    partes: [{ t: "Leer una tabla y un gráfico", f: "lec_graficos_5.mp4", s: 38 }],
+  },
+  divisibilidad_5: {
+    auto: "lec_divisibilidad_5a.mp4",
+    partes: [
+      { t: "Múltiplos y divisores", f: "lec_divisibilidad_5a.mp4", s: 28 },
+      { t: "Los primos", f: "lec_divisibilidad_5b.mp4", s: 24 },
+    ],
+  },
+  romanos_5: {
+    auto: "lec_romanos_5a.mp4",
+    partes: [
+      { t: "Las letras y la regla", f: "lec_romanos_5a.mp4", s: 32 },
+      { t: "La sustractiva y el cero", f: "lec_romanos_5b.mp4", s: 22 },
+    ],
+  },
+
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }

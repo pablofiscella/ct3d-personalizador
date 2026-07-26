@@ -104,10 +104,7 @@ VIDEO_PENDIENTE = {
     "aparatos_cuerpo", "camino_digestivo", "detectives_cielo", "plato_gapa_5",
     "planta_potabilizadora", "provincias_region",
     # 5° — sumadas al cerrar la currícula (PR #242)
-    "recursos_poeticos_5",     "futuro_condicional_5",     "estructura_textos_5", "opinion_argumento_5", "romanos_5",
-    "problemas_pasos_5", "combinatoria_5", "cuenta_escondida_5", "divisibilidad_5",
-    "reconstruir_entero_5", "proporcionalidad_5", "perimetro_area_5", "graficos_5",
-    "ciclo_agua_5", "mezclas_5", "disolucion_5", "luz_materiales_5", "sonido_5",
+    "recursos_poeticos_5",     "futuro_condicional_5",     "estructura_textos_5", "opinion_argumento_5",     "problemas_pasos_5",         "ciclo_agua_5", "mezclas_5", "disolucion_5", "luz_materiales_5", "sonido_5",
     "mapa_america_5", "variables_5", "sensores_5", "phishing_5", "presupuesto_5",
     # 5° — ya tenían texto de antes, pero nunca video: la regla ahora también las alcanza
     "analisis_sintactico", "clases_palabra_5", "decimales_fraccion",
