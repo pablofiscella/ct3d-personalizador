@@ -25873,3 +25873,1160 @@ const CUR_EFECTO_INVERNADERO_6_BANCO = [
   }
 ];
 GAMES.efecto_invernadero_6 = juegoTriviaTexto(CUR_EFECTO_INVERNADERO_6_BANCO, "Pensá qué gases y de dónde vienen.", "efecto_inv");
+
+/* 6° · Línea de tiempo 1862-1930 — linea_tiempo_1862_1930_6
+   DC: Unificación 1862, federalización 1880, Ley 1420, Sáenz Peña 1912, 1916, 1930
+   Fuente: docs/auditoria-dc-caba/grado-6.md · S1 */
+const CUR_LINEA_TIEMPO_1862_1930_6_BANCO = [
+  {
+    "items": [
+      "Mitre asume la presidencia del país unificado (1862)",
+      "Se sanciona la Ley 1420 de educación común (1884)",
+      "Se sanciona la Ley Sáenz Peña (1912)",
+      "Yrigoyen asume la presidencia (1916)"
+    ]
+  },
+  {
+    "items": [
+      "Presidencia de Sarmiento (1868)",
+      "Federalización de Buenos Aires (1880)",
+      "Primera Guerra Mundial (1914-1918)",
+      "Golpe de Estado contra Yrigoyen (1930)"
+    ]
+  },
+  {
+    "items": [
+      "Presidencia de Avellaneda (1874)",
+      "Ley 1420 de educación común (1884)",
+      "Ley Sáenz Peña de voto secreto (1912)",
+      "Crisis económica mundial (1929)"
+    ]
+  },
+  {
+    "items": [
+      "Unificación nacional bajo Mitre (1862)",
+      "Campaña militar sobre los territorios indígenas (1879)",
+      "Llegada masiva de inmigrantes ultramarinos (1890-1914)",
+      "Primer gobierno radical (1916)"
+    ]
+  },
+  {
+    "items": [
+      "Buenos Aires se convierte en capital federal (1880)",
+      "Se organiza el modelo agroexportador (1880-1900)",
+      "Estalla la Primera Guerra Mundial (1914)",
+      "Crack de la Bolsa de Nueva York (1929)"
+    ]
+  },
+  {
+    "items": [
+      "Presidencia de Mitre (1862)",
+      "Presidencia de Sarmiento (1868)",
+      "Presidencia de Avellaneda (1874)",
+      "Presidencia de Roca (1880)"
+    ]
+  },
+  {
+    "items": [
+      "Ley 1420 de educación común (1884)",
+      "Censo nacional que muestra el peso de la inmigración (1895)",
+      "Ley Sáenz Peña (1912)",
+      "Golpe de 1930"
+    ]
+  },
+  {
+    "items": [
+      "Se extiende la red ferroviaria hacia el puerto (1870-1890)",
+      "Auge de las exportaciones de carne y cereal (1900)",
+      "Primera Guerra Mundial interrumpe el comercio (1914)",
+      "La crisis del '29 golpea a las exportaciones (1930)"
+    ]
+  },
+  {
+    "items": [
+      "Sanción de la Ley Sáenz Peña (1912)",
+      "Primera elección con voto secreto y obligatorio (1916)",
+      "Segundo gobierno de Yrigoyen (1928)",
+      "Interrupción del orden constitucional (1930)"
+    ]
+  },
+  {
+    "items": [
+      "Federalización de Buenos Aires (1880)",
+      "Ley 1420 (1884)",
+      "Censo de 1895",
+      "Ley Sáenz Peña (1912)"
+    ]
+  }
+];
+GAMES.linea_tiempo_1862_1930_6 = juegoOrdenar(CUR_LINEA_TIEMPO_1862_1930_6_BANCO, "Ordená del hecho MÁS ANTIGUO al más nuevo. Tocá en orden.", "Anclate en las fechas que ya sabés y ubicá el resto alrededor.", "linea_tiem");
+
+/* 6° · ¿1ª o 2ª Revolución Industrial? — revolucion_industrial_6
+   DC: Vapor vs petróleo y electricidad; países centrales y periféricos
+   Fuente: docs/auditoria-dc-caba/grado-6.md · S2 */
+const CUR_REVOLUCION_INDUSTRIAL_6_BANCO = [
+  {
+    "it": "La máquina de vapor",
+    "cat": "primera",
+    "m": "Es la energía que define la primera etapa."
+  },
+  {
+    "it": "El motor de combustión interna",
+    "cat": "segunda",
+    "m": "Funciona con derivados del petróleo: segunda etapa."
+  },
+  {
+    "it": "El carbón como combustible principal",
+    "cat": "primera",
+    "m": "Alimentaba las máquinas de vapor."
+  },
+  {
+    "it": "La electricidad en las fábricas",
+    "cat": "segunda",
+    "m": "Permitió mover máquinas sin correas ni calderas."
+  },
+  {
+    "it": "La industria textil mecanizada",
+    "cat": "primera",
+    "m": "Fue el primer sector en industrializarse."
+  },
+  {
+    "it": "La producción en serie del automóvil",
+    "cat": "segunda",
+    "m": "La línea de montaje pertenece a la segunda etapa."
+  },
+  {
+    "it": "El ferrocarril a vapor",
+    "cat": "primera",
+    "m": "Transformó el transporte usando la misma tecnología del vapor."
+  },
+  {
+    "it": "La industria química y del acero a gran escala",
+    "cat": "segunda",
+    "m": "Sectores característicos de la segunda revolución."
+  },
+  {
+    "it": "El telar mecánico",
+    "cat": "primera",
+    "m": "Reemplazó el trabajo manual en el textil."
+  },
+  {
+    "it": "El teléfono y el telégrafo eléctrico",
+    "cat": "segunda",
+    "m": "Las comunicaciones eléctricas son de la segunda etapa."
+  },
+  {
+    "it": "Inglaterra como potencia industrial dominante",
+    "cat": "primera",
+    "m": "Lideró la primera etapa casi en soledad."
+  },
+  {
+    "it": "Estados Unidos y Alemania disputando el liderazgo",
+    "cat": "segunda",
+    "m": "En la segunda etapa aparecen nuevas potencias."
+  },
+  {
+    "it": "La lámpara eléctrica en las ciudades",
+    "cat": "segunda",
+    "m": "Cambió la vida urbana y los horarios de trabajo."
+  },
+  {
+    "it": "Las primeras fábricas con chimeneas humeantes",
+    "cat": "primera",
+    "m": "El humo del carbón es la imagen de la primera etapa."
+  },
+  {
+    "it": "La Argentina exportando cereales a los países industriales",
+    "cat": "segunda",
+    "m": "Se integra al mercado mundial como país periférico durante esta etapa."
+  },
+  {
+    "it": "El barco a vapor cruzando el Atlántico",
+    "cat": "primera",
+    "m": "Aplicó al transporte marítimo la tecnología del vapor."
+  }
+];
+GAMES.revolucion_industrial_6 = juegoClasificar(CUR_REVOLUCION_INDUSTRIAL_6_BANCO, "¿De qué etapa es?", [{"cat": "primera", "label": "🚂 1ª (vapor)"}, {"cat": "segunda", "label": "💡 2ª (electricidad)"}], "revolucion");
+
+/* 6° · Estado y agroexportación — estado_agroexportacion_6
+   DC: Mitre, Sarmiento y Avellaneda; modelo agroexportador; ferrocarril y puerto
+   Fuente: docs/auditoria-dc-caba/grado-6.md · S3 */
+const CUR_ESTADO_AGROEXPORTACION_6_BANCO = [
+  {
+    "q": "¿Qué exportaba principalmente la Argentina del modelo agroexportador?",
+    "ops": [
+      "Cereales, carne y lana",
+      "Máquinas y automóviles",
+      "Petróleo refinado"
+    ],
+    "m": "Se exportaban materias primas y se importaban manufacturas."
+  },
+  {
+    "q": "¿Por qué la red ferroviaria tenía forma de abanico hacia Buenos Aires?",
+    "ops": [
+      "Porque estaba pensada para llevar la producción al puerto",
+      "Porque el terreno lo imponía",
+      "Porque unía las provincias entre sí"
+    ],
+    "m": "El diseño respondía a la exportación, no a conectar el interior entre sí."
+  },
+  {
+    "q": "¿Qué presidente impulsó fuertemente la educación pública?",
+    "ops": [
+      "Sarmiento",
+      "Mitre",
+      "Avellaneda"
+    ],
+    "m": "Su gestión fundó escuelas y escuelas normales en todo el país."
+  },
+  {
+    "q": "¿Qué fue la federalización de Buenos Aires en 1880?",
+    "ops": [
+      "Convertir la ciudad en capital del país, separada de la provincia",
+      "Darle más poder a la provincia de Buenos Aires",
+      "Trasladar la capital a otra ciudad"
+    ],
+    "m": "Resolvió un conflicto que venía desde 1852 sobre quién controlaba la ciudad y su puerto."
+  },
+  {
+    "q": "¿Qué fue la Ley 1420 de 1884?",
+    "ops": [
+      "La ley de educación común, gratuita y obligatoria",
+      "La ley de inmigración",
+      "La ley del voto secreto"
+    ],
+    "m": "Fue una de las bases del Estado moderno y de la integración de los inmigrantes."
+  },
+  {
+    "q": "¿Qué papel cumplía el puerto de Buenos Aires en ese modelo?",
+    "ops": [
+      "Era la salida de las exportaciones y la entrada de las importaciones",
+      "Era sólo un puerto militar",
+      "No tenía importancia económica"
+    ],
+    "m": "Todo el sistema de transporte se organizó en función de ese punto."
+  },
+  {
+    "q": "¿Quiénes financiaron en buena parte los ferrocarriles argentinos?",
+    "ops": [
+      "Capitales británicos",
+      "El Estado argentino en soledad",
+      "Cooperativas de productores"
+    ],
+    "m": "Esa inversión extranjera es parte de la relación con los países centrales."
+  },
+  {
+    "q": "En el reparto internacional de esa época, la Argentina era…",
+    "ops": [
+      "Un país periférico proveedor de materias primas",
+      "Un país central industrializado",
+      "Un país aislado del comercio"
+    ],
+    "m": "Centrales eran los industrializados que compraban esas materias primas."
+  },
+  {
+    "q": "¿Qué fue el frigorífico para la exportación de carne?",
+    "ops": [
+      "La tecnología que permitió mandar carne enfriada a Europa",
+      "Un tipo de barco",
+      "Una raza de ganado"
+    ],
+    "m": "Sin frío, la carne no podía cruzar el Atlántico."
+  },
+  {
+    "q": "El alambrado de los campos, ¿qué cambió?",
+    "ops": [
+      "Delimitó la propiedad y permitió mejorar el ganado",
+      "Sólo sirvió para marcar caminos",
+      "No tuvo efecto económico"
+    ],
+    "m": "Separar los rodeos hizo posible seleccionar y mejorar las razas."
+  },
+  {
+    "q": "¿Qué presidencia se ubica entre las de Sarmiento y Roca?",
+    "ops": [
+      "La de Avellaneda",
+      "La de Mitre",
+      "La de Yrigoyen"
+    ],
+    "m": "El orden es Mitre, Sarmiento, Avellaneda y después Roca."
+  },
+  {
+    "q": "¿Qué significa que un país exporte materias primas e importe manufacturas?",
+    "ops": [
+      "Que vende productos poco elaborados y compra los elaborados",
+      "Que vende y compra lo mismo",
+      "Que no comercia con nadie"
+    ],
+    "m": "Esa asimetría es la que define la posición periférica en el comercio mundial."
+  },
+  {
+    "q": "¿Qué cambió el telégrafo para el comercio de la época?",
+    "ops": [
+      "Permitió conocer los precios de Europa casi al instante",
+      "Sirvió sólo para uso militar",
+      "No influyó en el comercio"
+    ],
+    "m": "La información rápida modificó cómo se compraba y vendía."
+  },
+  {
+    "q": "El crecimiento de esa economía, ¿llegó por igual a todo el país?",
+    "ops": [
+      "No: se concentró en la región pampeana y el litoral",
+      "Sí, a todas las provincias por igual",
+      "Sólo llegó al noroeste"
+    ],
+    "m": "Las economías regionales quedaron en una posición muy distinta."
+  }
+];
+GAMES.estado_agroexportacion_6 = juegoTriviaTexto(CUR_ESTADO_AGROEXPORTACION_6_BANCO, "Pensá cómo se armó el país y de qué vivía.", "estado_agr");
+
+/* 6° · Inmigración: censos y conventillo — inmigracion_censos_6
+   DC: Inmigración ultramarina; lectura de censos; conventillo; Ley 1420
+   Fuente: docs/auditoria-dc-caba/grado-6.md · S4 */
+const CUR_INMIGRACION_CENSOS_6_BANCO = [
+  {
+    "q": "¿De qué países llegaba la mayor parte de los inmigrantes ultramarinos?",
+    "ops": [
+      "Italia y España",
+      "Alemania y Francia",
+      "Inglaterra y Portugal"
+    ],
+    "m": "Hubo inmigración de muchos orígenes, pero esos dos fueron con diferencia los mayores."
+  },
+  {
+    "q": "¿Qué era un conventillo?",
+    "ops": [
+      "Una casa grande subdividida donde muchas familias compartían patio y servicios",
+      "Un edificio de departamentos modernos",
+      "Un hotel para turistas"
+    ],
+    "m": "Una pieza por familia y todo lo demás compartido."
+  },
+  {
+    "q": "¿Por qué emigraba tanta gente de Europa en esa época?",
+    "ops": [
+      "Por pobreza, falta de tierra y guerras",
+      "Por turismo",
+      "Porque el gobierno europeo los expulsaba a todos"
+    ],
+    "m": "Casi siempre había una combinación de causas económicas y políticas."
+  },
+  {
+    "q": "¿Para qué sirve un censo?",
+    "ops": [
+      "Para contar y describir a la población en un momento dado",
+      "Para cobrar impuestos únicamente",
+      "Para elegir autoridades"
+    ],
+    "m": "Da una foto de cuánta gente hay y cómo vive."
+  },
+  {
+    "q": "Si un censo muestra que el 30% de los habitantes de una ciudad nació en el extranjero, ¿qué indica?",
+    "ops": [
+      "Que la inmigración tuvo un peso enorme en esa población",
+      "Que la ciudad era muy chica",
+      "Que casi nadie emigraba"
+    ],
+    "m": "Es exactamente el tipo de dato que revelaron los censos de 1895 y 1914."
+  },
+  {
+    "q": "¿Qué papel cumplió la escuela pública con los hijos de inmigrantes?",
+    "ops": [
+      "Enseñar el idioma y una historia común",
+      "Separarlos del resto",
+      "Enviarlos de vuelta a sus países"
+    ],
+    "m": "La Ley 1420 fue una herramienta central de integración."
+  },
+  {
+    "q": "¿Qué era el Hotel de Inmigrantes?",
+    "ops": [
+      "El lugar donde los recién llegados se alojaban unos días al desembarcar",
+      "Un hotel de lujo del puerto",
+      "Una escuela para adultos"
+    ],
+    "m": "Ofrecía alojamiento, comida y ayuda para conseguir trabajo."
+  },
+  {
+    "q": "¿Todos los inmigrantes se quedaron definitivamente?",
+    "ops": [
+      "No, muchos volvieron o venían por temporadas",
+      "Sí, todos se quedaron",
+      "Casi ninguno se quedó"
+    ],
+    "m": "Los «golondrina» venían para la cosecha y volvían."
+  },
+  {
+    "q": "¿Qué huellas dejó la inmigración en el habla del Río de la Plata?",
+    "ops": [
+      "Palabras y modismos, sobre todo del italiano",
+      "Ninguna",
+      "Sólo nombres propios"
+    ],
+    "m": "El lunfardo tomó mucho vocabulario de los dialectos italianos."
+  },
+  {
+    "q": "En un conventillo, ¿cómo eran las condiciones sanitarias?",
+    "ops": [
+      "Precarias, con baños compartidos y hacinamiento",
+      "Muy buenas, con baño en cada pieza",
+      "No había gente viviendo ahí"
+    ],
+    "m": "El hacinamiento facilitaba la propagación de enfermedades."
+  },
+  {
+    "q": "¿Qué actividad concentró a muchos inmigrantes en la ciudad?",
+    "ops": [
+      "El trabajo en talleres, comercios y el puerto",
+      "La minería",
+      "La pesca de altura"
+    ],
+    "m": "Los que se quedaron en la ciudad se emplearon sobre todo ahí."
+  },
+  {
+    "q": "Si comparás dos censos de distintas décadas, ¿qué podés ver?",
+    "ops": [
+      "Cómo cambió la población en ese período",
+      "Sólo cuánta gente había hoy",
+      "El resultado de una elección"
+    ],
+    "m": "Comparar es lo que convierte un dato aislado en una tendencia."
+  },
+  {
+    "q": "¿La llegada de inmigrantes generó tensiones sociales?",
+    "ops": [
+      "Sí, hubo conflictos laborales y también rechazo de algunos sectores",
+      "No, fue un proceso sin conflictos",
+      "Sólo hubo conflictos entre inmigrantes"
+    ],
+    "m": "Fue un proceso de integración real, y por eso también tuvo tensiones."
+  },
+  {
+    "q": "¿Qué prometía a los inmigrantes la Constitución de 1853?",
+    "ops": [
+      "Los mismos derechos civiles que a los ciudadanos argentinos",
+      "Tierra gratis garantizada para todos",
+      "El voto inmediato"
+    ],
+    "m": "Los derechos civiles no son lo mismo que los políticos: votar requería la ciudadanía."
+  }
+];
+GAMES.inmigracion_censos_6 = juegoTriviaTexto(CUR_INMIGRACION_CENSOS_6_BANCO, "Leé los datos y pensá cómo se vivía.", "inmigracio");
+
+/* 6° · El voto antes y después — voto_6
+   DC: Ley Sáenz Peña 1912; gobiernos radicales; golpe de 1930
+   Fuente: docs/auditoria-dc-caba/grado-6.md · S5 */
+const CUR_VOTO_6_BANCO = [
+  {
+    "q": "¿Qué estableció la Ley Sáenz Peña de 1912?",
+    "ops": [
+      "Voto secreto, obligatorio y universal masculino",
+      "Voto para todas las personas adultas",
+      "El fin de las elecciones"
+    ],
+    "m": "Fue un avance real Y siguió excluyendo a las mujeres: las dos cosas son ciertas."
+  },
+  {
+    "q": "¿Las mujeres podían votar después de la Ley Sáenz Peña?",
+    "ops": [
+      "No, recién pudieron desde 1947",
+      "Sí, desde 1912",
+      "Sí, pero sólo en algunas provincias"
+    ],
+    "m": "El voto femenino llegó con la Ley 13.010, mucho después."
+  },
+  {
+    "q": "Antes de 1912, ¿cómo se votaba?",
+    "ops": [
+      "A viva voz y sin secreto, lo que facilitaba la presión",
+      "Con boleta secreta",
+      "Por correo"
+    ],
+    "m": "Sin secreto, quien tenía poder podía controlar y presionar el voto."
+  },
+  {
+    "q": "¿Qué significa que el voto sea secreto?",
+    "ops": [
+      "Que nadie puede saber a quién votaste",
+      "Que no se cuentan los votos",
+      "Que se vota sin decir el nombre propio"
+    ],
+    "m": "Es lo que protege al votante de las presiones."
+  },
+  {
+    "q": "¿Qué significa que el voto sea obligatorio?",
+    "ops": [
+      "Que las personas habilitadas tienen el deber de votar",
+      "Que hay que votar a un candidato determinado",
+      "Que se vota todos los años"
+    ],
+    "m": "Obliga a participar, no a elegir una opción en particular."
+  },
+  {
+    "q": "¿Quién ganó la primera elección presidencial con la nueva ley, en 1916?",
+    "ops": [
+      "Hipólito Yrigoyen",
+      "Julio Roca",
+      "Marcelo T. de Alvear"
+    ],
+    "m": "Alvear gobernó después, entre los dos mandatos de Yrigoyen."
+  },
+  {
+    "q": "¿Qué pasó en 1930?",
+    "ops": [
+      "Un golpe de Estado interrumpió el orden constitucional",
+      "Se amplió el voto a las mujeres",
+      "Terminó la Primera Guerra"
+    ],
+    "m": "Fue el primer golpe de Estado del siglo XX en la Argentina."
+  },
+  {
+    "q": "¿Qué es el fraude electoral?",
+    "ops": [
+      "Manipular una elección para alterar el resultado",
+      "Votar en blanco",
+      "No presentarse a votar"
+    ],
+    "m": "Fue una práctica extendida antes de 1912 y volvió después de 1930."
+  },
+  {
+    "q": "¿Qué significa «universal» en el sufragio de 1912?",
+    "ops": [
+      "Universal masculino: todos los varones nativos mayores de edad",
+      "Todas las personas adultas del país",
+      "Todos los habitantes, incluidos los extranjeros"
+    ],
+    "m": "El nombre suena más amplio de lo que fue: es importante nombrar lo que quedó afuera."
+  },
+  {
+    "q": "¿Los inmigrantes que no se habían nacionalizado podían votar?",
+    "ops": [
+      "No, hacía falta la ciudadanía",
+      "Sí, todos",
+      "Sí, tras cinco años"
+    ],
+    "m": "Es una de las razones por las que mucha población quedó fuera del sistema político."
+  },
+  {
+    "q": "El padrón electoral servía para…",
+    "ops": [
+      "Registrar quiénes estaban habilitados para votar",
+      "Contar los votos",
+      "Elegir a los candidatos"
+    ],
+    "m": "Se armó a partir del registro militar de los varones."
+  },
+  {
+    "q": "¿Qué se buscaba con el voto secreto y obligatorio?",
+    "ops": [
+      "Que la elección reflejara mejor la voluntad de la gente",
+      "Que votara menos gente",
+      "Que el gobierno eligiera a los candidatos"
+    ],
+    "m": "Reducir la presión y ampliar la participación eran los dos objetivos."
+  },
+  {
+    "q": "Después de 1930, ¿qué pasó con las elecciones?",
+    "ops": [
+      "Hubo un período con fraude sistemático",
+      "Se mantuvieron completamente limpias",
+      "Dejaron de hacerse elecciones"
+    ],
+    "m": "Hubo elecciones, pero con prácticas fraudulentas conocidas."
+  }
+];
+GAMES.voto_6 = juegoTriviaTexto(CUR_VOTO_6_BANCO, "Pensá quién podía votar y cómo.", "voto_6");
+
+/* 6° · La Gran Guerra y la crisis del '29 — gran_guerra_crisis_6
+   DC: Primera Guerra Mundial; crisis de 1929 y su impacto en la Argentina
+   Fuente: docs/auditoria-dc-caba/grado-6.md · S6 */
+const CUR_GRAN_GUERRA_CRISIS_6_BANCO = [
+  {
+    "q": "¿Entre qué años ocurrió la Primera Guerra Mundial?",
+    "ops": [
+      "1914-1918",
+      "1939-1945",
+      "1929-1933"
+    ],
+    "m": "1939-1945 es la Segunda; 1929 es la crisis económica."
+  },
+  {
+    "q": "¿Qué postura tomó la Argentina durante la Primera Guerra Mundial?",
+    "ops": [
+      "Se mantuvo neutral",
+      "Participó junto a los Aliados",
+      "Participó junto a las Potencias Centrales"
+    ],
+    "m": "La neutralidad no la aisló de los efectos económicos."
+  },
+  {
+    "q": "¿Cómo afectó la guerra al comercio argentino?",
+    "ops": [
+      "Se interrumpieron importaciones y bajó el comercio con Europa",
+      "No tuvo ningún efecto",
+      "Aumentaron las importaciones"
+    ],
+    "m": "Al faltar productos importados, algunas industrias locales empezaron a producirlos."
+  },
+  {
+    "q": "¿Qué fue la crisis de 1929?",
+    "ops": [
+      "Una crisis económica mundial que empezó con la caída de la Bolsa de Nueva York",
+      "Una guerra",
+      "Una epidemia"
+    ],
+    "m": "Se conoce como el crack del '29 y derivó en la Gran Depresión."
+  },
+  {
+    "q": "¿Cómo golpeó la crisis del '29 a la Argentina?",
+    "ops": [
+      "Cayeron los precios y la demanda de sus exportaciones",
+      "Aumentaron las exportaciones",
+      "No la afectó"
+    ],
+    "m": "Un país que vive de exportar materias primas queda muy expuesto a la demanda externa."
+  },
+  {
+    "q": "¿Qué es la sustitución de importaciones?",
+    "ops": [
+      "Producir localmente lo que antes se compraba afuera",
+      "Dejar de exportar",
+      "Importar más productos"
+    ],
+    "m": "Se aceleró justamente cuando el comercio internacional se interrumpió."
+  },
+  {
+    "q": "¿Qué relación hay entre la crisis del '29 y el golpe de 1930 en la Argentina?",
+    "ops": [
+      "La crisis agravó el descontento, aunque no fue su única causa",
+      "La crisis causó el golpe por sí sola",
+      "No hubo ninguna relación"
+    ],
+    "m": "Los procesos históricos suelen tener varias causas: conviene no reducirlo a una."
+  },
+  {
+    "q": "¿Qué fue el Tratado de Versalles?",
+    "ops": [
+      "El acuerdo que cerró la Primera Guerra Mundial",
+      "Un tratado comercial entre Argentina e Inglaterra",
+      "El fin de la crisis del '29"
+    ],
+    "m": "Impuso duras condiciones a Alemania, con consecuencias que llegarían después."
+  },
+  {
+    "q": "Durante la crisis, ¿qué pasó con el desempleo en el mundo?",
+    "ops": [
+      "Creció fuertemente",
+      "Bajó",
+      "Se mantuvo igual"
+    ],
+    "m": "La caída de la producción dejó a millones de personas sin trabajo."
+  },
+  {
+    "q": "¿Por qué se dice que la economía argentina era vulnerable?",
+    "ops": [
+      "Porque dependía de pocos productos y de pocos compradores",
+      "Porque no tenía recursos naturales",
+      "Porque no tenía puertos"
+    ],
+    "m": "Depender de pocos mercados amplifica cualquier sacudón externo."
+  },
+  {
+    "q": "¿Qué fue la Gran Depresión?",
+    "ops": [
+      "El largo período de crisis económica que siguió al crack de 1929",
+      "Una batalla de la Primera Guerra",
+      "Una crisis política argentina"
+    ],
+    "m": "Se extendió durante buena parte de la década del '30."
+  },
+  {
+    "q": "La guerra en Europa, ¿favoreció en algo a la industria local argentina?",
+    "ops": [
+      "Sí, al faltar productos importados hubo que fabricarlos acá",
+      "No, la perjudicó por completo",
+      "No hubo ningún efecto"
+    ],
+    "m": "Fue un impulso limitado y por necesidad, no una política industrial planificada."
+  },
+  {
+    "q": "¿Qué es una causa externa de un proceso histórico?",
+    "ops": [
+      "La que se origina fuera del país y lo afecta",
+      "La que ocurre dentro del país",
+      "La que no se puede comprobar"
+    ],
+    "m": "La crisis del '29 es externa; el descontento acumulado acá es interno."
+  }
+];
+GAMES.gran_guerra_crisis_6 = juegoTriviaTexto(CUR_GRAN_GUERRA_CRISIS_6_BANCO, "Seguí la cadena de causas y consecuencias.", "gran_guerr");
+
+/* 6° · Mercosur y la energía que viaja — mercosur_energia_6
+   DC: Integración regional; grandes instalaciones de energía
+   Fuente: docs/auditoria-dc-caba/grado-6.md · S7 */
+const CUR_MERCOSUR_ENERGIA_6_BANCO = [
+  {
+    "q": "¿Qué es el Mercosur?",
+    "ops": [
+      "Un bloque de integración económica de países sudamericanos",
+      "Una alianza militar",
+      "Una empresa de energía"
+    ],
+    "m": "Su objetivo central es comercial y económico."
+  },
+  {
+    "q": "¿Cuáles fueron los cuatro países fundadores del Mercosur?",
+    "ops": [
+      "Argentina, Brasil, Uruguay y Paraguay",
+      "Argentina, Chile, Perú y Brasil",
+      "Argentina, Brasil, Bolivia y Chile"
+    ],
+    "m": "Chile y Bolivia participan como asociados, no como fundadores."
+  },
+  {
+    "q": "¿En qué año se firmó el Tratado de Asunción, que creó el Mercosur?",
+    "ops": [
+      "1991",
+      "1980",
+      "2001"
+    ],
+    "m": "Fue a comienzos de los años noventa."
+  },
+  {
+    "q": "¿Qué ventaja busca un bloque de integración?",
+    "ops": [
+      "Comerciar entre sus miembros con menos trabas",
+      "Cerrar las fronteras",
+      "Unificar los gobiernos"
+    ],
+    "m": "Integrarse no significa dejar de ser países independientes."
+  },
+  {
+    "q": "¿Qué es la represa de Yacyretá?",
+    "ops": [
+      "Una central hidroeléctrica compartida entre Argentina y Paraguay",
+      "Una central nuclear",
+      "Un puerto de exportación"
+    ],
+    "m": "Es un ejemplo de obra binacional de generación de energía."
+  },
+  {
+    "q": "¿Qué es Salto Grande?",
+    "ops": [
+      "Una represa hidroeléctrica compartida con Uruguay",
+      "Una central térmica en Buenos Aires",
+      "Un parque eólico patagónico"
+    ],
+    "m": "Otra obra binacional, esta vez sobre el río Uruguay."
+  },
+  {
+    "q": "¿Cómo llega la electricidad desde una represa hasta las ciudades?",
+    "ops": [
+      "Por líneas de alta tensión",
+      "En camiones",
+      "Por caños subterráneos de gas"
+    ],
+    "m": "El sistema interconectado nacional transporta la energía a distancia."
+  },
+  {
+    "q": "¿Qué tipo de energía genera una represa hidroeléctrica?",
+    "ops": [
+      "Energía eléctrica a partir de la fuerza del agua",
+      "Energía a partir del carbón",
+      "Energía solar"
+    ],
+    "m": "Aprovecha el movimiento del agua para mover las turbinas."
+  },
+  {
+    "q": "¿Dónde se ubican los principales parques eólicos argentinos?",
+    "ops": [
+      "En la Patagonia y el sur bonaerense",
+      "En la selva misionera",
+      "En el centro de la ciudad de Buenos Aires"
+    ],
+    "m": "Se instalan donde el viento es fuerte y constante."
+  },
+  {
+    "q": "¿Qué es una central nuclear?",
+    "ops": [
+      "Una instalación que genera electricidad a partir de la fisión del átomo",
+      "Una represa muy grande",
+      "Un tipo de parque solar"
+    ],
+    "m": "La Argentina tiene tres: Atucha I, Atucha II y Embalse."
+  },
+  {
+    "q": "¿Una obra binacional es…?",
+    "ops": [
+      "Una obra construida y administrada por dos países",
+      "Una obra de una empresa privada",
+      "Una obra que cruza dos provincias"
+    ],
+    "m": "Requiere un acuerdo entre los dos Estados."
+  },
+  {
+    "q": "¿Por qué conviene integrarse regionalmente en materia de energía?",
+    "ops": [
+      "Porque las obras son muy caras y compartir recursos las hace posibles",
+      "Porque así se consume menos",
+      "Porque lo exige el Mercosur"
+    ],
+    "m": "Además permite compensar picos de demanda entre países."
+  },
+  {
+    "q": "¿Qué es un país asociado del Mercosur?",
+    "ops": [
+      "Uno que participa con acuerdos parciales, sin ser miembro pleno",
+      "Uno que fundó el bloque",
+      "Uno que se retiró"
+    ],
+    "m": "Tiene beneficios comerciales pero no todas las obligaciones del miembro pleno."
+  }
+];
+GAMES.mercosur_energia_6 = juegoTriviaTexto(CUR_MERCOSUR_ENERGIA_6_BANCO, "Pensá en la región y en cómo llega la energía.", "mercosur_e");
+
+/* 6° · Demografía en gráficos — demografia_6
+   DC: Natalidad, mortalidad y esperanza de vida; censos y su lectura
+   Fuente: docs/auditoria-dc-caba/grado-6.md · S8a */
+const CUR_DEMOGRAFIA_6_BANCO = [
+  {
+    "q": "¿Qué mide la tasa de natalidad?",
+    "ops": [
+      "Los nacimientos por cada mil habitantes en un año",
+      "Las muertes por cada mil habitantes",
+      "Cuántos años vive la gente"
+    ],
+    "m": "Cada tasa mide una cosa distinta: conviene no mezclarlas."
+  },
+  {
+    "q": "¿Qué mide la tasa de mortalidad?",
+    "ops": [
+      "Las muertes por cada mil habitantes en un año",
+      "Los nacimientos",
+      "La cantidad de migrantes"
+    ],
+    "m": "Junto con la natalidad determina el crecimiento natural."
+  },
+  {
+    "q": "¿Qué es la esperanza de vida?",
+    "ops": [
+      "El promedio de años que se espera que viva una persona",
+      "La edad máxima que alcanza alguien",
+      "La edad de jubilación"
+    ],
+    "m": "Es un promedio estadístico, no un límite individual."
+  },
+  {
+    "q": "¿Qué es el crecimiento vegetativo?",
+    "ops": [
+      "La diferencia entre nacimientos y defunciones",
+      "La cantidad de inmigrantes",
+      "El total de habitantes"
+    ],
+    "m": "No incluye las migraciones: sólo nacimientos y muertes."
+  },
+  {
+    "q": "Si en un país nacen más personas de las que mueren, el crecimiento vegetativo es…",
+    "ops": [
+      "Positivo",
+      "Negativo",
+      "Nulo"
+    ],
+    "m": "Sería negativo si murieran más de las que nacen."
+  },
+  {
+    "q": "¿Qué muestra una pirámide de población?",
+    "ops": [
+      "Cómo se reparte la población por edad y sexo",
+      "Dónde vive la gente",
+      "Cuánto gana cada persona"
+    ],
+    "m": "Su forma resume la estructura demográfica de un país."
+  },
+  {
+    "q": "Una pirámide con base ancha indica…",
+    "ops": [
+      "Una población joven, con alta natalidad",
+      "Una población envejecida",
+      "Que hay pocos habitantes"
+    ],
+    "m": "La base son los grupos de menor edad."
+  },
+  {
+    "q": "¿Qué es la densidad de población?",
+    "ops": [
+      "La cantidad de habitantes por kilómetro cuadrado",
+      "La cantidad total de habitantes",
+      "Cuánta gente nace por año"
+    ],
+    "m": "Relaciona población con superficie: no es lo mismo que el total."
+  },
+  {
+    "q": "¿Cada cuánto se realiza el censo nacional en la Argentina?",
+    "ops": [
+      "Aproximadamente cada diez años",
+      "Todos los años",
+      "Cada cinco años"
+    ],
+    "m": "Esa periodicidad permite comparar décadas."
+  },
+  {
+    "q": "Si la esperanza de vida aumenta, ¿qué suele pasar con la pirámide?",
+    "ops": [
+      "Se ensancha en la parte de arriba",
+      "Se ensancha en la base",
+      "No cambia"
+    ],
+    "m": "Más personas llegan a edades avanzadas."
+  },
+  {
+    "q": "¿Qué es la migración interna?",
+    "ops": [
+      "El traslado de personas dentro del mismo país",
+      "La llegada de personas de otros países",
+      "La salida hacia el exterior"
+    ],
+    "m": "El éxodo del campo a la ciudad es el ejemplo clásico."
+  },
+  {
+    "q": "En la Argentina, ¿cómo se distribuye la población?",
+    "ops": [
+      "De manera muy desigual, concentrada en pocas áreas urbanas",
+      "De manera pareja en todo el territorio",
+      "Sobre todo en zonas rurales"
+    ],
+    "m": "El área metropolitana de Buenos Aires concentra una parte enorme del total."
+  },
+  {
+    "q": "Si un gráfico de líneas muestra la población subiendo año a año, ¿qué indica?",
+    "ops": [
+      "Que la población crece",
+      "Que la población se mantiene",
+      "Que la población baja"
+    ],
+    "m": "Una línea ascendente en el tiempo representa crecimiento."
+  }
+];
+GAMES.demografia_6 = juegoTriviaTexto(CUR_DEMOGRAFIA_6_BANCO, "¿Qué mide cada indicador?", "demografia");
+
+/* 6° · Escalas ambientales — escalas_ambientales_6
+   DC: Escala local, regional y global; mitigación del riesgo
+   Fuente: docs/auditoria-dc-caba/grado-6.md · S8b */
+const CUR_ESCALAS_AMBIENTALES_6_BANCO = [
+  {
+    "it": "Basura acumulada en la esquina del barrio",
+    "cat": "local",
+    "m": "Afecta a quienes viven en ese lugar puntual."
+  },
+  {
+    "it": "Contaminación de la cuenca Matanza-Riachuelo",
+    "cat": "regional",
+    "m": "Involucra a varios municipios y a toda una cuenca."
+  },
+  {
+    "it": "Aumento de la temperatura media del planeta",
+    "cat": "global",
+    "m": "Ningún país lo resuelve por su cuenta."
+  },
+  {
+    "it": "Un árbol caído que corta una calle",
+    "cat": "local",
+    "m": "Afecta a una manzana."
+  },
+  {
+    "it": "Sequía prolongada en la región pampeana",
+    "cat": "regional",
+    "m": "Abarca varias provincias, pero no todo el planeta."
+  },
+  {
+    "it": "Pérdida de biodiversidad en todo el mundo",
+    "cat": "global",
+    "m": "Es un proceso planetario."
+  },
+  {
+    "it": "Ruido de una obra en construcción",
+    "cat": "local",
+    "m": "Molesta a los vecinos inmediatos."
+  },
+  {
+    "it": "Deforestación del Gran Chaco",
+    "cat": "regional",
+    "m": "Se extiende por varias provincias y países vecinos."
+  },
+  {
+    "it": "Acidificación de los océanos",
+    "cat": "global",
+    "m": "Afecta a todos los mares del planeta."
+  },
+  {
+    "it": "Una plaza sin desagües que se inunda",
+    "cat": "local",
+    "m": "Un problema puntual de infraestructura barrial."
+  },
+  {
+    "it": "Contaminación del río Paraná por vertidos industriales",
+    "cat": "regional",
+    "m": "Recorre varias provincias aguas abajo."
+  },
+  {
+    "it": "Reducción de la capa de ozono",
+    "cat": "global",
+    "m": "Se abordó con un acuerdo internacional, el Protocolo de Montreal."
+  },
+  {
+    "it": "Un basural a cielo abierto en las afueras del pueblo",
+    "cat": "local",
+    "m": "Afecta principalmente a esa localidad."
+  },
+  {
+    "it": "Incendios en el delta del Paraná",
+    "cat": "regional",
+    "m": "Su humo llega a varias provincias."
+  },
+  {
+    "it": "Aumento del nivel del mar",
+    "cat": "global",
+    "m": "Es consecuencia de procesos planetarios."
+  },
+  {
+    "it": "Falta de arbolado en una avenida",
+    "cat": "local",
+    "m": "Se resuelve con una intervención en ese lugar."
+  },
+  {
+    "it": "Retroceso de los glaciares patagónicos",
+    "cat": "regional",
+    "m": "Es un efecto regional de un proceso global."
+  },
+  {
+    "it": "Emisiones mundiales de gases de efecto invernadero",
+    "cat": "global",
+    "m": "Se miden y se negocian a escala planetaria."
+  }
+];
+GAMES.escalas_ambientales_6 = juegoClasificar(CUR_ESCALAS_AMBIENTALES_6_BANCO, "¿A qué escala ocurre este problema?", [{"cat": "local", "label": "🏘️ Local"}, {"cat": "regional", "label": "🗺️ Regional"}, {"cat": "global", "label": "🌎 Global"}], "escalas_am");
+
+/* 6° · Mi Buenos Aires querido — buenos_aires_6
+   DC: Patrimonio porteño: tango, fileteado, Obelisco, subte A, Reserva, Mataderos
+   Fuente: docs/auditoria-dc-caba/grado-6.md · S9 */
+const CUR_BUENOS_AIRES_6_BANCO = [
+  {
+    "q": "¿En qué año se inauguró el Obelisco?",
+    "ops": [
+      "1936",
+      "1910",
+      "1950"
+    ],
+    "m": "Se levantó para los 400 años de la primera fundación de la ciudad."
+  },
+  {
+    "q": "¿Qué línea de subte fue la primera de Buenos Aires y de Sudamérica?",
+    "ops": [
+      "La línea A, en 1913",
+      "La línea B, en 1930",
+      "La línea D, en 1937"
+    ],
+    "m": "Fue la primera de toda Sudamérica."
+  },
+  {
+    "q": "¿Qué reconocimiento recibió el tango de la UNESCO?",
+    "ops": [
+      "Patrimonio Cultural Inmaterial de la Humanidad",
+      "Maravilla del mundo moderno",
+      "Monumento histórico nacional"
+    ],
+    "m": "Inmaterial porque es una práctica viva, no un edificio."
+  },
+  {
+    "q": "¿Qué es el fileteado porteño?",
+    "ops": [
+      "Un estilo de pintura decorativa típico de la ciudad",
+      "Un baile",
+      "Un tipo de comida"
+    ],
+    "m": "También fue declarado patrimonio inmaterial por la UNESCO."
+  },
+  {
+    "q": "¿Qué es la Reserva Ecológica Costanera Sur?",
+    "ops": [
+      "Un área natural protegida junto al Río de la Plata",
+      "Un parque de diversiones",
+      "Un museo al aire libre"
+    ],
+    "m": "Se formó sobre terrenos ganados al río y se protegió en 1986."
+  },
+  {
+    "q": "¿Qué se celebra en la Feria de Mataderos?",
+    "ops": [
+      "Las tradiciones criollas: música, danzas y destrezas",
+      "El carnaval veneciano",
+      "La cultura inmigrante europea"
+    ],
+    "m": "Es un espacio de cultura tradicional argentina en plena ciudad."
+  },
+  {
+    "q": "¿Qué barrio porteño se asocia históricamente con el tango y el conventillo?",
+    "ops": [
+      "La Boca",
+      "Palermo",
+      "Belgrano"
+    ],
+    "m": "Fue zona portuaria y de gran presencia inmigrante."
+  },
+  {
+    "q": "¿Qué es el patrimonio cultural INMATERIAL?",
+    "ops": [
+      "Las prácticas, saberes y expresiones que se transmiten entre personas",
+      "Los edificios antiguos",
+      "Las obras de arte de los museos"
+    ],
+    "m": "Lo material son objetos y edificios; lo inmaterial, prácticas vivas."
+  },
+  {
+    "q": "¿Qué avenida cruza el Obelisco?",
+    "ops": [
+      "La 9 de Julio",
+      "Rivadavia",
+      "Corrientes"
+    ],
+    "m": "Corrientes también pasa por ahí, pero el Obelisco está sobre la 9 de Julio."
+  },
+  {
+    "q": "¿Por qué el subte A tenía coches de madera hasta hace pocos años?",
+    "ops": [
+      "Porque eran los originales, conservados por su valor histórico",
+      "Porque no había dinero para cambiarlos",
+      "Porque la madera es más segura"
+    ],
+    "m": "Fueron declarados monumento histórico nacional."
+  },
+  {
+    "q": "¿Qué caracteriza al fileteado como estilo?",
+    "ops": [
+      "Líneas curvas, colores fuertes, flores y frases populares",
+      "Figuras geométricas en blanco y negro",
+      "Fotografías retocadas"
+    ],
+    "m": "Nació decorando carros y colectivos de la ciudad."
+  },
+  {
+    "q": "¿Cómo se formó el terreno de la Reserva Ecológica?",
+    "ops": [
+      "Con rellenos sobre el río que después se naturalizaron",
+      "Fue siempre una isla natural",
+      "Se construyó como parque planificado"
+    ],
+    "m": "La naturaleza colonizó un terreno de origen artificial."
+  },
+  {
+    "q": "¿Qué es un monumento histórico nacional?",
+    "ops": [
+      "Un bien protegido por su valor para la historia del país",
+      "Cualquier edificio antiguo",
+      "Una estatua en una plaza"
+    ],
+    "m": "La protección la establece una declaración oficial, no la antigüedad sola."
+  }
+];
+GAMES.buenos_aires_6 = juegoTriviaTexto(CUR_BUENOS_AIRES_6_BANCO, "Reconocé el patrimonio de la ciudad.", "buenos_air");
