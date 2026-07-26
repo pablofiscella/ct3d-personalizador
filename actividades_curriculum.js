@@ -20434,3 +20434,339 @@ const CUR_CLUB_LECTURA_5_BANCO = [
   }
 ];
 GAMES.club_lectura_5 = juegoTriviaTexto(CUR_CLUB_LECTURA_5_BANCO, "Leé y respondé.", "club_lectu");
+
+/* 6° · Números gigantes — numeros_gigantes_6
+   DC: Lectura, orden y valor posicional sin restricción de rango
+   Fuente: docs/auditoria-dc-caba/grado-6.md · M1 */
+const CUR_NUMEROS_GIGANTES_6_PLANTILLA = {
+  "q": "¿Qué número es {a} millones {b} mil {c}?",
+  "vars": {
+    "a": {
+      "rango": [
+        2,
+        89
+      ],
+      "paso": 1
+    },
+    "b": {
+      "rango": [
+        1,
+        999
+      ],
+      "paso": 1
+    },
+    "c": {
+      "rango": [
+        1,
+        999
+      ],
+      "paso": 1
+    }
+  },
+  "ok": "a * 1000000 + b * 1000 + c",
+  "distractores": [
+    "a * 1000 + b * 1000 + c",
+    "a * 1000000 + b * 100 + c",
+    "a * 100000 + b * 1000 + c"
+  ],
+  "tope": 100000000,
+  "m": "Cada clase ocupa TRES lugares. Si los miles son {b}, hay que completar con ceros hasta llenarlos. Da {ok}."
+};
+GAMES.numeros_gigantes_6 = juegoParametrico(CUR_NUMEROS_GIGANTES_6_PLANTILLA, "Escribí el número.", "numeros_gi");
+
+/* 6° · Armá el cálculo — jerarquia_6
+   DC: Operaciones combinadas y jerarquía; uso del paréntesis
+   Fuente: docs/auditoria-dc-caba/grado-6.md · M4 */
+const CUR_JERARQUIA_6_PLANTILLA = {
+  "q": "{a} + {b} × {c}",
+  "vars": {
+    "a": {
+      "rango": [
+        3,
+        60
+      ],
+      "paso": 1
+    },
+    "b": {
+      "rango": [
+        2,
+        12
+      ],
+      "paso": 1
+    },
+    "c": {
+      "rango": [
+        2,
+        12
+      ],
+      "paso": 1
+    }
+  },
+  "ok": "a + b * c",
+  "distractores": [
+    "(a + b) * c",
+    "a + b + c",
+    "a * b + c"
+  ],
+  "tope": 1000,
+  "m": "Sin paréntesis, la multiplicación va PRIMERO: {b} × {c}, y a eso le sumás {a}. Da {ok}. Si resolvés de izquierda a derecha te da otra cosa."
+};
+GAMES.jerarquia_6 = juegoParametrico(CUR_JERARQUIA_6_PLANTILLA, "Respetá el orden de las operaciones.", "jerarquia_");
+
+/* 6° · Reconstruí la división — reconstruir_division_6
+   DC: Relación c×d+r=D con r<d; restos posibles e imposibles
+   Fuente: docs/auditoria-dc-caba/grado-6.md · M5 */
+const CUR_RECONSTRUIR_DIVISION_6_PLANTILLA = {
+  "q": "Una división da cociente {a} y resto {c}, con divisor {b}. ¿Cuál era el dividendo?",
+  "vars": {
+    "a": {
+      "rango": [
+        4,
+        40
+      ],
+      "paso": 1
+    },
+    "b": {
+      "rango": [
+        5,
+        12
+      ],
+      "paso": 1
+    },
+    "c": {
+      "rango": [
+        1,
+        4
+      ],
+      "paso": 1
+    }
+  },
+  "ok": "a * b + c",
+  "distractores": [
+    "a * b",
+    "a * b - c",
+    "a + b + c"
+  ],
+  "tope": 600,
+  "m": "El resto es lo que sobró, así que se SUMA: {a} × {b} + {c} = {ok}. Si te olvidás del resto, te falta {c}."
+};
+GAMES.reconstruir_division_6 = juegoParametrico(CUR_RECONSTRUIR_DIVISION_6_PLANTILLA, "Encontrá el dividendo.", "reconstrui");
+
+/* 6° · Podio de permutaciones — permutaciones_6
+   DC: Combinatoria: permutaciones; combinación de dos conjuntos
+   Fuente: docs/auditoria-dc-caba/grado-6.md · M6 */
+const CUR_PERMUTACIONES_6_PLANTILLA = {
+  "q": "Corren {a} chicos. ¿De cuántas formas distintas pueden quedar el 1° y el 2° puesto?",
+  "vars": {
+    "a": {
+      "rango": [
+        4,
+        25
+      ],
+      "paso": 1
+    }
+  },
+  "ok": "a * (a - 1)",
+  "distractores": [
+    "a * a",
+    "a + a",
+    "a * (a - 2)"
+  ],
+  "tope": 1000,
+  "m": "Para el 1° hay {a} candidatos; para el 2°, uno MENOS, porque el que salió primero ya no puede repetir. Da {ok}. Multiplicar {a} × {a} es el error típico: cuenta al mismo chico dos veces."
+};
+GAMES.permutaciones_6 = juegoParametrico(CUR_PERMUTACIONES_6_PLANTILLA, "¿De cuántas formas distintas?", "permutacio");
+
+/* 6° · Fracción de una cantidad — fraccion_cantidad_6
+   DC: Fracción de un natural con numerador distinto de 1, sin tope de rango
+   Fuente: docs/auditoria-dc-caba/grado-6.md · M7 */
+const CUR_FRACCION_CANTIDAD_6_PLANTILLA = {
+  "q": "¿Cuánto es {n}/{d} de {a}?",
+  "vars": {
+    "d": {
+      "opciones": [
+        4,
+        5,
+        6,
+        8,
+        10
+      ]
+    },
+    "n": {
+      "opciones": [
+        2,
+        3
+      ]
+    },
+    "a": {
+      "rango": [
+        120,
+        960
+      ],
+      "paso": 120
+    }
+  },
+  "ok": "a * n / d",
+  "distractores": [
+    "a / d",
+    "a * n",
+    "a - a / d"
+  ],
+  "tope": 2000,
+  "m": "Primero cuánto vale UNA parte: {a} ÷ {d}. Después multiplicás por {n}. Da {ok}. Quedarse en la división es el error más común."
+};
+GAMES.fraccion_cantidad_6 = juegoParametrico(CUR_FRACCION_CANTIDAD_6_PLANTILLA, "¿Cuánto es esa parte?", "fraccion_c");
+
+/* 6° · Porcentaje de una cantidad — porcentaje_cantidad_6
+   DC: Cálculo del porcentaje de una cantidad
+   Fuente: docs/auditoria-dc-caba/grado-6.md · M13b */
+const CUR_PORCENTAJE_CANTIDAD_6_PLANTILLA = {
+  "q": "¿Cuánto es el {p}% de {a}?",
+  "vars": {
+    "p": {
+      "opciones": [
+        10,
+        15,
+        20,
+        25,
+        30,
+        40,
+        50,
+        60,
+        75
+      ]
+    },
+    "a": {
+      "rango": [
+        200,
+        9800
+      ],
+      "paso": 200
+    }
+  },
+  "ok": "a * p / 100",
+  "distractores": [
+    "a * p / 1000",
+    "a - a * p / 100",
+    "a / 10"
+  ],
+  "tope": 10000,
+  "m": "El {p}% es {p} de cada 100: {a} × {p} ÷ 100 = {ok}. Ojo con dos errores — correr mal la coma, y calcular lo que QUEDA en vez de lo que se saca."
+};
+GAMES.porcentaje_cantidad_6 = juegoParametrico(CUR_PORCENTAJE_CANTIDAD_6_PLANTILLA, "Sacá el porcentaje.", "porcentaje");
+
+/* 6° · La tienda de descuentos — descuentos_6
+   DC: Descuentos y aumentos; elegir la oferta conveniente
+   Fuente: docs/auditoria-dc-caba/grado-6.md · M13 */
+const CUR_DESCUENTOS_6_PLANTILLA = {
+  "q": "Una campera sale ${a} y tiene {p}% de descuento. ¿Cuánto pagás?",
+  "vars": {
+    "p": {
+      "opciones": [
+        10,
+        20,
+        25,
+        30,
+        40,
+        50
+      ]
+    },
+    "a": {
+      "rango": [
+        2000,
+        40000
+      ],
+      "paso": 500
+    }
+  },
+  "ok": "a - a * p / 100",
+  "distractores": [
+    "a * p / 100",
+    "a + a * p / 100",
+    "a - p"
+  ],
+  "tope": 50000,
+  "m": "El {p}% de ${a} es el descuento, no el precio final: hay que RESTARLO. Pagás ${ok}. Contestar el descuento en vez del precio es el error clásico."
+};
+GAMES.descuentos_6 = juegoParametrico(CUR_DESCUENTOS_6_PLANTILLA, "¿Cuánto pagás al final?", "descuentos");
+
+/* 6° · Proporcionalidad aplicada — proporcionalidad_6
+   DC: Proporcionalidad directa; escalas; constante de proporcionalidad
+   Fuente: docs/auditoria-dc-caba/grado-6.md · M14 */
+const CUR_PROPORCIONALIDAD_6_PLANTILLA = {
+  "q": "Si {a} alfajores cuestan ${b}, ¿cuánto cuestan {c} alfajores?",
+  "vars": {
+    "a": {
+      "opciones": [
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    "b": {
+      "rango": [
+        600,
+        3600
+      ],
+      "paso": 300
+    },
+    "c": {
+      "rango": [
+        7,
+        20
+      ],
+      "paso": 1
+    }
+  },
+  "ok": "b * c / a",
+  "distractores": [
+    "b * c",
+    "b + c",
+    "b * a"
+  ],
+  "tope": 100000,
+  "m": "Primero cuánto sale UNO: ${b} ÷ {a}. Después multiplicás por {c}. Da ${ok}. Multiplicar el precio total por {c} es el error típico."
+};
+GAMES.proporcionalidad_6 = juegoParametrico(CUR_PROPORCIONALIDAD_6_PLANTILLA, "Mantené la proporción.", "proporcion");
+
+/* 6° · Resolvé el problema — problemas_varios_pasos_6
+   DC: Problemas de varios pasos; decidir qué operación resuelve
+   Fuente: docs/auditoria-dc-caba/grado-6.md · Mprob */
+const CUR_PROBLEMAS_VARIOS_PASOS_6_PLANTILLA = {
+  "q": "Un micro lleva {a} filas de {b} asientos. Si {c} asientos están rotos, ¿cuántos quedan para usar?",
+  "vars": {
+    "a": {
+      "rango": [
+        8,
+        30
+      ],
+      "paso": 1
+    },
+    "b": {
+      "opciones": [
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    "c": {
+      "rango": [
+        3,
+        25
+      ],
+      "paso": 1
+    }
+  },
+  "ok": "a * b - c",
+  "distractores": [
+    "a * b + c",
+    "a * b",
+    "a + b - c"
+  ],
+  "tope": 200,
+  "m": "Son DOS pasos: primero el total ({a} × {b}) y recién después restás los {c} rotos. Da {ok}. Quedarse en el total es el error más común."
+};
+GAMES.problemas_varios_pasos_6 = juegoParametrico(CUR_PROBLEMAS_VARIOS_PASOS_6_PLANTILLA, "Leé bien y resolvé.", "problemas_");

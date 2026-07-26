@@ -8240,6 +8240,238 @@ CATALOGO = [
       {"q":"¿Qué es inferir?","ops":["Deducir algo que el texto no dice pero deja entender",
        "Copiar lo que dice el texto","Inventar cualquier cosa"],
        "m":"Se apoya en pistas del texto, no en la imaginación."}]},
+
+    # ══════════════════════════════════════════════════════════════════════════════
+    # 6° GRADO — docs/auditoria-dc-caba/grado-6.md
+    # ══════════════════════════════════════════════════════════════════════════════
+    # MATEMÁTICA · las paramétricas. La auditoría de 6° pide que el grueso de mate sea
+    # de generación infinita: con banco fijo, la segunda pasada repite 8 de 10 y el
+    # tema queda quemado a mitad de año ([[ct3d-memorizacion-bancos]]).
+    {
+        "id": "numeros_gigantes_6", "grado": 6, "area": "matematica",
+        "titulo": "Números gigantes", "icono": "🔢",
+        "mecanica": "parametrica",
+        "consigna": "Escribí el número.",
+        "explica": "Cada clase —millones, miles, unidades— ocupa TRES lugares.",
+        "dc": "Lectura, orden y valor posicional sin restricción de rango",
+        "fuente": "docs/auditoria-dc-caba/grado-6.md · M1",
+        "saber": {"id": "MAT-6-valor-posicional", "nombre": "Valor posicional hasta millones",
+                  "prereqs": []},
+        # El distractor principal es EL error clásico del tema: escribir el número tal
+        # como se dice, pegando las cifras sin respetar los tres lugares de cada clase
+        # (treinta y cuatro millones quinientos siete → 34.507 en vez de 34.000.507).
+        "plantilla": {
+            "q": "¿Qué número es {a} millones {b} mil {c}?",
+            "vars": {
+                "a": {"rango": [2, 89], "paso": 1},
+                "b": {"rango": [1, 999], "paso": 1},
+                "c": {"rango": [1, 999], "paso": 1},
+            },
+            "ok": "a * 1000000 + b * 1000 + c",
+            "distractores": ["a * 1000 + b * 1000 + c", "a * 1000000 + b * 100 + c",
+                             "a * 100000 + b * 1000 + c"],
+            "tope": 100000000,
+            "m": "Cada clase ocupa TRES lugares. Si los miles son {b}, hay que completar "
+                 "con ceros hasta llenarlos. Da {ok}.",
+        },
+    },
+    {
+        "id": "jerarquia_6", "grado": 6, "area": "matematica",
+        "titulo": "Armá el cálculo", "icono": "🧮",
+        "mecanica": "parametrica",
+        "consigna": "Respetá el orden de las operaciones.",
+        "explica": "Primero se multiplica y se divide; recién después se suma y se resta.",
+        "dc": "Operaciones combinadas y jerarquía; uso del paréntesis",
+        "fuente": "docs/auditoria-dc-caba/grado-6.md · M4",
+        "saber": {"id": "MAT-6-jerarquia", "nombre": "Jerarquía de las operaciones",
+                  "prereqs": []},
+        "plantilla": {
+            "q": "{a} + {b} × {c}",
+            "vars": {
+                "a": {"rango": [3, 60], "paso": 1},
+                "b": {"rango": [2, 12], "paso": 1},
+                "c": {"rango": [2, 12], "paso": 1},
+            },
+            "ok": "a + b * c",
+            # el primero es EL error del tema: resolver de izquierda a derecha
+            "distractores": ["(a + b) * c", "a + b + c", "a * b + c"],
+            "tope": 1000,
+            "m": "Sin paréntesis, la multiplicación va PRIMERO: {b} × {c}, y a eso le "
+                 "sumás {a}. Da {ok}. Si resolvés de izquierda a derecha te da otra cosa.",
+        },
+    },
+    {
+        "id": "reconstruir_division_6", "grado": 6, "area": "matematica",
+        "titulo": "Reconstruí la división", "icono": "🔍",
+        "mecanica": "parametrica",
+        "consigna": "Encontrá el dividendo.",
+        "explica": "Dividendo = cociente × divisor + resto. Y el resto siempre es menor que el divisor.",
+        "dc": "Relación c×d+r=D con r<d; restos posibles e imposibles",
+        "fuente": "docs/auditoria-dc-caba/grado-6.md · M5",
+        "saber": {"id": "MAT-6-division-resto", "nombre": "Dividendo, divisor, cociente y resto",
+                  "prereqs": []},
+        "plantilla": {
+            "q": "Una división da cociente {a} y resto {c}, con divisor {b}. "
+                 "¿Cuál era el dividendo?",
+            "vars": {
+                "a": {"rango": [4, 40], "paso": 1},
+                "b": {"rango": [5, 12], "paso": 1},
+                "c": {"rango": [1, 4], "paso": 1},
+            },
+            "ok": "a * b + c",
+            "distractores": ["a * b", "a * b - c", "a + b + c"],
+            "tope": 600,
+            "m": "El resto es lo que sobró, así que se SUMA: {a} × {b} + {c} = {ok}. "
+                 "Si te olvidás del resto, te falta {c}.",
+        },
+    },
+    {
+        "id": "permutaciones_6", "grado": 6, "area": "matematica",
+        "titulo": "Podio de permutaciones", "icono": "🏅",
+        "mecanica": "parametrica",
+        "consigna": "¿De cuántas formas distintas?",
+        "explica": "Para el primer lugar hay todos los candidatos; para el segundo, uno menos.",
+        "dc": "Combinatoria: permutaciones; combinación de dos conjuntos",
+        "fuente": "docs/auditoria-dc-caba/grado-6.md · M6",
+        "saber": {"id": "MAT-6-permutaciones", "nombre": "Permutaciones y combinaciones",
+                  "prereqs": []},
+        "plantilla": {
+            "q": "Corren {a} chicos. ¿De cuántas formas distintas pueden quedar "
+                 "el 1° y el 2° puesto?",
+            "vars": {
+                "a": {"rango": [4, 25], "paso": 1},
+            },
+            "ok": "a * (a - 1)",
+            "distractores": ["a * a", "a + a", "a * (a - 2)"],
+            "tope": 1000,
+            "m": "Para el 1° hay {a} candidatos; para el 2°, uno MENOS, porque el que salió "
+                 "primero ya no puede repetir. Da {ok}. Multiplicar {a} × {a} es el error "
+                 "típico: cuenta al mismo chico dos veces.",
+        },
+    },
+    {
+        "id": "fraccion_cantidad_6", "grado": 6, "area": "matematica",
+        "titulo": "Fracción de una cantidad", "icono": "🍕",
+        "mecanica": "parametrica",
+        "consigna": "¿Cuánto es esa parte?",
+        "explica": "Dividís por el de abajo para saber cuánto vale UNA parte, y multiplicás por el de arriba.",
+        "dc": "Fracción de un natural con numerador distinto de 1, sin tope de rango",
+        "fuente": "docs/auditoria-dc-caba/grado-6.md · M7",
+        "saber": {"id": "MAT-6-fraccion-cantidad", "nombre": "Fracción de una cantidad",
+                  "prereqs": []},
+        # El primer distractor es el error dominante: dividir por el denominador y
+        # quedarse ahí, sin multiplicar por el numerador.
+        "plantilla": {
+            "q": "¿Cuánto es {n}/{d} de {a}?",
+            "vars": {
+                "d": {"opciones": [4, 5, 6, 8, 10]},
+                "n": {"opciones": [2, 3]},
+                "a": {"rango": [120, 960], "paso": 120},
+            },
+            "ok": "a * n / d",
+            "distractores": ["a / d", "a * n", "a - a / d"],
+            "tope": 2000,
+            "m": "Primero cuánto vale UNA parte: {a} ÷ {d}. Después multiplicás por {n}. "
+                 "Da {ok}. Quedarse en la división es el error más común.",
+        },
+    },
+    {
+        "id": "porcentaje_cantidad_6", "grado": 6, "area": "matematica",
+        "titulo": "Porcentaje de una cantidad", "icono": "💯",
+        "mecanica": "parametrica",
+        "consigna": "Sacá el porcentaje.",
+        "explica": "El porcentaje es una fracción con denominador 100.",
+        "dc": "Cálculo del porcentaje de una cantidad",
+        "fuente": "docs/auditoria-dc-caba/grado-6.md · M13b",
+        "saber": {"id": "MAT-6-porcentaje", "nombre": "Porcentaje de una cantidad",
+                  "prereqs": ["MAT-6-fraccion-cantidad"]},
+        # Distractores de la auditoría: correr mal la coma (÷ 1000) y calcular el
+        # complemento (lo que QUEDA en vez de lo que se saca).
+        "plantilla": {
+            "q": "¿Cuánto es el {p}% de {a}?",
+            "vars": {
+                "p": {"opciones": [10, 15, 20, 25, 30, 40, 50, 60, 75]},
+                "a": {"rango": [200, 9800], "paso": 200},
+            },
+            "ok": "a * p / 100",
+            "distractores": ["a * p / 1000", "a - a * p / 100", "a / 10"],
+            "tope": 10000,
+            "m": "El {p}% es {p} de cada 100: {a} × {p} ÷ 100 = {ok}. Ojo con dos errores — "
+                 "correr mal la coma, y calcular lo que QUEDA en vez de lo que se saca.",
+        },
+    },
+    {
+        "id": "descuentos_6", "grado": 6, "area": "matematica",
+        "titulo": "La tienda de descuentos", "icono": "🏷️",
+        "mecanica": "parametrica",
+        "consigna": "¿Cuánto pagás al final?",
+        "explica": "El descuento se resta del precio: lo que pagás es lo que queda.",
+        "dc": "Descuentos y aumentos; elegir la oferta conveniente",
+        "fuente": "docs/auditoria-dc-caba/grado-6.md · M13",
+        "saber": {"id": "MAT-6-descuentos", "nombre": "Descuentos y aumentos",
+                  "prereqs": ["MAT-6-porcentaje"]},
+        "plantilla": {
+            "q": "Una campera sale ${a} y tiene {p}% de descuento. ¿Cuánto pagás?",
+            "vars": {
+                "p": {"opciones": [10, 20, 25, 30, 40, 50]},
+                "a": {"rango": [2000, 40000], "paso": 500},
+            },
+            "ok": "a - a * p / 100",
+            "distractores": ["a * p / 100", "a + a * p / 100", "a - p"],
+            "tope": 50000,
+            "m": "El {p}% de ${a} es el descuento, no el precio final: hay que RESTARLO. "
+                 "Pagás ${ok}. Contestar el descuento en vez del precio es el error clásico.",
+        },
+    },
+    {
+        "id": "proporcionalidad_6", "grado": 6, "area": "matematica",
+        "titulo": "Proporcionalidad aplicada", "icono": "⚖️",
+        "mecanica": "parametrica",
+        "consigna": "Mantené la proporción.",
+        "explica": "Si una cantidad se multiplica, la otra se multiplica por lo mismo.",
+        "dc": "Proporcionalidad directa; escalas; constante de proporcionalidad",
+        "fuente": "docs/auditoria-dc-caba/grado-6.md · M14",
+        "saber": {"id": "MAT-6-proporcionalidad", "nombre": "Proporcionalidad directa",
+                  "prereqs": []},
+        "plantilla": {
+            "q": "Si {a} alfajores cuestan ${b}, ¿cuánto cuestan {c} alfajores?",
+            "vars": {
+                "a": {"opciones": [2, 3, 4, 5, 6]},
+                "b": {"rango": [600, 3600], "paso": 300},
+                "c": {"rango": [7, 20], "paso": 1},
+            },
+            "ok": "b * c / a",
+            "distractores": ["b * c", "b + c", "b * a"],
+            "tope": 100000,
+            "m": "Primero cuánto sale UNO: ${b} ÷ {a}. Después multiplicás por {c}. "
+                 "Da ${ok}. Multiplicar el precio total por {c} es el error típico.",
+        },
+    },
+    {
+        "id": "problemas_varios_pasos_6", "grado": 6, "area": "matematica",
+        "titulo": "Resolvé el problema", "icono": "🧩",
+        "mecanica": "parametrica",
+        "consigna": "Leé bien y resolvé.",
+        "explica": "Antes de calcular, decidí qué operación resuelve cada paso.",
+        "dc": "Problemas de varios pasos; decidir qué operación resuelve",
+        "fuente": "docs/auditoria-dc-caba/grado-6.md · Mprob",
+        "saber": {"id": "MAT-6-problemas", "nombre": "Problemas de varios pasos",
+                  "prereqs": ["MAT-6-jerarquia"]},
+        "plantilla": {
+            "q": "Un micro lleva {a} filas de {b} asientos. Si {c} asientos están rotos, "
+                 "¿cuántos quedan para usar?",
+            "vars": {
+                "a": {"rango": [8, 30], "paso": 1},
+                "b": {"opciones": [2, 3, 4, 5]},
+                "c": {"rango": [3, 25], "paso": 1},
+            },
+            "ok": "a * b - c",
+            "distractores": ["a * b + c", "a * b", "a + b - c"],
+            "tope": 200,
+            "m": "Son DOS pasos: primero el total ({a} × {b}) y recién después restás los "
+                 "{c} rotos. Da {ok}. Quedarse en el total es el error más común.",
+        },
+    },
 ]
 
 
