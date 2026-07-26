@@ -2186,6 +2186,41 @@ const COMO_ES_VIDEO = {
     partes: [{ t: "Cantó o cantaba", f: "lec_verbos_pasado.mp4", s: 34 }],
   },
 
+
+  // ── Lengua de 3°: primera tanda de video de los grados 1° a 3° (26-jul-2026).
+  tilde_pasado_3: {
+    auto: "lec_tilde_pasado_3.mp4",
+    partes: [{ t: "La tilde del pasado", f: "lec_tilde_pasado_3.mp4", s: 38 }],
+  },
+  conectores_3: {
+    auto: "lec_conectores_3.mp4",
+    partes: [{ t: "El conector justo", f: "lec_conectores_3.mp4", s: 34 }],
+  },
+  derivadas_3: {
+    auto: "lec_derivadas_3.mp4",
+    partes: [{ t: "Familias de palabras", f: "lec_derivadas_3.mp4", s: 35 }],
+  },
+  hiato_diptongo_3: {
+    auto: "lec_hiato_diptongo_3.mp4",
+    partes: [{ t: "Hiato o diptongo", f: "lec_hiato_diptongo_3.mp4", s: 42 }],
+  },
+  globos_3: {
+    auto: "lec_globos_3.mp4",
+    partes: [{ t: "Los globos de la historieta", f: "lec_globos_3.mp4", s: 26 }],
+  },
+  poema_3: {
+    auto: "lec_poema_3.mp4",
+    partes: [{ t: "Versos y estrofas", f: "lec_poema_3.mp4", s: 34 }],
+  },
+  teatro_3: {
+    auto: "lec_teatro_3.mp4",
+    partes: [{ t: "El texto teatral", f: "lec_teatro_3.mp4", s: 27 }],
+  },
+  dialogo_signos_3: {
+    auto: "lec_dialogo_signos_3.mp4",
+    partes: [{ t: "Puntuar el diálogo", f: "lec_dialogo_signos_3.mp4", s: 25 }],
+  },
+
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
