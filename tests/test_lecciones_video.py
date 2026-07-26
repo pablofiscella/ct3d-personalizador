@@ -89,6 +89,90 @@ def test_los_videos_salen_del_repo_no_del_token():
 # actividad con texto y sin video que NO esté declarada, y falla también si queda una
 # entrada acá que ya tiene su video (para que la lista se vacíe sola y no se pudra).
 VIDEO_PENDIENTE = {
+    # 6° grado completo (26-jul-2026). El test pasó a cubrir la edad 11, así que
+    # estas entran a la deuda declarada: incluye las 67 mini-lecciones nuevas de 6° y
+    # las que el cuaderno de esa edad ya tenía sin video, que hasta ahora nadie miraba
+    # porque el guardián sólo llegaba hasta la edad 10.
+    "area_fraccionaria_6",
+    "area_perimetro_6",
+    "bloques_codigo_6",
+    "chat_seguro_6",
+    "ciclo_menstrual_6",
+    "ciencia_ficcion_6",
+    "cigoto_feto_6",
+    "cohesion_6",
+    "comprension_lectora_6",
+    "conectores_6",
+    "conjugacion_6",
+    "corredor_coma_6",
+    "cuadrilateros",
+    "cuadrilateros_6",
+    "demografia_6",
+    "densidad_recta_6",
+    "desarrollos_6",
+    "descuentos_6",
+    "directo_indirecto_6",
+    "divisibilidad_criterios_6",
+    "economia_circular_6",
+    "ecorregiones_6",
+    "efecto_invernadero_6",
+    "escalas_ambientales_6",
+    "estado_agroexportacion_6",
+    "etapas_diseno_6",
+    "fraccion_cantidad_6",
+    "fraccion_de_cantidad",
+    "fraccion_inversa_6",
+    "fracciones_equivalentes_6",
+    "fuente_confiable_6",
+    "gran_guerra_crisis_6",
+    "hechos_opiniones",
+    "heliocentrismo_6",
+    "idea_principal_6",
+    "inmigracion_censos_6",
+    "instrumentos_medida_6",
+    "its_violencia_6",
+    "jerarquia_6",
+    "jerarquia_operaciones",
+    "linea_tiempo_1862_1930_6",
+    "material_termico_6",
+    "mercosur_energia_6",
+    "moda_encuesta_6",
+    "multiplicar_coma_6",
+    "multiplicar_fracciones",
+    "noticia_partes_6",
+    "numeros_gigantes_6",
+    "numeros_primos",
+    "od_oi_6",
+    "particulas_calor_6",
+    "permutaciones_6",
+    "poligonos_lados",
+    "porcentaje_cantidad_6",
+    "porcentajes",
+    "presupuesto_6",
+    "primos_6",
+    "probabilidad_6",
+    "probabilidad_sucesos",
+    "problemas_varios_pasos_6",
+    "pronombres_6",
+    "proporcionalidad_6",
+    "pubertad_6",
+    "puntuacion_6",
+    "reconstruir_division_6",
+    "recursos_poeticos_6",
+    "red_ecosistema_6",
+    "relato_policial_6",
+    "revolucion_industrial_6",
+    "roles_niveles_6",
+    "secuencial_condicional_6",
+    "sensores_6",
+    "sintagma_6",
+    "suma_angulos",
+    "suma_fracciones_6",
+    "tiempo_clima_6",
+    "tildes_6",
+    "tres_poderes_6",
+    "voto_6",
+
     # Cierre de las 9 deudas del manifiesto de cobertura (26-jul-2026). El video
     # quedó pendiente por falta de crédito de ElevenLabs, no por decisión de diseño.
     "club_lectura_5",
@@ -214,7 +298,7 @@ def _texto_y_video():
     return texto, video
 
 
-@pytest.mark.parametrize("edad", ["9", "10"])
+@pytest.mark.parametrize("edad", ["9", "10", "11"])
 def test_toda_explicacion_tiene_video(edad):
     """Pablo (25-jul): "quiero en las explicaciones siempre videos que expliquen el
     contenido de forma visual".
