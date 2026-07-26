@@ -14283,3 +14283,1528 @@ const CUR_COMPOST_3_BANCO = [
   }
 ];
 GAMES.compost_3 = juegoClasificar(CUR_COMPOST_3_BANCO, "¿Dónde va este residuo?", [{"cat": "compost", "label": "🍂 Al compost"}, {"cat": "reciclable", "label": "♻️ Reciclable"}, {"cat": "basura", "label": "🗑️ Basura"}], "compost_3");
+
+/* 2° · Constructor de sílabas — silabas_2
+   DC: Sílabas y dígrafos; construcción de palabras
+   Fuente: docs/auditoria-dc-caba/grado-2.md · L1 */
+const CUR_SILABAS_2_BANCO = [
+  {
+    "q": "«casa»",
+    "ops": [
+      "2",
+      "3",
+      "1"
+    ],
+    "m": "ca-sa: dos golpes de voz."
+  },
+  {
+    "q": "«chocolate»",
+    "ops": [
+      "4",
+      "3",
+      "5"
+    ],
+    "m": "cho-co-la-te. La CH es un solo sonido."
+  },
+  {
+    "q": "«llave»",
+    "ops": [
+      "2",
+      "3",
+      "1"
+    ],
+    "m": "lla-ve. La LL es un solo sonido."
+  },
+  {
+    "q": "«perro»",
+    "ops": [
+      "2",
+      "3",
+      "1"
+    ],
+    "m": "pe-rro. La RR es un solo sonido."
+  },
+  {
+    "q": "«guitarra»",
+    "ops": [
+      "3",
+      "4",
+      "2"
+    ],
+    "m": "gui-ta-rra."
+  },
+  {
+    "q": "«queso»",
+    "ops": [
+      "2",
+      "3",
+      "1"
+    ],
+    "m": "que-so. La QU suena como una K."
+  },
+  {
+    "q": "«mariposa»",
+    "ops": [
+      "4",
+      "3",
+      "5"
+    ],
+    "m": "ma-ri-po-sa."
+  },
+  {
+    "q": "«sol»",
+    "ops": [
+      "1",
+      "2",
+      "3"
+    ],
+    "m": "Una sola sílaba."
+  },
+  {
+    "q": "«escuela»",
+    "ops": [
+      "3",
+      "4",
+      "2"
+    ],
+    "m": "es-cue-la."
+  },
+  {
+    "q": "«chancho»",
+    "ops": [
+      "2",
+      "3",
+      "4"
+    ],
+    "m": "chan-cho: dos CH, dos sílabas."
+  },
+  {
+    "q": "¿Qué letras van SIEMPRE juntas y suenan como una sola?",
+    "ops": [
+      "ch, ll, rr, qu",
+      "b, v",
+      "m, n"
+    ],
+    "m": "Se llaman dígrafos: dos letras, un sonido."
+  },
+  {
+    "q": "«pelota»",
+    "ops": [
+      "3",
+      "2",
+      "4"
+    ],
+    "m": "pe-lo-ta."
+  }
+];
+GAMES.silabas_2 = juegoTriviaTexto(CUR_SILABAS_2_BANCO, "¿Cuántas sílabas tiene?", "silabas_2");
+
+/* 2° · Una letra cambia todo — pares_minimos_2
+   DC: Grafías que cambian el significado de la palabra
+   Fuente: docs/auditoria-dc-caba/grado-2.md · L3 */
+const CUR_PARES_MINIMOS_2_BANCO = [
+  {
+    "q": "El animal que da leche es la…",
+    "ops": [
+      "vaca",
+      "baca",
+      "waca"
+    ],
+    "m": "Vaca con V."
+  },
+  {
+    "q": "Lo que se pone arriba del auto es la…",
+    "ops": [
+      "baca",
+      "vaca",
+      "waca"
+    ],
+    "m": "La parrilla del techo es 'baca', con B."
+  },
+  {
+    "q": "Lo que usás para peinarte es el…",
+    "ops": [
+      "peine",
+      "peune",
+      "peene"
+    ],
+    "m": "Peine."
+  },
+  {
+    "q": "El que corta el pelo es el…",
+    "ops": [
+      "peluquero",
+      "peluqero",
+      "pelukero"
+    ],
+    "m": "Con QU."
+  },
+  {
+    "q": "Lo que tomás cuando tenés sed es el…",
+    "ops": [
+      "vaso",
+      "baso",
+      "bazo"
+    ],
+    "m": "Vaso con V. El 'bazo' es un órgano."
+  },
+  {
+    "q": "Ir de un lado a otro es…",
+    "ops": [
+      "caminar",
+      "kaminar",
+      "qaminar"
+    ],
+    "m": "Con C."
+  },
+  {
+    "q": "La casa de las abejas es la…",
+    "ops": [
+      "colmena",
+      "kolmena",
+      "qolmena"
+    ],
+    "m": "Con C."
+  },
+  {
+    "q": "El animal que ladra es el…",
+    "ops": [
+      "perro",
+      "pero",
+      "perrro"
+    ],
+    "m": "Con doble R. 'Pero' con una sola es otra palabra."
+  },
+  {
+    "q": "Lo que decís cuando querés objetar: «me gusta, ___ es caro»",
+    "ops": [
+      "pero",
+      "perro",
+      "peró"
+    ],
+    "m": "Acá va con una sola R."
+  },
+  {
+    "q": "El pelo de la oveja es la…",
+    "ops": [
+      "lana",
+      "llana",
+      "laná"
+    ],
+    "m": "Lana, con L simple."
+  },
+  {
+    "q": "Lo que se usa para abrir la puerta es la…",
+    "ops": [
+      "llave",
+      "lave",
+      "yave"
+    ],
+    "m": "Con LL."
+  },
+  {
+    "q": "Lo que hacés con la ropa sucia: la…",
+    "ops": [
+      "lavás",
+      "llavás",
+      "labás"
+    ],
+    "m": "Lavar con V y L simple."
+  }
+];
+GAMES.pares_minimos_2 = juegoTriviaTexto(CUR_PARES_MINIMOS_2_BANCO, "¿Cuál corresponde?", "pares_mini");
+
+/* 2° · mb, nv y la hache — mb_nv_h_2
+   DC: Reglas ortográficas de mb, nv y h
+   Fuente: docs/auditoria-dc-caba/grado-2.md · L4 */
+const CUR_MB_NV_H_2_BANCO = [
+  {
+    "q": "Persona: ho___re",
+    "ops": [
+      "mb",
+      "nb",
+      "mv"
+    ],
+    "m": "Antes de B siempre va M: hombre."
+  },
+  {
+    "q": "Se come: ta___or",
+    "ops": [
+      "mb",
+      "nb",
+      "mv"
+    ],
+    "m": "Tambor: M antes de B."
+  },
+  {
+    "q": "Lo contrario de verano: i___ierno",
+    "ops": [
+      "nv",
+      "mv",
+      "nb"
+    ],
+    "m": "Antes de V siempre va N: invierno."
+  },
+  {
+    "q": "Lo que mandás por correo: e___iar",
+    "ops": [
+      "nv",
+      "mv",
+      "nb"
+    ],
+    "m": "Enviar: N antes de V."
+  },
+  {
+    "q": "¿Qué letra va SIEMPRE antes de la B?",
+    "ops": [
+      "M",
+      "N",
+      "Ninguna"
+    ],
+    "m": "Regla sin excepciones: mb."
+  },
+  {
+    "q": "¿Y antes de la V?",
+    "ops": [
+      "N",
+      "M",
+      "Ninguna"
+    ],
+    "m": "Regla sin excepciones: nv."
+  },
+  {
+    "q": "El saludo: ___ola",
+    "ops": [
+      "h",
+      "sin nada",
+      "j"
+    ],
+    "m": "Hola lleva H, aunque no suene."
+  },
+  {
+    "q": "Del gallinero: ___uevo",
+    "ops": [
+      "h",
+      "sin nada",
+      "g"
+    ],
+    "m": "Las palabras que empiezan con el sonido UE llevan H."
+  },
+  {
+    "q": "Del esqueleto: ___ueso",
+    "ops": [
+      "h",
+      "sin nada",
+      "g"
+    ],
+    "m": "Hueso, con H."
+  },
+  {
+    "q": "Del verbo haber: ___ay tres sillas",
+    "ops": [
+      "h",
+      "sin nada",
+      "j"
+    ],
+    "m": "Hay con H."
+  },
+  {
+    "q": "La H, ¿suena?",
+    "ops": [
+      "No, es muda",
+      "Sí, como la J",
+      "A veces"
+    ],
+    "m": "No se oye, pero hay que escribirla."
+  },
+  {
+    "q": "Lo que hacés con las manos: ___acer",
+    "ops": [
+      "h",
+      "sin nada",
+      "j"
+    ],
+    "m": "Hacer con H."
+  }
+];
+GAMES.mb_nv_h_2 = juegoTriviaTexto(CUR_MB_NV_H_2_BANCO, "¿Cómo se escribe?", "mb_nv_h_2");
+
+/* 2° · La sílaba fuerte — acentuacion_2
+   DC: Acentuación: agudas, graves y esdrújulas
+   Fuente: docs/auditoria-dc-caba/grado-2.md · L5 */
+const CUR_ACENTUACION_2_BANCO = [
+  {
+    "q": "En «ventana», ¿cuál suena más fuerte?",
+    "ops": [
+      "ta",
+      "ven",
+      "na"
+    ],
+    "m": "ven-TA-na. Decila despacio en voz alta."
+  },
+  {
+    "q": "En «camión», ¿cuál suena más fuerte?",
+    "ops": [
+      "mión",
+      "ca",
+      "mí"
+    ],
+    "m": "ca-MIÓN: la última."
+  },
+  {
+    "q": "En «árbol», ¿cuál suena más fuerte?",
+    "ops": [
+      "ár",
+      "bol",
+      "bo"
+    ],
+    "m": "ÁR-bol: la anteúltima."
+  },
+  {
+    "q": "«camión» es una palabra…",
+    "ops": [
+      "Aguda",
+      "Grave",
+      "Esdrújula"
+    ],
+    "m": "La fuerza en la última: aguda."
+  },
+  {
+    "q": "«árbol» es una palabra…",
+    "ops": [
+      "Grave",
+      "Aguda",
+      "Esdrújula"
+    ],
+    "m": "La fuerza en la anteúltima: grave."
+  },
+  {
+    "q": "«pájaro» es una palabra…",
+    "ops": [
+      "Esdrújula",
+      "Grave",
+      "Aguda"
+    ],
+    "m": "PÁ-ja-ro: la antepenúltima."
+  },
+  {
+    "q": "Todas las esdrújulas…",
+    "ops": [
+      "Llevan tilde siempre",
+      "Nunca llevan tilde",
+      "A veces"
+    ],
+    "m": "Es la regla más fácil de todas."
+  },
+  {
+    "q": "En «lápiz», ¿cuál suena más fuerte?",
+    "ops": [
+      "lá",
+      "piz",
+      "pi"
+    ],
+    "m": "LÁ-piz."
+  },
+  {
+    "q": "En «reloj», ¿cuál suena más fuerte?",
+    "ops": [
+      "loj",
+      "re",
+      "lo"
+    ],
+    "m": "re-LOJ: aguda."
+  },
+  {
+    "q": "«mesa» es una palabra…",
+    "ops": [
+      "Grave",
+      "Aguda",
+      "Esdrújula"
+    ],
+    "m": "ME-sa: grave."
+  },
+  {
+    "q": "«música» es una palabra…",
+    "ops": [
+      "Esdrújula",
+      "Grave",
+      "Aguda"
+    ],
+    "m": "MÚ-si-ca: esdrújula, con tilde."
+  },
+  {
+    "q": "¿Cómo se busca la sílaba fuerte?",
+    "ops": [
+      "Diciendo la palabra despacio en voz alta",
+      "Contando las letras",
+      "Mirando la primera letra"
+    ],
+    "m": "Es un sonido: hay que escucharlo."
+  }
+];
+GAMES.acentuacion_2 = juegoTriviaTexto(CUR_ACENTUACION_2_BANCO, "¿Dónde suena más fuerte?", "acentuacio");
+
+/* 2° · Signos y mayúsculas — signos_2
+   DC: Signos de pregunta y exclamación; coma; punto y mayúscula
+   Fuente: docs/auditoria-dc-caba/grado-2.md · L6 */
+const CUR_SIGNOS_2_BANCO = [
+  {
+    "q": "Una pregunta se escribe…",
+    "ops": [
+      "¿Venís?",
+      "Venís?",
+      "¿Venís"
+    ],
+    "m": "En español se abre Y se cierra."
+  },
+  {
+    "q": "Una exclamación se escribe…",
+    "ops": [
+      "¡Qué lindo!",
+      "Qué lindo!",
+      "¡Qué lindo"
+    ],
+    "m": "La exclamación también se abre y se cierra."
+  },
+  {
+    "q": "¿Con qué empieza siempre una oración?",
+    "ops": [
+      "Con mayúscula",
+      "Con minúscula",
+      "Con coma"
+    ],
+    "m": "Después de un punto, mayúscula."
+  },
+  {
+    "q": "«compré pan, leche ___ fruta»",
+    "ops": [
+      "y",
+      "coma",
+      "punto"
+    ],
+    "m": "En una enumeración, la última va con Y."
+  },
+  {
+    "q": "«compré pan___ leche y fruta»",
+    "ops": [
+      "coma",
+      ", y",
+      "punto"
+    ],
+    "m": "Entre los elementos va coma."
+  },
+  {
+    "q": "¿Qué signo termina una oración que cuenta algo?",
+    "ops": [
+      "El punto",
+      "La coma",
+      "La pregunta"
+    ],
+    "m": "El punto cierra la idea."
+  },
+  {
+    "q": "¿Los nombres de persona llevan mayúscula?",
+    "ops": [
+      "Sí, siempre",
+      "No",
+      "Sólo al empezar"
+    ],
+    "m": "Son nombres propios."
+  },
+  {
+    "q": "¿Y los días de la semana?",
+    "ops": [
+      "No, van con minúscula",
+      "Sí",
+      "Sólo lunes"
+    ],
+    "m": "Trampa clásica: lunes, martes y los meses van con minúscula."
+  },
+  {
+    "q": "«mi perro se llama ___»",
+    "ops": [
+      "Rocco",
+      "rocco",
+      "ROCCO"
+    ],
+    "m": "Nombre propio: mayúscula inicial."
+  },
+  {
+    "q": "¿Cómo se escribe la oración completa?",
+    "ops": [
+      "Hoy es lunes.",
+      "hoy es Lunes.",
+      "Hoy es Lunes"
+    ],
+    "m": "Mayúscula al empezar, lunes con minúscula, punto al final."
+  },
+  {
+    "q": "¿Para qué sirve la coma en una lista?",
+    "ops": [
+      "Para separar los elementos",
+      "Para terminar",
+      "Para preguntar"
+    ],
+    "m": "Separa sin cerrar la oración."
+  },
+  {
+    "q": "«qué hora es» le falta…",
+    "ops": [
+      "Los signos de pregunta",
+      "Una coma",
+      "Nada"
+    ],
+    "m": "Es una pregunta: ¿Qué hora es?"
+  }
+];
+GAMES.signos_2 = juegoTriviaTexto(CUR_SIGNOS_2_BANCO, "¿Cómo se escribe bien?", "signos_2");
+
+/* 2° · Separá las palabras — separar_palabras_2
+   DC: Separación de palabras en la escritura
+   Fuente: docs/auditoria-dc-caba/grado-2.md · L19 */
+const CUR_SEPARAR_PALABRAS_2_BANCO = [
+  {
+    "q": "¿«mi mamá» o «mimamá»?",
+    "ops": [
+      "mi mamá",
+      "mimamá",
+      "mi-mamá"
+    ],
+    "m": "Son dos palabras."
+  },
+  {
+    "q": "¿«se lo dije» o «selo dije»?",
+    "ops": [
+      "se lo dije",
+      "selo dije",
+      "se lodije"
+    ],
+    "m": "Tres palabras separadas."
+  },
+  {
+    "q": "¿«por favor» o «porfavor»?",
+    "ops": [
+      "por favor",
+      "porfavor",
+      "por-favor"
+    ],
+    "m": "Dos palabras."
+  },
+  {
+    "q": "¿«en seguida» o «ense guida»?",
+    "ops": [
+      "en seguida",
+      "enseguida",
+      "ense guida"
+    ],
+    "m": "Las dos primeras existen, pero 'ense guida' no."
+  },
+  {
+    "q": "¿«a veces» o «aveces»?",
+    "ops": [
+      "a veces",
+      "aveces",
+      "ha veces"
+    ],
+    "m": "Dos palabras."
+  },
+  {
+    "q": "¿«de repente» o «derepente»?",
+    "ops": [
+      "de repente",
+      "derepente",
+      "dere pente"
+    ],
+    "m": "Dos palabras."
+  },
+  {
+    "q": "¿«me gusta» o «megusta»?",
+    "ops": [
+      "me gusta",
+      "megusta",
+      "me-gusta"
+    ],
+    "m": "Dos palabras."
+  },
+  {
+    "q": "¿«te lo doy» o «telo doy»?",
+    "ops": [
+      "te lo doy",
+      "telo doy",
+      "te lodoy"
+    ],
+    "m": "Tres palabras."
+  },
+  {
+    "q": "¿«sin embargo» o «sinembargo»?",
+    "ops": [
+      "sin embargo",
+      "sinembargo",
+      "sin-embargo"
+    ],
+    "m": "Dos palabras."
+  },
+  {
+    "q": "¿«tal vez» o «talvez»?",
+    "ops": [
+      "tal vez",
+      "talvez",
+      "tal-vez"
+    ],
+    "m": "Dos palabras."
+  },
+  {
+    "q": "¿Cómo se sabe dónde termina una palabra?",
+    "ops": [
+      "Por lo que significa cada una",
+      "Por el tamaño",
+      "Por la primera letra"
+    ],
+    "m": "Cada palabra tiene su significado propio."
+  },
+  {
+    "q": "¿«lo hice» o «lohice»?",
+    "ops": [
+      "lo hice",
+      "lohice",
+      "lo-hice"
+    ],
+    "m": "Dos palabras."
+  }
+];
+GAMES.separar_palabras_2 = juegoTriviaTexto(CUR_SEPARAR_PALABRAS_2_BANCO, "¿Cuál está bien separado?", "separar_pa");
+
+/* 2° · Ordená el relato — ordenar_relato_2
+   DC: Secuencia narrativa con y sin conectores
+   Fuente: docs/auditoria-dc-caba/grado-2.md · L8 */
+const CUR_ORDENAR_RELATO_2_BANCO = [
+  {
+    "items": [
+      "Ana se despertó",
+      "Se lavó los dientes",
+      "Salió para la escuela"
+    ]
+  },
+  {
+    "items": [
+      "Llovió toda la noche",
+      "Se llenó de agua la vereda",
+      "Los chicos saltaron los charcos"
+    ]
+  },
+  {
+    "items": [
+      "Plantaron la semilla",
+      "La regaron todos los días",
+      "Salió un brote"
+    ]
+  },
+  {
+    "items": [
+      "El gato tenía hambre",
+      "Maulló en la cocina",
+      "Le dieron de comer"
+    ]
+  },
+  {
+    "items": [
+      "Sonó el timbre",
+      "Los chicos salieron al patio",
+      "Empezó el recreo"
+    ]
+  },
+  {
+    "items": [
+      "Juntaron los ingredientes",
+      "Mezclaron todo",
+      "Lo pusieron en el horno",
+      "Comieron la torta"
+    ]
+  },
+  {
+    "items": [
+      "Se rompió la pelota",
+      "Fueron a comprar otra",
+      "Siguieron jugando"
+    ]
+  },
+  {
+    "items": [
+      "Llegó el verano",
+      "Fueron a la playa",
+      "Se metieron al mar"
+    ]
+  },
+  {
+    "items": [
+      "Nico se cayó de la bici",
+      "Se lastimó la rodilla",
+      "Le pusieron una curita"
+    ]
+  },
+  {
+    "items": [
+      "Compraron entradas",
+      "Entraron al cine",
+      "Empezó la película"
+    ]
+  }
+];
+GAMES.ordenar_relato_2 = juegoOrdenar(CUR_ORDENAR_RELATO_2_BANCO, "Ordená la historia. Tocá en orden.", "Pensá qué tuvo que pasar primero para que pase lo siguiente.", "ordenar_re");
+
+/* 2° · Buscá el dato — buscar_dato_2
+   DC: Localizar información en un texto o etiqueta
+   Fuente: docs/auditoria-dc-caba/grado-2.md · L11 */
+const CUR_BUSCAR_DATO_2_BANCO = [
+  {
+    "q": "«Fiesta de Lucía. Sábado 8, a las 16 h.» ¿Qué día es?",
+    "ops": [
+      "Sábado 8",
+      "Lucía",
+      "16 h"
+    ],
+    "m": "El día es lo que sigue a la fecha."
+  },
+  {
+    "q": "Con ese mismo texto: ¿a qué hora empieza?",
+    "ops": [
+      "16 h",
+      "Sábado",
+      "8"
+    ],
+    "m": "La hora lleva la 'h'."
+  },
+  {
+    "q": "«Galletitas. Contenido: 200 g.» ¿Cuánto trae?",
+    "ops": [
+      "200 g",
+      "Galletitas",
+      "g"
+    ],
+    "m": "El contenido está en gramos."
+  },
+  {
+    "q": "«Vence: 12/2026.» ¿Qué dice esa fecha?",
+    "ops": [
+      "Hasta cuándo se puede consumir",
+      "Cuándo se fabricó",
+      "El precio"
+    ],
+    "m": "El vencimiento."
+  },
+  {
+    "q": "«Jarabe. Tomar 1 cucharada cada 8 horas.» ¿Cada cuánto se toma?",
+    "ops": [
+      "Cada 8 horas",
+      "1 cucharada",
+      "Jarabe"
+    ],
+    "m": "La frecuencia."
+  },
+  {
+    "q": "Con ese mismo texto: ¿cuánto se toma por vez?",
+    "ops": [
+      "1 cucharada",
+      "8 horas",
+      "Todo el frasco"
+    ],
+    "m": "La cantidad por toma."
+  },
+  {
+    "q": "«Museo. Martes a domingo de 10 a 18.» ¿Abre los lunes?",
+    "ops": [
+      "No",
+      "Sí",
+      "Sólo a la mañana"
+    ],
+    "m": "Dice martes a domingo: el lunes queda afuera."
+  },
+  {
+    "q": "«Se busca perro. Contacto: 4444-5555.» ¿A qué número llamás?",
+    "ops": [
+      "4444-5555",
+      "Perro",
+      "Se busca"
+    ],
+    "m": "El teléfono de contacto."
+  },
+  {
+    "q": "«Cine. Función: 20:30. Sala 3.» ¿En qué sala es?",
+    "ops": [
+      "Sala 3",
+      "20:30",
+      "Cine"
+    ],
+    "m": "La sala."
+  },
+  {
+    "q": "«Leche. Mantener refrigerada.» ¿Dónde hay que guardarla?",
+    "ops": [
+      "En la heladera",
+      "En el placard",
+      "Al sol"
+    ],
+    "m": "Refrigerada es en frío."
+  },
+  {
+    "q": "Para encontrar un dato rápido, ¿qué conviene?",
+    "ops": [
+      "Buscar la palabra clave de la pregunta",
+      "Leer todo de nuevo",
+      "Adivinar"
+    ],
+    "m": "Si preguntan la hora, buscás el número con 'h'."
+  },
+  {
+    "q": "«Taller de dibujo. Cupo: 15 chicos.» ¿Cuántos entran?",
+    "ops": [
+      "15",
+      "Dibujo",
+      "Cupo"
+    ],
+    "m": "El cupo es la cantidad."
+  }
+];
+GAMES.buscar_dato_2 = juegoTriviaTexto(CUR_BUSCAR_DATO_2_BANCO, "Leé y buscá la información.", "buscar_dat");
+
+/* 2° · El conector justo — conectores_2
+   DC: Conectores y/e/ni, o/u y temporales
+   Fuente: docs/auditoria-dc-caba/grado-2.md · L12 */
+const CUR_CONECTORES_2_BANCO = [
+  {
+    "q": "Compré pan ___ leche.",
+    "ops": [
+      "y",
+      "o",
+      "ni"
+    ],
+    "m": "Suma las dos cosas."
+  },
+  {
+    "q": "¿Querés agua ___ jugo?",
+    "ops": [
+      "o",
+      "y",
+      "ni"
+    ],
+    "m": "Da a elegir entre dos."
+  },
+  {
+    "q": "No vino Ana ___ Luis.",
+    "ops": [
+      "ni",
+      "y",
+      "o"
+    ],
+    "m": "Niega las dos."
+  },
+  {
+    "q": "Padres ___ hijos.",
+    "ops": [
+      "e",
+      "y",
+      "o"
+    ],
+    "m": "Antes de una palabra que empieza con I o HI, la Y se cambia por E."
+  },
+  {
+    "q": "Uno ___ otro.",
+    "ops": [
+      "u",
+      "o",
+      "y"
+    ],
+    "m": "Antes de una palabra que empieza con O, la O se cambia por U."
+  },
+  {
+    "q": "Primero me lavo los dientes ___ me acuesto.",
+    "ops": [
+      "y después",
+      "o",
+      "ni"
+    ],
+    "m": "Marca el orden en el tiempo."
+  },
+  {
+    "q": "Estudió mucho ___ le fue bien.",
+    "ops": [
+      "y por eso",
+      "o",
+      "ni"
+    ],
+    "m": "Lo segundo es consecuencia."
+  },
+  {
+    "q": "Aguja ___ hilo.",
+    "ops": [
+      "e",
+      "y",
+      "u"
+    ],
+    "m": "Antes de HI va E."
+  },
+  {
+    "q": "Siete ___ ocho.",
+    "ops": [
+      "u",
+      "o",
+      "y"
+    ],
+    "m": "Antes de O va U."
+  },
+  {
+    "q": "Me lavé las manos ___ comí.",
+    "ops": [
+      "y luego",
+      "o",
+      "ni"
+    ],
+    "m": "Orden temporal."
+  },
+  {
+    "q": "No me gusta el brócoli ___ la espinaca.",
+    "ops": [
+      "ni",
+      "y",
+      "o"
+    ],
+    "m": "Niega las dos."
+  },
+  {
+    "q": "¿Para qué sirven los conectores?",
+    "ops": [
+      "Para unir ideas",
+      "Para separar sílabas",
+      "Para poner tildes"
+    ],
+    "m": "Enganchan las partes de lo que decís."
+  }
+];
+GAMES.conectores_2 = juegoTriviaTexto(CUR_CONECTORES_2_BANCO, "¿Qué palabra une mejor?", "conectores");
+
+/* 2° · Escribilo bien — dictado_2
+   DC: Escritura correcta de palabras frecuentes
+   Fuente: docs/auditoria-dc-caba/grado-2.md · L15 */
+const CUR_DICTADO_2_BANCO = [
+  {
+    "q": "El día que viene después del lunes.",
+    "ops": [
+      "martes",
+      "marte",
+      "martez"
+    ],
+    "m": "Martes."
+  },
+  {
+    "q": "Lo que usás para escribir.",
+    "ops": [
+      "lápiz",
+      "lapiz",
+      "lápis"
+    ],
+    "m": "Lápiz con Z y con tilde."
+  },
+  {
+    "q": "Donde vas a aprender.",
+    "ops": [
+      "escuela",
+      "escuala",
+      "eskuela"
+    ],
+    "m": "Con C."
+  },
+  {
+    "q": "El lugar donde vivís.",
+    "ops": [
+      "casa",
+      "caza",
+      "cassa"
+    ],
+    "m": "Casa con S. 'Caza' con Z es perseguir animales."
+  },
+  {
+    "q": "Lo que hacés con un libro.",
+    "ops": [
+      "leer",
+      "leher",
+      "ler"
+    ],
+    "m": "Leer, sin H."
+  },
+  {
+    "q": "La estación más fría.",
+    "ops": [
+      "invierno",
+      "imbierno",
+      "inbierno"
+    ],
+    "m": "Invierno: N antes de V."
+  },
+  {
+    "q": "Lo que tomás en el desayuno.",
+    "ops": [
+      "leche",
+      "lechhe",
+      "leshe"
+    ],
+    "m": "Leche."
+  },
+  {
+    "q": "Tu mamá y tu papá son tus…",
+    "ops": [
+      "padres",
+      "padrez",
+      "padrés"
+    ],
+    "m": "Padres."
+  },
+  {
+    "q": "El animal que vuela y hace miel.",
+    "ops": [
+      "abeja",
+      "aveja",
+      "habeja"
+    ],
+    "m": "Abeja con B y sin H."
+  },
+  {
+    "q": "Lo que ves cuando mirás para arriba.",
+    "ops": [
+      "cielo",
+      "sielo",
+      "zielo"
+    ],
+    "m": "Con C."
+  },
+  {
+    "q": "El número después del nueve.",
+    "ops": [
+      "diez",
+      "dies",
+      "diéz"
+    ],
+    "m": "Diez con Z."
+  },
+  {
+    "q": "Lo que hacés cuando tenés sueño.",
+    "ops": [
+      "dormir",
+      "dormis",
+      "dorrmir"
+    ],
+    "m": "Dormir."
+  }
+];
+GAMES.dictado_2 = juegoTriviaTexto(CUR_DICTADO_2_BANCO, "¿Cuál está bien escrita?", "dictado_2");
+
+/* 2° · ¿Qué quiere decir? — vocabulario_2
+   DC: Ampliación de vocabulario en contexto
+   Fuente: docs/auditoria-dc-caba/grado-2.md · L17 */
+const CUR_VOCABULARIO_2_BANCO = [
+  {
+    "q": "«El nene estaba PENSATIVO.» Estaba…",
+    "ops": [
+      "Pensando en algo",
+      "Corriendo",
+      "Enojado"
+    ],
+    "m": "Viene de 'pensar'."
+  },
+  {
+    "q": "«La sopa estaba TIBIA.» Estaba…",
+    "ops": [
+      "Ni fría ni caliente",
+      "Hirviendo",
+      "Congelada"
+    ],
+    "m": "Tibio es el punto del medio."
+  },
+  {
+    "q": "«El perro es MANSO.» Es…",
+    "ops": [
+      "Tranquilo y no ataca",
+      "Muy grande",
+      "Peligroso"
+    ],
+    "m": "Manso es lo contrario de bravo."
+  },
+  {
+    "q": "«Caminaba con SIGILO.» Caminaba…",
+    "ops": [
+      "Sin hacer ruido",
+      "Corriendo",
+      "Cantando"
+    ],
+    "m": "Con sigilo es en silencio."
+  },
+  {
+    "q": "«La casa era AMPLIA.» Era…",
+    "ops": [
+      "Grande y espaciosa",
+      "Chiquita",
+      "Vieja"
+    ],
+    "m": "Amplia es que sobra lugar."
+  },
+  {
+    "q": "«Estaba EXHAUSTO.» Estaba…",
+    "ops": [
+      "Muy cansado",
+      "Contento",
+      "Con hambre"
+    ],
+    "m": "Exhausto es sin fuerzas."
+  },
+  {
+    "q": "«Le respondió con FRANQUEZA.» Respondió…",
+    "ops": [
+      "Con la verdad",
+      "Con mentiras",
+      "Sin hablar"
+    ],
+    "m": "Franqueza es sinceridad."
+  },
+  {
+    "q": "«El agua estaba CRISTALINA.» Estaba…",
+    "ops": [
+      "Muy transparente",
+      "Sucia",
+      "Caliente"
+    ],
+    "m": "Como el cristal: se ve a través."
+  },
+  {
+    "q": "«Tenía una sonrisa PÍCARA.» Era…",
+    "ops": [
+      "Traviesa",
+      "Triste",
+      "Enojada"
+    ],
+    "m": "Pícaro es travieso."
+  },
+  {
+    "q": "«El camino era SINUOSO.» Tenía…",
+    "ops": [
+      "Muchas curvas",
+      "Piedras",
+      "Barro"
+    ],
+    "m": "Sinuoso es lleno de vueltas."
+  },
+  {
+    "q": "«Habló en voz QUEDA.» Habló…",
+    "ops": [
+      "Bajito",
+      "A los gritos",
+      "Rápido"
+    ],
+    "m": "Voz queda es suave."
+  },
+  {
+    "q": "Si no sabés qué quiere decir una palabra, ¿qué hacés?",
+    "ops": [
+      "Mirás el resto de la oración",
+      "La salteás",
+      "Te enojás"
+    ],
+    "m": "El contexto casi siempre te da una pista."
+  }
+];
+GAMES.vocabulario_2 = juegoTriviaTexto(CUR_VOCABULARIO_2_BANCO, "¿Qué significa esta palabra?", "vocabulari");
+
+/* 2° · El bucle — bucle_2
+   DC: Repetir: contar repeticiones frente a contar bloques
+   Fuente: docs/auditoria-dc-caba/grado-2.md · T2 */
+const CUR_BUCLE_2_BANCO = [
+  {
+    "q": "«repetir 3 veces: avanzar». ¿Cuántos casilleros avanza?",
+    "ops": [
+      "3",
+      "1",
+      "0"
+    ],
+    "m": "El bloque de adentro se hace 3 veces."
+  },
+  {
+    "q": "«repetir 4 veces: avanzar, girar». ¿Cuántas veces gira?",
+    "ops": [
+      "4",
+      "1",
+      "8"
+    ],
+    "m": "Todo lo de adentro se repite: gira 4 veces."
+  },
+  {
+    "q": "En «repetir 4 veces: avanzar, girar», ¿cuántos BLOQUES hay adentro?",
+    "ops": [
+      "2",
+      "4",
+      "8"
+    ],
+    "m": "Ojo: 2 bloques que se hacen 4 veces. No es lo mismo contar bloques que repeticiones."
+  },
+  {
+    "q": "«avanzar, avanzar, avanzar» se puede escribir como…",
+    "ops": [
+      "repetir 3 veces: avanzar",
+      "repetir 1 vez: avanzar",
+      "avanzar 3"
+    ],
+    "m": "El bucle acorta lo repetido."
+  },
+  {
+    "q": "¿Para qué sirve el bloque repetir?",
+    "ops": [
+      "Para no copiar lo mismo muchas veces",
+      "Para que ande más rápido",
+      "Para borrar"
+    ],
+    "m": "Hace el programa más corto y claro."
+  },
+  {
+    "q": "«repetir 2 veces: avanzar, avanzar». ¿Cuánto avanza en total?",
+    "ops": [
+      "4",
+      "2",
+      "1"
+    ],
+    "m": "2 avances × 2 repeticiones."
+  },
+  {
+    "q": "Si el robot tiene que dar la vuelta a un cuadrado, ¿cuántas veces repite?",
+    "ops": [
+      "4",
+      "1",
+      "2"
+    ],
+    "m": "Un cuadrado tiene 4 lados."
+  },
+  {
+    "q": "«repetir 5 veces: saltar». ¿Cuántos saltos?",
+    "ops": [
+      "5",
+      "1",
+      "10"
+    ],
+    "m": "Cinco."
+  },
+  {
+    "q": "¿Se puede poner un repetir adentro de otro repetir?",
+    "ops": [
+      "Sí",
+      "No",
+      "Sólo dos veces"
+    ],
+    "m": "Se llama bucle anidado."
+  },
+  {
+    "q": "«repetir 3 veces: avanzar» y después «avanzar». ¿Cuánto avanzó?",
+    "ops": [
+      "4",
+      "3",
+      "1"
+    ],
+    "m": "3 del bucle más 1 suelto."
+  },
+  {
+    "q": "Si te equivocaste en el número de repeticiones, ¿qué cambiás?",
+    "ops": [
+      "Sólo el número",
+      "Todo el programa",
+      "Los bloques de adentro"
+    ],
+    "m": "Un cambio chico arregla un error chico."
+  },
+  {
+    "q": "¿El bucle cambia lo que hace el programa?",
+    "ops": [
+      "No, sólo lo escribe más corto",
+      "Sí, hace otra cosa",
+      "Lo hace más lento"
+    ],
+    "m": "El resultado es el mismo."
+  }
+];
+GAMES.bucle_2 = juegoTriviaTexto(CUR_BUCLE_2_BANCO, "¿Qué hace el programa?", "bucle_2");
+
+/* 2° · Si pasa esto… — condicional_2
+   DC: Condicionales simples
+   Fuente: docs/auditoria-dc-caba/grado-2.md · T3 */
+const CUR_CONDICIONAL_2_BANCO = [
+  {
+    "q": "«SI hay pared, ENTONCES girar». Hay pared. ¿Qué hace?",
+    "ops": [
+      "Gira",
+      "Avanza",
+      "Nada"
+    ],
+    "m": "Se cumple la condición."
+  },
+  {
+    "q": "Con esa misma regla: NO hay pared. ¿Qué hace?",
+    "ops": [
+      "No gira",
+      "Gira",
+      "Se apaga"
+    ],
+    "m": "Si la condición no se cumple, no hace la acción."
+  },
+  {
+    "q": "«SI está oscuro, ENTONCES prender la luz». Es de día. ¿Qué pasa?",
+    "ops": [
+      "No se prende",
+      "Se prende",
+      "Se apaga"
+    ],
+    "m": "No está oscuro."
+  },
+  {
+    "q": "¿Qué parte de la regla es «SI hay pared»?",
+    "ops": [
+      "La condición",
+      "La acción",
+      "El resultado"
+    ],
+    "m": "Es lo que se pregunta."
+  },
+  {
+    "q": "¿Y «ENTONCES girar»?",
+    "ops": [
+      "La acción",
+      "La condición",
+      "El error"
+    ],
+    "m": "Es lo que se hace si se cumple."
+  },
+  {
+    "q": "«SI hay moneda, ENTONCES sumar 1 punto». Pasa por 3 monedas. ¿Cuántos puntos?",
+    "ops": [
+      "3",
+      "1",
+      "0"
+    ],
+    "m": "La regla se aplica cada vez."
+  },
+  {
+    "q": "«SI llueve, ENTONCES llevar paraguas». No llueve. ¿Lleva paraguas?",
+    "ops": [
+      "No",
+      "Sí",
+      "A veces"
+    ],
+    "m": "La condición manda."
+  },
+  {
+    "q": "¿Se puede tener dos condiciones juntas?",
+    "ops": [
+      "Sí, con un Y",
+      "No",
+      "Sólo con un O"
+    ],
+    "m": "«SI está oscuro Y hay movimiento»."
+  },
+  {
+    "q": "«SI está oscuro Y hay alguien, prender». Está oscuro pero no hay nadie.",
+    "ops": [
+      "No prende",
+      "Prende",
+      "Prende a la mitad"
+    ],
+    "m": "Con Y tienen que cumplirse las dos."
+  },
+  {
+    "q": "¿Para qué sirve un condicional?",
+    "ops": [
+      "Para que el programa decida",
+      "Para repetir",
+      "Para borrar"
+    ],
+    "m": "Permite que actúe distinto según lo que pasa."
+  },
+  {
+    "q": "«SI toca el borde, ENTONCES rebotar». Está en el medio. ¿Rebota?",
+    "ops": [
+      "No",
+      "Sí",
+      "Se detiene"
+    ],
+    "m": "No tocó el borde."
+  },
+  {
+    "q": "En un juego, «si las vidas llegan a 0, terminar» es…",
+    "ops": [
+      "Un condicional",
+      "Un bucle",
+      "Una variable"
+    ],
+    "m": "Decide según una condición."
+  }
+];
+GAMES.condicional_2 = juegoTriviaTexto(CUR_CONDICIONAL_2_BANCO, "¿Qué hace el robot?", "condiciona");
+
+/* 2° · Entra y sale — entrada_salida_2
+   DC: Dispositivos de entrada y de salida
+   Fuente: docs/auditoria-dc-caba/grado-2.md · T4 */
+const CUR_ENTRADA_SALIDA_2_BANCO = [
+  {
+    "it": "El teclado",
+    "cat": "entrada",
+    "m": "Vos escribís y la información entra."
+  },
+  {
+    "it": "La pantalla",
+    "cat": "salida",
+    "m": "Te muestra lo que la máquina tiene para decir."
+  },
+  {
+    "it": "El micrófono",
+    "cat": "entrada",
+    "m": "Toma el sonido y lo mete."
+  },
+  {
+    "it": "El parlante",
+    "cat": "salida",
+    "m": "Saca el sonido."
+  },
+  {
+    "it": "El mouse",
+    "cat": "entrada",
+    "m": "Le decís dónde hacer clic."
+  },
+  {
+    "it": "La impresora",
+    "cat": "salida",
+    "m": "Saca la información en papel."
+  },
+  {
+    "it": "La cámara",
+    "cat": "entrada",
+    "m": "Captura la imagen."
+  },
+  {
+    "it": "Los auriculares",
+    "cat": "salida",
+    "m": "Sacan el sonido, sólo para vos."
+  },
+  {
+    "it": "El botón de un ascensor",
+    "cat": "entrada",
+    "m": "Le pedís algo al sistema."
+  },
+  {
+    "it": "La luz del piso en el ascensor",
+    "cat": "salida",
+    "m": "Te informa dónde está."
+  },
+  {
+    "it": "El lector de huella",
+    "cat": "entrada",
+    "m": "Lee tu dedo."
+  },
+  {
+    "it": "La vibración del celular",
+    "cat": "salida",
+    "m": "Te avisa algo."
+  }
+];
+GAMES.entrada_salida_2 = juegoClasificar(CUR_ENTRADA_SALIDA_2_BANCO, "¿Entra o sale información?", [{"cat": "entrada", "label": "➡️ Entra"}, {"cat": "salida", "label": "⬅️ Sale"}], "entrada_sa");
