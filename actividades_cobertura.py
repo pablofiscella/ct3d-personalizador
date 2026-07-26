@@ -207,9 +207,7 @@ GRADO_4 = [
      "cubre": "gobierno_argentina"},
     {"cod": "S8",  "area": "sociales", "tema": "Provincias, regiones y capitales",
      "dc": "División jurídico-político-administrativa; extensión y límites",
-     "cubre": "provincias_region",
-     "deuda": "el banco tiene 4 regiones y ninguna capital; la auditoría pide 24 "
-              "jurisdicciones, las 5 regiones y las 24 capitales"},
+     "cubre": ["provincias_region", "capitales_4"]},
 
     # ── Tecnología, Diseño y Programación (3) ────────────────────────────────────
     {"cod": "T1",  "area": "tecnologia", "tema": "Robot por bloques",
@@ -238,9 +236,7 @@ GRADO_5 = [
     # ── Matemática (18) ──────────────────────────────────────────────────────────
     {"cod": "M1",  "area": "matematica", "tema": "Recta del millón",
      "dc": "Lectura, escritura y orden en el rango del millón; valor posicional",
-     "cubre": "recta_numerica",
-     "deuda": "el banco es el de 4° (hasta 100.000); la auditoría de 5° pide llegar al "
-              "millón y 7 cifras sin rotular"},
+     "cubre": ["recta_numerica", "recta_millon_5"]},
     {"cod": "M2",  "area": "matematica", "tema": "Traductor romano",
      "dc": "Sistema romano: diferencias con el decimal (posicionalidad, el cero)",
      "cubre": "romanos_5"},
@@ -279,9 +275,7 @@ GRADO_5 = [
      "cubre": "proporcionalidad_5"},
     {"cod": "M14", "area": "matematica", "tema": "Geometría constructiva",
      "dc": "Desigualdad triangular; suma de ángulos; desarrollos planos; medir ángulos",
-     "cubre": "transportador",
-     "deuda": "sólo está el modo de lectura del transportador; faltan la desigualdad "
-              "triangular y los desarrollos planos de cuerpos"},
+     "cubre": ["transportador", "geometria_5"]},
     {"cod": "M15", "area": "matematica", "tema": "Perímetro y área",
      "dc": "Fórmulas de perímetro; área con unidades no convencionales",
      "cubre": "perimetro_area_5"},
@@ -298,9 +292,7 @@ GRADO_5 = [
     # ── Lengua (16) ──────────────────────────────────────────────────────────────
     {"cod": "L1",  "area": "lengua", "tema": "Club de lectura",
      "dc": "Inferencias; correferencia; información relevante en textos de varios géneros",
-     "cubre": "comprension_lectora",
-     "deuda": "la auditoría pide 30 textos × 5 preguntas y géneros completos (fantástico, "
-              "humor, noticia, teatro breve, poema)"},
+     "cubre": ["comprension_lectora", "club_lectura_5"]},
     {"cod": "L2",  "area": "lengua", "tema": "Recursos poéticos",
      "dc": "Personificación, comparación y metáfora; rima asonante y consonante",
      "cubre": "recursos_poeticos_5"},
@@ -371,9 +363,7 @@ GRADO_5 = [
      "cubre": "sonido_5"},
     {"cod": "N8",  "area": "naturales", "tema": "Fases de la Luna y eclipses",
      "dc": "Fases de la Luna; los eclipses como sombras",
-     "cubre": "detectives_cielo",
-     "deuda": "cubre las fases dentro de un banco de astronomía general; la auditoría pide "
-              "además los eclipses y ordenar las fases"},
+     "cubre": ["detectives_cielo", "eclipses_5"]},
 
     # ── Ciencias Sociales (9) ────────────────────────────────────────────────────
     {"cod": "S1",  "area": "sociales", "tema": "Línea de tiempo 1806-1853",
@@ -393,17 +383,13 @@ GRADO_5 = [
      "cubre": "proceres_5"},
     {"cod": "S6",  "area": "sociales", "tema": "¿Unitario o federal?",
      "dc": "Unitarios y federales; la Constitución de 1853 como acuerdo y ley suprema",
-     "cubre": "derechos_constitucion",
-     "deuda": "el banco es de derechos y Constitución; falta la clasificación "
-              "unitario/federal con sus consecuencias"},
+     "cubre": ["derechos_constitucion", "unitario_federal_5"]},
     {"cod": "S7",  "area": "sociales", "tema": "El mapa de América",
      "dc": "Mapa político de América; subcontinentes, límites y escalas",
      "cubre": "mapa_america_5"},
     {"cod": "S8",  "area": "sociales", "tema": "Clasificador de recursos",
      "dc": "Recursos forestales, mineros y panorámicos; su valorización",
-     "cubre": "actividad_economica",
-     "deuda": "clasifica actividades económicas; la auditoría pide clasificar RECURSOS y "
-              "el mismo lugar con dos usos distintos"},
+     "cubre": ["actividad_economica", "recursos_5"]},
     {"cod": "S9",  "area": "sociales", "tema": "Mi Buenos Aires querido",
      "dc": "La ciudad: Plaza de Mayo, el Cabildo, los barrios",
      "cubre": "buenos_aires"},
@@ -837,8 +823,7 @@ GRADO_1 = [
      "cubre": "animales_cobertura"},
     {"cod": "C2", "area": "cdm", "tema": "Armá la planta",
      "dc": "Partes de la planta y su función",
-     "cubre": "planta_fruto",
-     "deuda": "cubre el fruto; la auditoría pide las partes de la planta y su función"},
+     "cubre": ["planta_fruto", "planta_partes_1"]},
     {"cod": "C3", "area": "cdm", "tema": "¿Sólido o líquido?",
      "dc": "Estados de la materia",
      "cubre": "solido_liquido"},
@@ -853,8 +838,7 @@ GRADO_1 = [
      "cubre": "antes_y_hoy"},
     {"cod": "C7", "area": "cdm", "tema": "Mi cuerpo y las etapas",
      "dc": "Partes del cuerpo; etapas de la vida",
-     "cubre": "sentidos",
-     "deuda": "cubre los sentidos; falta la silueta con partes del cuerpo y el orden de las etapas"},
+     "cubre": ["sentidos", "cuerpo_etapas_1"]},
     {"cod": "C8", "area": "cdm", "tema": "Cuidarnos",
      "dc": "Cuidado del cuerpo; a quién acudir",
      "cubre": "cuidarnos_1"},

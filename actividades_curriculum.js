@@ -19331,3 +19331,1106 @@ const CUR_VIAL_1_BANCO = [
   }
 ];
 GAMES.vial_1 = juegoTriviaTexto(CUR_VIAL_1_BANCO, "¿Qué hacés?", "vial_1");
+
+/* 1° · Armá la planta — planta_partes_1
+   DC: Partes de la planta y su función
+   Fuente: docs/auditoria-dc-caba/grado-1.md · C2 */
+const CUR_PLANTA_PARTES_1_BANCO = [
+  {
+    "q": "¿Qué parte de la planta toma el agua de la tierra?",
+    "ops": [
+      "La raíz",
+      "La hoja",
+      "La flor"
+    ],
+    "m": "La raíz está abajo, en la tierra, y chupa el agua."
+  },
+  {
+    "q": "¿Qué parte sostiene la planta y lleva el agua para arriba?",
+    "ops": [
+      "El tallo",
+      "La raíz",
+      "El fruto"
+    ],
+    "m": "El tallo es como una cañita por donde sube el agua."
+  },
+  {
+    "q": "¿En qué parte la planta fabrica su alimento?",
+    "ops": [
+      "Las hojas",
+      "La raíz",
+      "El tallo"
+    ],
+    "m": "Las hojas usan la luz del sol para eso."
+  },
+  {
+    "q": "¿Qué parte se abre de colores para atraer insectos?",
+    "ops": [
+      "La flor",
+      "La raíz",
+      "El tallo"
+    ],
+    "m": "La flor llama a los insectos que la ayudan."
+  },
+  {
+    "q": "¿Dónde están las semillas?",
+    "ops": [
+      "Adentro del fruto",
+      "En la raíz",
+      "En el tallo"
+    ],
+    "m": "El fruto guarda las semillas."
+  },
+  {
+    "q": "Si le cortás las raíces a una planta, ¿qué pasa?",
+    "ops": [
+      "No puede tomar agua",
+      "Crece más",
+      "No pasa nada"
+    ],
+    "m": "Sin raíz no llega el agua."
+  },
+  {
+    "q": "Si la ponés en un lugar totalmente oscuro, ¿qué pasa?",
+    "ops": [
+      "No puede fabricar su alimento",
+      "Crece igual",
+      "Se pone verde"
+    ],
+    "m": "Las hojas necesitan luz."
+  },
+  {
+    "q": "¿Qué necesita una planta para vivir?",
+    "ops": [
+      "Agua, luz, aire y tierra",
+      "Sólo agua",
+      "Sólo luz"
+    ],
+    "m": "Las cuatro cosas."
+  },
+  {
+    "q": "La zanahoria que comemos es…",
+    "ops": [
+      "Una raíz",
+      "Un fruto",
+      "Una flor"
+    ],
+    "m": "Es la raíz de la planta."
+  },
+  {
+    "q": "La lechuga que comemos es…",
+    "ops": [
+      "Hojas",
+      "Raíz",
+      "Fruto"
+    ],
+    "m": "Son las hojas."
+  },
+  {
+    "q": "El tomate que comemos es…",
+    "ops": [
+      "Un fruto",
+      "Una raíz",
+      "Una hoja"
+    ],
+    "m": "Tiene semillas adentro: es fruto."
+  },
+  {
+    "q": "¿De dónde sale una planta nueva?",
+    "ops": [
+      "De una semilla",
+      "De una hoja suelta",
+      "De la nada"
+    ],
+    "m": "La semilla trae adentro la planta chiquita."
+  }
+];
+GAMES.planta_partes_1 = juegoTriviaTexto(CUR_PLANTA_PARTES_1_BANCO, "¿Para qué sirve cada parte?", "planta_par");
+
+/* 1° · Mi cuerpo y las etapas — cuerpo_etapas_1
+   DC: Partes del cuerpo; etapas de la vida
+   Fuente: docs/auditoria-dc-caba/grado-1.md · C7 */
+const CUR_CUERPO_ETAPAS_1_BANCO = [
+  {
+    "q": "¿Con qué parte del cuerpo agarrás las cosas?",
+    "ops": [
+      "Las manos",
+      "Los pies",
+      "La cabeza"
+    ],
+    "m": "Las manos, con los dedos."
+  },
+  {
+    "q": "¿Con qué parte caminás?",
+    "ops": [
+      "Las piernas",
+      "Los brazos",
+      "La espalda"
+    ],
+    "m": "Las piernas."
+  },
+  {
+    "q": "¿Dónde está el codo?",
+    "ops": [
+      "En el medio del brazo",
+      "En la pierna",
+      "En la mano"
+    ],
+    "m": "Donde el brazo se dobla."
+  },
+  {
+    "q": "¿Dónde está la rodilla?",
+    "ops": [
+      "En el medio de la pierna",
+      "En el brazo",
+      "En el cuello"
+    ],
+    "m": "Donde la pierna se dobla."
+  },
+  {
+    "q": "¿Qué une la cabeza con el resto del cuerpo?",
+    "ops": [
+      "El cuello",
+      "El codo",
+      "La rodilla"
+    ],
+    "m": "El cuello."
+  },
+  {
+    "q": "¿Cuál es la primera etapa de la vida?",
+    "ops": [
+      "Bebé",
+      "Niño",
+      "Adulto"
+    ],
+    "m": "Todos empezamos siendo bebés."
+  },
+  {
+    "q": "¿Qué viene después de ser bebé?",
+    "ops": [
+      "Niño",
+      "Adulto",
+      "Anciano"
+    ],
+    "m": "Niño o niña."
+  },
+  {
+    "q": "¿Y después de niño?",
+    "ops": [
+      "Adolescente",
+      "Bebé",
+      "Anciano"
+    ],
+    "m": "La adolescencia."
+  },
+  {
+    "q": "Ordenadas de menor a mayor, las etapas son…",
+    "ops": [
+      "Bebé, niño, adolescente, adulto, anciano",
+      "Niño, bebé, adulto",
+      "Adulto, niño, bebé"
+    ],
+    "m": "Siempre en ese orden."
+  },
+  {
+    "q": "¿Un bebé puede caminar solo?",
+    "ops": [
+      "No todavía, aprende de más grande",
+      "Sí, desde que nace",
+      "Nunca"
+    ],
+    "m": "Cada etapa trae cosas nuevas que se pueden hacer."
+  },
+  {
+    "q": "¿Tu cuerpo es igual al de todos?",
+    "ops": [
+      "No, cada cuerpo es distinto",
+      "Sí, todos iguales",
+      "Sólo el de los grandes cambia"
+    ],
+    "m": "Somos parecidos y a la vez distintos."
+  },
+  {
+    "q": "¿Con qué partes sentís el mundo?",
+    "ops": [
+      "Los ojos, los oídos, la nariz, la lengua y la piel",
+      "Sólo los ojos",
+      "Sólo las manos"
+    ],
+    "m": "Son los cinco sentidos."
+  }
+];
+GAMES.cuerpo_etapas_1 = juegoTriviaTexto(CUR_CUERPO_ETAPAS_1_BANCO, "Mirá tu cuerpo y cómo cambia.", "cuerpo_eta");
+
+/* 4° · Capitales y regiones — capitales_4
+   DC: División político-administrativa: las 24 jurisdicciones, sus capitales y las 5 regiones
+   Fuente: docs/auditoria-dc-caba/grado-4.md · S8 */
+const CUR_CAPITALES_4_BANCO = [
+  {
+    "q": "La capital de Salta es…",
+    "ops": [
+      "Salta",
+      "Jujuy",
+      "Tucumán"
+    ],
+    "m": "Varias provincias tienen su capital con el mismo nombre."
+  },
+  {
+    "q": "La capital de Córdoba es…",
+    "ops": [
+      "Córdoba",
+      "Río Cuarto",
+      "Villa María"
+    ],
+    "m": "Mismo nombre."
+  },
+  {
+    "q": "La capital de Santa Fe es…",
+    "ops": [
+      "Santa Fe",
+      "Rosario",
+      "Rafaela"
+    ],
+    "m": "Ojo: Rosario es más grande, pero la capital es Santa Fe."
+  },
+  {
+    "q": "La capital de Buenos Aires (la provincia) es…",
+    "ops": [
+      "La Plata",
+      "Buenos Aires",
+      "Mar del Plata"
+    ],
+    "m": "La Plata. La Ciudad de Buenos Aires es una jurisdicción aparte."
+  },
+  {
+    "q": "La capital de Mendoza es…",
+    "ops": [
+      "Mendoza",
+      "San Rafael",
+      "Malargüe"
+    ],
+    "m": "Mismo nombre."
+  },
+  {
+    "q": "La capital de Entre Ríos es…",
+    "ops": [
+      "Paraná",
+      "Concordia",
+      "Gualeguaychú"
+    ],
+    "m": "Paraná."
+  },
+  {
+    "q": "La capital de Chubut es…",
+    "ops": [
+      "Rawson",
+      "Trelew",
+      "Comodoro Rivadavia"
+    ],
+    "m": "Rawson, aunque Comodoro sea más grande."
+  },
+  {
+    "q": "La capital de Neuquén es…",
+    "ops": [
+      "Neuquén",
+      "Zapala",
+      "San Martín de los Andes"
+    ],
+    "m": "Mismo nombre."
+  },
+  {
+    "q": "La capital de Misiones es…",
+    "ops": [
+      "Posadas",
+      "Iguazú",
+      "Oberá"
+    ],
+    "m": "Posadas."
+  },
+  {
+    "q": "La capital de Tucumán es…",
+    "ops": [
+      "San Miguel de Tucumán",
+      "Tafí",
+      "Concepción"
+    ],
+    "m": "San Miguel de Tucumán."
+  },
+  {
+    "q": "¿Cuántas jurisdicciones tiene la Argentina?",
+    "ops": [
+      "24",
+      "23",
+      "25"
+    ],
+    "m": "23 provincias más la Ciudad Autónoma de Buenos Aires."
+  },
+  {
+    "q": "¿Cuáles son las cinco regiones?",
+    "ops": [
+      "NOA, NEA, Cuyo, Centro-Pampeana y Patagonia",
+      "Norte, Sur, Este y Oeste",
+      "Sólo tres: norte, centro y sur"
+    ],
+    "m": "Se agrupan por geografía y economía."
+  },
+  {
+    "q": "Salta y Jujuy son del…",
+    "ops": [
+      "NOA",
+      "NEA",
+      "Cuyo"
+    ],
+    "m": "Noroeste argentino."
+  },
+  {
+    "q": "Misiones y Corrientes son del…",
+    "ops": [
+      "NEA",
+      "NOA",
+      "Patagonia"
+    ],
+    "m": "Noreste argentino."
+  },
+  {
+    "q": "Mendoza, San Juan y San Luis son de…",
+    "ops": [
+      "Cuyo",
+      "NOA",
+      "Patagonia"
+    ],
+    "m": "Cuyo."
+  },
+  {
+    "q": "Neuquén, Río Negro, Chubut y Santa Cruz son de…",
+    "ops": [
+      "Patagonia",
+      "Cuyo",
+      "NEA"
+    ],
+    "m": "Patagonia."
+  },
+  {
+    "q": "Córdoba, Santa Fe y Buenos Aires son de…",
+    "ops": [
+      "Centro-Pampeana",
+      "Cuyo",
+      "NOA"
+    ],
+    "m": "La región Centro-Pampeana."
+  },
+  {
+    "q": "La capital de San Juan es…",
+    "ops": [
+      "San Juan",
+      "Jáchal",
+      "Caucete"
+    ],
+    "m": "Mismo nombre."
+  },
+  {
+    "q": "La capital de Corrientes es…",
+    "ops": [
+      "Corrientes",
+      "Goya",
+      "Mercedes"
+    ],
+    "m": "Mismo nombre."
+  },
+  {
+    "q": "La capital de Santiago del Estero es…",
+    "ops": [
+      "Santiago del Estero",
+      "La Banda",
+      "Termas"
+    ],
+    "m": "Mismo nombre."
+  },
+  {
+    "q": "La capital de Formosa es…",
+    "ops": [
+      "Formosa",
+      "Clorinda",
+      "Pirané"
+    ],
+    "m": "Mismo nombre."
+  },
+  {
+    "q": "La capital de Tierra del Fuego es…",
+    "ops": [
+      "Ushuaia",
+      "Río Grande",
+      "Tolhuin"
+    ],
+    "m": "Ushuaia, la ciudad más austral."
+  },
+  {
+    "q": "La capital de La Pampa es…",
+    "ops": [
+      "Santa Rosa",
+      "General Pico",
+      "Toay"
+    ],
+    "m": "Santa Rosa."
+  },
+  {
+    "q": "La capital de Catamarca es…",
+    "ops": [
+      "San Fernando del Valle de Catamarca",
+      "Andalgalá",
+      "Belén"
+    ],
+    "m": "Su nombre completo es largo."
+  }
+];
+GAMES.capitales_4 = juegoTriviaTexto(CUR_CAPITALES_4_BANCO, "¿Cuál es la capital?", "capitales_");
+
+/* 5° · La recta del millón — recta_millon_5
+   DC: Lectura, escritura y orden en el rango del millón
+   Fuente: docs/auditoria-dc-caba/grado-5.md · M1 */
+const CUR_RECTA_MILLON_5_BANCO = [
+  {
+    "q": "¿Cómo se escribe un millón?",
+    "ops": [
+      "1.000.000",
+      "100.000",
+      "10.000"
+    ],
+    "m": "Un 1 y seis ceros."
+  },
+  {
+    "q": "¿Cuántas cifras tiene un millón?",
+    "ops": [
+      "7",
+      "6",
+      "8"
+    ],
+    "m": "Una más que cien mil."
+  },
+  {
+    "q": "¿Cuál es mayor: 999.999 o 1.000.000?",
+    "ops": [
+      "1.000.000",
+      "999.999",
+      "Son iguales"
+    ],
+    "m": "Siete cifras contra seis."
+  },
+  {
+    "q": "¿Qué número sigue a 999.999?",
+    "ops": [
+      "1.000.000",
+      "999.9910",
+      "1.000.0"
+    ],
+    "m": "Se llenan todas las posiciones y sube la siguiente."
+  },
+  {
+    "q": "¿Cómo se escribe trescientos cuarenta y dos mil quinientos?",
+    "ops": [
+      "342.500",
+      "3.425.000",
+      "342.000.500"
+    ],
+    "m": "Trescientos cuarenta y dos mil son 342.000, más 500."
+  },
+  {
+    "q": "¿Cuánto vale el 7 en 7.250.000?",
+    "ops": [
+      "7.000.000",
+      "700.000",
+      "70.000"
+    ],
+    "m": "Es la primera cifra de un número de 7: son millones."
+  },
+  {
+    "q": "¿Cuál es mayor: 1.250.000 o 1.205.000?",
+    "ops": [
+      "1.250.000",
+      "1.205.000",
+      "Son iguales"
+    ],
+    "m": "Se compara de izquierda a derecha: 5 contra 0 en la misma posición."
+  },
+  {
+    "q": "En una recta de 0 a 1.000.000, el 500.000 está…",
+    "ops": [
+      "Justo en el medio",
+      "Cerca del cero",
+      "Cerca del millón"
+    ],
+    "m": "Es la mitad."
+  },
+  {
+    "q": "¿Y el 250.000?",
+    "ops": [
+      "En el primer cuarto",
+      "En el medio",
+      "Cerca del millón"
+    ],
+    "m": "Un cuarto de un millón."
+  },
+  {
+    "q": "Medio millón se escribe…",
+    "ops": [
+      "500.000",
+      "50.000",
+      "5.000.000"
+    ],
+    "m": "La mitad de 1.000.000."
+  },
+  {
+    "q": "¿Cuántos cien mil entran en un millón?",
+    "ops": [
+      "10",
+      "100",
+      "1.000"
+    ],
+    "m": "Diez veces cien mil."
+  },
+  {
+    "q": "¿Cómo se lee 4.080.000?",
+    "ops": [
+      "Cuatro millones ochenta mil",
+      "Cuatro millones ocho mil",
+      "Cuarenta y ocho mil"
+    ],
+    "m": "El cero después del 4 guarda el lugar de los cientos de mil."
+  },
+  {
+    "q": "¿Cuál está entre 300.000 y 400.000?",
+    "ops": [
+      "350.000",
+      "250.000",
+      "450.000"
+    ],
+    "m": "Está en el medio de los dos."
+  },
+  {
+    "q": "Dos millones y medio se escribe…",
+    "ops": [
+      "2.500.000",
+      "2.050.000",
+      "25.000.000"
+    ],
+    "m": "Dos millones más medio millón."
+  }
+];
+GAMES.recta_millon_5 = juegoTriviaTexto(CUR_RECTA_MILLON_5_BANCO, "Ubicá el número.", "recta_mill");
+
+/* 5° · ¿Se arma el cuerpo? — geometria_5
+   DC: Desigualdad triangular; suma de ángulos; desarrollos planos
+   Fuente: docs/auditoria-dc-caba/grado-5.md · M14 */
+const CUR_GEOMETRIA_5_BANCO = [
+  {
+    "q": "Con varillas de 4, 6 y 9 cm, ¿se arma un triángulo?",
+    "ops": [
+      "Sí",
+      "No",
+      "Depende"
+    ],
+    "m": "4 + 6 = 10, que supera a 9. Se arma, por poco."
+  },
+  {
+    "q": "¿Y con 4, 5 y 9?",
+    "ops": [
+      "No",
+      "Sí",
+      "Depende"
+    ],
+    "m": "4 + 5 = 9, justo igual al largo: queda una línea recta, no cierra."
+  },
+  {
+    "q": "La regla para saberlo es…",
+    "ops": [
+      "Los dos lados cortos tienen que SUPERAR al largo",
+      "Los tres lados tienen que ser iguales",
+      "Da lo mismo"
+    ],
+    "m": "Si suman igual o menos, no cierra."
+  },
+  {
+    "q": "¿Cuánto suman los tres ángulos de un triángulo?",
+    "ops": [
+      "180°",
+      "90°",
+      "360°"
+    ],
+    "m": "Siempre 180, sea el triángulo que sea."
+  },
+  {
+    "q": "Si dos ángulos miden 60° y 70°, el tercero mide…",
+    "ops": [
+      "50°",
+      "60°",
+      "70°"
+    ],
+    "m": "180 − 60 − 70."
+  },
+  {
+    "q": "¿Puede un triángulo tener dos ángulos rectos?",
+    "ops": [
+      "No, ya sumarían 180",
+      "Sí",
+      "Siempre"
+    ],
+    "m": "90 + 90 = 180 y no quedaría nada para el tercero."
+  },
+  {
+    "q": "Si desarmás un cubo y lo aplanás, obtenés…",
+    "ops": [
+      "Seis cuadrados unidos",
+      "Un cuadrado grande",
+      "Cuatro triángulos"
+    ],
+    "m": "Eso se llama desarrollo plano."
+  },
+  {
+    "q": "El desarrollo de un cilindro tiene…",
+    "ops": [
+      "Dos círculos y un rectángulo",
+      "Seis cuadrados",
+      "Tres triángulos"
+    ],
+    "m": "Las dos tapas y el costado desplegado."
+  },
+  {
+    "q": "El desarrollo de una pirámide de base cuadrada tiene…",
+    "ops": [
+      "Un cuadrado y cuatro triángulos",
+      "Seis cuadrados",
+      "Dos círculos"
+    ],
+    "m": "La base más las caras que suben."
+  },
+  {
+    "q": "¿Todos los desarrollos de seis cuadrados arman un cubo?",
+    "ops": [
+      "No, depende de cómo estén unidos",
+      "Sí, siempre",
+      "Nunca"
+    ],
+    "m": "Tienen que poder plegarse sin superponerse."
+  },
+  {
+    "q": "Un triángulo con los tres lados iguales tiene sus ángulos de…",
+    "ops": [
+      "60° cada uno",
+      "90°",
+      "45°"
+    ],
+    "m": "180 dividido 3."
+  },
+  {
+    "q": "Con varillas de 5, 5 y 10, ¿se arma?",
+    "ops": [
+      "No",
+      "Sí",
+      "Sólo si se estiran"
+    ],
+    "m": "5 + 5 = 10, exactamente el largo: queda plano."
+  }
+];
+GAMES.geometria_5 = juegoTriviaTexto(CUR_GEOMETRIA_5_BANCO, "Pensá la figura antes de armarla.", "geometria_");
+
+/* 5° · Fases y eclipses — eclipses_5
+   DC: Fases de la Luna; los eclipses como sombras
+   Fuente: docs/auditoria-dc-caba/grado-5.md · N8 */
+const CUR_ECLIPSES_5_BANCO = [
+  {
+    "q": "¿Por qué la Luna cambia de forma?",
+    "ops": [
+      "Porque vemos distinta parte de su mitad iluminada",
+      "Porque la tapa la sombra de la Tierra",
+      "Porque cambia de tamaño"
+    ],
+    "m": "Ésta es LA confusión del tema: la sombra de la Tierra sólo actúa en un eclipse."
+  },
+  {
+    "q": "¿Cuánta parte de la Luna está siempre iluminada por el Sol?",
+    "ops": [
+      "La mitad",
+      "Toda",
+      "Ninguna"
+    ],
+    "m": "La mitad que le da la cara al Sol, siempre."
+  },
+  {
+    "q": "En luna NUEVA, ¿qué vemos?",
+    "ops": [
+      "Casi nada: la parte iluminada está del otro lado",
+      "Toda la Luna",
+      "Media Luna"
+    ],
+    "m": "La cara que vemos está a oscuras."
+  },
+  {
+    "q": "En luna LLENA, ¿qué vemos?",
+    "ops": [
+      "Toda la cara iluminada",
+      "Nada",
+      "La mitad"
+    ],
+    "m": "El Sol le da de frente desde nuestra perspectiva."
+  },
+  {
+    "q": "¿Cuánto tarda la Luna en pasar por todas sus fases?",
+    "ops": [
+      "Un mes aproximadamente",
+      "Un día",
+      "Un año"
+    ],
+    "m": "Por eso el mes se llama así."
+  },
+  {
+    "q": "¿Qué es un eclipse de Luna?",
+    "ops": [
+      "La Tierra se pone entre el Sol y la Luna y le hace sombra",
+      "La Luna tapa al Sol",
+      "La Luna se apaga"
+    ],
+    "m": "Ahí sí actúa la sombra de la Tierra."
+  },
+  {
+    "q": "¿Y un eclipse de Sol?",
+    "ops": [
+      "La Luna se pone entre el Sol y la Tierra",
+      "La Tierra tapa al Sol",
+      "El Sol se apaga"
+    ],
+    "m": "La Luna nos tapa el Sol."
+  },
+  {
+    "q": "¿Los eclipses pasan todos los meses?",
+    "ops": [
+      "No, son poco frecuentes",
+      "Sí, cada mes",
+      "Sí, cada semana"
+    ],
+    "m": "La órbita de la Luna está inclinada: casi siempre pasa por arriba o por abajo."
+  },
+  {
+    "q": "¿La Luna tiene luz propia?",
+    "ops": [
+      "No, refleja la del Sol",
+      "Sí",
+      "Sólo en luna llena"
+    ],
+    "m": "Es un espejo, no una lámpara."
+  },
+  {
+    "q": "¿Se puede mirar un eclipse de Sol a ojo desnudo?",
+    "ops": [
+      "No, daña la vista",
+      "Sí, sin problema",
+      "Sí, si es corto"
+    ],
+    "m": "Hacen falta filtros especiales."
+  },
+  {
+    "q": "Entre luna nueva y luna llena, la Luna está…",
+    "ops": [
+      "Creciendo",
+      "Menguando",
+      "Igual"
+    ],
+    "m": "Cada vez vemos más parte iluminada."
+  },
+  {
+    "q": "¿Por qué siempre vemos la misma cara de la Luna?",
+    "ops": [
+      "Porque gira sobre sí misma en el mismo tiempo que tarda en dar la vuelta a la Tierra",
+      "Porque no gira",
+      "Porque está quieta"
+    ],
+    "m": "Los dos giros están sincronizados."
+  }
+];
+GAMES.eclipses_5 = juegoTriviaTexto(CUR_ECLIPSES_5_BANCO, "Mirá el Sol, la Tierra y la Luna.", "eclipses_5");
+
+/* 5° · ¿Unitario o federal? — unitario_federal_5
+   DC: Unitarios y federales; la Constitución de 1853 como acuerdo
+   Fuente: docs/auditoria-dc-caba/grado-5.md · S6 */
+const CUR_UNITARIO_FEDERAL_5_BANCO = [
+  {
+    "it": "El gobierno debe decidir todo desde Buenos Aires",
+    "cat": "unitario",
+    "m": "Un solo centro de poder: eso es unitario."
+  },
+  {
+    "it": "Cada provincia debe manejar sus propios asuntos",
+    "cat": "federal",
+    "m": "Poder repartido entre las provincias."
+  },
+  {
+    "it": "Las provincias se gobiernan solas PERO hay un gobierno nacional",
+    "cat": "acuerdo",
+    "m": "La Constitución de 1853 tomó algo de cada postura."
+  },
+  {
+    "it": "Las rentas de la aduana son para toda la Nación",
+    "cat": "unitario",
+    "m": "Concentrar los recursos en el centro."
+  },
+  {
+    "it": "Cada provincia debe quedarse con lo que produce",
+    "cat": "federal",
+    "m": "Autonomía económica provincial."
+  },
+  {
+    "it": "Hay una Constitución que está por encima de todos",
+    "cat": "acuerdo",
+    "m": "Nadie, ni el gobierno, está por encima de la ley."
+  },
+  {
+    "it": "Una sola ley igual para todo el país",
+    "cat": "unitario",
+    "m": "Uniformidad desde el centro."
+  },
+  {
+    "it": "Cada provincia dicta su propia constitución",
+    "cat": "federal",
+    "m": "Y esto quedó en la Constitución nacional."
+  },
+  {
+    "it": "El país se organiza en provincias con gobierno propio y uno nacional",
+    "cat": "acuerdo",
+    "m": "Es el artículo 1: forma representativa, republicana y federal."
+  },
+  {
+    "it": "Buenos Aires debe conducir al resto del país",
+    "cat": "unitario",
+    "m": "Centralismo."
+  },
+  {
+    "it": "Los caudillos de cada provincia representan a su gente",
+    "cat": "federal",
+    "m": "Voces locales frente al centro."
+  },
+  {
+    "it": "Se elige presidente, diputados y senadores",
+    "cat": "acuerdo",
+    "m": "El Senado representa a las provincias por igual: eso es lo federal del acuerdo."
+  },
+  {
+    "it": "Los diputados se eligen según cuánta gente tiene cada provincia",
+    "cat": "acuerdo",
+    "m": "Diputados por población y senadores por provincia: las dos lógicas conviven."
+  },
+  {
+    "it": "El interior no tiene por qué obedecer a Buenos Aires",
+    "cat": "federal",
+    "m": "Autonomía."
+  }
+];
+GAMES.unitario_federal_5 = juegoClasificar(CUR_UNITARIO_FEDERAL_5_BANCO, "¿De qué postura es esta idea?", [{"cat": "unitario", "label": "🏛️ Unitario"}, {"cat": "federal", "label": "🌎 Federal"}, {"cat": "acuerdo", "label": "🤝 Quedó en la Constitución"}], "unitario_f");
+
+/* 5° · Clasificador de recursos — recursos_5
+   DC: Recursos forestales, mineros y panorámicos; su valorización
+   Fuente: docs/auditoria-dc-caba/grado-5.md · S8 */
+const CUR_RECURSOS_5_BANCO = [
+  {
+    "it": "Los bosques de la Patagonia para hacer madera",
+    "cat": "forestal",
+    "m": "Se aprovecha el árbol."
+  },
+  {
+    "it": "La plata de las minas de Potosí",
+    "cat": "minero",
+    "m": "Se extrae del suelo."
+  },
+  {
+    "it": "El paisaje del Perito Moreno que atrae turistas",
+    "cat": "panoramico",
+    "m": "Su valor está en mirarlo, no en extraerlo."
+  },
+  {
+    "it": "El quebracho del Chaco para hacer durmientes",
+    "cat": "forestal",
+    "m": "Madera."
+  },
+  {
+    "it": "El litio del norte argentino",
+    "cat": "minero",
+    "m": "Mineral que se extrae."
+  },
+  {
+    "it": "Las Cataratas del Iguazú",
+    "cat": "panoramico",
+    "m": "Recurso turístico."
+  },
+  {
+    "it": "Los pinos plantados para hacer papel",
+    "cat": "forestal",
+    "m": "Se usan para pasta de papel."
+  },
+  {
+    "it": "El petróleo de Vaca Muerta",
+    "cat": "minero",
+    "m": "Se extrae del subsuelo."
+  },
+  {
+    "it": "Los cerros de Jujuy con sus colores",
+    "cat": "panoramico",
+    "m": "Atraen visitantes."
+  },
+  {
+    "it": "El mismo bosque: se puede talar o se puede visitar",
+    "cat": "panoramico",
+    "m": "Un MISMO lugar puede tener dos usos distintos, y a veces no compatibles."
+  },
+  {
+    "it": "El mismo cerro: se puede minar o se puede recorrer",
+    "cat": "panoramico",
+    "m": "La valorización depende de qué decide hacer la sociedad con él."
+  },
+  {
+    "it": "La sal de las Salinas Grandes",
+    "cat": "minero",
+    "m": "Se extrae."
+  },
+  {
+    "it": "El bosque de arrayanes protegido como parque",
+    "cat": "panoramico",
+    "m": "Se decidió valorarlo por su paisaje y no por su madera."
+  },
+  {
+    "it": "La yerba mate de las plantaciones de Misiones",
+    "cat": "forestal",
+    "m": "Es un cultivo de origen vegetal."
+  }
+];
+GAMES.recursos_5 = juegoClasificar(CUR_RECURSOS_5_BANCO, "¿Qué tipo de recurso es?", [{"cat": "forestal", "label": "🌲 Forestal"}, {"cat": "minero", "label": "⛏️ Minero"}, {"cat": "panoramico", "label": "🏞️ Panorámico"}], "recursos_5");
+
+/* 5° · Club de lectura — club_lectura_5
+   DC: Inferencias; correferencia; información relevante en textos de varios géneros
+   Fuente: docs/auditoria-dc-caba/grado-5.md · L1 */
+const CUR_CLUB_LECTURA_5_BANCO = [
+  {
+    "q": "«Martín miró el reloj y salió corriendo sin terminar el desayuno.» ¿Qué se puede deducir?",
+    "ops": [
+      "Estaba llegando tarde",
+      "No tenía hambre",
+      "El reloj estaba roto"
+    ],
+    "m": "No lo dice, pero mirar el reloj y correr lo sugiere. Eso es inferir."
+  },
+  {
+    "q": "«La casa estaba a oscuras y el buzón rebalsaba de cartas.» ¿Qué se deduce?",
+    "ops": [
+      "Hacía tiempo que no había nadie",
+      "Se cortó la luz",
+      "El cartero se equivocó"
+    ],
+    "m": "Las dos pistas juntas apuntan a lo mismo."
+  },
+  {
+    "q": "«Ana abrió el paraguas apenas salió.» ¿Cómo estaba el día?",
+    "ops": [
+      "Llovía",
+      "Hacía sol",
+      "Nevaba"
+    ],
+    "m": "El paraguas lo dice sin decirlo."
+  },
+  {
+    "q": "«El perro movía la cola y saltaba en la puerta.» ¿Cómo estaba?",
+    "ops": [
+      "Contento",
+      "Asustado",
+      "Enfermo"
+    ],
+    "m": "Son señales de alegría."
+  },
+  {
+    "q": "«Cuando la vio entrar, cerró el cuaderno de golpe.» ¿Qué sugiere?",
+    "ops": [
+      "No quería que ella viera lo que escribía",
+      "Que había terminado",
+      "Que tenía frío"
+    ],
+    "m": "El «de golpe» es la pista."
+  },
+  {
+    "q": "«El hornero construye su nido con barro. El ave trabaja durante semanas.» ¿A quién se refiere «el ave»?",
+    "ops": [
+      "Al hornero",
+      "Al barro",
+      "A otra ave"
+    ],
+    "m": "Es la misma cosa nombrada de otra manera: eso es correferencia."
+  },
+  {
+    "q": "«Lucía le prestó el libro a Sofía. Ella lo devolvió al día siguiente.» ¿Quién devolvió?",
+    "ops": [
+      "Sofía",
+      "Lucía",
+      "El libro"
+    ],
+    "m": "«Ella» retoma a la última mencionada que puede devolver."
+  },
+  {
+    "q": "«Se apagaron las luces y el público empezó a aplaudir.» ¿Dónde están?",
+    "ops": [
+      "En un teatro o cine",
+      "En una casa",
+      "En la calle"
+    ],
+    "m": "El público y las luces lo ubican."
+  },
+  {
+    "q": "«El equipo volvió al vestuario en silencio, con la cabeza baja.» ¿Qué pasó?",
+    "ops": [
+      "Perdieron",
+      "Ganaron",
+      "Se suspendió"
+    ],
+    "m": "El lenguaje del cuerpo lo cuenta."
+  },
+  {
+    "q": "«Puso tres platos en la mesa aunque eran cuatro en la casa.» ¿Qué se deduce?",
+    "ops": [
+      "Alguien no iba a comer",
+      "Se olvidó de contar",
+      "Sobraban platos"
+    ],
+    "m": "El «aunque» marca que la diferencia importa."
+  },
+  {
+    "q": "«La torta estaba intacta y las velas sin encender.» ¿Qué se deduce?",
+    "ops": [
+      "La fiesta todavía no había empezado",
+      "Ya se habían ido",
+      "Nadie quería torta"
+    ],
+    "m": "Las dos pistas apuntan a antes del festejo."
+  },
+  {
+    "q": "En un texto, ¿para qué sirve reemplazar una palabra por otra que significa lo mismo?",
+    "ops": [
+      "Para no repetir y que el texto se lea mejor",
+      "Para confundir",
+      "Para hacerlo más largo"
+    ],
+    "m": "Es lo que mantiene el texto unido."
+  },
+  {
+    "q": "«Guardó el abrigo en el placard: no lo necesitaría por meses.» ¿En qué época estamos?",
+    "ops": [
+      "Empezando el verano",
+      "Empezando el invierno",
+      "En otoño"
+    ],
+    "m": "Guardar el abrigo por meses sugiere que viene el calor."
+  },
+  {
+    "q": "¿Qué es inferir?",
+    "ops": [
+      "Deducir algo que el texto no dice pero deja entender",
+      "Copiar lo que dice el texto",
+      "Inventar cualquier cosa"
+    ],
+    "m": "Se apoya en pistas del texto, no en la imaginación."
+  }
+];
+GAMES.club_lectura_5 = juegoTriviaTexto(CUR_CLUB_LECTURA_5_BANCO, "Leé y respondé.", "club_lectu");
