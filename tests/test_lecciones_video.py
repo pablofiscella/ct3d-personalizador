@@ -88,10 +88,48 @@ def test_los_videos_salen_del_repo_no_del_token():
 # El test de abajo NO la usa para mirar para otro lado: falla igual si aparece una
 # actividad con texto y sin video que NO esté declarada, y falla también si queda una
 # entrada acá que ya tiene su video (para que la lista se vacíe sola y no se pudra).
-VIDEO_PENDIENTE = set()
-# Vacío: 4° y 5° tienen video en TODA explicación que enseña una regla.
-# Cuando se den de alta 1°, 2° o 3°, sus mini-lecciones nuevas entran acá hasta que
-# se les produzca el video. Que esté vacío es el estado sano, no un descuido.
+VIDEO_PENDIENTE = {
+    # 3° — mini-lecciones nuevas, video pendiente (26-jul-2026)
+    "bandeja_huevos_3",
+    "bugs_3",
+    "cajero_miles_3",
+    "cambios_material_3",
+    "compost_3",
+    "con_que_se_mueve_3",
+    "conectores_3",
+    "confiable_3",
+    "constelaciones_3",
+    "contador_3",
+    "cuadricula_3",
+    "cuerpos_geometricos",
+    "derivadas_3",
+    "dialogo_signos_3",
+    "estados_materia",
+    "estados_tres",
+    "estructura_cuento_3",
+    "figuras_3",
+    "globos_3",
+    "hiato_diptongo_3",
+    "medir_3",
+    "mil_mas_menos_3",
+    "multi_partes_3",
+    "mundo_digital_3",
+    "orden_alfabetico",
+    "parejas_mil_3",
+    "partes_oracion",
+    "plaza_mayo_3",
+    "poema_3",
+    "rayo_por_diez_3",
+    "reloj",
+    "reparto_con_resto",
+    "resta_columnas",
+    "senales_3",
+    "silaba_tonica",
+    "teatro_3",
+    "tiempos_verbales",
+    "tilde_pasado_3",
+    "viaje_alimento_3",
+}
 
 
 def _texto_y_video():
