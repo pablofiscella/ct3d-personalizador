@@ -121,10 +121,21 @@ def test_prompt_genero_nena_y_nene():
 
 
 def test_prompt_paginas_sin_protagonista_no_cambian():
-    """Las páginas donde el chico NO aparece son idénticas con o sin género."""
-    for idx in (0, 1, 2, 3, 5, 7, 8, 9):
+    """Las páginas donde el chico NO aparece son idénticas con o sin género.
+
+    La 1 (dedicatoria) salió de esta lista el 26-jul-2026: dibujaba «un personaje del
+    tema» cualquiera y en superhéroes eso fue un secundario, en la página que dice
+    «Este cuento pertenece a <nombre>». Ahora muestra al protagonista, así que SÍ
+    depende del género — ver test_dedicatoria_depende_del_genero."""
+    for idx in (0, 2, 3, 5, 7, 8, 9):
         assert (libro_ia.prompt_pagina("safari", idx, genero="nena")
                 == libro_ia.prompt_pagina("safari", idx))
+
+
+def test_dedicatoria_depende_del_genero():
+    """La contracara del test de arriba: la hoja del nombre ahora sí cambia."""
+    assert (libro_ia.prompt_pagina("safari", 1, genero="nena")
+            != libro_ia.prompt_pagina("safari", 1, genero="nene"))
 
 
 def test_campo_genero_solo_en_premium():

@@ -34,8 +34,20 @@ _APAISADA = "1536x1024"
 _ESCENAS = [
     "Portada: una escena vistosa y alegre de {mundo}, con los personajes del tema "
     "celebrando. Composición con AIRE en el tercio superior (ahí va el título después).",
-    "Viñeta tierna y suave de un personaje del tema sonriendo con dulzura, estilo "
-    "página de dedicatoria, fondo muy claro y despejado.",
+    # Esta página lleva escrito "Este cuento pertenece a <nombre>": el dibujo tiene que
+    # ser EL CHICO DEL CUENTO, no un personaje cualquiera del tema. Decía "un personaje
+    # del tema" —ambiguo— y cada temática lo interpretó a su manera: bomberos dibujó al
+    # elenco saludando (sirve), pero superhéroes dibujó UN nene secundario, distinto al
+    # protagonista de la portada. Pablo lo notó al instante (26-jul-2026): "hay un chico
+    # morocho que es un superheroe que no es el nene o nena protagonista". Y esa misma
+    # imagen es la de la MUESTRA de la ficha, o sea que estaba en la vidriera.
+    # {protagonista} ya resuelve el género y lo dibuja siempre de espaldas (la cara nunca
+    # se ve), así que funciona con cualquier chico.
+    # Redacción sin concordancia de género a propósito: {protagonista} puede ser «una
+    # nena…» o «un nene…», y un participio como «acompañado» quedaba mal en femenino.
+    "Viñeta tierna y cálida de bienvenida: en primer plano {protagonista}, y a lo lejos "
+    "los personajes del tema en {mundo}. Fondo muy claro y despejado, estilo página "
+    "de dedicatoria.",
     "Un dormitorio infantil de noche, acogedor: una cama con almohada y un sobre "
     "dorado brillante que asoma bajo la almohada, luz de luna por la ventana.",
     "Un remolino mágico de luces de colores llenando un dormitorio de noche, "
