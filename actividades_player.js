@@ -1655,6 +1655,41 @@ const COMO_ES_VIDEO = {
     partes: [{ t: "La corriente tiene que volver", f: "lec_laboratorio_electrico.mp4", s: 30 }],
   },
 
+
+  // ── Transversales y geografía de 4°: novena tanda (26-jul-2026).
+  ambientes_4: {
+    auto: "lec_ambientes_4.mp4",
+    partes: [{ t: "Montaña, llanura y meseta", f: "lec_ambientes_4.mp4", s: 39 }],
+  },
+  urbano_rural_4: {
+    auto: "lec_urbano_rural_4.mp4",
+    partes: [{ t: "Ciudad, campo y el borde", f: "lec_urbano_rural_4.mp4", s: 33 }],
+  },
+  residuos_4: {
+    auto: "lec_residuos_4.mp4",
+    partes: [{ t: "Separar en origen", f: "lec_residuos_4.mp4", s: 42 }],
+  },
+  necesidad_deseo_4: {
+    auto: "lec_necesidad_deseo_4.mp4",
+    partes: [{ t: "Necesidad, deseo y ahorro", f: "lec_necesidad_deseo_4.mp4", s: 39 }],
+  },
+  convivencia_4: {
+    auto: "lec_convivencia_4.mp4",
+    partes: [{ t: "Cuando algo no está bien", f: "lec_convivencia_4.mp4", s: 31 }],
+  },
+  mecanismos_4: {
+    auto: "lec_mecanismos_4.mp4",
+    partes: [{ t: "El motor no crea la energía", f: "lec_mecanismos_4.mp4", s: 34 }],
+  },
+  fuentes_digitales_4: {
+    auto: "lec_fuentes_digitales_4.mp4",
+    partes: [{ t: "¿Se puede confiar?", f: "lec_fuentes_digitales_4.mp4", s: 27 }],
+  },
+  historieta_4: {
+    auto: "lec_historieta_4.mp4",
+    partes: [{ t: "La forma del globo", f: "lec_historieta_4.mp4", s: 33 }],
+  },
+
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
