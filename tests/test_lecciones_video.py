@@ -90,13 +90,11 @@ def test_los_videos_salen_del_repo_no_del_token():
 # entrada acá que ya tiene su video (para que la lista se vacíe sola y no se pudra).
 VIDEO_PENDIENTE = {
     # 4° — sumadas al cerrar la currícula (PR #240)
-                "historieta_4", "erosion_4", "fosiles_4", "movimiento_cuerpo_4",
-    "imanes_4", "objeto_material_4", "cielo_4", "ambientes_4", "urbano_rural_4",
+                "historieta_4",     "ambientes_4", "urbano_rural_4",
     "mecanismos_4", "fuentes_digitales_4", "residuos_4", "necesidad_deseo_4",
     "convivencia_4",
     # compartidas entre grados, que nunca habían tenido explicación
-        "laboratorio_electrico", "estados_agua_4", "placas_4",
-    "programar_camino",     "aparatos_cuerpo", "camino_digestivo", "detectives_cielo",     "planta_potabilizadora", "provincias_region",
+        "estados_agua_4",     "programar_camino",     "aparatos_cuerpo", "camino_digestivo", "detectives_cielo",     "planta_potabilizadora", "provincias_region",
     # 5° — sumadas al cerrar la currícula (PR #242)
     "recursos_poeticos_5",     "futuro_condicional_5",     "opinion_argumento_5",                     # 5° — ya tenían texto de antes, pero nunca video: la regla ahora también las alcanza
     "analisis_sintactico", "clases_palabra_5",     "equivalencias_medida", "transportador", "verbos_pasado",
