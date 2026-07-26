@@ -1546,6 +1546,41 @@ const COMO_ES_VIDEO = {
     partes: [{ t: "Descubrir la regla", f: "lec_serie.mp4", s: 29 }],
   },
 
+
+  // ── Matemática de 4°: sexta tanda (26-jul-2026), el grado del piloto.
+  valor_posicional_4: {
+    auto: "lec_valor_posicional_4.mp4",
+    partes: [{ t: "Cada cifra según su lugar", f: "lec_valor_posicional_4.mp4", s: 38 }],
+  },
+  resta_canje_4: {
+    auto: "lec_resta_canje_4.mp4",
+    partes: [{ t: "El canje paso a paso", f: "lec_resta_canje_4.mp4", s: 36 }],
+  },
+  triangulos_4: {
+    auto: "lec_triangulos_4.mp4",
+    partes: [{ t: "¿Se arma o no?", f: "lec_triangulos_4.mp4", s: 39 }],
+  },
+  cuerpos_caras_4: {
+    auto: "lec_cuerpos_caras_4.mp4",
+    partes: [{ t: "Caras, aristas y vértices", f: "lec_cuerpos_caras_4.mp4", s: 31 }],
+  },
+  equivalencias_medida_4: {
+    auto: "lec_equivalencias_medida_4.mp4",
+    partes: [{ t: "Pasar de una unidad a otra", f: "lec_equivalencias_medida_4.mp4", s: 39 }],
+  },
+  reparto_fracciones: {
+    auto: "lec_reparto_fracciones.mp4",
+    partes: [{ t: "La fracción del reparto", f: "lec_reparto_fracciones.mp4", s: 29 }],
+  },
+  mejor_oferta: {
+    auto: "lec_mejor_oferta.mp4",
+    partes: [{ t: "El valor unitario", f: "lec_mejor_oferta.mp4", s: 31 }],
+  },
+  problemas_mult_div: {
+    auto: "lec_problemas_mult_div.mp4",
+    partes: [{ t: "Qué hacer con el resto", f: "lec_problemas_mult_div.mp4", s: 28 }],
+  },
+
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
