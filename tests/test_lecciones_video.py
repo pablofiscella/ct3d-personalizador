@@ -88,14 +88,10 @@ def test_los_videos_salen_del_repo_no_del_token():
 # El test de abajo NO la usa para mirar para otro lado: falla igual si aparece una
 # actividad con texto y sin video que NO esté declarada, y falla también si queda una
 # entrada acá que ya tiene su video (para que la lista se vacíe sola y no se pudra).
-VIDEO_PENDIENTE = {
-    # 4° — sumadas al cerrar la currícula (PR #240)
-                                # compartidas entre grados, que nunca habían tenido explicación
-        "estados_agua_4",     "programar_camino",     "aparatos_cuerpo", "camino_digestivo", "detectives_cielo",     "planta_potabilizadora", "provincias_region",
-    # 5° — sumadas al cerrar la currícula (PR #242)
-    "recursos_poeticos_5",     "futuro_condicional_5",     "opinion_argumento_5",                     # 5° — ya tenían texto de antes, pero nunca video: la regla ahora también las alcanza
-    "analisis_sintactico", "clases_palabra_5",     "equivalencias_medida", "transportador", "verbos_pasado",
-}
+VIDEO_PENDIENTE = set()
+# Vacío: 4° y 5° tienen video en TODA explicación que enseña una regla.
+# Cuando se den de alta 1°, 2° o 3°, sus mini-lecciones nuevas entran acá hasta que
+# se les produzca el video. Que esté vacío es el estado sano, no un descuido.
 
 
 def _texto_y_video():
