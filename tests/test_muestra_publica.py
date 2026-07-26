@@ -111,3 +111,52 @@ def test_las_cuatro_muestras_tienen_leccion_en_video():
     for juego in ("angulos", "abstractos_concretos", "laboratorio_electrico",
                   "provincias_region"):
         assert os.path.exists(os.path.join(lec, "lec_%s.mp4" % juego)), juego
+
+
+# ─────────────────── la muestra no es una puerta al grado ───────────────────
+# Pablo, 26-jul-2026: "cuando entras a probar una actividad y pones atrás tenés acceso a
+# todas las actividades de cuarto grado. Creo que desde la página no debería poder ir para
+# atrás". El token de la muestra es PÚBLICO: el ← regalaba los 39 juegos de 4.º a cualquiera
+# que llegara de la landing.
+
+def test_la_muestra_cierra_las_salidas_al_menu():
+    src = _fuente_player()
+    assert "function cerrarSalidasDeMuestra" in src
+    # las tres salidas: el ←, el 📚 de la biblioteca y el nombre (abre el selector de perfil)
+    i = src.index("function cerrarSalidasDeMuestra")
+    bloque = src[i:i + 700]
+    for id_ in ("btnAtras", "btnBiblioteca", "hdrTitulo"):
+        assert id_ in bloque, "la muestra no esconde %s" % id_
+
+
+def test_pintar_menu_es_el_punto_unico_de_corte():
+    """Cerrar botones no alcanza: basta UN camino olvidado (terminar la ronda, "¡Seguir
+    jugando!", cerrar el panel de grandes, el diploma) para destapar el grado completo.
+    El corte va en pintarMenu, por donde pasan todos."""
+    src = _fuente_player()
+    i = src.index("function pintarMenu()")
+    cuerpo = src[i:i + 600]
+    assert "MUESTRA_SOLA" in cuerpo, "pintarMenu no corta en modo muestra"
+    assert cuerpo.index("MUESTRA_SOLA") < cuerpo.index("pintarMenuPlano"), \
+        "el corte tiene que ir ANTES de pintar el menú"
+
+
+def test_volver_menu_reabre_la_misma_actividad():
+    src = _fuente_player()
+    i = src.index("function volverMenu()")
+    cuerpo = src[i:i + 500]
+    assert "MUESTRA_SOLA" in cuerpo and "Shell.abrir(MUESTRA_SOLA)" in cuerpo
+
+
+def test_las_salidas_se_cierran_ANTES_de_abrir_el_juego():
+    """Si se abre primero, el juego pinta el ← y queda visible un instante — y en un celular
+    ese instante alcanza para tocarlo."""
+    src = _fuente_player()
+    assert src.index("cerrarSalidasDeMuestra(_muestra)") < src.index("Shell.abrir(_muestra)")
+
+
+def test_un_cuaderno_normal_conserva_el_boton_atras():
+    """LA regresión que importa: MUESTRA_SOLA arranca en null, así que un cuaderno comprado
+    no cambia en nada."""
+    src = _fuente_player()
+    assert "let MUESTRA_SOLA = null" in src
