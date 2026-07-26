@@ -857,7 +857,7 @@ GRADO_1 = [
      "deuda": "cubre los sentidos; falta la silueta con partes del cuerpo y el orden de las etapas"},
     {"cod": "C8", "area": "cdm", "tema": "Cuidarnos",
      "dc": "Cuidado del cuerpo; a quién acudir",
-     "cubre": None, "previsto": "c8_1"},
+     "cubre": "cuidarnos_1"},
     {"cod": "C9", "area": "cdm", "tema": "Las zonas de la ciudad",
      "dc": "Espacios urbanos y rurales",
      "cubre": "campo_ciudad"},
@@ -866,28 +866,28 @@ GRADO_1 = [
      "cubre": "programar_camino"},
     {"cod": "T2", "area": "logica", "tema": "Pasos en orden",
      "dc": "Secuencia de pasos y detección del intruso",
-     "cubre": None, "previsto": "t2_1"},
+     "cubre": "pasos_orden_1"},
     {"cod": "T3", "area": "logica", "tema": "Herramientas y oficios",
      "dc": "Herramientas, tareas y oficios",
-     "cubre": None, "previsto": "t3_1"},
+     "cubre": "oficios_1"},
     {"cod": "T4", "area": "logica", "tema": "Separá los residuos",
      "dc": "Separación de residuos",
-     "cubre": None, "previsto": "t4_1"},
+     "cubre": "residuos_1"},
     {"cod": "T5", "area": "logica", "tema": "Antes y ahora",
      "dc": "Objetos de la misma función en distintas épocas",
-     "cubre": None, "previsto": "t5_1"},
+     "cubre": "antes_ahora_1"},
     {"cod": "T6", "area": "logica", "tema": "Íconos y datos",
      "dc": "Íconos digitales; datos que se comparten y que se protegen",
-     "cubre": None, "previsto": "t6_1"},
+     "cubre": "iconos_1"},
     {"cod": "T7", "area": "logica", "tema": "Emociones",
      "dc": "Reconocimiento de emociones",
-     "cubre": None, "previsto": "t7_1"},
+     "cubre": "emociones_1"},
     {"cod": "T8", "area": "logica", "tema": "Armá el plato",
      "dc": "Grupos de alimentos",
-     "cubre": None, "previsto": "t8_1"},
+     "cubre": "plato_1"},
     {"cod": "T9", "area": "logica", "tema": "¿Cruzo o espero?",
      "dc": "Educación vial",
-     "cubre": None, "previsto": "t9_1"},
+     "cubre": "vial_1"},
 ]
 
 # Grado → temas del DC. Un grado ausente todavía no está auditado: el test lo saltea.
@@ -915,7 +915,7 @@ DC = {
 #
 # Al terminar el grado se saca de este set y pasa a exigirse completo. Que quede vacío es
 # el estado normal.
-EN_CONSTRUCCION = {1}
+EN_CONSTRUCCION = set()
 
 # Actividades que están en el menú del grado pero NO cubren un tema de su currícula.
 # No son un error: son comodines de descanso y refuerzos del año anterior. Se declaran
