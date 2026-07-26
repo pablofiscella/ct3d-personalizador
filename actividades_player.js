@@ -1369,6 +1369,48 @@ const COMO_ES_VIDEO = {
     auto: "lec_gobierno_argentina.mp4",
     partes: [{ t: "Los tres poderes", f: "lec_gobierno_argentina.mp4", s: 31 }],
   },
+
+  // ── Lengua de 5°: primera tanda de la deuda de video (26-jul-2026). Cada una
+  // es UNA pieza: son reglas cortas que se explican de corrido, y partirlas
+  // dejaría cortes de 8 segundos que no alcanzan a explicar nada.
+  // Ésta va en DOS cortes: entera duraba 53 s y el tope es 45. Partida además explica
+  // mejor — primero el directo, después el indirecto con su trampa ("vi a Julia").
+  od_oi_5: {
+    auto: "lec_od_oi_5a.mp4",
+    partes: [
+      { t: "El objeto directo", f: "lec_od_oi_5a.mp4", s: 18 },
+      { t: "El indirecto y la trampa", f: "lec_od_oi_5b.mp4", s: 30 },
+    ],
+  },
+  verbos_clases_5: {
+    auto: "lec_verbos_clases_5.mp4",
+    partes: [{ t: "Las tres familias de verbos", f: "lec_verbos_clases_5.mp4", s: 36 }],
+  },
+  grados_adjetivo_5: {
+    auto: "lec_grados_adjetivo_5.mp4",
+    partes: [{ t: "Los tres escalones", f: "lec_grados_adjetivo_5.mp4", s: 41 }],
+  },
+  prefijos_5: {
+    auto: "lec_prefijos_5.mp4",
+    partes: [{ t: "Qué significa cada prefijo", f: "lec_prefijos_5.mp4", s: 45 }],
+  },
+  polisemia_5: {
+    auto: "lec_polisemia_5.mp4",
+    partes: [{ t: "Una palabra, varios sentidos", f: "lec_polisemia_5.mp4", s: 31 }],
+  },
+  homofonos_5: {
+    auto: "lec_homofonos_5.mp4",
+    partes: [{ t: "Vaya, valla o baya", f: "lec_homofonos_5.mp4", s: 34 }],
+  },
+  acentuacion_5: {
+    auto: "lec_acentuacion_5.mp4",
+    partes: [{ t: "La tilde que diferencia", f: "lec_acentuacion_5.mp4", s: 42 }],
+  },
+  dos_puntos_5: {
+    auto: "lec_dos_puntos_5.mp4",
+    partes: [{ t: "Dos puntos y raya", f: "lec_dos_puntos_5.mp4", s: 29 }],
+  },
+
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }

@@ -104,9 +104,7 @@ VIDEO_PENDIENTE = {
     "aparatos_cuerpo", "camino_digestivo", "detectives_cielo", "plato_gapa_5",
     "planta_potabilizadora", "provincias_region",
     # 5° — sumadas al cerrar la currícula (PR #242)
-    "recursos_poeticos_5", "verbos_clases_5", "od_oi_5", "grados_adjetivo_5",
-    "futuro_condicional_5", "homofonos_5", "acentuacion_5", "prefijos_5", "polisemia_5",
-    "estructura_textos_5", "dos_puntos_5", "opinion_argumento_5", "romanos_5",
+    "recursos_poeticos_5",     "futuro_condicional_5",     "estructura_textos_5", "opinion_argumento_5", "romanos_5",
     "problemas_pasos_5", "combinatoria_5", "cuenta_escondida_5", "divisibilidad_5",
     "reconstruir_entero_5", "proporcionalidad_5", "perimetro_area_5", "graficos_5",
     "ciclo_agua_5", "mezclas_5", "disolucion_5", "luz_materiales_5", "sonido_5",
