@@ -13037,3 +13037,1249 @@ const CUR_VIAJE_ALIMENTO_3_BANCO = [
   }
 ];
 GAMES.viaje_alimento_3 = juegoOrdenar(CUR_VIAJE_ALIMENTO_3_BANCO, "Ordená el recorrido del alimento. Tocá en orden.", "Seguí el bocado desde que entra hasta que el cuerpo aprovecha lo que sirve.", "viaje_alim");
+
+/* 3° · Mil más, mil menos — mil_mas_menos_3
+   DC: Relaciones mil y cien más y menos; doble, triple y mitad
+   Fuente: docs/auditoria-dc-caba/grado-3.md · M4 */
+const CUR_MIL_MAS_MENOS_3_PLANTILLA = {
+  "q": "{a} + {b}",
+  "vars": {
+    "a": {
+      "rango": [
+        1200,
+        8800
+      ],
+      "paso": 100
+    },
+    "b": {
+      "opciones": [
+        100,
+        1000
+      ]
+    }
+  },
+  "ok": "a + b",
+  "distractores": [
+    "a + b*10",
+    "a + b/10",
+    "a - b"
+  ],
+  "tope": 10000,
+  "m": "Fijate en qué columna sumás: los cienes con los cienes, los miles con los miles. Da {ok}."
+};
+GAMES.mil_mas_menos_3 = juegoParametrico(CUR_MIL_MAS_MENOS_3_PLANTILLA, "¿Cuánto da?", "mil_mas_me");
+
+/* 3° · Rayo ×10 ×100 ×1.000 — rayo_por_diez_3
+   DC: Repertorio multiplicativo por la unidad seguida de ceros
+   Fuente: docs/auditoria-dc-caba/grado-3.md · M9 */
+const CUR_RAYO_POR_DIEZ_3_PLANTILLA = {
+  "q": "{a} × {b}",
+  "vars": {
+    "a": {
+      "rango": [
+        2,
+        9
+      ],
+      "paso": 1
+    },
+    "b": {
+      "opciones": [
+        10,
+        100,
+        1000
+      ]
+    }
+  },
+  "ok": "a * b",
+  "distractores": [
+    "a * b * 10",
+    "a * b / 10",
+    "a + b"
+  ],
+  "tope": 10000,
+  "m": "Multiplicar por 10 agrega UN cero, por 100 dos y por 1.000 tres. Da {ok}."
+};
+GAMES.rayo_por_diez_3 = juegoParametrico(CUR_RAYO_POR_DIEZ_3_PLANTILLA, "Rápido: ¿cuánto da?", "rayo_por_d");
+
+/* 3° · Multiplicación en partes — multi_partes_3
+   DC: Algoritmos intermedios y multiplicación por una cifra
+   Fuente: docs/auditoria-dc-caba/grado-3.md · M10 */
+const CUR_MULTI_PARTES_3_PLANTILLA = {
+  "q": "{a} × {b}",
+  "vars": {
+    "a": {
+      "rango": [
+        12,
+        48
+      ],
+      "paso": 1
+    },
+    "b": {
+      "rango": [
+        3,
+        9
+      ],
+      "paso": 1
+    }
+  },
+  "ok": "a * b",
+  "distractores": [
+    "a * b - a",
+    "a * b + a",
+    "a + b"
+  ],
+  "tope": 500,
+  "m": "Partilo: multiplicá primero los dieces y después las unidades, y sumá. Da {ok}."
+};
+GAMES.multi_partes_3 = juegoParametrico(CUR_MULTI_PARTES_3_PLANTILLA, "¿Cuánto da?", "multi_part");
+
+/* 3° · Bandeja de huevos — bandeja_huevos_3
+   DC: Organizaciones rectangulares; series proporcionales
+   Fuente: docs/auditoria-dc-caba/grado-3.md · M12 */
+const CUR_BANDEJA_HUEVOS_3_BANCO = [
+  {
+    "q": "Una bandeja de 3 filas con 4 huevos cada una tiene…",
+    "ops": [
+      "12 huevos",
+      "7 huevos",
+      "34 huevos"
+    ],
+    "m": "Se multiplica: 3 × 4. Contar de a uno también da 12, pero tarda más."
+  },
+  {
+    "q": "Una caja de 5 filas de 6 alfajores tiene…",
+    "ops": [
+      "30",
+      "11",
+      "56"
+    ],
+    "m": "5 × 6 = 30."
+  },
+  {
+    "q": "Si 1 bandeja trae 12 huevos, 3 bandejas traen…",
+    "ops": [
+      "36",
+      "15",
+      "24"
+    ],
+    "m": "12 × 3."
+  },
+  {
+    "q": "Si 2 paquetes traen 10 figuritas, 4 paquetes traen…",
+    "ops": [
+      "20",
+      "14",
+      "40"
+    ],
+    "m": "Cada paquete trae 5; 4 × 5 = 20."
+  },
+  {
+    "q": "Una grilla de 4 por 4 tiene…",
+    "ops": [
+      "16",
+      "8",
+      "44"
+    ],
+    "m": "4 × 4."
+  },
+  {
+    "q": "6 filas de 3 sillas son…",
+    "ops": [
+      "18",
+      "9",
+      "63"
+    ],
+    "m": "6 × 3."
+  },
+  {
+    "q": "¿Por qué conviene multiplicar y no contar de a uno?",
+    "ops": [
+      "Porque es más rápido y no te perdés",
+      "Porque da otro resultado",
+      "Porque es más difícil"
+    ],
+    "m": "Da lo mismo, pero multiplicar es el atajo."
+  },
+  {
+    "q": "Si 3 cajas traen 24 chocolates, 1 caja trae…",
+    "ops": [
+      "8",
+      "21",
+      "27"
+    ],
+    "m": "24 ÷ 3."
+  },
+  {
+    "q": "Una bandeja de 2 filas de 9 tiene lo mismo que…",
+    "ops": [
+      "9 filas de 2",
+      "2 filas de 2",
+      "9 filas de 9"
+    ],
+    "m": "2 × 9 y 9 × 2 dan lo mismo: cambia la forma, no la cantidad."
+  },
+  {
+    "q": "5 bolsas con 4 manzanas cada una: ¿cuántas manzanas?",
+    "ops": [
+      "20",
+      "9",
+      "54"
+    ],
+    "m": "5 × 4."
+  },
+  {
+    "q": "Si 1 auto lleva 4 chicos, 6 autos llevan…",
+    "ops": [
+      "24",
+      "10",
+      "46"
+    ],
+    "m": "6 × 4."
+  },
+  {
+    "q": "Una plancha de 7 filas de 2 galletitas tiene…",
+    "ops": [
+      "14",
+      "9",
+      "72"
+    ],
+    "m": "7 × 2."
+  }
+];
+GAMES.bandeja_huevos_3 = juegoTriviaTexto(CUR_BANDEJA_HUEVOS_3_BANCO, "Contá sin contar de a uno.", "bandeja_hu");
+
+/* 3° · Ubicate en la cuadrícula — cuadricula_3
+   DC: Orientación en cuadrícula con casilleros y vocabulario
+   Fuente: docs/auditoria-dc-caba/grado-3.md · M14 */
+const CUR_CUADRICULA_3_BANCO = [
+  {
+    "q": "En una cuadrícula, ¿cómo se nombra un casillero?",
+    "ops": [
+      "Con la letra de la columna y el número de la fila",
+      "Sólo con el número",
+      "Con dos letras"
+    ],
+    "m": "Primero la columna (letra), después la fila (número): C4."
+  },
+  {
+    "q": "El casillero C4 está en…",
+    "ops": [
+      "Columna C, fila 4",
+      "Fila C, columna 4",
+      "Casillero 34"
+    ],
+    "m": "La letra siempre es la columna."
+  },
+  {
+    "q": "¿Es lo mismo C4 que 4C?",
+    "ops": [
+      "No, el orden importa",
+      "Sí, es lo mismo",
+      "Sólo si es cuadrada"
+    ],
+    "m": "Se escribe siempre columna y después fila."
+  },
+  {
+    "q": "Si estoy en B2 y me muevo una a la derecha, llego a…",
+    "ops": [
+      "C2",
+      "B3",
+      "A2"
+    ],
+    "m": "A la derecha cambia la letra."
+  },
+  {
+    "q": "Si estoy en B2 y bajo una, llego a…",
+    "ops": [
+      "B3",
+      "C2",
+      "B1"
+    ],
+    "m": "Bajar cambia el número."
+  },
+  {
+    "q": "Si estoy en D5 y subo dos, llego a…",
+    "ops": [
+      "D3",
+      "D7",
+      "B5"
+    ],
+    "m": "Subir resta al número."
+  },
+  {
+    "q": "¿Cuántos casilleros tiene una cuadrícula de 4 columnas y 3 filas?",
+    "ops": [
+      "12",
+      "7",
+      "43"
+    ],
+    "m": "4 × 3."
+  },
+  {
+    "q": "En un mapa, ¿para qué sirve la cuadrícula?",
+    "ops": [
+      "Para encontrar rápido un lugar",
+      "Para saber la distancia",
+      "Para pintar"
+    ],
+    "m": "El índice te da el casillero y vas directo."
+  },
+  {
+    "q": "Si estoy en A1 y me muevo dos a la derecha y una abajo, llego a…",
+    "ops": [
+      "C2",
+      "B3",
+      "C1"
+    ],
+    "m": "Dos letras a la derecha: A→B→C. Una abajo: 1→2."
+  },
+  {
+    "q": "El casillero de más arriba y más a la izquierda suele ser…",
+    "ops": [
+      "A1",
+      "Z9",
+      "1A"
+    ],
+    "m": "Primera columna, primera fila."
+  },
+  {
+    "q": "Si algo está en F1 y otra cosa en F6, están…",
+    "ops": [
+      "En la misma columna",
+      "En la misma fila",
+      "En el mismo casillero"
+    ],
+    "m": "Comparten la letra: misma columna."
+  },
+  {
+    "q": "Si algo está en B3 y otra cosa en E3, están…",
+    "ops": [
+      "En la misma fila",
+      "En la misma columna",
+      "Pegados"
+    ],
+    "m": "Comparten el número: misma fila."
+  }
+];
+GAMES.cuadricula_3 = juegoTriviaTexto(CUR_CUADRICULA_3_BANCO, "Leé la cuadrícula.", "cuadricula");
+
+/* 3° · Detective de figuras — figuras_3
+   DC: Rombo y paralelogramo; vértices, lados y diagonales
+   Fuente: docs/auditoria-dc-caba/grado-3.md · M15 */
+const CUR_FIGURAS_3_BANCO = [
+  {
+    "q": "¿Cuántos lados tiene un cuadrilátero?",
+    "ops": [
+      "4",
+      "3",
+      "5"
+    ],
+    "m": "'Cuadri' es cuatro."
+  },
+  {
+    "q": "Una figura con los 4 lados iguales pero sin ángulos rectos es un…",
+    "ops": [
+      "Rombo",
+      "Cuadrado",
+      "Rectángulo"
+    ],
+    "m": "El rombo tiene los lados iguales pero está 'aplastado'."
+  },
+  {
+    "q": "Un cuadrado apoyado en una punta, ¿sigue siendo cuadrado?",
+    "ops": [
+      "Sí, girarlo no lo cambia",
+      "No, es un rombo",
+      "No, es un triángulo"
+    ],
+    "m": "La figura no cambia por girarla. Sigue teniendo 4 lados iguales y 4 ángulos rectos."
+  },
+  {
+    "q": "¿Qué es un vértice?",
+    "ops": [
+      "Cada punta donde se juntan dos lados",
+      "Cada lado",
+      "El centro"
+    ],
+    "m": "Los vértices son las esquinas."
+  },
+  {
+    "q": "¿Cuántos vértices tiene un triángulo?",
+    "ops": [
+      "3",
+      "4",
+      "1"
+    ],
+    "m": "Tres lados, tres vértices."
+  },
+  {
+    "q": "¿Qué es una diagonal?",
+    "ops": [
+      "La línea que une dos vértices no vecinos",
+      "Cualquier lado",
+      "El borde de afuera"
+    ],
+    "m": "Va de esquina a esquina cruzando la figura."
+  },
+  {
+    "q": "¿Cuántas diagonales tiene un cuadrado?",
+    "ops": [
+      "2",
+      "4",
+      "1"
+    ],
+    "m": "Une las dos parejas de vértices opuestos."
+  },
+  {
+    "q": "Un paralelogramo tiene los lados opuestos…",
+    "ops": [
+      "Paralelos y del mismo largo",
+      "Todos iguales",
+      "Perpendiculares"
+    ],
+    "m": "Los de enfrente son paralelos e iguales."
+  },
+  {
+    "q": "¿El rectángulo es un paralelogramo?",
+    "ops": [
+      "Sí, sus lados opuestos son paralelos",
+      "No",
+      "Sólo si es cuadrado"
+    ],
+    "m": "Cumple la condición, así que sí."
+  },
+  {
+    "q": "¿Cuántos lados tiene un pentágono?",
+    "ops": [
+      "5",
+      "6",
+      "4"
+    ],
+    "m": "Penta es cinco."
+  },
+  {
+    "q": "Un triángulo con los 3 lados iguales se llama…",
+    "ops": [
+      "Equilátero",
+      "Isósceles",
+      "Escaleno"
+    ],
+    "m": "Equi es igual."
+  },
+  {
+    "q": "¿Qué figura no tiene vértices?",
+    "ops": [
+      "El círculo",
+      "El cuadrado",
+      "El triángulo"
+    ],
+    "m": "No tiene esquinas: su borde es una curva."
+  }
+];
+GAMES.figuras_3 = juegoTriviaTexto(CUR_FIGURAS_3_BANCO, "Mirá bien la figura.", "figuras_3");
+
+/* 3° · Medí como experto — medir_3
+   DC: m, cm y mm; litro; gramo y kilo; estimación; medios y cuartos
+   Fuente: docs/auditoria-dc-caba/grado-3.md · M18 */
+const CUR_MEDIR_3_BANCO = [
+  {
+    "q": "¿Con qué medirías el largo de tu banco?",
+    "ops": [
+      "Centímetros",
+      "Kilómetros",
+      "Litros"
+    ],
+    "m": "El centímetro es la unidad cómoda para algo de esa escala."
+  },
+  {
+    "q": "¿Y la distancia entre dos ciudades?",
+    "ops": [
+      "Kilómetros",
+      "Milímetros",
+      "Gramos"
+    ],
+    "m": "En milímetros el número sería enorme."
+  },
+  {
+    "q": "¿Con qué medirías el agua de una botella?",
+    "ops": [
+      "Litros",
+      "Metros",
+      "Kilos"
+    ],
+    "m": "Los líquidos se miden en litros."
+  },
+  {
+    "q": "1 metro son…",
+    "ops": [
+      "100 cm",
+      "10 cm",
+      "1.000 cm"
+    ],
+    "m": "Cien centímetros."
+  },
+  {
+    "q": "1 centímetro son…",
+    "ops": [
+      "10 mm",
+      "100 mm",
+      "1 mm"
+    ],
+    "m": "Diez milímetros. Miralo en la regla."
+  },
+  {
+    "q": "1 kilo son…",
+    "ops": [
+      "1.000 g",
+      "100 g",
+      "10 g"
+    ],
+    "m": "Kilo es mil."
+  },
+  {
+    "q": "Medio litro es…",
+    "ops": [
+      "500 ml",
+      "50 ml",
+      "5 ml"
+    ],
+    "m": "La mitad de 1.000."
+  },
+  {
+    "q": "Un cuarto de kilo es…",
+    "ops": [
+      "250 g",
+      "400 g",
+      "25 g"
+    ],
+    "m": "1.000 dividido 4."
+  },
+  {
+    "q": "¿Cuánto pesa más o menos una manzana?",
+    "ops": [
+      "200 gramos",
+      "2 kilos",
+      "20 kilos"
+    ],
+    "m": "Estimar es acostumbrarse a los órdenes de magnitud."
+  },
+  {
+    "q": "¿Cuánto mide más o menos una puerta?",
+    "ops": [
+      "2 metros",
+      "2 centímetros",
+      "2 kilómetros"
+    ],
+    "m": "Un poco más alta que una persona."
+  },
+  {
+    "q": "Tres cuartos de litro son…",
+    "ops": [
+      "750 ml",
+      "300 ml",
+      "34 ml"
+    ],
+    "m": "Tres partes de cuatro: 250 × 3."
+  },
+  {
+    "q": "¿Qué es más largo, 90 cm o 1 m?",
+    "ops": [
+      "1 m",
+      "90 cm",
+      "Son iguales"
+    ],
+    "m": "1 m son 100 cm."
+  }
+];
+GAMES.medir_3 = juegoTriviaTexto(CUR_MEDIR_3_BANCO, "¿Con qué se mide y cuánto da?", "medir_3");
+
+/* 3° · Cazador de bugs — bugs_3
+   DC: Depuración: encontrar el bloque que falla
+   Fuente: docs/auditoria-dc-caba/grado-3.md · T2 */
+const CUR_BUGS_3_BANCO = [
+  {
+    "q": "El robot tenía que avanzar 3 y avanzó 4. ¿Qué pasó?",
+    "ops": [
+      "Hay un bloque 'avanzar' de más",
+      "Falta un bloque",
+      "Giró mal"
+    ],
+    "m": "Depurar es encontrar QUÉ bloque sobra o falta, no borrar todo."
+  },
+  {
+    "q": "El robot tenía que girar a la derecha y giró a la izquierda.",
+    "ops": [
+      "El bloque de giro está al revés",
+      "Falta avanzar",
+      "Sobra un repetir"
+    ],
+    "m": "El bloque equivocado está identificado: se reemplaza ése."
+  },
+  {
+    "q": "Si el programa sale mal, ¿qué conviene hacer primero?",
+    "ops": [
+      "Leerlo paso a paso",
+      "Borrar todo y empezar de nuevo",
+      "Agregar más bloques"
+    ],
+    "m": "Leerlo te dice dónde se desvía; borrar todo te hace repetir el error."
+  },
+  {
+    "q": "¿Cómo se llama buscar y arreglar el error de un programa?",
+    "ops": [
+      "Depurar",
+      "Compilar",
+      "Ejecutar"
+    ],
+    "m": "Depurar, o 'debuggear'."
+  },
+  {
+    "q": "El robot llega al lugar correcto pero mirando para otro lado.",
+    "ops": [
+      "Falta o sobra un giro al final",
+      "Faltan avanzar",
+      "Está bien igual"
+    ],
+    "m": "La posición está bien y la orientación no: el problema es un giro."
+  },
+  {
+    "q": "«repetir 3 veces: avanzar» hace que el robot…",
+    "ops": [
+      "Avance 3 casilleros",
+      "Avance 1",
+      "Gire 3 veces"
+    ],
+    "m": "El bloque de adentro se ejecuta 3 veces."
+  },
+  {
+    "q": "Si tenías «avanzar, avanzar, avanzar, avanzar», ¿cómo lo hacés más corto?",
+    "ops": [
+      "repetir 4 veces: avanzar",
+      "avanzar 4",
+      "borrar tres"
+    ],
+    "m": "Para eso está el bloque repetir."
+  },
+  {
+    "q": "El robot choca contra la pared en el paso 2. ¿Dónde mirás?",
+    "ops": [
+      "En los bloques 1 y 2",
+      "En el último bloque",
+      "En todos por igual"
+    ],
+    "m": "El error está donde se desvió, no después."
+  },
+  {
+    "q": "¿Un programa con un bug siempre falla de entrada?",
+    "ops": [
+      "No, a veces falla más adelante",
+      "Sí, siempre",
+      "Nunca falla"
+    ],
+    "m": "Por eso conviene probarlo paso a paso."
+  },
+  {
+    "q": "¿Sirve probar el programa con los ojos antes de darle play?",
+    "ops": [
+      "Sí, se llama anticipar",
+      "No, hay que ejecutarlo",
+      "Sólo si es largo"
+    ],
+    "m": "Leer y anticipar lo que va a pasar es parte de programar."
+  },
+  {
+    "q": "Al robot le falta llegar UN casillero. ¿Qué hacés?",
+    "ops": [
+      "Agregar un bloque avanzar",
+      "Borrar todo",
+      "Cambiar un giro"
+    ],
+    "m": "Un error chico se arregla con un cambio chico."
+  },
+  {
+    "q": "¿Un bug es culpa de la computadora?",
+    "ops": [
+      "No, la computadora hace lo que le pediste",
+      "Sí, se equivoca sola",
+      "A veces"
+    ],
+    "m": "Hace exactamente lo que dice el programa: si sale mal, el programa lo dice mal."
+  }
+];
+GAMES.bugs_3 = juegoTriviaTexto(CUR_BUGS_3_BANCO, "El programa sale mal. ¿Dónde está el error?", "bugs_3");
+
+/* 3° · La variable contadora — contador_3
+   DC: Variables: contar y acumular
+   Fuente: docs/auditoria-dc-caba/grado-3.md · T3 */
+const CUR_CONTADOR_3_BANCO = [
+  {
+    "q": "PUNTOS empieza en 0 y sumás 1 tres veces. ¿Cuánto vale?",
+    "ops": [
+      "3",
+      "1",
+      "0"
+    ],
+    "m": "Cada vez se acumula: 0+1+1+1."
+  },
+  {
+    "q": "¿Para qué sirve una variable?",
+    "ops": [
+      "Para guardar un dato y usarlo después",
+      "Para dibujar",
+      "Para borrar"
+    ],
+    "m": "Es una caja con nombre."
+  },
+  {
+    "q": "¿Qué es un contador?",
+    "ops": [
+      "Una variable que suma 1 cada vez que pasa algo",
+      "Un dibujo",
+      "Un bloque de giro"
+    ],
+    "m": "Sirve para contar cuántas veces ocurrió algo."
+  },
+  {
+    "q": "MONEDAS vale 5. Sumás 2. ¿Cuánto vale?",
+    "ops": [
+      "7",
+      "2",
+      "52"
+    ],
+    "m": "Se acumula sobre lo que había."
+  },
+  {
+    "q": "MONEDAS vale 5. GUARDÁS 2. ¿Cuánto vale?",
+    "ops": [
+      "2",
+      "7",
+      "5"
+    ],
+    "m": "Guardar PISA lo que había. Sumar acumula. Es la confusión más común."
+  },
+  {
+    "q": "VIDAS vale 3 y le restás 1 dos veces. ¿Cuánto vale?",
+    "ops": [
+      "1",
+      "2",
+      "3"
+    ],
+    "m": "3−1−1."
+  },
+  {
+    "q": "Si nunca guardaste nada en una variable, ¿qué tiene?",
+    "ops": [
+      "Nada, está vacía",
+      "Siempre 1",
+      "Un número al azar"
+    ],
+    "m": "Por eso conviene darle un valor inicial."
+  },
+  {
+    "q": "¿Qué nombre le conviene a una variable?",
+    "ops": [
+      "Uno que diga qué guarda, como PUNTAJE",
+      "Cualquiera",
+      "El más corto"
+    ],
+    "m": "Un buen nombre hace que el programa se entienda solo."
+  },
+  {
+    "q": "En un juego, el marcador que sube al juntar monedas es…",
+    "ops": [
+      "Una variable",
+      "Un dibujo fijo",
+      "Un sonido"
+    ],
+    "m": "Guarda un valor que cambia."
+  },
+  {
+    "q": "PUNTOS vale 4. «repetir 3 veces: sumar 2 a PUNTOS». ¿Cuánto queda?",
+    "ops": [
+      "10",
+      "6",
+      "24"
+    ],
+    "m": "4 + 2 + 2 + 2."
+  },
+  {
+    "q": "¿Se puede cambiar el valor de una variable muchas veces?",
+    "ops": [
+      "Sí, para eso sirve",
+      "No, una sola vez",
+      "Sólo dos"
+    ],
+    "m": "Por eso se llama variable."
+  },
+  {
+    "q": "VIDAS llega a 0. ¿Qué conviene hacer?",
+    "ops": [
+      "Preguntar si llegó a 0 y terminar el juego",
+      "Sumar 10",
+      "Nada"
+    ],
+    "m": "Las variables se combinan con preguntas para decidir qué pasa."
+  }
+];
+GAMES.contador_3 = juegoTriviaTexto(CUR_CONTADOR_3_BANCO, "¿Qué queda guardado?", "contador_3");
+
+/* 3° · Mundo digital — mundo_digital_3
+   DC: Dispositivos digitales y su uso cotidiano
+   Fuente: docs/auditoria-dc-caba/grado-3.md · T4 */
+const CUR_MUNDO_DIGITAL_3_BANCO = [
+  {
+    "q": "¿Qué hace el teclado?",
+    "ops": [
+      "Entra información",
+      "Muestra información",
+      "Guarda archivos"
+    ],
+    "m": "Es un dispositivo de ENTRADA."
+  },
+  {
+    "q": "¿Y la pantalla?",
+    "ops": [
+      "Muestra información",
+      "Entra información",
+      "Calcula"
+    ],
+    "m": "Es de SALIDA."
+  },
+  {
+    "q": "¿El micrófono es de entrada o de salida?",
+    "ops": [
+      "Entrada",
+      "Salida",
+      "Ninguna"
+    ],
+    "m": "Toma el sonido y lo mete a la máquina."
+  },
+  {
+    "q": "¿Y el parlante?",
+    "ops": [
+      "Salida",
+      "Entrada",
+      "Las dos"
+    ],
+    "m": "Saca el sonido."
+  },
+  {
+    "q": "¿Dónde quedan guardados los archivos?",
+    "ops": [
+      "En la memoria del dispositivo",
+      "En la pantalla",
+      "En el teclado"
+    ],
+    "m": "La memoria es donde se guarda."
+  },
+  {
+    "q": "¿Qué necesitás para mandar un mensaje a otra ciudad?",
+    "ops": [
+      "Conexión a internet",
+      "Sólo el teclado",
+      "Una impresora"
+    ],
+    "m": "Internet conecta los dispositivos entre sí."
+  },
+  {
+    "q": "La pantalla táctil del celular es…",
+    "ops": [
+      "Entrada y salida a la vez",
+      "Sólo entrada",
+      "Sólo salida"
+    ],
+    "m": "Muestra y también recibe tus toques."
+  },
+  {
+    "q": "¿Una tablet y una computadora hacen cosas parecidas?",
+    "ops": [
+      "Sí, las dos procesan información",
+      "No, nada que ver",
+      "Sólo la computadora sirve"
+    ],
+    "m": "Cambian el tamaño y la forma, no la idea."
+  },
+  {
+    "q": "¿Qué pasa si apagás el dispositivo sin guardar?",
+    "ops": [
+      "Podés perder lo que estabas haciendo",
+      "No pasa nada",
+      "Se guarda solo siempre"
+    ],
+    "m": "Por eso conviene guardar cada tanto."
+  },
+  {
+    "q": "¿Un programa y un archivo son lo mismo?",
+    "ops": [
+      "No: el programa hace cosas, el archivo guarda datos",
+      "Sí",
+      "El archivo hace cosas"
+    ],
+    "m": "El programa es la herramienta; el archivo, lo que hacés con ella."
+  },
+  {
+    "q": "¿La computadora piensa?",
+    "ops": [
+      "No, ejecuta lo que alguien programó",
+      "Sí, decide sola",
+      "A veces"
+    ],
+    "m": "Hace exactamente lo que le indicaron."
+  },
+  {
+    "q": "¿Para qué sirve una contraseña?",
+    "ops": [
+      "Para que sólo vos entres a lo tuyo",
+      "Para que ande más rápido",
+      "Para guardar archivos"
+    ],
+    "m": "Protege lo que es tuyo."
+  }
+];
+GAMES.mundo_digital_3 = juegoTriviaTexto(CUR_MUNDO_DIGITAL_3_BANCO, "¿Para qué sirve?", "mundo_digi");
+
+/* 3° · ¿Con qué se mueve? — con_que_se_mueve_3
+   DC: Fuentes de energía y mecanismos simples
+   Fuente: docs/auditoria-dc-caba/grado-3.md · T5 */
+const CUR_CON_QUE_SE_MUEVE_3_BANCO = [
+  {
+    "q": "¿Con qué se mueve una bicicleta?",
+    "ops": [
+      "Con la fuerza de las piernas",
+      "Con electricidad",
+      "Con nafta"
+    ],
+    "m": "La energía la ponés vos."
+  },
+  {
+    "q": "¿Y un auto?",
+    "ops": [
+      "Con combustible o electricidad",
+      "Con el viento",
+      "Con agua"
+    ],
+    "m": "Necesita una fuente de energía externa."
+  },
+  {
+    "q": "¿Con qué se mueve un molino de viento?",
+    "ops": [
+      "Con el viento",
+      "Con una pila",
+      "Con el sol"
+    ],
+    "m": "El aire empuja las aspas."
+  },
+  {
+    "q": "¿Qué hace una polea?",
+    "ops": [
+      "Ayuda a subir cosas con menos esfuerzo",
+      "Genera energía",
+      "Enfría"
+    ],
+    "m": "No crea fuerza: la redirige."
+  },
+  {
+    "q": "¿Y una rueda?",
+    "ops": [
+      "Hace más fácil mover cosas pesadas",
+      "Genera electricidad",
+      "Frena"
+    ],
+    "m": "Reduce el rozamiento."
+  },
+  {
+    "q": "Una linterna a pilas convierte…",
+    "ops": [
+      "Energía de la pila en luz",
+      "Luz en energía",
+      "Sonido en luz"
+    ],
+    "m": "Transforma, no crea."
+  },
+  {
+    "q": "¿De dónde sale la energía de un panel solar?",
+    "ops": [
+      "Del sol",
+      "Del viento",
+      "Del agua"
+    ],
+    "m": "Convierte la luz en electricidad."
+  },
+  {
+    "q": "¿Qué hace una palanca?",
+    "ops": [
+      "Permite mover algo pesado con menos fuerza",
+      "Genera calor",
+      "Guarda energía"
+    ],
+    "m": "Es una máquina simple."
+  },
+  {
+    "q": "Un juguete a cuerda guarda la energía en…",
+    "ops": [
+      "Un resorte",
+      "Una pila",
+      "El color"
+    ],
+    "m": "Al dar cuerda tensás el resorte."
+  },
+  {
+    "q": "¿La energía se puede crear de la nada?",
+    "ops": [
+      "No, sólo se transforma",
+      "Sí, en los motores",
+      "Sí, con imanes"
+    ],
+    "m": "Siempre viene de algún lado."
+  },
+  {
+    "q": "¿Qué mueve a un barco a vela?",
+    "ops": [
+      "El viento",
+      "Un motor",
+      "Las olas"
+    ],
+    "m": "El viento empuja la vela."
+  },
+  {
+    "q": "¿Para qué sirven los engranajes?",
+    "ops": [
+      "Para transmitir el movimiento",
+      "Para frenar siempre",
+      "Para generar energía"
+    ],
+    "m": "Pasan el giro de una pieza a otra."
+  }
+];
+GAMES.con_que_se_mueve_3 = juegoTriviaTexto(CUR_CON_QUE_SE_MUEVE_3_BANCO, "¿De dónde saca la energía?", "con_que_se");
+
+/* 3° · Detectives de señales — senales_3
+   DC: Señales y su forma; educación vial
+   Fuente: docs/auditoria-dc-caba/grado-3.md · T6 */
+const CUR_SENALES_3_BANCO = [
+  {
+    "it": "PARE, octogonal y roja",
+    "cat": "obliga",
+    "m": "Es la única con ocho lados, para reconocerla aun tapada por la nieve o de espaldas."
+  },
+  {
+    "it": "Prohibido estacionar",
+    "cat": "prohibe",
+    "m": "Círculo rojo: prohíbe."
+  },
+  {
+    "it": "Curva peligrosa a la derecha",
+    "cat": "avisa",
+    "m": "Triángulo o rombo amarillo: avisa de un peligro."
+  },
+  {
+    "it": "Contramano",
+    "cat": "prohibe",
+    "m": "No se puede pasar."
+  },
+  {
+    "it": "Senda peatonal adelante",
+    "cat": "avisa",
+    "m": "Avisa qué viene."
+  },
+  {
+    "it": "Velocidad máxima 40",
+    "cat": "obliga",
+    "m": "Obliga a no pasar de ahí."
+  },
+  {
+    "it": "Prohibido girar a la izquierda",
+    "cat": "prohibe",
+    "m": "Prohibición."
+  },
+  {
+    "it": "Escuela cerca",
+    "cat": "avisa",
+    "m": "Advierte para que bajes la velocidad."
+  },
+  {
+    "it": "Sentido obligatorio hacia la derecha",
+    "cat": "obliga",
+    "m": "Indica por dónde hay que ir."
+  },
+  {
+    "it": "Prohibido el paso de bicicletas",
+    "cat": "prohibe",
+    "m": "Prohibición."
+  },
+  {
+    "it": "Cruce de trenes adelante",
+    "cat": "avisa",
+    "m": "Advertencia."
+  },
+  {
+    "it": "Camino resbaladizo",
+    "cat": "avisa",
+    "m": "Avisa de un riesgo."
+  },
+  {
+    "it": "Uso obligatorio del casco",
+    "cat": "obliga",
+    "m": "Obliga a algo."
+  },
+  {
+    "it": "Prohibido tocar bocina",
+    "cat": "prohibe",
+    "m": "Prohibición."
+  }
+];
+GAMES.senales_3 = juegoClasificar(CUR_SENALES_3_BANCO, "¿Qué tipo de señal es?", [{"cat": "prohibe", "label": "🚫 Prohíbe"}, {"cat": "obliga", "label": "🔵 Obliga"}, {"cat": "avisa", "label": "⚠️ Avisa"}], "senales_3");
+
+/* 3° · ¿Confiable o sospechoso? — confiable_3
+   DC: Confiabilidad de la información digital
+   Fuente: docs/auditoria-dc-caba/grado-3.md · T7 */
+const CUR_CONFIABLE_3_BANCO = [
+  {
+    "it": "Un libro de la biblioteca de la escuela",
+    "cat": "confiar",
+    "m": "Pasó por autores y revisión."
+  },
+  {
+    "it": "«¡Ganaste un premio! Poné tus datos acá»",
+    "cat": "sospechar",
+    "m": "Premio que no jugaste y te pide datos: trampa."
+  },
+  {
+    "it": "Alguien que no conocés te escribe por un juego",
+    "cat": "preguntar",
+    "m": "Ante un desconocido, siempre avisale a un adulto."
+  },
+  {
+    "it": "La página del gobierno con los horarios de un museo",
+    "cat": "confiar",
+    "m": "Fuente oficial del tema."
+  },
+  {
+    "it": "«Reenviá esto a 10 amigos o tendrás mala suerte»",
+    "cat": "sospechar",
+    "m": "Las cadenas no se reenvían."
+  },
+  {
+    "it": "Un video que dice que los tiburones vuelan",
+    "cat": "sospechar",
+    "m": "Si contradice todo lo que sabés, verificá."
+  },
+  {
+    "it": "Un mail que dice ser de tu escuela pero con faltas de ortografía",
+    "cat": "preguntar",
+    "m": "Mostráselo a un adulto antes de tocar nada."
+  },
+  {
+    "it": "Una enciclopedia con la lista de fuentes al final",
+    "cat": "confiar",
+    "m": "Se puede ir a chequear de dónde sacó los datos."
+  },
+  {
+    "it": "Un juego que te pide el nombre de tu escuela",
+    "cat": "sospechar",
+    "m": "Un juego no necesita saber eso: es dato personal."
+  },
+  {
+    "it": "Una foto increíble sin decir de dónde salió",
+    "cat": "preguntar",
+    "m": "Puede ser real o armada: hay que buscar la fuente."
+  },
+  {
+    "it": "El sitio del club al que vas, con el horario de siempre",
+    "cat": "confiar",
+    "m": "Fuente conocida y esperable."
+  },
+  {
+    "it": "«Pasame una foto tuya» de alguien que conociste jugando",
+    "cat": "sospechar",
+    "m": "No se mandan fotos a desconocidos. Contale a un adulto."
+  },
+  {
+    "it": "Un dato que te repitieron dos compañeros",
+    "cat": "preguntar",
+    "m": "Que dos lo repitan no lo hace cierto: pudieron leerlo del mismo lugar."
+  },
+  {
+    "it": "Una noticia del diario que firma quién la escribió",
+    "cat": "confiar",
+    "m": "Tiene un responsable."
+  }
+];
+GAMES.confiable_3 = juegoClasificar(CUR_CONFIABLE_3_BANCO, "¿Qué harías con esto?", [{"cat": "confiar", "label": "✅ Se puede confiar"}, {"cat": "sospechar", "label": "🚨 Sospechar"}, {"cat": "preguntar", "label": "🙋 Preguntarle a un adulto"}], "confiable_");
+
+/* 3° · ¿Va al compost? — compost_3
+   DC: Ed. Ambiental: separación de residuos y compostaje
+   Fuente: docs/auditoria-dc-caba/grado-3.md · T8 */
+const CUR_COMPOST_3_BANCO = [
+  {
+    "it": "Cáscara de banana",
+    "cat": "compost",
+    "m": "Se transforma en tierra."
+  },
+  {
+    "it": "Botella de plástico enjuagada",
+    "cat": "reciclable",
+    "m": "Limpia se recicla."
+  },
+  {
+    "it": "Servilleta usada con grasa",
+    "cat": "basura",
+    "m": "El papel sucio de grasa ya no se recicla."
+  },
+  {
+    "it": "Yerba usada",
+    "cat": "compost",
+    "m": "Excelente para el compost."
+  },
+  {
+    "it": "Diario viejo",
+    "cat": "reciclable",
+    "m": "Papel limpio y seco."
+  },
+  {
+    "it": "Hojas secas del patio",
+    "cat": "compost",
+    "m": "La parte 'marrón' del compost."
+  },
+  {
+    "it": "Lata enjuagada",
+    "cat": "reciclable",
+    "m": "El metal se recicla muchas veces."
+  },
+  {
+    "it": "Envoltorio metalizado de golosina",
+    "cat": "basura",
+    "m": "Mezcla plástico y aluminio pegados: no se pueden separar."
+  },
+  {
+    "it": "Cáscara de huevo",
+    "cat": "compost",
+    "m": "Al compost, mejor molida."
+  },
+  {
+    "it": "Frasco de vidrio",
+    "cat": "reciclable",
+    "m": "El vidrio se recicla siempre."
+  },
+  {
+    "it": "Restos de verdura",
+    "cat": "compost",
+    "m": "Al compost."
+  },
+  {
+    "it": "Cartón de una caja",
+    "cat": "reciclable",
+    "m": "Plegado ocupa menos."
+  },
+  {
+    "it": "Un chicle masticado",
+    "cat": "basura",
+    "m": "No se composta ni se recicla."
+  },
+  {
+    "it": "¿Qué se obtiene del compost?",
+    "cat": "compost",
+    "m": "Tierra fértil: lo que era basura vuelve a servir."
+  }
+];
+GAMES.compost_3 = juegoClasificar(CUR_COMPOST_3_BANCO, "¿Dónde va este residuo?", [{"cat": "compost", "label": "🍂 Al compost"}, {"cat": "reciclable", "label": "♻️ Reciclable"}, {"cat": "basura", "label": "🗑️ Basura"}], "compost_3");
