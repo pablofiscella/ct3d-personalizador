@@ -3308,6 +3308,10 @@ const COMO_ES_VIDEO = {
     partes: [{ t: "Cada residuo a su lugar", f: "lec_compost_3.mp4", s: 29 }],
   },
 
+  primos_6: {
+    auto: "lec_primos_6.mp4",
+    partes: [{ t: "Primos y compuestos", f: "lec_primos_6.mp4", s: 36 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }

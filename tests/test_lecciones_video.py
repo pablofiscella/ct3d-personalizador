@@ -230,7 +230,6 @@ VIDEO_PENDIENTE = {
     "porcentaje_cantidad_6",
     "porcentajes",
     "presupuesto_6",
-    "primos_6",
     "probabilidad_6",
     "probabilidad_sucesos",
     "problemas_varios_pasos_6",
