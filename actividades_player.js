@@ -3372,6 +3372,58 @@ const COMO_ES_VIDEO = {
     auto: "lec_dataset_sesgado_7.mp4",
     partes: [{ t: "Una IA aprende de sus datos", f: "lec_dataset_sesgado_7.mp4", s: 33 }],
   },
+  decimales_periodo_7: {
+    auto: "lec_decimales_periodo_7.mp4",
+    partes: [{ t: "Decimales exactos y periódicos", f: "lec_decimales_periodo_7.mp4", s: 38 }],
+  },
+  democracia_argentina: {
+    auto: "lec_democracia_argentina.mp4",
+    partes: [{ t: "Qué es la democracia", f: "lec_democracia_argentina.mp4", s: 24 }],
+  },
+  democracia_dictadura_7: {
+    auto: "lec_democracia_dictadura_7.mp4",
+    partes: [{ t: "Democracia, dictadura y derechos humanos", f: "lec_democracia_dictadura_7.mp4", s: 43 }],
+  },
+  densidad_7: {
+    auto: "lec_densidad_7.mp4",
+    partes: [{ t: "Entre dos racionales siempre hay otro", f: "lec_densidad_7.mp4", s: 37 }],
+  },
+  derechos_trabajo: {
+    auto: "lec_derechos_trabajo.mp4",
+    partes: [{ t: "Derechos en el trabajo", f: "lec_derechos_trabajo.mp4", s: 26 }],
+  },
+  eclipses_universo_7: {
+    auto: "lec_eclipses_universo_7.mp4",
+    partes: [{ t: "Eclipses y escalas del universo", f: "lec_eclipses_universo_7.mp4", s: 31 }],
+  },
+  ecuaciones_simples: {
+    auto: "lec_ecuaciones_simples.mp4",
+    partes: [{ t: "Ecuaciones", f: "lec_ecuaciones_simples.mp4", s: 25 }],
+  },
+  eventos_paralelismo_7: {
+    auto: "lec_eventos_paralelismo_7.mp4",
+    partes: [{ t: "Eventos, condicionales y paralelismo", f: "lec_eventos_paralelismo_7.mp4", s: 33 }],
+  },
+  expresion_objetivo_7: {
+    auto: "lec_expresion_objetivo_7.mp4",
+    partes: [{ t: "Jerarquía y paréntesis", f: "lec_expresion_objetivo_7.mp4", s: 24 }],
+  },
+  flujo_energia_7: {
+    auto: "lec_flujo_energia_7.mp4",
+    partes: [{ t: "La energía fluye, la materia cicla", f: "lec_flujo_energia_7.mp4", s: 30 }],
+  },
+  fuente_licencias_7: {
+    auto: "lec_fuente_licencias_7.mp4",
+    partes: [{ t: "Verificar antes de compartir", f: "lec_fuente_licencias_7.mp4", s: 41 }],
+  },
+  fuentes_sustentables_7: {
+    auto: "lec_fuentes_sustentables_7.mp4",
+    partes: [{ t: "Renovable no es lo mismo que sin impacto", f: "lec_fuentes_sustentables_7.mp4", s: 38 }],
+  },
+  gobierno_ciudad_7: {
+    auto: "lec_gobierno_ciudad_7.mp4",
+    partes: [{ t: "Cómo se gobierna la Ciudad", f: "lec_gobierno_ciudad_7.mp4", s: 39 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }

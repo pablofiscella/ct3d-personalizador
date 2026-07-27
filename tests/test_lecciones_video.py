@@ -93,21 +93,8 @@ VIDEO_PENDIENTE = {
     # acá entran las 70 mini-lecciones nuevas de 7° y las que el cuaderno de esa edad
     # ya tenía sin video (potencias, ecuaciones, proporcionalidad, homófonos…), que
     # nadie miraba porque el test llegaba sólo hasta la edad 11.
-    "decimales_periodo_7",
-    "democracia_argentina",
-    "democracia_dictadura_7",
-    "densidad_7",
     "derechos_94_7",
-    "derechos_trabajo",
     "divisibilidad_7",
-    "eclipses_universo_7",
-    "ecuaciones_simples",
-    "eventos_paralelismo_7",
-    "expresion_objetivo_7",
-    "flujo_energia_7",
-    "fuente_licencias_7",
-    "fuentes_sustentables_7",
-    "gobierno_ciudad_7",
     "hecho_opinion_argumento_7",
     "historieta_7",
     "homofonos",
