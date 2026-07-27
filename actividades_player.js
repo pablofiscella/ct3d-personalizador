@@ -3508,6 +3508,50 @@ const COMO_ES_VIDEO = {
     auto: "lec_persuasion_7.mp4",
     partes: [{ t: "Cómo te quiere convencer una publicidad", f: "lec_persuasion_7.mp4", s: 33 }],
   },
+  potencias: {
+    auto: "lec_potencias.mp4",
+    partes: [{ t: "Las potencias", f: "lec_potencias.mp4", s: 25 }],
+  },
+  potencias_7: {
+    auto: "lec_potencias_7.mp4",
+    partes: [{ t: "Potencias y raíces", f: "lec_potencias_7.mp4", s: 37 }],
+  },
+  presupuesto_inflacion_7: {
+    auto: "lec_presupuesto_inflacion_7.mp4",
+    partes: [{ t: "Presupuesto cuando los precios suben", f: "lec_presupuesto_inflacion_7.mp4", s: 33 }],
+  },
+  probabilidad_arbol_7: {
+    auto: "lec_probabilidad_arbol_7.mp4",
+    partes: [{ t: "Contar casos y calcular chances", f: "lec_probabilidad_arbol_7.mp4", s: 35 }],
+  },
+  proporcionalidad: {
+    auto: "lec_proporcionalidad.mp4",
+    partes: [{ t: "Proporcionalidad", f: "lec_proporcionalidad.mp4", s: 25 }],
+  },
+  proporcionalidad_grafico_7: {
+    auto: "lec_proporcionalidad_grafico_7.mp4",
+    partes: [{ t: "Proporcionalidad en el plano", f: "lec_proporcionalidad_grafico_7.mp4", s: 32 }],
+  },
+  proporcionalidad_inversa_7: {
+    auto: "lec_proporcionalidad_inversa_7.mp4",
+    partes: [{ t: "Proporcionalidad inversa", f: "lec_proporcionalidad_inversa_7.mp4", s: 35 }],
+  },
+  puerto_madero_7: {
+    auto: "lec_puerto_madero_7.mp4",
+    partes: [{ t: "Cuando la ciudad se transforma", f: "lec_puerto_madero_7.mp4", s: 32 }],
+  },
+  quimica_fisica_7: {
+    auto: "lec_quimica_fisica_7.mp4",
+    partes: [{ t: "¿Cambió la sustancia o sólo la forma?", f: "lec_quimica_fisica_7.mp4", s: 32 }],
+  },
+  razon_porcentaje_7: {
+    auto: "lec_razon_porcentaje_7.mp4",
+    partes: [{ t: "Razón y porcentaje", f: "lec_razon_porcentaje_7.mp4", s: 30 }],
+  },
+  recursos_argumentador_7: {
+    auto: "lec_recursos_argumentador_7.mp4",
+    partes: [{ t: "Con qué se argumenta", f: "lec_recursos_argumentador_7.mp4", s: 30 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
