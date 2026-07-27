@@ -208,23 +208,36 @@ con "revisión docente externa obligatoria".
 | 4° | sí | **58/58** | 0 |
 | 5° | sí | **56/56** | 0 |
 | 6° | sí | **70/70** | 0 |
-| 7° | **no** | sin auditar contra `grado-7.md`; el test lo saltea | — |
+| 7° | sí | **68/68** | 0 |
 
-`EN_CONSTRUCCION` está vacío: los seis grados se exigen completos y el guardián falla
-si alguno pierde un tema.
+**Los siete grados están cerrados: 403 temas del DC, 0 deudas, todos en nivel 1.**
+`EN_CONSTRUCCION` está vacío, así que el guardián falla si cualquier grado pierde un
+tema. Toda actividad que enseña una regla tiene además su mini-lección; las 8 que no la
+tienen son enumeración de datos, a propósito.
 
-**7° es lo único que queda, y necesita una decisión antes de empezar:** suma **Inglés**
-como área nueva (3 actividades) y el menú tiene 6 carriles fijos. O entra un carril
-nuevo —y eso cambia la pantalla de categorías de todos los grados— o se mapea a Lengua.
-Su auditoría propone 68 temas.
+**INGLÉS se resolvió mapeándolo al carril de Lengua** (26-jul). El menú tiene seis
+carriles y están fijos: abrir un séptimo cambiaría la pantalla de categorías de los
+siete grados por tres actividades de uno solo. El área real del DC quedó escrita en el
+campo `dc`, así que la decisión es reversible si algún día se justifica el carril.
 
 **Revisión docente pendiente** (ningún test la reemplaza): los 5 temas de Sociales de
-5°, los de 4° marcados en su auditoría, y de 6° el bloque entero de Sociales (S1-S9)
-más el de ESI (N4, N5, N6, Tr1, Tr2). La auditoría de 6° pide además que el producto
+5°, los de 4° marcados en su auditoría, de 6° el bloque entero de Sociales (S1-S9) más
+el de ESI (N4, N5, N6, Tr1, Tr2), y de 7° el bloque de dictadura y memoria (CS1, CS2,
+CS3, CS6) más el de ESI (CN11, X1, X2). La auditoría pide además que el producto
 **avise a la familia** antes de que el chico se encuentre con el bloque ESI: eso
 todavía no está hecho.
 
-### Lo que se aprendió construyendo 6°
+**Sobre el contenido sensible, dos criterios que ya están aplicados y conviene sostener:**
+
+- **La dictadura y el terrorismo de Estado se escriben con los hechos que NO están en
+  disputa** —plan sistemático, desaparición forzada, centros clandestinos, apropiación
+  de bebés, la CONADEP, el Juicio a las Juntas, la imprescriptibilidad— y **ninguna
+  cifra discutida se convierte en ítem de opción múltiple.**
+- **Grooming y consumo problemático se escriben como contenido de PROTECCIÓN**:
+  reconocer la señal, que la culpa nunca es del chico, y la vía de denuncia real. Nunca
+  describiendo cómo se comete.
+
+### Lo que se aprendió construyendo 6° y 7°
 
 - **El evaluador de plantillas sólo admite `+ - * / ( )`.** Sin condicionales, sin
   potencias, sin `%`. Las guardas van en el DISEÑO de los rangos: si el total es
@@ -240,5 +253,17 @@ todavía no está hecho.
   distintos recorridos por las mismas cinco etapas.
 - **Una consigna repetida dentro del banco falla.** «¿Cuál está bien escrita?» nueve
   veces no pasa el validador: cada ítem pide su propia pregunta.
+- **Un distractor que COINCIDE con la respuesta se descarta**, y si quedan menos de dos
+  la tirada entera se tira. En 7° el distractor `a / 10` era el resultado mismo cuando
+  el porcentaje valía 10, y un `tope` corto mataba otro: la paramétrica bajó de 400
+  tiradas válidas a 221 sin ningún error visible. Si el validador se queja de "las
+  guardas descartan casi todo", el problema casi siempre son los distractores, no la
+  fórmula.
+- **Los `saber` no pueden repetirse en todo el catálogo**, ni siquiera entre grados
+  distintos. `SOC-7-democracia` chocaba con una actividad vieja del mismo grado.
+- **El guardián de video se parametriza por EDAD.** Al cerrar un grado hay que sumar su
+  edad a `test_toda_explicacion_tiene_video`, o las mini-lecciones nuevas quedan sin
+  vigilar. Hacerlo destapó, en 6° y en 7°, mini-lecciones viejas sin video que nadie
+  había declarado nunca.
 
 Para cada grado que sigue: paso 1 y listo, el informe dice el resto.

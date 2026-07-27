@@ -89,6 +89,87 @@ def test_los_videos_salen_del_repo_no_del_token():
 # actividad con texto y sin video que NO esté declarada, y falla también si queda una
 # entrada acá que ya tiene su video (para que la lista se vacíe sola y no se pudra).
 VIDEO_PENDIENTE = {
+    # 7° grado completo (26-jul-2026). El guardián pasó a cubrir la edad 12, así que
+    # acá entran las 70 mini-lecciones nuevas de 7° y las que el cuaderno de esa edad
+    # ya tenía sin video (potencias, ecuaciones, proporcionalidad, homófonos…), que
+    # nadie miraba porque el test llegaba sólo hasta la edad 11.
+    "alerta_en_linea_7",
+    "ambiguedad_7",
+    "analisis_sintactico_7",
+    "anticoncepcion_7",
+    "area_perimetro",
+    "areas_7",
+    "bandos_siglo_xx_7",
+    "billetera_7",
+    "cadena_productiva_7",
+    "capas_red_7",
+    "central_enchufe_7",
+    "comunicacion_tiempo_7",
+    "consumo_consumismo_7",
+    "cronica_7",
+    "dataset_sesgado_7",
+    "decimales_periodo_7",
+    "democracia_argentina",
+    "democracia_dictadura_7",
+    "densidad_7",
+    "derechos_94_7",
+    "derechos_trabajo",
+    "divisibilidad_7",
+    "eclipses_universo_7",
+    "ecuaciones_simples",
+    "eventos_paralelismo_7",
+    "expresion_objetivo_7",
+    "flujo_energia_7",
+    "fuente_licencias_7",
+    "fuentes_sustentables_7",
+    "gobierno_ciudad_7",
+    "hecho_opinion_argumento_7",
+    "historieta_7",
+    "homofonos",
+    "industria_40_7",
+    "ingles_lectura_7",
+    "ingles_verbos_7",
+    "ingles_vocabulario_7",
+    "inmune_7",
+    "leer_deducir_7",
+    "linea_siglo_xx_7",
+    "matriz_energetica_7",
+    "mcm_dcm_7",
+    "media_mediana_moda_7",
+    "metafora_sinecdoque_7",
+    "migraciones_7",
+    "modos_verbales_7",
+    "movimientos_tierra_7",
+    "multiplicar_fracciones_7",
+    "narrador_7",
+    "numeracion_7",
+    "ortografia_7",
+    "persuasion_7",
+    "potencias",
+    "potencias_7",
+    "presupuesto_inflacion_7",
+    "probabilidad_arbol_7",
+    "problemas_pasos_7",
+    "proporcionalidad",
+    "proporcionalidad_grafico_7",
+    "proporcionalidad_inversa_7",
+    "puerto_madero_7",
+    "quimica_fisica_7",
+    "razon_porcentaje_7",
+    "recursos_argumentador_7",
+    "recursos_poema",
+    "redes_troficas_7",
+    "reproductor_7",
+    "sistema_nervioso_7",
+    "subgeneros_7",
+    "sucesion_ecologica_7",
+    "sujeto_7",
+    "sustantivos_7",
+    "traductor_algebraico",
+    "traductor_algebraico_7",
+    "transformar_energia_7",
+    "vacunas_7",
+
     # 6° grado completo (26-jul-2026). El test pasó a cubrir la edad 11, así que
     # estas entran a la deuda declarada: incluye las 67 mini-lecciones nuevas de 6° y
     # las que el cuaderno de esa edad ya tenía sin video, que hasta ahora nadie miraba
@@ -298,7 +379,7 @@ def _texto_y_video():
     return texto, video
 
 
-@pytest.mark.parametrize("edad", ["9", "10", "11"])
+@pytest.mark.parametrize("edad", ["9", "10", "11", "12"])
 def test_toda_explicacion_tiene_video(edad):
     """Pablo (25-jul): "quiero en las explicaciones siempre videos que expliquen el
     contenido de forma visual".
