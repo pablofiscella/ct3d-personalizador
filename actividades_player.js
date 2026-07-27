@@ -3752,6 +3752,58 @@ const COMO_ES_VIDEO = {
     auto: "lec_inmigracion_censos_6.mp4",
     partes: [{ t: "Inmigración y cómo se lee un censo", f: "lec_inmigracion_censos_6.mp4", s: 33 }],
   },
+  instrumentos_medida_6: {
+    auto: "lec_instrumentos_medida_6.mp4",
+    partes: [{ t: "Elegir el instrumento", f: "lec_instrumentos_medida_6.mp4", s: 41 }],
+  },
+  its_violencia_6: {
+    auto: "lec_its_violencia_6.mp4",
+    partes: [{ t: "ITS y tipos de violencia", f: "lec_its_violencia_6.mp4", s: 33 }],
+  },
+  jerarquia_6: {
+    auto: "lec_jerarquia_6.mp4",
+    partes: [{ t: "Qué se resuelve primero", f: "lec_jerarquia_6.mp4", s: 25 }],
+  },
+  jerarquia_operaciones: {
+    auto: "lec_jerarquia_operaciones.mp4",
+    partes: [{ t: "En qué orden se resuelve", f: "lec_jerarquia_operaciones.mp4", s: 30 }],
+  },
+  linea_tiempo_1862_1930_6: {
+    auto: "lec_linea_tiempo_1862_1930_6.mp4",
+    partes: [{ t: "Ordenar la Argentina 1862-1930", f: "lec_linea_tiempo_1862_1930_6.mp4", s: 43 }],
+  },
+  material_termico_6: {
+    auto: "lec_material_termico_6.mp4",
+    partes: [{ t: "Conductores y aislantes", f: "lec_material_termico_6.mp4", s: 33 }],
+  },
+  mercosur_energia_6: {
+    auto: "lec_mercosur_energia_6.mp4",
+    partes: [{ t: "Integrarse y compartir energía", f: "lec_mercosur_energia_6.mp4", s: 33 }],
+  },
+  moda_encuesta_6: {
+    auto: "lec_moda_encuesta_6.mp4",
+    partes: [{ t: "Frecuencias y moda", f: "lec_moda_encuesta_6.mp4", s: 29 }],
+  },
+  multiplicar_coma_6: {
+    auto: "lec_multiplicar_coma_6.mp4",
+    partes: [{ t: "Cuentas con decimales", f: "lec_multiplicar_coma_6.mp4", s: 40 }],
+  },
+  multiplicar_fracciones: {
+    auto: "lec_multiplicar_fracciones.mp4",
+    partes: [{ t: "Multiplicar fracciones", f: "lec_multiplicar_fracciones.mp4", s: 24 }],
+  },
+  noticia_partes_6: {
+    auto: "lec_noticia_partes_6.mp4",
+    partes: [{ t: "Las partes de la noticia", f: "lec_noticia_partes_6.mp4", s: 27 }],
+  },
+  numeros_gigantes_6: {
+    auto: "lec_numeros_gigantes_6.mp4",
+    partes: [{ t: "Números de muchas cifras", f: "lec_numeros_gigantes_6.mp4", s: 27 }],
+  },
+  numeros_primos: {
+    auto: "lec_numeros_primos.mp4",
+    partes: [{ t: "Números primos", f: "lec_numeros_primos.mp4", s: 26 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
