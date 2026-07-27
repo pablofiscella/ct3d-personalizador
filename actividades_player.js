@@ -3312,6 +3312,66 @@ const COMO_ES_VIDEO = {
     auto: "lec_primos_6.mp4",
     partes: [{ t: "Primos y compuestos", f: "lec_primos_6.mp4", s: 36 }],
   },
+  alerta_en_linea_7: {
+    auto: "lec_alerta_en_linea_7.mp4",
+    partes: [{ t: "Señales de alerta en línea", f: "lec_alerta_en_linea_7.mp4", s: 36 }],
+  },
+  ambiguedad_7: {
+    auto: "lec_ambiguedad_7.mp4",
+    partes: [{ t: "Cuando la frase se entiende de dos maneras", f: "lec_ambiguedad_7.mp4", s: 26 }],
+  },
+  analisis_sintactico_7: {
+    auto: "lec_analisis_sintactico_7.mp4",
+    partes: [{ t: "Analizar la oración completa", f: "lec_analisis_sintactico_7.mp4", s: 29 }],
+  },
+  anticoncepcion_7: {
+    auto: "lec_anticoncepcion_7.mp4",
+    partes: [{ t: "Prevención: qué previene cada cosa", f: "lec_anticoncepcion_7.mp4", s: 40 }],
+  },
+  area_perimetro: {
+    auto: "lec_area_perimetro.mp4",
+    partes: [{ t: "Perímetro y área", f: "lec_area_perimetro.mp4", s: 32 }],
+  },
+  areas_7: {
+    auto: "lec_areas_7.mp4",
+    partes: [{ t: "Áreas de las figuras planas", f: "lec_areas_7.mp4", s: 36 }],
+  },
+  bandos_siglo_xx_7: {
+    auto: "lec_bandos_siglo_xx_7.mp4",
+    partes: [{ t: "Segunda Guerra y Guerra Fría", f: "lec_bandos_siglo_xx_7.mp4", s: 41 }],
+  },
+  billetera_7: {
+    auto: "lec_billetera_7.mp4",
+    partes: [{ t: "Ahorro, deuda e inversión", f: "lec_billetera_7.mp4", s: 33 }],
+  },
+  cadena_productiva_7: {
+    auto: "lec_cadena_productiva_7.mp4",
+    partes: [{ t: "Cadenas productivas y regiones", f: "lec_cadena_productiva_7.mp4", s: 34 }],
+  },
+  capas_red_7: {
+    auto: "lec_capas_red_7.mp4",
+    partes: [{ t: "Cómo está armada internet", f: "lec_capas_red_7.mp4", s: 34 }],
+  },
+  central_enchufe_7: {
+    auto: "lec_central_enchufe_7.mp4",
+    partes: [{ t: "Cómo llega la luz al enchufe", f: "lec_central_enchufe_7.mp4", s: 30 }],
+  },
+  comunicacion_tiempo_7: {
+    auto: "lec_comunicacion_tiempo_7.mp4",
+    partes: [{ t: "Ordenar la historia de la comunicación", f: "lec_comunicacion_tiempo_7.mp4", s: 31 }],
+  },
+  consumo_consumismo_7: {
+    auto: "lec_consumo_consumismo_7.mp4",
+    partes: [{ t: "Consumo, consumismo y consumo problemático", f: "lec_consumo_consumismo_7.mp4", s: 36 }],
+  },
+  cronica_7: {
+    auto: "lec_cronica_7.mp4",
+    partes: [{ t: "Noticia, crónica y discurso referido", f: "lec_cronica_7.mp4", s: 32 }],
+  },
+  dataset_sesgado_7: {
+    auto: "lec_dataset_sesgado_7.mp4",
+    partes: [{ t: "Una IA aprende de sus datos", f: "lec_dataset_sesgado_7.mp4", s: 33 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
