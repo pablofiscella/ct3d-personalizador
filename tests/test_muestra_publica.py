@@ -160,3 +160,40 @@ def test_un_cuaderno_normal_conserva_el_boton_atras():
     no cambia en nada."""
     src = _fuente_player()
     assert "let MUESTRA_SOLA = null" in src
+
+
+# ─────────────────── a dónde vuelve el botón 📚 ───────────────────
+# Pablo, 27-jul-2026: "cuando voy al cuaderno y dentro del cuaderno pongo ir a la biblioteca
+# me lleva a la biblioteca de casatridimensional". La URL estaba ESCRITA A MANO en el player.
+
+def test_el_player_respeta_la_biblioteca_del_token():
+    src = _fuente_player()
+    assert "D.biblioteca_url" in src, "el player ignora la biblioteca del token"
+    i_uso = src.index("D.biblioteca_url")
+    assert "btnBiblioteca" in src[i_uso:i_uso + 250]
+
+
+def test_sin_biblioteca_url_el_boton_no_cambia():
+    """Los cuadernos ya entregados no tienen el campo: tienen que seguir yendo a donde iban.
+    Por eso el player pisa el href SÓLO si el token trae la URL."""
+    src = _fuente_player()
+    i = src.index("if (D.biblioteca_url)")
+    assert "if (D.biblioteca_url)" in src[i:i + 30]
+
+
+def test_el_motor_guarda_la_url_pero_no_la_inventa():
+    """La URL la sabe la TIENDA (conoce el dominio y la ruta), no el motor. Acá sólo se
+    persiste: si el motor la armara, habría que tocarlo cada vez que cambia un dominio."""
+    with open(os.path.join(BASE, "actividades_web.py"), encoding="utf-8") as f:
+        src = f.read()
+    assert 'dj["biblioteca_url"]' in src
+    assert "casatridimensional" not in src.split('dj["biblioteca_url"]')[1][:400], \
+        "el motor está armando la URL en vez de recibirla"
+
+
+def test_la_url_se_preserva_al_regenerar():
+    """Regenerar un token no puede hacerle perder a dónde vuelve el padre."""
+    with open(os.path.join(BASE, "actividades_web.py"), encoding="utf-8") as f:
+        src = f.read()
+    bloque = src.split('dj["biblioteca_url"]')[1][:200]
+    assert "_prev" in bloque, "no se preserva al regenerar"

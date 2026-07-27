@@ -5755,6 +5755,15 @@ async function boot() {
   // por "¿Quién juega?". Un padre que llega de un anuncio tiene que ver el producto antes
   // que un formulario — el nombre se le pide cuando ya sabe qué está mirando.
   // Sólo actúa en el link que trae el parámetro; sin él, el arranque es el de siempre.
+  // El 📚 vuelve a la biblioteca que corresponda: la de Kydo si el cuaderno es escolar, la
+  // de siempre si no. La URL viene en el token (`biblioteca_url`) porque la sabe la tienda,
+  // no el motor — acá estaba escrita a mano apuntando a la tienda de lámparas, así que un
+  // cuaderno de Kydo mandaba al padre al lugar equivocado. Sin el campo, queda el default.
+  if (D.biblioteca_url) {
+    const _bib = $("#btnBiblioteca");
+    if (_bib) _bib.href = D.biblioteca_url;
+  }
+
   const _muestra = muestraPedida();
   if (_muestra) {
     if (!Store.data.activeProfile) elegirPerfil(NOMBRE_INVITADO);

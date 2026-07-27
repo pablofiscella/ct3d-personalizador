@@ -2030,6 +2030,13 @@ def crear(data, tema, token=None):
     dj["requiere_cuenta"] = (_flag(data.get("requiere_cuenta"))
                              or _flag(_prev.get("requiere_cuenta")))
     dj["revocado"] = _flag(data.get("revocado")) or _flag(_prev.get("revocado"))
+    # A dónde vuelve el botón 📚 del cuaderno. Estaba ESCRITO A MANO en el player, apuntando
+    # a la tienda de lámparas: un cuaderno de Kydo mandaba al padre a la biblioteca de
+    # Casatridimensional (lo encontró Pablo, 27-jul-2026). La URL la sabe QUIEN CREA el token
+    # —la tienda—, no el motor: acá sólo se guarda. Vacío → el player usa su default de
+    # siempre, así los cuadernos ya entregados no cambian. Se PRESERVA al regenerar.
+    dj["biblioteca_url"] = (str(data.get("biblioteca_url") or "").strip()[:200]
+                            or _prev.get("biblioteca_url") or "")
     with open(os.path.join(d, "data.json"), "w", encoding="utf-8") as f:
         json.dump(dj, f, ensure_ascii=False)
 
