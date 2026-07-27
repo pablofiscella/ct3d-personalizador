@@ -93,26 +93,13 @@ VIDEO_PENDIENTE = {
     # acá entran las 70 mini-lecciones nuevas de 7° y las que el cuaderno de esa edad
     # ya tenía sin video (potencias, ecuaciones, proporcionalidad, homófonos…), que
     # nadie miraba porque el test llegaba sólo hasta la edad 11.
-    "divisibilidad_7",
-    "ingles_verbos_7",
     "linea_siglo_xx_7",
 
     # 6° grado completo (26-jul-2026). El test pasó a cubrir la edad 11, así que
     # estas entran a la deuda declarada: incluye las 67 mini-lecciones nuevas de 6° y
     # las que el cuaderno de esa edad ya tenía sin video, que hasta ahora nadie miraba
     # porque el guardián sólo llegaba hasta la edad 10.
-    "corredor_coma_6",
-    "cuadrilateros",
     "cuadrilateros_6",
-    "demografia_6",
-    "densidad_recta_6",
-    "desarrollos_6",
-    "descuentos_6",
-    "directo_indirecto_6",
-    "divisibilidad_criterios_6",
-    "economia_circular_6",
-    "ecorregiones_6",
-    "efecto_invernadero_6",
     "escalas_ambientales_6",
     "estado_agroexportacion_6",
     "etapas_diseno_6",

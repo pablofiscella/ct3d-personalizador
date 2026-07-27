@@ -3648,6 +3648,58 @@ const COMO_ES_VIDEO = {
     auto: "lec_conjugacion_6.mp4",
     partes: [{ t: "Imperfecto y perfecto simple", f: "lec_conjugacion_6.mp4", s: 34 }],
   },
+  divisibilidad_7: {
+    auto: "lec_divisibilidad_7.mp4",
+    partes: [{ t: "Los criterios de divisibilidad", f: "lec_divisibilidad_7.mp4", s: 45 }],
+  },
+  ingles_verbos_7: {
+    auto: "lec_ingles_verbos_7.mp4",
+    partes: [{ t: "Present simple y past simple", f: "lec_ingles_verbos_7.mp4", s: 45 }],
+  },
+  corredor_coma_6: {
+    auto: "lec_corredor_coma_6.mp4",
+    partes: [{ t: "Correr la coma", f: "lec_corredor_coma_6.mp4", s: 30 }],
+  },
+  cuadrilateros: {
+    auto: "lec_cuadrilateros.mp4",
+    partes: [{ t: "Los cuadriláteros", f: "lec_cuadrilateros.mp4", s: 27 }],
+  },
+  demografia_6: {
+    auto: "lec_demografia_6.mp4",
+    partes: [{ t: "Los indicadores de población", f: "lec_demografia_6.mp4", s: 35 }],
+  },
+  densidad_recta_6: {
+    auto: "lec_densidad_recta_6.mp4",
+    partes: [{ t: "Siempre entra otro número en el medio", f: "lec_densidad_recta_6.mp4", s: 38 }],
+  },
+  desarrollos_6: {
+    auto: "lec_desarrollos_6.mp4",
+    partes: [{ t: "El cuerpo desplegado", f: "lec_desarrollos_6.mp4", s: 27 }],
+  },
+  descuentos_6: {
+    auto: "lec_descuentos_6.mp4",
+    partes: [{ t: "Descuentos y aumentos", f: "lec_descuentos_6.mp4", s: 26 }],
+  },
+  directo_indirecto_6: {
+    auto: "lec_directo_indirecto_6.mp4",
+    partes: [{ t: "Del directo al indirecto", f: "lec_directo_indirecto_6.mp4", s: 32 }],
+  },
+  divisibilidad_criterios_6: {
+    auto: "lec_divisibilidad_criterios_6.mp4",
+    partes: [{ t: "Los criterios por 2, 5 y 10", f: "lec_divisibilidad_criterios_6.mp4", s: 31 }],
+  },
+  economia_circular_6: {
+    auto: "lec_economia_circular_6.mp4",
+    partes: [{ t: "Lineal o circular", f: "lec_economia_circular_6.mp4", s: 32 }],
+  },
+  ecorregiones_6: {
+    auto: "lec_ecorregiones_6.mp4",
+    partes: [{ t: "Los tres ambientes bonaerenses", f: "lec_ecorregiones_6.mp4", s: 38 }],
+  },
+  efecto_invernadero_6: {
+    auto: "lec_efecto_invernadero_6.mp4",
+    partes: [{ t: "Efecto invernadero y qué hacer", f: "lec_efecto_invernadero_6.mp4", s: 31 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
