@@ -8788,6 +8788,44 @@ function _ordenPorDominio(ctx, libres, idPrefijo) {
    correcta, se barajan al mostrar; el error muestra la explicación m (Capa 0 · C3)
    con distractores por misconception (C4). Reusable para futuras actividades de
    contenido en vez de duplicar el mismo esqueleto. ── */
+/* ── PRONUNCIACIÓN DE INGLÉS (27-jul-2026) ──────────────────────────────────────
+   Las actividades de Inglés eran de texto: enseñaban a escribirlo, no a decirlo.
+   La auditoría de 7° las pide como flashcards CON fonética, y un maestro de inglés
+   lo marca en el primer minuto.
+
+   Los clips van con voz NATIVA inglesa (Rachel), no con la rioplatense de las
+   consignas: el punto es que escuche cómo suena de verdad. Salen del repo como el
+   resto del audio, así que llegan también a los links ya vendidos.
+
+   El botón es opcional a propósito — no interrumpe el juego ni da la respuesta:
+   se toca cuando el chico quiere oírlo. */
+let _inglesManifest = null;
+async function _cargarInglesManifest() {
+  if (_inglesManifest) return _inglesManifest;
+  try {
+    const r = await fetch("ingles_manifest.json");
+    _inglesManifest = r.ok ? await r.json() : {};
+  } catch (e) { _inglesManifest = {}; }
+  return _inglesManifest;
+}
+
+function _botonIngles(cont, idPrefix, idx) {
+  if (!/^ingles/.test(idPrefix || "")) return;
+  const b = el("button", "pill", "🔊 Escuchar");
+  b.style.cssText = "margin-top:10px;font-size:15px;cursor:pointer";
+  b.addEventListener("click", async (ev) => {
+    ev.stopPropagation();
+    const man = await _cargarInglesManifest();
+    const fn = man[idPrefix + "#" + idx];
+    if (!fn) return;                     // sin clip: el botón no hace nada, no rompe
+    if (vozActual) { vozActual.pause(); vozActual = null; }
+    const a = new Audio(fn);
+    vozActual = a;
+    a.play().catch(() => {});
+  });
+  cont.appendChild(b);
+}
+
 function juegoTriviaTexto(banco, consigna, idPrefix, rondasDefault) {
   return {
     crear(ctx) {
@@ -8808,6 +8846,10 @@ function juegoTriviaTexto(banco, consigna, idPrefix, rondasDefault) {
         const arriba = el("div", "tablero");
         arriba.appendChild(el("div", "spriteQuieto",
           `<span style="font-size:21px;font-family:'Baloo',sans-serif">${item.q}</span>`));
+        // Inglés: botón para OÍR el término, con voz nativa inglesa. Sin esto la
+        // actividad enseña a escribirlo pero no a decirlo, que es la mitad del punto.
+        // La auditoría de 7° lo pide explícito: flashcards CON fonética.
+        _botonIngles(arriba, idPrefix, idx);
         ctx.juego.appendChild(arriba);
         const correcta = item.ops[0];
         const fila = el("div", "opsTexto");
@@ -10774,6 +10816,10 @@ GAMES.ingles_basico = {
       ctx.item("ingles#" + idx);
       ctx.consigna(it.q);
       ctx.juego.innerHTML = "";
+      // pronunciación: acá el término en inglés es la RESPUESTA, así que el botón
+      // se muestra recién al acertar — antes daría la respuesta servida.
+      const zonaAudio = el("div", "tablero");
+      ctx.juego.appendChild(zonaAudio);
       const opciones = shuffle([{ t: it.ok, ok: true }].concat(it.d.map((x) => ({ t: x, ok: false }))));
       const fila = el("div", "ops");
       let resuelto = false;
@@ -10781,7 +10827,12 @@ GAMES.ingles_basico = {
         const b = el("button", "op", o.t);
         b.addEventListener("click", async () => {
           if (resuelto) return;
-          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
+          if (o.ok) {
+            resuelto = true; b.classList.add("anim-pop"); ctx.bien();
+            _botonIngles(zonaAudio, "ingles_basico", idx);   // ya acertó: ahora sí puede oírlo
+            ronda++; await espera(1600);
+            if (ronda >= rondas) ctx.win(); else jugar();
+          }
           else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(it.m); }
         });
         fila.appendChild(b);

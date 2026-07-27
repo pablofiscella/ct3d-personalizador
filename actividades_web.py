@@ -2212,8 +2212,13 @@ _ASSET_RE = re.compile(
     # lecciones en video del botón "¿Cómo es?": salen del REPO como el player y el
     # audio de consignas — una sola copia para todos los tokens, así mejorar una
     # lección llega también a los links ya vendidos.
-    r"|lec_[a-z0-9_]{1,40}\.mp4)$")
+    r"|lec_[a-z0-9_]{1,40}\.mp4"
+    # pronunciación de las actividades de Inglés: voz NATIVA inglesa, no la
+    # rioplatense de las consignas. Mismo criterio que el resto — salen del repo,
+    # una sola copia para todos los tokens.
+    r"|ingles_manifest\.json|en_[a-f0-9]{16}\.mp3)$")
 LECCION_DIR = os.path.join(BASEDIR, "lecciones_video")
+INGLES_DIR = os.path.join(BASEDIR, "audio_ingles")
 _CT = {".json": "application/json; charset=utf-8", ".js": "text/javascript; charset=utf-8",
        ".ttf": "font/ttf", ".png": "image/png", ".jpg": "image/jpeg", ".mp3": "audio/mpeg",
        ".mp4": "video/mp4"}
@@ -2237,6 +2242,10 @@ def archivo(token, nombre):
         p = os.path.join(BASEDIR, "fonts", "Baloo2-VF.ttf")
     elif nombre == "f2.ttf":
         p = os.path.join(BASEDIR, "fonts", "Nunito-VF.ttf")
+    elif nombre == "ingles_manifest.json":
+        p = os.path.join(INGLES_DIR, "manifest.json")
+    elif nombre.startswith("en_") and nombre.endswith(".mp3"):
+        p = os.path.join(INGLES_DIR, nombre)
     elif nombre == "audio_manifest.json" or nombre.endswith(".mp3"):
         p = os.path.join(AUDIO_DIR, "manifest.json" if nombre == "audio_manifest.json" else nombre)
     elif nombre.endswith(".mp4"):
