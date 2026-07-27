@@ -3424,6 +3424,42 @@ const COMO_ES_VIDEO = {
     auto: "lec_gobierno_ciudad_7.mp4",
     partes: [{ t: "Cómo se gobierna la Ciudad", f: "lec_gobierno_ciudad_7.mp4", s: 39 }],
   },
+  hecho_opinion_argumento_7: {
+    auto: "lec_hecho_opinion_argumento_7.mp4",
+    partes: [{ t: "Hecho, opinión y argumento", f: "lec_hecho_opinion_argumento_7.mp4", s: 29 }],
+  },
+  historieta_7: {
+    auto: "lec_historieta_7.mp4",
+    partes: [{ t: "El lenguaje de la historieta", f: "lec_historieta_7.mp4", s: 33 }],
+  },
+  industria_40_7: {
+    auto: "lec_industria_40_7.mp4",
+    partes: [{ t: "Cómo cambió el modo de producir", f: "lec_industria_40_7.mp4", s: 31 }],
+  },
+  ingles_lectura_7: {
+    auto: "lec_ingles_lectura_7.mp4",
+    partes: [{ t: "Leer en inglés sin traducir todo", f: "lec_ingles_lectura_7.mp4", s: 34 }],
+  },
+  ingles_vocabulario_7: {
+    auto: "lec_ingles_vocabulario_7.mp4",
+    partes: [{ t: "Falsos amigos del inglés", f: "lec_ingles_vocabulario_7.mp4", s: 34 }],
+  },
+  inmune_7: {
+    auto: "lec_inmune_7.mp4",
+    partes: [{ t: "Cómo se defiende el cuerpo", f: "lec_inmune_7.mp4", s: 33 }],
+  },
+  leer_deducir_7: {
+    auto: "lec_leer_deducir_7.mp4",
+    partes: [{ t: "Leer un texto largo", f: "lec_leer_deducir_7.mp4", s: 32 }],
+  },
+  matriz_energetica_7: {
+    auto: "lec_matriz_energetica_7.mp4",
+    partes: [{ t: "Mitigar y adaptarse", f: "lec_matriz_energetica_7.mp4", s: 34 }],
+  },
+  media_mediana_moda_7: {
+    auto: "lec_media_mediana_moda_7.mp4",
+    partes: [{ t: "Media, mediana y moda", f: "lec_media_mediana_moda_7.mp4", s: 40 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
