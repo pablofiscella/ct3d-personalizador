@@ -3552,6 +3552,54 @@ const COMO_ES_VIDEO = {
     auto: "lec_recursos_argumentador_7.mp4",
     partes: [{ t: "Con qué se argumenta", f: "lec_recursos_argumentador_7.mp4", s: 30 }],
   },
+  problemas_pasos_7: {
+    auto: "lec_problemas_pasos_7.mp4",
+    partes: [{ t: "Problemas de varios pasos", f: "lec_problemas_pasos_7.mp4", s: 29 }],
+  },
+  recursos_poema: {
+    auto: "lec_recursos_poema.mp4",
+    partes: [{ t: "Los recursos del poema", f: "lec_recursos_poema.mp4", s: 30 }],
+  },
+  redes_troficas_7: {
+    auto: "lec_redes_troficas_7.mp4",
+    partes: [{ t: "Los tres roles de la red trófica", f: "lec_redes_troficas_7.mp4", s: 38 }],
+  },
+  reproductor_7: {
+    auto: "lec_reproductor_7.mp4",
+    partes: [{ t: "El sistema reproductor", f: "lec_reproductor_7.mp4", s: 26 }],
+  },
+  sistema_nervioso_7: {
+    auto: "lec_sistema_nervioso_7.mp4",
+    partes: [{ t: "Del estímulo a la respuesta", f: "lec_sistema_nervioso_7.mp4", s: 37 }],
+  },
+  subgeneros_7: {
+    auto: "lec_subgeneros_7.mp4",
+    partes: [{ t: "Fantástico, maravilloso y terror", f: "lec_subgeneros_7.mp4", s: 32 }],
+  },
+  sucesion_ecologica_7: {
+    auto: "lec_sucesion_ecologica_7.mp4",
+    partes: [{ t: "Cómo se recupera un ambiente", f: "lec_sucesion_ecologica_7.mp4", s: 26 }],
+  },
+  sujeto_7: {
+    auto: "lec_sujeto_7.mp4",
+    partes: [{ t: "Sujeto expreso, tácito e impersonal", f: "lec_sujeto_7.mp4", s: 37 }],
+  },
+  sustantivos_7: {
+    auto: "lec_sustantivos_7.mp4",
+    partes: [{ t: "Cómo se clasifican los sustantivos", f: "lec_sustantivos_7.mp4", s: 36 }],
+  },
+  traductor_algebraico: {
+    auto: "lec_traductor_algebraico.mp4",
+    partes: [{ t: "Pasar palabras a símbolos", f: "lec_traductor_algebraico.mp4", s: 25 }],
+  },
+  traductor_algebraico_7: {
+    auto: "lec_traductor_algebraico_7.mp4",
+    partes: [{ t: "De la frase a la expresión", f: "lec_traductor_algebraico_7.mp4", s: 43 }],
+  },
+  transformar_energia_7: {
+    auto: "lec_transformar_energia_7.mp4",
+    partes: [{ t: "Transformación y degradación", f: "lec_transformar_energia_7.mp4", s: 28 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }

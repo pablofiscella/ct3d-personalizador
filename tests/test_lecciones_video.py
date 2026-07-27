@@ -96,18 +96,6 @@ VIDEO_PENDIENTE = {
     "divisibilidad_7",
     "ingles_verbos_7",
     "linea_siglo_xx_7",
-    "problemas_pasos_7",
-    "recursos_poema",
-    "redes_troficas_7",
-    "reproductor_7",
-    "sistema_nervioso_7",
-    "subgeneros_7",
-    "sucesion_ecologica_7",
-    "sujeto_7",
-    "sustantivos_7",
-    "traductor_algebraico",
-    "traductor_algebraico_7",
-    "transformar_energia_7",
     "vacunas_7",
 
     # 6° grado completo (26-jul-2026). El test pasó a cubrir la edad 11, así que
