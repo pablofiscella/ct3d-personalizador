@@ -3804,6 +3804,54 @@ const COMO_ES_VIDEO = {
     auto: "lec_numeros_primos.mp4",
     partes: [{ t: "Números primos", f: "lec_numeros_primos.mp4", s: 26 }],
   },
+  od_oi_6: {
+    auto: "lec_od_oi_6.mp4",
+    partes: [{ t: "Objeto directo e indirecto", f: "lec_od_oi_6.mp4", s: 38 }],
+  },
+  particulas_calor_6: {
+    auto: "lec_particulas_calor_6.mp4",
+    partes: [{ t: "Partículas, calor y temperatura", f: "lec_particulas_calor_6.mp4", s: 34 }],
+  },
+  permutaciones_6: {
+    auto: "lec_permutaciones_6.mp4",
+    partes: [{ t: "Contar sin repetir", f: "lec_permutaciones_6.mp4", s: 26 }],
+  },
+  poligonos_lados: {
+    auto: "lec_poligonos_lados.mp4",
+    partes: [{ t: "Los polígonos", f: "lec_poligonos_lados.mp4", s: 26 }],
+  },
+  porcentaje_cantidad_6: {
+    auto: "lec_porcentaje_cantidad_6.mp4",
+    partes: [{ t: "El porcentaje de una cantidad", f: "lec_porcentaje_cantidad_6.mp4", s: 35 }],
+  },
+  porcentajes: {
+    auto: "lec_porcentajes.mp4",
+    partes: [{ t: "Los porcentajes", f: "lec_porcentajes.mp4", s: 28 }],
+  },
+  presupuesto_6: {
+    auto: "lec_presupuesto_6.mp4",
+    partes: [{ t: "Presupuesto y plata segura", f: "lec_presupuesto_6.mp4", s: 30 }],
+  },
+  probabilidad_6: {
+    auto: "lec_probabilidad_6.mp4",
+    partes: [{ t: "Seguro, posible e imposible", f: "lec_probabilidad_6.mp4", s: 31 }],
+  },
+  probabilidad_sucesos: {
+    auto: "lec_probabilidad_sucesos.mp4",
+    partes: [{ t: "Qué tan probable es", f: "lec_probabilidad_sucesos.mp4", s: 22 }],
+  },
+  problemas_varios_pasos_6: {
+    auto: "lec_problemas_varios_pasos_6.mp4",
+    partes: [{ t: "Problemas de varios pasos", f: "lec_problemas_varios_pasos_6.mp4", s: 36 }],
+  },
+  proporcionalidad_6: {
+    auto: "lec_proporcionalidad_6.mp4",
+    partes: [{ t: "Mantener la proporción", f: "lec_proporcionalidad_6.mp4", s: 31 }],
+  },
+  pubertad_6: {
+    auto: "lec_pubertad_6.mp4",
+    partes: [{ t: "Qué pasa en la pubertad", f: "lec_pubertad_6.mp4", s: 28 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
