@@ -108,19 +108,8 @@ VIDEO_PENDIENTE = {
 
     # Las 20 que quedaban sin mini-lección, escritas el 26-jul. Mismo motivo: el
     # texto ya está en el player, el video espera crédito de ElevenLabs.
-    "forma_redondo",
-    "linea_siglo_xx",
-    "linterna_magica",
-    "mas_o_menos_1",
-    "objeto_material",
-    "ordenar_pasos",
-    "que_cuenta_resuelve",
-    "sociedad_colonial_4",
-    "solido_liquido",
 
     # 1°, 2° y 3° — mini-lecciones nuevas, video pendiente (26-jul-2026)
-    "acentuacion_2",
-    "agua_2",
     "animales_2",
     "antes_ahora_1",
     "armar_calculo_1",

@@ -3988,6 +3988,50 @@ const COMO_ES_VIDEO = {
     auto: "lec_derechos_escenarios.mp4",
     partes: [{ t: "Reconocer qué derecho no se respeta", f: "lec_derechos_escenarios.mp4", s: 34 }],
   },
+  forma_redondo: {
+    auto: "lec_forma_redondo.mp4",
+    partes: [{ t: "Cuánto falta para llegar al redondo", f: "lec_forma_redondo.mp4", s: 36 }],
+  },
+  linea_siglo_xx: {
+    auto: "lec_linea_siglo_xx.mp4",
+    partes: [{ t: "Ordenar en una línea de tiempo", f: "lec_linea_siglo_xx.mp4", s: 33 }],
+  },
+  linterna_magica: {
+    auto: "lec_linterna_magica.mp4",
+    partes: [{ t: "Transparente, translúcido y opaco", f: "lec_linterna_magica.mp4", s: 28 }],
+  },
+  mas_o_menos_1: {
+    auto: "lec_mas_o_menos_1.mp4",
+    partes: [{ t: "¿Sumo o resto?", f: "lec_mas_o_menos_1.mp4", s: 26 }],
+  },
+  objeto_material: {
+    auto: "lec_objeto_material.mp4",
+    partes: [{ t: "De qué está hecha cada cosa", f: "lec_objeto_material.mp4", s: 30 }],
+  },
+  ordenar_pasos: {
+    auto: "lec_ordenar_pasos.mp4",
+    partes: [{ t: "Poner los pasos en orden", f: "lec_ordenar_pasos.mp4", s: 29 }],
+  },
+  que_cuenta_resuelve: {
+    auto: "lec_que_cuenta_resuelve.mp4",
+    partes: [{ t: "Elegir la cuenta correcta", f: "lec_que_cuenta_resuelve.mp4", s: 32 }],
+  },
+  sociedad_colonial_4: {
+    auto: "lec_sociedad_colonial_4.mp4",
+    partes: [{ t: "Cómo se organizaba la sociedad colonial", f: "lec_sociedad_colonial_4.mp4", s: 40 }],
+  },
+  solido_liquido: {
+    auto: "lec_solido_liquido.mp4",
+    partes: [{ t: "¿Sólido o líquido?", f: "lec_solido_liquido.mp4", s: 26 }],
+  },
+  acentuacion_2: {
+    auto: "lec_acentuacion_2.mp4",
+    partes: [{ t: "La sílaba que suena más fuerte", f: "lec_acentuacion_2.mp4", s: 30 }],
+  },
+  agua_2: {
+    auto: "lec_agua_2.mp4",
+    partes: [{ t: "El camino del agua", f: "lec_agua_2.mp4", s: 27 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
