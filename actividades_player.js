@@ -4221,6 +4221,54 @@ const COMO_ES_VIDEO = {
     auto: "lec_parejas_mil_3.mp4",
     partes: [{ t: "Parejas que llegan al total", f: "lec_parejas_mil_3.mp4", s: 17 }],
   },
+  pares_minimos_2: {
+    auto: "lec_pares_minimos_2.mp4",
+    partes: [{ t: "Una letra cambia todo", f: "lec_pares_minimos_2.mp4", s: 18 }],
+  },
+  partes_oracion: {
+    auto: "lec_partes_oracion.mp4",
+    partes: [{ t: "Las partes de la oración", f: "lec_partes_oracion.mp4", s: 37 }],
+  },
+  pasos_orden_1: {
+    auto: "lec_pasos_orden_1.mp4",
+    partes: [{ t: "Hacer las cosas en orden", f: "lec_pasos_orden_1.mp4", s: 19 }],
+  },
+  plantas_2: {
+    auto: "lec_plantas_2.mp4",
+    partes: [{ t: "Cómo crece una planta", f: "lec_plantas_2.mp4", s: 26 }],
+  },
+  plato_1: {
+    auto: "lec_plato_1.mp4",
+    partes: [{ t: "Los grupos de la comida", f: "lec_plato_1.mp4", s: 19 }],
+  },
+  plato_2: {
+    auto: "lec_plato_2.mp4",
+    partes: [{ t: "Qué comer cada día", f: "lec_plato_2.mp4", s: 24 }],
+  },
+  plaza_mayo_3: {
+    auto: "lec_plaza_mayo_3.mp4",
+    partes: [{ t: "Lo que cambia y lo que queda", f: "lec_plaza_mayo_3.mp4", s: 20 }],
+  },
+  posiciones_2: {
+    auto: "lec_posiciones_2.mp4",
+    partes: [{ t: "Ubicarse en el espacio", f: "lec_posiciones_2.mp4", s: 24 }],
+  },
+  reloj: {
+    auto: "lec_reloj.mp4",
+    partes: [{ t: "Leer la hora", f: "lec_reloj.mp4", s: 22 }],
+  },
+  reparto_2: {
+    auto: "lec_reparto_2.mp4",
+    partes: [{ t: "Repartir en partes iguales", f: "lec_reparto_2.mp4", s: 25 }],
+  },
+  reparto_con_resto: {
+    auto: "lec_reparto_con_resto.mp4",
+    partes: [{ t: "El resto del reparto", f: "lec_reparto_con_resto.mp4", s: 29 }],
+  },
+  residuos_1: {
+    auto: "lec_residuos_1.mp4",
+    partes: [{ t: "Reciclable o basura", f: "lec_residuos_1.mp4", s: 17 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
