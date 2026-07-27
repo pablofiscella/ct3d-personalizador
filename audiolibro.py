@@ -229,13 +229,19 @@ def _openai_key():
     return k
 
 
-def _tts_elevenlabs(texto, timeout=120, seed=None, voice_id=None, settings=None):
+def _tts_elevenlabs(texto, timeout=120, seed=None, voice_id=None, settings=None,
+                    model=None):
     """voice_id/settings opcionales para narrar con una voz ALTERNATIVA a
-    Lizy (ver _EL_VOCES_ALT) — default sin argumentos: Lizy de siempre."""
+    Lizy (ver _EL_VOCES_ALT) — default sin argumentos: Lizy de siempre.
+
+    `model` existe para la pronunciación de Inglés: esa voz se eligió y se aprobó
+    sobre `eleven_multilingual_v2`, que es el que admite el control de velocidad
+    (`speed` en voice_settings). Sin poder fijarlo, saldría con el modelo del
+    audiolibro y a otro ritmo del que se escuchó al elegirla."""
     key = _elevenlabs_key()
     if not key:
         return None
-    payload = {"text": texto, "model_id": _EL_MODEL,
+    payload = {"text": texto, "model_id": model or _EL_MODEL,
                "voice_settings": settings or _EL_SETTINGS}
     if seed is not None:
         payload["seed"] = int(seed) % (2 ** 31)
