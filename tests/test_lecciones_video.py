@@ -110,17 +110,6 @@ VIDEO_PENDIENTE = {
     # texto ya está en el player, el video espera crédito de ElevenLabs.
 
     # 1°, 2° y 3° — mini-lecciones nuevas, video pendiente (26-jul-2026)
-    "convivencia_2",
-    "cuerpos_1",
-    "cuerpos_geometricos",
-    "cuidarnos_1",
-    "despegar_palabras_1",
-    "dictado_2",
-    "dobles_2",
-    "donde_esta_1",
-    "emociones_1",
-    "entrada_salida_2",
-    "estados_materia",
     "estados_tres",
     "estructura_cuento_3",
     "familia_palabras",

@@ -4076,6 +4076,50 @@ const COMO_ES_VIDEO = {
     auto: "lec_conectores_2.mp4",
     partes: [{ t: "Las palabritas que unen", f: "lec_conectores_2.mp4", s: 32 }],
   },
+  convivencia_2: {
+    auto: "lec_convivencia_2.mp4",
+    partes: [{ t: "Estar bien entre todos", f: "lec_convivencia_2.mp4", s: 25 }],
+  },
+  cuerpos_1: {
+    auto: "lec_cuerpos_1.mp4",
+    partes: [{ t: "Cuerpos que ruedan y que no", f: "lec_cuerpos_1.mp4", s: 20 }],
+  },
+  cuerpos_geometricos: {
+    auto: "lec_cuerpos_geometricos.mp4",
+    partes: [{ t: "Los cuerpos geométricos", f: "lec_cuerpos_geometricos.mp4", s: 25 }],
+  },
+  cuidarnos_1: {
+    auto: "lec_cuidarnos_1.mp4",
+    partes: [{ t: "Cuidarme y pedir ayuda", f: "lec_cuidarnos_1.mp4", s: 20 }],
+  },
+  despegar_palabras_1: {
+    auto: "lec_despegar_palabras_1.mp4",
+    partes: [{ t: "Cada palabra va separada", f: "lec_despegar_palabras_1.mp4", s: 20 }],
+  },
+  dictado_2: {
+    auto: "lec_dictado_2.mp4",
+    partes: [{ t: "Escribir con cuidado", f: "lec_dictado_2.mp4", s: 25 }],
+  },
+  dobles_2: {
+    auto: "lec_dobles_2.mp4",
+    partes: [{ t: "El doble y la mitad", f: "lec_dobles_2.mp4", s: 18 }],
+  },
+  donde_esta_1: {
+    auto: "lec_donde_esta_1.mp4",
+    partes: [{ t: "Arriba, abajo y entre", f: "lec_donde_esta_1.mp4", s: 18 }],
+  },
+  emociones_1: {
+    auto: "lec_emociones_1.mp4",
+    partes: [{ t: "Todo lo que sentimos", f: "lec_emociones_1.mp4", s: 19 }],
+  },
+  entrada_salida_2: {
+    auto: "lec_entrada_salida_2.mp4",
+    partes: [{ t: "Lo que entra y lo que sale", f: "lec_entrada_salida_2.mp4", s: 26 }],
+  },
+  estados_materia: {
+    auto: "lec_estados_materia.mp4",
+    partes: [{ t: "Los estados de la materia", f: "lec_estados_materia.mp4", s: 26 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
