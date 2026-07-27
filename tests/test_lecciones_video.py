@@ -108,17 +108,6 @@ VIDEO_PENDIENTE = {
 
     # Las 20 que quedaban sin mini-lección, escritas el 26-jul. Mismo motivo: el
     # texto ya está en el player, el video espera crédito de ElevenLabs.
-    "adivina_figura",
-    "america_1492_4",
-    "animales_cobertura",
-    "antes_y_hoy",
-    "artesanal_industrial",
-    "calculo_redondo",
-    "campo_a_casa",
-    "causas_revolucion_5",
-    "circuito_alimento",
-    "debate_mayo_5",
-    "derechos_escenarios",
     "forma_redondo",
     "linea_siglo_xx",
     "linterna_magica",

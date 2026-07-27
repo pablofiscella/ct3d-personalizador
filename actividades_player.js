@@ -3944,6 +3944,50 @@ const COMO_ES_VIDEO = {
     auto: "lec_unitario_federal_5.mp4",
     partes: [{ t: "Unitarios y federales", f: "lec_unitario_federal_5.mp4", s: 32 }],
   },
+  adivina_figura: {
+    auto: "lec_adivina_figura.mp4",
+    partes: [{ t: "Reconocer una figura por sus partes", f: "lec_adivina_figura.mp4", s: 36 }],
+  },
+  america_1492_4: {
+    auto: "lec_america_1492_4.mp4",
+    partes: [{ t: "Los pueblos de América antes de 1492", f: "lec_america_1492_4.mp4", s: 43 }],
+  },
+  animales_cobertura: {
+    auto: "lec_animales_cobertura.mp4",
+    partes: [{ t: "Pelos, plumas y escamas", f: "lec_animales_cobertura.mp4", s: 27 }],
+  },
+  antes_y_hoy: {
+    auto: "lec_antes_y_hoy.mp4",
+    partes: [{ t: "Lo que cambió y lo que sigue igual", f: "lec_antes_y_hoy.mp4", s: 27 }],
+  },
+  artesanal_industrial: {
+    auto: "lec_artesanal_industrial.mp4",
+    partes: [{ t: "Artesanal e industrial", f: "lec_artesanal_industrial.mp4", s: 28 }],
+  },
+  calculo_redondo: {
+    auto: "lec_calculo_redondo.mp4",
+    partes: [{ t: "Sumar de a columnas", f: "lec_calculo_redondo.mp4", s: 35 }],
+  },
+  campo_a_casa: {
+    auto: "lec_campo_a_casa.mp4",
+    partes: [{ t: "Cómo llega la comida a tu casa", f: "lec_campo_a_casa.mp4", s: 28 }],
+  },
+  causas_revolucion_5: {
+    auto: "lec_causas_revolucion_5.mp4",
+    partes: [{ t: "Causas internas y externas", f: "lec_causas_revolucion_5.mp4", s: 27 }],
+  },
+  circuito_alimento: {
+    auto: "lec_circuito_alimento.mp4",
+    partes: [{ t: "El circuito productivo", f: "lec_circuito_alimento.mp4", s: 34 }],
+  },
+  debate_mayo_5: {
+    auto: "lec_debate_mayo_5.mp4",
+    partes: [{ t: "Moreno y Saavedra", f: "lec_debate_mayo_5.mp4", s: 31 }],
+  },
+  derechos_escenarios: {
+    auto: "lec_derechos_escenarios.mp4",
+    partes: [{ t: "Reconocer qué derecho no se respeta", f: "lec_derechos_escenarios.mp4", s: 34 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
