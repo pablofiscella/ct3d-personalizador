@@ -93,21 +93,9 @@ VIDEO_PENDIENTE = {
     # acá entran las 70 mini-lecciones nuevas de 7° y las que el cuaderno de esa edad
     # ya tenía sin video (potencias, ecuaciones, proporcionalidad, homófonos…), que
     # nadie miraba porque el test llegaba sólo hasta la edad 11.
-    "derechos_94_7",
     "divisibilidad_7",
-    "homofonos",
     "ingles_verbos_7",
     "linea_siglo_xx_7",
-    "mcm_dcm_7",
-    "metafora_sinecdoque_7",
-    "migraciones_7",
-    "modos_verbales_7",
-    "movimientos_tierra_7",
-    "multiplicar_fracciones_7",
-    "narrador_7",
-    "numeracion_7",
-    "ortografia_7",
-    "persuasion_7",
     "potencias",
     "potencias_7",
     "presupuesto_inflacion_7",

@@ -3460,6 +3460,54 @@ const COMO_ES_VIDEO = {
     auto: "lec_media_mediana_moda_7.mp4",
     partes: [{ t: "Media, mediana y moda", f: "lec_media_mediana_moda_7.mp4", s: 40 }],
   },
+  derechos_94_7: {
+    auto: "lec_derechos_94_7.mp4",
+    partes: [{ t: "Los derechos que sumó la reforma del 94", f: "lec_derechos_94_7.mp4", s: 44 }],
+  },
+  homofonos: {
+    auto: "lec_homofonos.mp4",
+    partes: [{ t: "Palabras que suenan igual", f: "lec_homofonos.mp4", s: 29 }],
+  },
+  mcm_dcm_7: {
+    auto: "lec_mcm_dcm_7.mp4",
+    partes: [{ t: "mcm y DCM: cuál pide el problema", f: "lec_mcm_dcm_7.mp4", s: 30 }],
+  },
+  metafora_sinecdoque_7: {
+    auto: "lec_metafora_sinecdoque_7.mp4",
+    partes: [{ t: "Metáfora, sinécdoque y yo poético", f: "lec_metafora_sinecdoque_7.mp4", s: 36 }],
+  },
+  migraciones_7: {
+    auto: "lec_migraciones_7.mp4",
+    partes: [{ t: "Por qué se migra", f: "lec_migraciones_7.mp4", s: 33 }],
+  },
+  modos_verbales_7: {
+    auto: "lec_modos_verbales_7.mp4",
+    partes: [{ t: "Indicativo, subjuntivo e imperativo", f: "lec_modos_verbales_7.mp4", s: 34 }],
+  },
+  movimientos_tierra_7: {
+    auto: "lec_movimientos_tierra_7.mp4",
+    partes: [{ t: "Rotación, traslación y fases", f: "lec_movimientos_tierra_7.mp4", s: 31 }],
+  },
+  multiplicar_fracciones_7: {
+    auto: "lec_multiplicar_fracciones_7.mp4",
+    partes: [{ t: "Multiplicar y dividir fracciones", f: "lec_multiplicar_fracciones_7.mp4", s: 35 }],
+  },
+  narrador_7: {
+    auto: "lec_narrador_7.mp4",
+    partes: [{ t: "Quién cuenta la historia", f: "lec_narrador_7.mp4", s: 29 }],
+  },
+  numeracion_7: {
+    auto: "lec_numeracion_7.mp4",
+    partes: [{ t: "Valor posicional y sexagesimal", f: "lec_numeracion_7.mp4", s: 36 }],
+  },
+  ortografia_7: {
+    auto: "lec_ortografia_7.mp4",
+    partes: [{ t: "Los tres frentes de la ortografía", f: "lec_ortografia_7.mp4", s: 45 }],
+  },
+  persuasion_7: {
+    auto: "lec_persuasion_7.mp4",
+    partes: [{ t: "Cómo te quiere convencer una publicidad", f: "lec_persuasion_7.mp4", s: 33 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
