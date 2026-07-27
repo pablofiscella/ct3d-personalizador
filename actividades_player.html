@@ -267,8 +267,12 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 
 /* fila de opciones (respuestas grandes) */
 .ops { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-top: 16px; }
+/* `padding` y `max-width`: el botón nació para EMOJIS de 38px, donde el ancho
+   mínimo alcanzaba. Con palabras —«school» en Inglés— el texto medía 95px en un
+   botón de 92 y quedaba pegado a los bordes, sin aire. */
 .op {
   min-width: 92px; min-height: 84px; font-size: 38px; border: none; cursor: pointer;
+  padding: 8px 18px; max-width: 100%; overflow-wrap: anywhere;
   background: var(--card); color: var(--ink); border-radius: 22px; box-shadow: var(--sombra);
   font-family: "Baloo", sans-serif; display: flex; align-items: center; justify-content: center;
   transition: transform .12s ease;
