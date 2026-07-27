@@ -166,6 +166,14 @@ button.pill:active, a.pill:active { transform: scale(.94); }
   box-shadow: var(--sombra);
 }
 .carta.repaso { outline: 4px solid var(--ac2); outline-offset: 1px; }
+/* ESI (26-jul-2026): la familia tiene que poder ver venir el contenido, no que la
+   sorprenda. La barra es tocable —abre la nota— y la marca 👪 va en cada tarjeta. */
+.esi-aviso { border: none; cursor: pointer; width: 100%; font: inherit;
+  font-family: "Baloo", sans-serif; font-size: 15px; background: #6b5bd2; }
+.carta .esi-marca {
+  position: absolute; bottom: -6px; left: -6px; font-size: 19px;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,.18));
+}
 .carta.repaso .mini-est { color: var(--ac2); font-weight: 700; letter-spacing: 0; }
 .carta .chip {
   position: absolute; top: -8px; right: -6px; font-size: 24px;
