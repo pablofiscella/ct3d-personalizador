@@ -3700,6 +3700,58 @@ const COMO_ES_VIDEO = {
     auto: "lec_efecto_invernadero_6.mp4",
     partes: [{ t: "Efecto invernadero y qué hacer", f: "lec_efecto_invernadero_6.mp4", s: 31 }],
   },
+  escalas_ambientales_6: {
+    auto: "lec_escalas_ambientales_6.mp4",
+    partes: [{ t: "A qué escala está el problema", f: "lec_escalas_ambientales_6.mp4", s: 30 }],
+  },
+  estado_agroexportacion_6: {
+    auto: "lec_estado_agroexportacion_6.mp4",
+    partes: [{ t: "El modelo agroexportador", f: "lec_estado_agroexportacion_6.mp4", s: 29 }],
+  },
+  etapas_diseno_6: {
+    auto: "lec_etapas_diseno_6.mp4",
+    partes: [{ t: "Las cinco etapas del diseño", f: "lec_etapas_diseno_6.mp4", s: 37 }],
+  },
+  fraccion_cantidad_6: {
+    auto: "lec_fraccion_cantidad_6.mp4",
+    partes: [{ t: "Sacar una fracción de una cantidad", f: "lec_fraccion_cantidad_6.mp4", s: 32 }],
+  },
+  fraccion_de_cantidad: {
+    auto: "lec_fraccion_de_cantidad.mp4",
+    partes: [{ t: "La fracción de una cantidad", f: "lec_fraccion_de_cantidad.mp4", s: 20 }],
+  },
+  fraccion_inversa_6: {
+    auto: "lec_fraccion_inversa_6.mp4",
+    partes: [{ t: "La fracción dada vuelta", f: "lec_fraccion_inversa_6.mp4", s: 32 }],
+  },
+  fracciones_equivalentes_6: {
+    auto: "lec_fracciones_equivalentes_6.mp4",
+    partes: [{ t: "Fracciones que valen lo mismo", f: "lec_fracciones_equivalentes_6.mp4", s: 38 }],
+  },
+  fuente_confiable_6: {
+    auto: "lec_fuente_confiable_6.mp4",
+    partes: [{ t: "Cuándo confiar en una fuente", f: "lec_fuente_confiable_6.mp4", s: 27 }],
+  },
+  gran_guerra_crisis_6: {
+    auto: "lec_gran_guerra_crisis_6.mp4",
+    partes: [{ t: "La guerra, la crisis y su llegada acá", f: "lec_gran_guerra_crisis_6.mp4", s: 34 }],
+  },
+  hechos_opiniones: {
+    auto: "lec_hechos_opiniones.mp4",
+    partes: [{ t: "Hecho u opinión", f: "lec_hechos_opiniones.mp4", s: 25 }],
+  },
+  heliocentrismo_6: {
+    auto: "lec_heliocentrismo_6.mp4",
+    partes: [{ t: "Del geocentrismo al heliocentrismo", f: "lec_heliocentrismo_6.mp4", s: 34 }],
+  },
+  idea_principal_6: {
+    auto: "lec_idea_principal_6.mp4",
+    partes: [{ t: "Lo central y lo que acompaña", f: "lec_idea_principal_6.mp4", s: 29 }],
+  },
+  inmigracion_censos_6: {
+    auto: "lec_inmigracion_censos_6.mp4",
+    partes: [{ t: "Inmigración y cómo se lee un censo", f: "lec_inmigracion_censos_6.mp4", s: 33 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
