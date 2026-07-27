@@ -4168,6 +4168,54 @@ const COMO_ES_VIDEO = {
     auto: "lec_mb_nv_h_2.mp4",
     partes: [{ t: "mb, nv y la hache", f: "lec_mb_nv_h_2.mp4", s: 26 }],
   },
+  medir_clips_1: {
+    auto: "lec_medir_clips_1.mp4",
+    partes: [{ t: "Medir con lo que tengas", f: "lec_medir_clips_1.mp4", s: 22 }],
+  },
+  medir_regla_2: {
+    auto: "lec_medir_regla_2.mp4",
+    partes: [{ t: "Medir con la regla", f: "lec_medir_regla_2.mp4", s: 24 }],
+  },
+  multiplicacion_concepto: {
+    auto: "lec_multiplicacion_concepto.mp4",
+    partes: [{ t: "Qué es multiplicar", f: "lec_multiplicacion_concepto.mp4", s: 24 }],
+  },
+  mundo_digital_3: {
+    auto: "lec_mundo_digital_3.mp4",
+    partes: [{ t: "Entra, se procesa y sale", f: "lec_mundo_digital_3.mp4", s: 21 }],
+  },
+  oficios_1: {
+    auto: "lec_oficios_1.mp4",
+    partes: [{ t: "Cada trabajo, su herramienta", f: "lec_oficios_1.mp4", s: 15 }],
+  },
+  orden_alfabetico: {
+    auto: "lec_orden_alfabetico.mp4",
+    partes: [{ t: "Ordenar de la A a la Z", f: "lec_orden_alfabetico.mp4", s: 23 }],
+  },
+  ordenar_cuento_1: {
+    auto: "lec_ordenar_cuento_1.mp4",
+    partes: [{ t: "Primero, después y al final", f: "lec_ordenar_cuento_1.mp4", s: 14 }],
+  },
+  ordenar_relato_2: {
+    auto: "lec_ordenar_relato_2.mp4",
+    partes: [{ t: "Contar en orden", f: "lec_ordenar_relato_2.mp4", s: 23 }],
+  },
+  parejas_cien_2: {
+    auto: "lec_parejas_cien_2.mp4",
+    partes: [{ t: "Parejas que llegan al total", f: "lec_parejas_cien_2.mp4", s: 17 }],
+  },
+  parejas_diez_1: {
+    auto: "lec_parejas_diez_1.mp4",
+    partes: [{ t: "Parejas que llegan al total", f: "lec_parejas_diez_1.mp4", s: 14 }],
+  },
+  parejas_letras_1: {
+    auto: "lec_parejas_letras_1.mp4",
+    partes: [{ t: "La misma letra, grande y chiquita", f: "lec_parejas_letras_1.mp4", s: 17 }],
+  },
+  parejas_mil_3: {
+    auto: "lec_parejas_mil_3.mp4",
+    partes: [{ t: "Parejas que llegan al total", f: "lec_parejas_mil_3.mp4", s: 17 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }

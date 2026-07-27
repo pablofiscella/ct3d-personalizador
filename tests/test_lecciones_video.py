@@ -109,18 +109,6 @@ VIDEO_PENDIENTE = {
     # texto ya está en el player, el video espera crédito de ElevenLabs.
 
     # 1°, 2° y 3° — mini-lecciones nuevas, video pendiente (26-jul-2026)
-    "medir_clips_1",
-    "medir_regla_2",
-    "multiplicacion_concepto",
-    "mundo_digital_3",
-    "oficios_1",
-    "orden_alfabetico",
-    "ordenar_cuento_1",
-    "ordenar_relato_2",
-    "parejas_cien_2",
-    "parejas_diez_1",
-    "parejas_letras_1",
-    "parejas_mil_3",
     "pares_minimos_2",
     "partes_oracion",
     "pasos_orden_1",
