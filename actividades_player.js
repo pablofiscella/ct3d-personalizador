@@ -4309,6 +4309,38 @@ const COMO_ES_VIDEO = {
     auto: "lec_tiempo_verbo.mp4",
     partes: [{ t: "Pasado, presente y futuro", f: "lec_tiempo_verbo.mp4", s: 21 }],
   },
+  resta_columnas: {
+    auto: "lec_resta_columnas.mp4",
+    partes: [{ t: "Restar en columna (con canje)", f: "lec_resta_columnas.mp4", s: 34 }],
+  },
+  salud_2: {
+    auto: "lec_salud_2.mp4",
+    partes: [{ t: "Lo que se contagia y lo que no", f: "lec_salud_2.mp4", s: 28 }],
+  },
+  tiempos_verbales: {
+    auto: "lec_tiempos_verbales.mp4",
+    partes: [{ t: "Los tiempos del verbo", f: "lec_tiempos_verbales.mp4", s: 28 }],
+  },
+  tipos_de_texto: {
+    auto: "lec_tipos_de_texto.mp4",
+    partes: [{ t: "Tipos de texto", f: "lec_tipos_de_texto.mp4", s: 33 }],
+  },
+  valor_posicional: {
+    auto: "lec_valor_posicional.mp4",
+    partes: [{ t: "El valor de cada cifra", f: "lec_valor_posicional.mp4", s: 23 }],
+  },
+  vial_1: {
+    auto: "lec_vial_1.mp4",
+    partes: [{ t: "Cruzar seguro", f: "lec_vial_1.mp4", s: 19 }],
+  },
+  vial_2: {
+    auto: "lec_vial_2.mp4",
+    partes: [{ t: "En la calle", f: "lec_vial_2.mp4", s: 25 }],
+  },
+  vocabulario_2: {
+    auto: "lec_vocabulario_2.mp4",
+    partes: [{ t: "Palabras nuevas", f: "lec_vocabulario_2.mp4", s: 20 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }

@@ -109,14 +109,6 @@ VIDEO_PENDIENTE = {
     # texto ya está en el player, el video espera crédito de ElevenLabs.
 
     # 1°, 2° y 3° — mini-lecciones nuevas, video pendiente (26-jul-2026)
-    "resta_columnas",
-    "salud_2",
-    "tiempos_verbales",
-    "tipos_de_texto",
-    "valor_posicional",
-    "vial_1",
-    "vial_2",
-    "vocabulario_2",
 }
 
 
