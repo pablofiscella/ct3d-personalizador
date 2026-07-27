@@ -4032,6 +4032,50 @@ const COMO_ES_VIDEO = {
     auto: "lec_agua_2.mp4",
     partes: [{ t: "El camino del agua", f: "lec_agua_2.mp4", s: 27 }],
   },
+  animales_2: {
+    auto: "lec_animales_2.mp4",
+    partes: [{ t: "Grupos de animales", f: "lec_animales_2.mp4", s: 22 }],
+  },
+  antes_ahora_1: {
+    auto: "lec_antes_ahora_1.mp4",
+    partes: [{ t: "Antes se hacía distinto", f: "lec_antes_ahora_1.mp4", s: 16 }],
+  },
+  armar_calculo_1: {
+    auto: "lec_armar_calculo_1.mp4",
+    partes: [{ t: "¿Sumo o resto?", f: "lec_armar_calculo_1.mp4", s: 20 }],
+  },
+  articulos_1: {
+    auto: "lec_articulos_1.mp4",
+    partes: [{ t: "El, la, los, las", f: "lec_articulos_1.mp4", s: 24 }],
+  },
+  bucle_2: {
+    auto: "lec_bucle_2.mp4",
+    partes: [{ t: "Repetir sin copiar", f: "lec_bucle_2.mp4", s: 29 }],
+  },
+  buscar_dato_2: {
+    auto: "lec_buscar_dato_2.mp4",
+    partes: [{ t: "Encontrar el dato", f: "lec_buscar_dato_2.mp4", s: 24 }],
+  },
+  calendario_1: {
+    auto: "lec_calendario_1.mp4",
+    partes: [{ t: "Los días y los meses", f: "lec_calendario_1.mp4", s: 23 }],
+  },
+  con_que_se_mueve_3: {
+    auto: "lec_con_que_se_mueve_3.mp4",
+    partes: [{ t: "De dónde sale el movimiento", f: "lec_con_que_se_mueve_3.mp4", s: 23 }],
+  },
+  condicional_2: {
+    auto: "lec_condicional_2.mp4",
+    partes: [{ t: "Si pasa esto, hacé aquello", f: "lec_condicional_2.mp4", s: 22 }],
+  },
+  conductor_aislante: {
+    auto: "lec_conductor_aislante.mp4",
+    partes: [{ t: "Conductores y aislantes", f: "lec_conductor_aislante.mp4", s: 24 }],
+  },
+  conectores_2: {
+    auto: "lec_conectores_2.mp4",
+    partes: [{ t: "Las palabritas que unen", f: "lec_conectores_2.mp4", s: 32 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }

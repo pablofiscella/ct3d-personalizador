@@ -110,17 +110,6 @@ VIDEO_PENDIENTE = {
     # texto ya está en el player, el video espera crédito de ElevenLabs.
 
     # 1°, 2° y 3° — mini-lecciones nuevas, video pendiente (26-jul-2026)
-    "animales_2",
-    "antes_ahora_1",
-    "armar_calculo_1",
-    "articulos_1",
-    "bucle_2",
-    "buscar_dato_2",
-    "calendario_1",
-    "con_que_se_mueve_3",
-    "condicional_2",
-    "conductor_aislante",
-    "conectores_2",
     "convivencia_2",
     "cuerpos_1",
     "cuerpos_geometricos",
