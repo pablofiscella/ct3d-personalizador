@@ -109,18 +109,8 @@ VIDEO_PENDIENTE = {
     # texto ya está en el player, el video espera crédito de ElevenLabs.
 
     # 1°, 2° y 3° — mini-lecciones nuevas, video pendiente (26-jul-2026)
-    "residuos_2",
     "resta_columnas",
     "salud_2",
-    "separar_palabras_2",
-    "signos_2",
-    "silaba_tonica",
-    "silabas_1",
-    "silabas_2",
-    "sinonimos_antonimos",
-    "suena_igual",
-    "sustantivos",
-    "tiempo_verbo",
     "tiempos_verbales",
     "tipos_de_texto",
     "valor_posicional",

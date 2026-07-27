@@ -4269,6 +4269,46 @@ const COMO_ES_VIDEO = {
     auto: "lec_residuos_1.mp4",
     partes: [{ t: "Reciclable o basura", f: "lec_residuos_1.mp4", s: 17 }],
   },
+  residuos_2: {
+    auto: "lec_residuos_2.mp4",
+    partes: [{ t: "Reciclable o basura", f: "lec_residuos_2.mp4", s: 24 }],
+  },
+  separar_palabras_2: {
+    auto: "lec_separar_palabras_2.mp4",
+    partes: [{ t: "Cada palabra por separado", f: "lec_separar_palabras_2.mp4", s: 23 }],
+  },
+  signos_2: {
+    auto: "lec_signos_2.mp4",
+    partes: [{ t: "Signos y mayúsculas", f: "lec_signos_2.mp4", s: 26 }],
+  },
+  silaba_tonica: {
+    auto: "lec_silaba_tonica.mp4",
+    partes: [{ t: "La sílaba que suena más fuerte", f: "lec_silaba_tonica.mp4", s: 24 }],
+  },
+  silabas_1: {
+    auto: "lec_silabas_1.mp4",
+    partes: [{ t: "Contar sílabas con palmas", f: "lec_silabas_1.mp4", s: 23 }],
+  },
+  silabas_2: {
+    auto: "lec_silabas_2.mp4",
+    partes: [{ t: "Sílabas y dígrafos", f: "lec_silabas_2.mp4", s: 27 }],
+  },
+  sinonimos_antonimos: {
+    auto: "lec_sinonimos_antonimos.mp4",
+    partes: [{ t: "Sinónimos y antónimos", f: "lec_sinonimos_antonimos.mp4", s: 24 }],
+  },
+  suena_igual: {
+    auto: "lec_suena_igual.mp4",
+    partes: [{ t: "Letras que suenan igual", f: "lec_suena_igual.mp4", s: 30 }],
+  },
+  sustantivos: {
+    auto: "lec_sustantivos.mp4",
+    partes: [{ t: "Los sustantivos", f: "lec_sustantivos.mp4", s: 30 }],
+  },
+  tiempo_verbo: {
+    auto: "lec_tiempo_verbo.mp4",
+    partes: [{ t: "Pasado, presente y futuro", f: "lec_tiempo_verbo.mp4", s: 21 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
