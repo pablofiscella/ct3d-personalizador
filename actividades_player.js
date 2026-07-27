@@ -3600,6 +3600,54 @@ const COMO_ES_VIDEO = {
     auto: "lec_transformar_energia_7.mp4",
     partes: [{ t: "Transformación y degradación", f: "lec_transformar_energia_7.mp4", s: 28 }],
   },
+  vacunas_7: {
+    auto: "lec_vacunas_7.mp4",
+    partes: [{ t: "Qué hace una vacuna", f: "lec_vacunas_7.mp4", s: 30 }],
+  },
+  area_fraccionaria_6: {
+    auto: "lec_area_fraccionaria_6.mp4",
+    partes: [{ t: "Multiplicar fracciones", f: "lec_area_fraccionaria_6.mp4", s: 33 }],
+  },
+  area_perimetro_6: {
+    auto: "lec_area_perimetro_6.mp4",
+    partes: [{ t: "Área y perímetro no van juntos", f: "lec_area_perimetro_6.mp4", s: 36 }],
+  },
+  bloques_codigo_6: {
+    auto: "lec_bloques_codigo_6.mp4",
+    partes: [{ t: "Bloques y código dicen lo mismo", f: "lec_bloques_codigo_6.mp4", s: 29 }],
+  },
+  chat_seguro_6: {
+    auto: "lec_chat_seguro_6.mp4",
+    partes: [{ t: "Cómo cuidarse en internet", f: "lec_chat_seguro_6.mp4", s: 36 }],
+  },
+  ciclo_menstrual_6: {
+    auto: "lec_ciclo_menstrual_6.mp4",
+    partes: [{ t: "Cómo funciona el ciclo", f: "lec_ciclo_menstrual_6.mp4", s: 37 }],
+  },
+  ciencia_ficcion_6: {
+    auto: "lec_ciencia_ficcion_6.mp4",
+    partes: [{ t: "Robot, androide y cyborg", f: "lec_ciencia_ficcion_6.mp4", s: 30 }],
+  },
+  cigoto_feto_6: {
+    auto: "lec_cigoto_feto_6.mp4",
+    partes: [{ t: "Del cigoto al feto", f: "lec_cigoto_feto_6.mp4", s: 30 }],
+  },
+  cohesion_6: {
+    auto: "lec_cohesion_6.mp4",
+    partes: [{ t: "No repetir la misma palabra", f: "lec_cohesion_6.mp4", s: 30 }],
+  },
+  comprension_lectora_6: {
+    auto: "lec_comprension_lectora_6.mp4",
+    partes: [{ t: "Deducir con las pistas del texto", f: "lec_comprension_lectora_6.mp4", s: 27 }],
+  },
+  conectores_6: {
+    auto: "lec_conectores_6.mp4",
+    partes: [{ t: "Qué relación arma cada conector", f: "lec_conectores_6.mp4", s: 34 }],
+  },
+  conjugacion_6: {
+    auto: "lec_conjugacion_6.mp4",
+    partes: [{ t: "Imperfecto y perfecto simple", f: "lec_conjugacion_6.mp4", s: 34 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }

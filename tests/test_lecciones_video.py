@@ -96,23 +96,11 @@ VIDEO_PENDIENTE = {
     "divisibilidad_7",
     "ingles_verbos_7",
     "linea_siglo_xx_7",
-    "vacunas_7",
 
     # 6° grado completo (26-jul-2026). El test pasó a cubrir la edad 11, así que
     # estas entran a la deuda declarada: incluye las 67 mini-lecciones nuevas de 6° y
     # las que el cuaderno de esa edad ya tenía sin video, que hasta ahora nadie miraba
     # porque el guardián sólo llegaba hasta la edad 10.
-    "area_fraccionaria_6",
-    "area_perimetro_6",
-    "bloques_codigo_6",
-    "chat_seguro_6",
-    "ciclo_menstrual_6",
-    "ciencia_ficcion_6",
-    "cigoto_feto_6",
-    "cohesion_6",
-    "comprension_lectora_6",
-    "conectores_6",
-    "conjugacion_6",
     "corredor_coma_6",
     "cuadrilateros",
     "cuadrilateros_6",
