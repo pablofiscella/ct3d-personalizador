@@ -3900,6 +3900,50 @@ const COMO_ES_VIDEO = {
     auto: "lec_suma_fracciones_6.mp4",
     partes: [{ t: "Sumar y restar fracciones", f: "lec_suma_fracciones_6.mp4", s: 39 }],
   },
+  tiempo_clima_6: {
+    auto: "lec_tiempo_clima_6.mp4",
+    partes: [{ t: "Tiempo y clima no son lo mismo", f: "lec_tiempo_clima_6.mp4", s: 27 }],
+  },
+  tres_poderes_6: {
+    auto: "lec_tres_poderes_6.mp4",
+    partes: [{ t: "Qué hace cada poder", f: "lec_tres_poderes_6.mp4", s: 36 }],
+  },
+  voto_6: {
+    auto: "lec_voto_6.mp4",
+    partes: [{ t: "Cómo cambió el voto", f: "lec_voto_6.mp4", s: 33 }],
+  },
+  club_lectura_5: {
+    auto: "lec_club_lectura_5.mp4",
+    partes: [{ t: "Deducir lo que el texto no dice", f: "lec_club_lectura_5.mp4", s: 27 }],
+  },
+  cuerpo_etapas_1: {
+    auto: "lec_cuerpo_etapas_1.mp4",
+    partes: [{ t: "Mi cuerpo y cómo cambia", f: "lec_cuerpo_etapas_1.mp4", s: 28 }],
+  },
+  eclipses_5: {
+    auto: "lec_eclipses_5.mp4",
+    partes: [{ t: "Fases de la Luna y eclipses", f: "lec_eclipses_5.mp4", s: 42 }],
+  },
+  geometria_5: {
+    auto: "lec_geometria_5.mp4",
+    partes: [{ t: "¿Se puede armar ese triángulo?", f: "lec_geometria_5.mp4", s: 33 }],
+  },
+  planta_partes_1: {
+    auto: "lec_planta_partes_1.mp4",
+    partes: [{ t: "Qué hace cada parte de la planta", f: "lec_planta_partes_1.mp4", s: 22 }],
+  },
+  recta_millon_5: {
+    auto: "lec_recta_millon_5.mp4",
+    partes: [{ t: "Números hasta el millón", f: "lec_recta_millon_5.mp4", s: 35 }],
+  },
+  recursos_5: {
+    auto: "lec_recursos_5.mp4",
+    partes: [{ t: "Los tipos de recursos", f: "lec_recursos_5.mp4", s: 35 }],
+  },
+  unitario_federal_5: {
+    auto: "lec_unitario_federal_5.mp4",
+    partes: [{ t: "Unitarios y federales", f: "lec_unitario_federal_5.mp4", s: 32 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }

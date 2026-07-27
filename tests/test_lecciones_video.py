@@ -101,21 +101,10 @@ VIDEO_PENDIENTE = {
     # porque el guardián sólo llegaba hasta la edad 10.
     "cuadrilateros_6",
     "pronombres_6",
-    "tiempo_clima_6",
     "tildes_6",
-    "tres_poderes_6",
-    "voto_6",
 
     # Cierre de las 9 deudas del manifiesto de cobertura (26-jul-2026). El video
     # quedó pendiente por falta de crédito de ElevenLabs, no por decisión de diseño.
-    "club_lectura_5",
-    "cuerpo_etapas_1",
-    "eclipses_5",
-    "geometria_5",
-    "planta_partes_1",
-    "recta_millon_5",
-    "recursos_5",
-    "unitario_federal_5",
 
     # Las 20 que quedaban sin mini-lección, escritas el 26-jul. Mismo motivo: el
     # texto ya está en el player, el video espera crédito de ElevenLabs.
