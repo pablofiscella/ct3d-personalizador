@@ -3852,6 +3852,54 @@ const COMO_ES_VIDEO = {
     auto: "lec_pubertad_6.mp4",
     partes: [{ t: "Qué pasa en la pubertad", f: "lec_pubertad_6.mp4", s: 28 }],
   },
+  puntuacion_6: {
+    auto: "lec_puntuacion_6.mp4",
+    partes: [{ t: "Qué hace cada signo", f: "lec_puntuacion_6.mp4", s: 34 }],
+  },
+  reconstruir_division_6: {
+    auto: "lec_reconstruir_division_6.mp4",
+    partes: [{ t: "Dividendo, divisor, cociente y resto", f: "lec_reconstruir_division_6.mp4", s: 28 }],
+  },
+  recursos_poeticos_6: {
+    auto: "lec_recursos_poeticos_6.mp4",
+    partes: [{ t: "Los recursos del poema", f: "lec_recursos_poeticos_6.mp4", s: 32 }],
+  },
+  red_ecosistema_6: {
+    auto: "lec_red_ecosistema_6.mp4",
+    partes: [{ t: "Quién fabrica y quién consume", f: "lec_red_ecosistema_6.mp4", s: 30 }],
+  },
+  relato_policial_6: {
+    auto: "lec_relato_policial_6.mp4",
+    partes: [{ t: "Cómo se arma un policial", f: "lec_relato_policial_6.mp4", s: 27 }],
+  },
+  revolucion_industrial_6: {
+    auto: "lec_revolucion_industrial_6.mp4",
+    partes: [{ t: "Las dos revoluciones industriales", f: "lec_revolucion_industrial_6.mp4", s: 33 }],
+  },
+  roles_niveles_6: {
+    auto: "lec_roles_niveles_6.mp4",
+    partes: [{ t: "Los tres roles de la red", f: "lec_roles_niveles_6.mp4", s: 34 }],
+  },
+  secuencial_condicional_6: {
+    auto: "lec_secuencial_condicional_6.mp4",
+    partes: [{ t: "Secuencia, condición y repetición", f: "lec_secuencial_condicional_6.mp4", s: 35 }],
+  },
+  sensores_6: {
+    auto: "lec_sensores_6.mp4",
+    partes: [{ t: "Sensores, actuadores y control", f: "lec_sensores_6.mp4", s: 33 }],
+  },
+  sintagma_6: {
+    auto: "lec_sintagma_6.mp4",
+    partes: [{ t: "El núcleo y lo que lo acompaña", f: "lec_sintagma_6.mp4", s: 33 }],
+  },
+  suma_angulos: {
+    auto: "lec_suma_angulos.mp4",
+    partes: [{ t: "Los ángulos de un triángulo", f: "lec_suma_angulos.mp4", s: 28 }],
+  },
+  suma_fracciones_6: {
+    auto: "lec_suma_fracciones_6.mp4",
+    partes: [{ t: "Sumar y restar fracciones", f: "lec_suma_fracciones_6.mp4", s: 39 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
