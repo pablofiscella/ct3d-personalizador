@@ -3500,9 +3500,14 @@ const COMO_ES_VIDEO = {
     auto: "lec_numeracion_7.mp4",
     partes: [{ t: "Valor posicional y sexagesimal", f: "lec_numeracion_7.mp4", s: 36 }],
   },
+  // partida en dos: entera daba 45,0 s y el tope son 45. Los dos cortes salen de
+  // los MISMOS clips, así que partirla no costó créditos nuevos.
   ortografia_7: {
-    auto: "lec_ortografia_7.mp4",
-    partes: [{ t: "Los tres frentes de la ortografía", f: "lec_ortografia_7.mp4", s: 45 }],
+    auto: "lec_ortografia_7_a.mp4",
+    partes: [
+      { t: "Tildación y reglas de letras", f: "lec_ortografia_7_a.mp4", s: 21 },
+      { t: "Homófonos", f: "lec_ortografia_7_b.mp4", s: 23 },
+    ],
   },
   persuasion_7: {
     auto: "lec_persuasion_7.mp4",
