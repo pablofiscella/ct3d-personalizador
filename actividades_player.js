@@ -4052,6 +4052,70 @@ function _adaptCSS() {
   document.head.appendChild(s);
 }
 
+/* ── AVISO DE ESI A LA FAMILIA (26-jul-2026) ────────────────────────────────────
+   Pedido explícito de la maestra en la auditoría de 6°: "evitar la sorpresa de
+   'ciclo menstrual' y 'métodos' sin aviso". El contenido de Educación Sexual
+   Integral es currícula obligatoria (Ley 26.150) y por eso NO se oculta ni se
+   gatea — pero la familia tiene que poder verlo venir.
+
+   Tres señales, de menor a mayor: una barra arriba del menú del grado que lo
+   tiene, un 👪 en cada tarjeta de ESI, y la nota completa una vez, la primera vez
+   que se abre una de esas actividades. Después queda disponible en la barra.
+
+   NO bloquea: el chico toca "Empezar" y entra igual. Avisar no es censurar. */
+const ESI_IDS = new Set([
+  // 6°
+  "pubertad_6", "ciclo_menstrual_6", "cigoto_feto_6", "chat_seguro_6", "its_violencia_6",
+  // 7°
+  "reproductor_7", "anticoncepcion_7", "alerta_en_linea_7",
+  // el juego de 7° que ya existía antes del catálogo curricular
+  "sistema_reproductor",
+]);
+
+function _esiVistoKey() {
+  return "ct3d_esi_visto::" + location.pathname.replace(/\/$/, "") +
+         "::" + (Store.data.activeProfile || "");
+}
+
+/* Muestra la nota. `alContinuar` sólo viene cuando la dispara abrir una actividad:
+   ahí el botón dice "Empezar" y sigue al juego. Desde la barra, sólo cierra. */
+function notaESI(alContinuar) {
+  try { localStorage.setItem(_esiVistoKey(), "1"); } catch (e) {}
+  const ov = el("div");
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px";
+  const caja = el("div");
+  caja.style.cssText = "background:#fff;color:#2b2b2b;max-width:560px;width:100%;max-height:88vh;overflow:auto;border-radius:22px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.4)";
+  caja.innerHTML =
+    `<h2 style="margin:0 0 10px;font-size:23px">👪 Una nota para la familia</h2>
+     <p style="margin:0 0 12px;font-size:15px;line-height:1.5">
+       Este cuaderno incluye actividades de <b>Educación Sexual Integral (ESI)</b>.
+       No es contenido extra ni opcional: es parte del programa oficial de la escuela
+       y está en la currícula de este grado por la <b>Ley 26.150</b>.</p>
+     <p style="margin:0 0 12px;font-size:15px;line-height:1.5">
+       Según el grado, los temas son el <b>cuidado del cuerpo y la pubertad</b>, el
+       <b>ciclo menstrual</b>, la <b>reproducción y el desarrollo</b>, los
+       <b>métodos de prevención</b>, y el <b>cuidado en internet</b>, incluido qué
+       hacer si un adulto desconocido lo contacta.</p>
+     <p style="margin:0 0 12px;font-size:15px;line-height:1.5">
+       Está escrito con lenguaje preciso y sin rodeos, porque nombrar bien las
+       partes del cuerpo es parte del cuidado. Lo de internet está planteado como
+       <b>protección</b>: reconocer la señal, que la culpa nunca es del chico, y a
+       quién avisar.</p>
+     <p style="margin:0 0 16px;font-size:15px;line-height:1.5;background:#f3f8ff;border-radius:12px;padding:12px">
+       💬 <b>Lo mejor es acompañarlo.</b> Si aparece una pregunta que no sabés cómo
+       contestar, no pasa nada: se puede consultar en cualquier centro de salud, y
+       para chicos y adolescentes la atención es <b>gratuita y confidencial</b>.</p>
+     <p style="font-size:12px;opacity:.6;margin:0 0 14px">
+       Estas actividades están marcadas con 👪 en el menú. Podés volver a leer esta
+       nota cuando quieras desde el aviso de arriba.</p>
+     <button id="esiOk" style="width:100%;padding:13px;border:none;border-radius:12px;background:var(--ac,#4aa3df);color:#fff;font-weight:800;font-size:16px;cursor:pointer">${alContinuar ? "Empezar" : "Entendido"}</button>`;
+  ov.appendChild(caja); document.body.appendChild(ov);
+  const cerrar = () => { ov.remove(); if (alContinuar) alContinuar(); };
+  caja.querySelector("#esiOk").addEventListener("click", cerrar);
+  // clic afuera cierra, pero NO arranca el juego: si la familia salió, salió
+  ov.addEventListener("click", (e) => { if (e.target === ov) ov.remove(); });
+}
+
 function pintarMenuPlano(items, stage) {
   Shell.actual = null;
   if (!stage) {
@@ -4078,6 +4142,15 @@ function pintarMenuPlano(items, stage) {
   const adaptOn = !!(D.adaptativo_on && typeof Adapt !== "undefined");
   const visibles = items.filter((m) => GAMES[m.id] && P.length >= (GAMES[m.id].minP || 0));
 
+  // Aviso de ESI: va arriba del menú del grado que lo tiene, y en las DOS ramas
+  // (con y sin motor adaptativo), porque las actividades curriculares aparecen igual.
+  if (visibles.some((m) => ESI_IDS.has(m.id))) {
+    const av = el("button", "repaso-nota esi-aviso",
+      "👪 Este cuaderno tiene contenido de Educación Sexual Integral — tocá para leer la nota para la familia");
+    av.addEventListener("click", () => notaESI());
+    stage.appendChild(av);
+  }
+
   const hacerCarta = (m, i) => {
     const st = Store.stars(m.id);
     const sello = Store.sello(m.id);           // Capa 0 · sello sostenido
@@ -4102,7 +4175,20 @@ function pintarMenuPlano(items, stage) {
       <div class="nombre">${m.titulo}</div>
       <div class="mini-est">${est}</div>
       ${conSprite ? `<div class="chip">${m.icono}</div>` : ""}`;
-    c.addEventListener("click", () => { Sfx.pop(); Shell.abrir(m.id); });
+    // ESI: marca en la tarjeta + la nota completa la primera vez que se abre una.
+    // No bloquea nada — después de leerla, el botón "Empezar" sigue al juego.
+    const esEsi = ESI_IDS.has(m.id);
+    if (esEsi) {
+      c.classList.add("esi");
+      c.insertAdjacentHTML("beforeend", '<div class="esi-marca" title="Educación Sexual Integral">👪</div>');
+    }
+    c.addEventListener("click", () => {
+      Sfx.pop();
+      let visto = true;
+      try { visto = localStorage.getItem(_esiVistoKey()) === "1"; } catch (e) {}
+      if (esEsi && !visto) notaESI(() => Shell.abrir(m.id));
+      else Shell.abrir(m.id);
+    });
     return c;
   };
 
