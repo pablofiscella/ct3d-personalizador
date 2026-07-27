@@ -3308,6 +3308,919 @@ const COMO_ES_VIDEO = {
     partes: [{ t: "Cada residuo a su lugar", f: "lec_compost_3.mp4", s: 29 }],
   },
 
+  primos_6: {
+    auto: "lec_primos_6.mp4",
+    partes: [{ t: "Primos y compuestos", f: "lec_primos_6.mp4", s: 36 }],
+  },
+  alerta_en_linea_7: {
+    auto: "lec_alerta_en_linea_7.mp4",
+    partes: [{ t: "Señales de alerta en línea", f: "lec_alerta_en_linea_7.mp4", s: 36 }],
+  },
+  ambiguedad_7: {
+    auto: "lec_ambiguedad_7.mp4",
+    partes: [{ t: "Cuando la frase se entiende de dos maneras", f: "lec_ambiguedad_7.mp4", s: 26 }],
+  },
+  analisis_sintactico_7: {
+    auto: "lec_analisis_sintactico_7.mp4",
+    partes: [{ t: "Analizar la oración completa", f: "lec_analisis_sintactico_7.mp4", s: 29 }],
+  },
+  anticoncepcion_7: {
+    auto: "lec_anticoncepcion_7.mp4",
+    partes: [{ t: "Prevención: qué previene cada cosa", f: "lec_anticoncepcion_7.mp4", s: 40 }],
+  },
+  area_perimetro: {
+    auto: "lec_area_perimetro.mp4",
+    partes: [{ t: "Perímetro y área", f: "lec_area_perimetro.mp4", s: 32 }],
+  },
+  areas_7: {
+    auto: "lec_areas_7.mp4",
+    partes: [{ t: "Áreas de las figuras planas", f: "lec_areas_7.mp4", s: 36 }],
+  },
+  bandos_siglo_xx_7: {
+    auto: "lec_bandos_siglo_xx_7.mp4",
+    partes: [{ t: "Segunda Guerra y Guerra Fría", f: "lec_bandos_siglo_xx_7.mp4", s: 41 }],
+  },
+  billetera_7: {
+    auto: "lec_billetera_7.mp4",
+    partes: [{ t: "Ahorro, deuda e inversión", f: "lec_billetera_7.mp4", s: 33 }],
+  },
+  cadena_productiva_7: {
+    auto: "lec_cadena_productiva_7.mp4",
+    partes: [{ t: "Cadenas productivas y regiones", f: "lec_cadena_productiva_7.mp4", s: 34 }],
+  },
+  capas_red_7: {
+    auto: "lec_capas_red_7.mp4",
+    partes: [{ t: "Cómo está armada internet", f: "lec_capas_red_7.mp4", s: 34 }],
+  },
+  central_enchufe_7: {
+    auto: "lec_central_enchufe_7.mp4",
+    partes: [{ t: "Cómo llega la luz al enchufe", f: "lec_central_enchufe_7.mp4", s: 30 }],
+  },
+  comunicacion_tiempo_7: {
+    auto: "lec_comunicacion_tiempo_7.mp4",
+    partes: [{ t: "Ordenar la historia de la comunicación", f: "lec_comunicacion_tiempo_7.mp4", s: 31 }],
+  },
+  consumo_consumismo_7: {
+    auto: "lec_consumo_consumismo_7.mp4",
+    partes: [{ t: "Consumo, consumismo y consumo problemático", f: "lec_consumo_consumismo_7.mp4", s: 36 }],
+  },
+  cronica_7: {
+    auto: "lec_cronica_7.mp4",
+    partes: [{ t: "Noticia, crónica y discurso referido", f: "lec_cronica_7.mp4", s: 32 }],
+  },
+  dataset_sesgado_7: {
+    auto: "lec_dataset_sesgado_7.mp4",
+    partes: [{ t: "Una IA aprende de sus datos", f: "lec_dataset_sesgado_7.mp4", s: 33 }],
+  },
+  decimales_periodo_7: {
+    auto: "lec_decimales_periodo_7.mp4",
+    partes: [{ t: "Decimales exactos y periódicos", f: "lec_decimales_periodo_7.mp4", s: 38 }],
+  },
+  democracia_argentina: {
+    auto: "lec_democracia_argentina.mp4",
+    partes: [{ t: "Qué es la democracia", f: "lec_democracia_argentina.mp4", s: 24 }],
+  },
+  democracia_dictadura_7: {
+    auto: "lec_democracia_dictadura_7.mp4",
+    partes: [{ t: "Democracia, dictadura y derechos humanos", f: "lec_democracia_dictadura_7.mp4", s: 43 }],
+  },
+  densidad_7: {
+    auto: "lec_densidad_7.mp4",
+    partes: [{ t: "Entre dos racionales siempre hay otro", f: "lec_densidad_7.mp4", s: 37 }],
+  },
+  derechos_trabajo: {
+    auto: "lec_derechos_trabajo.mp4",
+    partes: [{ t: "Derechos en el trabajo", f: "lec_derechos_trabajo.mp4", s: 26 }],
+  },
+  eclipses_universo_7: {
+    auto: "lec_eclipses_universo_7.mp4",
+    partes: [{ t: "Eclipses y escalas del universo", f: "lec_eclipses_universo_7.mp4", s: 31 }],
+  },
+  ecuaciones_simples: {
+    auto: "lec_ecuaciones_simples.mp4",
+    partes: [{ t: "Ecuaciones", f: "lec_ecuaciones_simples.mp4", s: 25 }],
+  },
+  eventos_paralelismo_7: {
+    auto: "lec_eventos_paralelismo_7.mp4",
+    partes: [{ t: "Eventos, condicionales y paralelismo", f: "lec_eventos_paralelismo_7.mp4", s: 33 }],
+  },
+  expresion_objetivo_7: {
+    auto: "lec_expresion_objetivo_7.mp4",
+    partes: [{ t: "Jerarquía y paréntesis", f: "lec_expresion_objetivo_7.mp4", s: 24 }],
+  },
+  flujo_energia_7: {
+    auto: "lec_flujo_energia_7.mp4",
+    partes: [{ t: "La energía fluye, la materia cicla", f: "lec_flujo_energia_7.mp4", s: 30 }],
+  },
+  fuente_licencias_7: {
+    auto: "lec_fuente_licencias_7.mp4",
+    partes: [{ t: "Verificar antes de compartir", f: "lec_fuente_licencias_7.mp4", s: 41 }],
+  },
+  fuentes_sustentables_7: {
+    auto: "lec_fuentes_sustentables_7.mp4",
+    partes: [{ t: "Renovable no es lo mismo que sin impacto", f: "lec_fuentes_sustentables_7.mp4", s: 38 }],
+  },
+  gobierno_ciudad_7: {
+    auto: "lec_gobierno_ciudad_7.mp4",
+    partes: [{ t: "Cómo se gobierna la Ciudad", f: "lec_gobierno_ciudad_7.mp4", s: 39 }],
+  },
+  hecho_opinion_argumento_7: {
+    auto: "lec_hecho_opinion_argumento_7.mp4",
+    partes: [{ t: "Hecho, opinión y argumento", f: "lec_hecho_opinion_argumento_7.mp4", s: 29 }],
+  },
+  historieta_7: {
+    auto: "lec_historieta_7.mp4",
+    partes: [{ t: "El lenguaje de la historieta", f: "lec_historieta_7.mp4", s: 33 }],
+  },
+  industria_40_7: {
+    auto: "lec_industria_40_7.mp4",
+    partes: [{ t: "Cómo cambió el modo de producir", f: "lec_industria_40_7.mp4", s: 31 }],
+  },
+  ingles_lectura_7: {
+    auto: "lec_ingles_lectura_7.mp4",
+    partes: [{ t: "Leer en inglés sin traducir todo", f: "lec_ingles_lectura_7.mp4", s: 34 }],
+  },
+  ingles_vocabulario_7: {
+    auto: "lec_ingles_vocabulario_7.mp4",
+    partes: [{ t: "Falsos amigos del inglés", f: "lec_ingles_vocabulario_7.mp4", s: 34 }],
+  },
+  inmune_7: {
+    auto: "lec_inmune_7.mp4",
+    partes: [{ t: "Cómo se defiende el cuerpo", f: "lec_inmune_7.mp4", s: 33 }],
+  },
+  leer_deducir_7: {
+    auto: "lec_leer_deducir_7.mp4",
+    partes: [{ t: "Leer un texto largo", f: "lec_leer_deducir_7.mp4", s: 32 }],
+  },
+  matriz_energetica_7: {
+    auto: "lec_matriz_energetica_7.mp4",
+    partes: [{ t: "Mitigar y adaptarse", f: "lec_matriz_energetica_7.mp4", s: 34 }],
+  },
+  media_mediana_moda_7: {
+    auto: "lec_media_mediana_moda_7.mp4",
+    partes: [{ t: "Media, mediana y moda", f: "lec_media_mediana_moda_7.mp4", s: 40 }],
+  },
+  derechos_94_7: {
+    auto: "lec_derechos_94_7.mp4",
+    partes: [{ t: "Los derechos que sumó la reforma del 94", f: "lec_derechos_94_7.mp4", s: 44 }],
+  },
+  homofonos: {
+    auto: "lec_homofonos.mp4",
+    partes: [{ t: "Palabras que suenan igual", f: "lec_homofonos.mp4", s: 29 }],
+  },
+  mcm_dcm_7: {
+    auto: "lec_mcm_dcm_7.mp4",
+    partes: [{ t: "mcm y DCM: cuál pide el problema", f: "lec_mcm_dcm_7.mp4", s: 30 }],
+  },
+  metafora_sinecdoque_7: {
+    auto: "lec_metafora_sinecdoque_7.mp4",
+    partes: [{ t: "Metáfora, sinécdoque y yo poético", f: "lec_metafora_sinecdoque_7.mp4", s: 36 }],
+  },
+  migraciones_7: {
+    auto: "lec_migraciones_7.mp4",
+    partes: [{ t: "Por qué se migra", f: "lec_migraciones_7.mp4", s: 33 }],
+  },
+  modos_verbales_7: {
+    auto: "lec_modos_verbales_7.mp4",
+    partes: [{ t: "Indicativo, subjuntivo e imperativo", f: "lec_modos_verbales_7.mp4", s: 34 }],
+  },
+  movimientos_tierra_7: {
+    auto: "lec_movimientos_tierra_7.mp4",
+    partes: [{ t: "Rotación, traslación y fases", f: "lec_movimientos_tierra_7.mp4", s: 31 }],
+  },
+  multiplicar_fracciones_7: {
+    auto: "lec_multiplicar_fracciones_7.mp4",
+    partes: [{ t: "Multiplicar y dividir fracciones", f: "lec_multiplicar_fracciones_7.mp4", s: 35 }],
+  },
+  narrador_7: {
+    auto: "lec_narrador_7.mp4",
+    partes: [{ t: "Quién cuenta la historia", f: "lec_narrador_7.mp4", s: 29 }],
+  },
+  numeracion_7: {
+    auto: "lec_numeracion_7.mp4",
+    partes: [{ t: "Valor posicional y sexagesimal", f: "lec_numeracion_7.mp4", s: 36 }],
+  },
+  // partida en dos: entera daba 45,0 s y el tope son 45. Los dos cortes salen de
+  // los MISMOS clips, así que partirla no costó créditos nuevos.
+  ortografia_7: {
+    auto: "lec_ortografia_7_a.mp4",
+    partes: [
+      { t: "Tildación y reglas de letras", f: "lec_ortografia_7_a.mp4", s: 21 },
+      { t: "Homófonos", f: "lec_ortografia_7_b.mp4", s: 23 },
+    ],
+  },
+  persuasion_7: {
+    auto: "lec_persuasion_7.mp4",
+    partes: [{ t: "Cómo te quiere convencer una publicidad", f: "lec_persuasion_7.mp4", s: 33 }],
+  },
+  potencias: {
+    auto: "lec_potencias.mp4",
+    partes: [{ t: "Las potencias", f: "lec_potencias.mp4", s: 25 }],
+  },
+  potencias_7: {
+    auto: "lec_potencias_7.mp4",
+    partes: [{ t: "Potencias y raíces", f: "lec_potencias_7.mp4", s: 37 }],
+  },
+  presupuesto_inflacion_7: {
+    auto: "lec_presupuesto_inflacion_7.mp4",
+    partes: [{ t: "Presupuesto cuando los precios suben", f: "lec_presupuesto_inflacion_7.mp4", s: 33 }],
+  },
+  probabilidad_arbol_7: {
+    auto: "lec_probabilidad_arbol_7.mp4",
+    partes: [{ t: "Contar casos y calcular chances", f: "lec_probabilidad_arbol_7.mp4", s: 35 }],
+  },
+  proporcionalidad: {
+    auto: "lec_proporcionalidad.mp4",
+    partes: [{ t: "Proporcionalidad", f: "lec_proporcionalidad.mp4", s: 25 }],
+  },
+  proporcionalidad_grafico_7: {
+    auto: "lec_proporcionalidad_grafico_7.mp4",
+    partes: [{ t: "Proporcionalidad en el plano", f: "lec_proporcionalidad_grafico_7.mp4", s: 32 }],
+  },
+  proporcionalidad_inversa_7: {
+    auto: "lec_proporcionalidad_inversa_7.mp4",
+    partes: [{ t: "Proporcionalidad inversa", f: "lec_proporcionalidad_inversa_7.mp4", s: 35 }],
+  },
+  puerto_madero_7: {
+    auto: "lec_puerto_madero_7.mp4",
+    partes: [{ t: "Cuando la ciudad se transforma", f: "lec_puerto_madero_7.mp4", s: 32 }],
+  },
+  quimica_fisica_7: {
+    auto: "lec_quimica_fisica_7.mp4",
+    partes: [{ t: "¿Cambió la sustancia o sólo la forma?", f: "lec_quimica_fisica_7.mp4", s: 32 }],
+  },
+  razon_porcentaje_7: {
+    auto: "lec_razon_porcentaje_7.mp4",
+    partes: [{ t: "Razón y porcentaje", f: "lec_razon_porcentaje_7.mp4", s: 30 }],
+  },
+  recursos_argumentador_7: {
+    auto: "lec_recursos_argumentador_7.mp4",
+    partes: [{ t: "Con qué se argumenta", f: "lec_recursos_argumentador_7.mp4", s: 30 }],
+  },
+  problemas_pasos_7: {
+    auto: "lec_problemas_pasos_7.mp4",
+    partes: [{ t: "Problemas de varios pasos", f: "lec_problemas_pasos_7.mp4", s: 29 }],
+  },
+  recursos_poema: {
+    auto: "lec_recursos_poema.mp4",
+    partes: [{ t: "Los recursos del poema", f: "lec_recursos_poema.mp4", s: 30 }],
+  },
+  redes_troficas_7: {
+    auto: "lec_redes_troficas_7.mp4",
+    partes: [{ t: "Los tres roles de la red trófica", f: "lec_redes_troficas_7.mp4", s: 38 }],
+  },
+  reproductor_7: {
+    auto: "lec_reproductor_7.mp4",
+    partes: [{ t: "El sistema reproductor", f: "lec_reproductor_7.mp4", s: 26 }],
+  },
+  sistema_nervioso_7: {
+    auto: "lec_sistema_nervioso_7.mp4",
+    partes: [{ t: "Del estímulo a la respuesta", f: "lec_sistema_nervioso_7.mp4", s: 37 }],
+  },
+  subgeneros_7: {
+    auto: "lec_subgeneros_7.mp4",
+    partes: [{ t: "Fantástico, maravilloso y terror", f: "lec_subgeneros_7.mp4", s: 32 }],
+  },
+  sucesion_ecologica_7: {
+    auto: "lec_sucesion_ecologica_7.mp4",
+    partes: [{ t: "Cómo se recupera un ambiente", f: "lec_sucesion_ecologica_7.mp4", s: 26 }],
+  },
+  sujeto_7: {
+    auto: "lec_sujeto_7.mp4",
+    partes: [{ t: "Sujeto expreso, tácito e impersonal", f: "lec_sujeto_7.mp4", s: 37 }],
+  },
+  sustantivos_7: {
+    auto: "lec_sustantivos_7.mp4",
+    partes: [{ t: "Cómo se clasifican los sustantivos", f: "lec_sustantivos_7.mp4", s: 36 }],
+  },
+  traductor_algebraico: {
+    auto: "lec_traductor_algebraico.mp4",
+    partes: [{ t: "Pasar palabras a símbolos", f: "lec_traductor_algebraico.mp4", s: 25 }],
+  },
+  traductor_algebraico_7: {
+    auto: "lec_traductor_algebraico_7.mp4",
+    partes: [{ t: "De la frase a la expresión", f: "lec_traductor_algebraico_7.mp4", s: 43 }],
+  },
+  transformar_energia_7: {
+    auto: "lec_transformar_energia_7.mp4",
+    partes: [{ t: "Transformación y degradación", f: "lec_transformar_energia_7.mp4", s: 28 }],
+  },
+  vacunas_7: {
+    auto: "lec_vacunas_7.mp4",
+    partes: [{ t: "Qué hace una vacuna", f: "lec_vacunas_7.mp4", s: 30 }],
+  },
+  area_fraccionaria_6: {
+    auto: "lec_area_fraccionaria_6.mp4",
+    partes: [{ t: "Multiplicar fracciones", f: "lec_area_fraccionaria_6.mp4", s: 33 }],
+  },
+  area_perimetro_6: {
+    auto: "lec_area_perimetro_6.mp4",
+    partes: [{ t: "Área y perímetro no van juntos", f: "lec_area_perimetro_6.mp4", s: 36 }],
+  },
+  bloques_codigo_6: {
+    auto: "lec_bloques_codigo_6.mp4",
+    partes: [{ t: "Bloques y código dicen lo mismo", f: "lec_bloques_codigo_6.mp4", s: 29 }],
+  },
+  chat_seguro_6: {
+    auto: "lec_chat_seguro_6.mp4",
+    partes: [{ t: "Cómo cuidarse en internet", f: "lec_chat_seguro_6.mp4", s: 36 }],
+  },
+  ciclo_menstrual_6: {
+    auto: "lec_ciclo_menstrual_6.mp4",
+    partes: [{ t: "Cómo funciona el ciclo", f: "lec_ciclo_menstrual_6.mp4", s: 37 }],
+  },
+  ciencia_ficcion_6: {
+    auto: "lec_ciencia_ficcion_6.mp4",
+    partes: [{ t: "Robot, androide y cyborg", f: "lec_ciencia_ficcion_6.mp4", s: 30 }],
+  },
+  cigoto_feto_6: {
+    auto: "lec_cigoto_feto_6.mp4",
+    partes: [{ t: "Del cigoto al feto", f: "lec_cigoto_feto_6.mp4", s: 30 }],
+  },
+  cohesion_6: {
+    auto: "lec_cohesion_6.mp4",
+    partes: [{ t: "No repetir la misma palabra", f: "lec_cohesion_6.mp4", s: 30 }],
+  },
+  comprension_lectora_6: {
+    auto: "lec_comprension_lectora_6.mp4",
+    partes: [{ t: "Deducir con las pistas del texto", f: "lec_comprension_lectora_6.mp4", s: 27 }],
+  },
+  conectores_6: {
+    auto: "lec_conectores_6.mp4",
+    partes: [{ t: "Qué relación arma cada conector", f: "lec_conectores_6.mp4", s: 34 }],
+  },
+  conjugacion_6: {
+    auto: "lec_conjugacion_6.mp4",
+    partes: [{ t: "Imperfecto y perfecto simple", f: "lec_conjugacion_6.mp4", s: 34 }],
+  },
+  divisibilidad_7: {
+    auto: "lec_divisibilidad_7.mp4",
+    partes: [{ t: "Los criterios de divisibilidad", f: "lec_divisibilidad_7.mp4", s: 45 }],
+  },
+  ingles_verbos_7: {
+    auto: "lec_ingles_verbos_7.mp4",
+    partes: [{ t: "Present simple y past simple", f: "lec_ingles_verbos_7.mp4", s: 45 }],
+  },
+  corredor_coma_6: {
+    auto: "lec_corredor_coma_6.mp4",
+    partes: [{ t: "Correr la coma", f: "lec_corredor_coma_6.mp4", s: 30 }],
+  },
+  cuadrilateros: {
+    auto: "lec_cuadrilateros.mp4",
+    partes: [{ t: "Los cuadriláteros", f: "lec_cuadrilateros.mp4", s: 27 }],
+  },
+  demografia_6: {
+    auto: "lec_demografia_6.mp4",
+    partes: [{ t: "Los indicadores de población", f: "lec_demografia_6.mp4", s: 35 }],
+  },
+  densidad_recta_6: {
+    auto: "lec_densidad_recta_6.mp4",
+    partes: [{ t: "Siempre entra otro número en el medio", f: "lec_densidad_recta_6.mp4", s: 38 }],
+  },
+  desarrollos_6: {
+    auto: "lec_desarrollos_6.mp4",
+    partes: [{ t: "El cuerpo desplegado", f: "lec_desarrollos_6.mp4", s: 27 }],
+  },
+  descuentos_6: {
+    auto: "lec_descuentos_6.mp4",
+    partes: [{ t: "Descuentos y aumentos", f: "lec_descuentos_6.mp4", s: 26 }],
+  },
+  directo_indirecto_6: {
+    auto: "lec_directo_indirecto_6.mp4",
+    partes: [{ t: "Del directo al indirecto", f: "lec_directo_indirecto_6.mp4", s: 32 }],
+  },
+  divisibilidad_criterios_6: {
+    auto: "lec_divisibilidad_criterios_6.mp4",
+    partes: [{ t: "Los criterios por 2, 5 y 10", f: "lec_divisibilidad_criterios_6.mp4", s: 31 }],
+  },
+  economia_circular_6: {
+    auto: "lec_economia_circular_6.mp4",
+    partes: [{ t: "Lineal o circular", f: "lec_economia_circular_6.mp4", s: 32 }],
+  },
+  ecorregiones_6: {
+    auto: "lec_ecorregiones_6.mp4",
+    partes: [{ t: "Los tres ambientes bonaerenses", f: "lec_ecorregiones_6.mp4", s: 38 }],
+  },
+  efecto_invernadero_6: {
+    auto: "lec_efecto_invernadero_6.mp4",
+    partes: [{ t: "Efecto invernadero y qué hacer", f: "lec_efecto_invernadero_6.mp4", s: 31 }],
+  },
+  escalas_ambientales_6: {
+    auto: "lec_escalas_ambientales_6.mp4",
+    partes: [{ t: "A qué escala está el problema", f: "lec_escalas_ambientales_6.mp4", s: 30 }],
+  },
+  estado_agroexportacion_6: {
+    auto: "lec_estado_agroexportacion_6.mp4",
+    partes: [{ t: "El modelo agroexportador", f: "lec_estado_agroexportacion_6.mp4", s: 29 }],
+  },
+  etapas_diseno_6: {
+    auto: "lec_etapas_diseno_6.mp4",
+    partes: [{ t: "Las cinco etapas del diseño", f: "lec_etapas_diseno_6.mp4", s: 37 }],
+  },
+  fraccion_cantidad_6: {
+    auto: "lec_fraccion_cantidad_6.mp4",
+    partes: [{ t: "Sacar una fracción de una cantidad", f: "lec_fraccion_cantidad_6.mp4", s: 32 }],
+  },
+  fraccion_de_cantidad: {
+    auto: "lec_fraccion_de_cantidad.mp4",
+    partes: [{ t: "La fracción de una cantidad", f: "lec_fraccion_de_cantidad.mp4", s: 20 }],
+  },
+  fraccion_inversa_6: {
+    auto: "lec_fraccion_inversa_6.mp4",
+    partes: [{ t: "La fracción dada vuelta", f: "lec_fraccion_inversa_6.mp4", s: 32 }],
+  },
+  fracciones_equivalentes_6: {
+    auto: "lec_fracciones_equivalentes_6.mp4",
+    partes: [{ t: "Fracciones que valen lo mismo", f: "lec_fracciones_equivalentes_6.mp4", s: 38 }],
+  },
+  fuente_confiable_6: {
+    auto: "lec_fuente_confiable_6.mp4",
+    partes: [{ t: "Cuándo confiar en una fuente", f: "lec_fuente_confiable_6.mp4", s: 27 }],
+  },
+  gran_guerra_crisis_6: {
+    auto: "lec_gran_guerra_crisis_6.mp4",
+    partes: [{ t: "La guerra, la crisis y su llegada acá", f: "lec_gran_guerra_crisis_6.mp4", s: 34 }],
+  },
+  hechos_opiniones: {
+    auto: "lec_hechos_opiniones.mp4",
+    partes: [{ t: "Hecho u opinión", f: "lec_hechos_opiniones.mp4", s: 25 }],
+  },
+  heliocentrismo_6: {
+    auto: "lec_heliocentrismo_6.mp4",
+    partes: [{ t: "Del geocentrismo al heliocentrismo", f: "lec_heliocentrismo_6.mp4", s: 34 }],
+  },
+  idea_principal_6: {
+    auto: "lec_idea_principal_6.mp4",
+    partes: [{ t: "Lo central y lo que acompaña", f: "lec_idea_principal_6.mp4", s: 29 }],
+  },
+  inmigracion_censos_6: {
+    auto: "lec_inmigracion_censos_6.mp4",
+    partes: [{ t: "Inmigración y cómo se lee un censo", f: "lec_inmigracion_censos_6.mp4", s: 33 }],
+  },
+  instrumentos_medida_6: {
+    auto: "lec_instrumentos_medida_6.mp4",
+    partes: [{ t: "Elegir el instrumento", f: "lec_instrumentos_medida_6.mp4", s: 41 }],
+  },
+  its_violencia_6: {
+    auto: "lec_its_violencia_6.mp4",
+    partes: [{ t: "ITS y tipos de violencia", f: "lec_its_violencia_6.mp4", s: 33 }],
+  },
+  jerarquia_6: {
+    auto: "lec_jerarquia_6.mp4",
+    partes: [{ t: "Qué se resuelve primero", f: "lec_jerarquia_6.mp4", s: 25 }],
+  },
+  jerarquia_operaciones: {
+    auto: "lec_jerarquia_operaciones.mp4",
+    partes: [{ t: "En qué orden se resuelve", f: "lec_jerarquia_operaciones.mp4", s: 30 }],
+  },
+  linea_tiempo_1862_1930_6: {
+    auto: "lec_linea_tiempo_1862_1930_6.mp4",
+    partes: [{ t: "Ordenar la Argentina 1862-1930", f: "lec_linea_tiempo_1862_1930_6.mp4", s: 43 }],
+  },
+  material_termico_6: {
+    auto: "lec_material_termico_6.mp4",
+    partes: [{ t: "Conductores y aislantes", f: "lec_material_termico_6.mp4", s: 33 }],
+  },
+  mercosur_energia_6: {
+    auto: "lec_mercosur_energia_6.mp4",
+    partes: [{ t: "Integrarse y compartir energía", f: "lec_mercosur_energia_6.mp4", s: 33 }],
+  },
+  moda_encuesta_6: {
+    auto: "lec_moda_encuesta_6.mp4",
+    partes: [{ t: "Frecuencias y moda", f: "lec_moda_encuesta_6.mp4", s: 29 }],
+  },
+  multiplicar_coma_6: {
+    auto: "lec_multiplicar_coma_6.mp4",
+    partes: [{ t: "Cuentas con decimales", f: "lec_multiplicar_coma_6.mp4", s: 40 }],
+  },
+  multiplicar_fracciones: {
+    auto: "lec_multiplicar_fracciones.mp4",
+    partes: [{ t: "Multiplicar fracciones", f: "lec_multiplicar_fracciones.mp4", s: 24 }],
+  },
+  noticia_partes_6: {
+    auto: "lec_noticia_partes_6.mp4",
+    partes: [{ t: "Las partes de la noticia", f: "lec_noticia_partes_6.mp4", s: 27 }],
+  },
+  numeros_gigantes_6: {
+    auto: "lec_numeros_gigantes_6.mp4",
+    partes: [{ t: "Números de muchas cifras", f: "lec_numeros_gigantes_6.mp4", s: 27 }],
+  },
+  numeros_primos: {
+    auto: "lec_numeros_primos.mp4",
+    partes: [{ t: "Números primos", f: "lec_numeros_primos.mp4", s: 26 }],
+  },
+  od_oi_6: {
+    auto: "lec_od_oi_6.mp4",
+    partes: [{ t: "Objeto directo e indirecto", f: "lec_od_oi_6.mp4", s: 38 }],
+  },
+  particulas_calor_6: {
+    auto: "lec_particulas_calor_6.mp4",
+    partes: [{ t: "Partículas, calor y temperatura", f: "lec_particulas_calor_6.mp4", s: 34 }],
+  },
+  permutaciones_6: {
+    auto: "lec_permutaciones_6.mp4",
+    partes: [{ t: "Contar sin repetir", f: "lec_permutaciones_6.mp4", s: 26 }],
+  },
+  poligonos_lados: {
+    auto: "lec_poligonos_lados.mp4",
+    partes: [{ t: "Los polígonos", f: "lec_poligonos_lados.mp4", s: 26 }],
+  },
+  porcentaje_cantidad_6: {
+    auto: "lec_porcentaje_cantidad_6.mp4",
+    partes: [{ t: "El porcentaje de una cantidad", f: "lec_porcentaje_cantidad_6.mp4", s: 35 }],
+  },
+  porcentajes: {
+    auto: "lec_porcentajes.mp4",
+    partes: [{ t: "Los porcentajes", f: "lec_porcentajes.mp4", s: 28 }],
+  },
+  presupuesto_6: {
+    auto: "lec_presupuesto_6.mp4",
+    partes: [{ t: "Presupuesto y plata segura", f: "lec_presupuesto_6.mp4", s: 30 }],
+  },
+  probabilidad_6: {
+    auto: "lec_probabilidad_6.mp4",
+    partes: [{ t: "Seguro, posible e imposible", f: "lec_probabilidad_6.mp4", s: 31 }],
+  },
+  probabilidad_sucesos: {
+    auto: "lec_probabilidad_sucesos.mp4",
+    partes: [{ t: "Qué tan probable es", f: "lec_probabilidad_sucesos.mp4", s: 22 }],
+  },
+  problemas_varios_pasos_6: {
+    auto: "lec_problemas_varios_pasos_6.mp4",
+    partes: [{ t: "Problemas de varios pasos", f: "lec_problemas_varios_pasos_6.mp4", s: 36 }],
+  },
+  proporcionalidad_6: {
+    auto: "lec_proporcionalidad_6.mp4",
+    partes: [{ t: "Mantener la proporción", f: "lec_proporcionalidad_6.mp4", s: 31 }],
+  },
+  pubertad_6: {
+    auto: "lec_pubertad_6.mp4",
+    partes: [{ t: "Qué pasa en la pubertad", f: "lec_pubertad_6.mp4", s: 28 }],
+  },
+  puntuacion_6: {
+    auto: "lec_puntuacion_6.mp4",
+    partes: [{ t: "Qué hace cada signo", f: "lec_puntuacion_6.mp4", s: 34 }],
+  },
+  reconstruir_division_6: {
+    auto: "lec_reconstruir_division_6.mp4",
+    partes: [{ t: "Dividendo, divisor, cociente y resto", f: "lec_reconstruir_division_6.mp4", s: 28 }],
+  },
+  recursos_poeticos_6: {
+    auto: "lec_recursos_poeticos_6.mp4",
+    partes: [{ t: "Los recursos del poema", f: "lec_recursos_poeticos_6.mp4", s: 32 }],
+  },
+  red_ecosistema_6: {
+    auto: "lec_red_ecosistema_6.mp4",
+    partes: [{ t: "Quién fabrica y quién consume", f: "lec_red_ecosistema_6.mp4", s: 30 }],
+  },
+  relato_policial_6: {
+    auto: "lec_relato_policial_6.mp4",
+    partes: [{ t: "Cómo se arma un policial", f: "lec_relato_policial_6.mp4", s: 27 }],
+  },
+  revolucion_industrial_6: {
+    auto: "lec_revolucion_industrial_6.mp4",
+    partes: [{ t: "Las dos revoluciones industriales", f: "lec_revolucion_industrial_6.mp4", s: 33 }],
+  },
+  roles_niveles_6: {
+    auto: "lec_roles_niveles_6.mp4",
+    partes: [{ t: "Los tres roles de la red", f: "lec_roles_niveles_6.mp4", s: 34 }],
+  },
+  secuencial_condicional_6: {
+    auto: "lec_secuencial_condicional_6.mp4",
+    partes: [{ t: "Secuencia, condición y repetición", f: "lec_secuencial_condicional_6.mp4", s: 35 }],
+  },
+  sensores_6: {
+    auto: "lec_sensores_6.mp4",
+    partes: [{ t: "Sensores, actuadores y control", f: "lec_sensores_6.mp4", s: 33 }],
+  },
+  sintagma_6: {
+    auto: "lec_sintagma_6.mp4",
+    partes: [{ t: "El núcleo y lo que lo acompaña", f: "lec_sintagma_6.mp4", s: 33 }],
+  },
+  suma_angulos: {
+    auto: "lec_suma_angulos.mp4",
+    partes: [{ t: "Los ángulos de un triángulo", f: "lec_suma_angulos.mp4", s: 28 }],
+  },
+  suma_fracciones_6: {
+    auto: "lec_suma_fracciones_6.mp4",
+    partes: [{ t: "Sumar y restar fracciones", f: "lec_suma_fracciones_6.mp4", s: 39 }],
+  },
+  tiempo_clima_6: {
+    auto: "lec_tiempo_clima_6.mp4",
+    partes: [{ t: "Tiempo y clima no son lo mismo", f: "lec_tiempo_clima_6.mp4", s: 27 }],
+  },
+  tres_poderes_6: {
+    auto: "lec_tres_poderes_6.mp4",
+    partes: [{ t: "Qué hace cada poder", f: "lec_tres_poderes_6.mp4", s: 36 }],
+  },
+  voto_6: {
+    auto: "lec_voto_6.mp4",
+    partes: [{ t: "Cómo cambió el voto", f: "lec_voto_6.mp4", s: 33 }],
+  },
+  club_lectura_5: {
+    auto: "lec_club_lectura_5.mp4",
+    partes: [{ t: "Deducir lo que el texto no dice", f: "lec_club_lectura_5.mp4", s: 27 }],
+  },
+  cuerpo_etapas_1: {
+    auto: "lec_cuerpo_etapas_1.mp4",
+    partes: [{ t: "Mi cuerpo y cómo cambia", f: "lec_cuerpo_etapas_1.mp4", s: 28 }],
+  },
+  eclipses_5: {
+    auto: "lec_eclipses_5.mp4",
+    partes: [{ t: "Fases de la Luna y eclipses", f: "lec_eclipses_5.mp4", s: 42 }],
+  },
+  geometria_5: {
+    auto: "lec_geometria_5.mp4",
+    partes: [{ t: "¿Se puede armar ese triángulo?", f: "lec_geometria_5.mp4", s: 33 }],
+  },
+  planta_partes_1: {
+    auto: "lec_planta_partes_1.mp4",
+    partes: [{ t: "Qué hace cada parte de la planta", f: "lec_planta_partes_1.mp4", s: 22 }],
+  },
+  recta_millon_5: {
+    auto: "lec_recta_millon_5.mp4",
+    partes: [{ t: "Números hasta el millón", f: "lec_recta_millon_5.mp4", s: 35 }],
+  },
+  recursos_5: {
+    auto: "lec_recursos_5.mp4",
+    partes: [{ t: "Los tipos de recursos", f: "lec_recursos_5.mp4", s: 35 }],
+  },
+  unitario_federal_5: {
+    auto: "lec_unitario_federal_5.mp4",
+    partes: [{ t: "Unitarios y federales", f: "lec_unitario_federal_5.mp4", s: 32 }],
+  },
+  adivina_figura: {
+    auto: "lec_adivina_figura.mp4",
+    partes: [{ t: "Reconocer una figura por sus partes", f: "lec_adivina_figura.mp4", s: 36 }],
+  },
+  america_1492_4: {
+    auto: "lec_america_1492_4.mp4",
+    partes: [{ t: "Los pueblos de América antes de 1492", f: "lec_america_1492_4.mp4", s: 43 }],
+  },
+  animales_cobertura: {
+    auto: "lec_animales_cobertura.mp4",
+    partes: [{ t: "Pelos, plumas y escamas", f: "lec_animales_cobertura.mp4", s: 27 }],
+  },
+  antes_y_hoy: {
+    auto: "lec_antes_y_hoy.mp4",
+    partes: [{ t: "Lo que cambió y lo que sigue igual", f: "lec_antes_y_hoy.mp4", s: 27 }],
+  },
+  artesanal_industrial: {
+    auto: "lec_artesanal_industrial.mp4",
+    partes: [{ t: "Artesanal e industrial", f: "lec_artesanal_industrial.mp4", s: 28 }],
+  },
+  calculo_redondo: {
+    auto: "lec_calculo_redondo.mp4",
+    partes: [{ t: "Sumar de a columnas", f: "lec_calculo_redondo.mp4", s: 35 }],
+  },
+  campo_a_casa: {
+    auto: "lec_campo_a_casa.mp4",
+    partes: [{ t: "Cómo llega la comida a tu casa", f: "lec_campo_a_casa.mp4", s: 28 }],
+  },
+  causas_revolucion_5: {
+    auto: "lec_causas_revolucion_5.mp4",
+    partes: [{ t: "Causas internas y externas", f: "lec_causas_revolucion_5.mp4", s: 27 }],
+  },
+  circuito_alimento: {
+    auto: "lec_circuito_alimento.mp4",
+    partes: [{ t: "El circuito productivo", f: "lec_circuito_alimento.mp4", s: 34 }],
+  },
+  debate_mayo_5: {
+    auto: "lec_debate_mayo_5.mp4",
+    partes: [{ t: "Moreno y Saavedra", f: "lec_debate_mayo_5.mp4", s: 31 }],
+  },
+  derechos_escenarios: {
+    auto: "lec_derechos_escenarios.mp4",
+    partes: [{ t: "Reconocer qué derecho no se respeta", f: "lec_derechos_escenarios.mp4", s: 34 }],
+  },
+  forma_redondo: {
+    auto: "lec_forma_redondo.mp4",
+    partes: [{ t: "Cuánto falta para llegar al redondo", f: "lec_forma_redondo.mp4", s: 36 }],
+  },
+  linea_siglo_xx: {
+    auto: "lec_linea_siglo_xx.mp4",
+    partes: [{ t: "Ordenar en una línea de tiempo", f: "lec_linea_siglo_xx.mp4", s: 33 }],
+  },
+  linterna_magica: {
+    auto: "lec_linterna_magica.mp4",
+    partes: [{ t: "Transparente, translúcido y opaco", f: "lec_linterna_magica.mp4", s: 28 }],
+  },
+  mas_o_menos_1: {
+    auto: "lec_mas_o_menos_1.mp4",
+    partes: [{ t: "¿Sumo o resto?", f: "lec_mas_o_menos_1.mp4", s: 26 }],
+  },
+  objeto_material: {
+    auto: "lec_objeto_material.mp4",
+    partes: [{ t: "De qué está hecha cada cosa", f: "lec_objeto_material.mp4", s: 30 }],
+  },
+  ordenar_pasos: {
+    auto: "lec_ordenar_pasos.mp4",
+    partes: [{ t: "Poner los pasos en orden", f: "lec_ordenar_pasos.mp4", s: 29 }],
+  },
+  que_cuenta_resuelve: {
+    auto: "lec_que_cuenta_resuelve.mp4",
+    partes: [{ t: "Elegir la cuenta correcta", f: "lec_que_cuenta_resuelve.mp4", s: 32 }],
+  },
+  sociedad_colonial_4: {
+    auto: "lec_sociedad_colonial_4.mp4",
+    partes: [{ t: "Cómo se organizaba la sociedad colonial", f: "lec_sociedad_colonial_4.mp4", s: 40 }],
+  },
+  solido_liquido: {
+    auto: "lec_solido_liquido.mp4",
+    partes: [{ t: "¿Sólido o líquido?", f: "lec_solido_liquido.mp4", s: 26 }],
+  },
+  acentuacion_2: {
+    auto: "lec_acentuacion_2.mp4",
+    partes: [{ t: "La sílaba que suena más fuerte", f: "lec_acentuacion_2.mp4", s: 30 }],
+  },
+  agua_2: {
+    auto: "lec_agua_2.mp4",
+    partes: [{ t: "El camino del agua", f: "lec_agua_2.mp4", s: 27 }],
+  },
+  animales_2: {
+    auto: "lec_animales_2.mp4",
+    partes: [{ t: "Grupos de animales", f: "lec_animales_2.mp4", s: 22 }],
+  },
+  antes_ahora_1: {
+    auto: "lec_antes_ahora_1.mp4",
+    partes: [{ t: "Antes se hacía distinto", f: "lec_antes_ahora_1.mp4", s: 16 }],
+  },
+  armar_calculo_1: {
+    auto: "lec_armar_calculo_1.mp4",
+    partes: [{ t: "¿Sumo o resto?", f: "lec_armar_calculo_1.mp4", s: 20 }],
+  },
+  articulos_1: {
+    auto: "lec_articulos_1.mp4",
+    partes: [{ t: "El, la, los, las", f: "lec_articulos_1.mp4", s: 24 }],
+  },
+  bucle_2: {
+    auto: "lec_bucle_2.mp4",
+    partes: [{ t: "Repetir sin copiar", f: "lec_bucle_2.mp4", s: 29 }],
+  },
+  buscar_dato_2: {
+    auto: "lec_buscar_dato_2.mp4",
+    partes: [{ t: "Encontrar el dato", f: "lec_buscar_dato_2.mp4", s: 24 }],
+  },
+  calendario_1: {
+    auto: "lec_calendario_1.mp4",
+    partes: [{ t: "Los días y los meses", f: "lec_calendario_1.mp4", s: 23 }],
+  },
+  con_que_se_mueve_3: {
+    auto: "lec_con_que_se_mueve_3.mp4",
+    partes: [{ t: "De dónde sale el movimiento", f: "lec_con_que_se_mueve_3.mp4", s: 23 }],
+  },
+  condicional_2: {
+    auto: "lec_condicional_2.mp4",
+    partes: [{ t: "Si pasa esto, hacé aquello", f: "lec_condicional_2.mp4", s: 22 }],
+  },
+  conductor_aislante: {
+    auto: "lec_conductor_aislante.mp4",
+    partes: [{ t: "Conductores y aislantes", f: "lec_conductor_aislante.mp4", s: 24 }],
+  },
+  conectores_2: {
+    auto: "lec_conectores_2.mp4",
+    partes: [{ t: "Las palabritas que unen", f: "lec_conectores_2.mp4", s: 32 }],
+  },
+  convivencia_2: {
+    auto: "lec_convivencia_2.mp4",
+    partes: [{ t: "Estar bien entre todos", f: "lec_convivencia_2.mp4", s: 25 }],
+  },
+  cuerpos_1: {
+    auto: "lec_cuerpos_1.mp4",
+    partes: [{ t: "Cuerpos que ruedan y que no", f: "lec_cuerpos_1.mp4", s: 20 }],
+  },
+  cuerpos_geometricos: {
+    auto: "lec_cuerpos_geometricos.mp4",
+    partes: [{ t: "Los cuerpos geométricos", f: "lec_cuerpos_geometricos.mp4", s: 25 }],
+  },
+  cuidarnos_1: {
+    auto: "lec_cuidarnos_1.mp4",
+    partes: [{ t: "Cuidarme y pedir ayuda", f: "lec_cuidarnos_1.mp4", s: 20 }],
+  },
+  despegar_palabras_1: {
+    auto: "lec_despegar_palabras_1.mp4",
+    partes: [{ t: "Cada palabra va separada", f: "lec_despegar_palabras_1.mp4", s: 20 }],
+  },
+  dictado_2: {
+    auto: "lec_dictado_2.mp4",
+    partes: [{ t: "Escribir con cuidado", f: "lec_dictado_2.mp4", s: 25 }],
+  },
+  dobles_2: {
+    auto: "lec_dobles_2.mp4",
+    partes: [{ t: "El doble y la mitad", f: "lec_dobles_2.mp4", s: 18 }],
+  },
+  donde_esta_1: {
+    auto: "lec_donde_esta_1.mp4",
+    partes: [{ t: "Arriba, abajo y entre", f: "lec_donde_esta_1.mp4", s: 18 }],
+  },
+  emociones_1: {
+    auto: "lec_emociones_1.mp4",
+    partes: [{ t: "Todo lo que sentimos", f: "lec_emociones_1.mp4", s: 19 }],
+  },
+  entrada_salida_2: {
+    auto: "lec_entrada_salida_2.mp4",
+    partes: [{ t: "Lo que entra y lo que sale", f: "lec_entrada_salida_2.mp4", s: 26 }],
+  },
+  estados_materia: {
+    auto: "lec_estados_materia.mp4",
+    partes: [{ t: "Los estados de la materia", f: "lec_estados_materia.mp4", s: 26 }],
+  },
+  cuadrilateros_6: {
+    auto: "lec_cuadrilateros_6.mp4",
+    partes: [{ t: "Cuadriláteros y sus ángulos", f: "lec_cuadrilateros_6.mp4", s: 45 }],
+  },
+  estados_tres: {
+    auto: "lec_estados_tres.mp4",
+    partes: [{ t: "Sólido, líquido y gaseoso", f: "lec_estados_tres.mp4", s: 22 }],
+  },
+  estructura_cuento_3: {
+    auto: "lec_estructura_cuento_3.mp4",
+    partes: [{ t: "Las tres partes del cuento", f: "lec_estructura_cuento_3.mp4", s: 21 }],
+  },
+  familia_palabras: {
+    auto: "lec_familia_palabras.mp4",
+    partes: [{ t: "Familia de palabras", f: "lec_familia_palabras.mp4", s: 24 }],
+  },
+  figuras_1: {
+    auto: "lec_figuras_1.mp4",
+    partes: [{ t: "Lados y puntas", f: "lec_figuras_1.mp4", s: 22 }],
+  },
+  iconos_1: {
+    auto: "lec_iconos_1.mp4",
+    partes: [{ t: "Los dibujitos de la pantalla", f: "lec_iconos_1.mp4", s: 20 }],
+  },
+  kiosco_1: {
+    auto: "lec_kiosco_1.mp4",
+    partes: [{ t: "Armar el precio con monedas", f: "lec_kiosco_1.mp4", s: 15 }],
+  },
+  leer_encontrar_1: {
+    auto: "lec_leer_encontrar_1.mp4",
+    partes: [{ t: "Leer despacio", f: "lec_leer_encontrar_1.mp4", s: 19 }],
+  },
+  leo_respondo_1: {
+    auto: "lec_leo_respondo_1.mp4",
+    partes: [{ t: "Buscar la respuesta en el texto", f: "lec_leo_respondo_1.mp4", s: 18 }],
+  },
+  luz_propia: {
+    auto: "lec_luz_propia.mp4",
+    partes: [{ t: "Luz propia y luz reflejada", f: "lec_luz_propia.mp4", s: 22 }],
+  },
+  mayuscula_punto_1: {
+    auto: "lec_mayuscula_punto_1.mp4",
+    partes: [{ t: "Empieza grande y termina con punto", f: "lec_mayuscula_punto_1.mp4", s: 13 }],
+  },
+  mb_nv_h_2: {
+    auto: "lec_mb_nv_h_2.mp4",
+    partes: [{ t: "mb, nv y la hache", f: "lec_mb_nv_h_2.mp4", s: 26 }],
+  },
+  medir_clips_1: {
+    auto: "lec_medir_clips_1.mp4",
+    partes: [{ t: "Medir con lo que tengas", f: "lec_medir_clips_1.mp4", s: 22 }],
+  },
+  medir_regla_2: {
+    auto: "lec_medir_regla_2.mp4",
+    partes: [{ t: "Medir con la regla", f: "lec_medir_regla_2.mp4", s: 24 }],
+  },
+  multiplicacion_concepto: {
+    auto: "lec_multiplicacion_concepto.mp4",
+    partes: [{ t: "Qué es multiplicar", f: "lec_multiplicacion_concepto.mp4", s: 24 }],
+  },
+  mundo_digital_3: {
+    auto: "lec_mundo_digital_3.mp4",
+    partes: [{ t: "Entra, se procesa y sale", f: "lec_mundo_digital_3.mp4", s: 21 }],
+  },
+  oficios_1: {
+    auto: "lec_oficios_1.mp4",
+    partes: [{ t: "Cada trabajo, su herramienta", f: "lec_oficios_1.mp4", s: 15 }],
+  },
+  orden_alfabetico: {
+    auto: "lec_orden_alfabetico.mp4",
+    partes: [{ t: "Ordenar de la A a la Z", f: "lec_orden_alfabetico.mp4", s: 23 }],
+  },
+  ordenar_cuento_1: {
+    auto: "lec_ordenar_cuento_1.mp4",
+    partes: [{ t: "Primero, después y al final", f: "lec_ordenar_cuento_1.mp4", s: 14 }],
+  },
+  ordenar_relato_2: {
+    auto: "lec_ordenar_relato_2.mp4",
+    partes: [{ t: "Contar en orden", f: "lec_ordenar_relato_2.mp4", s: 23 }],
+  },
+  parejas_cien_2: {
+    auto: "lec_parejas_cien_2.mp4",
+    partes: [{ t: "Parejas que llegan al total", f: "lec_parejas_cien_2.mp4", s: 17 }],
+  },
+  parejas_diez_1: {
+    auto: "lec_parejas_diez_1.mp4",
+    partes: [{ t: "Parejas que llegan al total", f: "lec_parejas_diez_1.mp4", s: 14 }],
+  },
+  parejas_letras_1: {
+    auto: "lec_parejas_letras_1.mp4",
+    partes: [{ t: "La misma letra, grande y chiquita", f: "lec_parejas_letras_1.mp4", s: 17 }],
+  },
+  parejas_mil_3: {
+    auto: "lec_parejas_mil_3.mp4",
+    partes: [{ t: "Parejas que llegan al total", f: "lec_parejas_mil_3.mp4", s: 17 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
