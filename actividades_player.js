@@ -4341,6 +4341,33 @@ const COMO_ES_VIDEO = {
     auto: "lec_vocabulario_2.mp4",
     partes: [{ t: "Palabras nuevas", f: "lec_vocabulario_2.mp4", s: 20 }],
   },
+  // partida en dos: entera pasaba los 45 s del tope. Los dos cortes
+  // salen de los MISMOS clips, así que no costó créditos nuevos.
+  linea_siglo_xx_7: {
+    auto: "lec_linea_siglo_xx_7_a.mp4",
+    partes: [
+      { t: "Hasta 1930", f: "lec_linea_siglo_xx_7_a.mp4", s: 30 },
+      { t: "De 1930 en adelante", f: "lec_linea_siglo_xx_7_b.mp4", s: 23 },
+    ],
+  },
+  // partida en dos: entera pasaba los 45 s del tope. Los dos cortes
+  // salen de los MISMOS clips, así que no costó créditos nuevos.
+  pronombres_6: {
+    auto: "lec_pronombres_6_a.mp4",
+    partes: [
+      { t: "Personales y posesivos", f: "lec_pronombres_6_a.mp4", s: 24 },
+      { t: "Demostrativos e indefinidos", f: "lec_pronombres_6_b.mp4", s: 25 },
+    ],
+  },
+  // partida en dos: entera pasaba los 45 s del tope. Los dos cortes
+  // salen de los MISMOS clips, así que no costó créditos nuevos.
+  tildes_6: {
+    auto: "lec_tildes_6_a.mp4",
+    partes: [
+      { t: "La regla general", f: "lec_tildes_6_a.mp4", s: 26 },
+      { t: "Diacrítica, -mente e hiato", f: "lec_tildes_6_b.mp4", s: 22 },
+    ],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }

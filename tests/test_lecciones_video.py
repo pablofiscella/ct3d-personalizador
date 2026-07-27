@@ -74,42 +74,14 @@ def test_los_videos_salen_del_repo_no_del_token():
 
 
 # ── cuándo se muestra ───────────────────────────────────────────────────────────
-# Actividades con mini-lección de texto cuyo VIDEO todavía se está produciendo.
+# ── SE VACIÓ (27-jul-2026) ──────────────────────────────────────────────────────
+# Las 385 mini-lecciones del cuaderno tienen su video. La lista queda declarada y
+# vacía a propósito: es la compuerta para la próxima tanda de contenido, y el test
+# de abajo sigue fallando si aparece una explicación con texto y sin video.
 #
-# Pablo (26-jul-2026): "me gusta que los que necesiten tenga un video de explicación,
-# siempre es mejor cuando te lo explican con una animación que tener que leerlo uno" —
-# y después "el texto está bien pero que pueda elegir ver también el video". O sea: la
-# regla no cambió, el texto se queda Y el video se suma como opción.
-#
-# Al completar la currícula de 4° y 5° se escribieron 77 mini-lecciones nuevas de golpe.
-# Cada video es guion + escenas + narración + render, así que se producen de a tandas.
-# Esta lista es la deuda declarada: lo que está acá tiene texto y todavía no video.
-#
-# El test de abajo NO la usa para mirar para otro lado: falla igual si aparece una
-# actividad con texto y sin video que NO esté declarada, y falla también si queda una
-# entrada acá que ya tiene su video (para que la lista se vacíe sola y no se pudra).
-VIDEO_PENDIENTE = {
-    # 7° grado completo (26-jul-2026). El guardián pasó a cubrir la edad 12, así que
-    # acá entran las 70 mini-lecciones nuevas de 7° y las que el cuaderno de esa edad
-    # ya tenía sin video (potencias, ecuaciones, proporcionalidad, homófonos…), que
-    # nadie miraba porque el test llegaba sólo hasta la edad 11.
-    "linea_siglo_xx_7",
-
-    # 6° grado completo (26-jul-2026). El test pasó a cubrir la edad 11, así que
-    # estas entran a la deuda declarada: incluye las 67 mini-lecciones nuevas de 6° y
-    # las que el cuaderno de esa edad ya tenía sin video, que hasta ahora nadie miraba
-    # porque el guardián sólo llegaba hasta la edad 10.
-    "pronombres_6",
-    "tildes_6",
-
-    # Cierre de las 9 deudas del manifiesto de cobertura (26-jul-2026). El video
-    # quedó pendiente por falta de crédito de ElevenLabs, no por decisión de diseño.
-
-    # Las 20 que quedaban sin mini-lección, escritas el 26-jul. Mismo motivo: el
-    # texto ya está en el player, el video espera crédito de ElevenLabs.
-
-    # 1°, 2° y 3° — mini-lecciones nuevas, video pendiente (26-jul-2026)
-}
+# `set()` y no `{}`: en Python las llaves vacías son un DICCIONARIO, y el test
+# reventaba con "unsupported operand type(s) for &: 'dict' and 'set'".
+VIDEO_PENDIENTE = set()
 
 
 def _texto_y_video():
