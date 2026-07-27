@@ -99,7 +99,6 @@ VIDEO_PENDIENTE = {
     # estas entran a la deuda declarada: incluye las 67 mini-lecciones nuevas de 6° y
     # las que el cuaderno de esa edad ya tenía sin video, que hasta ahora nadie miraba
     # porque el guardián sólo llegaba hasta la edad 10.
-    "cuadrilateros_6",
     "pronombres_6",
     "tildes_6",
 
@@ -110,17 +109,6 @@ VIDEO_PENDIENTE = {
     # texto ya está en el player, el video espera crédito de ElevenLabs.
 
     # 1°, 2° y 3° — mini-lecciones nuevas, video pendiente (26-jul-2026)
-    "estados_tres",
-    "estructura_cuento_3",
-    "familia_palabras",
-    "figuras_1",
-    "iconos_1",
-    "kiosco_1",
-    "leer_encontrar_1",
-    "leo_respondo_1",
-    "luz_propia",
-    "mayuscula_punto_1",
-    "mb_nv_h_2",
     "medir_clips_1",
     "medir_regla_2",
     "multiplicacion_concepto",

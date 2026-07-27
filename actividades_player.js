@@ -4120,6 +4120,54 @@ const COMO_ES_VIDEO = {
     auto: "lec_estados_materia.mp4",
     partes: [{ t: "Los estados de la materia", f: "lec_estados_materia.mp4", s: 26 }],
   },
+  cuadrilateros_6: {
+    auto: "lec_cuadrilateros_6.mp4",
+    partes: [{ t: "Cuadriláteros y sus ángulos", f: "lec_cuadrilateros_6.mp4", s: 45 }],
+  },
+  estados_tres: {
+    auto: "lec_estados_tres.mp4",
+    partes: [{ t: "Sólido, líquido y gaseoso", f: "lec_estados_tres.mp4", s: 22 }],
+  },
+  estructura_cuento_3: {
+    auto: "lec_estructura_cuento_3.mp4",
+    partes: [{ t: "Las tres partes del cuento", f: "lec_estructura_cuento_3.mp4", s: 21 }],
+  },
+  familia_palabras: {
+    auto: "lec_familia_palabras.mp4",
+    partes: [{ t: "Familia de palabras", f: "lec_familia_palabras.mp4", s: 24 }],
+  },
+  figuras_1: {
+    auto: "lec_figuras_1.mp4",
+    partes: [{ t: "Lados y puntas", f: "lec_figuras_1.mp4", s: 22 }],
+  },
+  iconos_1: {
+    auto: "lec_iconos_1.mp4",
+    partes: [{ t: "Los dibujitos de la pantalla", f: "lec_iconos_1.mp4", s: 20 }],
+  },
+  kiosco_1: {
+    auto: "lec_kiosco_1.mp4",
+    partes: [{ t: "Armar el precio con monedas", f: "lec_kiosco_1.mp4", s: 15 }],
+  },
+  leer_encontrar_1: {
+    auto: "lec_leer_encontrar_1.mp4",
+    partes: [{ t: "Leer despacio", f: "lec_leer_encontrar_1.mp4", s: 19 }],
+  },
+  leo_respondo_1: {
+    auto: "lec_leo_respondo_1.mp4",
+    partes: [{ t: "Buscar la respuesta en el texto", f: "lec_leo_respondo_1.mp4", s: 18 }],
+  },
+  luz_propia: {
+    auto: "lec_luz_propia.mp4",
+    partes: [{ t: "Luz propia y luz reflejada", f: "lec_luz_propia.mp4", s: 22 }],
+  },
+  mayuscula_punto_1: {
+    auto: "lec_mayuscula_punto_1.mp4",
+    partes: [{ t: "Empieza grande y termina con punto", f: "lec_mayuscula_punto_1.mp4", s: 13 }],
+  },
+  mb_nv_h_2: {
+    auto: "lec_mb_nv_h_2.mp4",
+    partes: [{ t: "mb, nv y la hache", f: "lec_mb_nv_h_2.mp4", s: 26 }],
+  },
 };
 
 function videoDe(id) { return COMO_ES_VIDEO[id] || null; }
