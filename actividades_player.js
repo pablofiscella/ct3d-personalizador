@@ -4809,6 +4809,15 @@ function cerrarSalidasDeMuestra(juego) {
    el canje del código no sabe cómo se llama, así que pone "Peque". */
 const NOMBRE_GENERICO = "Peque";
 
+/* La MARCA que se ve adentro del cuaderno. La línea escolar es Kydo y la de
+   cumpleaños es Casatridimensional: son dos productos y dos marcas, y hasta ahora el
+   cuaderno escolar decía Casatridimensional en el header y en el título de la pestaña
+   (Pablo, 27-jul: "la actividad dice casatridimensional cuando estás adentro").
+   Sale del MISMO flag que separa todo lo demás de la línea escolar. */
+function marcaDelCuaderno() {
+  return (typeof D !== "undefined" && D.escolar_on) ? "Kydo" : "Casatridimensional";
+}
+
 /* Un cuaderno ESCOLAR es de un grado puntual → es de UN solo chico. El de cumpleaños,
    en cambio, se comparte entre hermanos y ahí varios perfiles tienen sentido. */
 function perfilUnico() {
@@ -4858,7 +4867,7 @@ function elegirPerfil(nombre) {
 function pintarHeader() {
   $("#totalEstrellas").textContent = Store.total();
   $("#hdrNombre").textContent = Store.data.activeProfile ? `¡Hola, ${Store.data.activeProfile}!` : "¡Hola!";
-  $("#hdrSub").textContent = `${D.tema_nombre} · Casatridimensional`;
+  $("#hdrSub").textContent = `${D.tema_nombre} · ${marcaDelCuaderno()}`;
   $("#mascoHdr").src = P[0];
   $("#mascoFestejo").src = P[0];
 }
@@ -5734,7 +5743,7 @@ async function boot() {
   // paleta del tema → CSS vars (todo el look sale de acá)
   const root = document.documentElement;
   for (const [k, v] of Object.entries(D.paleta)) root.style.setProperty("--" + k, v);
-  document.title = D.titulo + " · Casatridimensional";
+  document.title = D.titulo + " · " + marcaDelCuaderno();
   let meta = document.querySelector('meta[name="theme-color"]');
   if (!meta) { meta = document.createElement("meta"); meta.name = "theme-color"; document.head.appendChild(meta); }
   meta.content = D.paleta.ac;
