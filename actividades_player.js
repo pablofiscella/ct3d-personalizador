@@ -4662,13 +4662,20 @@ const Shell = {
         Store.setStars(self.actual, e);
         // dificultad adaptativa: si le salió fácil (3★) sube el nivel para la próxima;
         // si le costó, se queda igual (repite ese nivel hasta dominarlo). Gateado.
+        // El nivel VISIBLE se mide antes y después: si la actividad cambió de escalón
+        // (Explorador → Aventurero → Experto), el festejo lo anuncia. Subir en silencio
+        // era el problema: el chico jugaba algo más difícil sin enterarse de que lo había
+        // ganado, y eso no motiva a nadie.
+        const _nivelAntes = nivelDeDificultad(self.actual);
         if (e >= 3 && D.adaptativo_on) Store.subirNivelDif(self.actual);
+        const _nivelAhora = nivelDeDificultad(self.actual);
+        const _subioNivel = _nivelAhora > _nivelAntes ? _nivelAhora : 0;
         // Capa 0 · sello de dominio sostenido: registra el día si fue nivel de
         // dominio (3★) y avisa si recién ahora quedó 'dominado'/'consolidado'.
         const evtDom = e >= 3 ? Store.registrarDominio(self.actual, e) : null;
         if (!yaEstabaCompleto && todoCompleto()) self._nuevoLogro = true;
         pintarHeader();
-        festejar(e, evtDom);
+        festejar(e, evtDom, _subioNivel);
         // activación escalable por niveles: si al ganar (3★) quedó DOMINADO el
         // nivel de esta actividad (≥80% con 3★) y hay un nivel siguiente, avisar
         // al adulto UNA vez (motivo='domino' → la tienda le manda el mail) y
@@ -4688,12 +4695,20 @@ const Shell = {
   },
 };
 
-function festejar(estrellas, evtDom) {
+function festejar(estrellas, evtDom, subioNivel) {
   Sfx.fanfarria();
-  Confeti.tirar(evtDom ? 220 : 140);   // extra confeti cuando quedó el sello
+  Confeti.tirar(evtDom || subioNivel ? 220 : 140);   // extra confeti con sello o nivel nuevo
   const nombre = Store.data.activeProfile;
-  // Capa 0 · el festejo del SELLO (dominado/consolidado) pisa el festejo común.
-  if (evtDom === "dominado") {
+  // Subir de NIVEL manda sobre todo lo demás: es la novedad más grande de la partida y
+  // la única que le dice al chico que a partir de ahora esta actividad viene más difícil.
+  if (subioNivel) {
+    const meta = NIVEL_DIF[subioNivel - 1];
+    $("#festejoTitulo").textContent = nombre
+      ? `${meta.icono} ¡Subiste a ${meta.nombre}, ${nombre}!`
+      : `${meta.icono} ¡Subiste a ${meta.nombre}!`;
+    $("#festejoFrase").textContent =
+      "Te salió tan bien que esta actividad ahora va a ser más difícil. Nivel " + subioNivel + " de 3.";
+  } else if (evtDom === "dominado") {
     $("#festejoTitulo").textContent = nombre ? `🏅 ¡Lo dominaste, ${nombre}!` : "🏅 ¡Lo dominaste!";
     $("#festejoFrase").textContent = "Te salió bien en dos días distintos: ya lo sabés de verdad.";
   } else if (evtDom === "consolidado") {
@@ -5117,8 +5132,37 @@ function _adaptCSS() {
     ".carta.adapt-repaso{box-shadow:inset 0 0 0 3px #4aa3df}" +
     ".carta[data-adapt]::after{content:attr(data-adapt);position:absolute;top:6px;left:50%;" +
     "transform:translateX(-50%);font-size:11px;font-weight:800;color:#333;background:rgba(255,255,255,.9);" +
-    "border-radius:999px;padding:2px 9px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.15)}";
+    "border-radius:999px;padding:2px 9px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.15)}" +
+    // nivel de dificultad ganado: abajo de todo, chiquito, para que no le gane al título
+    ".carta .nivel-chip{margin-top:4px;font-size:11px;font-weight:800;opacity:.72;white-space:nowrap}";
   document.head.appendChild(s);
+}
+
+/* ── NIVEL DE DIFICULTAD VISIBLE (28-jul-2026) ──────────────────────────────────
+   La dificultad ya subía sola al dominar (Store.nivelDif, +1 por cada 3★), pero era
+   INVISIBLE: el chico jugaba algo más difícil sin saber que había subido, y el padre no
+   lo veía en ningún lado. Un progreso que no se ve no motiva a nadie.
+
+   El nivel NO se compra ni se desbloquea: se gana jugando. Es el mismo tema, más difícil
+   — la decisión del 25-jul-2026 de que ningún contenido del Diseño Curricular quede
+   detrás de un candado sigue intacta.
+
+   Las de UN solo concepto no muestran nivel: el orden del aparato digestivo es siempre el
+   mismo y ponerle "Experto" sería mentirle al chico. La lista está espejada en
+   tests/test_dificultad_por_dominio.py (SIN_GRADIENTE) y hay un test que las compara. ── */
+const NIVEL_DIF = [
+  { n: 1, nombre: "Explorador", icono: "🌱" },
+  { n: 2, nombre: "Aventurero", icono: "🧭" },
+  { n: 3, nombre: "Experto", icono: "🏆" },
+];
+const SIN_NIVEL_DIF = new Set([
+  "camino_digestivo", "colorear", "linea_democracia", "planta_potabilizadora",
+  "programar_camino", "puntos", "viaje_inmigrante", "suma_rapida",
+]);
+function nivelDeDificultad(id) {
+  if (!D.adaptativo_on || SIN_NIVEL_DIF.has(id)) return 0;   // 0 = esta actividad no tiene niveles
+  const g = Store.nivelDif(id) || 0;    // 0..4, sube +1 cada vez que la saca con 3★
+  return g >= 3 ? 3 : (g >= 1 ? 2 : 1);
 }
 
 /* ── AVISO DE ESI A LA FAMILIA (26-jul-2026) ────────────────────────────────────
@@ -5239,10 +5283,13 @@ function pintarMenuPlano(items, stage) {
     else if (sello === "consolidado") est = "🌟 ¡Lo sabés!";
     else if (sello === "dominado") est = "🏅 Dominado";
     else est = st ? "⭐".repeat(st) : "&nbsp;";
+    const _nd = nivelDeDificultad(m.id);
+    const _ndMeta = _nd ? NIVEL_DIF[_nd - 1] : null;
     c.innerHTML = `
       <div class="icono">${conSprite ? `<img src="${P[(i / 3 | 0) + 1]}" alt="">` : m.icono}</div>
       <div class="nombre">${m.titulo}</div>
       <div class="mini-est">${est}</div>
+      ${_ndMeta ? `<div class="nivel-chip" title="Nivel ${_nd} de 3 — se gana jugando">${_ndMeta.icono} ${_ndMeta.nombre}</div>` : ""}
       ${conSprite ? `<div class="chip">${m.icono}</div>` : ""}`;
     // ESI: marca en la tarjeta + la nota completa la primera vez que se abre una.
     // No bloquea nada — después de leerla, el botón "Empezar" sigue al juego.

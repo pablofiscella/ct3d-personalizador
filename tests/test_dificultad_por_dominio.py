@@ -129,3 +129,31 @@ def test_no_sobran_excepciones(escalan):
     no aplica esconde el próximo olvido."""
     sobran = {i for i in SIN_GRADIENTE if escalan.get(i)}
     assert not sobran, "ya escalan, sacalas de SIN_GRADIENTE: %s" % sorted(sobran)
+
+
+def test_el_player_declara_las_mismas_excepciones():
+    """La lista del player (SIN_NIVEL_DIF) y la de acá tienen que ser LA MISMA.
+
+    El player la usa para no mostrarle un nivel a una actividad que no se pone más difícil
+    —decirle "Experto" a `colorear` sería mentirle al chico— y acá se usa para saber cuáles
+    pueden no escalar. Si se separan, una de las dos miente y nadie se entera."""
+    src = open(PLAYER, encoding="utf-8").read()
+    m = re.search(r"const SIN_NIVEL_DIF = new Set\(\[(.*?)\]\);", src, re.S)
+    assert m, "no se encontró SIN_NIVEL_DIF en el player"
+    del_player = set(re.findall(r'"([a-z0-9_]+)"', m.group(1)))
+    assert del_player == SIN_GRADIENTE, (
+        "las listas se separaron.\n  sólo en el player: %s\n  sólo en el test:   %s"
+        % (sorted(del_player - SIN_GRADIENTE), sorted(SIN_GRADIENTE - del_player)))
+
+
+def test_el_nivel_visible_se_gana_no_se_compra():
+    """Guardián de la decisión del 25-jul: el nivel sale del progreso guardado del chico,
+    nunca de un flag de pago. Si alguien lo ata a premium_on o nivel_max, esto falla."""
+    src = open(PLAYER, encoding="utf-8").read()
+    m = re.search(r"function nivelDeDificultad\(id\) \{(.*?)\n\}", src, re.S)
+    assert m, "no se encontró nivelDeDificultad en el player"
+    cuerpo = m.group(1)
+    assert "Store.nivelDif" in cuerpo, "el nivel visible tiene que salir del progreso del chico"
+    for prohibido in ("premium_on", "nivel_max", "comprad", "pag"):
+        assert prohibido not in cuerpo, (
+            "el nivel visible NO puede depender de %r: se gana jugando" % prohibido)
