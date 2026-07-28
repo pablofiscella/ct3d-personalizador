@@ -1078,3 +1078,62 @@ def test_comprension_2do():
     assert not any(m["id"] == "comprension_lectora" for m in aw._menu(aw._banda(6), 6))
     iconos = [m["icono"] for m in aw._menu(aw._banda(7), 7)]
     assert len(iconos) == len(set(iconos))
+
+
+# ─────────── la portada del grado llena el cuadro ───────────
+# Pablo, 27-jul-2026, mirando su biblioteca: "la imagen de primer grado es más angosta que
+# las otras". No era CSS. El arte de 1° y 2° vino en 2:3 y el de los otros cinco en 3:4, así
+# que el motor los metía CONTAIN y rellenaba el sobrante con un color plano: 48 px de madera
+# lisa a cada lado, o sea 804 px de dibujo contra 900 de los demás. Al lado de una portada
+# que llega al borde se ve literalmente más angosta — y en la biblioteca se ven juntas.
+
+def _banda_plana(im):
+    """Ancho en px de la franja izquierda de color uniforme (el relleno del contain)."""
+    w, h = im.size
+    base = im.getpixel((0, h // 2))
+    x = 0
+    while x < w // 2:
+        col = [im.getpixel((x, y)) for y in range(120, h - 120, 25)]
+        if any(sum(abs(p[i] - base[i]) for i in range(3)) > 24 for p in col):
+            break
+        x += 1
+    return x
+
+
+def test_ninguna_portada_de_grado_queda_con_banda_plana():
+    """Vale para los SIETE grados, no sólo para los dos que fallaban: si mañana entra un
+    arte con otro encuadre, el relleno tiene que seguir siendo la imagen desenfocada y no
+    una banda de color."""
+    import actividades_web as aw
+    vistos = 0
+    for grado in range(1, 8):
+        im = aw._portada_de_grado(str(grado + 5), True)      # edad = grado + 5
+        if im is None:
+            continue                                          # ese grado no tiene arte
+        vistos += 1
+        assert im.size == (900, 1200), "grado %d: %s" % (grado, im.size)
+        b = _banda_plana(im)
+        assert b < 4, "grado %d: %d px de banda plana al costado" % (grado, b)
+    assert vistos >= 5, "se probaron sólo %d grados: el arte no está instalado" % vistos
+
+
+def test_la_portada_no_deforma_el_arte():
+    """La otra salida fácil era estirar el 2:3 hasta 3:4. Se nota en las caras, así que el
+    arte va a escala y lo que cambia es el fondo."""
+    import actividades_web as aw
+    from PIL import Image
+    p = os.path.join(aw.PORTADA_DIR, "1.png")
+    if not os.path.isfile(p):
+        return
+    src = Image.open(p)
+    im = aw._portada_de_grado("6", True)
+    assert im is not None
+    # el arte entra a escala: 900/1200 contra el aspecto original 2:3 → 800x1200
+    esc = min(900 / src.width, 1200 / src.height)
+    assert abs(int(src.width * esc) - 800) <= 2, "el arte de 1.º dejó de entrar a escala"
+
+
+def test_sin_flag_escolar_no_hay_portada_de_grado():
+    """La compuerta de siempre: un kit comprado por TEMA sigue con su tarjeta dibujada."""
+    import actividades_web as aw
+    assert aw._portada_de_grado("6", False) is None

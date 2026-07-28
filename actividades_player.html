@@ -70,7 +70,6 @@ h1, h2, h3, .fx { font-family: "Baloo", "Nunito", sans-serif; font-weight: 600; 
   font-family: "Baloo", sans-serif; font-size: 21px; border: none; color: var(--ink);
 }
 button.pill:active, a.pill:active { transform: scale(.94); }
-#btnBiblioteca { text-decoration: none; }
 #btnAtras { display: none; }
 #btnAtras.ver { display: flex; }
 
@@ -798,7 +797,13 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 <div id="cargando"><div class="aro"></div><div class="fx" style="font-size:22px">Preparando tus juegos…</div></div>
 
 <header id="hdr">
-  <a href="https://casatridimensional.com.ar/mi-cuenta" class="pill" id="btnBiblioteca" aria-label="Volver a Mi biblioteca">📚</a>
+  <!-- El 📚 se fue el 27-jul-2026. Llevaba a /mi-cuenta con la URL ESCRITA A MANO, y el
+       link del cuaderno lo tiene el CHICO: si el adulto dejó la sesión abierta en ese
+       teléfono —que es lo normal, porque el cuaderno se lo configura y se lo presta—,
+       el chico entraba a la biblioteca del adulto y de ahí a la tienda.
+       Pablo: "esto es lo que ve el padre pero no lo que debería ver el hijo".
+       El cuaderno es el espacio del chico y no tiene salida a la cuenta: el adulto llega
+       a su biblioteca entrando al sitio, que es donde vive su sesión. -->
   <button id="btnAtras" class="pill" aria-label="Volver al menú">←</button>
   <div class="avatar"><img id="mascoHdr" alt="" src=""></div>
   <div id="hdrTitulo"><b id="hdrNombre">¡Hola!</b><span id="hdrSub"></span></div>

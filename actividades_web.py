@@ -1008,9 +1008,17 @@ def _portada_de_grado(edad, escolar):
 
     La mayoría son 3:4 (1086×1448), igual que la card, pero 1° y 2° vinieron en 2:3 —
     un `resize` directo a 900×1200 las estiraría y se notaría en las caras. Se hace
-    CONTAIN: se escala hasta entrar entera y se rellena el sobrante con el color del
-    borde de la propia imagen. Recortar sería la otra opción, pero el título va arriba
-    y se lo comería.
+    CONTAIN: se escala hasta entrar entera. Recortar sería la otra opción, pero estas
+    portadas tienen contenido pegado a los CUATRO bordes —el banner de la marca arriba y
+    la tira de cuatro íconos abajo—, así que llenar el alto obligaría a comerse uno de
+    los dos.
+
+    27-jul-2026 — el sobrante se rellena con la MISMA imagen a cover y desenfocada, no
+    con un color plano. Con el color plano quedaban 48 px de madera lisa a cada lado: el
+    arte medía 804 de 900 y en la biblioteca, al lado de un 3:4 que llega al borde, se
+    veía literalmente más angosto (Pablo: "la imagen de primer grado es más angosta que
+    las otras"). Sólo lo notás cuando están una al lado de la otra, que es exactamente
+    cómo se ven. El desenfoque llena el cuadro sin recortar ni deformar nada.
     """
     grado = _grado_con_arte(edad, escolar)
     if not grado:
@@ -1026,10 +1034,14 @@ def _portada_de_grado(edad, escolar):
         chica = src.resize((nw, nh), Image.LANCZOS)
         if (nw, nh) == (W, H):
             return chica
-        # color de relleno: el promedio del borde superior, para que la banda no corte
-        # visualmente (las portadas tienen fondo ilustrado hasta el borde)
-        borde = chica.crop((0, 0, nw, max(1, nh // 40))).resize((1, 1), Image.LANCZOS)
-        fondo = Image.new("RGB", (W, H), borde.getpixel((0, 0)))
+        # Fondo: la misma imagen a COVER (llena el cuadro, recortando) y bien desenfocada.
+        # Es el recurso de siempre para un encuadre que no coincide — se lee como una
+        # continuación del arte y no como un marco.
+        cub = max(W / src.width, H / src.height)
+        cw, ch = max(W, int(src.width * cub)), max(H, int(src.height * cub))
+        fondo = (src.resize((cw, ch), Image.LANCZOS)
+                    .crop(((cw - W) // 2, (ch - H) // 2, (cw - W) // 2 + W, (ch - H) // 2 + H))
+                    .filter(ImageFilter.GaussianBlur(30)))
         fondo.paste(chica, ((W - nw) // 2, (H - nh) // 2))
         return fondo
     except Exception:
