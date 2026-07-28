@@ -4666,6 +4666,12 @@ const Shell = {
         // (Explorador → Aventurero → Experto), el festejo lo anuncia. Subir en silencio
         // era el problema: el chico jugaba algo más difícil sin enterarse de que lo había
         // ganado, y eso no motiva a nadie.
+        // ¿Terminó una del grado SIGUIENTE habiéndose ganado el lugar? Sólo entonces el
+        // festejo se lo dice: la carta aparece porque el adulto la puso, así que felicitarlo
+        // por "superar su grado" sin que lo haya superado sería mentirle en la cara.
+        const _itemActual = itemDeMenu(self.actual);
+        const _ganoElMasAlla = !!(_itemActual && esMasAlla(_itemActual)
+                                  && esExpertoEn(Adapt.categoria(self.actual)));
         const _nivelAntes = nivelDeDificultad(self.actual);
         if (e >= 3 && D.adaptativo_on) Store.subirNivelDif(self.actual);
         const _nivelAhora = nivelDeDificultad(self.actual);
@@ -4675,7 +4681,7 @@ const Shell = {
         const evtDom = e >= 3 ? Store.registrarDominio(self.actual, e) : null;
         if (!yaEstabaCompleto && todoCompleto()) self._nuevoLogro = true;
         pintarHeader();
-        festejar(e, evtDom, _subioNivel);
+        festejar(e, evtDom, _subioNivel, _ganoElMasAlla);
         // activación escalable por niveles: si al ganar (3★) quedó DOMINADO el
         // nivel de esta actividad (≥80% con 3★) y hay un nivel siguiente, avisar
         // al adulto UNA vez (motivo='domino' → la tienda le manda el mail) y
@@ -4695,13 +4701,18 @@ const Shell = {
   },
 };
 
-function festejar(estrellas, evtDom, subioNivel) {
+function festejar(estrellas, evtDom, subioNivel, ganoElMasAlla) {
   Sfx.fanfarria();
-  Confeti.tirar(evtDom || subioNivel ? 220 : 140);   // extra confeti con sello o nivel nuevo
+  Confeti.tirar(evtDom || subioNivel || ganoElMasAlla ? 220 : 140);
   const nombre = Store.data.activeProfile;
-  // Subir de NIVEL manda sobre todo lo demás: es la novedad más grande de la partida y
-  // la única que le dice al chico que a partir de ahora esta actividad viene más difícil.
-  if (subioNivel) {
+  // Pasarse del propio grado es lo más grande que puede pasar acá, así que va primero.
+  // Sólo llega con ganoElMasAlla=true, o sea cuando de verdad exprimió su grado.
+  if (ganoElMasAlla) {
+    $("#festejoTitulo").textContent = nombre
+      ? `🚀 ¡Te pasaste de grado, ${nombre}!` : "🚀 ¡Te pasaste de grado!";
+    $("#festejoFrase").textContent =
+      "Terminaste los tres niveles de tu grado en esta materia y ya estás resolviendo lo del año que viene.";
+  } else if (subioNivel) {
     const meta = NIVEL_DIF[subioNivel - 1];
     $("#festejoTitulo").textContent = nombre
       ? `${meta.icono} ¡Subiste a ${meta.nombre}, ${nombre}!`
@@ -5134,7 +5145,10 @@ function _adaptCSS() {
     "transform:translateX(-50%);font-size:11px;font-weight:800;color:#333;background:rgba(255,255,255,.9);" +
     "border-radius:999px;padding:2px 9px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.15)}" +
     // nivel de dificultad ganado: abajo de todo, chiquito, para que no le gane al título
-    ".carta .nivel-chip{margin-top:4px;font-size:11px;font-weight:800;opacity:.72;white-space:nowrap}";
+    ".carta .nivel-chip{margin-top:4px;font-size:11px;font-weight:800;opacity:.72;white-space:nowrap}" +
+    ".carta .nivel-chip--mas{opacity:1;color:#6a3df0;display:flex;flex-direction:column;line-height:1.15}" +
+    ".carta .nivel-chip--mas small{font-weight:700;opacity:.6;font-size:10px}" +
+    ".carta:has(.nivel-chip--mas){box-shadow:inset 0 0 0 3px #6a3df0,0 8px 22px rgba(106,61,240,.18)}";
   document.head.appendChild(s);
 }
 
@@ -5159,6 +5173,43 @@ const SIN_NIVEL_DIF = new Set([
   "camino_digestivo", "colorear", "linea_democracia", "planta_potabilizadora",
   "programar_camino", "puntos", "viaje_inmigrante", "suma_rapida",
 ]);
+function gradoDelChico() { return ((D && D.edad) ? D.edad : 9) - 5; }
+function itemDeMenu(id) {
+  return (D.menu || []).find((m) => (typeof m === "string" ? m : m.id) === id) || null;
+}
+
+/* ── EL CUARTO ESCALÓN: "Más allá" ─────────────────────────────────────────────
+   Una actividad de un grado MAYOR no es "una más": es el paso que sigue después de
+   Experto. Para el chico todo es una sola línea de dificultad — "grado" es una categoría
+   de adultos que a él no le dice nada.
+
+       🌱 Explorador → 🧭 Aventurero → 🏆 Experto → 🚀 Más allá
+       └──── la misma actividad, más difícil ────┘  └ contenido del grado siguiente ┘
+
+   OJO con lo que se le promete: hoy esa carta aparece porque el ADULTO la puso o la
+   compró, no porque el chico la haya ganado. Por eso el cartel dice lo que la actividad ES
+   (más difícil, de otro grado) y nunca "lo desbloqueaste": eso sólo se dice cuando de
+   verdad llegó (ver `esExpertoEn`). ── */
+function esMasAlla(m) {
+  if (!D.adaptativo_on || !m || !m.grado) return false;
+  return Number(m.grado) > gradoDelChico();
+}
+
+/* ¿El chico ya exprimió su propio grado en esta materia? Se pide el 80% de las
+   actividades de SU grado en 🏆 Experto — el mismo umbral que usa el tablero del padre
+   para decir "la domina". Se mide sólo sobre las que tienen niveles: las de un solo
+   concepto no cuentan ni a favor ni en contra. */
+function esExpertoEn(cat) {
+  if (!D.adaptativo_on || typeof Adapt === "undefined") return false;
+  const propias = (D.menu || []).filter((m) => {
+    const id = typeof m === "string" ? m : m.id;
+    return !esMasAlla(m) && Adapt.categoria(id) === cat && nivelDeDificultad(id) > 0;
+  });
+  if (!propias.length) return false;
+  const enTope = propias.filter((m) => nivelDeDificultad(typeof m === "string" ? m : m.id) === 3);
+  return enTope.length / propias.length >= 0.8;
+}
+
 function nivelDeDificultad(id) {
   if (!D.adaptativo_on || SIN_NIVEL_DIF.has(id)) return 0;   // 0 = esta actividad no tiene niveles
   const g = Store.nivelDif(id) || 0;    // 0..4, sube +1 cada vez que la saca con 3★
@@ -5278,17 +5329,19 @@ function pintarMenuPlano(items, stage) {
     let est;
     // la eligió el padre porque la están viendo en la escuela: se marca para que el
     // chico entienda por qué apareció algo que no es de su grado
-    if (m.escuela) c.dataset.adapt = "📚 Lo ven en la escuela";
+    if (m.escuela && !_masAlla) c.dataset.adapt = "📚 Lo ven en la escuela";
     if (repaso) est = "🔁 ¡Repasá!";
     else if (sello === "consolidado") est = "🌟 ¡Lo sabés!";
     else if (sello === "dominado") est = "🏅 Dominado";
     else est = st ? "⭐".repeat(st) : "&nbsp;";
-    const _nd = nivelDeDificultad(m.id);
+    const _masAlla = esMasAlla(m);
+    const _nd = _masAlla ? 0 : nivelDeDificultad(m.id);
     const _ndMeta = _nd ? NIVEL_DIF[_nd - 1] : null;
     c.innerHTML = `
       <div class="icono">${conSprite ? `<img src="${P[(i / 3 | 0) + 1]}" alt="">` : m.icono}</div>
       <div class="nombre">${m.titulo}</div>
       <div class="mini-est">${est}</div>
+      ${_masAlla ? `<div class="nivel-chip nivel-chip--mas" title="Es del grado siguiente: el paso después de Experto">🚀 Más allá<small>es de ${m.grado}.º</small></div>` : ""}
       ${_ndMeta ? `<div class="nivel-chip" title="Nivel ${_nd} de 3 — se gana jugando">${_ndMeta.icono} ${_ndMeta.nombre}</div>` : ""}
       ${conSprite ? `<div class="chip">${m.icono}</div>` : ""}`;
     // ESI: marca en la tarjeta + la nota completa la primera vez que se abre una.
@@ -5625,13 +5678,16 @@ function _enviarProgreso() {
     // se quedó en Explorador o ya llegó a Experto. Sin esto el tablero sólo sabía
     // "domina / practicando" por materia, que no dice nada de cuánto se exigió.
     const niveles = {};
+    const masAlla = [];
     (D.menu || []).forEach((m) => {
       const id = typeof m === "string" ? m : m.id;
+      if (esMasAlla(m)) { masAlla.push(id); return; }   // el 4.º escalón se cuenta aparte
       const n = nivelDeDificultad(id);
       if (n) niveles[id] = n;
     });
     const snap = { perfil: perfil, resumen: Adapt.resumenPorCategoria(),
-      dominados: Array.from(Adapt._dominados()), niveles: niveles, ts: Date.now() };
+      dominados: Array.from(Adapt._dominados()), niveles: niveles, masAlla: masAlla,
+      ts: Date.now() };
     const blob = new Blob([JSON.stringify(snap)], { type: "application/json" });
     if (navigator.sendBeacon) navigator.sendBeacon("progreso", blob);
     else fetch("progreso", { method: "POST", body: blob, keepalive: true }).catch(() => {});
@@ -5784,8 +5840,10 @@ async function sumarExtrasDeLaEscuela() {
       // si ya lo tiene en su grado no se duplica: la del padre no pisa la que le toca
       if (!it || !it.id || yaEstan.has(it.id)) return;
       yaEstan.add(it.id);
+      // `grado` viaja: sin él no se puede saber si la actividad es del grado del chico o
+      // de uno más adelante, y esa es toda la diferencia entre "una más" y "Más allá".
       D.menu.push({ id: it.id, titulo: it.titulo, icono: it.icono, cfg: it.cfg || {},
-                    nivel: 1, escuela: true });
+                    nivel: 1, escuela: true, grado: it.grado });
     });
   } catch (e) { /* sin extras: el cuaderno de siempre */ }
 }

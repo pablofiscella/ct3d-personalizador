@@ -157,3 +157,35 @@ def test_el_nivel_visible_se_gana_no_se_compra():
     for prohibido in ("premium_on", "nivel_max", "comprad", "pag"):
         assert prohibido not in cuerpo, (
             "el nivel visible NO puede depender de %r: se gana jugando" % prohibido)
+
+
+def test_el_cuarto_escalon_no_le_miente_al_chico():
+    """"Más allá" dice lo que la actividad ES; el festejo sólo lo felicita si lo ganó.
+
+    La carta de un grado mayor aparece porque el ADULTO la puso o la compró, no porque el
+    chico la haya ganado. Por eso el chip es descriptivo ("es de 4.º") y la frase de
+    "te pasaste de grado" está detrás de `esExpertoEn`, que exige el 80% de las actividades
+    de SU grado en el tope. Si alguien saca esa condición, esto falla."""
+    src = open(PLAYER, encoding="utf-8").read()
+
+    m = re.search(r"function esMasAlla\(m\) \{(.*?)\n\}", src, re.S)
+    assert m, "no se encontró esMasAlla"
+    assert "gradoDelChico()" in m.group(1), "el 4.º escalón se define contra el grado del chico"
+
+    # el festejo grande tiene que depender de haberlo ganado, no de la carta
+    assert "ganoElMasAlla" in src
+    m2 = re.search(r"const _ganoElMasAlla = (.*?);", src, re.S)
+    assert m2, "no se encontró de dónde sale _ganoElMasAlla"
+    assert "esExpertoEn" in m2.group(1), (
+        "el festejo de 'te pasaste de grado' NO puede dispararse sólo porque la actividad "
+        "sea de otro grado: la puso el adulto, no la ganó el chico")
+
+
+def test_el_umbral_del_tope_es_explicito():
+    """El 80% es el mismo umbral con el que el tablero del padre dice 'la domina'. Si se
+    cambia en un lado y no en el otro, el chico festeja algo que el padre no ve."""
+    src = open(PLAYER, encoding="utf-8").read()
+    m = re.search(r"function esExpertoEn\(cat\) \{(.*?)\n\}", src, re.S)
+    assert m, "no se encontró esExpertoEn"
+    assert "0.8" in m.group(1), "el umbral tiene que estar a la vista"
+    assert "=== 3" in m.group(1), "el tope es el nivel 3 (Experto)"
