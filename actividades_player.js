@@ -5186,12 +5186,37 @@ const SIN_NIVEL_DIF = new Set([
 
    El cuaderno viejo NO se toca: sigue con su propio progreso, así que volver a él para
    repasar funciona como siempre. ── */
+/* Nombres "iguales" para el chico aunque no lo sean para la computadora: "Sofía", "sofia"
+   y "SOFIA" son la misma persona. Se comparan sin mayúsculas y sin acentos. */
+function _normNombre(s) {
+  return String(s || "").trim().toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+/* Qué le corresponde heredar a este chico. El cruce por nombre EXACTO fallaba justo en el
+   caso normal: si en el cuaderno de 3.º decía "Sofía" y en el de 4.º escribe "Sofi", el
+   sistema no la reconocía y arrancaba de cero — perdiendo todo lo que se había ganado.
+   Por eso, en orden:
+     1) el mismo nombre, ignorando mayúsculas y acentos;
+     2) si el cuaderno anterior tenía UN SOLO perfil, es él, se llame como se llame
+        (un cuaderno es de un chico: es la decisión de Pablo del 25-jul);
+     3) herencia suelta, sin perfiles. */
+function _herenciaDe(nombre, h) {
+  const perfiles = h && h.perfiles;
+  if (!perfiles) return (h && (h.niveles || h.dominados)) ? h : null;
+  const claves = Object.keys(perfiles);
+  if (!claves.length) return null;
+  const objetivo = _normNombre(nombre);
+  const igual = claves.find((k) => _normNombre(k) === objetivo);
+  if (igual) return perfiles[igual];
+  return claves.length === 1 ? perfiles[claves[0]] : null;
+}
+
 function _perfilNuevo(nombre) {
   const base = { stars: {} };
   const h = (D && D.herencia) || null;
   if (!h) return base;
-  // La herencia puede venir por perfil o suelta (un cuaderno, un chico).
-  const mio = (h.perfiles && h.perfiles[nombre]) || (h.niveles || h.dominados ? h : null);
+  const mio = _herenciaDe(nombre, h);
   if (!mio) return base;
   if (mio.niveles && typeof mio.niveles === "object") {
     base.nd = {};

@@ -207,3 +207,55 @@ def test_una_actividad_de_otro_grado_igual_muestra_su_nivel():
     assert m, "no se encontró el armado del snapshot"
     assert "return;" not in m.group(1), (
         "cortar con return dejaba al padre sin el nivel de las actividades de otro grado")
+
+
+# ───────────────────────────────── la herencia reconoce al chico aunque escriba distinto
+
+def _correr_en_node(extra_js):
+    """Ejecuta las funciones REALES del player en node. Se saltea si no hay node."""
+    import json as _json
+    import shutil
+    import subprocess
+    if not shutil.which("node"):
+        pytest.skip("node no está instalado")
+    src = open(PLAYER, encoding="utf-8").read()
+    def fn(nombre):
+        m = re.search(r"^function %s\(.*?^\}" % re.escape(nombre), src, re.S | re.M)
+        assert m, "no se encontró %s en el player" % nombre
+        return m.group(0)
+    js = fn("_normNombre") + "\n" + fn("_herenciaDe") + "\n" + extra_js
+    out = subprocess.run(["node", "-e", js], capture_output=True, text=True, timeout=30)
+    assert out.returncode == 0, out.stderr[:400]
+    return _json.loads(out.stdout.strip())
+
+
+def test_la_herencia_reconoce_el_mismo_nombre_escrito_distinto():
+    """Si en 3.º decía "Sofía" y en 4.º escribe "Sofi", tiene que seguir siendo ella.
+
+    El cruce por nombre EXACTO fallaba justo en el caso normal y el chico perdía todo lo
+    que se había ganado — con un acento de diferencia."""
+    r = _correr_en_node("""
+      const h = {perfiles: {"Sofía": {niveles: {a: 3}}}};
+      console.log(JSON.stringify({
+        igual:      !!_herenciaDe("Sofía", h),
+        sinAcento:  !!_herenciaDe("Sofia", h),
+        mayusculas: !!_herenciaDe("SOFIA", h),
+        conEspacios:!!_herenciaDe("  sofia  ", h),
+        otroNombre: !!_herenciaDe("Sofi", h),
+      }));
+    """)
+    assert all(r.values()), "algún caso no reconoce al mismo chico: %s" % r
+
+
+def test_con_hermanos_no_adivina():
+    """Dos perfiles y un nombre que no coincide: NO se puede saber cuál es. Regalarle el
+    progreso del hermano sería peor que arrancar de cero."""
+    r = _correr_en_node("""
+      const h = {perfiles: {"Sofía": {niveles: {a: 3}}, "Juan": {niveles: {b: 2}}}};
+      console.log(JSON.stringify({
+        desconocido: _herenciaDe("Pedro", h),
+        elHermano:   _herenciaDe("juan", h),
+      }));
+    """)
+    assert r["desconocido"] is None, "no puede adivinar entre dos hermanos"
+    assert r["elHermano"] == {"niveles": {"b": 2}}, "y al que sí coincide tiene que reconocerlo"
