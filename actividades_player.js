@@ -5621,8 +5621,17 @@ function _enviarProgreso() {
     if (!D.adaptativo_on || typeof Adapt === "undefined") return;
     const perfil = Store.data.activeProfile;
     if (!perfil) return;
+    // Nivel de dificultad por actividad: es lo que el padre necesita para ver si el chico
+    // se quedó en Explorador o ya llegó a Experto. Sin esto el tablero sólo sabía
+    // "domina / practicando" por materia, que no dice nada de cuánto se exigió.
+    const niveles = {};
+    (D.menu || []).forEach((m) => {
+      const id = typeof m === "string" ? m : m.id;
+      const n = nivelDeDificultad(id);
+      if (n) niveles[id] = n;
+    });
     const snap = { perfil: perfil, resumen: Adapt.resumenPorCategoria(),
-      dominados: Array.from(Adapt._dominados()), ts: Date.now() };
+      dominados: Array.from(Adapt._dominados()), niveles: niveles, ts: Date.now() };
     const blob = new Blob([JSON.stringify(snap)], { type: "application/json" });
     if (navigator.sendBeacon) navigator.sendBeacon("progreso", blob);
     else fetch("progreso", { method: "POST", body: blob, keepalive: true }).catch(() => {});
