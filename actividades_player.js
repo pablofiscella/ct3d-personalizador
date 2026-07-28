@@ -5876,7 +5876,11 @@ GAMES.memotest = {
 /* ── SOPA DE LETRAS — arrastrá sobre las letras (8 direcciones, ida o vuelta) ── */
 GAMES.sopa = {
   crear(ctx) {
-    const s = D.sopas[rint(0, D.sopas.length - 1)];
+    // adaptativo: al dominar, elige entre las sopas MÁS GRANDES (más letras que barrer)
+    const _sopas = ctx.bonusDominio > 0
+      ? [...D.sopas].sort((a, b) => (b.n || 0) - (a.n || 0)).slice(0, Math.max(1, Math.ceil(D.sopas.length / (1 + ctx.bonusDominio))))
+      : D.sopas;
+    const s = _sopas[rint(0, _sopas.length - 1)];
     if (!s) return;
     const n = s.n;
     ctx.consigna("Encontrá las palabras escondidas");
@@ -6148,7 +6152,12 @@ GAMES.laberinto = {
 GAMES.sudoku = {
   minP: 4,
   crear(ctx) {
-    const s = D.sudokus[rint(0, D.sudokus.length - 1)];
+    // adaptativo: al dominar, elige entre los sudokus con MÁS casilleros vacíos
+    const _huecos = (x) => x.puz.flat().filter((v) => v === null).length;
+    const _sud = ctx.bonusDominio > 0
+      ? [...D.sudokus].sort((a, b) => _huecos(b) - _huecos(a)).slice(0, Math.max(1, Math.ceil(D.sudokus.length / (1 + ctx.bonusDominio))))
+      : D.sudokus;
+    const s = _sud[rint(0, _sud.length - 1)];
     if (!s) return;
     const caras = sample(P, 4);
     ctx.consigna("Cada amigo aparece UNA vez por fila, columna y cuadrado");
@@ -6376,7 +6385,7 @@ GAMES.colorear = {
 const CONTAR_CORTAS = ["¿Y ahora cuántos hay?", "¿Cuántos hay acá?", "¿Y estos, cuántos son?", "¿Contamos de nuevo?"];
 GAMES.contar = {
   crear(ctx) {
-    const max = ctx.cfg.max || 5, rondas = ctx.cfg.rondas || 5;
+    const max = (ctx.cfg.max || 5) + ctx.bonusDominio * 2, rondas = ctx.cfg.rondas || 5;   // adaptativo
     ctx.rondas(rondas);
     // Ronda 1: la fórmula lineal sola daba SIEMPRE la misma secuencia exacta
     // (1,2,3,4,5) — le agregué jitter, pero quedó ordenada de menor a mayor
@@ -6911,7 +6920,7 @@ const MAS_CORTAS = ["Tocá el grupo que tiene MÁS", "¿Cuál tiene MÁS?", "¿Y
 const MENOS_CORTAS = ["Tocá el grupo que tiene MENOS", "¿Cuál tiene MENOS?", "¿Y ahora, dónde hay MENOS?"];
 GAMES.mas_menos = {
   crear(ctx) {
-    const max = ctx.cfg.max || 6, rondas = ctx.cfg.rondas || 5;
+    const max = (ctx.cfg.max || 6) + ctx.bonusDominio * 2, rondas = ctx.cfg.rondas || 5;   // adaptativo
     ctx.rondas(rondas);
     let ronda = 0;
     const jugar = () => {
@@ -7051,8 +7060,10 @@ GAMES.silabas = {
       ctx.ronda(ronda);
       let disp = BANCO.filter((w) => !usadas.includes(w.p));
       if (!disp.length) { usadas = []; disp = BANCO; }
+      disp = _filtrarPorDominio(ctx, disp, (w) => "silabas#" + w.p);   // al dominar, lo que aún no sabe
       const palabra = disp[rint(0, disp.length - 1)];
       usadas.push(palabra.p);
+      ctx.item("silabas#" + palabra.p);
       consignaVariada(ctx, ronda, "Escuchá la palabra y elegí cuántas partes tiene", "f");
       ctx.juego.innerHTML = "";
       const tablero = el("div", "tablero silabasTablero");
@@ -7127,8 +7138,10 @@ GAMES.armar_palabra = {
       ctx.ronda(ronda);
       let disp = BANCO.filter((w) => !usadas.includes(w.p));
       if (!disp.length) { usadas = []; disp = BANCO; }
+      disp = _filtrarPorDominio(ctx, disp, (w) => "armapal#" + w.p);   // al dominar, lo que aún no sabe
       const palabra = disp[rint(0, disp.length - 1)];
       usadas.push(palabra.p);
+      ctx.item("armapal#" + palabra.p);
       consignaVariada(ctx, ronda, "Escuchá la palabra y tocá las sílabas en orden para armarla", "f");
       ctx.juego.innerHTML = "";
       const tablero = el("div", "tablero armarPalabraTablero");
@@ -7189,7 +7202,7 @@ const ABECEDARIO = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split("");
 GAMES.abecedario = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 5;
-    const nLetras = ctx.cfg.letras || 4;
+    const nLetras = (ctx.cfg.letras || 4) + ctx.bonusDominio;   // adaptativo
     ctx.rondas(rondas);
     let ronda = 0;
     const jugar = () => {
@@ -8740,6 +8753,7 @@ GAMES.historia_originarios = {
       ctx.juego.innerHTML = "";
       let libres = HISTORIA4_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
       if (!libres.length) { usados = []; libres = HISTORIA4_BANCO.map((_, i) => i); }
+      libres = _ordenPorDominio(ctx, libres, "hist4");   // al dominar, lo que aún no sabe
       const idx = libres[rint(0, libres.length - 1)];
       usados.push(idx);
       const item = HISTORIA4_BANCO[idx];
@@ -9272,13 +9286,13 @@ GAMES.proporcionalidad = {
                     : "Es INVERSA: si una cantidad aumenta, la otra DISMINUYE." };
       }
       if (modo === "directa") {
-        const u = [20, 25, 50, 100][rint(0, 3)], n1 = rint(2, 5), f = rint(2, 3), n2 = n1 * f, c1 = n1 * u, ans = n2 * u;
+        const u = [20, 25, 50, 100][rint(0, 3)], n1 = rint(2, 5 + ctx.bonusDominio), f = rint(2, 3 + ctx.bonusDominio), n2 = n1 * f, c1 = n1 * u, ans = n2 * u;
         const cosa = ["lápices", "manzanas", "cuadernos", "alfajores", "figuritas"][rint(0, 4)];
         return { q: n1 + " " + cosa + " cuestan $" + c1 + ". ¿Cuánto cuestan " + n2 + " " + cosa + "?",
                  ok: "$" + ans, wrongs: ["$" + c1, "$" + (c1 + u)],
                  m: "Es directa: cada uno sale $" + u + ", así que " + n2 + " cuestan " + n2 + " × " + u + " = $" + ans + "." };
       }
-      const mult = rint(2, 3), A = rint(2, 6), B = A * mult, T = mult * rint(2, 6), ans = T / mult;
+      const mult = rint(2, 3 + ctx.bonusDominio), A = rint(2, 6 + ctx.bonusDominio), B = A * mult, T = mult * rint(2, 6), ans = T / mult;
       const ctxs = [
         { who: "obreros", verb: "terminan una obra", unit: "días" },
         { who: "canillas", verb: "llenan el tanque", unit: "horas" },
@@ -9422,7 +9436,9 @@ GAMES.suma_angulos = {
       const add = (v) => { if (ops.length < 3 && !ops.some((o) => o.v === v)) ops.push({ v: v }); };
       it.wrongs.forEach(add);
       let guard = 0;
-      while (ops.length < 3 && guard++ < 40) add(deg(rint(2, 17) * 10));
+      // adaptativo: al dominar los distractores caen en pasos de 5°, no de 10° → más pegados
+    const _paso = ctx.bonusDominio > 0 ? 5 : 10;
+    while (ops.length < 3 && guard++ < 40) add(deg(rint(2, Math.floor(170 / _paso)) * _paso));
       const fila = el("div", "opsTexto");
       fila.setAttribute("data-ok", it.ok);
       let resuelto = false;
@@ -10144,7 +10160,8 @@ GAMES.comparar_numeros = {
     const jugar = () => {
       ctx.ronda(ronda);
       const prog = rondas > 1 ? ronda / (rondas - 1) : 1;
-      const topeMax = ctx.cfg.max || 9999;                 // 3° default 4 cifras; 1°=20, 2°=999
+      // adaptativo: al dominar, el tope sube (más cifras que comparar). 0 sin el flag.
+      const topeMax = (ctx.cfg.max || 9999) * (1 + ctx.bonusDominio);
       const maxN = prog > 0.5 ? topeMax : Math.max(9, Math.round(topeMax / 10));
       const minN = Math.max(1, Math.round(topeMax / (prog > 0.5 ? 100 : 1000)));
       let nums = [];
@@ -10332,8 +10349,8 @@ GAMES.conectores = {
 GAMES.ordenar_numeros = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 10;
-    const cant = ctx.cfg.cant || 3;
-    const max = ctx.cfg.max || 20;
+    const cant = (ctx.cfg.cant || 3) + ctx.bonusDominio;        // adaptativo: más números que ordenar
+    const max = (ctx.cfg.max || 20) * (1 + ctx.bonusDominio);   // adaptativo: y más grandes
     const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     ctx.rondas(rondas);
     let ronda = 0;
@@ -11034,6 +11051,7 @@ GAMES.detectives_cielo = {
       ctx.ronda(ronda);
       let disp = ASTRO5_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
       if (!disp.length) { usados = []; disp = ASTRO5_BANCO.map((_, i) => i); }
+      disp = _ordenPorDominio(ctx, disp, "astro5");   // al dominar, lo que aún no sabe
       const idx = disp[rint(0, disp.length - 1)]; usados.push(idx);
       const it = ASTRO5_BANCO[idx];
       ctx.item("astro5#" + idx);
@@ -11336,7 +11354,7 @@ GAMES.problemas_3ro = {
       const obj = OBJ[rint(0, OBJ.length - 1)][0];
       const tipo = rint(0, 2);
       let texto, correcto, motivo;
-      if (tipo === 0) { const c = rint(2, 9), n = rint(2, 6); correcto = c * n; texto = "En cada caja hay " + c + " " + obj + ". ¿Cuántas hay en " + n + " cajas?"; motivo = n + " cajas de " + c + " → " + n + "×" + c + "=" + correcto + "."; }
+      if (tipo === 0) { const c = rint(2, 9 + ctx.bonusDominio * 3), n = rint(2, 6 + ctx.bonusDominio * 2); correcto = c * n; texto = "En cada caja hay " + c + " " + obj + ". ¿Cuántas hay en " + n + " cajas?"; motivo = n + " cajas de " + c + " → " + n + "×" + c + "=" + correcto + "."; }
       else if (tipo === 1) { const a = rint(10, 40), b = rint(5, 30); correcto = a + b; texto = "Tenía " + a + " " + obj + " y me regalaron " + b + ". ¿Cuántas tengo?"; motivo = "Me dieron más, así que sumo: " + a + "+" + b + "=" + correcto + "."; }
       else { const a = rint(20, 50), b = rint(5, 19); correcto = a - b; texto = "Tenía " + a + " " + obj + " y regalé " + b + ". ¿Cuántas me quedaron?"; motivo = "Di algunas, así que resto: " + a + "−" + b + "=" + correcto + "."; }
       ctx.item("prob3#" + tipo + "_" + correcto);
@@ -11401,7 +11419,7 @@ GAMES.letra_inicial = juegoTriviaBanco(LETRA_INICIAL_BANCO, "letraini");
 GAMES.anterior_siguiente = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 10;
-    const max = ctx.cfg.max || 100;
+    const max = (ctx.cfg.max || 100) * (1 + ctx.bonusDominio);   // adaptativo
     ctx.rondas(rondas);
     const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     let ronda = 0;
@@ -11421,7 +11439,7 @@ GAMES.anterior_siguiente = {
       const opciones = [{ v: correcto, ok: true }];
       shuffle(cand).forEach((d) => { if (opciones.length < 3 && d.v > 0 && d.v !== correcto && !opciones.some((o) => o.v === d.v)) opciones.push(d); });
       let intento = 0;
-      while (opciones.length < 3 && intento++ < 20) { const v = correcto + rint(2, 5) * (rint(0, 1) ? 1 : -1); if (v > 0 && !opciones.some((o) => o.v === v)) opciones.push({ v: v, m: motivo }); }
+      while (opciones.length < 3 && intento++ < 20) { const v = correcto + rint(1, Math.max(2, 5 - ctx.bonusDominio)) * (rint(0, 1) ? 1 : -1); if (v > 0 && !opciones.some((o) => o.v === v)) opciones.push({ v: v, m: motivo }); }
       const fila = el("div", "ops");
       let resuelto = false;
       shuffle(opciones).forEach((o) => {
@@ -11579,7 +11597,7 @@ GAMES.grilla100 = {
       let guardas = 0;
       while (distr.size < 3 && guardas < 100) {
         guardas++;
-        const v = nums[falta] + rint(-12, 12);
+        const v = nums[falta] + rint(-12, 12) / (1 + ctx.bonusDominio);   // adaptativo: más pegados
         if (v > 0 && v <= 100 && !nums.includes(v)) distr.add(v);
       }
       let resuelto = false;
@@ -11691,7 +11709,9 @@ GAMES.sumas_redondas = {
       ctx.ronda(ronda);
       consignaVariada(ctx, ronda, "Tocá dos números que sumen el número redondo", "n");
       ctx.juego.innerHTML = "";
-      const objetivo = OBJETIVOS[rint(0, OBJETIVOS.length - 1)];
+      // adaptativo: al dominar, los objetivos más grandes de la lista
+      const _pisoO = Math.min(ctx.bonusDominio, OBJETIVOS.length - 1);
+      const objetivo = OBJETIVOS[rint(_pisoO, OBJETIVOS.length - 1)];
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto",
         `<span style="font-size:36px;font-family:'Baloo',sans-serif">Formá ${objetivo}</span>`));
@@ -11843,8 +11863,8 @@ GAMES.multiplicacion_concepto = {
       ctx.ronda(ronda);
       consignaVariada(ctx, ronda, "¿Qué multiplicación es esta suma?", "n");
       ctx.juego.innerHTML = "";
-      const sumando = rint(2, 5);
-      const veces = rint(2, 4);
+      const sumando = rint(2, 5 + ctx.bonusDominio);   // adaptativo
+      const veces = rint(2, 4 + ctx.bonusDominio);     // adaptativo
       const texto = Array.from({ length: veces }, () => sumando).join(" + ");
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto",
@@ -12136,7 +12156,7 @@ GAMES.tablas_contrarreloj = {
       let guardas = 0;
       while (opciones.size < 3 && guardas < 50) {
         guardas++;
-        const v = correcta + rint(-tabla * 2, tabla * 2);
+        const v = correcta + rint(-tabla * 2, tabla * 2) / (1 + ctx.bonusDominio);   // adaptativo: más pegados
         if (v > 0 && v !== correcta) opciones.add(v);
       }
       let resuelto = false;
@@ -12544,7 +12564,9 @@ GAMES.cuerpos_geometricos = {
       ctx.ronda(ronda);
       consignaVariada(ctx, ronda, "Contá y elegí la respuesta correcta", "f");
       ctx.juego.innerHTML = "";
-      const item = CUERPOS_BANCO[rint(0, CUERPOS_BANCO.length - 1)];
+      const _cand = _filtrarPorDominio(ctx, CUERPOS_BANCO.map((_, i) => i), (i) => "cuerpo#" + i);
+      const item = CUERPOS_BANCO[_cand[rint(0, _cand.length - 1)]];
+      ctx.item("cuerpo#" + CUERPOS_BANCO.indexOf(item));
       // A los cuerpos redondos NO se les pregunta por las caras: cuántas tiene una
       // esfera o un cono depende de si el manual cuenta la superficie curva como cara,
       // y no vamos a enseñar una respuesta que la maestra pueda marcar mal. Vértices y
@@ -12562,7 +12584,7 @@ GAMES.cuerpos_geometricos = {
       let guardas = 0;
       while (opciones.size < 3 && guardas < 50) {
         guardas++;
-        const v = Math.max(1, correcta + rint(-3, 3));
+        const v = Math.max(1, correcta + rint(-3, 3) / (1 + ctx.bonusDominio));   // adaptativo: más pegados
         if (v !== correcta) opciones.add(v);
       }
       const fila = el("div", "filaSprites");
@@ -12689,9 +12711,11 @@ GAMES.cajero_automatico = {
       ctx.ronda(ronda);
       consignaVariada(ctx, ronda, "Tocá los billetes que sumen el monto exacto", "n");
       ctx.juego.innerHTML = "";
-      const idxA = rint(0, BILLETES.length - 1);
-      let idxB = rint(0, BILLETES.length - 1);
-      while (idxB === idxA) idxB = rint(0, BILLETES.length - 1);
+      // adaptativo: al dominar arranca desde los valores más grandes
+      const _pisoB = Math.min(ctx.bonusDominio, BILLETES.length - 2);
+      const idxA = rint(_pisoB, BILLETES.length - 1);
+      let idxB = rint(_pisoB, BILLETES.length - 1);
+      while (idxB === idxA) idxB = rint(_pisoB, BILLETES.length - 1);
       const a = BILLETES[idxA], b = BILLETES[idxB];
       const objetivo = a + b;
       const arriba = el("div", "tablero");
@@ -13026,7 +13050,9 @@ GAMES.fotosintesis = {
       ctx.juego.innerHTML = "";
       let disp = FOTOSINTESIS_INTRUSOS.filter((x) => !usados.includes(x));
       if (!disp.length) { usados = []; disp = FOTOSINTESIS_INTRUSOS; }
+      disp = _filtrarPorDominio(ctx, disp, (x) => "fotosint#" + x);   // al dominar, lo que aún no sabe
       const intruso = disp[rint(0, disp.length - 1)];
+      ctx.item("fotosint#" + intruso);
       usados.push(intruso);
       const opciones = shuffle([...FOTOSINTESIS_NECESARIOS, intruso]);
       const fila = el("div", "filaSprites");
@@ -14440,9 +14466,11 @@ GAMES.pago_exacto = {
       ctx.ronda(ronda);
       consignaVariada(ctx, ronda, "Tocá las monedas que sumen el pago exacto", "n");
       ctx.juego.innerHTML = "";
-      const idxA = rint(0, MONEDAS.length - 1);
-      let idxB = rint(0, MONEDAS.length - 1);
-      while (idxB === idxA) idxB = rint(0, MONEDAS.length - 1);
+      // adaptativo: al dominar arranca desde los valores más grandes
+      const _pisoM = Math.min(ctx.bonusDominio, MONEDAS.length - 2);
+      const idxA = rint(_pisoM, MONEDAS.length - 1);
+      let idxB = rint(_pisoM, MONEDAS.length - 1);
+      while (idxB === idxA) idxB = rint(_pisoM, MONEDAS.length - 1);
       const a = MONEDAS[idxA], b = MONEDAS[idxB];
       const objetivo = a + b;
       const arriba = el("div", "tablero");
@@ -15638,6 +15666,7 @@ GAMES.estadistica_datos = {
       ctx.ronda(ronda);
       let disp = ESTADISTICA_BANCO.filter((x) => !usados.includes(x.nums.join()));
       if (!disp.length) { usados = []; disp = ESTADISTICA_BANCO; }
+      disp = _filtrarPorDominio(ctx, disp, (x) => "estad#" + x.nums.join());   // al dominar, lo que aún no sabe
       const item = disp[rint(0, disp.length - 1)];
       usados.push(item.nums.join());
       const medida = MEDIDAS[rint(0, 2)];
@@ -15891,8 +15920,10 @@ GAMES.escape_room_egreso = {
       ctx.juego.innerHTML = "";
       let disp = ESCAPE_ROOM_BANCO.filter((x) => !usados.includes(x.texto));
       if (!disp.length) { usados = []; disp = ESCAPE_ROOM_BANCO; }
+      disp = _filtrarPorDominio(ctx, disp, (x) => "escape#" + x.texto);   // al dominar, lo que aún no sabe
       const item = disp[rint(0, disp.length - 1)];
       usados.push(item.texto);
+      ctx.item("escape#" + item.texto);
       const arriba = el("div", "tablero");
       arriba.appendChild(el("div", "spriteQuieto",
         `<span style="font-size:19px;font-family:'Baloo',sans-serif">${item.texto}</span>`));
@@ -16215,7 +16246,7 @@ const SIMON_MIRA_CORTAS = ["Mirá bien…", "Prestá atención…", "Otra vez, m
 const SIMON_REPETI_CORTAS = ["Ahora repetí", "Tu turno, tocalos en orden", "¿Te acordás? Repetí"];
 GAMES.simon = {
   crear(ctx) {
-    const nColores = Math.min(ctx.cfg.colores || 4, SIMON_COLORES.length);
+    const nColores = Math.min((ctx.cfg.colores || 4) + ctx.bonusDominio, SIMON_COLORES.length);   // adaptativo
     const filas = Math.max(1, ctx.cfg.filas || 1);
     const rondas = ctx.cfg.rondas || 5;
     const colores = SIMON_COLORES.slice(0, nColores);
@@ -16299,7 +16330,7 @@ GAMES.simon = {
 GAMES.agrupar = {
   minP: 2,
   crear(ctx) {
-    const canastas = Math.min(ctx.cfg.canastas || 2, P.length);
+    const canastas = Math.min((ctx.cfg.canastas || 2) + ctx.bonusDominio, P.length);   // adaptativo
     const rondas = ctx.cfg.rondas || 6;
     const refs = sample(P, canastas);
     ctx.rondas(rondas);
