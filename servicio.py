@@ -1726,6 +1726,18 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
                     cats[str(k)[:20]] = {kk: int(v.get(kk) or 0) for kk in ("dom", "proc", "pend", "total")}
         dominados = ([str(x)[:40] for x in ev.get("dominados")][:300]
                      if isinstance(ev.get("dominados"), list) else [])
+        # Nivel de dificultad por actividad {id: 1|2|3} — lo muestra el tablero del padre.
+        # Va en la lista blanca a propósito: este endpoint DESCARTA todo campo que no esté
+        # nombrado acá, así que agregarlo sólo en el player lo perdía en silencio.
+        niveles = {}
+        if isinstance(ev.get("niveles"), dict):
+            for k, v in list(ev["niveles"].items())[:300]:
+                try:
+                    n_ = int(v)
+                except (TypeError, ValueError):
+                    continue
+                if 1 <= n_ <= 3:
+                    niveles[str(k)[:40]] = n_
         p = os.path.join(d, "progreso.json")
         try:
             data = json.load(open(p, encoding="utf-8"))
@@ -1735,6 +1747,7 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
             data = {"profiles": {}}
         if len(data["profiles"]) < 25 or perfil in data["profiles"]:
             data["profiles"][perfil] = {"resumen": cats, "dominados": dominados,
+                                        "niveles": niveles,
                                         "ts": int(ev.get("ts") or 0) if str(ev.get("ts") or "0").isdigit() else 0}
             try:
                 with open(p, "w", encoding="utf-8") as f:
