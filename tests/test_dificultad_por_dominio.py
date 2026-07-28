@@ -189,3 +189,21 @@ def test_el_umbral_del_tope_es_explicito():
     assert m, "no se encontró esExpertoEn"
     assert "0.8" in m.group(1), "el umbral tiene que estar a la vista"
     assert "=== 3" in m.group(1), "el tope es el nivel 3 (Experto)"
+
+
+def test_una_actividad_de_otro_grado_igual_muestra_su_nivel():
+    """"Más allá" NO reemplaza al nivel: dicen cosas distintas y conviven.
+
+    "Más allá" dice de qué grado es el contenido; el nivel, qué tan profundo llegó en esa
+    actividad. Tratarlas como excluyentes dejaba al chico que más avanzó —el de 4.º que ya
+    domina toda la Matemática de 5.º— viendo siempre el mismo 🚀 sin señal de progreso,
+    mientras el festejo le hablaba de un nivel que la carta no mostraba."""
+    src = open(PLAYER, encoding="utf-8").read()
+    assert "_masAlla ? 0 : nivelDeDificultad" not in src, (
+        "el nivel no se puede apagar por ser de otro grado: la dificultad sube igual "
+        "(bonusDominio no mira el grado) y el chico tiene que verlo")
+    # y el nivel de esas actividades también tiene que viajar al padre
+    m = re.search(r"if \(esMasAlla\(m\)\)(.*?)\n\s*\}\);", src, re.S)
+    assert m, "no se encontró el armado del snapshot"
+    assert "return;" not in m.group(1), (
+        "cortar con return dejaba al padre sin el nivel de las actividades de otro grado")
