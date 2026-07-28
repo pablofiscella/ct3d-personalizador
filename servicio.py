@@ -1762,6 +1762,68 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
         self.send_header("Content-Length", "0")
         self.end_headers()
 
+    def _act_herencia_set(self, token):
+        """La TIENDA deja acá lo que el chico ya se había ganado en sus cuadernos
+        ANTERIORES, al entregarle uno nuevo (el grado siguiente).
+
+        Sin esto el progreso se pierde en cada compra: se guarda en el navegador con una
+        clave atada a la dirección del cuaderno, y cada compra genera un token nuevo. El
+        chico volvía a 🌱 Explorador en actividades que ya dominaba — o sea que comprar el
+        grado siguiente lo hacía RETROCEDER.
+
+        Admin (X-API-Key): la escribe la tienda server-to-server, nunca el navegador —
+        si la pudiera mandar el cliente, cualquiera se regalaría el nivel máximo.
+        El cuaderno viejo no se toca: sigue con su progreso para poder repasar."""
+        if not self._admin_ok():
+            return self._json(403, {"ok": False})
+        import actividades_web
+        d = os.path.join(actividades_web.ACT_DIR, token)
+        if not os.path.isdir(d):
+            return self._json(404, {"ok": False})
+        try:
+            ev = json.loads(self._body() or b"{}")
+        except Exception:
+            return self._json(400, {"ok": False})
+
+        def _saneado(x):
+            if not isinstance(x, dict):
+                return None
+            niveles = {}
+            if isinstance(x.get("niveles"), dict):
+                for k, v in list(x["niveles"].items())[:300]:
+                    try:
+                        n_ = int(v)
+                    except (TypeError, ValueError):
+                        continue
+                    if 1 <= n_ <= 3:
+                        niveles[str(k)[:40]] = n_
+            dom = ([str(y)[:40] for y in x.get("dominados")][:300]
+                   if isinstance(x.get("dominados"), list) else [])
+            return {"niveles": niveles, "dominados": dom} if (niveles or dom) else None
+
+        her = {}
+        if isinstance(ev.get("perfiles"), dict):
+            for nombre, val in list(ev["perfiles"].items())[:25]:
+                sano = _saneado(val)
+                if sano:
+                    her.setdefault("perfiles", {})[str(nombre)[:40]] = sano
+        else:
+            sano = _saneado(ev)
+            if sano:
+                her = sano
+        p = os.path.join(d, "data.json")
+        try:
+            dj = json.load(open(p, encoding="utf-8"))
+        except Exception:
+            return self._json(404, {"ok": False})
+        if her:
+            dj["herencia"] = her
+        else:
+            dj.pop("herencia", None)
+        with open(p, "w", encoding="utf-8") as f:
+            json.dump(dj, f, ensure_ascii=False)
+        return self._json(200, {"ok": True, "herencia": her})
+
     def _act_interes(self, token):
         """Activación escalable por niveles · CAPTURAR EVENTO (público, desde el
         player): el chico tocó el candado de un nivel (motivo='pidio') o dominó su
@@ -1830,6 +1892,9 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
         m_prog = re.match(r"^/act/([A-Za-z0-9_-]+)/progreso$", path)
         if m_prog:
             return self._act_progreso_set(m_prog.group(1))
+        m_her = re.match(r"^/act/([A-Za-z0-9_-]+)/herencia$", path)
+        if m_her:
+            return self._act_herencia_set(m_her.group(1))
         m_ext = re.match(r"^/act/([A-Za-z0-9_-]+)/extras$", path)
         if m_ext:
             return self._act_extras_set(m_ext.group(1))

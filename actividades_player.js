@@ -4878,7 +4878,7 @@ function elegirPerfil(nombre) {
       if (k !== nombre && !_tieneProgreso(Store.data.profiles[k])) delete Store.data.profiles[k];
     });
   }
-  if (!Store.data.profiles[nombre]) Store.data.profiles[nombre] = { stars: {} };
+  if (!Store.data.profiles[nombre]) Store.data.profiles[nombre] = _perfilNuevo(nombre);
   Store.data.activeProfile = nombre;
   Store.save();
   cerrarPerfil();
@@ -5173,6 +5173,41 @@ const SIN_NIVEL_DIF = new Set([
   "camino_digestivo", "colorear", "linea_democracia", "planta_potabilizadora",
   "programar_camino", "puntos", "viaje_inmigrante", "suma_rapida",
 ]);
+/* ── EL PROGRESO SIGUE AL CHICO, NO AL CUADERNO (28-jul-2026) ───────────────────
+   El progreso se guarda en el navegador con una clave atada a la DIRECCIÓN del cuaderno
+   (`Store.key`), y cada compra genera un token nuevo. Sin esto, el año que viene el chico
+   compra 4.º y las actividades que ya dominaba le vuelven a aparecer en 🌱 Explorador:
+   rehace lo que ya había demostrado, y la compra que le prometía avanzar lo hace
+   RETROCEDER — justo lo contrario del argumento con el que se vendió.
+
+   `D.herencia` la deja la tienda al entregar el cuaderno nuevo: es el mejor nivel que ese
+   chico alcanzó en sus cuadernos anteriores. Se usa UNA sola vez, al crear el perfil, y
+   nunca pisa progreso existente.
+
+   El cuaderno viejo NO se toca: sigue con su propio progreso, así que volver a él para
+   repasar funciona como siempre. ── */
+function _perfilNuevo(nombre) {
+  const base = { stars: {} };
+  const h = (D && D.herencia) || null;
+  if (!h) return base;
+  // La herencia puede venir por perfil o suelta (un cuaderno, un chico).
+  const mio = (h.perfiles && h.perfiles[nombre]) || (h.niveles || h.dominados ? h : null);
+  if (!mio) return base;
+  if (mio.niveles && typeof mio.niveles === "object") {
+    base.nd = {};
+    Object.keys(mio.niveles).forEach((id) => {
+      // el snapshot guarda el ESCALÓN (1..3) y el Store guarda el contador interno:
+      // Explorador=0, Aventurero=1, Experto=3 (ver nivelDeDificultad).
+      const n = Number(mio.niveles[id]);
+      if (n >= 3) base.nd[id] = 3;
+      else if (n === 2) base.nd[id] = 1;
+    });
+  }
+  if (Array.isArray(mio.dominados)) base.heredoDominio = mio.dominados.slice(0, 300);
+  base.heredado = true;   // para poder decirle al chico de dónde salió, y para no repetirlo
+  return base;
+}
+
 function gradoDelChico() { return ((D && D.edad) ? D.edad : 9) - 5; }
 function itemDeMenu(id) {
   return (D.menu || []).find((m) => (typeof m === "string" ? m : m.id) === id) || null;
