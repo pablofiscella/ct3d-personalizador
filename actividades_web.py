@@ -2054,6 +2054,9 @@ def crear(data, tema, token=None):
     with open(os.path.join(d, "manifest.json"), "w", encoding="utf-8") as f:
         json.dump({"tema": tema, "nombre": nombre, "edad": edad,
                    "banda": dj["banda"], "titulo": dj["titulo"],
+                   # la LÍNEA del cuaderno, para que el visor sepa qué marca poner sin
+                   # abrir data.json (15 KB contra 129 bytes)
+                   "escolar_on": bool(dj.get("escolar_on")),
                    "creado": int(time.time())}, f, ensure_ascii=False)
     try:
         os.remove(_marca_gen(token))
@@ -2206,6 +2209,23 @@ def generar_audio_consignas(textos):
     return manifest
 
 
+def _es_escolar(token, reg=None):
+    """¿Este cuaderno es de la línea ESCOLAR (Kydo) o de la de cumpleaños?
+
+    El manifest lo trae desde el 27-jul-2026. Los cuadernos anteriores —todos los que ya
+    están entregados— tienen un manifest sin el flag, así que se cae a data.json, que
+    siempre lo tuvo. Sin ese respaldo, los cuadernos escolares ya vendidos seguirían
+    mostrando la marca de la otra línea hasta que alguien los regenere."""
+    reg = reg if reg is not None else _cargar(token)
+    if reg and "escolar_on" in reg:
+        return bool(reg["escolar_on"])
+    try:
+        with open(os.path.join(ACT_DIR, token, "data.json"), encoding="utf-8") as f:
+            return bool(json.load(f).get("escolar_on"))
+    except Exception:
+        return False
+
+
 def html(token):
     """El visor (HTML). Rutas RELATIVAS → servirlo SIEMPRE bajo /act/<token>/
     (con barra final). None si el token no está listo."""
@@ -2214,7 +2234,13 @@ def html(token):
         return None
     with open(TEMPLATE_HTML, encoding="utf-8") as f:
         t = f.read()
+    # La MARCA del título de la pestaña sale del flag escolar, igual que adentro del
+    # player: la línea escolar es Kydo y la de cumpleaños Casatridimensional. Se resuelve
+    # acá y no sólo en el JS para que la pestaña no muestre la marca equivocada durante
+    # el primer instante de carga.
+    marca = "Kydo" if _es_escolar(token, reg) else "Casatridimensional"
     return (t.replace("{{TITULO}}", _esc(reg.get("titulo") or "Actividades"))
+             .replace("{{MARCA}}", marca)
              .replace("{{V}}", _player_version()))
 
 
