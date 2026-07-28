@@ -1738,6 +1738,10 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
                     continue
                 if 1 <= n_ <= 3:
                     niveles[str(k)[:40]] = n_
+        # El 4.º escalón: actividades de un grado MAYOR al del chico. Van aparte de
+        # `niveles` porque no son un escalón de la misma actividad, son el paso siguiente.
+        mas_alla = ([str(x)[:40] for x in ev.get("masAlla")][:300]
+                    if isinstance(ev.get("masAlla"), list) else [])
         p = os.path.join(d, "progreso.json")
         try:
             data = json.load(open(p, encoding="utf-8"))
@@ -1747,7 +1751,7 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
             data = {"profiles": {}}
         if len(data["profiles"]) < 25 or perfil in data["profiles"]:
             data["profiles"][perfil] = {"resumen": cats, "dominados": dominados,
-                                        "niveles": niveles,
+                                        "niveles": niveles, "masAlla": mas_alla,
                                         "ts": int(ev.get("ts") or 0) if str(ev.get("ts") or "0").isdigit() else 0}
             try:
                 with open(p, "w", encoding="utf-8") as f:
