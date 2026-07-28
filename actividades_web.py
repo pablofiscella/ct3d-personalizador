@@ -103,7 +103,7 @@ def _banda(edad):
 # ── Menú por banda (orden = recorrido sugerido; cfg = perillas de dificultad).
 #    Curado con la investigación 10-jul-2026: contar-tocando, patrón y memotest
 #    son los de mayor valor educativo; sopa/sudoku recién para lectores. ──
-def _menu(banda, edad):
+def _menu(banda, edad, escolar=False):
     try:
         e = int(str(edad).strip() or 5)
     except (TypeError, ValueError):
@@ -201,6 +201,17 @@ def _menu(banda, edad):
         for item in g:
             if item["id"] == "serie":
                 item["cfg"] = {**item["cfg"], "tope": _SERIE_TOPE[e]}
+    # La sopa arrastraba el MISMO bug de dificultad invertida que `serie` y quedó
+    # afuera de aquel barrido (está listada como "rompecabezas universal" en el
+    # drop de 6°-7°, más abajo): su cfg estaba vacío en los 7 grados. Acá el menú
+    # del token declara con qué grilla y direcciones salió — el contenido lo arma
+    # `_armar_data` con `_SOPA_GRADO`. Sólo aplica a la línea escolar.
+    _cfg_sopa = _SOPA_GRADO.get(_grado_con_arte(e, escolar))
+    if _cfg_sopa:
+        for item in g:
+            if item["id"] == "sopa":
+                item["cfg"] = {**item["cfg"], "n": _cfg_sopa["n"],
+                               "palabras": _cfg_sopa["palabras"], "dirs": _cfg_sopa["dirs"]}
     # Retirar de 4°-7° (e>=9) los juegos clavados en dificultad de inicial que
     # NO escalan con la edad y son el origen de la queja "muy fácil" de 4°:
     # sumas/restas cuentan sprites en pantalla (max 10, mecánica concreta de
@@ -701,9 +712,10 @@ def _lab_json(n, seed):
     return {"n": n, "celdas": celdas, "camino": [list(c) for c in camino]}
 
 
-def _sopa_json(palabras, N, seed):
+def _sopa_json(palabras, N, seed, dirs=None):
     """Sopa N×N: todas las palabras colocadas y verificadas (o None si no entran).
-    En la grilla van sin tilde (la Ñ se conserva); 'lindas' = como se muestran."""
+    En la grilla van sin tilde (la Ñ se conserva); 'lindas' = como se muestran.
+    `dirs`: subconjunto de direcciones (grados chicos); None = las 8 de siempre."""
     from cuaderno import _wordsearch, _sin_tilde
     ws, lindas = [], []
     for p in palabras:
@@ -713,7 +725,7 @@ def _sopa_json(palabras, N, seed):
             ws.append(_sin_tilde(p))
     g = sol = None
     for s in range(seed, seed + 60):
-        g, sol = _wordsearch(ws, N, s)
+        g, sol = _wordsearch(ws, N, s, dirs=dirs)
         if g:
             break
     if not g:
@@ -952,6 +964,42 @@ MUNDO_GRADO = {
     5: "Viajeros en el Tiempo",         6: "Creadores del Mañana",
     7: "Creadores del Futuro",
 }
+
+
+# Sopa de letras por GRADO (28-jul-2026). Pablo: "las palabras que aparezcan sean
+# temáticas en 1ro y 2do pero en los grados siguientes tienen que estar acorde a la
+# edad". Hasta hoy los 7 grados recibían la MISMA sopa: 10×10, 6 palabras del tema
+# de cumpleaños del token y las 8 direcciones. Como los 49 tokens escolares son
+# `tema=safari`, un chico de 7° buscaba MONO, JIRAFA y CEBRA.
+#
+# La calibración sale de las auditorías, que ya la tenían escrita grado por grado:
+#   · `n`        lado de la grilla. 1° baja a 6×6 y 2° a 8×8 (grado-1.md:173,
+#                grado-2.md:176): la 10×10 con reversas "entrena CONTRA la
+#                direccionalidad" a los 6. 5°-7° suben a 12×12 (grado-5.md:179).
+#                Es el número EXACTO de la auditoría y no se le suma nada: cada
+#                columna de más achica la celda, y en un teléfono de 360px la
+#                celda ya baja de ~30px (n=10) a ~25px (n=12).
+#   · `palabras` cuántas esconde cada sopa.
+#   · `max`      largo máximo — 1° y 2° con palabras cortas (grado-2.md pide 3-7).
+#   · `dirs`     "recta" = → ↓ · "ida" = → ↓ ↘ (sin invertidas) · "todas" = las 8.
+#
+# Sólo aplica a la línea escolar (compuerta `_grado_con_arte`): un kit de
+# cumpleaños sigue con su tema, su 10×10 y sus 6 palabras.
+_SOPA_GRADO = {
+    1: {"n": 6,  "palabras": 4, "max": 6,  "dirs": "recta"},
+    2: {"n": 8,  "palabras": 6, "max": 7,  "dirs": "ida"},
+    3: {"n": 10, "palabras": 7, "max": 10, "dirs": "todas"},
+    4: {"n": 10, "palabras": 7, "max": 10, "dirs": "todas"},
+    5: {"n": 12, "palabras": 8, "max": 12, "dirs": "todas"},
+    6: {"n": 12, "palabras": 8, "max": 12, "dirs": "todas"},
+    7: {"n": 12, "palabras": 8, "max": 12, "dirs": "todas"},
+}
+
+
+def _dirs_sopa(nombre):
+    """Nombre del juego de direcciones → la lista real de `cuaderno`."""
+    import cuaderno
+    return {"recta": cuaderno._DIRS_RECTA, "ida": cuaderno._DIRS_IDA}.get(nombre)
 
 
 # Paleta por GRADO: los colores del mundo de su portada. Mismo criterio que las de
@@ -1367,6 +1415,71 @@ def _menu_curricular(edad):
         return []
 
 
+def _sopas_del_token(palabras_tema, edad, seed, rnd, escolar=False):
+    """Las 4 sopas del cuaderno: por GRADO si el token es escolar, por tema si no.
+
+    Kit de cumpleaños (sin `escolar_on`) → exactamente lo de siempre: 10×10, hasta
+    6 palabras del tema, las 8 direcciones. Línea escolar → `_SOPA_GRADO`.
+
+    Las 4 sopas de un token forman un GRADIENTE: las dos primeras con una palabra
+    menos, y en 2° además sin diagonal (grado-2.md:176 pide "niveles 1-2
+    horizontal/vertical de ida, 3-4 suman diagonal de ida"). El gradiente va por
+    CANTIDAD y no por tamaño de grilla a propósito: la grilla queda clavada en el
+    número que fijó la auditoría para cada grado, porque agrandarla achica la
+    celda y en un teléfono de 360px una sopa de 13 baja de ~30px a ~22px por
+    celda — más difícil de arrastrar con el dedo, que no es la dificultad que se
+    busca."""
+    grado = _grado_con_arte(edad, escolar)
+    cfg = _SOPA_GRADO.get(grado)
+    voc = None
+    if cfg:
+        # Nunca lanza: si el banco del grado tuviera un problema, el cuaderno sale
+        # con la sopa de siempre en vez de no salir (mismo criterio que _menu_curricular).
+        try:
+            import actividades_vocabulario as _voc
+            if len(_voc.usables(grado, cfg["max"])) >= cfg["palabras"]:
+                voc = _voc
+        except Exception:
+            voc = None
+    if voc is None:
+        # Camino de siempre. Filtrar por largo ANTES de samplear: la sopa es 10×10,
+        # las palabras de más de 10 letras no entran (_sopa_json las descarta). Si el
+        # sample caía en palabras largas, la sopa salía pobre o vacía. Y descartamos
+        # sopas con menos de 4 palabras colocadas (no vale la pena mostrarlas).
+        validas = [p for p in palabras_tema if 3 <= len(str(p).strip()) <= 10]
+        out = []
+        for i in range(4):
+            if len(validas) < 4:
+                break
+            sub = rnd.sample(validas, min(6, len(validas)))
+            s = _sopa_json(sub, 10, seed + i * 101)
+            if s and len(s.get("palabras", [])) >= 4:
+                out.append(s)
+        return out
+
+    out, usadas = [], set()
+    for i in range(4):
+        n = cfg["n"]
+        # 2° arranca sin diagonal y la suma en las dos últimas (grado-2.md:176);
+        # 1° nunca la suma; de 3° en adelante van las 8 desde la primera.
+        nombre_dirs = ("recta" if (cfg["dirs"] == "ida" and i < 2) else cfg["dirs"])
+        dirs = _dirs_sopa(nombre_dirs)
+        tope = max(4, cfg["palabras"] - 1) if i < 2 else cfg["palabras"]
+        # Relajación progresiva: con 6×6 y sólo dos direcciones (1°) la colocación
+        # es apretada. Antes de resignar la sopa, se prueba con una palabra menos
+        # hasta el piso de 4 que exige tests/test_actividades_web.py.
+        for cuantas in range(tope, 3, -1):
+            sub = voc.palabras_de_grado(grado, rnd, cuantas, cfg["max"], evitar=usadas)
+            if len(sub) < cuantas:
+                continue
+            s = _sopa_json(sub, n, seed + i * 101, dirs=dirs)
+            if s and len(s.get("palabras", [])) >= 4:
+                out.append(s)
+                usadas.update(sub)   # las 4 sopas del token no repiten vocabulario
+                break
+    return out
+
+
 def _armar_data(tema, nombre, edad, seed, escolar=False):
     """El data.json del token: paleta + menú + puzzles verificados."""
     from cuaderno import _tema_nombre, _tema_palabras, PALABRAS
@@ -1376,18 +1489,7 @@ def _armar_data(tema, nombre, edad, seed, escolar=False):
 
     sopas, sudokus, laberintos = [], [], []
     if banda == "grande":
-        # Filtrar por largo ANTES de samplear: la sopa es 10×10, las palabras de más
-        # de 10 letras no entran (_sopa_json las descarta). Si el sample caía en
-        # palabras largas, la sopa salía pobre o vacía. Y descartamos sopas con menos
-        # de 4 palabras colocadas (no vale la pena mostrarlas).
-        validas = [p for p in palabras if 3 <= len(str(p).strip()) <= 10]
-        for i in range(4):
-            if len(validas) < 4:
-                break
-            sub = rnd.sample(validas, min(6, len(validas)))
-            s = _sopa_json(sub, 10, seed + i * 101)
-            if s and len(s.get("palabras", [])) >= 4:
-                sopas.append(s)
+        sopas = _sopas_del_token(palabras, edad, seed, rnd, escolar)
         sudokus = [_sudoku_json(seed + i * 13) for i in range(4)]
     if banda != "mini":
         tams = [6, 7, 8, 9] if banda == "media" else [9, 10, 11, 12]
@@ -1403,7 +1505,7 @@ def _armar_data(tema, nombre, edad, seed, escolar=False):
         laberintos_chicos = [_lab_json(n, seed + 900 + i * 23) for i, n in enumerate(tams_chicos)]
 
     titulo = ("Las actividades de %s" % nombre) if nombre else "Cuaderno de actividades"
-    menu_niv = _marcar_niveles(_menu(banda, edad) + _menu_curricular(edad))
+    menu_niv = _marcar_niveles(_menu(banda, edad, escolar) + _menu_curricular(edad))
     return {
         "v": 1, "tema": tema, "tema_nombre": _mundo_de_grado(edad, escolar) or _tema_nombre(tema),
         "nombre": nombre, "edad": edad, "banda": banda, "titulo": titulo,
