@@ -24,7 +24,8 @@ COLS = [(224, 85, 107), (63, 167, 214), (232, 155, 44), (95, 184, 122), (139, 91
 PALABRAS = ["CUMPLE", "FIESTA", "GLOBO", "TORTA", "REGALO", "JUGAR", "DULCE", "AMIGOS"]
 # La lista visible se muestra con Ñ y tildes; en la GRILLA la Ñ se conserva
 # (sopa en castellano) y las tildes se quitan (convención de las sopas de letras).
-PALABRAS2 = ["SORPRESA", "CORONA", "CANCIÓN", "BAILAR", "FELIZ", "JUEGOS", "PIÑATA", "RISA"]
+# OJO: el relleno de `_wordsearch` es A-Z sin Ñ, así que una palabra CON Ñ queda
+# delatada. El vocabulario escolar (actividades_vocabulario.py) las excluye.
 
 
 def _sin_tilde(w):
@@ -623,11 +624,21 @@ def _sudoku_make(rnd):
     return sol, puz
 
 _DIRS = [(1, 0), (0, 1), (1, 1), (-1, 1), (-1, 0), (0, -1), (-1, -1), (1, -1)]
-def _wordsearch(words, N, seed):
+# Juegos de direcciones REDUCIDOS para los grados chicos (28-jul-2026). La sopa
+# de 8 direcciones incluye las reversas, y a los 6 años eso "entrena CONTRA la
+# direccionalidad" que el chico está aprendiendo justo ahora
+# (docs/auditoria-dc-caba/grado-1.md:173 y grado-2.md:176). `_DIRS` sigue siendo
+# el default: el kit de cumpleaños no cambia.
+_DIRS_RECTA = [(1, 0), (0, 1)]              # sólo → y ↓ (1°)
+_DIRS_IDA = [(1, 0), (0, 1), (1, 1)]        # + diagonal de ida, sin invertidas (2°)
+
+
+def _wordsearch(words, N, seed, dirs=None):
+    dirs = dirs or _DIRS
     r = random.Random(seed); g = [[None] * N for _ in range(N)]; sol = {}
     for w in sorted(words, key=len, reverse=True):
         for _ in range(500):
-            dx, dy = r.choice(_DIRS); x = r.randrange(N); y = r.randrange(N)
+            dx, dy = r.choice(dirs); x = r.randrange(N); y = r.randrange(N)
             if not (0 <= x + dx * (len(w) - 1) < N and 0 <= y + dy * (len(w) - 1) < N): continue
             cs = [(x + dx * i, y + dy * i) for i in range(len(w))]
             if any(g[a][b] not in (None, w[i]) for i, (a, b) in enumerate(cs)): continue
@@ -640,11 +651,11 @@ def _wordsearch(words, N, seed):
             if g[x][y] is None: g[x][y] = r.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
     return g, sol
 
-def _ws_has(g, w):
+def _ws_has(g, w, dirs=None):
     N = len(g)
     for x in range(N):
         for y in range(N):
-            for dx, dy in _DIRS:
+            for dx, dy in (dirs or _DIRS):
                 if 0 <= x + dx * (len(w) - 1) < N and 0 <= y + dy * (len(w) - 1) < N and \
                    all(g[x + dx * i][y + dy * i] == w[i] for i in range(len(w))):
                     return True
@@ -963,14 +974,21 @@ def _a_laberinto_circular(b, rings=4):
     b.y = BOT
     b.soladd("cmaze", (RAD, CIRC, HUB, rings, S, se, path))
 
-def _a_sopa(b, words=None):
+def _a_sopa(b, words=None, n=12, dirs=None):
+    """Sopa IMPRESA. `n`/`dirs` quedan parametrizados (default = las de siempre)
+    para que el día que la línea escolar tenga imprimible herede la graduación
+    por grado de `actividades_web._SOPA_GRADO` sin tocar esta función. El kit de
+    cumpleaños no los pasa nunca: sigue siendo 12×12 con las 8 direcciones."""
     words = words or PALABRAS
+    words = [w for w in words if 3 <= len(str(w).strip()) <= n]
+    if not words:                       # una palabra más larga que la grilla no entra
+        return                          # NUNCA, y el assert de abajo volteaba el PDF entero
     grid_words = [_sin_tilde(w) for w in words]    # la grilla sin tildes, la lista con
     base = b.rnd.randrange(1000)
     for s in range(base, base + 120):
-        g, sol = _wordsearch(grid_words, 12, s)
-        if g and all(_ws_has(g, x) for x in grid_words): break
-    assert g and all(_ws_has(g, x) for x in grid_words)
+        g, sol = _wordsearch(grid_words, n, s, dirs=dirs)
+        if g and all(_ws_has(g, x, dirs=dirs) for x in grid_words): break
+    assert g and all(_ws_has(g, x, dirs=dirs) for x in grid_words)
     b.sec("Sopa de letras", "Encontrá las %d palabras escondidas." % len(words))
     N = len(g); gs = 66; blockH = N * gs + 64 + ((len(words) + 3) // 4) * 40 + 30
     top = b.y + max(0, (BOT - b.y - blockH) // 2)             # bloque centrado verticalmente
