@@ -5369,8 +5369,12 @@ function pintarMenuPlano(items, stage) {
     else if (sello === "consolidado") est = "🌟 ¡Lo sabés!";
     else if (sello === "dominado") est = "🏅 Dominado";
     else est = st ? "⭐".repeat(st) : "&nbsp;";
+    // "Más allá" y el nivel son cosas DISTINTAS y conviven: la primera dice de qué grado
+    // es el contenido, el segundo qué tan profundo llegó en esa actividad. Tratarlas como
+    // excluyentes dejaba al chico que más avanzó viendo siempre el mismo 🚀, sin señal de
+    // progreso, mientras el festejo le hablaba de un nivel que la carta no mostraba.
     const _masAlla = esMasAlla(m);
-    const _nd = _masAlla ? 0 : nivelDeDificultad(m.id);
+    const _nd = nivelDeDificultad(m.id);
     const _ndMeta = _nd ? NIVEL_DIF[_nd - 1] : null;
     c.innerHTML = `
       <div class="icono">${conSprite ? `<img src="${P[(i / 3 | 0) + 1]}" alt="">` : m.icono}</div>
@@ -5716,8 +5720,8 @@ function _enviarProgreso() {
     const masAlla = [];
     (D.menu || []).forEach((m) => {
       const id = typeof m === "string" ? m : m.id;
-      if (esMasAlla(m)) { masAlla.push(id); return; }   // el 4.º escalón se cuenta aparte
-      const n = nivelDeDificultad(id);
+      if (esMasAlla(m)) masAlla.push(id);   // de qué grado es
+      const n = nivelDeDificultad(id);      // y qué tan profundo llegó: van juntos
       if (n) niveles[id] = n;
     });
     const snap = { perfil: perfil, resumen: Adapt.resumenPorCategoria(),
