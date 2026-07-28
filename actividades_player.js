@@ -3733,14 +3733,14 @@ function muestraPedida() {
    todas las actividades de cuarto grado. Creo que desde la página no debería poder ir para
    atrás". Tenía razón: el token de la muestra es PÚBLICO, así que el ← regalaba los 39
    juegos de 4.º a cualquiera que llegara de la landing.
-   Se esconden las tres salidas al menú —el ←, el 📚 de la biblioteca y el nombre del
-   header, que también abre el selector de perfil— y `volverMenu` deja de pintar el menú:
+   Se esconden las salidas al menú —el ← y el nombre del header, que también abre el
+   selector de perfil— y `volverMenu` deja de pintar el menú:
    al terminar la actividad se vuelve a ofrecer la MISMA. Sólo en modo muestra; un cuaderno
    comprado no cambia en nada. */
 let MUESTRA_SOLA = null;
 function cerrarSalidasDeMuestra(juego) {
   MUESTRA_SOLA = juego;
-  ["btnAtras", "btnBiblioteca", "hdrTitulo"].forEach((id) => {
+  ["btnAtras", "hdrTitulo"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.style.display = "none";
   });
