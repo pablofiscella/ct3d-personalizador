@@ -90,6 +90,24 @@ pytest tests/ -v
    decidir con Pablo si vale la pena corregirlos (implica re-escalar constantes en
    píxeles fijos de cada archivo, no solo cambiar Wp,Hp).
 
+7. **El cuaderno es del CHICO, no del adulto** (27-jul-2026). El link del cuaderno lo
+   tiene el chico, pero el adulto se lo configura en SU teléfono y se lo presta — o sea
+   que la sesión del adulto está abierta en ese navegador. Por eso:
+   - **El player NO tiene ninguna salida a la cuenta.** El 📚 que llevaba a `/mi-cuenta`
+     se sacó: gatear por login no servía, porque quien pasa el gate es el teléfono y no
+     la persona. Hoy queda UN solo `<a>` en todo el cuaderno y es el diploma.
+   - **La marca del cuaderno sale de `escolar_on`:** Kydo en la línea escolar,
+     Casatridimensional en la de cumpleaños. Va en el header, en el título de la pestaña
+     y en el HTML que sirve el motor (`_es_escolar`), con respaldo a `data.json` para los
+     cuadernos YA ENTREGADOS, cuyo manifest es viejo.
+
+8. **Las portadas de grado se rellenan con desenfoque, no con color plano** (27-jul-2026).
+   El arte de 1.º y 2.º vino en 2:3 y el resto en 3:4. `_portada_de_grado` hace CONTAIN
+   —recortar el alto se comería el banner de arriba o la tira de íconos de abajo— y el
+   sobrante se llena con la MISMA imagen a cover y desenfocada. Con el color plano
+   quedaban 48 px de banda a cada lado y en la biblioteca se veía literalmente más
+   angosta que las demás. Hay test que recorre los SIETE grados.
+
 6. **NUNCA reiniciar `ct3d-kit.service` sin chequear jobs activos** (real, 7-jul-2026:
    un restart mío mató el armar-tema de Pablo justo antes de la etapa del libro — los
    jobs viven en memoria y mueren sin rastro). Antes de cualquier restart:
