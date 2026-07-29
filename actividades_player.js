@@ -4841,10 +4841,13 @@ const AVATARES_GRADO = {
   1: [0, 1, 2, 3, 4, 7],   // 2 exploradores, tucán, mono, jirafa, mariposa
   2: [0, 1, 4, 5],         // 2 chicos creativos, perro, ardilla
   3: [0, 1, 4, 5],         // 2 campamentistas, zorro, oso
-  4: [0, 1, 2],            // robot Tito + 2 científicos
-  5: [0, 1, 2],            // robot + 2 viajeros
+  // 4.º, 5.º y 7.º tenían sólo 3 —el resto de su elenco son objetos— así que se les
+  // generaron 3 personajes más el 29-jul (s08-s10). Seis alcanza para que elegir sea
+  // elegir; con tres era casi un default.
+  4: [0, 1, 2, 8, 9, 10],  // robot Tito, 2 científicos + científica, científico, gato
+  5: [0, 1, 2, 8, 9, 10],  // robot, 2 viajeros + aviadora, explorador, perro aviador
   6: [0, 1, 2, 6],         // robot + 2 creadores + el robotito
-  7: [0, 1, 2],            // robot + 2 chicos
+  7: [0, 1, 2, 8, 9, 10],  // robot, 2 chicos + inventora, inventor, dron
 };
 
 function _indicesDeAvatar() {
