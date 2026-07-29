@@ -40,6 +40,10 @@ PORT     = int(os.environ.get("CT3D_PORT", "8787"))
 DEV        = os.environ.get("CT3D_ENTORNO", "").strip().lower() == "dev"
 DEV_CLAVE  = os.environ.get("CT3D_DEV_CLAVE", "").strip()
 DEV_COOKIE = "ct3d_dev"
+# El espejo vive en TRES hosts y abrir un cuaderno salta del host de la tienda al de acá.
+# Con la cookie atada a un host, ese salto le mostraba "entorno de pruebas" en la cara al
+# que sólo quería abrir el cuaderno (pasó de verdad el 28-jul). Vacío = cookie por host.
+DEV_COOKIE_DOM = os.environ.get("CT3D_DEV_COOKIE_DOMAIN", "").strip()
 
 
 def _dev_token():
@@ -551,8 +555,10 @@ class Handler(BaseHTTPRequestHandler):
         destino = u.path + (("?" + urllib.parse.urlencode(q, doseq=True)) if q else "")
         self.send_response(302)
         self.send_header("Location", destino)
-        self.send_header("Set-Cookie", "%s=%s; Max-Age=%d; Path=/; HttpOnly; SameSite=Lax"
-                         % (DEV_COOKIE, _dev_token(), 30 * 24 * 3600))
+        self.send_header("Set-Cookie",
+                         "%s=%s; Max-Age=%d; Path=/; HttpOnly; SameSite=Lax%s"
+                         % (DEV_COOKIE, _dev_token(), 30 * 24 * 3600,
+                            ("; Domain=" + DEV_COOKIE_DOM) if DEV_COOKIE_DOM else ""))
         self.send_header("Content-Length", "0")
         self.end_headers()
         return True
