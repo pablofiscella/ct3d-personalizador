@@ -480,6 +480,18 @@ def _limpiar_pedidos_viejos(dias=7300):
         pass
 
 
+# Lo que la puerta del dev protege en el MOTOR: sólo el panel de administración.
+# Se define acá afuera (y no adentro del Handler) para que tenga test propio: esta lista
+# ya rompió tres cosas del usuario por ser demasiado ancha.
+DEV_PROTEGIDO = ("/dash", "/entrar", "/api", "/tipos", "/ia", "/admin")
+
+
+def dev_path_protegido(path):
+    """¿Esta ruta necesita la clave del dev? Todo lo demás cuelga de un token o de la
+    API key, así que la clave no agregaba seguridad y sí rompía el uso normal."""
+    return any((path or "").startswith(x) for x in DEV_PROTEGIDO)
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "CT3D-Kit/1.0"
     timeout = 30                   # corta conexiones colgadas (A7, anti slowloris)
@@ -541,12 +553,10 @@ class Handler(BaseHTTPRequestHandler):
     # seguridad y rompía una cosa por vez: primero "abrir el cuaderno" (dos veces), después
     # la voz de las actividades, y seguían las miniaturas y las descargas. La lista negra
     # corta esa cadena de una. El noindex sigue yendo en TODAS las respuestas.
-    _DEV_PROTEGIDO = ("/dash", "/entrar", "/api", "/tipos", "/ia", "/admin")
-
     def _dev_ok(self, path=None):
         if not DEV_CLAVE:                  # sin clave no hay puerta (uso en LAN pura)
             return True
-        if path is not None and not any(path.startswith(x) for x in self._DEV_PROTEGIDO):
+        if path is not None and not dev_path_protegido(path):
             return True
         if self._dev_interno():
             return True
