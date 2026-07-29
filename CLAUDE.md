@@ -141,6 +141,10 @@ pidiendo la URL, o corré `systemctl start ct3d-preview-warm.service`.
 
 ## El espejo DEV (28-jul-2026) — probar antes de tocar el vivo
 
+> **REGLA DE PABLO (28-jul-2026): se trabaja SIEMPRE en el dev. A producción se sube SÓLO
+> cuando él lo pide, y preferentemente de noche (después de las 23:00 ART).** Nunca correr
+> `promover` por iniciativa propia, ni siquiera con el PR mergeado.
+
 El motor tiene un espejo corriendo en el puerto **9787** (`ct3d-dev-kit.service`), con su
 propio árbol en `/srv/ct3d-dev/personalizador` y sus propios `pedidos/`. Doc completa:
 `/opt/ct3d/docs/DEV.md`.
