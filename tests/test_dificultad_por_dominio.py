@@ -259,3 +259,47 @@ def test_con_hermanos_no_adivina():
     """)
     assert r["desconocido"] is None, "no puede adivinar entre dos hermanos"
     assert r["elHermano"] == {"niveles": {"b": 2}}, "y al que sí coincide tiene que reconocerlo"
+
+
+# ─────────────────────────────────────────────── los avatares que se ofrecen al chico
+
+def test_los_avatares_curados_existen_en_disco():
+    """Cada índice de AVATARES_GRADO tiene que tener su PNG. Un índice inventado deja un
+    hueco en la fila de "¿Quién juega?" y el chico no entiende por qué."""
+    src = open(PLAYER, encoding="utf-8").read()
+    m = re.search(r"const AVATARES_GRADO = \{(.*?)\n\};", src, re.S)
+    assert m, "no se encontró AVATARES_GRADO en el player"
+    faltan = []
+    for linea in m.group(1).splitlines():
+        mm = re.match(r"\s*(\d):\s*\[([0-9, ]+)\]", linea)
+        if not mm:
+            continue
+        grado = int(mm.group(1))
+        for i in [int(x) for x in mm.group(2).replace(" ", "").split(",") if x != ""]:
+            p = os.path.join(BASE, "actividades_arte", "g%d" % grado, "s%02d.png" % i)
+            if not os.path.isfile(p):
+                faltan.append("g%d/s%02d.png" % (grado, i))
+    assert not faltan, "avatares declarados que no existen: %s" % faltan
+
+
+def test_todos_los_grados_tienen_al_menos_tres_avatares():
+    """Con menos de tres, "elegí tu personaje" no es una elección. Si un grado queda corto,
+    hay que generarle arte, no bajar el mínimo."""
+    src = open(PLAYER, encoding="utf-8").read()
+    m = re.search(r"const AVATARES_GRADO = \{(.*?)\n\};", src, re.S)
+    cortos = {}
+    for linea in m.group(1).splitlines():
+        mm = re.match(r"\s*(\d):\s*\[([0-9, ]+)\]", linea)
+        if not mm:
+            continue
+        n = len([x for x in mm.group(2).replace(" ", "").split(",") if x != ""])
+        if n < 3:
+            cortos[int(mm.group(1))] = n
+    assert not cortos, "grados con menos de 3 avatares: %s" % cortos
+
+
+def test_estan_los_siete_grados():
+    src = open(PLAYER, encoding="utf-8").read()
+    m = re.search(r"const AVATARES_GRADO = \{(.*?)\n\};", src, re.S)
+    grados = {int(x) for x in re.findall(r"^\s*(\d):", m.group(1), re.M)}
+    assert grados == set(range(1, 8)), "faltan grados en AVATARES_GRADO: %s" % sorted(set(range(1, 8)) - grados)
