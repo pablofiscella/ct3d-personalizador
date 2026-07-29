@@ -9,30 +9,86 @@
 <meta property="og:description" content="Cuaderno de actividades interactivo — jugá, aprendé y ganá estrellas.">
 <meta property="og:image" content="portada.jpg">
 <style>
-/* ══ Cuaderno de actividades interactivo — Casatridimensional ══
-   Diseño táctil para chicos: targets ≥76px, tap primero, cero fail states.
+/* ══ Cuaderno de actividades interactivo — Kydo ══
+   Diseño táctil para chicos: targets ≥44px (la mayoría ≥76px), tap primero, cero fail states.
    Todos los colores salen de las CSS vars (el player las setea con la paleta
-   del tema desde data.json) — NO hardcodear colores acá abajo. */
-@font-face { font-family: "Baloo";  src: url("f1.ttf?v={{V}}"); font-display: swap; }
-@font-face { font-family: "Nunito"; src: url("f2.ttf?v={{V}}"); font-display: swap; }
+   del grado desde data.json) — NO hardcodear colores acá abajo.
+
+   27-jul-2026 — pulido de marca. Qué cambió y qué NO:
+     · NO se renombró, agregó ni quitó ninguna clase ni id. Sólo propiedades.
+     · NO se toca --hdrH ni --altoJuego: los mide el JS.
+     · --bg --card --ink --ac --ac2 --soft --star los sigue pisando el motor
+       con la paleta del grado. Todo lo nuevo se expresa en var() sobre ésas.
+     · Tipografía: Baloo/Nunito → Archivo (la sans de Kydo). Se mantienen los dos
+       @font-face y los dos nombres de familia porque el JS y 104 reglas los nombran;
+       ahora los dos apuntan al mismo archivo de Archivo. Ver nota abajo.
+     · Redondeos, sombras y aire alineados a Kydo: --radio 26px → 18px, sombra
+       más difusa y más baja, escala tipográfica más firme.
+     · Los colores por materia de la marca entran como tokens propios
+       (--k-mate, --k-lengua, --k-natu, --k-socia) SÓLO para títulos de sección.
+       No pisan la paleta del grado. */
+
+/* Los dos @font-face se mantienen —el JS los nombra y hay 104 reglas que dicen
+   "Baloo"— pero los dos sirven Archivo. f1/f2 tienen que ser Archivo SemiBold y
+   Archivo Regular respectivamente; hasta que los reemplacen en el build, la pila
+   de fallback ya deja la pantalla con la tipografía correcta en la mayoría de los
+   dispositivos. Cuando los cambien, no hay que tocar una sola regla de este CSS. */
+/* Los dos nombres sirven Archivo desde el MISMO archivo: es la variable completa
+   (wght 100-900), así que el rango deja que cada regla elija su peso y el navegador
+   la descarga una sola vez. Los nombres se mantienen porque el JS y ~104 reglas los
+   nombran. Ver actividades_web.py: f1.ttf y f2.ttf devuelven Archivo-VF.ttf. */
+@font-face { font-family: "Baloo";  src: url("f1.ttf?v={{V}}"); font-display: swap; font-weight: 100 900; }
+@font-face { font-family: "Nunito"; src: url("f1.ttf?v={{V}}"); font-display: swap; font-weight: 100 900; }
 
 :root {
-  --bg: #FBF4EA; --card: #FFFFFF; --ink: #44372E; --ac: #E0713C;
-  --ac2: #4E9C7E; --soft: #F5E4CE; --star: #F2A93B;
-  --ok: #3FA65C; --radio: 26px;
-  --sombra: 0 4px 14px rgba(0,0,0,.07), 0 1px 3px rgba(0,0,0,.05);
-  --sombra-hi: 0 10px 28px rgba(0,0,0,.13), 0 2px 6px rgba(0,0,0,.08);
+  /* Los pisa el motor con la paleta del grado. Los valores de acá son sólo el
+     estado inicial mientras carga data.json — puestos en el 4.º grado de la
+     tabla (PALETA_GRADO), que es el grado con más tráfico. */
+  --bg: #EDF5F5; --card: #FFFFFF; --ink: #1F3A3B; --ac: #2E8B8E;
+  --ac2: #7C5CD6; --soft: #D6EAEA; --star: #F2A93B;
+  --ok: #2F7D57;
+
+  /* Kydo: 12px en tarjetas, 8px en controles chicos. El 26px de antes era
+     redondez de app infantil genérica; 18px sigue siendo amable y se parece
+     a las tarjetas de la marca. */
+  --radio: 18px;
+  --radio-chico: 12px;
+
+  /* Sombra de Kydo: más difusa, más baja, menos opaca. La anterior tenía dos
+     capas duras que en pantalla se leían como borde gris. Se tiñe con --ink
+     para que acompañe la paleta del grado en vez de ser negro plano. */
+  --sombra: 0 2px 4px color-mix(in srgb, var(--ink) 6%, transparent),
+            0 8px 20px color-mix(in srgb, var(--ink) 8%, transparent);
+  --sombra-hi: 0 4px 8px color-mix(in srgb, var(--ink) 8%, transparent),
+               0 16px 36px color-mix(in srgb, var(--ink) 14%, transparent);
+
+  /* Colores por materia de la marca Kydo. NO los pisa el motor: son constantes
+     de marca y se usan sólo en títulos de sección y rótulos de materia, para que
+     el chico reconozca la materia por color igual que en el menú del cuaderno y
+     en la web. Nunca como fondo de un control. */
+  --k-mate: #1F6FA8;
+  --k-lengua: #B33A3A;
+  --k-natu: #2F7D57;
+  --k-socia: #A8761F;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html { height: 100%; }
 body {
   min-height: 100%; background: var(--bg); color: var(--ink);
-  font-family: "Nunito", system-ui, sans-serif; font-size: 19px;
+  font-family: "Nunito", Archivo, system-ui, -apple-system, sans-serif; font-size: 19px;
+  /* Kydo aprieta un poco el tracking del cuerpo y bastante el de los títulos. */
+  letter-spacing: -.005em;
   touch-action: manipulation; user-select: none; -webkit-user-select: none;
   overscroll-behavior-y: contain;
+  -webkit-font-smoothing: antialiased;
 }
 img { -webkit-user-drag: none; user-select: none; }
-h1, h2, h3, .fx { font-family: "Baloo", "Nunito", sans-serif; font-weight: 600; }
+/* El display de Kydo es la misma sans en 700 con tracking negativo — no una
+   segunda familia redonda. Es el cambio que más mueve la percepción de marca. */
+h1, h2, h3, .fx {
+  font-family: "Baloo", Archivo, system-ui, sans-serif;
+  font-weight: 700; letter-spacing: -.03em; line-height: 1.12;
+}
 
 /* ── splash de carga ── */
 #cargando {
@@ -40,8 +96,8 @@ h1, h2, h3, .fx { font-family: "Baloo", "Nunito", sans-serif; font-weight: 600; 
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
 }
 #cargando .aro {
-  width: 64px; height: 64px; border-radius: 50%;
-  border: 7px solid var(--soft); border-top-color: var(--ac);
+  width: 56px; height: 56px; border-radius: 50%;
+  border: 5px solid var(--soft); border-top-color: var(--ac);
   animation: girar 0.9s linear infinite;
 }
 @keyframes girar { to { transform: rotate(360deg); } }
@@ -51,23 +107,34 @@ h1, h2, h3, .fx { font-family: "Baloo", "Nunito", sans-serif; font-weight: 600; 
   position: sticky; top: 0; z-index: 40;
   display: flex; align-items: center; gap: 12px;
   padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
-  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  /* filete al pie en vez de que el contenido pase por abajo del blur sin
+     ninguna separación: es el borde de 1px de la nav de Kydo. */
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--ink) 10%, transparent);
 }
 #hdr .avatar {
-  width: 54px; height: 54px; border-radius: 50%; background: var(--soft);
+  width: 52px; height: 52px; border-radius: 50%; background: var(--soft);
   display: flex; align-items: center; justify-content: center; overflow: hidden;
   flex: none; box-shadow: var(--sombra);
 }
-#hdr .avatar img { width: 44px; height: 44px; object-fit: contain; }
+#hdr .avatar img { width: 42px; height: 42px; object-fit: contain; }
 #hdrTitulo { flex: 1; min-width: 0; cursor: pointer; }
-#hdrTitulo b { display: block; font-family: "Baloo", sans-serif; font-size: 23px; line-height: 1.05;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#hdrTitulo span { font-size: 14px; opacity: .65; }
+#hdrTitulo b {
+  display: block; font-family: "Baloo", Archivo, sans-serif; font-weight: 700;
+  font-size: 22px; line-height: 1.1; letter-spacing: -.03em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* `opacity` sobre texto lo lava y baja el contraste sin control. En Kydo el
+   texto secundario es un color propio, así que se mezcla con el papel: da el
+   mismo gris pero medible, y sigue saliendo de la paleta del grado. */
+#hdrTitulo span { font-size: 14px; color: color-mix(in srgb, var(--ink) 62%, var(--bg)); }
 .pill {
-  display: flex; align-items: center; gap: 6px; height: 48px; padding: 0 16px;
+  display: flex; align-items: center; gap: 7px; height: 48px; padding: 0 17px;
   background: var(--card); border-radius: 999px; box-shadow: var(--sombra);
-  font-family: "Baloo", sans-serif; font-size: 21px; border: none; color: var(--ink);
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 19px;
+  letter-spacing: -.02em; border: none; color: var(--ink);
+  transition: transform .1s ease;
 }
 button.pill:active, a.pill:active { transform: scale(.94); }
 #btnAtras { display: none; }
@@ -77,98 +144,55 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 #stage { max-width: 1020px; margin: 0 auto;
   /* aire abajo SIEMPRE (+ safe-area: la barra del navegador / indicador de
      inicio comía el margen y el menú/los juegos quedaban al ras del borde) */
-  padding: 10px 16px calc(72px + env(safe-area-inset-bottom)); }
+  padding: 12px 16px calc(72px + env(safe-area-inset-bottom)); }
 
 /* menú de juegos */
-#menu { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 16px; }
-/* "¿Cómo es?" — la regla a mano, sin tener que errar primero */
-.btn-comoes {
-  display: inline-block; margin: 6px auto 0; padding: 6px 15px;
-  font-family: "Baloo", sans-serif; font-size: 15px; cursor: pointer;
-  border: none; border-radius: 999px; background: var(--soft); color: var(--ink);
+#menu { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 14px; }
+
+/* ── portada del menú ── */
+#bienvenida { text-align: center; padding: 16px 8px 24px; }
+#bienvenida h1 { font-size: clamp(30px, 6vw, 42px); line-height: 1.04; }
+#bienvenida p {
+  color: color-mix(in srgb, var(--ink) 66%, var(--bg));
+  margin-top: 6px; font-size: 17px;
 }
-.btn-comoes:active { transform: scale(.96); }
-.comoes-fondo {
-  position: fixed; inset: 0; background: rgba(20,20,30,.55); z-index: 70;
-  display: flex; align-items: center; justify-content: center; padding: 16px;
-}
-.comoes {
-  background: var(--card); color: var(--ink); border-radius: var(--radio);
-  max-width: 560px; width: 100%; max-height: 86vh; overflow-y: auto;
-  padding: 22px 22px 18px; box-shadow: 0 12px 40px rgba(0,0,0,.4); text-align: left;
-}
-.comoes-h { font-family: "Baloo", sans-serif; font-size: 23px; margin-bottom: 10px; }
-.comoes ul { margin: 0 0 12px; padding-left: 20px; }
-.comoes li { font-size: 17px; line-height: 1.45; margin-bottom: 7px; }
-.comoes-ej {
-  background: var(--soft); border-radius: 12px; padding: 11px 13px;
-  font-size: 16px; line-height: 1.4; margin-bottom: 14px;
-}
-.comoes .btn-sondeo { display: block; margin: 0 auto 8px; min-width: 180px; }
-/* los cortes en video, adentro del popup: el texto se lee al instante y el video
-   queda a un toque, sin obligar a mirarlo al que sólo quería refrescar la regla */
-.comoes-videos { border-top: 1.5px solid var(--soft); margin: 14px 0 16px; padding-top: 12px; }
-.comoes-videos__t { font-size: 15px; opacity: .7; margin-bottom: 8px; }
-.comoes-videos__f { display: flex; flex-wrap: wrap; gap: 8px; }
-.btn-video {
-  font-family: "Baloo", sans-serif; font-size: 15px; padding: 8px 14px;
-  border: none; border-radius: 999px; cursor: pointer;
-  background: var(--soft); color: var(--ink);
-}
-.btn-video small { opacity: .6; font-size: 13px; margin-left: 4px; }
-.btn-video:active { transform: scale(.96); }
-.comoes--video { max-width: 820px; }
-/* el "Volver a jugar" va PEGADO al video si no se separa: el <video> no trae
-   margen propio y el botón queda contra el borde negro (Pablo, 25-jul-2026) */
-.comoes--video .btn-sondeo { margin-top: 18px; }
-/* nivelación inicial: una sola tarjeta centrada, tono de invitación y no de examen */
-.sondeo {
-  background: var(--card); border-radius: var(--radio); box-shadow: var(--sombra);
-  max-width: 560px; margin: 22px auto; padding: 28px 24px; text-align: center;
-  color: var(--ink);
-}
-.sondeo-ico { font-size: 54px; line-height: 1; }
-.sondeo h2 { font-family: "Baloo", sans-serif; font-size: 27px; margin: 10px 0 6px; }
-.sondeo p { font-size: 17px; line-height: 1.5; opacity: .88; margin: 0 0 18px; }
-.sondeo-btns { display: flex; flex-direction: column; gap: 10px; align-items: center; }
-.btn-sondeo {
-  font-family: "Baloo", sans-serif; font-size: 19px; padding: 13px 26px; min-width: 240px;
-  border: none; border-radius: 999px; cursor: pointer;
-  background: var(--ac); color: #fff; box-shadow: var(--sombra);
-}
-.btn-sondeo:active { transform: scale(.96); }
-.btn-sondeo--ghost { background: var(--soft); color: var(--ink); box-shadow: none; font-size: 16px; }
-.sondeo-paso {
-  text-align: center; font-family: "Baloo", sans-serif; font-size: 15px;
-  opacity: .7; margin: 4px 0 8px;
-}
+
+/* ── tarjeta de juego ── */
 .carta {
   background: var(--card); border: none; border-radius: var(--radio);
-  box-shadow: var(--sombra); padding: 16px 12px 14px; cursor: pointer;
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  box-shadow: var(--sombra); padding: 16px 12px 15px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 9px;
   color: var(--ink); transition: transform .12s ease, box-shadow .12s ease;
   position: relative; min-height: 176px;
 }
 .carta:active { transform: scale(.95); }
-@media (hover:hover) { .carta:hover { transform: translateY(-4px); box-shadow: var(--sombra-hi); } }
+@media (hover:hover) { .carta:hover { transform: translateY(-3px); box-shadow: var(--sombra-hi); } }
 .carta .icono {
-  width: 84px; height: 84px; border-radius: 24px; background: var(--soft);
+  width: 84px; height: 84px; border-radius: 20px; background: var(--soft);
   display: flex; align-items: center; justify-content: center; font-size: 44px;
 }
 .carta .icono img { width: 70px; height: 70px; object-fit: contain; }
-.carta .nombre { font-family: "Baloo", sans-serif; font-size: 19px; line-height: 1.1; text-align: center; }
+.carta .nombre {
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 18px;
+  line-height: 1.15; letter-spacing: -.02em; text-align: center;
+}
 .carta .mini-est { font-size: 15px; letter-spacing: 2px; min-height: 20px; }
-/* Capa 0 · sello sostenido: nota de repaso del día + resaltado de la carta a repasar */
+
+/* ── Capa 0 · sello sostenido: nota de repaso del día + resaltado de la carta ── */
 .repaso-nota {
-  background: var(--ac2); color: #fff; border-radius: 16px; padding: 11px 16px;
-  font-family: "Baloo", sans-serif; font-size: 16px; text-align: center; margin-bottom: 16px;
+  background: var(--ac2); color: #fff; border-radius: var(--radio-chico); padding: 12px 16px;
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 16px;
+  letter-spacing: -.02em; text-align: center; margin-bottom: 16px;
   box-shadow: var(--sombra);
 }
-.carta.repaso { outline: 4px solid var(--ac2); outline-offset: 1px; }
+.carta.repaso { outline: 3px solid var(--ac2); outline-offset: 2px; }
 /* ESI (26-jul-2026): la familia tiene que poder ver venir el contenido, no que la
-   sorprenda. La barra es tocable —abre la nota— y la marca 👪 va en cada tarjeta. */
+   sorprenda. La barra es tocable —abre la nota— y la marca 👪 va en cada tarjeta.
+   El violeta se mantiene: es el único color de esta pantalla que NO sale de la
+   paleta del grado, a propósito — el aviso tiene que verse igual en los 7 grados. */
 .esi-aviso { border: none; cursor: pointer; width: 100%; font: inherit;
-  font-family: "Baloo", sans-serif; font-size: 15px; background: #6b5bd2; }
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 15px;
+  letter-spacing: -.02em; background: #6b5bd2; }
 .carta .esi-marca {
   position: absolute; bottom: -6px; left: -6px; font-size: 19px;
   filter: drop-shadow(0 2px 3px rgba(0,0,0,.18));
@@ -179,69 +203,162 @@ button.pill:active, a.pill:active { transform: scale(.94); }
   filter: drop-shadow(0 2px 3px rgba(0,0,0,.18));
 }
 
+/* ── "¿Cómo es?" — la regla a mano, sin tener que errar primero ── */
+.btn-comoes {
+  display: inline-block; margin: 8px auto 0; padding: 9px 17px;
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 15px;
+  letter-spacing: -.02em; cursor: pointer; min-height: 44px;
+  border: none; border-radius: 999px; background: var(--soft); color: var(--ink);
+  transition: transform .1s ease;
+}
+.btn-comoes:active { transform: scale(.96); }
+.comoes-fondo {
+  position: fixed; inset: 0; z-index: 70; padding: 16px;
+  background: color-mix(in srgb, var(--ink) 55%, transparent);
+  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center;
+}
+.comoes {
+  background: var(--card); color: var(--ink); border-radius: var(--radio);
+  max-width: 560px; width: 100%; max-height: 86vh; overflow-y: auto;
+  padding: 26px 26px 20px; box-shadow: var(--sombra-hi); text-align: left;
+}
+.comoes-h {
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 24px;
+  letter-spacing: -.03em; line-height: 1.15; margin-bottom: 12px;
+}
+.comoes ul { margin: 0 0 14px; padding-left: 20px; }
+.comoes li { font-size: 17px; line-height: 1.5; margin-bottom: 8px; }
+.comoes-ej {
+  background: var(--soft); border-radius: var(--radio-chico); padding: 13px 15px;
+  font-size: 16px; line-height: 1.45; margin-bottom: 16px;
+}
+.comoes .btn-sondeo { display: block; margin: 0 auto 8px; min-width: 180px; }
+/* los cortes en video, adentro del popup: el texto se lee al instante y el video
+   queda a un toque, sin obligar a mirarlo al que sólo quería refrescar la regla */
+.comoes-videos {
+  border-top: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+  margin: 16px 0 16px; padding-top: 14px;
+}
+.comoes-videos__t {
+  font-size: 14px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 62%, var(--card)); margin-bottom: 10px;
+}
+.comoes-videos__f { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn-video {
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 15px;
+  letter-spacing: -.02em; padding: 11px 16px; min-height: 44px;
+  border: none; border-radius: 999px; cursor: pointer;
+  background: var(--soft); color: var(--ink); transition: transform .1s ease;
+}
+.btn-video small { color: color-mix(in srgb, var(--ink) 60%, var(--soft)); font-size: 13px; margin-left: 5px; }
+.btn-video:active { transform: scale(.96); }
+.comoes--video { max-width: 820px; }
+/* el "Volver a jugar" va PEGADO al video si no se separa: el <video> no trae
+   margen propio y el botón queda contra el borde negro (Pablo, 25-jul-2026) */
+.comoes--video .btn-sondeo { margin-top: 18px; }
+
+/* ── nivelación inicial: una sola tarjeta centrada, tono de invitación ── */
+.sondeo {
+  background: var(--card); border-radius: var(--radio); box-shadow: var(--sombra);
+  max-width: 560px; margin: 24px auto; padding: 32px 26px; text-align: center;
+  color: var(--ink);
+}
+.sondeo-ico { font-size: 54px; line-height: 1; }
+.sondeo h2 { font-size: 27px; margin: 12px 0 8px; }
+.sondeo p {
+  font-size: 17px; line-height: 1.55; margin: 0 auto 20px; max-width: 34ch;
+  color: color-mix(in srgb, var(--ink) 74%, var(--card));
+}
+.sondeo-btns { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.btn-sondeo {
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 19px;
+  letter-spacing: -.02em; padding: 15px 28px; min-width: 240px; min-height: 54px;
+  border: none; border-radius: 999px; cursor: pointer;
+  background: var(--ac); color: #fff; box-shadow: var(--sombra);
+  transition: transform .1s ease, filter .15s ease;
+}
+.btn-sondeo:active { transform: scale(.96); }
+@media (hover:hover) { .btn-sondeo:hover { filter: brightness(1.08); } }
+.btn-sondeo--ghost { background: var(--soft); color: var(--ink); box-shadow: none; font-size: 16px; }
+.sondeo-paso {
+  text-align: center; font-family: "Baloo", Archivo, sans-serif; font-weight: 700;
+  font-size: 14px; letter-spacing: .06em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 60%, var(--bg)); margin: 6px 0 10px;
+}
+
 /* ── niveles (activación escalable): selector + pantalla de candado ── */
-#niveles { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+#niveles { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
 .carta.nivel .icono { font-size: 50px; }
 .carta.bloq { opacity: .82; }
-.carta.bloq .icono { background: transparent; box-shadow: inset 0 0 0 3px var(--soft); }
+.carta.bloq .icono { background: transparent; box-shadow: inset 0 0 0 2px var(--soft); }
 .volver-niveles { margin: 0 auto 14px; display: block; }
 #candado {
-  text-align: center; max-width: 440px; margin: 6px auto; padding: 16px;
-  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  text-align: center; max-width: 440px; margin: 8px auto; padding: 16px;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
 }
 #candado .cand-ico {
-  font-size: 60px; width: 110px; height: 110px; border-radius: 32px;
+  font-size: 58px; width: 108px; height: 108px; border-radius: 28px;
   background: var(--soft); display: grid; place-items: center; margin-bottom: 2px;
 }
-#candado h1 { font-size: clamp(24px, 5vw, 34px); line-height: 1.1; }
-#candado p { opacity: .78; line-height: 1.4; font-size: 16px; max-width: 32ch; }
-#candado .cand-nota {
-  font-size: 14px; background: var(--soft); padding: 9px 14px; border-radius: 12px; opacity: .92;
+#candado h1 { font-size: clamp(24px, 5vw, 32px); }
+#candado p {
+  color: color-mix(in srgb, var(--ink) 72%, var(--bg));
+  line-height: 1.5; font-size: 16px; max-width: 32ch;
 }
-/* barra de niveles FIJA arriba de las actividades (siempre a la vista) */
+#candado .cand-nota {
+  font-size: 14px; background: var(--soft); padding: 11px 15px;
+  border-radius: var(--radio-chico); line-height: 1.45;
+}
+
+/* ── barra de niveles FIJA arriba de las actividades ── */
 #nivelbar {
   position: sticky; top: var(--hdrH, 74px); z-index: 30;
-  display: flex; gap: 8px; padding: 8px 2px; margin-bottom: 6px;
+  display: flex; gap: 8px; padding: 10px 2px; margin-bottom: 6px;
   overflow-x: auto; scrollbar-width: none; background: var(--bg);
 }
 #nivelbar::-webkit-scrollbar { display: none; }
 .nivchip {
-  flex: 0 0 auto; border: 2px solid var(--soft); background: var(--card); color: var(--ink);
-  border-radius: 999px; padding: 8px 15px; font-family: "Baloo", sans-serif; font-size: 15px;
-  line-height: 1; cursor: pointer; white-space: nowrap; transition: transform .1s ease;
+  flex: 0 0 auto; border: 1.5px solid color-mix(in srgb, var(--ink) 16%, transparent);
+  background: var(--card); color: var(--ink);
+  border-radius: 999px; padding: 11px 17px; min-height: 44px;
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 15px;
+  letter-spacing: -.02em; line-height: 1; cursor: pointer; white-space: nowrap;
+  display: inline-flex; align-items: center; transition: transform .1s ease;
 }
 .nivchip:active { transform: scale(.94); }
 .nivchip.on { background: var(--ac); color: #fff; border-color: var(--ac); }
 .nivchip.bloq { border-style: dashed; opacity: .82; }
 
-/* portada del menú */
-#bienvenida { text-align: center; padding: 14px 8px 22px; }
-#bienvenida h1 { font-size: clamp(30px, 6vw, 44px); line-height: 1.06; }
-#bienvenida p { opacity: .7; margin-top: 4px; font-size: 17px; }
-
 /* ── shell de juego ── */
 #consigna {
   display: flex; align-items: center; gap: 14px;
   background: var(--card); border-radius: var(--radio); box-shadow: var(--sombra);
-  padding: 14px 18px; margin-bottom: 14px; border-left: 8px solid var(--ac);
+  padding: 15px 18px; margin-bottom: 14px;
+  /* la barra de acento pasa de 8px a 5px: en Kydo el filete de materia es fino.
+     Sigue siendo el color del grado, así que se lee igual de claro. */
+  border-left: 5px solid var(--ac);
   /* la consigna acompaña: si el juego obliga a scrollear, la instrucción no se va */
   position: sticky; top: calc(var(--hdrH, 74px) + 4px); z-index: 30;
 }
-#consigna .texto { font-family: "Baloo", sans-serif; font-size: clamp(21px, 4vw, 27px); line-height: 1.15; flex: 1; }
+#consigna .texto {
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700;
+  font-size: clamp(20px, 4vw, 26px); line-height: 1.2; letter-spacing: -.03em; flex: 1;
+}
 #consigna img.pista { width: 56px; height: 56px; object-fit: contain; flex: none; }
 #progreso { display: flex; gap: 8px; justify-content: center; margin: 2px 0 14px; }
 #progreso i {
-  width: 14px; height: 14px; border-radius: 50%; background: var(--soft);
+  width: 12px; height: 12px; border-radius: 50%; background: var(--soft);
   transition: background .2s, transform .2s;
 }
 #progreso i.hecho { background: var(--ac); }
 #progreso i.actual { background: var(--ac2); transform: scale(1.35); }
 #juego { position: relative; }
 
-/* superficies de juego */
+/* ── superficies de juego ── */
 .tablero {
   background: var(--card); border-radius: var(--radio); box-shadow: var(--sombra);
-  padding: clamp(10px, 2.5vw, 22px); position: relative; overflow: hidden;
+  padding: clamp(12px, 2.5vw, 24px); position: relative; overflow: hidden;
 }
 /* dos .tablero seguidos (consigna arriba + opciones abajo, patrón usado en
    varios juegos: campo_ciudad, sumas_redondas...) quedaban pegados sin aire
@@ -249,62 +366,90 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 .tablero + .tablero { margin-top: 14px; }
 .lienzo { touch-action: none; }        /* superficies con drag propio */
 
-/* botones */
+/* ── botones ── */
 .btn {
   border: none; cursor: pointer; color: #fff; background: var(--ac);
-  font-family: "Baloo", sans-serif; font-size: 24px; min-height: 66px;
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 22px;
+  letter-spacing: -.02em; min-height: 62px;
   padding: 8px 30px; border-radius: 999px; box-shadow: var(--sombra);
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
   text-align: center; -webkit-appearance: none; appearance: none;
+  transition: transform .1s ease, filter .15s ease;
   /* el <button> nativo en algunos celulares (Safari/iOS viejo) no respeta
      del todo el centrado por flexbox solo — text-align + sacar el estilo
      nativo del control lo hace consistente en todos lados */
 }
 .btn:active { transform: scale(.95); }
+@media (hover:hover) { .btn:hover { filter: brightness(1.08); } }
 .btn.suave { background: var(--soft); color: var(--ink); }
 .btn.verde { background: var(--ok); }
 
-/* fila de opciones (respuestas grandes) */
-.ops { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-top: 16px; }
+/* ── fila de opciones (respuestas grandes) ── */
+.ops { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 16px; }
 /* `padding` y `max-width`: el botón nació para EMOJIS de 38px, donde el ancho
    mínimo alcanzaba. Con palabras —«school» en Inglés— el texto medía 95px en un
    botón de 92 y quedaba pegado a los bordes, sin aire. */
 .op {
   min-width: 92px; min-height: 84px; font-size: 38px; border: none; cursor: pointer;
   padding: 8px 18px; max-width: 100%; overflow-wrap: anywhere;
-  background: var(--card); color: var(--ink); border-radius: 22px; box-shadow: var(--sombra);
-  font-family: "Baloo", sans-serif; display: flex; align-items: center; justify-content: center;
-  transition: transform .12s ease;
+  background: var(--card); color: var(--ink); border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; letter-spacing: -.02em;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .12s ease, box-shadow .12s ease;
 }
 .op:active { transform: scale(.92); }
+@media (hover:hover) { .op:hover { box-shadow: var(--sombra-hi); } }
 .op img { width: 64px; height: 64px; object-fit: contain; }
 .op.bien { background: var(--ok); color: #fff; }
 .op.casi { animation: sacudir .4s ease; }
 
+/* ── trivia de opciones largas de texto (historia, etc.) ── */
+.opsTexto { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; align-items: stretch; }
+.op-texto {
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 18px;
+  letter-spacing: -.02em; padding: 15px 18px; min-height: 56px; border: none;
+  border-radius: var(--radio-chico); background: var(--soft); color: var(--ink);
+  box-shadow: var(--sombra); cursor: pointer; line-height: 1.3; text-align: center;
+  transition: transform .1s ease;
+}
+.op-texto:active { transform: scale(.97); }
+.op-texto.bien { background: var(--ok); color: #fff; }
+.op-texto.casi { animation: sacudir .4s ease; }
+
 /* ── La cuenta paso a paso (división por aproximaciones — M6 4° / M7 5°) ── */
 .cuenta { text-align: center; }
-.cuenta-cab { font-size: clamp(30px, 8vw, 46px); font-family: "Baloo", sans-serif; margin-bottom: 4px; }
+.cuenta-cab {
+  font-size: clamp(30px, 8vw, 44px); font-family: "Baloo", Archivo, sans-serif;
+  font-weight: 700; letter-spacing: -.03em; margin-bottom: 6px;
+}
 .cuenta-cab .cuenta-d { color: var(--ac); }
-.cuenta-estado { display: flex; gap: 12px; justify-content: center; margin: 6px 0 2px; flex-wrap: wrap; }
-.cuenta-chip { background: var(--soft); border-radius: 16px; padding: 7px 16px; min-width: 104px; }
-.cuenta-chip small { display: block; font-size: 13px; opacity: .7; }
-.cuenta-chip b { font-size: 30px; font-family: "Baloo", sans-serif; }
+.cuenta-estado { display: flex; gap: 12px; justify-content: center; margin: 8px 0 2px; flex-wrap: wrap; }
+.cuenta-chip { background: var(--soft); border-radius: var(--radio-chico); padding: 9px 17px; min-width: 104px; }
+.cuenta-chip small {
+  display: block; font-size: 13px; font-weight: 700; letter-spacing: .05em;
+  text-transform: uppercase; color: color-mix(in srgb, var(--ink) 62%, var(--soft));
+}
+.cuenta-chip b { font-size: 29px; font-family: "Baloo", Archivo, sans-serif; font-weight: 700; letter-spacing: -.03em; }
 .cuenta-chip.ac { background: var(--ac); color: #fff; }
-.cuenta-chip.ac small { opacity: .85; }
-.cuenta-log { display: flex; flex-direction: column; align-items: center; gap: 1px; margin: 6px 0; min-height: 4px; }
-.cuenta-linea { font-size: 20px; font-family: "Baloo", sans-serif; opacity: .88; }
-.cuenta-linea i { font-size: 15px; opacity: .6; font-style: normal; }
-.cuenta-preg { font-size: clamp(17px, 4.5vw, 22px); margin: 8px 0 2px; }
-.cuenta-op { flex-direction: column; gap: 0; min-width: 112px; min-height: 74px; font-size: 26px; line-height: 1.05; }
-.cuenta-op small { font-size: 15px; opacity: .7; }
-.cuenta-op.bien small { opacity: .9; }
+.cuenta-chip.ac small { color: color-mix(in srgb, #fff 82%, var(--ac)); }
+.cuenta-log { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 8px 0; min-height: 4px; }
+.cuenta-linea {
+  font-size: 20px; font-family: "Baloo", Archivo, sans-serif; font-weight: 700;
+  letter-spacing: -.02em; color: color-mix(in srgb, var(--ink) 88%, var(--card));
+}
+.cuenta-linea i { font-size: 15px; font-style: normal; color: color-mix(in srgb, var(--ink) 60%, var(--card)); }
+.cuenta-preg { font-size: clamp(17px, 4.5vw, 22px); margin: 10px 0 2px; line-height: 1.35; }
+.cuenta-op { flex-direction: column; gap: 0; min-width: 112px; min-height: 74px; font-size: 26px; line-height: 1.1; }
+.cuenta-op small { font-size: 15px; color: color-mix(in srgb, var(--ink) 62%, var(--card)); }
+.cuenta-op.bien small { color: color-mix(in srgb, #fff 85%, var(--ok)); }
 
 /* ── Leer el transportador (M14 modo C, 5°) ── */
 .transp-wrap { display: flex; justify-content: center; padding: 8px 4px; }
 .transp-svg { width: 100%; max-width: 360px; height: auto; }
 .transp-arco { fill: none; stroke: var(--ink); stroke-width: 2; opacity: .5; }
 .transp-tick { stroke: var(--ink); stroke-width: 1.4; opacity: .45; }
-.transp-num { font-family: "Baloo", sans-serif; font-size: 11px; fill: var(--ink); text-anchor: middle; opacity: .72; }
+.transp-num { font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 11px; fill: var(--ink); text-anchor: middle; opacity: .72; }
 .transp-num.in { opacity: .42; }
 .transp-sector { fill: var(--ac); opacity: .16; }
 .transp-lado { stroke-width: 4; stroke-linecap: round; }
@@ -316,10 +461,10 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 /* ── ¿Qué hora es? (leer el reloj, 2°-3°) ── */
 .reloj-wrap { display: flex; justify-content: center; padding: 6px; }
 .reloj-svg { width: 100%; max-width: 264px; height: auto; }
-.reloj-cara { fill: none; stroke: var(--ink); stroke-width: 3.5; }
+.reloj-cara { fill: none; stroke: var(--ink); stroke-width: 3; }
 .reloj-tick { stroke: var(--ink); stroke-width: 1.5; opacity: .4; }
 .reloj-tick.larga { stroke-width: 2.6; opacity: .6; }
-.reloj-num { font-family: "Baloo", sans-serif; font-size: 22px; fill: var(--ink); text-anchor: middle; }
+.reloj-num { font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 22px; fill: var(--ink); text-anchor: middle; }
 .reloj-hora { stroke: var(--ink); stroke-width: 7; stroke-linecap: round; }
 .reloj-min { stroke: var(--ac); stroke-width: 4.5; stroke-linecap: round; }
 .reloj-centro { fill: var(--ac2); }
@@ -332,7 +477,7 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 .arbol-rama.on { stroke: var(--ac2); stroke-width: 3.5; opacity: 1; }
 .arbol-hoja { fill: var(--ink); opacity: .5; }
 .arbol-hoja.on { fill: var(--ac2); opacity: 1; }
-.arbol-lbl { font-family: "Baloo", sans-serif; font-size: 12px; fill: var(--ink); }
+.arbol-lbl { font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 12px; fill: var(--ink); }
 .arbol-lbl.a { text-anchor: end; opacity: .85; }
 .arbol-lbl.leaf { text-anchor: start; opacity: .6; }
 .arbol-lbl.leaf.on { opacity: 1; fill: var(--ac2); }
@@ -340,28 +485,28 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 
 /* ── Sujeto y predicado — dividí la oración (análisis sintáctico, 4°-5°) ── */
 .filaPalabras { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; }
-.palabraChip { font-family: "Baloo", sans-serif; font-size: 24px; padding: 8px 15px; border: none;
-  border-radius: 14px; background: var(--soft); color: var(--ink); box-shadow: var(--sombra); cursor: pointer;
-  transition: transform .1s ease, background .2s ease; }
+.palabraChip {
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 23px;
+  letter-spacing: -.02em; padding: 11px 16px; min-height: 48px; border: none;
+  border-radius: var(--radio-chico); background: var(--soft); color: var(--ink);
+  box-shadow: var(--sombra); cursor: pointer;
+  transition: transform .1s ease, background .2s ease;
+}
 .palabraChip:active { transform: scale(.94); }
 .palabraChip.suj { background: var(--ac); color: #fff; }
 .palabraChip.pred { background: var(--ok); color: #fff; }
 .palabraChip.casi-chip { animation: sacudir .4s ease; }
-.sujpred-leyenda { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; font-size: 15px;
-  font-family: "Baloo", sans-serif; }
+.sujpred-leyenda {
+  display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; font-size: 15px;
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; letter-spacing: -.02em;
+}
 .sujpred-leyenda .suj-lbl { color: var(--ac); }
 .sujpred-leyenda .pred-lbl { color: var(--ok); }
 .palabraChip.tonica { background: var(--ok); color: #fff; }
-.tonica-nota { font-family: "Baloo", sans-serif; font-size: 14px; opacity: .72; text-align: center; line-height: 1.4; }
-
-/* ── Trivia de opciones largas de texto (historia, etc.) ── */
-.opsTexto { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; align-items: stretch; }
-.op-texto { font-family: "Baloo", sans-serif; font-size: 18px; padding: 13px 16px; border: none;
-  border-radius: 16px; background: var(--soft); color: var(--ink); box-shadow: var(--sombra);
-  cursor: pointer; line-height: 1.25; text-align: center; transition: transform .1s ease; }
-.op-texto:active { transform: scale(.97); }
-.op-texto.bien { background: var(--ok); color: #fff; }
-.op-texto.casi { animation: sacudir .4s ease; }
+.tonica-nota {
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 14px;
+  color: color-mix(in srgb, var(--ink) 68%, var(--card)); text-align: center; line-height: 1.45;
+}
 
 /* ── animaciones ── */
 @keyframes pop     { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
@@ -377,21 +522,24 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 #festejo {
   position: fixed; inset: 0; z-index: 60; display: none;
   align-items: center; justify-content: center; padding: 22px;
-  background: color-mix(in srgb, var(--ink) 32%, transparent);
+  background: color-mix(in srgb, var(--ink) 38%, transparent);
   backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
 }
 #festejo.ver { display: flex; }
 #festejo .caja {
-  background: var(--card); border-radius: 34px; box-shadow: var(--sombra-hi);
-  padding: 30px 26px 26px; text-align: center; max-width: 430px; width: 100%;
+  background: var(--card); border-radius: 26px; box-shadow: var(--sombra-hi);
+  padding: 32px 28px 26px; text-align: center; max-width: 430px; width: 100%;
 }
 #festejo img.masco { width: 130px; height: 130px; object-fit: contain; animation: brinco .8s ease infinite; }
-#festejo h2 { font-size: 34px; margin: 6px 0 2px; }
-#festejo .frase { opacity: .75; font-size: 18px; margin-bottom: 10px; }
+#festejo h2 { font-size: 32px; margin: 8px 0 4px; }
+#festejo .frase {
+  color: color-mix(in srgb, var(--ink) 70%, var(--card));
+  font-size: 18px; margin-bottom: 12px; line-height: 1.4;
+}
 #festejo .estrellas { font-size: 52px; letter-spacing: 6px; min-height: 64px; }
 #festejo .estrellas span { display: inline-block; opacity: 0; }
 #festejo .estrellas span.gana { animation: pop .5s ease both; }
-#festejo .botones { display: flex; gap: 12px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+#festejo .botones { display: flex; gap: 12px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
 /* en celular angosto (dos botones no entran en una fila) apilan prolijo
    a todo el ancho, en vez de dos píldoras de distinto tamaño sueltas */
 #festejo .botones .btn { flex: 1 1 200px; }
@@ -400,23 +548,27 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 #logro {
   position: fixed; inset: 0; z-index: 61; display: none;
   align-items: center; justify-content: center; padding: 22px;
-  background: color-mix(in srgb, var(--ink) 32%, transparent);
+  background: color-mix(in srgb, var(--ink) 38%, transparent);
   backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
 }
 #logro.ver { display: flex; }
 #logro .caja {
-  background: var(--card); border-radius: 34px; box-shadow: var(--sombra-hi);
-  padding: 30px 26px 26px; text-align: center; max-width: 430px; width: 100%;
+  background: var(--card); border-radius: 26px; box-shadow: var(--sombra-hi);
+  padding: 32px 28px 26px; text-align: center; max-width: 430px; width: 100%;
 }
 #logro .trofeo { font-size: 64px; animation: brinco .8s ease infinite; }
-#logro h2 { font-size: 30px; margin: 6px 0 2px; }
-#logro .frase { opacity: .75; font-size: 18px; margin-bottom: 10px; }
-#logro .botones { display: flex; gap: 12px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+#logro h2 { font-size: 29px; margin: 8px 0 4px; }
+#logro .frase {
+  color: color-mix(in srgb, var(--ink) 70%, var(--card));
+  font-size: 18px; margin-bottom: 12px; line-height: 1.4;
+}
+#logro .botones { display: flex; gap: 12px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
 #logro .botones .btn { flex: 1 1 200px; }
 #pillLogro {
-  display: none; margin: 10px auto 0; max-width: max-content; cursor: pointer;
+  display: none; margin: 12px auto 0; max-width: max-content; cursor: pointer;
   align-items: center; gap: 8px; background: var(--soft); color: var(--ink);
-  border-radius: 999px; padding: 10px 20px; font-size: 16px; font-weight: 700;
+  border-radius: 999px; padding: 12px 20px; min-height: 44px; font-size: 16px;
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; letter-spacing: -.02em;
   text-decoration: none; box-shadow: var(--sombra);
 }
 #pillLogro.ver { display: inline-flex; }
@@ -425,35 +577,38 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 #perfil {
   position: fixed; inset: 0; z-index: 62; display: none;
   align-items: center; justify-content: center; padding: 22px;
-  background: color-mix(in srgb, var(--ink) 32%, transparent);
+  background: color-mix(in srgb, var(--ink) 38%, transparent);
   backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
 }
 #perfil.ver { display: flex; }
 #perfil .caja {
-  background: var(--card); border-radius: 34px; box-shadow: var(--sombra-hi);
-  padding: 30px 26px 26px; text-align: center; max-width: 380px; width: 100%;
+  background: var(--card); border-radius: 26px; box-shadow: var(--sombra-hi);
+  padding: 32px 28px 26px; text-align: center; max-width: 380px; width: 100%;
 }
-#perfil h2 { font-size: 28px; margin: 6px 0 14px; }
-#perfilLista { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 12px; }
-#perfilLista .btn { font-size: 19px; min-height: 54px; padding: 6px 22px; }
+#perfil h2 { font-size: 27px; margin: 6px 0 16px; }
+#perfilLista { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 14px; }
+#perfilLista .btn { font-size: 19px; min-height: 52px; padding: 6px 22px; }
 #perfilInput {
-  width: 100%; font: inherit; font-family: "Baloo", sans-serif; font-size: 22px;
-  text-align: center; padding: 14px; border-radius: 999px; border: 2px solid var(--soft);
+  width: 100%; font: inherit; font-family: "Baloo", Archivo, sans-serif; font-weight: 700;
+  font-size: 21px; letter-spacing: -.02em;
+  text-align: center; padding: 15px; border-radius: 999px;
+  border: 1.5px solid color-mix(in srgb, var(--ink) 20%, transparent);
   background: var(--bg); color: var(--ink); margin-bottom: 4px;
 }
-#perfilInput:focus { outline: none; border-color: var(--ac); }
-#perfil .botones { display: flex; gap: 12px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+#perfilInput:focus { outline: 2px solid var(--ac); outline-offset: 1px; border-color: var(--ac); }
+#perfil .botones { display: flex; gap: 12px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
 #perfil .botones .btn { flex: 1 1 140px; }
 
 /* confeti */
 #confeti { position: fixed; inset: 0; z-index: 55; pointer-events: none; }
 
-/* feedback flotante ("¡muy bien!") */
+/* ── feedback flotante ("¡muy bien!") ── */
 #toast {
   position: fixed; left: 50%; bottom: 12vh; transform: translateX(-50%);
   z-index: 50; pointer-events: none; opacity: 0;
-  font-family: "Baloo", sans-serif; font-size: 34px; color: #fff;
-  background: var(--ok); padding: 10px 30px; border-radius: 999px; box-shadow: var(--sombra-hi);
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 32px;
+  letter-spacing: -.03em; color: #fff;
+  background: var(--ok); padding: 12px 30px; border-radius: 999px; box-shadow: var(--sombra-hi);
   /* "left:50%" solo (sin "right") hace que el navegador calcule el ancho
      disponible como la MITAD de la pantalla — con un texto largo eso lo
      amontonaba en una columna angosta de 5 líneas (un óvalo gigante en vez
@@ -475,32 +630,37 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 #memo { display: grid; gap: 10px; max-width: 660px; margin: 0 auto; }
 .cartaMemo { position: relative; aspect-ratio: 3/4; cursor: pointer; perspective: 700px; border: none; background: none; }
 .cartaMemo .cara {
-  position: absolute; inset: 0; border-radius: 18px; backface-visibility: hidden;
+  position: absolute; inset: 0; border-radius: var(--radio-chico); backface-visibility: hidden;
   display: flex; align-items: center; justify-content: center;
   box-shadow: var(--sombra); transition: transform .4s ease;
 }
-.cartaMemo .dorso { background: var(--ac); color: #fff; font-size: 34px; font-family: "Baloo", sans-serif; }
+.cartaMemo .dorso {
+  background: var(--ac); color: #fff; font-size: 34px;
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700;
+}
 .cartaMemo .frente { background: var(--card); transform: rotateY(180deg); padding: 8%; }
 .cartaMemo .frente img { width: 100%; height: 100%; object-fit: contain; }
 .cartaMemo.abierta .dorso { transform: rotateY(180deg); }
 .cartaMemo.abierta .frente { transform: rotateY(0); }
 .cartaMemo.lista { pointer-events: none; }
-.cartaMemo.lista .frente { outline: 4px solid var(--ok); animation: latido .6s ease 1; }
+.cartaMemo.lista .frente { outline: 3px solid var(--ok); outline-offset: -1px; animation: latido .6s ease 1; }
 
 /* sopa de letras */
 #sopaWrap { max-width: 620px; margin: 0 auto; }
 #sopa { display: grid; gap: 3px; touch-action: none; position: relative; }
 #sopa .celda {
   aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-  background: var(--soft); border-radius: 8px; font-family: "Baloo", sans-serif;
+  background: var(--soft); border-radius: 8px;
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; letter-spacing: 0;
   font-size: clamp(15px, 3.4vw, 24px); position: relative; z-index: 2;
 }
 #sopa .celda.marca { background: color-mix(in srgb, var(--ac2) 30%, var(--card)); }
 #sopa .celda.hallada { background: var(--ac2); color: #fff; }
 #sopaPalabras { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 16px; }
 #sopaPalabras .palabra {
-  background: var(--card); border-radius: 999px; padding: 8px 18px; font-family: "Baloo", sans-serif;
-  font-size: 19px; box-shadow: var(--sombra);
+  background: var(--card); border-radius: 999px; padding: 10px 18px;
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; letter-spacing: -.02em;
+  font-size: 18px; box-shadow: var(--sombra);
 }
 #sopaPalabras .palabra.hallada { background: var(--ac2); color: #fff; text-decoration: line-through; }
 
@@ -512,28 +672,31 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 #sudoku { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 0 auto;
   max-width: min(440px, calc(var(--altoJuego, 80vh) - 210px)); }  /* leyenda+picker a la vista */
 #sudoku .celda {
-  aspect-ratio: 1; border-radius: 14px; background: var(--soft); border: none; cursor: pointer;
+  aspect-ratio: 1; border-radius: var(--radio-chico); background: var(--soft); border: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center; padding: 7%;
 }
 #sudoku .celda img { width: 100%; height: 100%; object-fit: contain; }
-#sudoku .celda.fija { background: var(--card); box-shadow: inset 0 0 0 2px var(--soft); cursor: default; }
-#sudoku .celda.eligiendo { outline: 4px solid var(--ac); }
+#sudoku .celda.fija { background: var(--card); box-shadow: inset 0 0 0 1.5px var(--soft); cursor: default; }
+#sudoku .celda.eligiendo { outline: 3px solid var(--ac); outline-offset: 1px; }
 #sudoku .celda.choca { animation: sacudir .4s ease; outline: 3px solid #E25555; }
 #sudoku .celda:nth-child(4n+2), #sudoku .celda:nth-child(4n+1) { }
 #sudokuLegend { display: flex; gap: 14px; justify-content: center; margin: 0 0 14px; flex-wrap: wrap; }
-#sudokuLegend .leg { display: flex; flex-direction: column; align-items: center; font-family: "Baloo", sans-serif; }
+#sudokuLegend .leg {
+  display: flex; flex-direction: column; align-items: center;
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; letter-spacing: -.02em;
+}
 #sudokuLegend img { width: 52px; height: 52px; object-fit: contain; }
 #sudokuPick { display: flex; gap: 12px; justify-content: center; margin-top: 16px; }
 #sudokuPick .op { min-width: 76px; min-height: 76px; }
 
 /* colorear */
 #colWrap { display: flex; flex-direction: column; gap: 14px; align-items: center; }
-#colLienzo { border-radius: 18px; box-shadow: var(--sombra); max-width: 100%; background: #fff;
+#colLienzo { border-radius: var(--radio); box-shadow: var(--sombra); max-width: 100%; background: #fff;
   touch-action: none; cursor: pointer; width: auto; height: auto;
   max-height: calc(var(--altoJuego, 80vh) - 200px); }   /* deja ver paleta+botones */
 #colPaleta { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
 #colPaleta .gota {
-  width: 56px; height: 56px; border-radius: 50%; border: 4px solid var(--card); cursor: pointer;
+  width: 56px; height: 56px; border-radius: 50%; border: 3px solid var(--card); cursor: pointer;
   box-shadow: var(--sombra); transition: transform .12s;
 }
 #colPaleta .gota.activa { transform: scale(1.22); border-color: var(--ink); }
@@ -553,8 +716,8 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 .escena .bicho.contado { pointer-events: none; }
 .escena .bicho .num {
   position: absolute; top: -12px; right: -12px; width: 34px; height: 34px; border-radius: 50%;
-  background: var(--ac); color: #fff; font-family: "Baloo", sans-serif; font-size: 20px;
-  display: flex; align-items: center; justify-content: center; box-shadow: var(--sombra);
+  background: var(--ac); color: #fff; font-family: "Baloo", Archivo, sans-serif; font-weight: 700;
+  font-size: 19px; display: flex; align-items: center; justify-content: center; box-shadow: var(--sombra);
 }
 
 /* sombras (drag) */
@@ -567,28 +730,28 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 .silueta.llena img { filter: none; opacity: 1; }
 .silueta.llena::after { content: "✓"; position: absolute; top: -6px; right: -6px; background: var(--ok);
   color: #fff; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center;
-  justify-content: center; font-size: 19px; font-family: "Baloo", sans-serif; }
+  justify-content: center; font-size: 19px; font-family: "Baloo", Archivo, sans-serif; font-weight: 700; }
 
 /* filas de sprites genéricas (patrón, distinto, tamaño, más/menos, sumas) */
 .filaSprites { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
-.spriteBtn { border: none; background: var(--card); border-radius: 18px; box-shadow: var(--sombra);
+.spriteBtn { border: none; background: var(--card); border-radius: var(--radio-chico); box-shadow: var(--sombra);
   cursor: pointer; padding: 10px; transition: transform .12s; }
 .spriteBtn:active { transform: scale(.92); }
 /* suma rápida (14-jul-2026): la burbuja tocada primero queda marcada
    mientras se espera la segunda */
-.spriteBtn.elegido { outline: 4px solid var(--ac); outline-offset: 2px; }
+.spriteBtn.elegido { outline: 3px solid var(--ac); outline-offset: 2px; }
 .spriteBtn img { object-fit: contain; display: block; pointer-events: none; }
 .spriteQuieto { padding: 10px; }
 .spriteQuieto img { object-fit: contain; display: block; }
 .hueco {
-  border: 4px dashed color-mix(in srgb, var(--ink) 30%, transparent); border-radius: 18px;
+  border: 3px dashed color-mix(in srgb, var(--ink) 26%, transparent); border-radius: var(--radio-chico);
   display: flex; align-items: center; justify-content: center;
-  font-size: 34px; font-family: "Baloo", sans-serif; opacity: .8; background: var(--soft);
-  animation: latido 1.8s ease infinite;
+  font-size: 34px; font-family: "Baloo", Archivo, sans-serif; font-weight: 700;
+  background: var(--soft); animation: latido 1.8s ease infinite;
 }
 
 /* dos grupos (¿dónde hay más?) */
-#dosGrupos { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+#dosGrupos { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 #dosGrupos .grupo { min-height: 220px; border-radius: var(--radio); background: var(--card);
   box-shadow: var(--sombra); border: none; cursor: pointer; position: relative; padding: 14px;
   display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 8px;
@@ -601,7 +764,8 @@ button.pill:active, a.pill:active { transform: scale(.94); }
    feedback simple "mal, probá de nuevo") */
 #dosGrupos .grupo__num {
   position: absolute; top: 8px; right: 8px; min-width: 34px; height: 34px;
-  border-radius: 999px; background: var(--ac); color: #fff; font-family: "Baloo", sans-serif;
+  border-radius: 999px; background: var(--ac); color: #fff;
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700;
   font-size: 19px; display: none; align-items: center; justify-content: center;
   box-shadow: var(--sombra); animation: pop .3s ease both;
 }
@@ -614,7 +778,7 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 .cajaPosicion { position: relative; min-height: 300px; width: 100%; max-width: 380px; margin: 0 auto; }
 .cajaPosicion__caja {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  width: 160px; height: 120px; border: 5px dashed var(--ac2); border-radius: 18px;
+  width: 160px; height: 120px; border: 4px dashed var(--ac2); border-radius: var(--radio-chico);
   background: var(--soft);
 }
 .cajaPosicion .spriteBtn { position: absolute; width: 84px; height: 84px; padding: 0; }
@@ -644,9 +808,9 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 .armarPalabraSlots { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 10px 0 18px; flex-wrap: wrap; }
 .armarPalabraSlot {
   min-width: 62px; height: 62px; padding: 0 10px;
-  border: 4px dashed color-mix(in srgb, var(--ink) 30%, transparent); border-radius: 16px;
+  border: 3px dashed color-mix(in srgb, var(--ink) 26%, transparent); border-radius: var(--radio-chico);
   display: flex; align-items: center; justify-content: center;
-  font-size: 26px; font-family: "Baloo", sans-serif; background: var(--soft);
+  font-size: 26px; font-family: "Baloo", Archivo, sans-serif; font-weight: 700; background: var(--soft);
 }
 .armarPalabraSlot:empty { animation: latido 1.8s ease infinite; }
 .armarPalabraSilabas .spriteBtn:disabled { opacity: .35; cursor: default; }
@@ -658,23 +822,26 @@ button.pill:active, a.pill:active { transform: scale(.94); }
   flex-wrap: wrap; min-height: 46px; margin: 10px 0 16px;
 }
 .programaChip {
-  font-size: 22px; background: var(--soft); border-radius: 12px;
-  padding: 6px 10px; line-height: 1;
+  font-size: 22px; background: var(--soft); border-radius: 10px;
+  padding: 7px 11px; line-height: 1;
 }
-.programaVacio { font-size: 13px; color: var(--ink); opacity: .55; font-family: "Baloo", sans-serif; }
+.programaVacio {
+  font-size: 13px; color: color-mix(in srgb, var(--ink) 58%, var(--bg));
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700;
+}
 
 /* grilla 1-100 (14-jul-2026, 1° grado NAP Bimestre 4): una decena por
    ronda en layout 2×5, ".hueco" (genérica) marca la celda a completar. */
 .grilla100 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
   max-width: 420px; margin: 0 auto 18px; }
 .grilla100Celda { aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-  background: var(--card); border-radius: 12px; box-shadow: var(--sombra);
-  font-family: "Baloo", sans-serif; font-size: 22px; }
+  background: var(--card); border-radius: 10px; box-shadow: var(--sombra);
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 22px; }
 .grilla100Celda.hueco { font-size: 26px; }
 
 /* tablas contrarreloj (14-jul-2026, 2° grado): barra de tiempo — SOLO
    comunica urgencia, nunca "falla" al llegar a 0 (cero fail states). */
-.barraTiempo { width: 100%; max-width: 340px; height: 14px; margin: 14px auto 6px;
+.barraTiempo { width: 100%; max-width: 340px; height: 12px; margin: 14px auto 6px;
   border-radius: 999px; background: var(--soft); overflow: hidden; }
 .barraTiempo__fill { height: 100%; width: 100%; background: var(--ac); border-radius: 999px;
   transition: width .1s linear; }
@@ -689,7 +856,7 @@ button.pill:active, a.pill:active { transform: scale(.94); }
    Math), NUNCA solo el número: representación Pictórica no negociable
    para matemática nueva (skill §4b/4c). */
 .fraccionBarra { display: flex; width: 100%; max-width: 240px; height: 46px; margin: 0 auto;
-  border-radius: 10px; overflow: hidden; border: 3px solid var(--ink); }
+  border-radius: 8px; overflow: hidden; border: 2.5px solid var(--ink); }
 .fraccionBarra__seg { flex: 1; background: var(--card); border-right: 2px solid var(--ink); }
 .fraccionBarra__seg:last-child { border-right: none; }
 .fraccionBarra__seg.lleno { background: var(--ac); }
@@ -709,35 +876,36 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 /* gutter: celda de ancho FIJO, primera de las 5 filas por igual — el "+"
    de la fila B vive acá, así ninguna fila se corre respecto de las otras
    al centrarse (bug real 15-jul-2026, ver comentario en el JS). */
-.sumaColGutter { width: 20px; flex: none; font-size: 24px; font-family: "Baloo", sans-serif; }
+.sumaColGutter { width: 20px; flex: none; font-size: 24px; font-family: "Baloo", Archivo, sans-serif; font-weight: 700; }
 .sumaColEncabezado__col { width: 42px; display: flex; flex-direction: column; align-items: center;
-  font-family: "Baloo", sans-serif; line-height: 1.15; }
-.sumaColEncabezado__nombre { font-size: 15px; font-weight: 700; }
-.sumaColEncabezado__potencia { font-size: 11px; opacity: .6; }
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; line-height: 1.15; }
+.sumaColEncabezado__nombre { font-size: 14px; font-weight: 700; letter-spacing: .02em; }
+.sumaColEncabezado__potencia { font-size: 11px; color: color-mix(in srgb, var(--ink) 58%, var(--card)); }
 .sumaColAcarreos { min-height: 22px; margin-top: 4px; }
 .sumaColAcarreo { width: 42px; font-size: 13px; font-weight: 700; color: var(--ac); text-align: center; }
 .sumaColAcarreo--oculto { visibility: hidden; }
 .sumaDigito { width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
-  font-size: 24px; font-family: "Baloo", sans-serif; }
+  font-size: 24px; font-family: "Baloo", Archivo, sans-serif; font-weight: 700; }
 .sumaDigito--vacio { visibility: hidden; }
-.sumaColLinea { height: 3px; background: var(--ink); margin: 8px auto 6px; max-width: 320px; }
+.sumaColLinea { height: 2.5px; background: var(--ink); margin: 8px auto 6px; max-width: 320px; }
 .sumaResultado__slot { width: 42px; height: 46px; display: flex; align-items: center; justify-content: center;
-  border: 3px dashed color-mix(in srgb, var(--ink) 30%, transparent); border-radius: 10px;
-  font-size: 24px; font-family: "Baloo", sans-serif; background: var(--soft); }
+  border: 2.5px dashed color-mix(in srgb, var(--ink) 26%, transparent); border-radius: 8px;
+  font-size: 24px; font-family: "Baloo", Archivo, sans-serif; font-weight: 700; background: var(--soft); }
 .sumaResultado__slot:empty { animation: latido 1.8s ease infinite; }
 .sumaResultado__slot.activo { border-style: solid; border-color: var(--ac); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ac) 25%, transparent); }
 /* resaltado de la "lección" (15-jul-2026, Pablo: si se equivoca 2 veces,
    explicarle sumando paso a paso con animación marcando los números) —
    reusa "latido" (mismo keyframe que el hueco vacío pulsa) para no sumar
    una animación nueva, con el color de acento para que se note. */
-.sumaResaltado { animation: latido 1s ease infinite; background: var(--ac); color: #fff; border-radius: 10px; }
+.sumaResaltado { animation: latido 1s ease infinite; background: var(--ac); color: #fff; border-radius: 8px; }
 .sumaColAcarreo.sumaResaltado { border-radius: 6px; padding: 0 4px; }
-.sumaColLeccion { margin: 14px auto 0; max-width: 320px; min-height: 28px; padding: 10px 14px;
-  background: var(--soft); border-radius: 12px; font-family: "Baloo", sans-serif; font-size: 20px; }
+.sumaColLeccion { margin: 14px auto 0; max-width: 320px; min-height: 28px; padding: 12px 15px;
+  background: var(--soft); border-radius: var(--radio-chico);
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 19px; letter-spacing: -.02em; }
 .sumaColLeccion--oculto { display: none; }
 .sumaColAyuda { margin: 14px auto 4px; display: block; }
 .sumaColKeypad { gap: 8px; max-width: 380px; margin: 12px auto 0; }
-.sumaColDigitBtn { width: 44px; height: 44px; padding: 0; font-size: 20px; font-family: "Baloo", sans-serif; }
+.sumaColDigitBtn { width: 46px; height: 46px; padding: 0; font-size: 20px; font-family: "Baloo", Archivo, sans-serif; font-weight: 700; }
 .sumaColDigitBtn:disabled, .sumaColAyuda:disabled { opacity: .4; }
 
 /* ángulos — dos líneas desde un vértice común (14-jul-2026, 4° grado):
@@ -752,17 +920,19 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 
 /* números grandes (sumas / restas / serie) */
 .cuentaGrande { display: flex; align-items: center; justify-content: center; gap: 14px;
-  font-family: "Baloo", sans-serif; font-size: clamp(38px, 8vw, 64px); flex-wrap: wrap; }
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; letter-spacing: -.03em;
+  font-size: clamp(38px, 8vw, 60px); flex-wrap: wrap; }
 .grupoSprites { display: inline-flex; flex-wrap: wrap; gap: 6px; max-width: 240px; justify-content: center;
-  background: var(--soft); border-radius: 18px; padding: 12px; }
+  background: var(--soft); border-radius: var(--radio-chico); padding: 12px; }
 .grupoSprites img { width: 44px; height: 44px; object-fit: contain; }
 .grupoSprites img.ida { opacity: .25; filter: grayscale(1); }
-.serieFila { display: flex; gap: 10px; justify-content: center; font-family: "Baloo", sans-serif;
-  font-size: clamp(30px, 7vw, 52px); flex-wrap: wrap; }
+.serieFila { display: flex; gap: 10px; justify-content: center;
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; letter-spacing: -.03em;
+  font-size: clamp(30px, 7vw, 50px); flex-wrap: wrap; }
 .serieFila .num, .serieFila .hueco2 {
-  min-width: 84px; min-height: 84px; border-radius: 18px; background: var(--card); box-shadow: var(--sombra);
+  min-width: 84px; min-height: 84px; border-radius: var(--radio-chico); background: var(--card); box-shadow: var(--sombra);
   display: flex; align-items: center; justify-content: center; padding: 4px 10px; }
-.serieFila .hueco2 { background: var(--soft); border: 4px dashed color-mix(in srgb, var(--ink) 30%, transparent);
+.serieFila .hueco2 { background: var(--soft); border: 3px dashed color-mix(in srgb, var(--ink) 26%, transparent);
   animation: latido 1.8s ease infinite; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -771,7 +941,7 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 }
 @media (max-width: 560px) {
   #menu { grid-template-columns: repeat(auto-fill, minmax(136px, 1fr)); gap: 12px; }
-  #stage { padding: 6px 10px calc(64px + env(safe-area-inset-bottom)); }
+  #stage { padding: 8px 10px calc(64px + env(safe-area-inset-bottom)); }
   body { font-size: 17px; }
   /* header y consigna compactos: más pantalla para el juego */
   #hdr { padding: calc(6px + env(safe-area-inset-top)) 10px 6px; gap: 8px; }
@@ -779,8 +949,9 @@ button.pill:active, a.pill:active { transform: scale(.94); }
   #hdr .avatar img { width: 36px; height: 36px; }
   #hdrTitulo b { font-size: 19px; }
   #hdrTitulo span { display: none; }
-  .pill { height: 42px; padding: 0 12px; font-size: 18px; }
-  #consigna { padding: 9px 12px; margin-bottom: 10px; gap: 10px; }
+  /* 44px es el piso de área de toque: el header compacto llega justo, no menos. */
+  .pill { height: 44px; padding: 0 13px; font-size: 17px; }
+  #consigna { padding: 11px 13px; margin-bottom: 10px; gap: 10px; }
   #consigna .texto { font-size: clamp(17px, 4.6vw, 21px); }
   #consigna img.pista { width: 42px; height: 42px; }
   #progreso { margin: 0 0 10px; }
@@ -789,8 +960,82 @@ button.pill:active, a.pill:active { transform: scale(.94); }
   #colPaleta { gap: 8px; }
   #colPaleta .gota { width: 44px; height: 44px; border-width: 3px; }
   #colBotones { gap: 8px; }
-  #colBotones .btn { font-size: 16px; min-height: 46px; padding: 4px 12px; gap: 6px; }
+  #colBotones .btn { font-size: 16px; min-height: 46px; padding: 4px 14px; gap: 6px; }
 }
+
+/* ── SELECTOR DE AVATAR (29-jul-2026) ─────────────────────────────────────────────
+   Agregado DESPUÉS del rediseño de design: si vuelven a entregar el bloque, este
+   pedazo hay que volver a pegarlo (o pedirles que lo incluyan).
+   El chico elige su personaje entre los 8 del mundo de su grado — los mismos que ya
+   usa el cuaderno. Antes el del header y el del festejo eran siempre el primero. */
+#avatarFila { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+              margin: 14px 0 4px; }
+#avatarFila button { width: 56px; height: 56px; min-width: 56px; padding: 0; border: 0;
+              border-radius: 14px; background: var(--soft); cursor: pointer;
+              display: grid; place-items: center; outline-offset: 2px; }
+#avatarFila button img { width: 44px; height: 44px; object-fit: contain; }
+#avatarFila button[aria-pressed="true"] { outline: 3px solid var(--ac); background: var(--card); }
+
+/* ══ AJUSTE A LAS MAQUETAS DE DESIGN (29-jul-2026) ═══════════════════════════════
+   SÓLO ESTÉTICA, por indicación de Pablo: no se renombra ninguna actividad, no se
+   agrega pedagogía nueva y NO existe "Nivel 4" — el modelo es 3 niveles + "Más allá"
+   sin tope (al dominar, pasa al grado siguiente). El zorro de la maqueta no se usa:
+   cada grado tiene sus 8 personajes.
+   Todo cuelga de los tokens del grado, así que los 7 mundos conservan su color. */
+
+/* Header: el avatar en cuadrado redondeado sobre el suave del grado */
+#mascoHdr {
+  border-radius: 16px; background: var(--soft); padding: 6px;
+  width: 44px; height: 44px; object-fit: contain;
+}
+#hdrNombre { font-family: "Baloo", Archivo, sans-serif; font-weight: 700;
+             letter-spacing: -.02em; }
+#hdrSub { color: color-mix(in srgb, var(--ink) 55%, var(--card)); font-weight: 500; }
+
+/* El título de la pantalla, más grande y apretado */
+#bienvenida h1 {
+  font-size: clamp(34px, 9vw, 46px); line-height: 1.02; letter-spacing: -.035em;
+  margin: 6px 0 4px;
+}
+#bienvenida p { font-size: 17px; color: color-mix(in srgb, var(--ink) 58%, var(--card)); }
+
+/* El aviso de repaso pasa a banner pleno con el acento del grado */
+.repaso-nota {
+  background: var(--ac2); color: #fff; border: 0; border-radius: 14px;
+  padding: 13px 16px; font-family: "Baloo", Archivo, sans-serif; font-weight: 700;
+  letter-spacing: -.01em; font-size: 15px; text-align: center; width: 100%;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--ac2) 28%, transparent);
+}
+.repaso-nota.esi-aviso { background: var(--card); color: var(--ink);
+  box-shadow: var(--sombra); }
+
+/* La tarjeta ya la resolvió design (ícono 84px, radio 20, nombre 18px): no se toca.
+   Lo único que falta es el AIRE para el cartel de estado, que está posicionado absoluto
+   arriba y se le montaba al ícono. */
+.carta[data-adapt] { padding-top: 30px; }
+/* Sin estrellas todavía, ese hueco de 20px queda como un agujero entre el nombre y el
+   nivel. Vacío no reserva nada. */
+.carta .mini-est:empty { min-height: 0; }
+
+/* Festejo: el personaje grande arriba, botón principal a lo ancho */
+#festejo .masco { width: 104px; height: 104px; }
+#festejo h2 { font-size: 30px; letter-spacing: -.03em; }
+#festejo .frase { color: color-mix(in srgb, var(--ink) 60%, var(--card)); font-size: 16px; }
+#festejo .estrellas { font-size: 40px; margin: 12px 0 18px; }
+#festejo .botones { flex-direction: column; gap: 10px; }
+#festejo .botones .btn { width: 100%; }
+
+/* "¿Cómo es?": la etiqueta de video en versalita, los clips como pastillas */
+.comoes-videos__t {
+  text-transform: uppercase; letter-spacing: .08em; font-size: 11px; font-weight: 700;
+  color: color-mix(in srgb, var(--ink) 50%, var(--card)); margin-bottom: 8px;
+}
+.btn-video {
+  background: var(--soft); color: var(--ink); border: 0; border-radius: 999px;
+  padding: 9px 16px; font-family: "Baloo", Archivo, sans-serif; font-weight: 700;
+  font-size: 14px; letter-spacing: -.01em; cursor: pointer; min-height: 44px;
+}
+.btn-video small { font-weight: 500; opacity: .6; margin-left: 6px; }
 </style>
 </head>
 <body>
@@ -847,6 +1092,7 @@ button.pill:active, a.pill:active { transform: scale(.94); }
     <h2>¿Quién juega?</h2>
     <div id="perfilLista"></div>
     <input id="perfilInput" placeholder="Escribí tu nombre" maxlength="20" autocomplete="off">
+    <div id="avatarFila" aria-label="Elegí tu personaje"></div>
     <div class="botones">
       <button class="btn suave" id="perfilCancelar">Cancelar</button>
       <button class="btn verde" id="perfilJugar">¡Jugar!</button>

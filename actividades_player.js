@@ -239,6 +239,13 @@ const Store = {
     m[itemId] = 1;
     this.save();
   },
+  // Avatar elegido por el chico: índice dentro de D.personajes. Si no eligió, el 0 —
+  // que es lo que hacía siempre el cuaderno antes de que se pudiera elegir.
+  avatar() { const p = this._perfil(); return (p && typeof p.av === "number") ? p.av : 0; },
+  setAvatar(i) {
+    const p = this._perfil(); if (!p) return;
+    p.av = Math.max(0, i | 0); this.save();
+  },
   subirNivelDif(id, max) {
     const p = this._perfil(); if (!p) return;
     if (!p.nd) p.nd = {};
@@ -4771,7 +4778,11 @@ function abrirPerfil() {
   (perfilUnico() ? [] : Object.keys(Store.data.profiles)).forEach((n) => {
     const b = el("button", "btn suave");
     b.type = "button";
-    b.textContent = n;
+    const avN = Store.data.profiles[n] && typeof Store.data.profiles[n].av === "number"
+      ? Store.data.profiles[n].av : 0;
+    const src = (P || [])[avN];
+    b.innerHTML = (src ? `<img src="${src}" alt="" style="width:26px;height:26px;` +
+      `object-fit:contain;vertical-align:middle;margin-right:8px">` : "") + n;
     b.addEventListener("click", () => elegirPerfil(n));
     lista.appendChild(b);
   });
@@ -4791,6 +4802,7 @@ function abrirPerfil() {
   $("#perfilInput").value = perfilUnico()
     ? (Store.data.activeProfile || deLaCompra)
     : (esElPrimerPerfil ? deLaCompra : "");
+  _pintarAvatares();
   $("#perfil").classList.add("ver");
   $("#perfilInput").focus();
   // cursor al final (no seleccionar todo el texto): se entiende que se
@@ -4800,6 +4812,43 @@ function abrirPerfil() {
   $("#perfilInput").setSelectionRange(largo, largo);
 }
 function cerrarPerfil() { $("#perfil").classList.remove("ver"); }
+
+/* ── ELEGIR PERSONAJE (29-jul-2026, pedido de Pablo: "como hace Netflix") ──────────
+   Los 8 personajes del mundo del grado ya existían y el cuaderno usaba SIEMPRE el
+   primero, para todos. Ahora el chico elige el suyo y es el que lo acompaña en el
+   header y en el festejo.
+   Se guarda por perfil, así dos hermanos en el mismo cuaderno tienen cada uno el suyo.
+   La elección es OPCIONAL: sin tocar nada queda el primero, como antes. */
+// `_avatarTocado` es aparte a propósito: sin él, tocar el botón de OTRO perfil le
+// pisaba su avatar con el del perfil activo (el que la fila mostraba al abrirse).
+// Sólo se guarda si el chico eligió de verdad.
+let _avatarElegido = null;
+let _avatarTocado = false;
+
+function _pintarAvatares() {
+  const fila = $("#avatarFila");
+  if (!fila) return;
+  fila.innerHTML = "";
+  const disp = (P || []).filter(Boolean);
+  if (disp.length < 2) return;          // con uno solo no hay nada que elegir
+  _avatarElegido = Store.avatar();
+  _avatarTocado = false;
+  disp.slice(0, 8).forEach((src, i) => {
+    const b = el("button", "");
+    b.type = "button";
+    b.setAttribute("aria-pressed", i === _avatarElegido ? "true" : "false");
+    b.setAttribute("aria-label", "Personaje " + (i + 1));
+    b.innerHTML = `<img src="${src}" alt="">`;
+    b.addEventListener("click", () => {
+      Sfx.pop();
+      _avatarElegido = i;
+      _avatarTocado = true;
+      Array.from(fila.children).forEach((x, k) =>
+        x.setAttribute("aria-pressed", k === i ? "true" : "false"));
+    });
+    fila.appendChild(b);
+  });
+}
 
 /* ── muestra pública (landing) ──────────────────────────────────────────────
    `?muestra=<id>` abre UN juego directo, sin pedir el nombre. Es el "Probalo ahora"
@@ -4881,6 +4930,7 @@ function elegirPerfil(nombre) {
   if (!Store.data.profiles[nombre]) Store.data.profiles[nombre] = _perfilNuevo(nombre);
   Store.data.activeProfile = nombre;
   Store.save();
+  if (_avatarTocado) Store.setAvatar(_avatarElegido);   // sólo si lo eligió; después de activar el perfil
   cerrarPerfil();
   pintarHeader();
   // nivelación inicial: sólo la primera vez de ese perfil y sólo con el motor
@@ -4894,8 +4944,10 @@ function pintarHeader() {
   $("#totalEstrellas").textContent = Store.total();
   $("#hdrNombre").textContent = Store.data.activeProfile ? `¡Hola, ${Store.data.activeProfile}!` : "¡Hola!";
   $("#hdrSub").textContent = `${D.tema_nombre} · ${marcaDelCuaderno()}`;
-  $("#mascoHdr").src = P[0];
-  $("#mascoFestejo").src = P[0];
+  // el personaje que ELIGIÓ el chico (antes era siempre el primero para todos)
+  const _av = P[Store.avatar()] || P[0];
+  $("#mascoHdr").src = _av;
+  $("#mascoFestejo").src = _av;
 }
 
 /* ── Activación escalable por NIVELES (19-jul-2026, docs/auditoria-dc-caba/):
@@ -5134,21 +5186,45 @@ function _adaptCSS() {
   _adaptCSSInyectado = true;
   const s = document.createElement("style");
   s.textContent =
+    // Llevado a la estética de Kydo con la tabla de equivalencias que dejó design en su
+    // LEEME (radios 18/12, sombras difusas teñidas con la tinta, bordes 1.5px, estados con
+    // outline de 3px y offset, texto secundario por color-mix en vez de opacity, toque 44px).
+    // Vive acá y no en el CSS porque el JS lo inyecta; hay que moverlos juntos.
     "#menu .carta,.menu-cat .carta{position:relative}" +
     ".menu-cat{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:16px;margin:0 0 6px}" +
-    ".cat-titulo{font-size:20px;font-weight:800;margin:22px 4px 12px;opacity:.92;display:flex;align-items:center;gap:8px}" +
-    "@media(max-width:560px){.menu-cat{grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:12px}.cat-titulo{font-size:17px;margin:16px 2px 9px}}" +
-    ".carta.adapt-recomendado{box-shadow:inset 0 0 0 3px #2ecc71,0 8px 22px rgba(0,0,0,.14)}" +
-    ".carta.adapt-reforzar{box-shadow:inset 0 0 0 3px #f5a623;opacity:.9}" +
-    ".carta.adapt-repaso{box-shadow:inset 0 0 0 3px #4aa3df}" +
+    // los títulos de sección toman el color de su materia (los de la marca Kydo)
+    ".cat-titulo{font-family:\"Baloo\",Archivo,sans-serif;font-size:20px;font-weight:700;" +
+    "letter-spacing:-.02em;margin:26px 4px 12px;display:flex;align-items:center;gap:8px;" +
+    "color:color-mix(in srgb, var(--ink) 88%, var(--card))}" +
+    ".cat-titulo.cat-lengua{color:#B33A3A}" +
+    ".cat-titulo.cat-matematica{color:#1F6FA8}" +
+    ".cat-titulo.cat-naturales,.cat-titulo.cat-cdm{color:#2F7D57}" +
+    ".cat-titulo.cat-sociales{color:#A9772A}" +
+    "@media(max-width:560px){.menu-cat{grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:12px}.cat-titulo{font-size:17px;margin:18px 2px 9px}}" +
+    // estados del motor: outline (no borde) para no mover el layout ni un pixel
+    ".carta.adapt-recomendado,.carta.adapt-reforzar,.carta.adapt-repaso{outline-offset:1px}" +
+    // Sutil a propósito: con un perfil nuevo el motor marca CASI TODO como recomendado,
+    // y veinte tarjetas con un borde grueso no recomiendan nada — sólo hacen ruido.
+    ".carta.adapt-recomendado{outline:1.5px solid color-mix(in srgb, #2F7D57 45%, var(--card))}" +
+    ".carta.adapt-reforzar{outline:1.5px solid color-mix(in srgb, #C4703C 55%, var(--card))}" +
+    ".carta.adapt-repaso{outline:1.5px solid color-mix(in srgb, #1F6FA8 45%, var(--card))}" +
     ".carta[data-adapt]::after{content:attr(data-adapt);position:absolute;top:6px;left:50%;" +
-    "transform:translateX(-50%);font-size:11px;font-weight:800;color:#333;background:rgba(255,255,255,.9);" +
-    "border-radius:999px;padding:2px 9px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.15)}" +
-    // nivel de dificultad ganado: abajo de todo, chiquito, para que no le gane al título
-    ".carta .nivel-chip{margin-top:4px;font-size:11px;font-weight:800;opacity:.72;white-space:nowrap}" +
-    ".carta .nivel-chip--mas{opacity:1;color:#6a3df0;display:flex;flex-direction:column;line-height:1.15}" +
-    ".carta .nivel-chip--mas small{font-weight:700;opacity:.6;font-size:10px}" +
-    ".carta:has(.nivel-chip--mas){box-shadow:inset 0 0 0 3px #6a3df0,0 8px 22px rgba(106,61,240,.18)}";
+    "transform:translateX(-50%);font-family:\"Baloo\",Archivo,sans-serif;font-size:10px;" +
+    "font-weight:700;letter-spacing:-.01em;" +
+    "color:color-mix(in srgb, var(--ink) 66%, var(--card));background:var(--soft);" +
+    "border-radius:12px;padding:3px 10px;white-space:nowrap;" +
+    "box-shadow:0 2px 4px color-mix(in srgb, var(--ink) 6%, transparent)," +
+    "0 8px 20px color-mix(in srgb, var(--ink) 8%, transparent)}" +
+    // el nivel ganado: abajo de todo y chiquito, para que no le gane al título
+    ".carta .nivel-chip{margin-top:4px;font-family:\"Baloo\",Archivo,sans-serif;font-size:11px;" +
+    "font-weight:700;letter-spacing:-.02em;white-space:nowrap;min-height:16px;" +
+    "color:color-mix(in srgb, var(--ink) 62%, var(--card))}" +
+    ".carta .nivel-chip--mas{color:#3D2FBF;display:flex;flex-direction:column;line-height:1.15}" +
+    ".carta .nivel-chip--mas small{font-weight:600;font-size:10px;" +
+    "color:color-mix(in srgb, #3D2FBF 62%, var(--card))}" +
+    ".carta:has(.nivel-chip--mas){outline:3px solid #3D2FBF;outline-offset:1px}" +
+    // área de toque: en celular se usa con el dedo, y es un chico
+    ".carta{min-height:44px}";
   document.head.appendChild(s);
 }
 
@@ -5441,7 +5517,9 @@ function pintarMenuPlano(items, stage) {
       const delCat = visibles.filter((m) => Adapt.categoria(m.id) === cat)
                              .sort((a, b) => Adapt.peso(a.id) - Adapt.peso(b.id));
       if (!delCat.length) return;                    // categoría vacía en este grado → no se muestra
-      stage.appendChild(el("h3", "cat-titulo", `${EMOJI[cat] || "•"} ${Adapt.labelCategoria(cat)}`));
+      // la clase por materia le da el color de la marca al título (ver _adaptCSS)
+      stage.appendChild(el("h3", "cat-titulo cat-" + cat,
+        `${EMOJI[cat] || "•"} ${Adapt.labelCategoria(cat)}`));
       const grid = el("div", "menu-cat");
       delCat.forEach((m, i) => grid.appendChild(hacerCarta(m, i)));
       stage.appendChild(grid);
@@ -5461,7 +5539,9 @@ function pintarMenuPlano(items, stage) {
 function _botonModoProfe() {
   const b = el("button");
   b.style.cssText = "width:100%;display:flex;align-items:center;gap:12px;justify-content:center;" +
-    "background:linear-gradient(135deg,#7b5cff,#4aa3df);color:#fff;border:none;border-radius:18px;" +
+    // El degradado violeta era fijo y no pertenecía a la paleta de ningún grado: en el
+    // verde agua de 4.º era lo más ruidoso de la pantalla. Ahora usa el acento del grado.
+    "background:var(--ac2);color:#fff;border:none;border-radius:14px;" +
     "padding:16px 18px;font-size:18px;font-weight:800;box-shadow:0 8px 22px rgba(0,0,0,.18);cursor:pointer;margin:2px 0 10px";
   b.innerHTML = "🧑‍🏫 <span>Modo Profe — inventá y corregí cuentas</span>";
   b.addEventListener("click", () => { Sfx.pop(); modoProfe(); });

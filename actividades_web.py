@@ -2385,10 +2385,13 @@ def archivo(token, nombre):
         p = TEMPLATE_MOTOR
     elif nombre == "actividades_curriculum.js":
         p = TEMPLATE_CURRICULUM
-    elif nombre == "f1.ttf":
-        p = os.path.join(BASEDIR, "fonts", "Baloo2-VF.ttf")
-    elif nombre == "f2.ttf":
-        p = os.path.join(BASEDIR, "fonts", "Nunito-VF.ttf")
+    elif nombre in ("f1.ttf", "f2.ttf"):
+        # Los DOS sirven Archivo, la tipografía de la marca (29-jul-2026). Es la variable
+        # completa (ejes wght 100-900 y wdth), así que un solo archivo cubre todos los pesos
+        # y el navegador lo descarga UNA vez aunque el CSS nombre dos familias.
+        # Los nombres "Baloo"/"Nunito" se mantienen a propósito: el JS y ~104 reglas los
+        # nombran, y renombrarlos obligaría a reescribir todo el CSS sin ganar nada.
+        p = os.path.join(BASEDIR, "fonts", "Archivo-VF.ttf")
     elif nombre == "ingles_manifest.json":
         p = os.path.join(INGLES_DIR, "manifest.json")
     elif nombre.startswith("en_") and nombre.endswith(".mp3"):
