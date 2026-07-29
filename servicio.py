@@ -534,20 +534,20 @@ class Handler(BaseHTTPRequestHandler):
             return False
         return self.client_address[0] in ("127.0.0.1", "::1")
 
-    # Los links que YA son un secreto: el token del cuaderno (16 caracteres) y, en los
-    # gateados, un permiso firmado por la tienda. Pedirles además la clave del dev no suma
-    # seguridad y sí rompe la experiencia: el que abre su cuaderno salta desde el host de
-    # la tienda al de acá y se comía "entorno de pruebas" en la cara. Pasó dos veces.
-    _DEV_LINKS = ("/act/", "/armar/", "/leer/", "/al/", "/probar/")
-
-    def _dev_link_con_token(self, path):
-        return any(path.startswith(x) for x in self._DEV_LINKS)
+    # En el motor la puerta del dev cubre SÓLO el panel de administración. Todo lo demás
+    # que sirve —el cuaderno, el rompecabezas, el audiolibro, la voz de /tts, las
+    # miniaturas de la tienda, las descargas— o cuelga de un token de 16 caracteres con
+    # permiso firmado, o ya pide la API key. Ponerle además la clave del dev no agregaba
+    # seguridad y rompía una cosa por vez: primero "abrir el cuaderno" (dos veces), después
+    # la voz de las actividades, y seguían las miniaturas y las descargas. La lista negra
+    # corta esa cadena de una. El noindex sigue yendo en TODAS las respuestas.
+    _DEV_PROTEGIDO = ("/dash", "/entrar", "/api", "/tipos", "/ia", "/admin")
 
     def _dev_ok(self, path=None):
         if not DEV_CLAVE:                  # sin clave no hay puerta (uso en LAN pura)
             return True
-        if path and self._dev_link_con_token(path):
-            return True                    # lo cuida su propio token/grant, no la clave
+        if path is not None and not any(path.startswith(x) for x in self._DEV_PROTEGIDO):
+            return True
         if self._dev_interno():
             return True
         for parte in (self.headers.get("Cookie") or "").split(";"):
