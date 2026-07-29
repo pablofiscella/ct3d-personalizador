@@ -32,6 +32,20 @@ from PIL import Image
 API_KEY  = os.environ.get("CT3D_API_KEY", "cambiame-ya")
 PORT     = int(os.environ.get("CT3D_PORT", "8787"))
 
+# --- Entorno DEV (el espejo de pruebas) ---------------------------------------
+# Inerte en producción: sin CT3D_ENTORNO=dev nada de esto corre. En el espejo, la
+# puerta pide la clave una vez (`?dev=<clave>`), deja cookie 30 días y todo sale con
+# noindex. Es el gemelo de `backend/dev_gate.py` del repo /opt/ct3d (allá es Flask,
+# acá http.server): si tocás la cookie o el token, tocá los dos.
+DEV        = os.environ.get("CT3D_ENTORNO", "").strip().lower() == "dev"
+DEV_CLAVE  = os.environ.get("CT3D_DEV_CLAVE", "").strip()
+DEV_COOKIE = "ct3d_dev"
+
+
+def _dev_token():
+    """Valor de la cookie: derivado de la clave, para no dejarla escrita en el navegador."""
+    return hashlib.sha256(("ct3d-dev|" + DEV_CLAVE).encode()).hexdigest()[:32]
+
 
 # --- Acceso gateado por cuenta (Fase 2) ---------------------------------------
 # Un token de actividades con requiere_cuenta=True deja de ser link público: para
@@ -473,6 +487,8 @@ class Handler(BaseHTTPRequestHandler):
     def end_headers(self):
         for k, v in _SEC_HEADERS:
             self.send_header(k, v)
+        if DEV:                    # el espejo nunca se indexa
+            self.send_header("X-Robots-Tag", "noindex, nofollow, noarchive")
         super().end_headers()
 
     def _origin_ok(self):
@@ -499,6 +515,55 @@ class Handler(BaseHTTPRequestHandler):
         body = json.dumps(obj, ensure_ascii=False).encode("utf-8")
         self.send_response(code)
         self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    # --- Puerta del entorno DEV (no se ejecuta en producción: DEV es False) ------
+    def _dev_interno(self):
+        """¿Llamada server-to-server de la tienda dev, no de un navegador?
+
+        La tienda pide progreso/portadas/informe por loopback y esas llamadas no tienen
+        cookie. El tráfico del túnel también sale de loopback (cloudflared corre acá)
+        pero SIEMPRE trae los headers de Cloudflare, así que se distinguen."""
+        if self.headers.get("CF-Connecting-IP") or self.headers.get("X-Forwarded-For"):
+            return False
+        return self.client_address[0] in ("127.0.0.1", "::1")
+
+    def _dev_ok(self):
+        if not DEV_CLAVE:                  # sin clave no hay puerta (uso en LAN pura)
+            return True
+        if self._dev_interno():
+            return True
+        for parte in (self.headers.get("Cookie") or "").split(";"):
+            k, _, v = parte.strip().partition("=")
+            if k == DEV_COOKIE and v:
+                return hmac.compare_digest(v, _dev_token())
+        return False
+
+    def _dev_entrada(self, u):
+        """`?dev=<clave>` → deja la cookie y redirige a la misma URL sin el parámetro."""
+        q = urllib.parse.parse_qs(u.query)
+        dado = (q.get("dev") or [""])[0]
+        if not (DEV_CLAVE and dado and hmac.compare_digest(dado, DEV_CLAVE)):
+            return False
+        q.pop("dev", None)
+        destino = u.path + (("?" + urllib.parse.urlencode(q, doseq=True)) if q else "")
+        self.send_response(302)
+        self.send_header("Location", destino)
+        self.send_header("Set-Cookie", "%s=%s; Max-Age=%d; Path=/; HttpOnly; SameSite=Lax"
+                         % (DEV_COOKIE, _dev_token(), 30 * 24 * 3600))
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+        return True
+
+    def _dev_401(self):
+        body = ("<!doctype html><meta charset=utf-8><title>DEV</title>"
+                "<body style='font:16px system-ui;padding:3rem;max-width:32rem;margin:auto'>"
+                "<h1>Entorno de pruebas</h1><p>Esto no es el sitio real. Para entrar hace "
+                "falta el link con la clave.</p>").encode("utf-8")
+        self.send_response(401)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
@@ -649,6 +714,11 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         u = urllib.parse.urlparse(self.path)
         path = u.path
+        if DEV and path != "/health":          # puerta del espejo (inerte en producción)
+            if self._dev_entrada(u):
+                return
+            if not self._dev_ok():
+                return self._dev_401()
         # A1: rate limit en endpoints públicos pesados (render Pillow / descargas).
         # El admin (panel) queda EXENTO: carga muchas miniaturas (editor-bg.png) de una
         # sola vez al listar temáticas y no debe autobloquearse.
@@ -1884,6 +1954,8 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
 
     def do_POST(self):
         path = urllib.parse.urlparse(self.path).path
+        if DEV and not self._dev_ok():     # puerta del espejo (inerte en producción)
+            return self._dev_401()
         if not self._origin_ok():          # A5: rechaza POST cross-site de navegador
             return self._deny()
         m_tel = re.match(r"^/act/([A-Za-z0-9_-]+)/telemetria$", path)
