@@ -1013,6 +1013,9 @@ button.pill:active, a.pill:active { transform: scale(.94); }
    Lo único que falta es el AIRE para el cartel de estado, que está posicionado absoluto
    arriba y se le montaba al ícono. */
 .carta[data-adapt] { padding-top: 30px; }
+/* Sin estrellas todavía, ese hueco de 20px queda como un agujero entre el nombre y el
+   nivel. Vacío no reserva nada. */
+.carta .mini-est:empty { min-height: 0; }
 
 /* Festejo: el personaje grande arriba, botón principal a lo ancho */
 #festejo .masco { width: 104px; height: 104px; }

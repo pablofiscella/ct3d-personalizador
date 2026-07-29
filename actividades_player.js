@@ -5539,7 +5539,9 @@ function pintarMenuPlano(items, stage) {
 function _botonModoProfe() {
   const b = el("button");
   b.style.cssText = "width:100%;display:flex;align-items:center;gap:12px;justify-content:center;" +
-    "background:linear-gradient(135deg,#7b5cff,#4aa3df);color:#fff;border:none;border-radius:18px;" +
+    // El degradado violeta era fijo y no pertenecía a la paleta de ningún grado: en el
+    // verde agua de 4.º era lo más ruidoso de la pantalla. Ahora usa el acento del grado.
+    "background:var(--ac2);color:#fff;border:none;border-radius:14px;" +
     "padding:16px 18px;font-size:18px;font-weight:800;box-shadow:0 8px 22px rgba(0,0,0,.18);cursor:pointer;margin:2px 0 10px";
   b.innerHTML = "🧑‍🏫 <span>Modo Profe — inventá y corregí cuentas</span>";
   b.addEventListener("click", () => { Sfx.pop(); modoProfe(); });
