@@ -5203,12 +5203,15 @@ function _adaptCSS() {
     "@media(max-width:560px){.menu-cat{grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:12px}.cat-titulo{font-size:17px;margin:18px 2px 9px}}" +
     // estados del motor: outline (no borde) para no mover el layout ni un pixel
     ".carta.adapt-recomendado,.carta.adapt-reforzar,.carta.adapt-repaso{outline-offset:1px}" +
-    ".carta.adapt-recomendado{outline:3px solid #2F7D57}" +
-    ".carta.adapt-reforzar{outline:3px solid #C4703C}" +
-    ".carta.adapt-repaso{outline:3px solid #1F6FA8}" +
+    // Sutil a propósito: con un perfil nuevo el motor marca CASI TODO como recomendado,
+    // y veinte tarjetas con un borde grueso no recomiendan nada — sólo hacen ruido.
+    ".carta.adapt-recomendado{outline:1.5px solid color-mix(in srgb, #2F7D57 45%, var(--card))}" +
+    ".carta.adapt-reforzar{outline:1.5px solid color-mix(in srgb, #C4703C 55%, var(--card))}" +
+    ".carta.adapt-repaso{outline:1.5px solid color-mix(in srgb, #1F6FA8 45%, var(--card))}" +
     ".carta[data-adapt]::after{content:attr(data-adapt);position:absolute;top:6px;left:50%;" +
-    "transform:translateX(-50%);font-family:\"Baloo\",Archivo,sans-serif;font-size:11px;" +
-    "font-weight:700;letter-spacing:-.02em;color:var(--ink);background:var(--card);" +
+    "transform:translateX(-50%);font-family:\"Baloo\",Archivo,sans-serif;font-size:10px;" +
+    "font-weight:700;letter-spacing:-.01em;" +
+    "color:color-mix(in srgb, var(--ink) 66%, var(--card));background:var(--soft);" +
     "border-radius:12px;padding:3px 10px;white-space:nowrap;" +
     "box-shadow:0 2px 4px color-mix(in srgb, var(--ink) 6%, transparent)," +
     "0 8px 20px color-mix(in srgb, var(--ink) 8%, transparent)}" +

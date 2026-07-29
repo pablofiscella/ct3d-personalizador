@@ -1009,13 +1009,10 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 .repaso-nota.esi-aviso { background: var(--card); color: var(--ink);
   box-shadow: var(--sombra); }
 
-/* Tarjetas: ícono en placa suave, nombre firme, estrellas abajo */
-.carta .icono {
-  background: var(--soft); border-radius: 16px; padding: 10px; margin: 0 auto 10px;
-  width: 76px; height: 76px; display: grid; place-items: center;
-}
-.carta .nombre { font-weight: 700; letter-spacing: -.02em; line-height: 1.18; }
-.carta .mini-est { margin-top: 8px; font-size: 15px; letter-spacing: 1px; }
+/* La tarjeta ya la resolvió design (ícono 84px, radio 20, nombre 18px): no se toca.
+   Lo único que falta es el AIRE para el cartel de estado, que está posicionado absoluto
+   arriba y se le montaba al ícono. */
+.carta[data-adapt] { padding-top: 30px; }
 
 /* Festejo: el personaje grande arriba, botón principal a lo ancho */
 #festejo .masco { width: 104px; height: 104px; }
