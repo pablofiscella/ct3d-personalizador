@@ -534,9 +534,20 @@ class Handler(BaseHTTPRequestHandler):
             return False
         return self.client_address[0] in ("127.0.0.1", "::1")
 
-    def _dev_ok(self):
+    # Los links que YA son un secreto: el token del cuaderno (16 caracteres) y, en los
+    # gateados, un permiso firmado por la tienda. Pedirles además la clave del dev no suma
+    # seguridad y sí rompe la experiencia: el que abre su cuaderno salta desde el host de
+    # la tienda al de acá y se comía "entorno de pruebas" en la cara. Pasó dos veces.
+    _DEV_LINKS = ("/act/", "/armar/", "/leer/", "/al/", "/probar/")
+
+    def _dev_link_con_token(self, path):
+        return any(path.startswith(x) for x in self._DEV_LINKS)
+
+    def _dev_ok(self, path=None):
         if not DEV_CLAVE:                  # sin clave no hay puerta (uso en LAN pura)
             return True
+        if path and self._dev_link_con_token(path):
+            return True                    # lo cuida su propio token/grant, no la clave
         if self._dev_interno():
             return True
         for parte in (self.headers.get("Cookie") or "").split(";"):
@@ -723,7 +734,7 @@ class Handler(BaseHTTPRequestHandler):
         if DEV and path != "/health":          # puerta del espejo (inerte en producción)
             if self._dev_entrada(u):
                 return
-            if not self._dev_ok():
+            if not self._dev_ok(path):
                 return self._dev_401()
         # A1: rate limit en endpoints públicos pesados (render Pillow / descargas).
         # El admin (panel) queda EXENTO: carga muchas miniaturas (editor-bg.png) de una
@@ -1960,7 +1971,7 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
 
     def do_POST(self):
         path = urllib.parse.urlparse(self.path).path
-        if DEV and not self._dev_ok():     # puerta del espejo (inerte en producción)
+        if DEV and not self._dev_ok(path):  # puerta del espejo (inerte en producción)
             return self._dev_401()
         if not self._origin_ok():          # A5: rechaza POST cross-site de navegador
             return self._deny()
