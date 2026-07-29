@@ -5543,7 +5543,11 @@ function _botonModoProfe() {
     // verde agua de 4.º era lo más ruidoso de la pantalla. Ahora usa el acento del grado.
     "background:var(--ac2);color:#fff;border:none;border-radius:14px;" +
     "padding:16px 18px;font-size:18px;font-weight:800;box-shadow:0 8px 22px rgba(0,0,0,.18);cursor:pointer;margin:2px 0 10px";
-  b.innerHTML = "🧑‍🏫 <span>Modo Profe — inventá y corregí cuentas</span>";
+  // El emoji 🧑‍🏫 trae un PIZARRÓN adentro: un rectángulo oscuro que sobre la banda de
+  // color se lee como un cuadrado pegado, no como un ícono (Pablo, 29-jul). El birrete no
+  // tiene ninguna forma rectangular, así que se apoya limpio sobre cualquier acento.
+  b.innerHTML = '<span style="font-size:22px;line-height:1">🎓</span>' +
+    "<span>Modo Profe — inventá y corregí cuentas</span>";
   b.addEventListener("click", () => { Sfx.pop(); modoProfe(); });
   return b;
 }
