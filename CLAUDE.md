@@ -139,6 +139,26 @@ entero → cold render de 40-70s**. Tres capas para que eso NO enlentezca la tie
 Si algún preview tarda de golpe, es un cold render (cache vencido/borrado): warmealo
 pidiendo la URL, o corré `systemctl start ct3d-preview-warm.service`.
 
+## El espejo DEV (28-jul-2026) — probar antes de tocar el vivo
+
+El motor tiene un espejo corriendo en el puerto **9787** (`ct3d-dev-kit.service`), con su
+propio árbol en `/srv/ct3d-dev/personalizador` y sus propios `pedidos/`. Doc completa:
+`/opt/ct3d/docs/DEV.md`.
+
+```bash
+probar <rama-ct3d> --motor <rama-de-este-repo>   # para el espejo en esas ramas + smoke
+promover --motor                                 # sube main a producción (NO reinicia si
+                                                 # hay jobs de IA corriendo: los respeta)
+dev-shell                                        # consola dentro del espejo
+```
+
+- La puerta del espejo vive en `servicio.py` (`DEV`, `_dev_ok`, `_dev_entrada`) y es
+  **inerte en producción**: sin `CT3D_ENTORNO=dev` no se evalúa nada.
+- Exceptúa las llamadas de loopback que no vinieron por el túnel — la tienda le pide
+  progreso, portadas e informes al motor sin cookie.
+- Se sigue aplicando la regla 6: **nunca reiniciar `ct3d-kit` con jobs activos**. `promover
+  --motor` lo chequea solo contra `/dash/ia-estado`.
+
 ## Mi responsabilidad (Claude)
 
 Cada sesión termino reportándote el estado de GIT en ambos repos (este y `/opt/ct3d/`).
