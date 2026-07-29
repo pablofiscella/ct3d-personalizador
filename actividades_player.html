@@ -975,6 +975,67 @@ button.pill:active, a.pill:active { transform: scale(.94); }
               display: grid; place-items: center; outline-offset: 2px; }
 #avatarFila button img { width: 44px; height: 44px; object-fit: contain; }
 #avatarFila button[aria-pressed="true"] { outline: 3px solid var(--ac); background: var(--card); }
+
+/* ══ AJUSTE A LAS MAQUETAS DE DESIGN (29-jul-2026) ═══════════════════════════════
+   SÓLO ESTÉTICA, por indicación de Pablo: no se renombra ninguna actividad, no se
+   agrega pedagogía nueva y NO existe "Nivel 4" — el modelo es 3 niveles + "Más allá"
+   sin tope (al dominar, pasa al grado siguiente). El zorro de la maqueta no se usa:
+   cada grado tiene sus 8 personajes.
+   Todo cuelga de los tokens del grado, así que los 7 mundos conservan su color. */
+
+/* Header: el avatar en cuadrado redondeado sobre el suave del grado */
+#mascoHdr {
+  border-radius: 16px; background: var(--soft); padding: 6px;
+  width: 44px; height: 44px; object-fit: contain;
+}
+#hdrNombre { font-family: "Baloo", Archivo, sans-serif; font-weight: 700;
+             letter-spacing: -.02em; }
+#hdrSub { color: color-mix(in srgb, var(--ink) 55%, var(--card)); font-weight: 500; }
+
+/* El título de la pantalla, más grande y apretado */
+#bienvenida h1 {
+  font-size: clamp(34px, 9vw, 46px); line-height: 1.02; letter-spacing: -.035em;
+  margin: 6px 0 4px;
+}
+#bienvenida p { font-size: 17px; color: color-mix(in srgb, var(--ink) 58%, var(--card)); }
+
+/* El aviso de repaso pasa a banner pleno con el acento del grado */
+.repaso-nota {
+  background: var(--ac2); color: #fff; border: 0; border-radius: 14px;
+  padding: 13px 16px; font-family: "Baloo", Archivo, sans-serif; font-weight: 700;
+  letter-spacing: -.01em; font-size: 15px; text-align: center; width: 100%;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--ac2) 28%, transparent);
+}
+.repaso-nota.esi-aviso { background: var(--card); color: var(--ink);
+  box-shadow: var(--sombra); }
+
+/* Tarjetas: ícono en placa suave, nombre firme, estrellas abajo */
+.carta .icono {
+  background: var(--soft); border-radius: 16px; padding: 10px; margin: 0 auto 10px;
+  width: 76px; height: 76px; display: grid; place-items: center;
+}
+.carta .nombre { font-weight: 700; letter-spacing: -.02em; line-height: 1.18; }
+.carta .mini-est { margin-top: 8px; font-size: 15px; letter-spacing: 1px; }
+
+/* Festejo: el personaje grande arriba, botón principal a lo ancho */
+#festejo .masco { width: 104px; height: 104px; }
+#festejo h2 { font-size: 30px; letter-spacing: -.03em; }
+#festejo .frase { color: color-mix(in srgb, var(--ink) 60%, var(--card)); font-size: 16px; }
+#festejo .estrellas { font-size: 40px; margin: 12px 0 18px; }
+#festejo .botones { flex-direction: column; gap: 10px; }
+#festejo .botones .btn { width: 100%; }
+
+/* "¿Cómo es?": la etiqueta de video en versalita, los clips como pastillas */
+.comoes-videos__t {
+  text-transform: uppercase; letter-spacing: .08em; font-size: 11px; font-weight: 700;
+  color: color-mix(in srgb, var(--ink) 50%, var(--card)); margin-bottom: 8px;
+}
+.btn-video {
+  background: var(--soft); color: var(--ink); border: 0; border-radius: 999px;
+  padding: 9px 16px; font-family: "Baloo", Archivo, sans-serif; font-weight: 700;
+  font-size: 14px; letter-spacing: -.01em; cursor: pointer; min-height: 44px;
+}
+.btn-video small { font-weight: 500; opacity: .6; margin-left: 6px; }
 </style>
 </head>
 <body>
