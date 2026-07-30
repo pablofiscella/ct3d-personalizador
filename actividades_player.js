@@ -4511,10 +4511,15 @@ const Shell = {
   // Con esto se distingue "lo sabe" de "acertó por ensayo y error", que es lo que el
   // resultado solo NO puede decir. No cambia ninguna mecánica: sólo observa.
   _rondaT0: 0, _rondaT1: 0, _rondaToques: 0,
+  // Última consigna que SONÓ, para no volver a decirla igual (29-jul-2026, Pablo:
+  // "nodos, que dice «pensá cómo está armada internet», y en cada pregunta lo repite
+  // hablando"). Se resetea al abrir cada juego: volver a entrar sí tiene que decirla.
+  _ultConsigna: null,
   abrir(id) {
     const item = D.menu.find((m) => m.id === id);
     if (!item || !GAMES[id]) return;
     this.actual = id; this.fallos = 0;
+    this._ultConsigna = null;
     this._itemId = null; this._rondaResp = false; this._rondaIdx = 0;
     this.primerOk = 0; this.primerTotal = 0;
     this._rondaT0 = Date.now(); this._rondaT1 = 0; this._rondaToques = 0;
@@ -4614,7 +4619,19 @@ const Shell = {
         const p = $("#consignaPista");
         if (pistaSrc) { p.src = pistaSrc; p.style.display = ""; }
         else p.style.display = "none";
-        reproducirConsigna(txt);
+        // No repetir en voz la MISMA frase (29-jul-2026). Los juegos de banco vuelven a
+        // poner la consigna en cada ronda —`juegoTriviaTexto` lo hace en las 212
+        // actividades del catálogo que usan ese motor— y Valeria la decía otra vez en
+        // cada pregunta: "pensá cómo está armada internet" catorce veces seguidas.
+        // El arreglo va acá y no en cada juego porque son 76 juegos + el catálogo, y
+        // uno nuevo volvería a traer el problema sin que nadie se acuerde.
+        // Sigue en pantalla siempre (el texto es la referencia); lo que se calla es la
+        // repetición. Si la consigna CAMBIA —consignaVariada, o un juego que la reescribe
+        // por ronda— suena, que es justo lo que hace falta.
+        if (txt !== self._ultConsigna) {
+          self._ultConsigna = txt;
+          reproducirConsigna(txt);
+        }
       },
       rondas(n) {
         self._rondas = n;
