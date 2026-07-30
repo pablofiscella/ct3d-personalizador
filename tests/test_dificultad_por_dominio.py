@@ -43,6 +43,7 @@ SIN_GRADIENTE = {
     "viaje_inmigrante",       # ídem
     "puntos",                 # unir puntos de una figura
     "suma_rapida",            # el objetivo es 10 FIJO: la consigna GRABADA dice "10"
+    "rompecabezas",           # la grilla la fija el GRADO: 6 piezas en 1.º, 9 en 2.º
 }
 
 
