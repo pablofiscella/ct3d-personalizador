@@ -367,8 +367,10 @@ _SEC_HEADERS = [
     ("X-Content-Type-Options", "nosniff"),
     ("Referrer-Policy", "no-referrer"),
     ("Strict-Transport-Security", "max-age=63072000; includeSubDomains"),
+    # Las DOS marcas: el cuaderno escolar se abre por mi.kydo.com.ar (30-jul-2026).
     ("Content-Security-Policy",
-     "frame-ancestors 'self' https://casatridimensional.com.ar https://*.casatridimensional.com.ar"),
+     "frame-ancestors 'self' https://casatridimensional.com.ar https://*.casatridimensional.com.ar"
+     " https://kydo.com.ar https://*.kydo.com.ar"),
 ]
 MAX_BODY = 30 * 1024 * 1024       # 30 MB: tope de cuerpo POST (las piezas/arte a resolución
                                   # de impresión pesan ~15-20MB; subir admin-only). (A7)
@@ -517,7 +519,13 @@ class Handler(BaseHTTPRequestHandler):
             host = urllib.parse.urlparse(o).netloc.lower().split(":")[0]
         except Exception:
             return False
+        # Kydo entra acá desde el 30-jul-2026. El motor sirve las dos marcas y el
+        # cuaderno escolar se abre por `mi.kydo.com.ar`: sin este dominio en la lista,
+        # el cuaderno CARGA pero cada POST se rechaza — o sea, el chico juega y el
+        # progreso no se guarda, en silencio. Es el error que hace que "cambiar el link"
+        # parezca suficiente y no lo sea.
         return host == "casatridimensional.com.ar" or host.endswith(".casatridimensional.com.ar") \
+            or host == "kydo.com.ar" or host.endswith(".kydo.com.ar") \
             or host in ("localhost", "127.0.0.1")
 
     def _body(self):
@@ -653,6 +661,29 @@ class Handler(BaseHTTPRequestHandler):
                 return v
         return None
 
+    def _es_kydo(self):
+        """¿Este pedido entró por un dominio de KYDO?
+
+        El motor sirve las DOS marcas —el cuaderno escolar es Kydo y el de cumpleaños
+        es Casatridimensional— y hasta el 30-jul-2026 no lo sabía: todo lo que mostraba
+        decía Casatridimensional, aunque la familia hubiera entrado por
+        `mi.kydo.com.ar`. Pablo: *"pensé que con mi.kydo esto se había solucionado"* —
+        el dominio ya apuntaba acá, lo que faltaba era que el motor lo mirara.
+
+        Se decide por el HOST y no por el token a propósito: es la misma regla que
+        separa las marcas en la tienda, y funciona aunque el token no tenga data.json
+        legible (que es justo el caso de las páginas de error)."""
+        h = (self.headers.get("Host") or "").lower().split(":")[0].strip(".")
+        return h == "kydo.com.ar" or h.endswith(".kydo.com.ar") or h.startswith("kydo.")
+
+    def _marca(self):
+        return "Kydo" if self._es_kydo() else "Casatridimensional"
+
+    def _biblioteca_url(self):
+        """A dónde mandar a la familia a buscar su biblioteca, en SU marca."""
+        return ("https://kydo.com.ar/kydo/biblioteca" if self._es_kydo()
+                else "https://casatridimensional.com.ar/mi-cuenta")
+
     def _act_deny(self, token, motivo):
         """Página amable cuando falta el permiso (o el acceso fue revocado): el
         contenido gateado se abre desde la biblioteca de la familia, no con un
@@ -662,7 +693,8 @@ class Handler(BaseHTTPRequestHandler):
                                  "Si creés que es un error, escribinos.", 410)
         else:
             titulo, sub, code = ("Abrí esto desde tu biblioteca",
-                                 "Pedile a tu adulto que lo abra desde su cuenta en Casatridimensional.", 403)
+                                 "Pedile a tu adulto que lo abra desde su cuenta en %s."
+                                 % self._marca(), 403)
         html = (
             "<!doctype html><html lang=es><head><meta charset=utf-8>"
             "<meta name=viewport content='width=device-width,initial-scale=1'>"
@@ -673,8 +705,8 @@ class Handler(BaseHTTPRequestHandler):
             "p{opacity:.8;line-height:1.5;margin:0 0 18px}a{display:inline-block;background:#6B5BD2;color:#fff;"
             "text-decoration:none;font-weight:700;padding:12px 20px;border-radius:12px}</style></head>"
             "<body><div class=c><div style='font-size:46px'>🔒</div><h1>%s</h1><p>%s</p>"
-            "<a href='https://casatridimensional.com.ar/mi-cuenta'>Ir a mi biblioteca</a></div></body></html>"
-            % (titulo, titulo, sub))
+            "<a href='%s'>Ir a mi biblioteca</a></div></body></html>"
+            % (titulo, titulo, sub, self._biblioteca_url()))
         body = html.encode("utf-8")
         self.send_response(code)
         self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -763,8 +795,11 @@ class Handler(BaseHTTPRequestHandler):
             import actividades_web
             return self._json(200, {"ok": True, "solicitudes": actividades_web.solicitudes_pendientes()})
         if path == "/":
-            # Si sos admin (cookie/clave) → al panel de kits /dash; si no, a la tienda.
-            dest = "/dash" if self._admin_ok(u) else "https://casatridimensional.com.ar"
+            # Si sos admin (cookie/clave) → al panel de kits /dash; si no, a la tienda
+            # DE SU MARCA: entrar a mi.kydo.com.ar y aterrizar en casatridimensional es
+            # la fuga más visible que queda del lado del motor (30-jul-2026).
+            dest = "/dash" if self._admin_ok(u) else (
+                "https://kydo.com.ar" if self._es_kydo() else "https://casatridimensional.com.ar")
             self.send_response(302)
             self.send_header("Location", dest)
             self.send_header("Content-Length", "0")
