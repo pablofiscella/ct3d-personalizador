@@ -4825,26 +4825,59 @@ function cerrarPerfil() { $("#perfil").classList.remove("ver"); }
 let _avatarElegido = null;
 let _avatarTocado = false;
 
+/* Cuáles de los 8 sprites del mundo del grado sirven de AVATAR.
+
+   Los 8 no son todos personajes: cada mundo trae 2 o 3 chicos, a veces animales, y el
+   resto son OBJETOS (una lupa, un microscopio, una lamparita). Elegir "microscopio" como
+   avatar es raro, y en el header queda un objeto donde debería haber una cara.
+
+   La regla: personajes y animales sí, objetos no. Clasificados a ojo los 56 el
+   29-jul-2026. Por eso es una lista y no un cálculo: no hay nada en el archivo que diga
+   si un PNG es una persona o una lupa.
+
+   Si un grado no está acá —los cuadernos de cumpleaños, que traen los personajes del
+   tema— se ofrecen todos, como antes. */
+const AVATARES_GRADO = {
+  1: [0, 1, 2, 3, 4, 7],   // 2 exploradores, tucán, mono, jirafa, mariposa
+  2: [0, 1, 4, 5],         // 2 chicos creativos, perro, ardilla
+  3: [0, 1, 4, 5],         // 2 campamentistas, zorro, oso
+  // 4.º, 5.º y 7.º tenían sólo 3 —el resto de su elenco son objetos— así que se les
+  // generaron 3 personajes más el 29-jul (s08-s10). Seis alcanza para que elegir sea
+  // elegir; con tres era casi un default.
+  4: [0, 1, 2, 8, 9, 10],  // robot Tito, 2 científicos + científica, científico, gato
+  5: [0, 1, 2, 8, 9, 10],  // robot, 2 viajeros + aviadora, explorador, perro aviador
+  6: [0, 1, 2, 6],         // robot + 2 creadores + el robotito
+  7: [0, 1, 2, 8, 9, 10],  // robot, 2 chicos + inventora, inventor, dron
+};
+
+function _indicesDeAvatar() {
+  const todos = (P || []).map((_, i) => i).filter((i) => P[i]);
+  const curados = AVATARES_GRADO[gradoDelChico()];
+  if (!curados) return todos;                       // tema de cumpleaños: todos
+  const validos = curados.filter((i) => P[i]);
+  return validos.length ? validos : todos;          // si falta el arte, no dejarlo sin nada
+}
+
 function _pintarAvatares() {
   const fila = $("#avatarFila");
   if (!fila) return;
   fila.innerHTML = "";
-  const disp = (P || []).filter(Boolean);
-  if (disp.length < 2) return;          // con uno solo no hay nada que elegir
+  const idx = _indicesDeAvatar();
+  if (idx.length < 2) return;           // con uno solo no hay nada que elegir
   _avatarElegido = Store.avatar();
   _avatarTocado = false;
-  disp.slice(0, 8).forEach((src, i) => {
+  idx.slice(0, 8).forEach((i, pos) => {
     const b = el("button", "");
     b.type = "button";
     b.setAttribute("aria-pressed", i === _avatarElegido ? "true" : "false");
-    b.setAttribute("aria-label", "Personaje " + (i + 1));
-    b.innerHTML = `<img src="${src}" alt="">`;
+    b.setAttribute("aria-label", "Personaje " + (pos + 1));
+    b.innerHTML = `<img src="${P[i]}" alt="">`;
     b.addEventListener("click", () => {
       Sfx.pop();
-      _avatarElegido = i;
+      _avatarElegido = i;                 // el índice REAL en P, no la posición en la fila
       _avatarTocado = true;
       Array.from(fila.children).forEach((x, k) =>
-        x.setAttribute("aria-pressed", k === i ? "true" : "false"));
+        x.setAttribute("aria-pressed", idx[k] === i ? "true" : "false"));
     });
     fila.appendChild(b);
   });
