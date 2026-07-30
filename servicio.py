@@ -1177,6 +1177,9 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(body)
             return
         # ---- actividades web (cuaderno interactivo; link con token) ----
+        m_duelo = re.match(r"^/duelo/([A-Za-z0-9]{5})$", path)
+        if m_duelo:
+            return self._duelo_leer(m_duelo.group(1))
         m_prog = re.match(r"^/act/([A-Za-z0-9_-]+)/progreso$", path)
         if m_prog:
             return self._act_progreso_get(m_prog.group(1))
@@ -1921,6 +1924,49 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
             json.dump(dj, f, ensure_ascii=False)
         return self._json(200, {"ok": True, "herencia": her})
 
+    def _duelo_crear(self):
+        """El chico terminó sus 5 preguntas y quiere desafiar a un compañero.
+
+        PÚBLICO (lo llama el navegador del chico) pero rate-limitado: no hay cuentas en el
+        cuaderno, así que la clave es que no se pueda inundar el disco de partidas.
+        Las preguntas las manda el player porque los 33 bancos viven en el .js — ver
+        duelos.py. Acá se sanean y se guardan opacas."""
+        import duelos
+        if not _rate_ok(self._client_ip(), limit=20, window=300):
+            return self._json(429, {"ok": False})
+        try:
+            ev = json.loads(self._body() or b"{}")
+        except Exception:
+            return self._json(400, {"ok": False})
+        codigo, d = duelos.crear(ev.get("grado"), ev.get("preguntas"),
+                                 ev.get("nombre"), ev.get("aciertos"))
+        if not codigo:
+            return self._json(400, {"ok": False, "error": d})
+        return self._json(200, {"ok": True, "codigo": codigo, "duelo": d})
+
+    def _duelo_leer(self, codigo):
+        """El que recibió el código ve las MISMAS preguntas. Sin token de nadie adentro."""
+        import duelos
+        d = duelos.leer(codigo)
+        if not d:
+            return self._json(404, {"ok": False})
+        return self._json(200, {"ok": True, "duelo": d})
+
+    def _duelo_sumar(self, codigo):
+        """El segundo terminó: se suma su resultado y la partida queda cerrada."""
+        import duelos
+        if not _rate_ok(self._client_ip(), limit=40, window=300):
+            return self._json(429, {"ok": False})
+        try:
+            ev = json.loads(self._body() or b"{}")
+        except Exception:
+            return self._json(400, {"ok": False})
+        d, err = duelos.sumar_jugador(codigo, ev.get("nombre"), ev.get("aciertos"))
+        if not d:
+            return self._json(409 if err != "no existe" else 404,
+                              {"ok": False, "error": err})
+        return self._json(200, {"ok": True, "duelo": d})
+
     def _act_interes(self, token):
         """Activación escalable por niveles · CAPTURAR EVENTO (público, desde el
         player): el chico tocó el candado de un nivel (motivo='pidio') o dominó su
@@ -1997,6 +2043,11 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
         m_ext = re.match(r"^/act/([A-Za-z0-9_-]+)/extras$", path)
         if m_ext:
             return self._act_extras_set(m_ext.group(1))
+        if path == "/duelo":
+            return self._duelo_crear()
+        m_dj = re.match(r"^/duelo/([A-Za-z0-9]{5})/jugue$", path)
+        if m_dj:
+            return self._duelo_sumar(m_dj.group(1))
         m_int = re.match(r"^/act/([A-Za-z0-9_-]+)/quiero-desbloquear$", path)
         if m_int:
             return self._act_interes(m_int.group(1))
