@@ -157,8 +157,11 @@ def pagina(codigo):
     tener SU cuaderno para cargarlo — o sea que el desafío únicamente podía viajar entre dos
     chicos que ya habían comprado. Esta página se abre con un link y sin nada.
 
-    Se valida el código ANTES de servir: así un `/reto/<basura>` no devuelve una página que
-    después va a fallar sola contra la API.
+    Se valida la FORMA del código (no que la partida exista): un `/reto/<basura>` corta acá
+    con 404 sin tocar el disco. Un código bien formado pero inexistente —el caso real, un
+    dígito mal copiado— SÍ devuelve la página, y ahí el chico lee "pedile el link de nuevo a
+    tu compañero" en vez de un 404 crudo del servidor. Es a propósito: la página no tiene
+    nada secreto que proteger y ese error lo va a ver un chico.
 
     El HTML sale del REPO en cada pedido, sin cachear en memoria: es el mismo criterio que
     player.js —mejorarlo llega a los desafíos ya repartidos— y una página de 9 KB no

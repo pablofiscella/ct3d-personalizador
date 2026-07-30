@@ -373,3 +373,13 @@ def test_la_ruta_del_reto_esta_en_el_motor():
     assert re.search(r'r"\^/reto/\(\[A-Za-z0-9\]\{5\}\)/\?\$"', src), \
         "no está la ruta /reto/<codigo>"
     assert "duelos.pagina(" in src
+
+
+def test_un_codigo_bien_formado_pero_inexistente_devuelve_la_pagina(tmp_path, monkeypatch):
+    """El caso REAL: un dígito mal copiado. La página se sirve igual y adentro el chico lee
+    "pedile el link de nuevo a tu compañero", en vez de un 404 crudo del servidor. No hay
+    nada secreto que proteger y ese error lo va a ver un chico."""
+    import duelos
+    monkeypatch.setattr(duelos, "DUELOS_DIR", str(tmp_path / "d"))
+    assert duelos.leer("QQQQQ") is None          # no existe
+    assert duelos.pagina("QQQQQ")                # y la página igual se sirve
