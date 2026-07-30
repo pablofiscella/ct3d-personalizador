@@ -146,6 +146,35 @@ def sumar_jugador(codigo, nombre, aciertos):
     return d, None
 
 
+PAGINA = os.path.join(BASEDIR, "duelo_publico.html")
+
+
+def pagina(codigo):
+    """El HTML de la página del desafiado, con el código adentro. None si no sirve.
+
+    Pablo (30-jul-2026), mirando el duelo recién hecho: "¿pero cómo se entera otro
+    compañero?". Con el duelo sólo dentro del cuaderno, el que recibía el código necesitaba
+    tener SU cuaderno para cargarlo — o sea que el desafío únicamente podía viajar entre dos
+    chicos que ya habían comprado. Esta página se abre con un link y sin nada.
+
+    Se valida el código ANTES de servir: así un `/reto/<basura>` no devuelve una página que
+    después va a fallar sola contra la API.
+
+    El HTML sale del REPO en cada pedido, sin cachear en memoria: es el mismo criterio que
+    player.js —mejorarlo llega a los desafíos ya repartidos— y una página de 9 KB no
+    justifica un caché que después haya que invalidar."""
+    if not CODIGO_RE.match(codigo or ""):
+        return None
+    try:
+        with open(PAGINA, encoding="utf-8") as f:
+            html = f.read()
+    except OSError:
+        return None
+    # el código ya pasó CODIGO_RE, así que es del alfabeto y no puede cerrar el string ni
+    # inyectar nada; igual se reemplaza por el saneado y no por lo que vino en la URL
+    return html.replace("{{CODIGO}}", codigo)
+
+
 def limpiar(dias=VIDA_DIAS):
     """Borra las partidas viejas y devuelve cuántas. El directorio no puede crecer para
     siempre y una partida de hace un mes no le sirve a nadie."""

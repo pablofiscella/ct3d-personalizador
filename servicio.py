@@ -1176,6 +1176,24 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
             return
+        # ---- el desafío, abierto con un LINK y SIN cuaderno ----
+        # `/reto/<codigo>` sirve HTML; `/duelo/<codigo>` sigue devolviendo JSON (lo consume
+        # tanto el player del cuaderno como esta página). Dos rutas y no una negociando por
+        # Accept: un chico abriendo un link desde WhatsApp no manda el Accept que uno espera.
+        m_reto = re.match(r"^/reto/([A-Za-z0-9]{5})/?$", path)
+        if m_reto:
+            import duelos
+            page = duelos.pagina(m_reto.group(1))
+            if page is None:
+                return self._json(404, {"ok": False})
+            body = page.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         # ---- actividades web (cuaderno interactivo; link con token) ----
         m_duelo = re.match(r"^/duelo/([A-Za-z0-9]{5})$", path)
         if m_duelo:

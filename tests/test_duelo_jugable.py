@@ -310,3 +310,66 @@ def test_el_player_lo_engancha_al_arrancar():
     assert "sumarDueloDeCompaneros" in src
     # con `typeof`: si el archivo no cargó, el cuaderno tiene que abrir igual
     assert 'typeof sumarDueloDeCompaneros === "function"' in src
+
+
+# ──────────────────────────────── la página del desafiado (link, SIN cuaderno)
+#
+# Pablo, 30-jul-2026: "¿pero cómo se entera otro compañero?". Con el duelo sólo adentro del
+# cuaderno, el que recibía el código necesitaba tener SU cuaderno para cargarlo — el desafío
+# únicamente podía viajar entre dos chicos que ya habían comprado.
+
+def test_la_pagina_se_sirve_con_el_codigo_adentro(tmp_path, monkeypatch):
+    import duelos
+    monkeypatch.setattr(duelos, "DUELOS_DIR", str(tmp_path / "d"))
+    html = duelos.pagina("BCDFG")
+    assert html and "{{CODIGO}}" not in html
+    assert 'const CODIGO = "BCDFG"' in html
+
+
+@pytest.mark.parametrize("malo", ["", "AEIOU", "abc", "TOOLARGO", "../../etc/passwd", None])
+def test_un_codigo_invalido_no_devuelve_pagina(malo):
+    """Se valida ANTES de servir: si no, un /reto/<basura> devolvería una página que después
+    falla sola contra la API, y el chico ve una pantalla rota en vez de un mensaje."""
+    import duelos
+    assert duelos.pagina(malo) is None
+
+
+def test_la_pagina_no_necesita_token_ni_cuaderno():
+    """El punto entero: se abre con un link y nada más."""
+    html = open(os.path.join(BASE, "duelo_publico.html"), encoding="utf-8").read()
+    cuerpo = re.sub(r"<!--.*?-->", " ", html, flags=re.S)
+    assert "token" not in cuerpo.lower()
+    assert "/act/" not in cuerpo, "no puede depender del cuaderno"
+    # y no arrastra el player: son 15.000 líneas y pide un token
+    assert "player.js" not in cuerpo
+
+
+def test_la_pagina_es_de_KYDO_y_no_de_la_otra_marca():
+    """Misma regla que la tienda: en una superficie de Kydo no aparece el otro negocio. Y
+    ésta es la que más lo necesita: la ve un chico que TODAVÍA no es cliente."""
+    html = open(os.path.join(BASE, "duelo_publico.html"), encoding="utf-8").read()
+    for palabra in ("casatridimensional", "imprimibles", "lámpara", "cumpleaños"):
+        assert palabra not in html.lower(), "la página dice %r" % palabra
+    assert "Kydo" in html
+
+
+def test_la_pagina_invita_a_conocer_kydo():
+    """El chico que juega sin tener Kydo ve exactamente qué es Kydo, jugándolo, invitado por
+    un compañero. Es la puerta de entrada, no un adorno: si se cae, el duelo deja de traer
+    gente."""
+    html = open(os.path.join(BASE, "duelo_publico.html"), encoding="utf-8").read()
+    assert "kydo.com.ar" in html
+
+
+def test_el_player_comparte_un_LINK_y_no_el_codigo_pelado():
+    src = _sin_comentarios(open(DUELO_JS, encoding="utf-8").read())
+    assert "/reto/" in src, "el compartir sigue mandando el código suelto"
+    assert "location.origin" in src, "el link tiene que salir del host donde está el chico"
+
+
+def test_la_ruta_del_reto_esta_en_el_motor():
+    """Sin la ruta, el link que se comparte da 404."""
+    src = open(os.path.join(BASE, "servicio.py"), encoding="utf-8").read()
+    assert re.search(r'r"\^/reto/\(\[A-Za-z0-9\]\{5\}\)/\?\$"', src), \
+        "no está la ruta /reto/<codigo>"
+    assert "duelos.pagina(" in src

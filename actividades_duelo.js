@@ -196,25 +196,47 @@ function _dueloEscapar(t) {
   return d.innerHTML;
 }
 
+/* Lo que se comparte es un LINK, no el código suelto.
+
+   Pablo (30-jul): "¿pero cómo se entera otro compañero?". Con el código pelado, el que lo
+   recibía necesitaba tener SU cuaderno para cargarlo — el desafío sólo podía viajar entre
+   dos chicos que ya habían comprado. `/reto/<codigo>` se abre sin nada.
+
+   El código igual se muestra grande y se puede copiar: la mitad de los desafíos se van a
+   pasar dictándolos en el recreo, que es justo para lo que está elegido el alfabeto. */
+function _dueloLink(codigo) {
+  return location.origin + "/reto/" + codigo;
+}
+
 function _dueloBotonCompartir(codigo) {
   const cont = el("div");
+  const link = _dueloLink(codigo);
+  const msg = "¡Te desafío! Tocá acá y jugá las mismas 5 preguntas: " + link;
   const wa = el("button", "duelo-btn", "Compartir por WhatsApp");
   wa.addEventListener("click", () => {
     Sfx.pop();
-    const msg = "¡Te desafío! Entrá a tu cuaderno, tocá «Duelo con un compañero» y poné " +
-                "este código: " + codigo;
     window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank", "noopener");
   });
   cont.appendChild(wa);
-  const copiar = el("button", "duelo-btn duelo-btn--2", "Copiar el código");
+  // `navigator.share` abre el menú del sistema (WhatsApp, mensajes, mail…) y en el celular
+  // del adulto —que es por donde va a viajar esto— es el camino natural. Sólo si existe.
+  if (navigator.share) {
+    const compartir = el("button", "duelo-btn duelo-btn--2", "Compartir de otra forma");
+    compartir.addEventListener("click", () => {
+      Sfx.pop();
+      navigator.share({ text: msg }).catch(() => {});
+    });
+    cont.appendChild(compartir);
+  }
+  const copiar = el("button", "duelo-btn duelo-btn--2", "Copiar el link");
   copiar.addEventListener("click", async () => {
     Sfx.pop();
     try {
-      await navigator.clipboard.writeText(codigo);
-      toast("¡Código copiado!");
+      await navigator.clipboard.writeText(link);
+      toast("¡Link copiado!");
     } catch (e) {
       // sin permiso de portapapeles el código igual está en pantalla, grande y dictable
-      toast("Copialo de la pantalla 🙂");
+      toast("Copiá el código de la pantalla 🙂");
     }
   });
   cont.appendChild(copiar);
