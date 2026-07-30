@@ -6688,7 +6688,9 @@ GAMES.rompecabezas = {
     };
 
     const posiciona = (p) => {
-      const mw = (bw / cols) * 0.55, mh = (bh / filas) * 0.55;
+      // 0.6 y no 0.55 como en el producto: el knob sobresale ~0.13 de la celda, y con
+      // piezas de este tamaño ese resto se salía de la bandeja y quedaba cortado.
+      const mw = (bw / cols) * 0.6, mh = (bh / filas) * 0.6;
       p.dx = bandeja.x + mw + p.fx * Math.max(1, bandeja.w - 2 * mw) - p.cx;
       p.dy = bandeja.y + mh + p.fy * Math.max(1, bandeja.h - 2 * mh) - p.cy;
     };
@@ -6727,15 +6729,24 @@ GAMES.rompecabezas = {
       cv.style.width = contW + "px"; cv.style.height = contH + "px";
       cx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
+      // El tablero se PEGA a su borde y la bandeja se queda con el sobrante REAL, en vez
+      // de partir el canvas en dos porcentajes fijos. Acá hay pocas piezas (6 o 9), así
+      // que cada una es enorme en proporción: con el reparto fijo del producto —pensado
+      // para 20-100 piezas chicas— la imagen de 3:2 dejaba una franja muerta arriba y
+      // abajo del tablero, y las piezas se apilaban y se cortaban contra el borde.
+      const M = 20;                          // margen + los 12px que la card sobresale
       const alLado = contW / contH > 1.15;   // apaisado: la bandeja va a la derecha
-      const zona = alLado ? { x: 8, y: 8, w: contW * 0.62 - 16, h: contH - 16 }
-                          : { x: 8, y: 8, w: contW - 16, h: contH * 0.6 - 16 };
-      s = Math.min(zona.w / R.w, zona.h / R.h);
+      const zonaW = alLado ? contW * 0.64 - 2 * M : contW - 2 * M;
+      const zonaH = alLado ? contH - 2 * M : contH * 0.58 - 2 * M;
+      s = Math.min(zonaW / R.w, zonaH / R.h);
       bw = R.w * s; bh = R.h * s;
-      bx = zona.x + (zona.w - bw) / 2;
-      by = zona.y + (zona.h - bh) / 2;
-      bandeja = alLado ? { x: contW * 0.62, y: 8, w: contW * 0.38 - 12, h: contH - 16 }
-                       : { x: 8, y: contH * 0.6, w: contW - 16, h: contH * 0.4 - 12 };
+      if (alLado) {
+        bx = M; by = M + (zonaH - bh) / 2;
+        bandeja = { x: bx + bw + 28, y: M, w: contW - (bx + bw) - 28 - M, h: contH - 2 * M };
+      } else {
+        bx = M + (zonaW - bw) / 2; by = M;
+        bandeja = { x: M, y: by + bh + 28, w: contW - 2 * M, h: contH - (by + bh) - 28 - M };
+      }
 
       const previas = piezas;
       const rearmando = previas.length > 0;   // resize: conserva lo ya puesto
