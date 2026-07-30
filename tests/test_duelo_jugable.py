@@ -337,7 +337,10 @@ def test_un_codigo_invalido_no_devuelve_pagina(malo):
 def test_la_pagina_no_necesita_token_ni_cuaderno():
     """El punto entero: se abre con un link y nada más."""
     html = open(os.path.join(BASE, "duelo_publico.html"), encoding="utf-8").read()
+    # sin comentarios: la página EXPLICA por qué el avatar del token no puede viajar, y eso
+    # es documentación, no una dependencia
     cuerpo = re.sub(r"<!--.*?-->", " ", html, flags=re.S)
+    cuerpo = _sin_comentarios(cuerpo)
     assert "token" not in cuerpo.lower()
     assert "/act/" not in cuerpo, "no puede depender del cuaderno"
     # y no arrastra el player: son 15.000 líneas y pide un token
@@ -383,3 +386,138 @@ def test_un_codigo_bien_formado_pero_inexistente_devuelve_la_pagina(tmp_path, mo
     monkeypatch.setattr(duelos, "DUELOS_DIR", str(tmp_path / "d"))
     assert duelos.leer("QQQQQ") is None          # no existe
     assert duelos.pagina("QQQQQ")                # y la página igual se sirve
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# NADIE JUEGA EL CUADERNO SIN TENERLO
+#
+# Pablo, 30-jul-2026: "decime también si chequeaste que no haya forma de que use el cuaderno
+# si no lo tiene ni en trial ni en pago". La pregunta correcta: el duelo abrió una puerta
+# PÚBLICA en un producto que se cobra, y hay que saber exactamente qué deja pasar.
+#
+# Lo que la puerta deja ver es UNA partida: 5 preguntas que eligió alguien que SÍ tiene
+# cuaderno. Lo que no deja es entrar al cuaderno ni sacar el contenido.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def test_la_pagina_publica_no_baja_el_catalogo():
+    """Lo más caro que hay: `actividades_curriculum.js` son 945 KB con las 2.868 preguntas
+    de los 7 grados. Si la página pública lo pidiera, cualquiera con un link de duelo se
+    llevaría el contenido entero del producto."""
+    html = open(os.path.join(BASE, "duelo_publico.html"), encoding="utf-8").read()
+    assert "curriculum" not in html.lower()
+    assert "CUR_DUELO_POR_GRADO" not in html
+    # lo único que pide es la partida
+    pedidos = re.findall(r'fetch\("([^"]+)"', html)
+    assert pedidos, "no se encontró ningún fetch"
+    for p in pedidos:
+        assert p.startswith("/duelo/"), "la página pide %s, que no es la partida" % p
+
+
+def test_la_partida_guardada_no_es_un_cuaderno():
+    """Una partida son 5 preguntas y dos nombres. No lleva el menú del grado, ni los juegos,
+    ni el token, ni el progreso: con el JSON de un duelo no se reconstruye un cuaderno."""
+    import duelos
+    d = {"codigo": "BCDFG", "grado": 4, "creado": 0,
+         "preguntas": [{"q": "x", "ops": ["a", "b"], "ok": 0, "cat": "mate"}] * 5,
+         "jugadores": [{"nombre": "Sofi", "aciertos": 3, "t": 0}]}
+    assert set(d) == {"codigo", "grado", "creado", "preguntas", "jugadores"}
+    crudo = json.dumps(d)
+    for prohibido in ("token", "menu", "premium", "niveles", "biblioteca"):
+        assert prohibido not in crudo
+
+
+def test_no_se_pueden_pedir_preguntas_al_motor():
+    """La única forma de que exista una partida es que ALGUIEN LA CREE mandando las
+    preguntas — y las preguntas viven en el .js del cuaderno, que está detrás del token.
+
+    O sea: un no-cliente no puede pedirle preguntas al motor ni generarlas. Sólo puede jugar
+    las 5 de una partida que armó alguien que sí tiene cuaderno. Sin esto, `/duelo` sería un
+    generador infinito de contenido gratis."""
+    src = open(os.path.join(BASE, "servicio.py"), encoding="utf-8").read()
+    bloque = src[src.index("def _duelo_crear"):src.index("def _duelo_leer")]
+    assert 'ev.get("preguntas")' in bloque, "las preguntas tienen que venir del cliente"
+    # sin comentarios ni docstring: el bloque EXPLICA que los bancos viven en el .js, y esa
+    # explicación no es código que genere preguntas
+    codigo = re.sub(r'"""', '\x00', bloque).split("\x00")
+    codigo = "".join(codigo[::2])                      # afuera de los docstrings
+    codigo = re.sub(r"(?m)#.*$", " ", codigo)
+    for generador in ("CUR_", "_dueloPozo", "curriculum", "banco"):
+        assert generador not in codigo, "el motor estaría generando preguntas: %s" % generador
+
+
+def test_los_tres_endpoints_del_duelo_tienen_tope():
+    """Crear y sumar ya estaban limitados; LEER no, y es la puerta que se puede probar a
+    ciegas (30-jul-2026). No protege el contenido —una partida son 5 preguntas— sino la
+    máquina: cada intento le pega al disco del motor, que es el mismo que les sirve el
+    cuaderno a los que sí pagaron."""
+    src = open(os.path.join(BASE, "servicio.py"), encoding="utf-8").read()
+    for arranca, termina in (("def _duelo_crear", "def _duelo_leer"),
+                             ("def _duelo_leer", "def _duelo_sumar"),
+                             ("def _duelo_sumar", "def _act_interes")):
+        bloque = src[src.index(arranca):src.index(termina)]
+        assert "_rate_ok(" in bloque, "%s no tiene tope de pedidos" % arranca
+    # y la página pública también: es la misma puerta, en HTML
+    reto = src[src.index('r"^/reto/'):]
+    assert "_rate_ok(" in reto[:600], "/reto/<codigo> no tiene tope de pedidos"
+
+
+def test_el_duelo_no_abre_ninguna_ruta_del_cuaderno():
+    """El cuaderno vive en `/act/<token>/` y ahí sigue: con token Y con la puerta de la
+    biblioteca. El duelo no agrega ninguna forma de entrar."""
+    src = open(os.path.join(BASE, "servicio.py"), encoding="utf-8").read()
+    reto = src[src.index('m_reto = re.match'):src.index('m_duelo = re.match')]
+    assert "/act/" not in reto
+    assert "actividades_web" not in reto, "la página pública no toca el módulo del cuaderno"
+    # y sólo sabe leer: no crea ni modifica nada
+    assert "duelos.pagina(" in reto and "duelos.crear" not in reto
+
+
+def test_la_cara_es_LA_MISMA_en_las_dos_pantallas():
+    """La función que deriva la cara está DUPLICADA: `actividades_duelo.js` y la página
+    suelta, que no puede importarlo. Si se separan, el mismo chico tendría una cara adentro
+    del cuaderno y otra en el link que le mandó a su compañero — que es justo lo que la cara
+    viene a arreglar. Se corren las dos sobre los mismos nombres y tienen que coincidir.
+
+    (El avatar REAL del cuaderno no puede viajar: es un índice a las imágenes del token, y
+    servirle a un desconocido el arte de otro cuaderno sería filtrar material de un cliente.)
+    """
+    html = open(os.path.join(BASE, "duelo_publico.html"), encoding="utf-8").read()
+    pagina_js = re.search(r"<script>(.*?)</script>", html, re.S).group(1)
+    nombres = ["Sofi", "sofi", " SOFI ", "Juan", "María José", "Tomás", "a", "",
+               "Zoe", "Lautaro", "Emma", "Bautista", "ñandú"]
+    # cada uno en su propia función: los dos declaran `DUELO_CARAS` y concatenarlos en un
+    # mismo scope choca. Aislarlos es además lo más parecido a cómo corren de verdad:
+    # en dos páginas distintas que no se ven entre sí.
+    stubs = ("var GAMES={}, D={}, Store={data:{}}, Sfx={ok(){},casi(){},pop(){}};"
+             "function el(){return{appendChild(){},addEventListener(){},classList:{add(){}}}}"
+             "function shuffle(a){return a} function toast(){} function espera(){}"
+             "function volverMenu(){} function gradoDelChico(){return 4}"
+             "var location={origin:'https://x'}, navigator={};"
+             "var document={getElementById:()=>({}),createElement:()=>({appendChild(){}}),"
+             "head:{appendChild(){}}};")
+    fuente = "\n".join([
+        "const caraPagina = (function(){ %s\n%s\nreturn cara; })();"
+        % (stubs, pagina_js.replace('const CODIGO = "{{CODIGO}}";', "")
+                           .replace("arranque();", "")),
+        "const caraCuaderno = (function(){ %s\n%s\nreturn _dueloCara; })();"
+        % (stubs, open(DUELO_JS, encoding="utf-8").read()),
+        "const N = %s;" % json.dumps(nombres),
+        "console.log(JSON.stringify({pagina: N.map(caraPagina),"
+        " cuaderno: N.map(caraCuaderno)}));",
+    ])
+    with tempfile.NamedTemporaryFile("w", suffix=".js", encoding="utf-8",
+                                     delete=False) as f:
+        f.write(fuente)
+        ruta = f.name
+    try:
+        r = subprocess.run(["node", ruta], capture_output=True, text=True)
+    finally:
+        os.unlink(ruta)
+    assert r.returncode == 0, r.stderr[-2000:]
+    out = json.loads(r.stdout.strip())
+    assert out["pagina"] == out["cuaderno"], \
+        "las caras se separaron: %s vs %s" % (out["pagina"], out["cuaderno"])
+    # y la misma persona escrita distinto tiene la MISMA cara (el motor los trata igual)
+    assert out["pagina"][0] == out["pagina"][1] == out["pagina"][2]
+    # con 12 caras y 13 nombres va a haber repetidas: lo que importa es que no sea UNA sola
+    assert len(set(out["pagina"])) >= 5, "casi todos los nombres caen en la misma cara"

@@ -71,6 +71,8 @@
   .puntos i.hecho{background:var(--ac)}
   .marcador{display:flex;gap:12px;margin:22px 0}
   .jug{flex:1;padding:18px 12px;border-radius:18px;background:var(--ac-suave);text-align:center}
+  .cara{font-size:44px;line-height:1;margin-bottom:8px}
+  .cara-hero{font-size:76px;line-height:1;margin:6px 0 12px}
   .jug b{display:block;font-size:16px;margin-bottom:6px;word-break:break-word}
   .jug span{font-size:38px;font-weight:800;line-height:1}
   .cierre{margin-top:30px;padding:20px;border-radius:18px;background:var(--sup);
@@ -103,6 +105,21 @@ const CODIGO = "{{CODIGO}}";
 const app = document.getElementById("app");
 
 function esc(t){ const d = document.createElement("div"); d.textContent = t == null ? "" : t; return d.innerHTML; }
+
+/* La cara de cada jugador. El avatar del cuaderno no sirve acá: es un índice a las imágenes
+   del TOKEN, y esta página no tiene token — servirle el arte de otro cuaderno sería filtrar
+   el material de un cliente. Así que se DERIVA del nombre: misma persona, misma cara, acá y
+   adentro del cuaderno. Animales a propósito: no insinúan género ni tono de piel.
+
+   ⚠ DUPLICADA en actividades_duelo.js (esta página es suelta y no puede importarlo). Hay un
+   test que corre las dos y falla si dejan de coincidir. */
+const DUELO_CARAS = ["🦊","🐼","🦁","🐨","🐯","🦉","🐢","🦋","🐙","🦄","🐝","🐳"];
+function cara(nombre){
+  const n = String(nombre || "").trim().toLowerCase();
+  let h = 0;
+  for (let i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) >>> 0;
+  return DUELO_CARAS[h % DUELO_CARAS.length];
+}
 function pinta(html){ app.innerHTML = html; window.scrollTo(0, 0); }
 const ORD = ["1.º","2.º","3.º","4.º","5.º","6.º","7.º"];
 
@@ -139,7 +156,8 @@ function bienvenida(){
   const reta = (duelo.jugadores || [])[0] || {};
   pinta(
     '<div class="chapa">Desafío ' + esc(duelo.codigo) + '</div>' +
-    "<h1>" + esc(reta.nombre || "Un compañero") + " te desafió 🆚</h1>" +
+    '<div class="cara-hero">' + cara(reta.nombre) + '</div>' +
+    "<h1>" + esc(reta.nombre || "Un compañero") + " te desafió</h1>" +
     "<p>Son <b>5 preguntas</b> de " + esc(ORD[(duelo.grado || 4) - 1] || "") +
     " grado — las mismas que jugó " + esc(reta.nombre || "tu compañero") + ".</p>" +
     "<p>¿Cómo te llamás?</p>" +
@@ -235,8 +253,9 @@ function marcador(titulo){
   const total = (duelo.preguntas || []).length || 5;
   let m = '<div class="marcador">';
   jug.forEach((j) => {
-    m += '<div class="jug"><b>' + esc(j.nombre) + "</b><span>" + j.aciertos +
-         "</span><div>de " + total + "</div></div>";
+    m += '<div class="jug"><div class="cara">' + cara(j.nombre) + "</div><b>" +
+         esc(j.nombre) + "</b><span>" + j.aciertos + "</span><div>de " + total +
+         "</div></div>";
   });
   m += "</div>";
   const iguales = jug.length === 2 && jug[0].aciertos === jug[1].aciertos;

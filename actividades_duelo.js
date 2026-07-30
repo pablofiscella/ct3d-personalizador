@@ -70,6 +70,31 @@ function _dueloElegir5(grado) {
   return elegidas.slice(0, 5);
 }
 
+/* ── La cara de cada jugador ──────────────────────────────────────────────────────────
+   Pablo (30-jul, viendo la página andando): "quizás poner algún ícono, por ejemplo el
+   avatar".
+
+   El avatar del cuaderno NO sirve acá: es un índice a las imágenes del TOKEN (`P[i]`, los
+   personajes del grado), y la página del desafiado no tiene token — servirle el arte de
+   otro cuaderno sería filtrar el material de un cliente.
+
+   Así que la cara se DERIVA del nombre: misma persona, misma cara, en el cuaderno y en la
+   página, sin guardar un dato nuevo y sin tocar el arte de nadie. Animales a propósito: no
+   insinúan género ni tono de piel.
+
+   ⚠ Esta función está DUPLICADA en duelo_publico.html (que es una página suelta, sin
+   acceso a este archivo). Hay un test que corre las dos y falla si dejan de coincidir —
+   si se separan, el mismo chico tendría dos caras distintas en las dos pantallas. */
+const DUELO_CARAS = ["🦊", "🐼", "🦁", "🐨", "🐯", "🦉", "🐢", "🦋", "🐙", "🦄", "🐝", "🐳"];
+function _dueloCara(nombre) {
+  // minúsculas y sin espacios de más, igual que el motor para comparar nombres: si no,
+  // "Sofi" y "sofi" —que para el duelo son la misma persona— tendrían caras distintas
+  const n = String(nombre || "").trim().toLowerCase();
+  let h = 0;
+  for (let i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) >>> 0;
+  return DUELO_CARAS[h % DUELO_CARAS.length];
+}
+
 function _dueloNombre() {
   try {
     const n = (Store.data && Store.data.activeProfile) || "";
@@ -101,6 +126,8 @@ function _dueloCSS() {
     ".duelo-marcador{display:flex;gap:12px;justify-content:center;margin:20px 0}" +
     ".duelo-jug{flex:1;max-width:190px;padding:16px 10px;border-radius:18px;" +
     "background:color-mix(in srgb,var(--ac,#3D2FBF) 10%,transparent)}" +
+    ".duelo-cara{font-size:42px;line-height:1;margin-bottom:8px}" +
+    ".duelo-cara--hero{font-size:64px;margin:6px 0 10px}" +
     ".duelo-jug b{display:block;font-size:16px;margin-bottom:6px;word-break:break-word}" +
     ".duelo-jug span{font-size:34px;font-weight:700}" +
     ".duelo-aviso{font-size:15px;opacity:.75;margin-top:14px}";
@@ -167,7 +194,8 @@ function _dueloResultado(ctx, duelo, codigo) {
   const total = (duelo.preguntas || []).length || 5;
   let marcador = '<div class="duelo-marcador">';
   jug.forEach((j) => {
-    marcador += `<div class="duelo-jug"><b>${_dueloEscapar(j.nombre)}</b>` +
+    marcador += `<div class="duelo-jug"><div class="duelo-cara">${_dueloCara(j.nombre)}</div>` +
+                `<b>${_dueloEscapar(j.nombre)}</b>` +
                 `<span>${j.aciertos}</span><div>de ${total}</div></div>`;
   });
   marcador += "</div>";
@@ -272,7 +300,8 @@ GAMES.duelo = {
       ctx.consigna("Jugá las mismas 5 preguntas que un compañero.");
       const caja = _dueloCaja(ctx);
       caja.innerHTML =
-        "<h2>🆚 Duelo con un compañero</h2>" +
+        `<div class="duelo-cara duelo-cara--hero">${_dueloCara(_dueloNombre())}</div>` +
+        "<h2>Duelo con un compañero</h2>" +
         "<p>Cinco preguntas de tu grado. Vos jugás ahora y tu compañero juega " +
         "cuando pueda, con las mismas preguntas.</p>";
       const bCrear = el("button", "duelo-btn", "Empezar un duelo");
