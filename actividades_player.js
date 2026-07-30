@@ -6034,6 +6034,11 @@ async function boot() {
   const r = await fetch("data.json");
   D = await r.json();
   await sumarExtrasDeLaEscuela();
+  // El duelo entre compañeros vive en su propio archivo (actividades_duelo.js) y se suma
+  // acá, no desde data.json: el menú queda congelado en el token el día de la compra, así
+  // que un cuaderno ya entregado nunca vería un juego nuevo. `typeof` porque el archivo se
+  // carga aparte — si un día no está, el cuaderno abre igual.
+  if (typeof sumarDueloDeCompaneros === "function") sumarDueloDeCompaneros();
   P = D.personajes;
   // paleta del tema → CSS vars (todo el look sale de acá)
   const root = document.documentElement;

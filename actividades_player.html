@@ -1104,5 +1104,8 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 <script src="player.js?v={{V}}"></script>
 <!-- catálogo curricular: registra GAMES.<id>, por eso va DESPUÉS de player.js -->
 <script src="actividades_curriculum.js?v={{V}}"></script>
+<!-- duelo entre compañeros: necesita GAMES (player.js) y el pozo de preguntas
+     CUR_DUELO_POR_GRADO (actividades_curriculum.js), así que va último -->
+<script src="duelo.js?v={{V}}"></script>
 </body>
 </html>
