@@ -70,6 +70,35 @@ for a in cur.CATALOGO:
         raise SystemExit("mecánica sin emisor: %r" % a["mecanica"])
     out.append("")
 
+# ── Índice para el DUELO: qué preguntas puede usar cada grado ────────────────────────
+#
+# El duelo enfrenta a dos chicos con las MISMAS 5 preguntas, así que necesita un pozo de
+# preguntas de opción múltiple del grado. Ese pozo ya existe: son las 2.868 de mecánica
+# `trivia` del catálogo, que ya vienen con la forma exacta que pide el duelo (`q`, `ops`,
+# con la correcta en `ops[0]`) y ya están alineadas al Diseño Curricular.
+#
+# Se emiten REFERENCIAS a los arrays que este mismo archivo ya declaró, no copias: duplicar
+# las preguntas para el duelo sumaría megas al .js que baja cada chico, y peor, crearía una
+# segunda fuente que se desincroniza — el problema que ya nos costó caro con las categorías.
+#
+# Sólo `trivia`. Las otras mecánicas (clasificar, ordenar, manipular, paramétrica) no son
+# de opción múltiple: no se pueden comparar entre dos chicos con un número de aciertos.
+por_grado = {}
+for a in cur.CATALOGO:
+    if a["mecanica"] != "trivia":
+        continue
+    por_grado.setdefault(a["grado"], []).append(
+        (a["area"], "CUR_%s_BANCO" % a["id"].upper()))
+
+out.append("/* Pozo de preguntas del DUELO, por grado — generado junto con los bancos.")
+out.append("   Referencias a los arrays de arriba, no copias. Lo consume actividades_duelo.js. */")
+out.append("const CUR_DUELO_POR_GRADO = {")
+for g in sorted(por_grado):
+    pares = ", ".join('["%s", %s]' % (area, var) for area, var in por_grado[g])
+    out.append("  %d: [%s]," % (g, pares))
+out.append("};")
+out.append("")
+
 js = "\n".join(out)
 open("actividades_curriculum.js", "w", encoding="utf-8").write(js)
 print("actividades_curriculum.js:", len(js), "bytes |", len(cur.CATALOGO), "actividades |",

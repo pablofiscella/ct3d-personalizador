@@ -1176,6 +1176,28 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
             return
+        # ---- el desafío, abierto con un LINK y SIN cuaderno ----
+        # `/reto/<codigo>` sirve HTML; `/duelo/<codigo>` sigue devolviendo JSON (lo consume
+        # tanto el player del cuaderno como esta página). Dos rutas y no una negociando por
+        # Accept: un chico abriendo un link desde WhatsApp no manda el Accept que uno espera.
+        m_reto = re.match(r"^/reto/([A-Za-z0-9]{5})/?$", path)
+        if m_reto:
+            import duelos
+            # mismo tope que leer el duelo, y por lo mismo: es una puerta pública que se
+            # puede probar a ciegas, y cada intento lee del disco del motor
+            if not _rate_ok(self._client_ip(), limit=60, window=300):
+                return self._json(429, {"ok": False})
+            page = duelos.pagina(m_reto.group(1))
+            if page is None:
+                return self._json(404, {"ok": False})
+            body = page.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         # ---- actividades web (cuaderno interactivo; link con token) ----
         m_duelo = re.match(r"^/duelo/([A-Za-z0-9]{5})$", path)
         if m_duelo:
@@ -1945,8 +1967,20 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
         return self._json(200, {"ok": True, "codigo": codigo, "duelo": d})
 
     def _duelo_leer(self, codigo):
-        """El que recibió el código ve las MISMAS preguntas. Sin token de nadie adentro."""
+        """El que recibió el código ve las MISMAS preguntas. Sin token de nadie adentro.
+
+        RATE LIMIT (30-jul-2026, lo pidió Pablo: "fijate que no haya forma de usar el
+        cuaderno sin tenerlo"). Crear y sumar ya estaban limitados; LEER no, y es la puerta
+        que se puede probar a ciegas. Con 28^5 = 17 millones de códigos, adivinar uno vivo es
+        rarísimo — pero sin tope, probar códigos es gratis y cada intento le pega al disco
+        del motor, que es el mismo que les sirve el cuaderno a los que sí pagaron. El límite
+        no protege el contenido (una partida son 5 preguntas): protege la máquina.
+
+        60 en 5 minutos es holgado para el uso real —la página pide UNA vez al abrirse— y
+        deja la fuerza bruta en unos 17 mil intentos por día contra 17 millones."""
         import duelos
+        if not _rate_ok(self._client_ip(), limit=60, window=300):
+            return self._json(429, {"ok": False})
         d = duelos.leer(codigo)
         if not d:
             return self._json(404, {"ok": False})

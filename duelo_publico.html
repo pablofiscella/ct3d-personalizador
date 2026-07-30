@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Te desafiaron — Kydo</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#3D2FBF">
+<!--
+  LA PÁGINA DEL DESAFIADO — se abre con un link, SIN cuaderno.
+
+  Pablo, 30-jul-2026, mirando el duelo recién hecho: "¿pero cómo se entera otro compañero?".
+  Puso el dedo en el agujero. Con el duelo dentro del cuaderno, el que recibía el código
+  necesitaba tener SU cuaderno para cargarlo — o sea que el desafío sólo podía viajar entre
+  dos chicos que ya habían comprado. Y encima un chico de ocho años no tiene WhatsApp: el
+  canal real es el teléfono del adulto, o dictarlo en el recreo.
+
+  Por eso lo que se comparte ahora es un LINK y no un código suelto: se toca y se juega. El
+  código sigue existiendo para dictarlo de memoria, que es como se van a pasar la mitad de
+  los desafíos.
+
+  ES DE PROPÓSITO QUE ESTA PÁGINA SEA UNA SOLA Y NO USE EL PLAYER: el player son 15.000
+  líneas y necesita un token de cuaderno. Acá no hay token, no hay perfil y no hay progreso
+  que guardar — sólo cinco preguntas y un marcador.
+
+  SIN CHAT, igual que adentro del cuaderno: el único campo con letras es el nombre, que el
+  motor sanea y recorta a 20 (ver `duelos._sanear_nombre`).
+
+  Y ES LA PUERTA DE ENTRADA: el chico que juega sin tener Kydo ve exactamente qué es Kydo,
+  jugándolo, invitado por un compañero. No hay folleto que haga eso.
+-->
+<style>
+  :root{
+    --ac:#3D2FBF; --ac-suave:#ECEAFB; --tinta:#0F1622; --gris:#5B6577;
+    --papel:#F5F6F8; --sup:#FFFFFF; --linea:#E3E6EB;
+    --bien:#2F7D57; --mal:#B33A3A;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --papel:#121926; --sup:#1B2434; --tinta:#F3F5F8; --gris:#A9B2C1;
+           --linea:#2B3648; --ac:#A99BFF; --ac-suave:#242E44; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--papel);color:var(--tinta);
+    font-family:-apple-system,'Segoe UI',system-ui,Roboto,sans-serif;
+    line-height:1.5;display:flex;flex-direction:column;min-height:100vh}
+  header{padding:16px 20px;border-bottom:1px solid var(--linea);background:var(--sup)}
+  .marca{display:flex;align-items:center;gap:9px;font-weight:800;font-size:19px;
+    letter-spacing:-.02em;color:var(--tinta);text-decoration:none}
+  .marca svg{flex:none}
+  main{flex:1;width:100%;max-width:560px;margin:0 auto;padding:26px 20px 40px}
+  h1{font-size:27px;line-height:1.15;letter-spacing:-.03em;margin:0 0 10px}
+  p{font-size:17px;color:var(--gris);margin:10px 0}
+  .chapa{display:inline-block;font-size:12.5px;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ac);background:var(--ac-suave);
+    padding:6px 12px;border-radius:999px;margin-bottom:14px}
+  input{width:100%;padding:15px;font-size:19px;font-family:inherit;color:var(--tinta);
+    background:var(--sup);border:2px solid var(--linea);border-radius:16px}
+  input:focus{outline:none;border-color:var(--ac)}
+  button{width:100%;min-height:56px;margin-top:14px;padding:15px;border:0;border-radius:18px;
+    background:var(--ac);color:#fff;font-family:inherit;font-size:18px;font-weight:700;
+    cursor:pointer}
+  button:disabled{opacity:.5;cursor:default}
+  .pregunta{font-size:22px;font-weight:700;letter-spacing:-.02em;margin:6px 0 18px}
+  .ops{display:grid;gap:12px}
+  .op{width:100%;margin:0;background:var(--sup);color:var(--tinta);
+    border:2px solid var(--linea);font-weight:600;font-size:17px;text-align:left}
+  .op.bien{border-color:var(--bien);background:color-mix(in srgb,var(--bien) 14%,transparent)}
+  .op.mal{border-color:var(--mal);background:color-mix(in srgb,var(--mal) 14%,transparent)}
+  .puntos{display:flex;gap:7px;margin-bottom:20px}
+  .puntos i{flex:1;height:7px;border-radius:4px;background:var(--linea)}
+  .puntos i.hecho{background:var(--ac)}
+  .marcador{display:flex;gap:12px;margin:22px 0}
+  .jug{flex:1;padding:18px 12px;border-radius:18px;background:var(--ac-suave);text-align:center}
+  .cara{font-size:44px;line-height:1;margin-bottom:8px}
+  .cara-hero{font-size:76px;line-height:1;margin:6px 0 12px}
+  .jug b{display:block;font-size:16px;margin-bottom:6px;word-break:break-word}
+  .jug span{font-size:38px;font-weight:800;line-height:1}
+  .cierre{margin-top:30px;padding:20px;border-radius:18px;background:var(--sup);
+    border:1px solid var(--linea);text-align:center}
+  .cierre a{display:inline-block;margin-top:10px;color:var(--ac);font-weight:700;
+    text-decoration:none;font-size:17px}
+  footer{padding:18px 20px;text-align:center;font-size:13px;color:var(--gris)}
+</style>
+</head>
+<body>
+<header>
+  <!-- el mismo glifo de la marca que usa el sitio: dos saberes que confluyen en un tercero -->
+  <a class="marca" href="https://kydo.com.ar">
+    <svg width="30" height="29" viewBox="0 0 42 40" aria-hidden="true">
+      <g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+        <path d="M8 9 C22 9 19 20 33 20"/><path d="M8 31 C22 31 19 20 33 20"/>
+      </g>
+      <circle cx="8" cy="9" r="5.2" fill="currentColor"/>
+      <circle cx="8" cy="31" r="5.2" fill="currentColor"/>
+      <circle cx="33" cy="20" r="5.2" fill="currentColor"/>
+    </svg>
+    Kydo
+  </a>
+</header>
+<main id="app"><p>Cargando el desafío…</p></main>
+<footer>Kydo · práctica escolar de 1.º a 7.º grado</footer>
+
+<script>
+const CODIGO = "{{CODIGO}}";
+const app = document.getElementById("app");
+
+function esc(t){ const d = document.createElement("div"); d.textContent = t == null ? "" : t; return d.innerHTML; }
+
+/* La cara de cada jugador. El avatar del cuaderno no sirve acá: es un índice a las imágenes
+   del TOKEN, y esta página no tiene token — servirle el arte de otro cuaderno sería filtrar
+   el material de un cliente. Así que se DERIVA del nombre: misma persona, misma cara, acá y
+   adentro del cuaderno. Animales a propósito: no insinúan género ni tono de piel.
+
+   ⚠ DUPLICADA en actividades_duelo.js (esta página es suelta y no puede importarlo). Hay un
+   test que corre las dos y falla si dejan de coincidir. */
+const DUELO_CARAS = ["🦊","🐼","🦁","🐨","🐯","🦉","🐢","🦋","🐙","🦄","🐝","🐳"];
+function cara(nombre){
+  const n = String(nombre || "").trim().toLowerCase();
+  let h = 0;
+  for (let i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) >>> 0;
+  return DUELO_CARAS[h % DUELO_CARAS.length];
+}
+function pinta(html){ app.innerHTML = html; window.scrollTo(0, 0); }
+const ORD = ["1.º","2.º","3.º","4.º","5.º","6.º","7.º"];
+
+function error(msg, conCierre){
+  pinta("<h1>Uy 😅</h1><p>" + esc(msg) + "</p>" + (conCierre ? cierreHTML() : ""));
+}
+
+function cierreHTML(){
+  return '<div class="cierre"><b>¿Y esto qué es?</b>' +
+         '<p>Kydo es la práctica escolar de 1.º a 7.º grado con el contenido que se ve ' +
+         'en la escuela. Este desafío salió de ahí.</p>' +
+         '<a href="https://kydo.com.ar">Conocer Kydo →</a></div>';
+}
+
+let duelo = null;
+
+async function arranque(){
+  let r;
+  try {
+    r = await (await fetch("/duelo/" + CODIGO)).json();
+  } catch (e) {
+    return error("No pudimos abrir el desafío. Fijate que tengas internet.");
+  }
+  if (!r || !r.ok) return error("Ese desafío no existe o ya venció. Pedile el link de nuevo a tu compañero.", true);
+  duelo = r.duelo;
+  const jug = duelo.jugadores || [];
+  // ya jugaron los dos: sólo se mira el resultado. Sin esto, el tercero que abre el link
+  // juega cinco preguntas para nada y recibe un error recién al final.
+  if (jug.length >= 2) return marcador("El desafío ya está completo");
+  bienvenida();
+}
+
+function bienvenida(){
+  const reta = (duelo.jugadores || [])[0] || {};
+  pinta(
+    '<div class="chapa">Desafío ' + esc(duelo.codigo) + '</div>' +
+    '<div class="cara-hero">' + cara(reta.nombre) + '</div>' +
+    "<h1>" + esc(reta.nombre || "Un compañero") + " te desafió</h1>" +
+    "<p>Son <b>5 preguntas</b> de " + esc(ORD[(duelo.grado || 4) - 1] || "") +
+    " grado — las mismas que jugó " + esc(reta.nombre || "tu compañero") + ".</p>" +
+    "<p>¿Cómo te llamás?</p>" +
+    '<input id="nom" maxlength="20" autocomplete="off" placeholder="Tu nombre" ' +
+    'aria-label="Tu nombre">' +
+    '<button id="go">Empezar</button>');
+  const nom = document.getElementById("nom");
+  const go = document.getElementById("go");
+  const arrancar = () => {
+    const n = nom.value.trim();
+    if (!n) { nom.focus(); return; }
+    jugar(n);
+  };
+  go.addEventListener("click", arrancar);
+  nom.addEventListener("keydown", (e) => { if (e.key === "Enter") arrancar(); });
+  nom.focus();
+}
+
+/* Las 5, una por vez. UNA sola oportunidad: si se pudiera reintentar hasta acertar, los dos
+   terminarían 5 de 5 y comparar no diría nada. Pero se marca cuál era la correcta — perder
+   la pregunta y encima no saber cuál era es la única forma de que no enseñe nada. */
+function jugar(nombre){
+  let i = 0, aciertos = 0;
+  const paso = () => {
+    const p = duelo.preguntas[i];
+    const correcta = p.ops[p.ok || 0];
+    let puntos = "";
+    for (let k = 0; k < duelo.preguntas.length; k++)
+      puntos += '<i class="' + (k < i ? "hecho" : "") + '"></i>';
+    pinta('<div class="puntos">' + puntos + "</div>" +
+          '<div class="pregunta">' + esc(p.q) + "</div>" +
+          '<div class="ops" id="ops"></div>');
+    const cont = document.getElementById("ops");
+    // se barajan para que el orden no delate la correcta (en el dato viene primera)
+    const ops = p.ops.slice();
+    for (let k = ops.length - 1; k > 0; k--) {
+      const j = Math.floor(Math.random() * (k + 1));
+      [ops[k], ops[j]] = [ops[j], ops[k]];
+    }
+    let resuelto = false;
+    ops.forEach((op) => {
+      const b = document.createElement("button");
+      b.className = "op";
+      b.textContent = op;
+      b.addEventListener("click", () => {
+        if (resuelto) return;
+        resuelto = true;
+        if (op === correcta) { aciertos++; b.classList.add("bien"); }
+        else {
+          b.classList.add("mal");
+          Array.from(cont.children).forEach((x) => {
+            if (x.textContent === correcta) x.classList.add("bien");
+          });
+        }
+        setTimeout(() => {
+          i++;
+          if (i >= duelo.preguntas.length) enviar(nombre, aciertos); else paso();
+        }, op === correcta ? 800 : 1600);
+      });
+      cont.appendChild(b);
+    });
+  };
+  paso();
+}
+
+async function enviar(nombre, aciertos){
+  pinta("<h1>Guardando…</h1>");
+  let r;
+  try {
+    r = await (await fetch("/duelo/" + CODIGO + "/jugue", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nombre: nombre, aciertos: aciertos }),
+    })).json();
+  } catch (e) {
+    return error("No pudimos guardar tu resultado. Fijate que tengas internet.");
+  }
+  if (!r || !r.ok) {
+    // el caso real: dos chicos que se llaman igual, o que abrió el link dos veces
+    const m = (r && r.error) || "";
+    return error(m.indexOf("ya jugó") >= 0
+      ? "Ese nombre ya jugó este desafío. Probá con otro (o pedile a tu compañero uno nuevo)."
+      : "El desafío ya está completo.", true);
+  }
+  duelo = r.duelo;
+  marcador("¡Terminaste!");
+}
+
+/* Los dos números, sin ganador declarado ni tabla: decisión de Pablo. Se felicita a los dos
+   — el que sacó menos es justo el que tiene que volver a jugar. */
+function marcador(titulo){
+  const jug = duelo.jugadores || [];
+  const total = (duelo.preguntas || []).length || 5;
+  let m = '<div class="marcador">';
+  jug.forEach((j) => {
+    m += '<div class="jug"><div class="cara">' + cara(j.nombre) + "</div><b>" +
+         esc(j.nombre) + "</b><span>" + j.aciertos + "</span><div>de " + total +
+         "</div></div>";
+  });
+  m += "</div>";
+  const iguales = jug.length === 2 && jug[0].aciertos === jug[1].aciertos;
+  pinta("<h1>" + esc(iguales ? "¡Empataron! 🤝" : titulo + " 🎉") + "</h1>" + m +
+        "<p>" + (iguales ? "Los dos igual de afilados." : "¡Muy bien los dos!") + "</p>" +
+        cierreHTML());
+}
+
+arranque();
+</script>
+</body>
+</html>

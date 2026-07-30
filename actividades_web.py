@@ -31,6 +31,7 @@ TEMPLATE_HTML = os.path.join(BASEDIR, "actividades_player.html")
 TEMPLATE_JS = os.path.join(BASEDIR, "actividades_player.js")
 TEMPLATE_MOTOR = os.path.join(BASEDIR, "motor_adaptativo.js")  # capa de saberes (piloto, gateada)
 TEMPLATE_CURRICULUM = os.path.join(BASEDIR, "actividades_curriculum.js")  # catálogo curricular (generado)
+TEMPLATE_DUELO = os.path.join(BASEDIR, "actividades_duelo.js")  # duelo entre compañeros
 AUDIO_DIR = os.path.join(BASEDIR, "audio_consignas")
 
 # ── Voz de las ACTIVIDADES ──────────────────────────────────────────────────────
@@ -2363,7 +2364,7 @@ def html(token):
 
 
 _ASSET_RE = re.compile(
-    r"^(data\.json|extras\.json|player\.js|motor_adaptativo\.js|actividades_curriculum\.js|f[12]\.ttf|[ps]\d{2}\.png|colorear_\d\.png|escena\.jpg|portada\.jpg"
+    r"^(data\.json|extras\.json|player\.js|duelo\.js|motor_adaptativo\.js|actividades_curriculum\.js|f[12]\.ttf|[ps]\d{2}\.png|colorear_\d\.png|escena\.jpg|portada\.jpg"
     r"|audio_manifest\.json|c_[a-f0-9]{10}\.mp3"
     # lecciones en video del botón "¿Cómo es?": salen del REPO como el player y el
     # audio de consignas — una sola copia para todos los tokens, así mejorar una
@@ -2394,6 +2395,8 @@ def archivo(token, nombre):
         p = TEMPLATE_MOTOR
     elif nombre == "actividades_curriculum.js":
         p = TEMPLATE_CURRICULUM
+    elif nombre == "duelo.js":
+        p = TEMPLATE_DUELO
     elif nombre in ("f1.ttf", "f2.ttf"):
         # Los DOS sirven Archivo, la tipografía de la marca (29-jul-2026). Es la variable
         # completa (ejes wght 100-900 y wdth), así que un solo archivo cubre todos los pesos
