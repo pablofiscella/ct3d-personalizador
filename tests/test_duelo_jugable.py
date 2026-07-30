@@ -413,14 +413,21 @@ def test_la_pagina_publica_no_baja_el_catalogo():
         assert p.startswith("/duelo/"), "la página pide %s, que no es la partida" % p
 
 
-def test_la_partida_guardada_no_es_un_cuaderno():
+def test_la_partida_guardada_no_es_un_cuaderno(tmp_path, monkeypatch):
     """Una partida son 5 preguntas y dos nombres. No lleva el menú del grado, ni los juegos,
-    ni el token, ni el progreso: con el JSON de un duelo no se reconstruye un cuaderno."""
+    ni el token, ni el progreso: con el JSON de un duelo no se reconstruye un cuaderno.
+
+    Se mira lo que el motor GUARDA de verdad —salido de `duelos.crear`— y no un dict escrito
+    a mano acá, que probaría lo que yo creo que guarda en vez de lo que guarda."""
     import duelos
-    d = {"codigo": "BCDFG", "grado": 4, "creado": 0,
-         "preguntas": [{"q": "x", "ops": ["a", "b"], "ok": 0, "cat": "mate"}] * 5,
-         "jugadores": [{"nombre": "Sofi", "aciertos": 3, "t": 0}]}
+    monkeypatch.setattr(duelos, "DUELOS_DIR", str(tmp_path / "d"))
+    preguntas = _node("console.log(JSON.stringify(_dueloElegir5(4)));")
+    codigo, _ = duelos.crear(4, preguntas, "Sofi", 3)
+    duelos.sumar_jugador(codigo, "Juan", 5)
+    d = duelos.leer(codigo)
     assert set(d) == {"codigo", "grado", "creado", "preguntas", "jugadores"}
+    for j in d["jugadores"]:
+        assert set(j) == {"nombre", "aciertos", "t"}
     crudo = json.dumps(d)
     for prohibido in ("token", "menu", "premium", "niveles", "biblioteca"):
         assert prohibido not in crudo
