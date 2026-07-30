@@ -18,6 +18,7 @@ Mundo". Recién se separan en 4°. El producto venía con 4 categorías fijas qu
 con el DC en primer ciclo, y por eso "Sociales de 2°" figuraba en cero: no es un hueco de
 contenido, es una materia que a esa edad no existe.
 """
+import re
 
 AREA_CDM = "cdm"          # Conocimiento del Mundo — 1° a 3° (DC CABA 2024)
 
@@ -764,10 +765,7 @@ CATALOGO = [
             {"q": "Tengo 6 lados. ¿Qué soy?",
              "ops": ["Un hexágono", "Un pentágono", "Un cuadrado"],
              "m": "Hexa- significa seis."},
-            {"q": "Un cuadrado apoyado en una punta, ¿deja de ser cuadrado?",
-             "ops": ["No, sigue siendo cuadrado", "Sí, pasa a ser rombo",
-                     "Sí, pasa a ser triángulo"],
-             "m": "Girar la figura no la cambia: sigue teniendo 4 lados iguales y ángulos rectos."},
+            {"q":"¿En qué se diferencian un cuadrado y un rombo?","ops":["El cuadrado tiene los ángulos rectos","El rombo tiene más lados","El cuadrado no se puede girar"],"m":"Los dos tienen 4 lados iguales; sólo el cuadrado tiene ángulos rectos."},
             {"q": "¿Cuántas esquinas rectas tiene un triángulo cualquiera?",
              "ops": ["Puede no tener ninguna", "Siempre 3", "Siempre 1"],
              "m": "Hay triángulos sin ningún ángulo recto."},
@@ -1381,9 +1379,7 @@ CATALOGO = [
                      "Un sistema donde manda una sola persona",
                      "Un sistema sin leyes"],
              "m": "El poder viene del voto de la gente y se renueva."},
-            {"q": "¿En qué año volvió la democracia a la Argentina?",
-             "ops": ["1983", "1810", "2001"],
-             "m": "En 1983, después de la última dictadura militar."},
+            {"q":"¿Qué se elige en una elección legislativa?","ops":["Diputados y senadores","El presidente","Los jueces"],"m":"El Poder Legislativo se renueva por partes, no todo junto."},
             {"q": "¿Qué pasó durante la última dictadura (1976-1983)?",
              "ops": ["Se violaron los derechos humanos y hubo desaparecidos",
                      "Hubo elecciones normales", "No pasó nada especial"],
@@ -1420,10 +1416,7 @@ CATALOGO = [
              "ops": ["Para que haya opciones distintas para elegir",
                      "Para confundir", "Para que gane siempre el mismo"],
              "m": "El pluralismo es parte de lo que hace democrática a una elección."},
-            {"q": "¿Qué significa «Nunca Más»?",
-             "ops": ["El compromiso de que no se repita el terrorismo de Estado",
-                     "Que no haya elecciones", "Que no se hable del pasado"],
-             "m": "Da nombre al informe de la CONADEP y sintetiza ese compromiso."},
+            {"q":"¿Por qué el voto es obligatorio en la Argentina?","ops":["Porque votar es un derecho y también un deber cívico","Porque lo decide cada provincia","Porque hay pocos votantes"],"m":"Desde 1912 el voto es universal, secreto y obligatorio."},
             {"q": "¿Los derechos humanos se pueden perder?",
              "ops": ["No, se tienen por ser persona", "Sí, si te portás mal",
                      "Sí, si no votás"],
@@ -3740,9 +3733,7 @@ CATALOGO = [
             {"q": "Es un paisaje muy ___ .",
              "ops": ["bello", "vello", "veyo"],
              "m": "Hermoso es 'bello', con B."},
-            {"q": "Se ___ el pelo todas las mañanas.",
-             "ops": ["ata", "hata", "haya"],
-             "m": "Del verbo atar, sin H."},
+            {"q":"Saltó la ___ del jardín.","ops":["valla","vaya","baya"],"m":"La valla es la cerca; vaya es del verbo ir; la baya es un fruto."},
             {"q": "Espero que ___ llegado bien.",
              "ops": ["haya", "halla", "aya"],
              "m": "'Haya' es del verbo haber. 'Halla' es de hallar (encontrar)."},
@@ -4361,8 +4352,7 @@ CATALOGO = [
             {"q": "¿Cuántos divisores tiene el 7?",
              "ops": ["Dos: 1 y 7", "Uno: el 7", "Tres: 1, 3 y 7"],
              "m": "Los que tienen sólo dos divisores se llaman primos."},
-            {"q": "¿Cuál de estos es primo?", "ops": ["13", "15", "21"],
-             "m": "13 sólo se divide por 1 y por 13. Los otros dos tienen más divisores."},
+            {"q":"¿Cuál es el mayor divisor común de 12 y 18?","ops":["6","12","3"],"m":"6 divide a los dos y es el más grande que lo hace."},
             {"q": "¿El 1 es primo?", "ops": ["No, tiene un solo divisor",
                      "Sí, es el primero", "Sí, porque es impar"],
              "m": "Para ser primo hacen falta DOS divisores distintos, y el 1 sólo tiene "
@@ -5808,10 +5798,7 @@ CATALOGO = [
              "m": "Marca el orden en el tiempo."},
             {"q": "No estudió ___ aprobó igual.", "ops": ["pero", "porque", "así que"],
              "m": "Contraste: pasó lo contrario de lo esperado."},
-            {"q": "¿Para qué sirven los conectores?",
-             "ops": ["Para unir las ideas de un texto", "Para separar palabras",
-                     "Para poner mayúsculas"],
-             "m": "Sin ellos el texto queda cortado y no se entiende la relación."},
+            {"q":"¿Qué agrega un conector como «pero»?","ops":["Una idea que va en contra de la anterior","Dos ideas que se suman","Una explicación de lo anterior"],"m":"Pero, sin embargo y aunque oponen; y, además y también suman."},
         ],
     },
     {
@@ -6247,7 +6234,7 @@ CATALOGO = [
                      "Gramos"], "m": "En milímetros el número sería enorme."},
             {"q": "¿Con qué medirías el agua de una botella?", "ops": ["Litros", "Metros",
                      "Kilos"], "m": "Los líquidos se miden en litros."},
-            {"q": "1 metro son…", "ops": ["100 cm", "10 cm", "1.000 cm"], "m": "Cien centímetros."},
+            {"q":"1 litro son…","ops":["1.000 ml","100 ml","10 ml"],"m":"Mil mililitros entran en un litro."},
             {"q": "1 centímetro son…", "ops": ["10 mm", "100 mm", "1 mm"],
              "m": "Diez milímetros. Miralo en la regla."},
             {"q": "1 kilo son…", "ops": ["1.000 g", "100 g", "10 g"], "m": "Kilo es mil."},
@@ -6546,19 +6533,19 @@ CATALOGO = [
      "fuente":"docs/auditoria-dc-caba/grado-2.md · L1",
      "saber":{"id":"LEN-2-silabas","nombre":"Sílabas y dígrafos","prereqs":[]},
      "banco":[
-      {"q":"«casa»","ops":["2","3","1"],"m":"ca-sa: dos golpes de voz."},
+      {"q":"«lluvia»","ops":["2","1","3"],"m":"llu-via: la ll no se separa."},
       {"q":"«chocolate»","ops":["4","3","5"],"m":"cho-co-la-te. La CH es un solo sonido."},
       {"q":"«llave»","ops":["2","3","1"],"m":"lla-ve. La LL es un solo sonido."},
       {"q":"«perro»","ops":["2","3","1"],"m":"pe-rro. La RR es un solo sonido."},
       {"q":"«guitarra»","ops":["3","4","2"],"m":"gui-ta-rra."},
       {"q":"«queso»","ops":["2","3","1"],"m":"que-so. La QU suena como una K."},
-      {"q":"«mariposa»","ops":["4","3","5"],"m":"ma-ri-po-sa."},
-      {"q":"«sol»","ops":["1","2","3"],"m":"Una sola sílaba."},
+      {"q":"«carretilla»","ops":["4","3","5"],"m":"ca-rre-ti-lla: ni la rr ni la ll se parten."},
+      {"q":"«cuchara»","ops":["3","2","4"],"m":"cu-cha-ra: la ch es una sola letra y no se parte."},
       {"q":"«escuela»","ops":["3","4","2"],"m":"es-cue-la."},
       {"q":"«chancho»","ops":["2","3","4"],"m":"chan-cho: dos CH, dos sílabas."},
       {"q":"¿Qué letras van SIEMPRE juntas y suenan como una sola?",
        "ops":["ch, ll, rr, qu","b, v","m, n"],"m":"Se llaman dígrafos: dos letras, un sonido."},
-      {"q":"«pelota»","ops":["3","2","4"],"m":"pe-lo-ta."}]},
+      {"q":"«pollito»","ops":["3","2","4"],"m":"po-lli-to: la ll va entera en su sílaba."}]},
     {"id":"pares_minimos_2","grado":2,"area":"lengua","titulo":"Una letra cambia todo","icono":"🔀",
      "mecanica":"trivia","consigna":"¿Cuál corresponde?",
      "dc":"Grafías que cambian el significado de la palabra",
@@ -6644,8 +6631,7 @@ CATALOGO = [
        "m":"En español se abre Y se cierra."},
       {"q":"Una exclamación se escribe…","ops":["¡Qué lindo!","Qué lindo!","¡Qué lindo"],
        "m":"La exclamación también se abre y se cierra."},
-      {"q":"¿Con qué empieza siempre una oración?","ops":["Con mayúscula","Con minúscula",
-       "Con coma"],"m":"Después de un punto, mayúscula."},
+      {"q":"¿Qué lleva una pregunta escrita en castellano?","ops":["Signo de apertura y de cierre","Sólo el de cierre","Sólo un punto"],"m":"En castellano la pregunta se abre con ¿ y se cierra con ?."},
       {"q":"«compré pan, leche ___ fruta»","ops":["y","coma","punto"],
        "m":"En una enumeración, la última va con Y."},
       {"q":"«compré pan___ leche y fruta»","ops":["coma",", y","punto"],
@@ -6684,9 +6670,7 @@ CATALOGO = [
       {"q":"¿«sin embargo» o «sinembargo»?","ops":["sin embargo","sinembargo","sin-embargo"],
        "m":"Dos palabras."},
       {"q":"¿«tal vez» o «talvez»?","ops":["tal vez","talvez","tal-vez"],"m":"Dos palabras."},
-      {"q":"¿Cómo se sabe dónde termina una palabra?","ops":["Por lo que significa cada una",
-       "Por el tamaño","Por la primera letra"],
-       "m":"Cada palabra tiene su significado propio."},
+      {"q":"«Miamigo» está mal escrito. ¿Por qué?","ops":["Son dos palabras: mi amigo","Le falta una tilde","Va con mayúscula"],"m":"«Mi» y «amigo» son dos palabras y van separadas."},
       {"q":"¿«lo hice» o «lohice»?","ops":["lo hice","lohice","lo-hice"],"m":"Dos palabras."}]},
     {"id":"ordenar_relato_2","grado":2,"area":"lengua","titulo":"Ordená el relato","icono":"📖",
      "mecanica":"ordenar","consigna":"Ordená la historia. Tocá en orden.",
@@ -7132,8 +7116,7 @@ CATALOGO = [
        "m":"La regla no depende de si mirás o no: puede aparecer un auto que no viste."},
       {"q":"¿Por dónde se cruza la calle?","ops":["Por la senda peatonal","Por donde sea",
        "Por el medio de la cuadra"],"m":"La senda es donde el auto espera que cruces."},
-      {"q":"Antes de cruzar, ¿qué hacés?","ops":["Mirar para los dos lados","Correr",
-       "Mirar el celular"],"m":"Los autos vienen de los dos sentidos."},
+      {"q":"¿Qué avisa una señal triangular con borde rojo?","ops":["Un peligro adelante","Una prohibición","Un lugar para estacionar"],"m":"El triángulo siempre avisa peligro; el círculo rojo prohíbe."},
       {"q":"¿De qué lado de la vereda se camina?","ops":["Por la vereda, lejos del cordón",
        "Por la calle","Por el cordón"],"m":"La vereda es del peatón."},
       {"q":"En el auto, ¿dónde van los chicos?","ops":["Atrás y con cinturón","Adelante",
@@ -7144,10 +7127,8 @@ CATALOGO = [
        "Apurate a cruzar","Podés cruzar"],"m":"Avisa que va a ponerse en rojo."},
       {"q":"Si viene una ambulancia con sirena, los autos…","ops":["Le dejan paso",
        "Siguen igual","Aceleran"],"m":"Tiene prioridad."},
-      {"q":"¿Se puede jugar a la pelota en la calle?","ops":["No, es peligroso",
-       "Sí, si hay pocos autos","Sí, de noche"],"m":"La calle es de los vehículos."},
-      {"q":"Al bajar del auto, ¿por qué puerta salís?","ops":["Por la de la vereda",
-       "Por la de la calle","Por cualquiera"],"m":"Del lado de la calle pasan los autos."},
+      {"q":"¿Qué forma tienen las señales que PROHÍBEN algo?","ops":["Redondas con borde rojo","Cuadradas verdes","Triangulares azules"],"m":"El círculo con borde rojo prohíbe."},
+      {"q":"Si el semáforo de los autos está en verde, para el peatón está…","ops":["En rojo","También en verde","En amarillo"],"m":"Cuando los autos avanzan, el peatón espera."},
       {"q":"El cartel PARE le indica al conductor…","ops":["Que frene por completo",
        "Que baje la velocidad","Que acelere"],"m":"Es una parada total."},
       {"q":"Cruzar mirando el celular…","ops":["Es peligroso, no ves lo que viene",
@@ -7941,8 +7922,7 @@ CATALOGO = [
        "m":"180 − 60 − 70."},
       {"q":"¿Puede un triángulo tener dos ángulos rectos?","ops":["No, ya sumarían 180","Sí","Siempre"],
        "m":"90 + 90 = 180 y no quedaría nada para el tercero."},
-      {"q":"Si desarmás un cubo y lo aplanás, obtenés…","ops":["Seis cuadrados unidos","Un cuadrado grande",
-       "Cuatro triángulos"],"m":"Eso se llama desarrollo plano."},
+      {"q":"¿Cuántos desarrollos planos distintos tiene un cubo?","ops":["11","6","1"],"m":"Hay once formas de aplanarlo que no son la misma girada."},
       {"q":"El desarrollo de un cilindro tiene…","ops":["Dos círculos y un rectángulo","Seis cuadrados",
        "Tres triángulos"],"m":"Las dos tapas y el costado desplegado."},
       {"q":"El desarrollo de una pirámide de base cuadrada tiene…","ops":["Un cuadrado y cuatro triángulos",
@@ -7976,8 +7956,7 @@ CATALOGO = [
        "La Tierra tapa al Sol","El Sol se apaga"],"m":"La Luna nos tapa el Sol."},
       {"q":"¿Los eclipses pasan todos los meses?","ops":["No, son poco frecuentes","Sí, cada mes",
        "Sí, cada semana"],"m":"La órbita de la Luna está inclinada: casi siempre pasa por arriba o por abajo."},
-      {"q":"¿La Luna tiene luz propia?","ops":["No, refleja la del Sol","Sí","Sólo en luna llena"],
-       "m":"Es un espejo, no una lámpara."},
+      {"q":"¿Por qué no hay un eclipse de Sol todos los meses?","ops":["Porque la órbita de la Luna está inclinada","Porque la Luna se apaga","Porque el Sol cambia de lugar"],"m":"Casi siempre la sombra pasa por arriba o por debajo de la Tierra."},
       {"q":"¿Se puede mirar un eclipse de Sol a ojo desnudo?","ops":["No, daña la vista",
        "Sí, sin problema","Sí, si es corto"],"m":"Hacen falta filtros especiales."},
       {"q":"Entre luna nueva y luna llena, la Luna está…","ops":["Creciendo","Menguando","Igual"],
@@ -8957,10 +8936,7 @@ CATALOGO = [
             {"q": "En una encuesta de 50 personas, la frecuencia relativa de una opción es 20%. ¿Cuántas la eligieron?",
              "ops": ["10", "20", "5"],
              "m": "El 20% de 50 es 10. El 20 es el porcentaje, no la cantidad."},
-            {"q": "¿Para qué sirve un gráfico circular (torta)?",
-             "ops": ["Para ver qué parte del total es cada categoría",
-                     "Para ver cómo cambia algo en el tiempo", "Para contar personas una por una"],
-             "m": "La torta muestra partes de un todo; la evolución en el tiempo se ve mejor en un gráfico de líneas."},
+            {"q":"En un gráfico circular, ¿qué representa el círculo entero?","ops":["El 100% de los encuestados","El valor más alto","La cantidad de preguntas"],"m":"Cada porción es una parte de ese total."},
             {"q": "En 7-7-7-2-9, ¿cuál es la moda?", "ops": ["7", "9", "2"],
              "m": "Aparece tres veces; los otros, una."},
             {"q": "¿La moda tiene que ser el número más grande?",
@@ -9604,9 +9580,7 @@ CATALOGO = [
             {"q": "En «Le di el regalo a mi hermana», ¿cuál es el objeto indirecto?",
              "ops": ["a mi hermana", "el regalo", "Le di"],
              "m": "Se reemplaza por LE. El regalo es el OD."},
-            {"q": "¿Con qué pronombre se reemplaza el objeto directo?",
-             "ops": ["LO o LA", "LE", "SE"],
-             "m": "LE es la marca del indirecto."},
+            {"q":"«Juan corre en la plaza.» ¿Tiene objeto directo?","ops":["No, correr es intransitivo","Sí, «en la plaza»","Sí, «Juan»"],"m":"Correr no admite OD: lo que sigue es un circunstancial de lugar."},
             {"q": "¿Qué es un verbo transitivo?",
              "ops": ["El que necesita un objeto directo", "El que nunca lleva objeto",
                      "El que se conjuga en pasado"],
@@ -11088,10 +11062,7 @@ CATALOGO = [
              "ops": ["Una población joven, con alta natalidad", "Una población envejecida",
                      "Que hay pocos habitantes"],
              "m": "La base son los grupos de menor edad."},
-            {"q": "¿Qué es la densidad de población?",
-             "ops": ["La cantidad de habitantes por kilómetro cuadrado",
-                     "La cantidad total de habitantes", "Cuánta gente nace por año"],
-             "m": "Relaciona población con superficie: no es lo mismo que el total."},
+            {"q":"¿Qué es la tasa de mortalidad infantil?","ops":["Cuántos bebés mueren antes del año por cada mil nacidos","Cuántos chicos hay en el país","Cuánto vive un adulto"],"m":"Es uno de los indicadores más usados para medir las condiciones de vida."},
             {"q": "¿Cada cuánto se realiza el censo nacional en la Argentina?",
              "ops": ["Aproximadamente cada diez años", "Todos los años", "Cada cinco años"],
              "m": "Esa periodicidad permite comparar décadas."},
@@ -11099,10 +11070,7 @@ CATALOGO = [
              "ops": ["Se ensancha en la parte de arriba", "Se ensancha en la base",
                      "No cambia"],
              "m": "Más personas llegan a edades avanzadas."},
-            {"q": "¿Qué es la migración interna?",
-             "ops": ["El traslado de personas dentro del mismo país",
-                     "La llegada de personas de otros países", "La salida hacia el exterior"],
-             "m": "El éxodo del campo a la ciudad es el ejemplo clásico."},
+            {"q":"Si un país tiene más adultos mayores que chicos, ¿qué se espera?","ops":["Que necesite más servicios de salud","Que suba la natalidad","Que baje la esperanza de vida"],"m":"La estructura por edades cambia lo que hay que planificar."},
             {"q": "En la Argentina, ¿cómo se distribuye la población?",
              "ops": ["De manera muy desigual, concentrada en pocas áreas urbanas",
                      "De manera pareja en todo el territorio", "Sobre todo en zonas rurales"],
@@ -11397,10 +11365,7 @@ CATALOGO = [
              "ops": ["Pausar el programa un momento", "Repetir 2 veces",
                      "Guardar el número 2"],
              "m": "Es una pausa, no una repetición."},
-            {"q": "¿Qué es un evento en programación por bloques?",
-             "ops": ["Algo que dispara la ejecución, como tocar una tecla",
-                     "El final del programa", "Un tipo de variable"],
-             "m": "«Al presionar bandera verde» es el evento más típico."},
+            {"q":"¿Para qué sirve agrupar bloques en un procedimiento?","ops":["Para reusar la misma secuencia sin repetirla","Para que el programa corra más rápido","Para esconder los errores"],"m":"Si hay que cambiarla, se cambia en un solo lugar."},
             {"q": "Si un programa da un resultado incorrecto, ¿qué hay que hacer?",
              "ops": ["Depurarlo: buscar dónde falla la lógica", "Empezar de cero siempre",
                      "Agregar más bloques"],
@@ -11491,12 +11456,8 @@ CATALOGO = [
         "saber": {"id": "TEC-6-sensores", "nombre": "Sensores y control reactivo",
                   "prereqs": ["TEC-6-instrumentos"]},
         "banco": [
-            {"q": "¿Qué hace un sensor?", "ops": ["Detecta una magnitud y la convierte en señal",
-                     "Ejecuta una acción", "Muestra información en pantalla"],
-             "m": "Ejecutar la acción es tarea del actuador."},
-            {"q": "¿Qué es un actuador?", "ops": ["El componente que ejecuta la acción, como un motor",
-                     "El que detecta la temperatura", "El que muestra los datos"],
-             "m": "El sensor detecta, el actuador hace."},
+            {"q":"¿Qué diferencia hay entre un sensor digital y uno analógico?","ops":["El digital da dos estados y el analógico muchos valores","El digital es más rápido","El analógico no necesita corriente"],"m":"Un pulsador dice sí o no; uno de temperatura da toda una escala."},
+            {"q":"En un control reactivo, ¿qué pasa si falla el sensor?","ops":["El sistema decide a ciegas","Se apaga solo","El actuador lo reemplaza"],"m":"Sin la entrada, la decisión se toma sin la información que hacía falta."},
             {"q": "«Si la humedad de la tierra baja, activá el riego.» ¿Qué tipo de control es?",
              "ops": ["Reactivo: responde a lo que mide", "Manual", "Sin control"],
              "m": "El sistema reacciona a una medición, sin que nadie intervenga."},
@@ -11603,10 +11564,7 @@ CATALOGO = [
              "ops": ["No, la responsabilidad es siempre del adulto",
                      "Sí, por aceptar la solicitud", "Depende de qué le contestaste"],
              "m": "Esto es importante: la culpa nunca es del chico, y no hablar por vergüenza es lo que el adulto busca."},
-            {"q": "¿Adónde se puede denunciar en la Argentina?",
-             "ops": ["A la línea 137 o a la fiscalía especializada",
-                     "A ningún lado", "Sólo a la escuela"],
-             "m": "Hay organismos del Estado dedicados específicamente a esto."},
+            {"q":"¿Está bien aceptar como contacto a alguien que no conocés?","ops":["No, aunque diga tener tu edad","Sí, si tienen amigos en común","Sí, si dice ser de tu barrio"],"m":"En internet la edad que alguien dice tener no se puede comprobar."},
             {"q": "Un desconocido te ofrece regalos o dinero por chat. ¿Qué hacés?",
              "ops": ["No aceptar y avisarle a un adulto", "Aceptar si es poco",
                      "Preguntarle por qué"],
@@ -12192,10 +12150,7 @@ CATALOGO = [
              "m": "Son inversas: el producto siempre es el entero."},
             {"q": "3/5 ÷ 3 =", "ops": ["1/5", "9/5", "3/15 y no se puede simplificar"],
              "m": "3 es 3/1, así que se multiplica por 1/3: 3/15 = 1/5."},
-            {"q": "¿Cómo se multiplican dos fracciones?",
-             "ops": ["Numerador por numerador y denominador por denominador",
-                     "Buscando común denominador", "Invirtiendo la primera"],
-             "m": "El común denominador hace falta para sumar, no para multiplicar."},
+            {"q":"¿Cómo se dividen dos fracciones?","ops":["Se multiplica por la inversa de la segunda","Se dividen arriba y abajo","Se busca denominador común"],"m":"Dividir por 1/4 es multiplicar por 4: por eso se da vuelta la segunda."},
             {"q": "1/2 × 1/2 × 1/2 =", "ops": ["1/8", "3/6", "1/6"],
              "m": "Cada mitad parte de nuevo: 2 × 2 × 2 = 8 partes."},
             {"q": "¿Cuál es la inversa de 1/6?", "ops": ["6", "1/6", "6/6"],
@@ -12217,8 +12172,7 @@ CATALOGO = [
         "banco": [
             {"q": "1 ÷ 3 =", "ops": ["0,333… (periódica)", "0,3 exacto", "3"],
              "m": "El 3 se repite para siempre: es una expresión periódica."},
-            {"q": "1 ÷ 4 =", "ops": ["0,25 (exacta)", "0,4", "0,25 periódica"],
-             "m": "La división termina: no hay período."},
+            {"q":"3 ÷ 8 =","ops":["0,375 (exacta)","0,38 periódica","2,6"],"m":"El denominador 8 sólo tiene factores 2: por eso la división corta."},
             {"q": "¿Qué es una expresión decimal periódica?",
              "ops": ["Una en la que un grupo de cifras se repite sin fin",
                      "Una que tiene muchos decimales", "Una que termina en cero"],
@@ -12242,8 +12196,7 @@ CATALOGO = [
              "m": "Siempre pasa una de las dos cosas."},
             {"q": "¿Cuál es el período de 0,4545…?", "ops": ["45", "4", "0,45"],
              "m": "El período es el grupo de cifras que se repite."},
-            {"q": "7 ÷ 2 =", "ops": ["3,5", "3", "0,35"],
-             "m": "Sobra 1 y se sigue después de la coma: no se trunca."},
+            {"q":"1 ÷ 7 =","ops":["0,142857… (periódica)","0,14 exacta","7"],"m":"El período de 1/7 tiene seis cifras que se repiten."},
             {"q": "0,3 × 0,3 =", "ops": ["0,09", "0,6", "0,9"],
              "m": "Un decimal más un decimal dan dos decimales en el resultado."},
         ],
@@ -12992,10 +12945,7 @@ CATALOGO = [
              "ops": ["La crónica narra en orden temporal; la noticia arranca por lo más importante",
                      "La crónica es más corta", "La noticia no lleva título"],
              "m": "La noticia usa pirámide invertida; la crónica recupera la secuencia."},
-            {"q": "¿Qué es la pirámide invertida?",
-             "ops": ["Poner lo más importante al principio", "Poner lo más importante al final",
-                     "Contar en orden cronológico"],
-             "m": "Si el lector abandona a la mitad, ya se enteró de lo esencial."},
+            {"q":"¿Qué diferencia a una crónica de una noticia?","ops":["La crónica narra el hecho en orden y con detalle","La crónica es más corta","La noticia lleva opinión"],"m":"La noticia informa lo esencial; la crónica cuenta cómo pasó."},
             {"q": "«El testigo dijo: “Vi todo desde la ventana”.» ¿Qué tipo de discurso es?",
              "ops": ["Directo", "Indirecto", "Ninguno"],
              "m": "Las comillas reproducen las palabras exactas."},
@@ -13129,9 +13079,13 @@ CATALOGO = [
             {"q": "«Detrás mío» debería decirse…", "ops": ["Detrás de mí", "Detrás mía",
                      "Atrás mío"],
              "m": "Los adverbios de lugar no admiten posesivo."},
-            {"q": "«Se lo dije a los chicos» debería ser…", "ops": ["Se los dije… no: «Se lo dije a los chicos» está bien",
-                     "Se les dije", "Los se dije"],
-             "m": "El «se» reemplaza al plural; el «lo» se refiere a lo dicho, que es singular."},
+            # Estaba al revés y con una nota mía adentro de la opción: preguntaba por la
+            # forma CORRECTA como si estuviera mal, y la respuesta decía "…no: está bien"
+            # (30-jul-2026). Se da vuelta la pregunta y queda limpia.
+            {"q": "«Se los dije a los chicos» debería ser…",
+             "ops": ["Se lo dije a los chicos", "Se les dije a los chicos", "Está bien así"],
+             "m": "Lo dicho es UNA cosa: va «lo». El plural ya está en «se», que reemplaza "
+                  "a «les». «Se los dije» es un error muy común."},
             {"q": "«Le dije a mis primos» debería ser…", "ops": ["Les dije a mis primos",
                      "Le dije a mi primos", "Lo dije a mis primos"],
              "m": "El pronombre tiene que concordar en número con el objeto indirecto."},
@@ -14117,9 +14071,7 @@ CATALOGO = [
              "ops": ["Alojar y nutrir al embrión durante el embarazo",
                      "Producir óvulos", "Transportar la orina"],
              "m": "Producir óvulos es función del ovario."},
-            {"q": "¿Dónde ocurre habitualmente la fecundación?",
-             "ops": ["En la trompa de Falopio", "En el útero", "En el ovario"],
-             "m": "Después el cigoto viaja hasta el útero."},
+            {"q":"¿Qué función cumplen los ovarios?","ops":["Producen óvulos y hormonas","Transportan el óvulo","Alojan al embrión"],"m":"El transporte es de las trompas; el embarazo ocurre en el útero."},
             {"q": "¿Qué es la menarca?", "ops": ["La primera menstruación",
                      "El fin del ciclo menstrual", "La primera ovulación de la vida"],
              "m": "Marca el inicio de los ciclos, aunque al principio sean irregulares."},
@@ -15023,9 +14975,7 @@ CATALOGO = [
         "saber": {"id": "TRA-7-esi", "nombre": "Anticoncepción y prevención de ITS",
                   "prereqs": ["NAT-7-reproductor"]},
         "banco": [
-            {"q": "¿Qué método previene el embarazo Y las infecciones de transmisión sexual?",
-             "ops": ["El preservativo", "Las pastillas anticonceptivas", "El DIU"],
-             "m": "Es el único que funciona como barrera contra las dos cosas."},
+            {"q":"¿Qué método anticonceptivo es de larga duración?","ops":["El DIU","El preservativo","La anticoncepción de emergencia"],"m":"El DIU se coloca y dura años; los otros son de uso puntual."},
             {"q": "Las pastillas anticonceptivas, ¿protegen de las ITS?",
              "ops": ["No: sólo previenen el embarazo", "Sí, de todas", "Sí, de algunas"],
              "m": "Confundir esto es un riesgo real."},
@@ -15037,10 +14987,7 @@ CATALOGO = [
              "ops": ["Por relaciones sexuales sin protección, sangre y de madre a hijo",
                      "Por saliva y abrazos", "Por compartir el baño"],
              "m": "El contacto cotidiano NO lo transmite."},
-            {"q": "¿Se puede tener una ITS sin síntomas?",
-             "ops": ["Sí, por eso importan los controles", "No, siempre hay señales",
-                     "Sólo en adultos"],
-             "m": "Muchas cursan asintomáticas durante mucho tiempo."},
+            {"q":"¿El VIH y el sida son lo mismo?","ops":["No: el VIH es el virus y el sida es la etapa avanzada","Sí, son sinónimos","El sida es el virus y el VIH la enfermedad"],"m":"Con tratamiento se puede vivir con VIH sin llegar nunca al sida."},
             {"q": "En la Argentina, ¿los métodos anticonceptivos en el sistema público son…?",
              "ops": ["Gratuitos", "Pagos", "Sólo para mayores de 21"],
              "m": "La ley garantiza el acceso gratuito y la consulta confidencial."},
@@ -15058,10 +15005,7 @@ CATALOGO = [
              "ops": ["Sí, y además es gratuito en el sistema público", "No, se informa a la familia",
                      "Sólo si sos mayor de edad"],
              "m": "La confidencialidad está protegida por ley."},
-            {"q": "¿Qué es el consentimiento?",
-             "ops": ["Estar de acuerdo de manera libre, y poder cambiar de opinión",
-                     "Aceptar porque te insistieron", "No decir nada"],
-             "m": "El silencio no es consentimiento, y aceptar bajo presión tampoco."},
+            {"q":"¿Cuál de estos NO es un método anticonceptivo?","ops":["Retirarse antes de eyacular","El implante subdérmico","El DIU"],"m":"Retirarse antes no es un método: el riesgo de embarazo sigue existiendo."},
             {"q": "¿El preservativo tiene fecha de vencimiento?",
              "ops": ["Sí, y hay que revisarla antes de usarlo", "No", "Sólo si está abierto"],
              "m": "También importa cómo se guardó: el calor lo daña."},
@@ -15089,10 +15033,7 @@ CATALOGO = [
              "ops": ["Una señal de alarma: hay que contarlo enseguida",
                      "Una muestra de confianza", "Algo normal"],
              "m": "El pedido de secreto frente a los adultos que te cuidan es la señal más clara."},
-            {"q": "¿Qué es el grooming?",
-             "ops": ["Cuando un adulto contacta a un menor por medios digitales para dañarlo",
-                     "Un juego en línea", "Un tipo de estafa bancaria"],
-             "m": "En la Argentina es un delito tipificado en el Código Penal."},
+            {"q":"¿Cuál es una señal de alerta en un chat?","ops":["Que te pida guardar el secreto","Que te mande un sticker","Que escriba con faltas de ortografía"],"m":"Pedir secreto es la señal más típica: te separa de los adultos que te cuidan."},
             {"q": "¿Dónde se puede denunciar en la Argentina?",
              "ops": ["En la línea 137 o en la fiscalía especializada", "En ningún lado",
                      "Sólo en la escuela"],
@@ -15109,10 +15050,7 @@ CATALOGO = [
              "ops": ["Siempre del adulto", "Del menor por haber aceptado",
                      "De los dos por igual"],
              "m": "Esto es importante: la culpa nunca es del chico."},
-            {"q": "¿Qué información NO conviene publicar?",
-             "ops": ["Dirección, escuela, horarios y ubicación en tiempo real",
-                     "Tu película favorita", "Un dibujo que hiciste"],
-             "m": "Los datos que permiten ubicarte físicamente son los sensibles."},
+            {"q":"Si alguien te incomoda por chat, ¿qué conviene hacer primero?","ops":["Contarle a un adulto de confianza y no borrar los mensajes","Bloquear y borrar todo","Contestarle para que pare"],"m":"Los mensajes son la prueba: borrarlos deja la denuncia sin respaldo."},
             {"q": "¿Para qué sirve tener el perfil privado?",
              "ops": ["Para que sólo vean tus cosas quienes vos aceptás",
                      "Para tener más seguidores", "Para que la app ande mejor"],
@@ -15487,8 +15425,94 @@ def actividades_de(grado=None, area=None):
             and (area is None or a["area"] == area)]
 
 
+def _orden_dc(a):
+    """Posición de una actividad en el Diseño Curricular, sacada de su `fuente`.
+
+    La `fuente` termina en el código del DC (`docs/auditoria-dc-caba/grado-2.md · L3`) y
+    ese código ES el orden del programa: L1 antes que L2, M1 antes que M2. Hasta el
+    30-jul-2026 el menú salía en el orden en que estaban escritas en el archivo, y lo que
+    se fue agregando después quedó pegado al final: en 2.º Lengua, 12 de 14 tarjetas
+    estaban fuera de lugar, y "Club de lectura" —que es L1, por donde el DC arranca el
+    año— aparecía última de todas.
+
+    Las que no tienen número (`L`, `M`) van al FINAL de su eje: no están en la secuencia
+    del programa, así que no pueden robarle el primer lugar a la que sí lo abre. Ponerlas
+    primero dejaba Lengua de 5.º empezando por "¿Qué clase de palabra es?" en vez de por
+    "Club de lectura", que es L1.
+
+    El prefijo entra en la clave para que cada eje quede junto (M con M, L con L)."""
+    cod = (a.get("fuente") or "").split("·")[-1].strip()
+    m = re.match(r"([A-Za-z]+)(\d*)", cod)
+    if not m:
+        return ("ZZ", 999)
+    return (m.group(1).upper(), int(m.group(2)) if m.group(2) else 999)
+
+
+def _orden_pedagogico(acts):
+    """`acts` ordenadas por el DC pero respetando los PRERREQUISITOS.
+
+    Pablo, 30-jul-2026: *"en primer grado no tiene que aparecer armar una frase cuando
+    todavía no sabe las vocales"*. El código del DC solo no alcanza: hay actividades que
+    dependen de otra que el programa numera después, y ordenar sólo por número las ponía
+    antes que aquello que necesitan. Medido: 5 casos, 2 de ellos introducidos por el
+    propio orden por código.
+
+    Los prerrequisitos ya están declarados —205 relaciones en `saberes.py`, campo
+    `prerrequisitos`— y nadie los estaba usando para ordenar el menú.
+
+    Es un orden topológico con el código del DC de desempate: entre dos actividades que
+    no dependen una de la otra, primero va la que el programa da primero. Si hubiera un
+    ciclo (A necesita B y B necesita A), no se cuelga: lo que quede sin poder ubicarse
+    sale al final en orden de DC, que es lo que se hacía antes."""
+    try:
+        import saberes
+        SAB = saberes.SABERES
+    except Exception:
+        return sorted(acts, key=_orden_dc)
+
+    def _pre(sid):
+        s = SAB.get(sid) or {}
+        return list(s.get("prerrequisitos") or s.get("prereqs") or [])
+
+    ids = {a["id"] for a in acts}
+    juego_de_saber = {}
+    for sid, s in SAB.items():
+        for j in (s.get("juegos") or []):
+            if j in ids:
+                juego_de_saber.setdefault(sid, []).append(j)
+    # qué juegos de ESTE grado tiene que venir antes que cada juego
+    necesita = {a["id"]: set() for a in acts}
+    for sid, s in SAB.items():
+        for j in (s.get("juegos") or []):
+            if j not in ids:
+                continue
+            for pre in _pre(sid):
+                for jp in juego_de_saber.get(pre, []):
+                    if jp != j:
+                        necesita[j].add(jp)
+
+    pendientes = sorted(acts, key=_orden_dc)
+    salida, puestos = [], set()
+    while pendientes:
+        # el primero (en orden de DC) que ya tenga todos sus prerrequisitos puestos
+        libre = next((a for a in pendientes if necesita[a["id"]] <= puestos), None)
+        if libre is None:                 # ciclo o dependencia externa: no colgarse
+            salida.extend(pendientes)
+            break
+        pendientes.remove(libre)
+        salida.append(libre)
+        puestos.add(libre["id"])
+    return salida
+
+
 def menu_de_grado(grado):
-    """Entradas de menú (mismo formato que `actividades_web._menu`) para ese grado."""
+    """Entradas de menú (mismo formato que `actividades_web._menu`) para ese grado.
+
+    Ordenadas por el DC y respetando los prerrequisitos (ver `_orden_pedagogico`). En el
+    cuaderno con motor adaptativo el player las reagrupa por categoría y las ordena por lo
+    que le conviene hacer al chico ahora (`Adapt.peso`); como ese sort es ESTABLE, este
+    orden queda de desempate — entre dos actividades igual de recomendadas, primero va la
+    que corresponde antes."""
     # las que GENERAN el ejercicio (paramétrica y manipular) no tienen banco: van a
     # rondas fijas. (Este `len(a["banco"])` sin guarda tiraba KeyError y, como
     # `_menu_curricular` atrapa cualquier excepción para no dejar al chico sin cuaderno,
@@ -15498,7 +15522,7 @@ def menu_de_grado(grado):
     return [{"id": a["id"], "titulo": a["titulo"], "icono": a["icono"],
              "cfg": {"rondas": 10 if a["mecanica"] in SIN_BANCO
                      else min(10, max(6, len(a["banco"]) // 2))}}
-            for a in actividades_de(grado)]
+            for a in _orden_pedagogico(actividades_de(grado))]
 
 
 def categorias():

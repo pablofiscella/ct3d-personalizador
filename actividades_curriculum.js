@@ -1510,13 +1510,13 @@ const CUR_ADIVINA_FIGURA_BANCO = [
     "m": "Hexa- significa seis."
   },
   {
-    "q": "Un cuadrado apoyado en una punta, ¿deja de ser cuadrado?",
+    "q": "¿En qué se diferencian un cuadrado y un rombo?",
     "ops": [
-      "No, sigue siendo cuadrado",
-      "Sí, pasa a ser rombo",
-      "Sí, pasa a ser triángulo"
+      "El cuadrado tiene los ángulos rectos",
+      "El rombo tiene más lados",
+      "El cuadrado no se puede girar"
     ],
-    "m": "Girar la figura no la cambia: sigue teniendo 4 lados iguales y ángulos rectos."
+    "m": "Los dos tienen 4 lados iguales; sólo el cuadrado tiene ángulos rectos."
   },
   {
     "q": "¿Cuántas esquinas rectas tiene un triángulo cualquiera?",
@@ -2882,13 +2882,13 @@ const CUR_DEMOCRACIA_ARGENTINA_BANCO = [
     "m": "El poder viene del voto de la gente y se renueva."
   },
   {
-    "q": "¿En qué año volvió la democracia a la Argentina?",
+    "q": "¿Qué se elige en una elección legislativa?",
     "ops": [
-      "1983",
-      "1810",
-      "2001"
+      "Diputados y senadores",
+      "El presidente",
+      "Los jueces"
     ],
-    "m": "En 1983, después de la última dictadura militar."
+    "m": "El Poder Legislativo se renueva por partes, no todo junto."
   },
   {
     "q": "¿Qué pasó durante la última dictadura (1976-1983)?",
@@ -2972,13 +2972,13 @@ const CUR_DEMOCRACIA_ARGENTINA_BANCO = [
     "m": "El pluralismo es parte de lo que hace democrática a una elección."
   },
   {
-    "q": "¿Qué significa «Nunca Más»?",
+    "q": "¿Por qué el voto es obligatorio en la Argentina?",
     "ops": [
-      "El compromiso de que no se repita el terrorismo de Estado",
-      "Que no haya elecciones",
-      "Que no se hable del pasado"
+      "Porque votar es un derecho y también un deber cívico",
+      "Porque lo decide cada provincia",
+      "Porque hay pocos votantes"
     ],
-    "m": "Da nombre al informe de la CONADEP y sintetiza ese compromiso."
+    "m": "Desde 1912 el voto es universal, secreto y obligatorio."
   },
   {
     "q": "¿Los derechos humanos se pueden perder?",
@@ -7678,13 +7678,13 @@ const CUR_HOMOFONOS_5_BANCO = [
     "m": "Hermoso es 'bello', con B."
   },
   {
-    "q": "Se ___ el pelo todas las mañanas.",
+    "q": "Saltó la ___ del jardín.",
     "ops": [
-      "ata",
-      "hata",
-      "haya"
+      "valla",
+      "vaya",
+      "baya"
     ],
-    "m": "Del verbo atar, sin H."
+    "m": "La valla es la cerca; vaya es del verbo ir; la baya es un fruto."
   },
   {
     "q": "Espero que ___ llegado bien.",
@@ -9062,13 +9062,13 @@ const CUR_DIVISIBILIDAD_5_BANCO = [
     "m": "Los que tienen sólo dos divisores se llaman primos."
   },
   {
-    "q": "¿Cuál de estos es primo?",
+    "q": "¿Cuál es el mayor divisor común de 12 y 18?",
     "ops": [
-      "13",
-      "15",
-      "21"
+      "6",
+      "12",
+      "3"
     ],
-    "m": "13 sólo se divide por 1 y por 13. Los otros dos tienen más divisores."
+    "m": "6 divide a los dos y es el más grande que lo hace."
   },
   {
     "q": "¿El 1 es primo?",
@@ -12048,13 +12048,13 @@ const CUR_CONECTORES_3_BANCO = [
     "m": "Contraste: pasó lo contrario de lo esperado."
   },
   {
-    "q": "¿Para qué sirven los conectores?",
+    "q": "¿Qué agrega un conector como «pero»?",
     "ops": [
-      "Para unir las ideas de un texto",
-      "Para separar palabras",
-      "Para poner mayúsculas"
+      "Una idea que va en contra de la anterior",
+      "Dos ideas que se suman",
+      "Una explicación de lo anterior"
     ],
-    "m": "Sin ellos el texto queda cortado y no se entiende la relación."
+    "m": "Pero, sin embargo y aunque oponen; y, además y también suman."
   }
 ];
 GAMES.conectores_3 = juegoTriviaTexto(CUR_CONECTORES_3_BANCO, "¿Qué palabra une mejor las dos partes?", "conectores");
@@ -13167,13 +13167,13 @@ const CUR_MEDIR_3_BANCO = [
     "m": "Los líquidos se miden en litros."
   },
   {
-    "q": "1 metro son…",
+    "q": "1 litro son…",
     "ops": [
-      "100 cm",
-      "10 cm",
-      "1.000 cm"
+      "1.000 ml",
+      "100 ml",
+      "10 ml"
     ],
-    "m": "Cien centímetros."
+    "m": "Mil mililitros entran en un litro."
   },
   {
     "q": "1 centímetro son…",
@@ -13946,13 +13946,13 @@ GAMES.compost_3 = juegoClasificar(CUR_COMPOST_3_BANCO, "¿Dónde va este residuo
    Fuente: docs/auditoria-dc-caba/grado-2.md · L1 */
 const CUR_SILABAS_2_BANCO = [
   {
-    "q": "«casa»",
+    "q": "«lluvia»",
     "ops": [
       "2",
-      "3",
-      "1"
+      "1",
+      "3"
     ],
-    "m": "ca-sa: dos golpes de voz."
+    "m": "llu-via: la ll no se separa."
   },
   {
     "q": "«chocolate»",
@@ -14000,22 +14000,22 @@ const CUR_SILABAS_2_BANCO = [
     "m": "que-so. La QU suena como una K."
   },
   {
-    "q": "«mariposa»",
+    "q": "«carretilla»",
     "ops": [
       "4",
       "3",
       "5"
     ],
-    "m": "ma-ri-po-sa."
+    "m": "ca-rre-ti-lla: ni la rr ni la ll se parten."
   },
   {
-    "q": "«sol»",
+    "q": "«cuchara»",
     "ops": [
-      "1",
+      "3",
       "2",
-      "3"
+      "4"
     ],
-    "m": "Una sola sílaba."
+    "m": "cu-cha-ra: la ch es una sola letra y no se parte."
   },
   {
     "q": "«escuela»",
@@ -14045,13 +14045,13 @@ const CUR_SILABAS_2_BANCO = [
     "m": "Se llaman dígrafos: dos letras, un sonido."
   },
   {
-    "q": "«pelota»",
+    "q": "«pollito»",
     "ops": [
       "3",
       "2",
       "4"
     ],
-    "m": "pe-lo-ta."
+    "m": "po-lli-to: la ll va entera en su sílaba."
   }
 ];
 GAMES.silabas_2 = juegoTriviaTexto(CUR_SILABAS_2_BANCO, "¿Cuántas sílabas tiene?", "silabas_2");
@@ -14424,13 +14424,13 @@ const CUR_SIGNOS_2_BANCO = [
     "m": "La exclamación también se abre y se cierra."
   },
   {
-    "q": "¿Con qué empieza siempre una oración?",
+    "q": "¿Qué lleva una pregunta escrita en castellano?",
     "ops": [
-      "Con mayúscula",
-      "Con minúscula",
-      "Con coma"
+      "Signo de apertura y de cierre",
+      "Sólo el de cierre",
+      "Sólo un punto"
     ],
-    "m": "Después de un punto, mayúscula."
+    "m": "En castellano la pregunta se abre con ¿ y se cierra con ?."
   },
   {
     "q": "«compré pan, leche ___ fruta»",
@@ -14611,13 +14611,13 @@ const CUR_SEPARAR_PALABRAS_2_BANCO = [
     "m": "Dos palabras."
   },
   {
-    "q": "¿Cómo se sabe dónde termina una palabra?",
+    "q": "«Miamigo» está mal escrito. ¿Por qué?",
     "ops": [
-      "Por lo que significa cada una",
-      "Por el tamaño",
-      "Por la primera letra"
+      "Son dos palabras: mi amigo",
+      "Le falta una tilde",
+      "Va con mayúscula"
     ],
-    "m": "Cada palabra tiene su significado propio."
+    "m": "«Mi» y «amigo» son dos palabras y van separadas."
   },
   {
     "q": "¿«lo hice» o «lohice»?",
@@ -16287,13 +16287,13 @@ const CUR_VIAL_2_BANCO = [
     "m": "La senda es donde el auto espera que cruces."
   },
   {
-    "q": "Antes de cruzar, ¿qué hacés?",
+    "q": "¿Qué avisa una señal triangular con borde rojo?",
     "ops": [
-      "Mirar para los dos lados",
-      "Correr",
-      "Mirar el celular"
+      "Un peligro adelante",
+      "Una prohibición",
+      "Un lugar para estacionar"
     ],
-    "m": "Los autos vienen de los dos sentidos."
+    "m": "El triángulo siempre avisa peligro; el círculo rojo prohíbe."
   },
   {
     "q": "¿De qué lado de la vereda se camina?",
@@ -16341,22 +16341,22 @@ const CUR_VIAL_2_BANCO = [
     "m": "Tiene prioridad."
   },
   {
-    "q": "¿Se puede jugar a la pelota en la calle?",
+    "q": "¿Qué forma tienen las señales que PROHÍBEN algo?",
     "ops": [
-      "No, es peligroso",
-      "Sí, si hay pocos autos",
-      "Sí, de noche"
+      "Redondas con borde rojo",
+      "Cuadradas verdes",
+      "Triangulares azules"
     ],
-    "m": "La calle es de los vehículos."
+    "m": "El círculo con borde rojo prohíbe."
   },
   {
-    "q": "Al bajar del auto, ¿por qué puerta salís?",
+    "q": "Si el semáforo de los autos está en verde, para el peatón está…",
     "ops": [
-      "Por la de la vereda",
-      "Por la de la calle",
-      "Por cualquiera"
+      "En rojo",
+      "También en verde",
+      "En amarillo"
     ],
-    "m": "Del lado de la calle pasan los autos."
+    "m": "Cuando los autos avanzan, el peatón espera."
   },
   {
     "q": "El cartel PARE le indica al conductor…",
@@ -19634,13 +19634,13 @@ const CUR_GEOMETRIA_5_BANCO = [
     "m": "90 + 90 = 180 y no quedaría nada para el tercero."
   },
   {
-    "q": "Si desarmás un cubo y lo aplanás, obtenés…",
+    "q": "¿Cuántos desarrollos planos distintos tiene un cubo?",
     "ops": [
-      "Seis cuadrados unidos",
-      "Un cuadrado grande",
-      "Cuatro triángulos"
+      "11",
+      "6",
+      "1"
     ],
-    "m": "Eso se llama desarrollo plano."
+    "m": "Hay once formas de aplanarlo que no son la misma girada."
   },
   {
     "q": "El desarrollo de un cilindro tiene…",
@@ -19767,13 +19767,13 @@ const CUR_ECLIPSES_5_BANCO = [
     "m": "La órbita de la Luna está inclinada: casi siempre pasa por arriba o por abajo."
   },
   {
-    "q": "¿La Luna tiene luz propia?",
+    "q": "¿Por qué no hay un eclipse de Sol todos los meses?",
     "ops": [
-      "No, refleja la del Sol",
-      "Sí",
-      "Sólo en luna llena"
+      "Porque la órbita de la Luna está inclinada",
+      "Porque la Luna se apaga",
+      "Porque el Sol cambia de lugar"
     ],
-    "m": "Es un espejo, no una lámpara."
+    "m": "Casi siempre la sombra pasa por arriba o por debajo de la Tierra."
   },
   {
     "q": "¿Se puede mirar un eclipse de Sol a ojo desnudo?",
@@ -22201,13 +22201,13 @@ const CUR_MODA_ENCUESTA_6_BANCO = [
     "m": "El 20% de 50 es 10. El 20 es el porcentaje, no la cantidad."
   },
   {
-    "q": "¿Para qué sirve un gráfico circular (torta)?",
+    "q": "En un gráfico circular, ¿qué representa el círculo entero?",
     "ops": [
-      "Para ver qué parte del total es cada categoría",
-      "Para ver cómo cambia algo en el tiempo",
-      "Para contar personas una por una"
+      "El 100% de los encuestados",
+      "El valor más alto",
+      "La cantidad de preguntas"
     ],
-    "m": "La torta muestra partes de un todo; la evolución en el tiempo se ve mejor en un gráfico de líneas."
+    "m": "Cada porción es una parte de ese total."
   },
   {
     "q": "En 7-7-7-2-9, ¿cuál es la moda?",
@@ -23557,13 +23557,13 @@ const CUR_OD_OI_6_BANCO = [
     "m": "Se reemplaza por LE. El regalo es el OD."
   },
   {
-    "q": "¿Con qué pronombre se reemplaza el objeto directo?",
+    "q": "«Juan corre en la plaza.» ¿Tiene objeto directo?",
     "ops": [
-      "LO o LA",
-      "LE",
-      "SE"
+      "No, correr es intransitivo",
+      "Sí, «en la plaza»",
+      "Sí, «Juan»"
     ],
-    "m": "LE es la marca del indirecto."
+    "m": "Correr no admite OD: lo que sigue es un circunstancial de lugar."
   },
   {
     "q": "¿Qué es un verbo transitivo?",
@@ -26754,13 +26754,13 @@ const CUR_DEMOGRAFIA_6_BANCO = [
     "m": "La base son los grupos de menor edad."
   },
   {
-    "q": "¿Qué es la densidad de población?",
+    "q": "¿Qué es la tasa de mortalidad infantil?",
     "ops": [
-      "La cantidad de habitantes por kilómetro cuadrado",
-      "La cantidad total de habitantes",
-      "Cuánta gente nace por año"
+      "Cuántos bebés mueren antes del año por cada mil nacidos",
+      "Cuántos chicos hay en el país",
+      "Cuánto vive un adulto"
     ],
-    "m": "Relaciona población con superficie: no es lo mismo que el total."
+    "m": "Es uno de los indicadores más usados para medir las condiciones de vida."
   },
   {
     "q": "¿Cada cuánto se realiza el censo nacional en la Argentina?",
@@ -26781,13 +26781,13 @@ const CUR_DEMOGRAFIA_6_BANCO = [
     "m": "Más personas llegan a edades avanzadas."
   },
   {
-    "q": "¿Qué es la migración interna?",
+    "q": "Si un país tiene más adultos mayores que chicos, ¿qué se espera?",
     "ops": [
-      "El traslado de personas dentro del mismo país",
-      "La llegada de personas de otros países",
-      "La salida hacia el exterior"
+      "Que necesite más servicios de salud",
+      "Que suba la natalidad",
+      "Que baje la esperanza de vida"
     ],
-    "m": "El éxodo del campo a la ciudad es el ejemplo clásico."
+    "m": "La estructura por edades cambia lo que hay que planificar."
   },
   {
     "q": "En la Argentina, ¿cómo se distribuye la población?",
@@ -27374,13 +27374,13 @@ const CUR_BLOQUES_CODIGO_6_BANCO = [
     "m": "Es una pausa, no una repetición."
   },
   {
-    "q": "¿Qué es un evento en programación por bloques?",
+    "q": "¿Para qué sirve agrupar bloques en un procedimiento?",
     "ops": [
-      "Algo que dispara la ejecución, como tocar una tecla",
-      "El final del programa",
-      "Un tipo de variable"
+      "Para reusar la misma secuencia sin repetirla",
+      "Para que el programa corra más rápido",
+      "Para esconder los errores"
     ],
-    "m": "«Al presionar bandera verde» es el evento más típico."
+    "m": "Si hay que cambiarla, se cambia en un solo lugar."
   },
   {
     "q": "Si un programa da un resultado incorrecto, ¿qué hay que hacer?",
@@ -27523,22 +27523,22 @@ GAMES.etapas_diseno_6 = juegoOrdenar(CUR_ETAPAS_DISENO_6_BANCO, "Ordená el proc
    Fuente: docs/auditoria-dc-caba/grado-6.md · T5 */
 const CUR_SENSORES_6_BANCO = [
   {
-    "q": "¿Qué hace un sensor?",
+    "q": "¿Qué diferencia hay entre un sensor digital y uno analógico?",
     "ops": [
-      "Detecta una magnitud y la convierte en señal",
-      "Ejecuta una acción",
-      "Muestra información en pantalla"
+      "El digital da dos estados y el analógico muchos valores",
+      "El digital es más rápido",
+      "El analógico no necesita corriente"
     ],
-    "m": "Ejecutar la acción es tarea del actuador."
+    "m": "Un pulsador dice sí o no; uno de temperatura da toda una escala."
   },
   {
-    "q": "¿Qué es un actuador?",
+    "q": "En un control reactivo, ¿qué pasa si falla el sensor?",
     "ops": [
-      "El componente que ejecuta la acción, como un motor",
-      "El que detecta la temperatura",
-      "El que muestra los datos"
+      "El sistema decide a ciegas",
+      "Se apaga solo",
+      "El actuador lo reemplaza"
     ],
-    "m": "El sensor detecta, el actuador hace."
+    "m": "Sin la entrada, la decisión se toma sin la información que hacía falta."
   },
   {
     "q": "«Si la humedad de la tierra baja, activá el riego.» ¿Qué tipo de control es?",
@@ -27755,13 +27755,13 @@ const CUR_CHAT_SEGURO_6_BANCO = [
     "m": "Esto es importante: la culpa nunca es del chico, y no hablar por vergüenza es lo que el adulto busca."
   },
   {
-    "q": "¿Adónde se puede denunciar en la Argentina?",
+    "q": "¿Está bien aceptar como contacto a alguien que no conocés?",
     "ops": [
-      "A la línea 137 o a la fiscalía especializada",
-      "A ningún lado",
-      "Sólo a la escuela"
+      "No, aunque diga tener tu edad",
+      "Sí, si tienen amigos en común",
+      "Sí, si dice ser de tu barrio"
     ],
-    "m": "Hay organismos del Estado dedicados específicamente a esto."
+    "m": "En internet la edad que alguien dice tener no se puede comprobar."
   },
   {
     "q": "Un desconocido te ofrece regalos o dinero por chat. ¿Qué hacés?",
@@ -28947,13 +28947,13 @@ const CUR_MULTIPLICAR_FRACCIONES_7_BANCO = [
     "m": "3 es 3/1, así que se multiplica por 1/3: 3/15 = 1/5."
   },
   {
-    "q": "¿Cómo se multiplican dos fracciones?",
+    "q": "¿Cómo se dividen dos fracciones?",
     "ops": [
-      "Numerador por numerador y denominador por denominador",
-      "Buscando común denominador",
-      "Invirtiendo la primera"
+      "Se multiplica por la inversa de la segunda",
+      "Se dividen arriba y abajo",
+      "Se busca denominador común"
     ],
-    "m": "El común denominador hace falta para sumar, no para multiplicar."
+    "m": "Dividir por 1/4 es multiplicar por 4: por eso se da vuelta la segunda."
   },
   {
     "q": "1/2 × 1/2 × 1/2 =",
@@ -28999,13 +28999,13 @@ const CUR_DECIMALES_PERIODO_7_BANCO = [
     "m": "El 3 se repite para siempre: es una expresión periódica."
   },
   {
-    "q": "1 ÷ 4 =",
+    "q": "3 ÷ 8 =",
     "ops": [
-      "0,25 (exacta)",
-      "0,4",
-      "0,25 periódica"
+      "0,375 (exacta)",
+      "0,38 periódica",
+      "2,6"
     ],
-    "m": "La división termina: no hay período."
+    "m": "El denominador 8 sólo tiene factores 2: por eso la división corta."
   },
   {
     "q": "¿Qué es una expresión decimal periódica?",
@@ -29098,13 +29098,13 @@ const CUR_DECIMALES_PERIODO_7_BANCO = [
     "m": "El período es el grupo de cifras que se repite."
   },
   {
-    "q": "7 ÷ 2 =",
+    "q": "1 ÷ 7 =",
     "ops": [
-      "3,5",
-      "3",
-      "0,35"
+      "0,142857… (periódica)",
+      "0,14 exacta",
+      "7"
     ],
-    "m": "Sobra 1 y se sigue después de la coma: no se trunca."
+    "m": "El período de 1/7 tiene seis cifras que se repiten."
   },
   {
     "q": "0,3 × 0,3 =",
@@ -30830,13 +30830,13 @@ const CUR_CRONICA_7_BANCO = [
     "m": "La noticia usa pirámide invertida; la crónica recupera la secuencia."
   },
   {
-    "q": "¿Qué es la pirámide invertida?",
+    "q": "¿Qué diferencia a una crónica de una noticia?",
     "ops": [
-      "Poner lo más importante al principio",
-      "Poner lo más importante al final",
-      "Contar en orden cronológico"
+      "La crónica narra el hecho en orden y con detalle",
+      "La crónica es más corta",
+      "La noticia lleva opinión"
     ],
-    "m": "Si el lector abandona a la mitad, ya se enteró de lo esencial."
+    "m": "La noticia informa lo esencial; la crónica cuenta cómo pasó."
   },
   {
     "q": "«El testigo dijo: “Vi todo desde la ventana”.» ¿Qué tipo de discurso es?",
@@ -31132,13 +31132,13 @@ const CUR_AMBIGUEDAD_7_BANCO = [
     "m": "Los adverbios de lugar no admiten posesivo."
   },
   {
-    "q": "«Se lo dije a los chicos» debería ser…",
+    "q": "«Se los dije a los chicos» debería ser…",
     "ops": [
-      "Se los dije… no: «Se lo dije a los chicos» está bien",
-      "Se les dije",
-      "Los se dije"
+      "Se lo dije a los chicos",
+      "Se les dije a los chicos",
+      "Está bien así"
     ],
-    "m": "El «se» reemplaza al plural; el «lo» se refiere a lo dicho, que es singular."
+    "m": "Lo dicho es UNA cosa: va «lo». El plural ya está en «se», que reemplaza a «les». «Se los dije» es un error muy común."
   },
   {
     "q": "«Le dije a mis primos» debería ser…",
@@ -33328,13 +33328,13 @@ const CUR_REPRODUCTOR_7_BANCO = [
     "m": "Producir óvulos es función del ovario."
   },
   {
-    "q": "¿Dónde ocurre habitualmente la fecundación?",
+    "q": "¿Qué función cumplen los ovarios?",
     "ops": [
-      "En la trompa de Falopio",
-      "En el útero",
-      "En el ovario"
+      "Producen óvulos y hormonas",
+      "Transportan el óvulo",
+      "Alojan al embrión"
     ],
-    "m": "Después el cigoto viaja hasta el útero."
+    "m": "El transporte es de las trompas; el embarazo ocurre en el útero."
   },
   {
     "q": "¿Qué es la menarca?",
@@ -35162,13 +35162,13 @@ GAMES.industria_40_7 = juegoTriviaTexto(CUR_INDUSTRIA_40_7_BANCO, "Pensá cómo 
    Fuente: docs/auditoria-dc-caba/grado-7.md · X1 */
 const CUR_ANTICONCEPCION_7_BANCO = [
   {
-    "q": "¿Qué método previene el embarazo Y las infecciones de transmisión sexual?",
+    "q": "¿Qué método anticonceptivo es de larga duración?",
     "ops": [
+      "El DIU",
       "El preservativo",
-      "Las pastillas anticonceptivas",
-      "El DIU"
+      "La anticoncepción de emergencia"
     ],
-    "m": "Es el único que funciona como barrera contra las dos cosas."
+    "m": "El DIU se coloca y dura años; los otros son de uso puntual."
   },
   {
     "q": "Las pastillas anticonceptivas, ¿protegen de las ITS?",
@@ -35198,13 +35198,13 @@ const CUR_ANTICONCEPCION_7_BANCO = [
     "m": "El contacto cotidiano NO lo transmite."
   },
   {
-    "q": "¿Se puede tener una ITS sin síntomas?",
+    "q": "¿El VIH y el sida son lo mismo?",
     "ops": [
-      "Sí, por eso importan los controles",
-      "No, siempre hay señales",
-      "Sólo en adultos"
+      "No: el VIH es el virus y el sida es la etapa avanzada",
+      "Sí, son sinónimos",
+      "El sida es el virus y el VIH la enfermedad"
     ],
-    "m": "Muchas cursan asintomáticas durante mucho tiempo."
+    "m": "Con tratamiento se puede vivir con VIH sin llegar nunca al sida."
   },
   {
     "q": "En la Argentina, ¿los métodos anticonceptivos en el sistema público son…?",
@@ -35252,13 +35252,13 @@ const CUR_ANTICONCEPCION_7_BANCO = [
     "m": "La confidencialidad está protegida por ley."
   },
   {
-    "q": "¿Qué es el consentimiento?",
+    "q": "¿Cuál de estos NO es un método anticonceptivo?",
     "ops": [
-      "Estar de acuerdo de manera libre, y poder cambiar de opinión",
-      "Aceptar porque te insistieron",
-      "No decir nada"
+      "Retirarse antes de eyacular",
+      "El implante subdérmico",
+      "El DIU"
     ],
-    "m": "El silencio no es consentimiento, y aceptar bajo presión tampoco."
+    "m": "Retirarse antes no es un método: el riesgo de embarazo sigue existiendo."
   },
   {
     "q": "¿El preservativo tiene fecha de vencimiento?",
@@ -35304,13 +35304,13 @@ const CUR_ALERTA_EN_LINEA_7_BANCO = [
     "m": "El pedido de secreto frente a los adultos que te cuidan es la señal más clara."
   },
   {
-    "q": "¿Qué es el grooming?",
+    "q": "¿Cuál es una señal de alerta en un chat?",
     "ops": [
-      "Cuando un adulto contacta a un menor por medios digitales para dañarlo",
-      "Un juego en línea",
-      "Un tipo de estafa bancaria"
+      "Que te pida guardar el secreto",
+      "Que te mande un sticker",
+      "Que escriba con faltas de ortografía"
     ],
-    "m": "En la Argentina es un delito tipificado en el Código Penal."
+    "m": "Pedir secreto es la señal más típica: te separa de los adultos que te cuidan."
   },
   {
     "q": "¿Dónde se puede denunciar en la Argentina?",
@@ -35349,13 +35349,13 @@ const CUR_ALERTA_EN_LINEA_7_BANCO = [
     "m": "Esto es importante: la culpa nunca es del chico."
   },
   {
-    "q": "¿Qué información NO conviene publicar?",
+    "q": "Si alguien te incomoda por chat, ¿qué conviene hacer primero?",
     "ops": [
-      "Dirección, escuela, horarios y ubicación en tiempo real",
-      "Tu película favorita",
-      "Un dibujo que hiciste"
+      "Contarle a un adulto de confianza y no borrar los mensajes",
+      "Bloquear y borrar todo",
+      "Contestarle para que pare"
     ],
-    "m": "Los datos que permiten ubicarte físicamente son los sensibles."
+    "m": "Los mensajes son la prueba: borrarlos deja la denuncia sin respaldo."
   },
   {
     "q": "¿Para qué sirve tener el perfil privado?",
