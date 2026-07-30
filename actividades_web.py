@@ -1504,7 +1504,7 @@ def _armar_data(tema, nombre, edad, seed, escolar=False):
         tams_chicos = [3, 4, 4]
         laberintos_chicos = [_lab_json(n, seed + 900 + i * 23) for i, n in enumerate(tams_chicos)]
 
-    titulo = ("Las actividades de %s" % nombre) if nombre else "Cuaderno de actividades"
+    titulo = titulo_cuaderno(nombre, edad, escolar=escolar)
     menu_niv = _marcar_niveles(_menu(banda, edad, escolar) + _menu_curricular(edad))
     return {
         "v": 1, "tema": tema, "tema_nombre": _mundo_de_grado(edad, escolar) or _tema_nombre(tema),
@@ -2500,9 +2500,41 @@ def preview_mock_extra(data, tema, indice):
     return preview_mock(data, tema)
 
 
+NOMBRE_RELLENO = "Peque"     # el placeholder del formulario; espeja NOMBRE_GENERICO del player
+
+
+def titulo_cuaderno(nombre, edad=None, escolar=False):
+    """El título grande del cuaderno.
+
+    Tres casos, y el orden importa:
+
+    1. **Escolar** → "Cuaderno de N.º grado". Genérico a propósito (Pablo, 29-jul: vio
+       "Las actividades de Peque" en 7.º). A los 12 años, que el cuaderno te trate por el
+       nombre como a un nene de sala de 5 no ayuda; el grado sí dice algo.
+    2. **Cumpleaños con nombre de verdad** → "Las actividades de Sofía". Ahí el nombre ES
+       el regalo.
+    3. **Sin nombre, o con el placeholder** → genérico. `nombre` "Peque" venía del
+       formulario cuando nadie escribía el suyo, y se filtraba al título: 45 cuadernos
+       decían "Las actividades de Peque". Un nombre de relleno en el título es peor que
+       no tener nombre."""
+    if escolar:
+        try:
+            g = int(edad) - 5
+        except (TypeError, ValueError):
+            g = 0
+        if 1 <= g <= 7:
+            return "Cuaderno de %d.º grado" % g
+    n = (nombre or "").strip()
+    if n and n != NOMBRE_RELLENO:
+        return "Las actividades de %s" % n
+    return "Cuaderno de actividades"
+
+
 def _armar_data_liviano(tema, nombre, edad):
     """Solo lo que necesita la portada (sin generar puzzles)."""
     from cuaderno import _tema_nombre
-    titulo = ("Las actividades de %s" % nombre) if nombre else "Cuaderno de actividades"
+    # sin `escolar` acá: esto es sólo para la portada de preview. El caso del nombre de
+    # relleno igual queda cubierto.
+    titulo = titulo_cuaderno(nombre, edad)
     return {"titulo": titulo, "paleta": _paleta(tema),
             "tema_nombre": _tema_nombre(tema), "edad": edad}
