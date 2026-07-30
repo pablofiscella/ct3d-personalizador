@@ -4,12 +4,20 @@
 29-jul-2026. Pablo, jugando el cuaderno: *"nodos, que dice «pensá cómo está armada
 internet», y en cada pregunta lo repite hablando"*. Y después: *"pasa en varios"*.
 
-QUÉ PASABA. Los motores de banco vuelven a poner la consigna en pantalla en cada ronda
-—es correcto: el texto tiene que seguir visible— pero `ctx.consigna()` además la
+QUÉ PASABA. `juegoTriviaTexto` y `juegoOrdenar` vuelven a poner la MISMA consigna en cada
+ronda —el texto tiene que seguir visible, eso está bien— pero `ctx.consigna()` además la
 REPRODUCE. En una trivia de 14 preguntas, Valeria decía la misma frase catorce veces.
-Medido: **253 de las 325 actividades del catálogo** (trivia, paramétrica, ordenar y
-manipular) más 13 juegos propios del player. `juegoClasificar` ya estaba a salvo porque
-usaba `consignaVariada`; los otros tres motores, no.
+Medido: **219 de las 325 actividades del catálogo** (201 trivia + 18 ordenar) más 11 juegos
+propios del player. Las paramétricas y las de manipular NO estaban: ponen en la consigna la
+pregunta de cada ronda, que cambia sola. `juegoClasificar` ya usaba `consignaVariada`.
+
+CÓMO SE ARREGLÓ, EN DOS PASOS. Primero se calló la repetición en `ctx.consigna()`. Pablo lo
+escuchó y pidió algo mejor: *"cambiale el texto para que le pregunte de distintas formas en
+los más chicos, creo que es mejor que decirlo solo una vez y ya está"*. Tenía razón —
+callarse deja sin nada al chico que todavía no lee la pregunta de la pantalla— así que los
+dos motores pasaron a `consignaVariada(..., "q")`: ronda 0 la consigna completa, después
+frases cortas que rotan sin repetirse. El guardián de `ctx.consigna()` queda igual, como
+red por si aparece un juego nuevo que no use el helper.
 
 DÓNDE SE ARREGLÓ Y POR QUÉ AHÍ. En `ctx.consigna()`, no en cada motor. Son 76 juegos más
 el catálogo entero, y un juego nuevo volvería a traer el problema sin que nadie se
@@ -101,3 +109,50 @@ def test_los_motores_de_banco_siguen_poniendo_la_consigna():
         cuerpo = src[i:i + 3000]
         assert "ctx.consigna(" in cuerpo or "consignaVariada(" in cuerpo, \
             "%s dejó de poner la consigna en pantalla" % motor
+
+
+def test_los_motores_de_pregunta_varian_la_consigna():
+    """Pablo, 30-jul, viendo «¿Qué palabrita va adelante?» en 1.º: *"lo repite en todas
+    las preguntas… cambiale el texto para que le pregunte de distintas formas"*.
+
+    `juegoTriviaTexto` (201 actividades) y `juegoOrdenar` (18) ponían la MISMA consigna
+    en cada ronda. Ahora usan el rotador. Se mira el código porque son los dos motores
+    por los que pasa el 67% del catálogo."""
+    src = _src()
+    for motor in ("juegoTriviaTexto", "juegoOrdenar"):
+        i = src.index("function %s(" % motor)
+        cuerpo = src[i:src.index("\nfunction ", i + 10)]
+        assert 'consignaVariada(ctx, ronda,' in cuerpo, \
+            "%s volvió a repetir la consigna fija en cada ronda" % motor
+        assert '"q"' in cuerpo, "%s no usa el set de PREGUNTA" % motor
+
+
+def test_el_rotador_de_preguntas_no_repite_ni_se_queda_mudo():
+    """Ronda 0 la consigna completa; de ahí en más frases cortas, sin repetir dos
+    seguidas y sin dejar ninguna ronda en silencio."""
+    js = r"""
+const fs = require("fs");
+const src = fs.readFileSync(%s, "utf8");
+let js = "";
+for (const re of [/const CONSIGNA_CORTA_MASC =[^;]+;/, /const CONSIGNA_CORTA_FEM =[^;]+;/,
+                  /const CONSIGNA_CORTA_NEUTRO =[^;]+;/, /const CONSIGNA_CORTA_PREGUNTA =[\s\S]*?;/,
+                  /const _bolsaEstado = new WeakMap\(\);/, /function sacarDeBolsa[\s\S]*?\n}/,
+                  /function consignaVariada[\s\S]*?\n}/]) {
+  const m = src.match(re);
+  if (!m) { console.error("falta una pieza"); process.exit(1); }
+  js += m[0] + "\n";
+}
+const shuffle = (a) => a.slice().sort(() => Math.random() - 0.5);
+const dicho = [];
+const ctx = { consigna: (t) => dicho.push(t) };
+eval(js);
+for (let r = 0; r < 14; r++) consignaVariada(ctx, r, "LA CONSIGNA", "q");
+console.log(JSON.stringify(dicho));
+""" % json.dumps(PLAYER)
+    dicho = json.loads(_correr(js))
+    assert len(dicho) == 14, "alguna ronda se quedó sin consigna"
+    assert dicho[0] == "LA CONSIGNA", "la ronda 0 tiene que dar el contexto completo"
+    assert "LA CONSIGNA" not in dicho[1:], "volvió a decir la consigna larga"
+    seguidas = [i for i in range(1, len(dicho)) if dicho[i] == dicho[i - 1]]
+    assert not seguidas, "repitió la misma frase dos rondas seguidas: %s" % seguidas
+    assert len(set(dicho[1:])) >= 5, "muy poca variedad: %s" % sorted(set(dicho[1:]))

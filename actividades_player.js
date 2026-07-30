@@ -58,6 +58,14 @@ const _nsil = (w) => (String(w).toLowerCase().match(/[aeiouáéíóúü]+/g) || 
 const CONSIGNA_CORTA_MASC = ["¿Y este?", "¿Y este otro?", "¿Este también?", "¿Y ahora este?", "¿Qué decís de este?"];
 const CONSIGNA_CORTA_FEM = ["¿Y esta?", "¿Y esta otra?", "¿Esta también?", "¿Y ahora esta?", "¿Qué decís de esta?"];
 const CONSIGNA_CORTA_NEUTRO = ["¿Y esto?", "¿Y esto otro?", "¿Esto también?", "¿Y ahora esto?", "¿Qué decís de esto?"];
+// Para los juegos de PREGUNTA (trivia y paramétricas): ahí no se muestra un ítem que
+// clasificar sino una pregunta escrita, así que "¿y este?" no pega. Pablo, 30-jul-2026,
+// mirando "¿Qué palabrita va adelante?" en 1.º: *"dice todo el tiempo qué palabrita va
+// adelante y lo repite en todas las preguntas… cambiale el texto para que le pregunte de
+// distintas formas, creo que es mejor que decirlo solo una vez y ya está"*. Tenía razón:
+// callarse después de la primera deja al chico que todavía no lee sin nada.
+const CONSIGNA_CORTA_PREGUNTA = ["¿Y esta?", "¿Y esta otra?", "A ver esta", "Otra más",
+                                 "Seguimos", "¿Y ahora?", "Va otra"];
 // "Bolsa" sin repetir (15-jul-2026, Pablo: "después del tercero dijo 'y
 // este?' siempre lo mismo... que no se repita tanto" — con puro azar sobre
 // pocas opciones el mismo texto podía salir 2 veces seguidas fácil).
@@ -96,7 +104,9 @@ function sacarDeBolsa(ctx, key, set) {
 // fuerza concordancia con nada, es la opción segura ahí.
 function consignaVariada(ctx, ronda, textoLargo, genero) {
   if (ronda === 0) { _bolsaEstado.delete(ctx); ctx.consigna(textoLargo); return; }
-  const set = genero === "f" ? CONSIGNA_CORTA_FEM : genero === "n" ? CONSIGNA_CORTA_NEUTRO : CONSIGNA_CORTA_MASC;
+  const set = genero === "q" ? CONSIGNA_CORTA_PREGUNTA
+            : genero === "f" ? CONSIGNA_CORTA_FEM
+            : genero === "n" ? CONSIGNA_CORTA_NEUTRO : CONSIGNA_CORTA_MASC;
   ctx.consigna(sacarDeBolsa(ctx, "generica", set));
 }
 
@@ -8866,7 +8876,10 @@ function juegoOrdenar(BANCO, consignaTxt, explicaTxt, idPrefijo) {
       };
       const render = (setIdx) => {
         ctx.ronda(ronda);
-        ctx.consigna(consignaTxt);
+        // Ronda 0 dice la consigna completa; de ahí en más varía (Pablo, 30-jul:
+        // "que le pregunte de distintas formas"). Callarse dejaría sin nada al
+        // chico que todavía no lee la pregunta de la pantalla.
+        consignaVariada(ctx, ronda, consignaTxt, "q");
         ctx.item(idPrefijo + "#" + setIdx);
         ctx.juego.innerHTML = "";
         const correcto = BANCO[setIdx].items;                 // en ORDEN correcto
@@ -9183,7 +9196,10 @@ function juegoTriviaTexto(banco, consigna, idPrefix, rondasDefault) {
       let usados = [], ronda = 0;
       const jugar = () => {
         ctx.ronda(ronda);
-        ctx.consigna(consigna);
+        // Ronda 0 dice la consigna completa; de ahí en más varía (Pablo, 30-jul:
+        // "que le pregunte de distintas formas"). Callarse dejaría sin nada al
+        // chico que todavía no lee la pregunta de la pantalla.
+        consignaVariada(ctx, ronda, consigna, "q");
         ctx.juego.innerHTML = "";
         let libres = banco.map((_, i) => i).filter((i) => !usados.includes(i));
         if (!libres.length) { usados = []; libres = banco.map((_, i) => i); }
