@@ -5308,10 +5308,6 @@ const NIVEL_DIF = [
 const SIN_NIVEL_DIF = new Set([
   "camino_digestivo", "colorear", "linea_democracia", "planta_potabilizadora",
   "programar_camino", "puntos", "viaje_inmigrante", "suma_rapida",
-  // el rompecabezas no escala: la grilla la fija el GRADO (6 piezas en 1.º, 9 en 2.º).
-  // Sin esto el festejo le prometía "ahora va a ser más difícil" y al volver a entrar
-  // encontraba exactamente el mismo, que es prometerle algo y no cumplirlo.
-  "rompecabezas",
 ]);
 /* ── EL PROGRESO SIGUE AL CHICO, NO AL CUADERNO (28-jul-2026) ───────────────────
    El progreso se guarda en el navegador con una clave atada a la DIRECCIÓN del cuaderno
@@ -6642,10 +6638,21 @@ const ROMPE_ESC = 0.9;   // escala del knob — igual que rompecabezas._dibujar_
 
 GAMES.rompecabezas = {
   crear(ctx) {
-    const R = D.rompecabezas;
-    if (!R || !R.bordes) { ctx.consigna("Este cuaderno no tiene rompecabezas"); return; }
+    const DATA = D.rompecabezas;
+    if (!DATA || !(DATA.niveles || []).length) {
+      ctx.consigna("Este cuaderno no tiene rompecabezas"); return;
+    }
+    // Adaptativo (Pablo, 30-jul-2026: "que cambie imágenes y que cambie cantidad de piezas
+    // a medida que ves que lo saca fácil"). El escalón lo da `bonusDominio` —lo GANADO por
+    // sacarlo con 3★— y no `nivelDif`, que suma además un piso por edad: acá la edad ya
+    // está contemplada, porque cada grado tiene su propia escalera. Sin `adaptativo_on`
+    // vale 0 y el chico se queda en el primer escalón, como cualquier link ya vendido.
+    const niveles = DATA.niveles;
+    const nivel = Math.min(niveles.length - 1, ctx.bonusDominio);
+    const R = niveles[nivel];
     const cols = R.cols, filas = R.filas;
-    ctx.consigna("Arrastrá cada pieza a su lugar");
+    ctx.consigna(nivel === 0 ? "Arrastrá cada pieza a su lugar"
+                             : "¡Este tiene " + (cols * filas) + " piezas! Armalo");
     ctx.rondas(0);
 
     const wrap = el("div"); wrap.id = "rompWrap";
@@ -6656,6 +6663,7 @@ GAMES.rompecabezas = {
     ctx.juego.appendChild(wrap);
 
     const img = new Image();
+    let bordes = null;                     // se piden al abrir: ver `cargarCortes`
     let piezas = [], z = [], drag = null, listo = false;
     let bx = 0, by = 0, bw = 0, bh = 0, s = 1, cssW = 0, cssH = 0, bandeja = null;
 
@@ -6664,7 +6672,7 @@ GAMES.rompecabezas = {
     // abajo (al revés) → izquierda (al revés), para cerrar el polígono.
     const poliPieza = (ci, fi) => {
       const cw = R.w / cols, ch = R.h / filas;
-      const H = R.bordes.h, V = R.bordes.v;
+      const H = bordes.h, V = bordes.v;
       const pts = [];
       if (fi === 0) pts.push([ci * cw, 0], [(ci + 1) * cw, 0]);
       else for (const [px, py] of H[fi - 1][ci])
@@ -6877,9 +6885,16 @@ GAMES.rompecabezas = {
     const alRedimensionar = () => { if (listo && ctx.juego.isConnected) armar(); };
     addEventListener("resize", alRedimensionar);
 
-    img.onload = () => { listo = true; armar(); };
-    img.onerror = () => ctx.consigna("No se pudo cargar la imagen del rompecabezas");
+    // Los CORTES se piden acá y no vienen en el data.json: medido, pesaban 35-49 KB por
+    // cuaderno —el 75% del archivo— y el data.json lo baja el navegador en CADA carga, para
+    // UNA actividad entre 40. Acá se piden una sola vez, al abrir, y quedan cacheados.
+    // Hacen falta los DOS (imagen y cortes) antes de dibujar: sin cortes no hay piezas.
+    const cargarCortes = fetch(R.cortes).then((r) => r.json()).then((j) => { bordes = j.bordes; });
+    const cargarImagen = new Promise((ok, mal) => { img.onload = ok; img.onerror = mal; });
     img.src = R.img;
+    Promise.all([cargarCortes, cargarImagen])
+      .then(() => { if (!ctx.juego.isConnected) return; listo = true; armar(); })
+      .catch(() => ctx.consigna("No se pudo cargar el rompecabezas. Probá de nuevo."));
   },
 };
 
