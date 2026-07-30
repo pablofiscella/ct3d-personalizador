@@ -1481,6 +1481,64 @@ def _sopas_del_token(palabras_tema, edad, seed, rnd, escolar=False):
     return out
 
 
+def _ordenar_por_prerrequisitos(menu):
+    """Reordena el menú lo MÍNIMO para que nada aparezca antes de su prerrequisito.
+
+    Pablo, 30-jul-2026: *"en primer grado no tiene que aparecer armar una frase cuando
+    todavía no sabe las vocales"*.
+
+    `actividades_curriculum.menu_de_grado` ya ordena la parte CURRICULAR, pero el menú del
+    cuaderno es eso MÁS los juegos base del player, y ahí quedaban las violaciones que se
+    veían de verdad: en 3.º, "Sumas con llevada" aparecía después de "Busca el tesoro" y
+    antes de "Restas con préstamo", que es su prerrequisito. Ocho casos sólo en ese grado.
+
+    Es un orden topológico SEMBRADO con el orden que ya trae el menú: una tarjeta se mueve
+    únicamente si su prerrequisito viene después. Todo lo demás queda donde estaba —el
+    orden del recreo y el del DC ya son decisiones tomadas, y esto no viene a rehacerlas.
+
+    Nunca lanza ni se cuelga: si hubiera un ciclo, lo que quede sin poder ubicarse sale al
+    final en el orden original."""
+    try:
+        import saberes
+        SAB = saberes.SABERES
+    except Exception:
+        return menu
+
+    ids = {m["id"] for m in menu}
+    juegos_de = {}
+    for sid, s in SAB.items():
+        for j in (s.get("juegos") or []):
+            if j in ids:
+                juegos_de.setdefault(sid, []).append(j)
+    necesita = {m["id"]: set() for m in menu}
+    for sid, s in SAB.items():
+        for j in (s.get("juegos") or []):
+            if j not in ids:
+                continue
+            for pre in (s.get("prerrequisitos") or s.get("prereqs") or []):
+                for jp in juegos_de.get(pre, []):
+                    if jp != j:
+                        necesita[j].add(jp)
+    if not any(necesita.values()):
+        return menu
+
+    pendientes, salida, puestos = list(menu), [], set()
+    while pendientes:
+        libre = next((m for m in pendientes if necesita[m["id"]] <= puestos), None)
+        if libre is None:
+            # Ciclo. Pasa cuando un juego vive en dos saberes de grados distintos
+            # (`cuenta_larga` está en el de 4.º y en el de 5.º), así que la ida y la
+            # vuelta existen aunque el grafo de SABERES sea acíclico. En vez de tirar
+            # todo el resto al final —que rompía varias de una— se saca la tarjeta a la
+            # que MENOS le falta: deja una sola violación, la del ciclo, en vez de un
+            # arrastre.
+            libre = min(pendientes, key=lambda m: len(necesita[m["id"]] - puestos))
+        pendientes.remove(libre)
+        salida.append(libre)
+        puestos.add(libre["id"])
+    return salida
+
+
 def _armar_data(tema, nombre, edad, seed, escolar=False):
     """El data.json del token: paleta + menú + puzzles verificados."""
     from cuaderno import _tema_nombre, _tema_palabras, PALABRAS
@@ -1506,7 +1564,8 @@ def _armar_data(tema, nombre, edad, seed, escolar=False):
         laberintos_chicos = [_lab_json(n, seed + 900 + i * 23) for i, n in enumerate(tams_chicos)]
 
     titulo = titulo_cuaderno(nombre, edad, escolar=escolar)
-    menu_niv = _marcar_niveles(_menu(banda, edad, escolar) + _menu_curricular(edad))
+    menu_niv = _marcar_niveles(
+        _ordenar_por_prerrequisitos(_menu(banda, edad, escolar) + _menu_curricular(edad)))
     return {
         "v": 1, "tema": tema, "tema_nombre": _mundo_de_grado(edad, escolar) or _tema_nombre(tema),
         "nombre": nombre, "edad": edad, "banda": banda, "titulo": titulo,
