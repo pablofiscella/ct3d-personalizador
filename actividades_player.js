@@ -6617,6 +6617,257 @@ GAMES.sudoku = {
 };
 
 /* ── ¡A PINTAR! — balde de pintura sobre el line-art IA del tema ── */
+/* ── El rompecabezas (Extras de 1.º y 2.º) ────────────────────────────────────
+   Pablo, 30-jul-2026: *"en extras de 1.º y 2.º podemos poner un rompecabezas […]
+   es algo que ya tenemos armado, es solo linkearlo"*.
+
+   Linkearlo no alcanzaba: el rompecabezas que se vende vive en su propia página
+   (`/armar/<token>/`, `rompecabezas_player.js`), con su tienda, su demo con candado y
+   su propio guardado. Meter un <iframe> le habría metido al chico la pantalla de compra
+   adentro del cuaderno. Lo que SÍ se reusa —y es lo que importa— es el CORTE: los bordes
+   los genera `rompecabezas_web._bordes_json`, el mismo generador que el imprimible, así
+   que el encastre es el de siempre (knob Bézier con traba, no un corte recto).
+
+   Lo que se dejó afuera a propósito, porque acá es una actividad de dos minutos y no el
+   producto: espiar la foto, guardar la partida a medio armar, y las escenas múltiples.
+   6 piezas en 1.º y 9 en 2.º; de 3.º en adelante no aparece (`_ROMPE_GRADO`).
+
+   CERO FAIL STATE, igual que en el producto: la pieza mal soltada se queda donde la
+   dejó. No hay error posible, sólo piezas todavía sueltas. */
+const ROMPE_ESC = 0.9;   // escala del knob — igual que rompecabezas._dibujar_cortes
+
+GAMES.rompecabezas = {
+  crear(ctx) {
+    const R = D.rompecabezas;
+    if (!R || !R.bordes) { ctx.consigna("Este cuaderno no tiene rompecabezas"); return; }
+    const cols = R.cols, filas = R.filas;
+    ctx.consigna("Arrastrá cada pieza a su lugar");
+    ctx.rondas(0);
+
+    const wrap = el("div"); wrap.id = "rompWrap";
+    const cv = el("canvas"); cv.id = "rompLienzo";
+    const cx = cv.getContext("2d");
+    const pie = el("div", "rompPie");
+    wrap.append(cv, pie);
+    ctx.juego.appendChild(wrap);
+
+    const img = new Image();
+    let piezas = [], z = [], drag = null, listo = false;
+    let bx = 0, by = 0, bw = 0, bh = 0, s = 1, cssW = 0, cssH = 0, bandeja = null;
+
+    // Contorno de una pieza en px de la imagen. Los bordes vienen en coordenadas
+    // unitarias (0..1 sobre la celda) y se recorren en orden: arriba → derecha →
+    // abajo (al revés) → izquierda (al revés), para cerrar el polígono.
+    const poliPieza = (ci, fi) => {
+      const cw = R.w / cols, ch = R.h / filas;
+      const H = R.bordes.h, V = R.bordes.v;
+      const pts = [];
+      if (fi === 0) pts.push([ci * cw, 0], [(ci + 1) * cw, 0]);
+      else for (const [px, py] of H[fi - 1][ci])
+        pts.push([ci * cw + px * cw, fi * ch + py * ch * ROMPE_ESC]);
+      if (ci === cols - 1) pts.push([R.w, (fi + 1) * ch]);
+      else for (const [px, py] of V[ci][fi])
+        pts.push([(ci + 1) * cw + py * cw * ROMPE_ESC, fi * ch + px * ch]);
+      if (fi === filas - 1) pts.push([ci * cw, R.h]);
+      else { const e = H[fi][ci];
+        for (let k = e.length - 1; k >= 0; k--) { const [px, py] = e[k];
+          pts.push([ci * cw + px * cw, (fi + 1) * ch + py * ch * ROMPE_ESC]); } }
+      if (ci !== 0) { const e = V[ci - 1][fi];
+        for (let k = e.length - 1; k >= 0; k--) { const [px, py] = e[k];
+          pts.push([ci * cw + py * cw * ROMPE_ESC, fi * ch + px * ch]); } }
+      return pts;
+    };
+
+    const dentroDe = (poly, x, y) => {
+      let c = false;
+      for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        const xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
+        if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c;
+      }
+      return c;
+    };
+
+    const posiciona = (p) => {
+      const mw = (bw / cols) * 0.55, mh = (bh / filas) * 0.55;
+      p.dx = bandeja.x + mw + p.fx * Math.max(1, bandeja.w - 2 * mw) - p.cx;
+      p.dy = bandeja.y + mh + p.fy * Math.max(1, bandeja.h - 2 * mh) - p.cy;
+    };
+
+    // Reparto en grilla mezclada + jitter. Puro random las amontonaba en el medio y
+    // quedaban tapadas unas con otras, que para un chico de 6 es imposible.
+    const esparcir = () => {
+      const sueltas = piezas.filter((p) => !p.placed);
+      if (!sueltas.length) return;
+      const ct = Math.max(1, Math.round(Math.sqrt(
+        sueltas.length * bandeja.w / Math.max(1, bandeja.h))));
+      const ft = Math.ceil(sueltas.length / ct);
+      const slots = [...Array(ct * ft).keys()];
+      for (let i = slots.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [slots[i], slots[j]] = [slots[j], slots[i]];
+      }
+      sueltas.forEach((p, k) => {
+        p.fx = (slots[k] % ct + 0.5 + (Math.random() - 0.5) * 0.6) / ct;
+        p.fy = (Math.floor(slots[k] / ct) + 0.5 + (Math.random() - 0.5) * 0.6) / ft;
+        posiciona(p);
+      });
+    };
+
+    const contar = () => {
+      pie.textContent = piezas.filter((p) => p.placed).length + " de " + piezas.length;
+    };
+
+    const armar = () => {
+      const contW = Math.max(240, ctx.juego.clientWidth);
+      const top = cv.getBoundingClientRect().top;
+      const contH = Math.max(320, innerHeight - top - 96);
+      cssW = contW; cssH = contH;
+      const dpr = Math.min(2.5, devicePixelRatio || 1);
+      cv.width = Math.round(contW * dpr); cv.height = Math.round(contH * dpr);
+      cv.style.width = contW + "px"; cv.style.height = contH + "px";
+      cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const alLado = contW / contH > 1.15;   // apaisado: la bandeja va a la derecha
+      const zona = alLado ? { x: 8, y: 8, w: contW * 0.62 - 16, h: contH - 16 }
+                          : { x: 8, y: 8, w: contW - 16, h: contH * 0.6 - 16 };
+      s = Math.min(zona.w / R.w, zona.h / R.h);
+      bw = R.w * s; bh = R.h * s;
+      bx = zona.x + (zona.w - bw) / 2;
+      by = zona.y + (zona.h - bh) / 2;
+      bandeja = alLado ? { x: contW * 0.62, y: 8, w: contW * 0.38 - 12, h: contH - 16 }
+                       : { x: 8, y: contH * 0.6, w: contW - 16, h: contH * 0.4 - 12 };
+
+      const previas = piezas;
+      const rearmando = previas.length > 0;   // resize: conserva lo ya puesto
+      piezas = []; z = [];
+      for (let fi = 0; fi < filas; fi++)
+        for (let ci = 0; ci < cols; ci++) {
+          const i = fi * cols + ci;
+          const poly = poliPieza(ci, fi).map(([x, y]) => [bx + x * s, by + y * s]);
+          const path = new Path2D();
+          poly.forEach(([x, y], k) => (k ? path.lineTo(x, y) : path.moveTo(x, y)));
+          path.closePath();
+          piezas.push({ i, poly, path,
+            cx: bx + (ci + 0.5) * (bw / cols), cy: by + (fi + 0.5) * (bh / filas),
+            dx: 0, dy: 0,
+            placed: rearmando ? previas[i].placed : false,
+            fx: rearmando ? previas[i].fx : Math.random(),
+            fy: rearmando ? previas[i].fy : Math.random() });
+        }
+      for (const p of piezas) if (!p.placed) { if (rearmando) posiciona(p); z.push(p.i); }
+      if (!rearmando) esparcir();
+      contar();
+      dibujar();
+    };
+
+    const dibujarPieza = (p, alzada) => {
+      cx.save();
+      cx.translate(p.dx, p.dy);
+      if (alzada) {
+        cx.save();
+        cx.shadowColor = "rgba(0,0,0,.32)"; cx.shadowBlur = 16; cx.shadowOffsetY = 7;
+        cx.fillStyle = "#fff"; cx.fill(p.path);
+        cx.restore();
+      }
+      cx.save(); cx.clip(p.path); cx.drawImage(img, bx, by, bw, bh); cx.restore();
+      if (!p.placed) {
+        cx.strokeStyle = alzada ? "#FFFFFF" : "rgba(255,255,255,.75)";
+        cx.lineWidth = alzada ? 3 : 2;
+        cx.stroke(p.path);
+      }
+      cx.restore();
+    };
+
+    const dibujar = () => {
+      if (!piezas.length) return;
+      cx.clearRect(0, 0, cssW, cssH);
+      cx.save();                                   // el tablero vacío, como la hoja
+      cx.fillStyle = D.paleta.card;
+      const x = bx - 12, y = by - 12, w = bw + 24, h = bh + 24;
+      cx.beginPath();
+      if (cx.roundRect) cx.roundRect(x, y, w, h, 18); else cx.rect(x, y, w, h);
+      cx.fill();
+      cx.strokeStyle = D.paleta.soft; cx.lineWidth = 3; cx.stroke();
+      cx.restore();
+      const completo = piezas.every((p) => p.placed);
+      cx.save();                                   // fantasma: la guía de dónde va cada una
+      cx.globalAlpha = completo ? 0 : 0.16;
+      cx.drawImage(img, bx, by, bw, bh);
+      cx.restore();
+      if (!completo) {
+        cx.save();
+        cx.strokeStyle = D.paleta.ink; cx.globalAlpha = 0.18; cx.lineWidth = 1.5;
+        for (const p of piezas) if (!p.placed) cx.stroke(p.path);
+        cx.restore();
+      }
+      for (const p of piezas) if (p.placed) dibujarPieza(p, false);
+      for (const i of z) { const p = piezas[i]; if (!p.placed) dibujarPieza(p, drag && drag.p === p); }
+    };
+
+    const xy = (e) => {
+      const r = cv.getBoundingClientRect();
+      return [e.clientX - r.left, e.clientY - r.top];
+    };
+
+    cv.addEventListener("pointerdown", (e) => {
+      if (!listo) return;
+      const [x, y] = xy(e);
+      for (let k = z.length - 1; k >= 0; k--) {
+        const p = piezas[z[k]];
+        if (p.placed) continue;
+        if (dentroDe(p.poly, x - p.dx, y - p.dy)) {
+          drag = { p, ox: x - p.dx, oy: y - p.dy };
+          z.splice(k, 1); z.push(p.i);          // la agarrada va al frente
+          cv.setPointerCapture(e.pointerId);
+          Sfx.pop(); dibujar();
+          return;
+        }
+      }
+    });
+    cv.addEventListener("pointermove", (e) => {
+      if (!drag) return;
+      const [x, y] = xy(e);
+      drag.p.dx = x - drag.ox; drag.p.dy = y - drag.oy;
+      dibujar();
+    });
+    const soltar = () => {
+      if (!drag) return;
+      const p = drag.p; drag = null;
+      // Imán generoso: no se le pide puntería a un chico de 6, se le pide entender
+      // dónde va. El piso de 26px es el dedo, no el diseño.
+      const iman = Math.max(26, 0.32 * Math.min(bw / cols, bh / filas));
+      if (Math.hypot(p.dx, p.dy) < iman) {
+        p.dx = 0; p.dy = 0; p.placed = true;
+        z = z.filter((i) => i !== p.i);
+        Sfx.ok(); contar();
+        if (piezas.every((q) => q.placed)) {
+          dibujar();
+          // 3 estrellas siempre: acá no hay respuesta equivocada que medir, sólo
+          // haberlo armado. Lo mismo hace el rompecabezas que se vende.
+          setTimeout(() => ctx.win(3), 420);
+          return;
+        }
+      } else {
+        const mx = bw / cols / 2, my = bh / filas / 2;   // que no se escape del canvas
+        p.dx = Math.min(Math.max(p.dx, -p.cx + mx), cssW - p.cx - mx);
+        p.dy = Math.min(Math.max(p.dy, -p.cy + my), cssH - p.cy - my);
+        p.fx = Math.min(1, Math.max(0, (p.cx + p.dx - bandeja.x) / Math.max(1, bandeja.w)));
+        p.fy = Math.min(1, Math.max(0, (p.cy + p.dy - bandeja.y) / Math.max(1, bandeja.h)));
+      }
+      dibujar();
+    };
+    cv.addEventListener("pointerup", soltar);
+    cv.addEventListener("pointercancel", soltar);
+
+    const alRedimensionar = () => { if (listo && ctx.juego.isConnected) armar(); };
+    addEventListener("resize", alRedimensionar);
+
+    img.onload = () => { listo = true; armar(); };
+    img.onerror = () => ctx.consigna("No se pudo cargar la imagen del rompecabezas");
+    img.src = R.img;
+  },
+};
+
 GAMES.colorear = {
   crear(ctx) {
     if (!D.colorear || !D.colorear.length) { ctx.consigna("Este tema no tiene dibujos todavía"); return; }

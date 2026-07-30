@@ -207,6 +207,11 @@ def _menu(banda, edad, escolar=False):
     # drop de 6°-7°, más abajo): su cfg estaba vacío en los 7 grados. Acá el menú
     # del token declara con qué grilla y direcciones salió — el contenido lo arma
     # `_armar_data` con `_SOPA_GRADO`. Sólo aplica a la línea escolar.
+    # Rompecabezas en Extras de 1.º y 2.º (Pablo, 30-jul-2026). La tarjeta se agrega acá y
+    # `crear()` la saca si no se pudo generar la imagen — así el menú nunca ofrece una
+    # actividad que al abrirse está vacía.
+    if _ROMPE_GRADO.get(_grado_con_arte(e, escolar)):
+        g.append({"id": "rompecabezas", "titulo": "El rompecabezas", "icono": "🖼️", "cfg": {}})
     _cfg_sopa = _SOPA_GRADO.get(_grado_con_arte(e, escolar))
     if _cfg_sopa:
         for item in g:
@@ -1481,6 +1486,47 @@ def _sopas_del_token(palabras_tema, edad, seed, rnd, escolar=False):
     return out
 
 
+# Rompecabezas del cuaderno: cuántas piezas por grado. Pablo, 30-jul-2026: *"en extras de
+# 1.º y 2.º podemos poner un rompecabezas"*. Sólo esos dos grados: de 3.º en adelante el
+# recreo ya se recorta (ver `_DROP_RECREO`) y armar 6 piezas no le aporta nada a un chico
+# de 10. Las grillas son chicas a propósito — es una actividad del cuaderno, no el producto
+# de rompecabezas, que llega hasta 100 piezas.
+_ROMPE_GRADO = {1: (3, 2), 2: (3, 3)}      # (columnas, filas) → 6 y 9 piezas
+
+
+def _rompecabezas_json(d, edad, seed, escolar=False):
+    """Datos del rompecabezas para el data.json, o None si a este grado no le toca.
+
+    La imagen es la ESCENA del mundo del grado, que el token ya tiene generada — no se
+    crea arte nuevo, se reusa el que el chico ya ve en «¿Cuántos hay?». Los bordes de las
+    piezas salen del MISMO generador que el rompecabezas imprimible y el producto web
+    (`rompecabezas_web._bordes_json`), así que el encastre es idéntico: knob Bézier con
+    traba real, no un corte recto.
+
+    Nunca lanza: si falta la escena o el generador, el cuaderno sale sin esta tarjeta en
+    vez de no salir."""
+    grado = _grado_con_arte(edad, escolar)
+    cf = _ROMPE_GRADO.get(grado)
+    if not cf:
+        return None
+    try:
+        from PIL import Image
+        import rompecabezas_web
+        src = os.path.join(d, "escena.jpg")
+        if not os.path.isfile(src):
+            return None
+        im = Image.open(src).convert("RGB")
+        # se reencuadra a 4:3 y se acota el peso: la arma un nene en una tablet
+        w, h = 1024, 768
+        im = im.resize((w, h), Image.LANCZOS) if im.size != (w, h) else im
+        im.save(os.path.join(d, "romp.jpg"), quality=86)
+        cols, filas = cf
+        return {"img": "romp.jpg", "w": w, "h": h, "cols": cols, "filas": filas,
+                "bordes": rompecabezas_web._bordes_json(cols, filas, seed + 7331)}
+    except Exception:
+        return None
+
+
 def _ordenar_por_prerrequisitos(menu):
     """Reordena el menú lo MÍNIMO para que nada aparezca antes de su prerrequisito.
 
@@ -2191,6 +2237,14 @@ def crear(data, tema, token=None):
     dj["sombras"] = sombras
     dj["colorear"] = cols
     dj["escena"] = esc
+    # El rompecabezas va DESPUÉS de la escena porque usa esa imagen. Si no se pudo armar
+    # (grado que no lo lleva, o falta la escena), se saca la tarjeta del menú: dejarla
+    # abriría una actividad vacía, que es peor que no tenerla.
+    romp = _rompecabezas_json(d, edad, seed, escolar)
+    if romp:
+        dj["rompecabezas"] = romp
+    else:
+        dj["menu"] = [m for m in dj["menu"] if m["id"] != "rompecabezas"]
     dj["escolar_on"] = escolar
     # El motor adaptativo (grafo de saberes, menú por categorías, panel de padres,
     # Modo Profe, dificultad que escala) es la OTRA mitad de la línea escolar, así que

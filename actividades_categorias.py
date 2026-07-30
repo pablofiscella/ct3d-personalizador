@@ -165,6 +165,7 @@ CATEGORIA = {
     "agrupar": "logica",
     "patron": "logica",
     "colorear": "logica",
+    "rompecabezas": "logica",   # Extras de 1.º y 2.º: percepción espacial, sin materia
     "diferente": "logica",
     "escape_room_egreso": "logica",       # repaso mixto de egreso
     "laberinto": "logica",
