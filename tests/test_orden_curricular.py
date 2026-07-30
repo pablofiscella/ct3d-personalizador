@@ -139,3 +139,48 @@ def test_las_que_no_tienen_numero_van_al_final_de_su_eje():
     assert cur._orden_dc({"fuente": "docs/… · M2"}) < cur._orden_dc({"fuente": "docs/… · M10"}), \
         "M10 tiene que ir después de M2: el número se compara como número, no como texto"
     assert cur._orden_dc({}) == ("ZZ", 999), "sin fuente, al final y sin romper"
+
+
+# ── el menú REAL del cuaderno: base del player + curricular ──────────────────────
+# `menu_de_grado` ordena sólo la parte curricular, pero el chico ve las dos juntas y ahí
+# estaban las violaciones que se veían de verdad: en 3.º, "Sumas con llevada" aparecía
+# antes que "Restas con préstamo", que es su prerrequisito. Ocho casos sólo en ese grado.
+
+CICLO_CONOCIDO = 1   # por grado, de 4.º a 7.º — ver test_el_ciclo_conocido_esta_acotado
+
+
+def _menu_completo(edad):
+    import actividades_web as aw
+    return aw._ordenar_por_prerrequisitos(
+        aw._menu("grande", str(edad), True) + aw._menu_curricular(str(edad)))
+
+
+@pytest.mark.parametrize("edad", range(6, 13))
+def test_el_menu_del_cuaderno_respeta_los_prerrequisitos(edad):
+    """EL que mide lo que ve el chico, no lo que devuelve el catálogo."""
+    orden = {m["id"]: i for i, m in enumerate(_menu_completo(edad))}
+    necesita = _juegos_que_deben_ir_antes(set(orden))
+    malas = [(j, jp) for j, pos in orden.items() for jp in necesita[j] if orden[jp] > pos]
+    tope = 0 if edad <= 8 else CICLO_CONOCIDO
+    assert len(malas) <= tope, "%d.º tiene %d violación(es) y el tope es %d: %s" % (
+        edad - 5, len(malas), tope, malas)
+
+
+def test_el_ciclo_conocido_esta_acotado():
+    """Las 4 que quedan son UNA sola causa, y conviene que se note si crece.
+
+    `cuenta_larga` vive en el saber de 4.º Y en el de 5.º, así que a nivel JUEGO la ida y
+    la vuelta existen aunque el grafo de SABERES sea acíclico: «La división» necesita a
+    «La cuenta paso a paso» por un lado y al revés por el otro. No se puede satisfacer;
+    lo que sí se puede es que no arrastre a otras, y eso es lo que se fija acá."""
+    import saberes
+    juegos = ("dividir", "cuenta_larga")
+    saberes_con = [sid for sid, s in saberes.SABERES.items()
+                   if any(j in (s.get("juegos") or []) for j in juegos)]
+    assert len(saberes_con) >= 3, "cambió el modelado de división: revisar el ciclo"
+    total = sum(len([1 for j, pos in {m["id"]: i for i, m in enumerate(_menu_completo(e))}.items()
+                     for jp in _juegos_que_deben_ir_antes(
+                         {m["id"] for m in _menu_completo(e)})[j]
+                     if {m["id"]: i for i, m in enumerate(_menu_completo(e))}[jp] > pos])
+                for e in range(6, 13))
+    assert total <= 4, "el desorden por prerrequisitos creció a %d (era 4)" % total
