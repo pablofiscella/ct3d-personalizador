@@ -1555,6 +1555,15 @@ def _colores_seguros(pal):
     return card, ink, soft
 
 
+def marca_de(escolar):
+    """La marca que corresponde a esta línea. UN solo lugar.
+
+    Existe porque las dos funciones de FALLBACK tenían "CASATRIDIMENSIONAL" escrito a mano,
+    y un fallback es justo donde una fuga se esconde: sólo aparece cuando algo falla, así que
+    nadie la ve hasta que le pasa a un cliente. Espeja `marcaDelCuaderno()` del player."""
+    return "KYDO" if escolar else "CASATRIDIMENSIONAL"
+
+
 def _render_portada(dj, pers_imgs):
     """Portada 900×1200 — VERTICAL como las tapas de los audiolibros: la card
     de Mi biblioteca es 3:4 y la versión apaisada se recortaba a los costados
@@ -1589,7 +1598,7 @@ def _render_portada(dj, pers_imgs):
     # `peso` abre en su instancia por defecto (200, ExtraLight) — quedaba
     # casi invisible de fino contra la franja de color.
     f_sub = _fuente("Nunito-VF.ttf", 40, peso=800)
-    dr.text((W // 2, 100), "CASATRIDIMENSIONAL", font=f_marca, fill="#FFFFFF",
+    dr.text((W // 2, 100), marca_de(dj.get("escolar_on")), font=f_marca, fill="#FFFFFF",
             anchor="mm")
     dr.text((W // 2, 172), "Cuaderno interactivo", font=f_sub, fill="#FFFFFF",
             anchor="mm")
@@ -2064,7 +2073,7 @@ def _apagar_bloqueado(im):
     return apagado.convert("RGB")
 
 
-def _render_juego_card_fallback(tema, pal, titulo, incluido=True):
+def _render_juego_card_fallback(tema, pal, titulo, incluido=True, escolar=False):
     """Fallback si `_juego_page` no pudo generar la página real (tema sin
     arte de colorear todavía, etc.) — nunca None, preview_pieza() no lo
     tolera."""
@@ -2073,7 +2082,7 @@ def _render_juego_card_fallback(tema, pal, titulo, incluido=True):
     im = Image.new("RGB", (W, H), _hex_rgb(card_color))
     dr = ImageDraw.Draw(im)
     dr.rounded_rectangle((24, 24, W - 24, 110), radius=32, fill=_hex_rgb(pal["ac"]))
-    dr.text((W // 2, 67), "CASATRIDIMENSIONAL", font=_fuente("TitilliumWeb-Bold.ttf", 21),
+    dr.text((W // 2, 67), marca_de(escolar), font=_fuente("TitilliumWeb-Bold.ttf", 21),
             fill="#FFFFFF", anchor="mm")
     f = _fuente("Baloo2-VF.ttf", 44)
     while f.getlength(titulo) > W - 80 and f.size > 26:
@@ -2494,7 +2503,9 @@ def preview_mock_extra(data, tema, indice):
                     h = max(1, int(pagina.height * w / pagina.width))
                     pagina = pagina.convert("RGB").resize((w, h), Image.LANCZOS)
                     return pagina if incluido else _apagar_bloqueado(pagina)
-                return _render_juego_card_fallback(tema, _paleta(tema), juego["titulo"], incluido)
+                return _render_juego_card_fallback(tema, _paleta(tema), juego["titulo"],
+                                                   incluido,
+                                                   escolar=bool(data.get("escolar_on")))
     except Exception:
         pass
     return preview_mock(data, tema)

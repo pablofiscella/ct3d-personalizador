@@ -63,3 +63,6 @@ audio_dinamico/
 
 # activación escalable: solicitudes de desbloqueo de nivel (datos runtime)
 datos_premium/
+
+# Partidas de duelos: datos de runtime, uno por partida (ver duelos.py)
+duelos/
