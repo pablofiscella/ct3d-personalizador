@@ -1497,9 +1497,16 @@ _ROMPE_GRADO = {1: (3, 2), 2: (3, 3)}      # (columnas, filas) → 6 y 9 piezas
 def _rompecabezas_json(d, edad, seed, escolar=False):
     """Datos del rompecabezas para el data.json, o None si a este grado no le toca.
 
-    La imagen es la ESCENA del mundo del grado, que el token ya tiene generada — no se
-    crea arte nuevo, se reusa el que el chico ya ve en «¿Cuántos hay?». Los bordes de las
-    piezas salen del MISMO generador que el rompecabezas imprimible y el producto web
+    La imagen es la ESCENA del mundo del grado TAL CUAL: el token ya la tiene generada
+    (es la que el chico ve de fondo en «¿Cuántos hay?»), ya está en la lista blanca de
+    assets y pesa ~105 KB. Una copia recortada del mismo dibujo habría sumado otro archivo
+    por token, otra entrada en `_ASSET_RE` y nada a cambio: en 1536×1024 el corte 3×2 da
+    piezas cuadradas, que es exactamente lo que se quiere.
+
+    De ahí que `w`/`h` se LEAN del archivo en vez de fijarse: el player estira la imagen al
+    tablero con esa proporción, así que un número supuesto la deformaría.
+
+    Los bordes salen del MISMO generador que el rompecabezas imprimible y el producto web
     (`rompecabezas_web._bordes_json`), así que el encastre es idéntico: knob Bézier con
     traba real, no un corte recto.
 
@@ -1515,13 +1522,10 @@ def _rompecabezas_json(d, edad, seed, escolar=False):
         src = os.path.join(d, "escena.jpg")
         if not os.path.isfile(src):
             return None
-        im = Image.open(src).convert("RGB")
-        # se reencuadra a 4:3 y se acota el peso: la arma un nene en una tablet
-        w, h = 1024, 768
-        im = im.resize((w, h), Image.LANCZOS) if im.size != (w, h) else im
-        im.save(os.path.join(d, "romp.jpg"), quality=86)
+        with Image.open(src) as im:
+            w, h = im.size
         cols, filas = cf
-        return {"img": "romp.jpg", "w": w, "h": h, "cols": cols, "filas": filas,
+        return {"img": "escena.jpg", "w": w, "h": h, "cols": cols, "filas": filas,
                 "bordes": rompecabezas_web._bordes_json(cols, filas, seed + 7331)}
     except Exception:
         return None

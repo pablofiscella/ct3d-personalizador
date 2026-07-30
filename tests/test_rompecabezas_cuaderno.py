@@ -152,6 +152,32 @@ def test_primero_y_segundo_lo_tienen_con_pocas_piezas(tokens, grado, piezas):
     assert os.path.isfile(os.path.join(d, R["img"])), "falta la imagen %s" % R["img"]
 
 
+@pytest.mark.parametrize("grado", [1, 2])
+def test_la_imagen_se_puede_pedir_de_verdad(tokens, grado):
+    """El bug que este test existe para no repetir: la primera versión generaba un
+    `romp.jpg` propio y el archivo estaba en disco, pero `_ASSET_RE` es una lista BLANCA
+    y no lo nombraba → el servidor devolvía 404 y el rompecabezas quedaba en blanco.
+    Que exista en la carpeta no es que se pueda pedir; se mide pidiéndolo."""
+    d, dj = tokens[grado]
+    R = dj["rompecabezas"]
+    r = aw.archivo(os.path.basename(d), R["img"])
+    assert r is not None, "%s no pasa la lista blanca de assets: el player recibe 404" % R["img"]
+    datos, ct = r
+    assert len(datos) > 1000 and ct.startswith("image/"), "la imagen llegó vacía o no es imagen"
+
+
+@pytest.mark.parametrize("grado", [1, 2])
+def test_las_medidas_son_las_de_la_imagen(tokens, grado):
+    """El player estira la imagen al tablero con la proporción `w`/`h` del data.json. Si
+    no es la real, el dibujo sale deformado y las piezas no coinciden con lo que se ve."""
+    from PIL import Image
+    d, dj = tokens[grado]
+    R = dj["rompecabezas"]
+    with Image.open(os.path.join(d, R["img"])) as im:
+        assert (R["w"], R["h"]) == im.size, "data.json dice %sx%s y la imagen es %sx%s" % (
+            R["w"], R["h"], im.width, im.height)
+
+
 @pytest.mark.parametrize("grado", [3, 4])
 def test_de_tercero_en_adelante_no_aparece(tokens, grado):
     """De 3.º arriba armar 6 piezas no le aporta nada. Si mañana se quiere sumar, se
