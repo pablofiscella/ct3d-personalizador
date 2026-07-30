@@ -5308,6 +5308,10 @@ const NIVEL_DIF = [
 const SIN_NIVEL_DIF = new Set([
   "camino_digestivo", "colorear", "linea_democracia", "planta_potabilizadora",
   "programar_camino", "puntos", "viaje_inmigrante", "suma_rapida",
+  // el rompecabezas no escala: la grilla la fija el GRADO (6 piezas en 1.º, 9 en 2.º).
+  // Sin esto el festejo le prometía "ahora va a ser más difícil" y al volver a entrar
+  // encontraba exactamente el mismo, que es prometerle algo y no cumplirlo.
+  "rompecabezas",
 ]);
 /* ── EL PROGRESO SIGUE AL CHICO, NO AL CUADERNO (28-jul-2026) ───────────────────
    El progreso se guarda en el navegador con una clave atada a la DIRECCIÓN del cuaderno

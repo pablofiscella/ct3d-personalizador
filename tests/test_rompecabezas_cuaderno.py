@@ -222,3 +222,13 @@ def test_el_player_tiene_el_juego_registrado():
     assert "GAMES.rompecabezas = {" in src
     import actividades_categorias as cat
     assert cat.CATEGORIA.get("rompecabezas"), "el juego nuevo quedó sin categoría"
+
+
+def test_no_promete_que_se_pone_mas_dificil():
+    """Encontrado armándolo de punta a punta con Chrome: al ganar, el festejo decía
+    «esta actividad ahora va a ser más difícil, nivel 2 de 3». El rompecabezas NO escala
+    —la grilla la fija el grado— así que al volver a entrar encontraba el mismo. Prometer
+    algo y no cumplirlo es peor que no prometer nada."""
+    src = open(PLAYER, encoding="utf-8").read()
+    i = src.index("const SIN_NIVEL_DIF = new Set([")
+    assert '"rompecabezas",' in src[i:src.index("]);", i)]
