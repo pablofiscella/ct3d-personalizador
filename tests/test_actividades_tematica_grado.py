@@ -395,7 +395,13 @@ def _perfiles(escolar, nombres, previos=None):
       var Store = {data: {profiles: %s, activeProfile: null}, save() {}};
       eval(g('const NOMBRE_GENERICO', 'function elegirPerfil(')
            + g('function elegirPerfil(', '  Store.save();') + '}'
-           + 'function cerrarPerfil(){};function pintarHeader(){};function pintarMenu(){};');
+           + 'function cerrarPerfil(){};function pintarHeader(){};function pintarMenu(){};'
+           // `_perfilNuevo` se stubea: desde el 29-jul `elegirPerfil` lo llama para sembrar
+           // el avatar heredado, y este test recorta el archivo por marcadores, así que la
+           // función real no entra en el recorte. Se devuelve lo mismo que había antes del
+           // avatar: este test cubre el manejo de PERFILES, no el avatar (eso está en
+           // test_dificultad_por_dominio.py).
+           + 'function _perfilNuevo(){return {stars:{}}};');
       for (const n of %s) elegirPerfil(n);
       console.log(JSON.stringify({p: Object.keys(Store.data.profiles),
                                   activo: Store.data.activeProfile}));
