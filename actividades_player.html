@@ -689,6 +689,12 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 #sudokuPick { display: flex; gap: 12px; justify-content: center; margin-top: 16px; }
 #sudokuPick .op { min-width: 76px; min-height: 76px; }
 
+/* rompecabezas (Extras de 1.º y 2.º) — el canvas se dimensiona en JS: acá sólo se le
+   corta el scroll del dedo, que si no arrastra la página en vez de la pieza. */
+#rompWrap { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+#rompLienzo { touch-action: none; max-width: 100%; }
+.rompPie { font-weight: 800; color: var(--ac); font-size: 1.05rem; }
+
 /* colorear */
 #colWrap { display: flex; flex-direction: column; gap: 14px; align-items: center; }
 #colLienzo { border-radius: var(--radio); box-shadow: var(--sombra); max-width: 100%; background: #fff;

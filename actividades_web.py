@@ -207,6 +207,11 @@ def _menu(banda, edad, escolar=False):
     # drop de 6°-7°, más abajo): su cfg estaba vacío en los 7 grados. Acá el menú
     # del token declara con qué grilla y direcciones salió — el contenido lo arma
     # `_armar_data` con `_SOPA_GRADO`. Sólo aplica a la línea escolar.
+    # Rompecabezas en Extras de 1.º y 2.º (Pablo, 30-jul-2026). La tarjeta se agrega acá y
+    # `crear()` la saca si no se pudo generar la imagen — así el menú nunca ofrece una
+    # actividad que al abrirse está vacía.
+    if _ROMPE_GRADO.get(_grado_con_arte(e, escolar)):
+        g.append({"id": "rompecabezas", "titulo": "El rompecabezas", "icono": "🖼️", "cfg": {}})
     _cfg_sopa = _SOPA_GRADO.get(_grado_con_arte(e, escolar))
     if _cfg_sopa:
         for item in g:
@@ -1481,6 +1486,69 @@ def _sopas_del_token(palabras_tema, edad, seed, rnd, escolar=False):
     return out
 
 
+# Rompecabezas del cuaderno. Pablo, 30-jul-2026: *"en extras de 1.º y 2.º podemos poner un
+# rompecabezas"* y, al verlo andando, *"¿podés hacer que también sea adaptativo? Que cambie
+# imágenes y que cambie cantidad de piezas a medida que ves que lo saca fácil"*.
+#
+# Sólo esos dos grados: de 3.º en adelante el recreo ya se recorta (ver `_DROP_RECREO`).
+#
+# Cada entrada es la ESCALERA de ese grado: una grilla por nivel, y se sube un escalón cada
+# vez que lo saca con 3★ (`Store.subirNivelDif`, tope 4 → por eso 4 escalones). Arranca
+# chico a propósito —es una actividad del cuaderno, no el producto de rompecabezas, que
+# llega a 100 piezas— pero un chico que lo domina termina armando uno de verdad.
+# Cada nivel además trae su PROPIA imagen (`infra/generar-rompecabezas-arte.py`), así que
+# subir de nivel se nota antes de contar las piezas.
+_ROMPE_GRADO = {                            # grado → [(columnas, filas)] por nivel
+    1: [(3, 2), (3, 3), (4, 3), (4, 4)],    # 6 → 9 → 12 → 16
+    2: [(3, 3), (4, 3), (4, 4), (5, 4)],    # 9 → 12 → 16 → 20
+}
+
+
+def _rompecabezas_json(d, edad, seed, escolar=False):
+    """La escalera completa del rompecabezas para el data.json, o None si a este grado no
+    le toca. Un nivel por escalón, cada uno con su grilla, su imagen y sus bordes.
+
+    LOS 4 NIVELES VIAJAN JUNTOS, y no se elige uno acá, porque el nivel del chico vive en
+    SU navegador (`Store.nivelDif`) y el data.json queda congelado el día que se generó el
+    token. Si el motor eligiera, el cuaderno tendría para siempre el nivel que el chico
+    tenía al comprarlo.
+
+    LO QUE VIAJA ES LA FICHA, NO EL CORTE. Acá van sólo el nombre de la imagen, sus medidas
+    y la grilla: unos cientos de bytes. Los cortes (las polilíneas de las piezas) pesan
+    35-49 KB por cuaderno —medido— y el `data.json` lo baja el navegador en CADA carga: ahí
+    adentro eran el 75% del archivo, para UNA actividad entre 40. Viven en el repo como un
+    .json aparte que el player pide recién al abrir la actividad, y que el navegador cachea.
+
+    TODO SALE DEL REPO (`actividades_arte/g<N>/romp_<i>.jpg|.json`), no de la carpeta del
+    token: es idéntico para todos los cuadernos del mismo grado. Mismo criterio que el
+    player, el audio de las consignas y las lecciones en video — una sola copia, y mejorar
+    el arte llega también a los links ya entregados. `w`/`h` se LEEN del archivo: el player
+    estira la imagen al tablero con esa proporción y un número supuesto la deformaría.
+
+    Nunca lanza: si falta el arte, el cuaderno sale sin esta tarjeta en vez de no salir."""
+    grado = _grado_con_arte(edad, escolar)
+    escalera = _ROMPE_GRADO.get(grado)
+    if not escalera:
+        return None
+    try:
+        from PIL import Image
+        niveles = []
+        for i, (cols, filas) in enumerate(escalera):
+            d_g = os.path.join(ARTE_DIR, "g%d" % grado)
+            arte, cortes = (os.path.join(d_g, "romp_%d.jpg" % i),
+                            os.path.join(d_g, "romp_%d.json" % i))
+            if not (os.path.isfile(arte) and os.path.isfile(cortes)):
+                break                      # arte a medio generar: se corta la escalera acá
+            with Image.open(arte) as im:
+                w, h = im.size
+            niveles.append({"img": "romp_g%d_%d.jpg" % (grado, i),
+                            "cortes": "romp_g%d_%d.json" % (grado, i),
+                            "w": w, "h": h, "cols": cols, "filas": filas})
+        return {"niveles": niveles} if niveles else None
+    except Exception:
+        return None
+
+
 def _ordenar_por_prerrequisitos(menu):
     """Reordena el menú lo MÍNIMO para que nada aparezca antes de su prerrequisito.
 
@@ -2191,6 +2259,14 @@ def crear(data, tema, token=None):
     dj["sombras"] = sombras
     dj["colorear"] = cols
     dj["escena"] = esc
+    # El rompecabezas va DESPUÉS de la escena porque usa esa imagen. Si no se pudo armar
+    # (grado que no lo lleva, o falta la escena), se saca la tarjeta del menú: dejarla
+    # abriría una actividad vacía, que es peor que no tenerla.
+    romp = _rompecabezas_json(d, edad, seed, escolar)
+    if romp:
+        dj["rompecabezas"] = romp
+    else:
+        dj["menu"] = [m for m in dj["menu"] if m["id"] != "rompecabezas"]
     dj["escolar_on"] = escolar
     # El motor adaptativo (grafo de saberes, menú por categorías, panel de padres,
     # Modo Profe, dificultad que escala) es la OTRA mitad de la línea escolar, así que
@@ -2429,6 +2505,9 @@ _ASSET_RE = re.compile(
     # audio de consignas — una sola copia para todos los tokens, así mejorar una
     # lección llega también a los links ya vendidos.
     r"|lec_[a-z0-9_]{1,40}\.mp4"
+    # escenas del rompecabezas de Extras: una por nivel y por grado, iguales para todos
+    # los cuadernos de ese grado, así que salen del REPO como el player y las lecciones.
+    r"|romp_g[1-7]_\d\.(?:jpg|json)"
     # pronunciación de las actividades de Inglés: voz NATIVA inglesa, no la
     # rioplatense de las consignas. Mismo criterio que el resto — salen del repo,
     # una sola copia para todos los tokens.
@@ -2463,6 +2542,10 @@ def archivo(token, nombre):
         # Los nombres "Baloo"/"Nunito" se mantienen a propósito: el JS y ~104 reglas los
         # nombran, y renombrarlos obligaría a reescribir todo el CSS sin ganar nada.
         p = os.path.join(BASEDIR, "fonts", "Archivo-VF.ttf")
+    elif nombre.startswith("romp_g"):
+        _base, _ext = nombre.rsplit(".", 1)
+        _g, _n = _base[6:].split("_")
+        p = os.path.join(ARTE_DIR, "g%s" % _g, "romp_%s.%s" % (_n, _ext))
     elif nombre == "ingles_manifest.json":
         p = os.path.join(INGLES_DIR, "manifest.json")
     elif nombre.startswith("en_") and nombre.endswith(".mp3"):
