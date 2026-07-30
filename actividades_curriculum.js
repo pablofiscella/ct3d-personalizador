@@ -31132,13 +31132,13 @@ const CUR_AMBIGUEDAD_7_BANCO = [
     "m": "Los adverbios de lugar no admiten posesivo."
   },
   {
-    "q": "«Se lo dije a los chicos» debería ser…",
+    "q": "«Se los dije a los chicos» debería ser…",
     "ops": [
-      "Se los dije… no: «Se lo dije a los chicos» está bien",
-      "Se les dije",
-      "Los se dije"
+      "Se lo dije a los chicos",
+      "Se les dije a los chicos",
+      "Está bien así"
     ],
-    "m": "El «se» reemplaza al plural; el «lo» se refiere a lo dicho, que es singular."
+    "m": "Lo dicho es UNA cosa: va «lo». El plural ya está en «se», que reemplaza a «les». «Se los dije» es un error muy común."
   },
   {
     "q": "«Le dije a mis primos» debería ser…",

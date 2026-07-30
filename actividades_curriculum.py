@@ -18,6 +18,7 @@ Mundo". Recién se separan en 4°. El producto venía con 4 categorías fijas qu
 con el DC en primer ciclo, y por eso "Sociales de 2°" figuraba en cero: no es un hueco de
 contenido, es una materia que a esa edad no existe.
 """
+import re
 
 AREA_CDM = "cdm"          # Conocimiento del Mundo — 1° a 3° (DC CABA 2024)
 
@@ -13078,9 +13079,13 @@ CATALOGO = [
             {"q": "«Detrás mío» debería decirse…", "ops": ["Detrás de mí", "Detrás mía",
                      "Atrás mío"],
              "m": "Los adverbios de lugar no admiten posesivo."},
-            {"q": "«Se lo dije a los chicos» debería ser…", "ops": ["Se los dije… no: «Se lo dije a los chicos» está bien",
-                     "Se les dije", "Los se dije"],
-             "m": "El «se» reemplaza al plural; el «lo» se refiere a lo dicho, que es singular."},
+            # Estaba al revés y con una nota mía adentro de la opción: preguntaba por la
+            # forma CORRECTA como si estuviera mal, y la respuesta decía "…no: está bien"
+            # (30-jul-2026). Se da vuelta la pregunta y queda limpia.
+            {"q": "«Se los dije a los chicos» debería ser…",
+             "ops": ["Se lo dije a los chicos", "Se les dije a los chicos", "Está bien así"],
+             "m": "Lo dicho es UNA cosa: va «lo». El plural ya está en «se», que reemplaza "
+                  "a «les». «Se los dije» es un error muy común."},
             {"q": "«Le dije a mis primos» debería ser…", "ops": ["Les dije a mis primos",
                      "Le dije a mi primos", "Lo dije a mis primos"],
              "m": "El pronombre tiene que concordar en número con el objeto indirecto."},
@@ -15420,8 +15425,94 @@ def actividades_de(grado=None, area=None):
             and (area is None or a["area"] == area)]
 
 
+def _orden_dc(a):
+    """Posición de una actividad en el Diseño Curricular, sacada de su `fuente`.
+
+    La `fuente` termina en el código del DC (`docs/auditoria-dc-caba/grado-2.md · L3`) y
+    ese código ES el orden del programa: L1 antes que L2, M1 antes que M2. Hasta el
+    30-jul-2026 el menú salía en el orden en que estaban escritas en el archivo, y lo que
+    se fue agregando después quedó pegado al final: en 2.º Lengua, 12 de 14 tarjetas
+    estaban fuera de lugar, y "Club de lectura" —que es L1, por donde el DC arranca el
+    año— aparecía última de todas.
+
+    Las que no tienen número (`L`, `M`) van al FINAL de su eje: no están en la secuencia
+    del programa, así que no pueden robarle el primer lugar a la que sí lo abre. Ponerlas
+    primero dejaba Lengua de 5.º empezando por "¿Qué clase de palabra es?" en vez de por
+    "Club de lectura", que es L1.
+
+    El prefijo entra en la clave para que cada eje quede junto (M con M, L con L)."""
+    cod = (a.get("fuente") or "").split("·")[-1].strip()
+    m = re.match(r"([A-Za-z]+)(\d*)", cod)
+    if not m:
+        return ("ZZ", 999)
+    return (m.group(1).upper(), int(m.group(2)) if m.group(2) else 999)
+
+
+def _orden_pedagogico(acts):
+    """`acts` ordenadas por el DC pero respetando los PRERREQUISITOS.
+
+    Pablo, 30-jul-2026: *"en primer grado no tiene que aparecer armar una frase cuando
+    todavía no sabe las vocales"*. El código del DC solo no alcanza: hay actividades que
+    dependen de otra que el programa numera después, y ordenar sólo por número las ponía
+    antes que aquello que necesitan. Medido: 5 casos, 2 de ellos introducidos por el
+    propio orden por código.
+
+    Los prerrequisitos ya están declarados —205 relaciones en `saberes.py`, campo
+    `prerrequisitos`— y nadie los estaba usando para ordenar el menú.
+
+    Es un orden topológico con el código del DC de desempate: entre dos actividades que
+    no dependen una de la otra, primero va la que el programa da primero. Si hubiera un
+    ciclo (A necesita B y B necesita A), no se cuelga: lo que quede sin poder ubicarse
+    sale al final en orden de DC, que es lo que se hacía antes."""
+    try:
+        import saberes
+        SAB = saberes.SABERES
+    except Exception:
+        return sorted(acts, key=_orden_dc)
+
+    def _pre(sid):
+        s = SAB.get(sid) or {}
+        return list(s.get("prerrequisitos") or s.get("prereqs") or [])
+
+    ids = {a["id"] for a in acts}
+    juego_de_saber = {}
+    for sid, s in SAB.items():
+        for j in (s.get("juegos") or []):
+            if j in ids:
+                juego_de_saber.setdefault(sid, []).append(j)
+    # qué juegos de ESTE grado tiene que venir antes que cada juego
+    necesita = {a["id"]: set() for a in acts}
+    for sid, s in SAB.items():
+        for j in (s.get("juegos") or []):
+            if j not in ids:
+                continue
+            for pre in _pre(sid):
+                for jp in juego_de_saber.get(pre, []):
+                    if jp != j:
+                        necesita[j].add(jp)
+
+    pendientes = sorted(acts, key=_orden_dc)
+    salida, puestos = [], set()
+    while pendientes:
+        # el primero (en orden de DC) que ya tenga todos sus prerrequisitos puestos
+        libre = next((a for a in pendientes if necesita[a["id"]] <= puestos), None)
+        if libre is None:                 # ciclo o dependencia externa: no colgarse
+            salida.extend(pendientes)
+            break
+        pendientes.remove(libre)
+        salida.append(libre)
+        puestos.add(libre["id"])
+    return salida
+
+
 def menu_de_grado(grado):
-    """Entradas de menú (mismo formato que `actividades_web._menu`) para ese grado."""
+    """Entradas de menú (mismo formato que `actividades_web._menu`) para ese grado.
+
+    Ordenadas por el DC y respetando los prerrequisitos (ver `_orden_pedagogico`). En el
+    cuaderno con motor adaptativo el player las reagrupa por categoría y las ordena por lo
+    que le conviene hacer al chico ahora (`Adapt.peso`); como ese sort es ESTABLE, este
+    orden queda de desempate — entre dos actividades igual de recomendadas, primero va la
+    que corresponde antes."""
     # las que GENERAN el ejercicio (paramétrica y manipular) no tienen banco: van a
     # rondas fijas. (Este `len(a["banco"])` sin guarda tiraba KeyError y, como
     # `_menu_curricular` atrapa cualquier excepción para no dejar al chico sin cuaderno,
@@ -15431,7 +15522,7 @@ def menu_de_grado(grado):
     return [{"id": a["id"], "titulo": a["titulo"], "icono": a["icono"],
              "cfg": {"rondas": 10 if a["mecanica"] in SIN_BANCO
                      else min(10, max(6, len(a["banco"]) // 2))}}
-            for a in actividades_de(grado)]
+            for a in _orden_pedagogico(actividades_de(grado))]
 
 
 def categorias():

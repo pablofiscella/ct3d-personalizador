@@ -1899,6 +1899,51 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
         # `niveles` porque no son un escalón de la misma actividad, son el paso siguiente.
         mas_alla = ([str(x)[:40] for x in ev.get("masAlla")][:300]
                     if isinstance(ev.get("masAlla"), list) else [])
+        # ── `estado`: lo MÍNIMO para volver a armar el perfil en otro navegador ──
+        # Hasta el 30-jul-2026 acá sólo se guardaba el RESUMEN, que sirve para el tablero
+        # del padre pero no para restaurar nada: el progreso vive en el localStorage del
+        # dispositivo y el localStorage es POR DOMINIO. Cambiar de tablet a celular, que
+        # le limpien el navegador o mover el cuaderno de dominio (nos pasó al publicar
+        # mi.kydo.com.ar) dejaban al chico en cero. Pablo lo notó porque el cuaderno le
+        # volvió a pedir el nombre.
+        #
+        # Se guardan estrellas, nivel por actividad, avatar y los sellos de dominio; NO
+        # los ítems ya acertados (`io`), que son una optimización interna y multiplicarían
+        # el tamaño por 60. Todo con tope y saneado, igual que el resto del endpoint.
+        estado = {}
+        est = ev.get("estado")
+        if isinstance(est, dict):
+            def _mapa_num(campo, lo, hi):
+                out = {}
+                if isinstance(est.get(campo), dict):
+                    for k, v in list(est[campo].items())[:300]:
+                        try:
+                            n_ = int(v)
+                        except (TypeError, ValueError):
+                            continue
+                        if lo <= n_ <= hi:
+                            out[str(k)[:40]] = n_
+                return out
+            dom = {}
+            if isinstance(est.get("dominio"), dict):
+                for k, v in list(est["dominio"].items())[:300]:
+                    if not isinstance(v, dict):
+                        continue
+                    sello = v.get("sello")
+                    dom[str(k)[:40]] = {
+                        "dias": [str(x)[:10] for x in (v.get("dias") or [])][:8]
+                                if isinstance(v.get("dias"), list) else [],
+                        "sello": sello if sello in ("practicando", "dominado", "consolidado")
+                                 else "practicando",
+                        "repasarEn": int(v.get("repasarEn") or 0)
+                                     if str(v.get("repasarEn") or "0").isdigit() else 0,
+                    }
+            try:
+                av = max(0, min(50, int(est.get("av") or 0)))
+            except (TypeError, ValueError):
+                av = 0
+            estado = {"stars": _mapa_num("stars", 0, 3), "nd": _mapa_num("nd", 0, 6),
+                      "av": av, "dominio": dom}
         p = os.path.join(d, "progreso.json")
         try:
             data = json.load(open(p, encoding="utf-8"))
@@ -1907,9 +1952,15 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
         except Exception:
             data = {"profiles": {}}
         if len(data["profiles"]) < 25 or perfil in data["profiles"]:
-            data["profiles"][perfil] = {"resumen": cats, "dominados": dominados,
-                                        "niveles": niveles, "masAlla": mas_alla,
-                                        "ts": int(ev.get("ts") or 0) if str(ev.get("ts") or "0").isdigit() else 0}
+            nuevo = {"resumen": cats, "dominados": dominados,
+                     "niveles": niveles, "masAlla": mas_alla,
+                     "ts": int(ev.get("ts") or 0) if str(ev.get("ts") or "0").isdigit() else 0}
+            # El `estado` sólo se pisa si vino: un player viejo (link ya entregado, sin
+            # actualizar) sigue mandando el snapshot sin él, y borrarlo dejaría al chico
+            # sin nada que restaurar justo por haber jugado desde un dispositivo viejo.
+            anterior = data["profiles"].get(perfil) or {}
+            nuevo["estado"] = estado or (anterior.get("estado") or {})
+            data["profiles"][perfil] = nuevo
             try:
                 with open(p, "w", encoding="utf-8") as f:
                     json.dump(data, f, ensure_ascii=False)

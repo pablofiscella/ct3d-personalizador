@@ -5875,6 +5875,45 @@ function modoMaestro() {
   });
 }
 
+/* ── Recuperar el progreso cuando el navegador viene vacío (30-jul-2026) ──────────
+   El progreso vive en `localStorage`, y el localStorage es POR DOMINIO y por navegador.
+   Así que se perdía de vista en tres casos MUY comunes, ninguno culpa del chico:
+     · cambia de dispositivo (la tablet de casa → el celular de la mamá);
+     · le limpian el navegador;
+     · el cuaderno cambia de dominio (nos pasó al publicar mi.kydo.com.ar, y Pablo lo
+       notó porque el cuaderno le volvió a pedir el nombre).
+   El servidor YA venía guardando un snapshot por chico —lo usa el tablero del padre—
+   pero nadie lo leía de vuelta. Esto lo lee.
+
+   SÓLO actúa si el navegador está VACÍO. Si ya hay un perfil local, el local manda
+   siempre: es el que tiene lo último y el que puede tener partidas que el snapshot
+   todavía no vio (se manda best-effort). Restaurar encima sería pisar lo nuevo con lo
+   viejo, que es peor que no restaurar nada. */
+async function recuperarProgresoDelServidor() {
+  try {
+    if (Object.keys(Store.data.profiles || {}).length) return;   // ya hay algo local
+    const r = await fetch("progreso", { cache: "no-store" });
+    if (!r.ok) return;
+    const perfiles = ((await r.json()) || {}).profiles || {};
+    // el más reciente: si hubo varios chicos en el cuaderno, se recupera el último que jugó
+    let mejor = null, mejorTs = -1;
+    for (const nombre in perfiles) {
+      const p = perfiles[nombre] || {};
+      if (!p.estado) continue;                    // snapshot viejo: no alcanza para armarlo
+      if ((p.ts || 0) > mejorTs) { mejorTs = p.ts || 0; mejor = { nombre, ...p }; }
+    }
+    if (!mejor) return;
+    const e = mejor.estado;
+    Store.data.profiles[mejor.nombre] = {
+      stars: e.stars || {}, nd: e.nd || {}, io: {},
+      av: typeof e.av === "number" ? e.av : 0, dominio: e.dominio || {},
+      rest: 1,                                   // vino del servidor, no de este aparato
+    };
+    Store.data.activeProfile = mejor.nombre;
+    Store.save();
+  } catch (err) { /* sin red o sin snapshot: se juega como siempre, desde cero */ }
+}
+
 // Manda al servidor un snapshot del progreso del chico (best-effort) → el padre lo ve
 // en su biblioteca. Gateado por adaptativo_on. No bloquea el juego.
 function _enviarProgreso() {
@@ -5893,9 +5932,16 @@ function _enviarProgreso() {
       const n = nivelDeDificultad(id);      // y qué tan profundo llegó: van juntos
       if (n) niveles[id] = n;
     });
+    // `estado`: lo mínimo para volver a armar el perfil en OTRO navegador. Sin esto el
+    // snapshot sólo servía para el tablero del padre y el chico que cambiaba de
+    // dispositivo empezaba de cero (30-jul-2026). Se manda el perfil crudo salvo `io`
+    // (los ítems ya acertados), que es una optimización interna y pesa 60 veces más.
+    const p = Store.data.profiles[perfil] || {};
+    const estado = { stars: p.stars || {}, nd: p.nd || {},
+                     av: typeof p.av === "number" ? p.av : 0, dominio: p.dominio || {} };
     const snap = { perfil: perfil, resumen: Adapt.resumenPorCategoria(),
       dominados: Array.from(Adapt._dominados()), niveles: niveles, masAlla: masAlla,
-      ts: Date.now() };
+      estado: estado, ts: Date.now() };
     const blob = new Blob([JSON.stringify(snap)], { type: "application/json" });
     if (navigator.sendBeacon) navigator.sendBeacon("progreso", blob);
     else fetch("progreso", { method: "POST", body: blob, keepalive: true }).catch(() => {});
@@ -6075,6 +6121,7 @@ async function boot() {
   if (!meta) { meta = document.createElement("meta"); meta.name = "theme-color"; document.head.appendChild(meta); }
   meta.content = D.paleta.ac;
   Store.load();
+  await recuperarProgresoDelServidor();
   // ?demo=1 (solo con adaptativo_on): carga un perfil que ya domina Matemática, para VER el
   // panel de padres con el upsell sin tener que jugar 100 actividades. Para mostrarle a Pablo.
   if (D.adaptativo_on && /[?&]demo\b/.test(location.search)) _demoProgreso();
@@ -11587,7 +11634,10 @@ const HOMOFONOS_BANCO = [
   { q: "Completá: — ¿Venís? — ¡… , claro!", ok: "sí", d: ["si"], m: "«sí» (afirmación) lleva tilde; «si» (condición) no." },
   { q: "Completá: No sé … voy a poder ir.", ok: "si", d: ["sí"], m: "«si» condicional va sin tilde; «sí» afirmación lleva tilde." },
   // ampliado 20-jul-2026 (de 8 a 20 — engrosar bancos nodales, docs/auditoria-dc-caba/)
-  { q: "Completá: Ya está … la tarea.", ok: "hecho", d: ["echo"], m: "«hecho» es del verbo hacer; «echo» es de echar (tirar)." },
+  // Iba "hecho" con "la tarea", que es femenino (Pablo lo cazó jugando el 7.º, 30-jul-2026).
+  // El par hecha/echa sirve igual de homófono, así que se arregla el género sin perder el
+  // contenido: "echa" es del verbo echar (ella echa sal).
+  { q: "Completá: Ya está … la tarea.", ok: "hecha", d: ["echa"], m: "«hecha» es del verbo hacer y va en femenino porque «la tarea» lo es; «echa» es de echar (tirar)." },
   { q: "Completá: Yo te … de menos.", ok: "echo", d: ["hecho"], m: "«echo de menos» es del verbo echar; «hecho» es de hacer." },
   { q: "Completá: Espero que le … bien en la prueba.", ok: "vaya", d: ["valla"], m: "«vaya» es del verbo ir; «valla» es una cerca." },
   { q: "Completá: El caballo saltó la … del corral.", ok: "valla", d: ["vaya"], m: "«valla» es la cerca u obstáculo; «vaya» es del verbo ir." },
