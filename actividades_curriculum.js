@@ -1638,7 +1638,7 @@ const CUR_CALCULO_REDONDO_PLANTILLA = {
     "a - b"
   ],
   "tope": 1000,
-  "m": "Fijate en qué columna sumás: unidades con unidades, dieces con dieces, cienes con cienes. Da {ok}."
+  "m": "Fijate en qué columna sumás: unidades con unidades, decenas con decenas, centenas con centenas. Da {ok}."
 };
 GAMES.calculo_redondo = juegoParametrico(CUR_CALCULO_REDONDO_PLANTILLA, "¿Cuánto da?", "calculo_re");
 
@@ -12722,7 +12722,7 @@ const CUR_MIL_MAS_MENOS_3_PLANTILLA = {
     "a - b"
   ],
   "tope": 10000,
-  "m": "Fijate en qué columna sumás: los cienes con los cienes, los miles con los miles. Da {ok}."
+  "m": "Fijate en qué columna sumás: las centenas con las centenas, los miles con los miles. Da {ok}."
 };
 GAMES.mil_mas_menos_3 = juegoParametrico(CUR_MIL_MAS_MENOS_3_PLANTILLA, "¿Cuánto da?", "mil_mas_me");
 
@@ -12786,7 +12786,7 @@ const CUR_MULTI_PARTES_3_PLANTILLA = {
     "a + b"
   ],
   "tope": 500,
-  "m": "Partilo: multiplicá primero los dieces y después las unidades, y sumá. Da {ok}."
+  "m": "Partilo: multiplicá primero las decenas y después las unidades, y sumá. Da {ok}."
 };
 GAMES.multi_partes_3 = juegoParametrico(CUR_MULTI_PARTES_3_PLANTILLA, "¿Cuánto da?", "multi_part");
 

@@ -828,8 +828,8 @@ CATALOGO = [
             # distractores POSICIONALES: sumar en la columna equivocada, que es EL error
             "distractores": ["a + b*10", "a + b/10", "a - b"],
             "tope": 1000,
-            "m": "Fijate en qué columna sumás: unidades con unidades, dieces con dieces, "
-                 "cienes con cienes. Da {ok}.",
+            "m": "Fijate en qué columna sumás: unidades con unidades, decenas con decenas, "
+                 "centenas con centenas. Da {ok}.",
         },
     },
 
@@ -6068,7 +6068,7 @@ CATALOGO = [
                                         "b": {"opciones": [100, 1000]}},
             "ok": "a + b", "distractores": ["a + b*10", "a + b/10", "a - b"],
             "tope": 10000,
-            "m": "Fijate en qué columna sumás: los cienes con los cienes, los miles con los miles. Da {ok}.",
+            "m": "Fijate en qué columna sumás: las centenas con las centenas, los miles con los miles. Da {ok}.",
         },
     },
     {
@@ -6100,7 +6100,7 @@ CATALOGO = [
                                         "b": {"rango": [3, 9], "paso": 1}},
             "ok": "a * b", "distractores": ["a * b - a", "a * b + a", "a + b"],
             "tope": 500,
-            "m": "Partilo: multiplicá primero los dieces y después las unidades, y sumá. Da {ok}.",
+            "m": "Partilo: multiplicá primero las decenas y después las unidades, y sumá. Da {ok}.",
         },
     },
     {

@@ -117,6 +117,9 @@ function _dueloCSS() {
     "font-size:18px;font-weight:700;cursor:pointer}" +
     ".duelo-btn--2{background:transparent;color:var(--ac,#3D2FBF);" +
     "border:2px solid var(--ac,#3D2FBF)}" +
+    ".duelo-pend{border:2px dashed color-mix(in srgb,var(--ac) 45%,transparent);" +
+    "border-radius:16px;padding:12px 10px;margin:0 0 14px}" +
+    ".duelo-pend-tit{margin:0 0 4px;font-weight:800;color:var(--ac)}" +
     ".duelo-codigo{font-family:ui-monospace,Menlo,monospace;font-size:44px;font-weight:700;" +
     "letter-spacing:.18em;margin:18px 0;padding:16px 10px;border-radius:18px;" +
     "background:color-mix(in srgb,var(--ac,#3D2FBF) 12%,transparent)}" +
@@ -203,7 +206,8 @@ function _dueloResultado(ctx, duelo, codigo) {
   if (jug.length < 2) {
     caja.innerHTML =
       "<h2>¡Listo! 🎉</h2>" + marcador +
-      "<p>Ahora pasale este código a un compañero para que juegue las mismas preguntas:</p>" +
+      "<p>Ahora pasale este código a un compañero para que juegue las mismas preguntas. " +
+      "Si lo cerrás, lo volvés a encontrar acá adentro.</p>" +
       `<div class="duelo-codigo">${codigo}</div>`;
     caja.appendChild(_dueloBotonCompartir(codigo));
   } else {
@@ -214,6 +218,7 @@ function _dueloResultado(ctx, duelo, codigo) {
       "<p>" + (iguales ? "Los dos igual de afilados." : "¡Muy bien los dos!") + "</p>";
   }
   const volver = el("button", "duelo-btn duelo-btn--2", "Volver a las actividades");
+  volver.title = "El código queda guardado: podés compartirlo después desde el duelo.";
   volver.addEventListener("click", () => { Sfx.pop(); volverMenu(); });
   caja.appendChild(volver);
 }
@@ -232,6 +237,46 @@ function _dueloEscapar(t) {
 
    El código igual se muestra grande y se puede copiar: la mitad de los desafíos se van a
    pasar dictándolos en el recreo, que es justo para lo que está elegido el alfabeto. */
+/* ── LOS DUELOS QUE EL CHICO YA CREÓ ───────────────────────────────────────────
+   Pablo, 31-jul-2026: *"cuando un chico juega, ¿cómo le pasa el token al amigo? El que se
+   puso a jugar primero no tiene ningún número que compartir"*.
+
+   Reproducido en el navegador, el circuito era: toca "Empezar un duelo" → contesta las 5 →
+   recién ahí aparece el código → toca "Volver a las actividades" → **el código desaparece
+   para siempre**. No se guardaba en ninguna parte. Si no lo compartía en ese mismo momento
+   —y un chico de nueve años cierra la pantalla— la partida quedaba huérfana en el servidor
+   30 días, con sus 5 respuestas adentro, y el compañero no se enteraba nunca.
+
+   Se guardan en el PERFIL del chico, no en el token: el cuaderno lo pueden usar dos
+   hermanos y el duelo es de quien lo jugó. Tope de 3 y sólo el código y la fecha — no hace
+   falta guardar las preguntas, que ya están en el servidor. ── */
+const DUELOS_GUARDADOS = 3;
+
+function _dueloMios() {
+  try {
+    const p = Store._perfil();
+    return (p && Array.isArray(p.du)) ? p.du : [];
+  } catch (e) { return []; }
+}
+
+function _dueloRecordar(codigo) {
+  try {
+    const p = Store._perfil(); if (!p) return;
+    p.du = [{ c: codigo, ts: Date.now() }]
+      .concat((p.du || []).filter((d) => d && d.c !== codigo))
+      .slice(0, DUELOS_GUARDADOS);
+    Store.save();
+  } catch (e) { /* sin guardar, el duelo igual se jugó */ }
+}
+
+function _dueloOlvidar(codigo) {
+  try {
+    const p = Store._perfil(); if (!p) return;
+    p.du = (p.du || []).filter((d) => d && d.c !== codigo);
+    Store.save();
+  } catch (e) { /* idem */ }
+}
+
 function _dueloLink(codigo) {
   return location.origin + "/reto/" + codigo;
 }
@@ -304,6 +349,42 @@ GAMES.duelo = {
         "<h2>Duelo con un compañero</h2>" +
         "<p>Cinco preguntas de tu grado. Vos jugás ahora y tu compañero juega " +
         "cuando pueda, con las mismas preguntas.</p>";
+
+      // Los duelos que ya creó van PRIMERO: es lo único accionable de esta pantalla —
+      // hay un compañero esperando del otro lado — y era justamente lo que no existía.
+      _dueloMios().forEach((d) => {
+        const fila = el("div", "duelo-pend");
+        fila.innerHTML = '<p class="duelo-pend-tit">Tu duelo, esperando a un compañero</p>' +
+          `<div class="duelo-codigo">${_dueloEscapar(d.c)}</div>`;
+        const compartir = _dueloBotonCompartir(d.c);
+        fila.appendChild(compartir);
+        const ver = el("button", "duelo-btn duelo-btn--2", "Ver si ya jugó");
+        ver.addEventListener("click", async () => {
+          Sfx.pop();
+          try {
+            const j = await _dueloPedir("/duelo/" + d.c, {});
+            if ((j.duelo.jugadores || []).length >= 2) _dueloOlvidar(d.c);
+            _dueloResultado(ctx, j.duelo, d.c);
+          } catch (e) {
+            // 404 = la partida venció (30 días) o se borró: sacarla en vez de dejarle
+            // un código muerto en pantalla para siempre
+            _dueloOlvidar(d.c);
+            _dueloError(ctx, "Ese duelo ya no está disponible.", inicio);
+          }
+        });
+        fila.appendChild(ver);
+        caja.appendChild(fila);
+        // y si el compañero YA jugó, que se entere sin tener que tocar nada
+        _dueloPedir("/duelo/" + d.c, {}).then((j) => {
+          const otros = (j.duelo.jugadores || []).length;
+          if (otros >= 2 && fila.isConnected) {
+            fila.querySelector(".duelo-pend-tit").textContent = "¡Ya jugó tu compañero!";
+            ver.textContent = "Ver el resultado";
+            compartir.remove();   // ya no hay a quién invitar: el duelo está cerrado
+          }
+        }).catch(() => {});
+      });
+
       const bCrear = el("button", "duelo-btn", "Empezar un duelo");
       bCrear.addEventListener("click", () => { Sfx.pop(); crear(); });
       caja.appendChild(bCrear);
@@ -327,6 +408,7 @@ GAMES.duelo = {
             body: JSON.stringify({ grado: grado, preguntas: preguntas,
                                    nombre: _dueloNombre(), aciertos: aciertos }),
           });
+          _dueloRecordar(j.codigo);   // para poder compartirlo después, no sólo ahora
           _dueloResultado(ctx, j.duelo, j.codigo);
         } catch (e) {
           // el chico ya jugó: lo que se perdió es el código, no su partida
