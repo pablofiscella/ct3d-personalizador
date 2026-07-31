@@ -50,9 +50,16 @@ const fs = require("fs");
 const src = fs.readFileSync(%s, "utf8");
 // se corren las funciones REALES del player: una copia acá se desincronizaría al primer
 // cambio y el test dejaría de medir lo que escucha el chico
-eval(src.match(/const _NOMBRE_LETRA = \{[\s\S]*?\n\}/)[0] + ";"
-   + src.match(/const _NOMBRE_ENTRE_COMILLAS = [\s\S]*?_NOMBRE_LETRA\);/)[0] + ";"
-   + src.match(/function _deletrearParaLaVoz\(txt\) \{[\s\S]*?\n\}/)[0]);
+// TODO en un solo eval: un `const` no sale del eval en el que se declaró
+eval([/const _UNI = \[[\s\S]*?\];/, /const _DEC = \[[\s\S]*?\];/, /const _CEN = \[[\s\S]*?\];/,
+      /function _numeroEnPalabras[\s\S]*?\n\}/, /const _SIGNOS = \{[\s\S]*?\};/,
+      /const _ORDINAL_FRAC = \{[\s\S]*?\};/, /function _nombreDenominador[\s\S]*?\n\}/,
+      /function _fraccionesEnPalabras[\s\S]*?\n\}/,
+      /const _ES_CUENTA = [^\n]*/, /function _cuentaEnPalabras[\s\S]*?\n\}/,
+      /const _NOMBRE_LETRA = \{[\s\S]*?\n\}/,
+      /const _NOMBRE_ENTRE_COMILLAS = [\s\S]*?_NOMBRE_LETRA\);/,
+      /function _deletrearParaLaVoz\(txt\) \{[\s\S]*?\n\}/]
+     .map((re) => src.match(re)[0]).join(";\n"));
 // los textos entran por ARCHIVO: el catálogo son 4348 frases y por línea de comandos
 // revienta con "Argument list too long"
 const textos = JSON.parse(fs.readFileSync(%s, "utf8"));
@@ -235,3 +242,163 @@ def test_no_queda_notacion_fonetica_en_lo_que_se_escucha():
             "%s tiene notación fonética en algo que se escucha: %r" % (aid, t)
     assert decir(["«sol» empieza con el sonido de la «S»."]) == \
         ["«sol» empieza con el sonido de la ese."]
+
+
+# ── las cuentas ──────────────────────────────────────────────────────────────────
+
+def test_la_cuenta_se_dice_en_palabras():
+    """Pablo, 31-jul-2026, probando 2.º EN PRODUCCIÓN: *"«760 + 1» dice «sitositoceta + 1»"*.
+
+    La cuenta le llegaba en crudo al sintetizador y masticaba el número. Se resuelve
+    escribiéndole lo que una maestra DICE. En pantalla sigue viéndose "760 + 1", que es lo
+    que el chico tiene que aprender a leer; lo que cambia es cómo suena."""
+    assert decir(["760 + 1"]) == ["setecientos sesenta más uno"]
+
+
+@pytest.mark.parametrize("cuenta,dicho", [
+    ("760 + 10", "setecientos sesenta más diez"),
+    ("390 + 100", "trescientos noventa más cien"),
+    ("100 + 1", "cien más uno"),               # "cien", no "ciento"
+    ("21 + 1", "veintiuno más uno"),           # una palabra hasta el 29
+    ("16 + 3", "dieciséis más tres"),
+    ("1.000 + 1", "mil más uno"),              # el punto es separador de miles, no coma
+    ("1.234 × 2", "mil doscientos treinta y cuatro por dos"),
+    ("900 − 100", "novecientos menos cien"),   # el menos largo, no el guion
+    ("7 × 10", "siete por diez"),
+    ("2 + 3 × 4", "dos más tres por cuatro"),  # jerarquía de 6.º: dos operadores
+    ("130 + ___ = 200", "ciento treinta más cuánto es igual a doscientos"),
+])
+def test_los_numeros_y_los_signos_se_dicen_como_se_dicen(cuenta, dicho):
+    assert decir([cuenta]) == [dicho]
+
+
+def test_solo_se_convierte_cuando_el_texto_ENTERO_es_una_cuenta():
+    """Un número adentro de una frase se lee bien y no se toca: cuanto menos se reescriba,
+    menos se rompe. Si mañana esto se afloja, se empiezan a deletrear años y porcentajes."""
+    for t in ("Da 761.", "Tocá dos burbujas que sumen 10",
+              "Argentina es un país muy urbanizado: más del 90% vive en ciudades."):
+        assert decir([t]) == [t], "se reescribió una frase que no es una cuenta: %r" % t
+
+
+def test_las_seis_actividades_que_dicen_una_cuenta_pelada_quedan_cubiertas():
+    """Medido el 31-jul-2026: seis plantillas del catálogo tienen como PREGUNTA una cuenta
+    y nada más. No era un caso suelto de la pantalla que Pablo abrió."""
+    import re as _re
+    CUENTA = _re.compile(r"^[\d\s.,+\-−×÷=<>_?¿]+$")
+    con_cuenta = []
+    for a in cur.CATALOGO:
+        p = a.get("plantilla")
+        if p and p.get("q") and CUENTA.match(_re.sub(r"\{[a-z_]+\}", "760", p["q"])):
+            con_cuenta.append(a["id"])
+    assert len(con_cuenta) >= 6, "quedaron %d: %s" % (len(con_cuenta), con_cuenta)
+    muestras = [_re.sub(r"\{[a-z_]+\}", "760", a["plantilla"]["q"])
+                for a in cur.CATALOGO if a["id"] in con_cuenta]
+    for m, d in zip(muestras, decir(muestras)):
+        assert d != m, "«%s» sigue yendo en crudo a la voz" % m
+        assert not _re.search(r"\d", d), "quedaron dígitos sin decir: %r" % d
+
+
+# ── lo que apareció barriendo TODO lo hablado ────────────────────────────────────
+
+@pytest.mark.parametrize("texto,dicho", [
+    ("1/2", "un medio"),
+    ("3/4", "tres cuartos"),
+    ("1/12 de la torta", "un doceavo de la torta"),
+    ("5/15 se simplifica", "cinco quinceavos se simplifica"),
+    ("3/40 de la clase", "tres cuarentavos de la clase"),
+    ("1/100", "un centésimo"),
+])
+def test_las_fracciones_se_dicen_como_se_llaman(texto, dicho):
+    """*"Seguí con la voz"*. Barriendo las 6607 frases habladas del cuaderno aparecieron 66
+    fracciones escritas "3/4", en las unidades de 5.º y 6.º que JUSTAMENTE enseñan
+    fracciones. Medido contra el sintetizador, "3/4" tarda más que "tres cuartos": no lo
+    está diciendo como fracción."""
+    assert decir([texto]) == [dicho]
+
+
+def test_la_barra_de_fraccion_no_se_dice_dividido():
+    """En este catálogo la división se escribe con ÷. Decir "tres dividido cuatro" en la
+    unidad que enseña fracciones sería enseñar otra cosa."""
+    d = decir(["2/3 × 4/4 = 8/12"])[0]
+    assert d == "dos tercios por cuatro cuartos es igual a ocho doceavos"
+    assert "dividido" not in d
+
+
+def test_los_signos_adentro_de_una_frase_tambien_se_dicen():
+    """Después de convertir las fracciones el texto ya no es una cuenta pelada, así que los
+    signos sueltos quedaban sin decir."""
+    assert decir(["Hidro = agua: la fuerza del agua mueve las turbinas."]) == \
+        ["Hidro es igual a agua: la fuerza del agua mueve las turbinas."]
+
+
+def test_no_toca_los_guiones_que_no_son_restas():
+    """«2-6-3-4-5» es una posición, no cinco restas. Por eso el guion común queda afuera y
+    sólo entra el «−» largo, que es el signo matemático."""
+    t = "Cada sumando ocupa su posición: 2-6-3-4-5."
+    assert decir([t]) == [t]
+
+
+def test_la_flecha_se_lee_como_la_pausa_que_es():
+    """«Municipio → intendente» es una correspondencia. Una coma la lee bien y no depende de
+    que el sintetizador sepa qué hacer con el símbolo."""
+    assert decir(["Municipio → intendente; provincia → gobernador."]) == \
+        ["Municipio, intendente; provincia, gobernador."]
+
+
+def test_los_grados_de_temperatura_si_y_los_de_orden_no():
+    """El «°» se usa para DOS cosas distintas en el cuaderno: temperatura («100 °C») y orden
+    («el 1° puesto»). Sólo se toca la primera; la segunda ya se dice bien."""
+    assert decir(["A 100 °C hierve; a 0 °C se congela."]) == \
+        ["A 100 grados hierve; a 0 grados se congela."]
+    t = "Para el 1° hay 5 candidatos; para el 2°, uno menos."
+    assert decir([t]) == [t]
+
+
+def test_los_decimales_no_se_tocan():
+    """«0,35» en español se lee «cero coma treinta y cinco», que es lo correcto. Meterse ahí
+    sería arreglar algo que no está roto."""
+    t = "0,35 cae justo entre los dos."
+    assert decir([t]) == [t]
+
+
+def test_un_entero_escrito_como_fraccion_se_dice_sobre_uno():
+    """«5 es 5/1» es como se enseña que un entero también es una fracción. No existe
+    "cinco unavos": ahí se dice "cinco sobre uno"."""
+    assert decir(["5 es 5/1; dado vuelta queda 1/5."]) == \
+        ["5 es cinco sobre uno; dado vuelta queda un quinto."]
+
+
+def test_una_fraccion_al_final_de_la_oracion_tambien_se_convierte():
+    """El punto final NO es un punto decimal. Con un lookahead que rechazaba cualquier
+    punto, «da 3/6.» se quedaba sin convertir — y así termina la mitad de las
+    explicaciones. Quedaban 44 sin tocar por este solo motivo."""
+    assert decir(["1/2 amplificada por 3 da 3/6."]) == \
+        ["un medio amplificada por 3 da tres sextos."]
+    assert decir(["1/2,5 no es fracción"]) == ["1/2,5 no es fracción"]
+
+
+def test_no_queda_NADA_sin_decir_en_todo_el_cuaderno():
+    """El barrido completo, que es lo que Pablo pidió con *"seguí con la voz"*: las 6607
+    frases que el cuaderno dice, pasadas por la función real, sin que quede una fracción con
+    barra, un signo suelto, una notación de fonema, una flecha, un grado ni una «uve».
+
+    Este test es el que evita seguir arreglando de a uno lo que el chico va encontrando."""
+    import re as _re
+    textos = [t for _, t in _textos_hablados()]
+    dichos = decir(textos)
+    PATRONES = [
+        ("fracción con barra", _re.compile(r"\d\s*/\s*\d")),
+        ("signo suelto", _re.compile(r"(^|\s)[+×÷=<>−](\s|$)")),
+        ("notación /fonema/", _re.compile(r"/[a-záéíóúñ]{1,5}/")),
+        ("flecha", _re.compile(r"→|←|↔")),
+        ("grados C", _re.compile(r"\d\s*°\s*C")),
+        ("V o W suelta", _re.compile(
+            r"(^|[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ])[VW](?![A-Za-zÁÉÍÓÚÜÑáéíóúüñ])")),
+    ]
+    malos = []
+    for t, d in zip(textos, dichos):
+        for nombre, rx in PATRONES:
+            if rx.search(d):
+                malos.append("%s → %s" % (nombre, d[:80]))
+    assert not malos, "%d frase(s) siguen con algo sin decir:\n  %s" % (
+        len(malos), "\n  ".join(malos[:6]))
