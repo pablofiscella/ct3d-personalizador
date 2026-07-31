@@ -102,6 +102,7 @@ def crear(grado, preguntas, nombre, aciertos):
     if len(limpias) != CANT_PREGUNTAS:
         return None, "hacen falta %d preguntas válidas" % CANT_PREGUNTAS
     os.makedirs(DUELOS_DIR, exist_ok=True)
+    limpiar_si_toca()       # el directorio crece justo acá: es donde corresponde podarlo
     codigo = _nuevo_codigo()
     if not codigo:
         return None, "no se pudo generar un código"
@@ -178,6 +179,35 @@ def pagina(codigo):
     return html.replace("{{CODIGO}}", codigo)
 
 
+MARCA_LIMPIEZA = ".ultima-limpieza"
+
+
+def limpiar_si_toca(dias=VIDA_DIAS, cada_horas=24):
+    """Corre `limpiar()` como mucho una vez por día, desde la creación de un duelo.
+
+    Pablo, 31-jul-2026, probando: *"¿quedan de por vida o al otro día se van?"*. Se fue a
+    mirar y la respuesta era la mala: `limpiar()` existía y estaba testeada, pero **nadie la
+    llamaba**, así que los 30 días de `VIDA_DIAS` eran teóricos y el directorio crecía para
+    siempre.
+
+    Se engancha acá y no en un timer nuevo a propósito: es una línea, no hay infra que
+    mantener, y el momento en que se crea un duelo es exactamente cuando el directorio
+    crece. La marca de tiempo evita recorrer el directorio en cada partida.
+
+    Nunca puede romper la creación del duelo: si falla, se sigue igual."""
+    try:
+        marca = os.path.join(DUELOS_DIR, MARCA_LIMPIEZA)
+        if (os.path.exists(marca)
+                and time.time() - os.path.getmtime(marca) < cada_horas * 3600):
+            return 0
+        n = limpiar(dias)
+        with open(marca, "w") as f:
+            f.write("")
+        return n
+    except Exception:
+        return 0
+
+
 def limpiar(dias=VIDA_DIAS):
     """Borra las partidas viejas y devuelve cuántas. El directorio no puede crecer para
     siempre y una partida de hace un mes no le sirve a nadie."""
@@ -187,7 +217,7 @@ def limpiar(dias=VIDA_DIAS):
     n = 0
     for f in os.listdir(DUELOS_DIR):
         if not f.endswith(".json"):
-            continue
+            continue        # incluye la marca de última limpieza, que no es una partida
         p = os.path.join(DUELOS_DIR, f)
         try:
             if os.path.getmtime(p) < corte:
