@@ -141,6 +141,58 @@ async function cargarAudioManifest() {
 // este archivo nuevo llega a todos los links, incluidos los ya vendidos).
 const VOZ_TTS = "valeria";
 
+/* ── CÓMO SE DELETREA UNA LETRA, EN RIOPLATENSE ────────────────────────────────
+   Pablo, 31-jul-2026: *"«cómo se escribe vaca» dice que va con «u-ve», así lo pronuncia,
+   y nosotros decimos «ve corta»"*, y después: *"y le decimos «i griega», revisalo en todos
+   los cuadernos"*.
+
+   La voz sintetizada lee las letras con los nombres de España. Medido sobre el catálogo
+   entero: **32 actividades** deletrean alguna letra, así que no es un caso suelto de 2.º.
+
+   ESTO NO SE PUEDE HACER CON UN REEMPLAZO A CIEGAS, y por una letra en particular: la Y
+   suelta casi nunca es la letra — es la conjunción al empezar la oración ("Y esto quedó en
+   la Constitución", "Y llevamos uno a la próxima columna"). De 15 apariciones, sólo UNA era
+   la letra. Deletrear las otras catorce habría sido peor que el problema original.
+   Por eso hay dos reglas, y la Y sólo entra por la primera:
+
+     1. Letra entre « », que en este catálogo ya significa "esto, como token" («sol», «pan»):
+        SIEMPRE es la letra. Ahí sí entra la Y.
+     2. Letra suelta en mayúscula: sólo las que NO son además una palabra del español. Las
+        vocales no hacen falta (su nombre es la letra misma) y la Y queda afuera a propósito.
+
+   Los números romanos salen bien solos: «V (5)» se lee "ve corta, cinco", que es correcto,
+   y XX / XL / DC no están en la tabla, así que no se tocan.
+
+   Se aplica SÓLO al texto que va al sintetizador. Lo que se VE sigue diciendo «V»: el chico
+   tiene que ver la letra, es una actividad de ortografía. Y la búsqueda en el manifest se
+   hace con el texto ORIGINAL, así que los 229 mp3 ya grabados siguen funcionando — ninguno
+   tenía letras sueltas, se verificó antes de tocar nada. */
+const _NOMBRE_LETRA = {
+  B: "be larga", C: "ce", D: "de", F: "efe", G: "ge", H: "hache", J: "jota", K: "ka",
+  L: "ele", M: "eme", N: "ene", "Ñ": "eñe", P: "pe", Q: "cu", R: "erre", S: "ese",
+  T: "te", V: "ve corta", W: "doble ve", X: "equis", Z: "zeta",
+  LL: "doble ele", CH: "che", RR: "doble erre", QU: "cu", GU: "ge u", NV: "ene ve corta",
+};
+// Sólo para la regla de « »: acá la Y sí es la letra, y las vocales se nombran solas.
+const _NOMBRE_ENTRE_COMILLAS = Object.assign(
+  { A: "a", E: "e", I: "i", O: "o", U: "u", Y: "i griega" }, _NOMBRE_LETRA);
+
+function _deletrearParaLaVoz(txt) {
+  return String(txt)
+    // También en minúscula: «m» se dice igual que «M», y es lo que hace que una pareja
+    // mayúscula/minúscula se entienda hablada («M» mayúscula y «m» minúscula) en vez de
+    // sonar "eme y m". La ÚNICA excepción es la «y» minúscula, que en este catálogo es la
+    // CONJUNCIÓN entrecomillada ("el «y» reemplaza a la última coma", "coordinados por
+    // «y»"): ahí deletrearla diría "el i griega reemplaza a la última coma". En MAYÚSCULA
+    // sí es la letra, que es como quedó escrito el único caso que la nombra de verdad.
+    .replace(/«([A-Za-zÑñ]{1,2})»/g, (m0, L) =>
+      (L === "y" ? m0 : (_NOMBRE_ENTRE_COMILLAS[L.toUpperCase()] || m0)))
+    // sin lookbehind: se captura el carácter previo y se devuelve, para que ande también
+    // en los Safari viejos que todavía hay dando vueltas en tablets prestadas
+    .replace(/(^|[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ])([A-ZÑ]{1,2})(?![A-Za-zÁÉÍÓÚÜÑáéíóúüñ])/g,
+             (m0, pre, L) => pre + (_NOMBRE_LETRA[L] || L));
+}
+
 function reproducirConsigna(txt) {
   if (vozActual) { vozActual.pause(); vozActual = null; }
   if (!Sfx.on) return Promise.resolve(false);
@@ -154,7 +206,10 @@ function reproducirConsigna(txt) {
   // el cambio se propaga solo; esta URL, en cambio, era idéntica antes y después,
   // y el NAVEGADOR del que ya había usado el cuaderno seguía reproduciendo la voz
   // vieja desde su caché (Pablo lo cazó en "¿Qué número falta?", 25-jul-2026).
-  const archivo = AudioManifest[txt] || ("/tts?t=" + encodeURIComponent(txt) + "&v=" + VOZ_TTS);
+  // El manifest se busca con el texto ORIGINAL (los mp3 están grabados con esa clave);
+  // sólo lo que va al sintetizador pasa por el deletreo rioplatense.
+  const archivo = AudioManifest[txt]
+    || ("/tts?t=" + encodeURIComponent(_deletrearParaLaVoz(txt)) + "&v=" + VOZ_TTS);
   const audio = new Audio(archivo);
   vozActual = audio;
   return new Promise((resolve) => {
@@ -7797,7 +7852,12 @@ GAMES.armar_palabra = {
       const palabra = disp[rint(0, disp.length - 1)];
       usadas.push(palabra.p);
       ctx.item("armapal#" + palabra.p);
-      consignaVariada(ctx, ronda, "Escuchá la palabra y tocá las sílabas en orden para armarla", "f");
+      // Pablo, 31-jul-2026: *"dice «escuchá la palabra moto» y debería decir «armá la
+      // palabra moto»"*. Dos cosas mal: el verbo era el equivocado —lo que hay que hacer es
+      // ARMARLA, escuchar es el medio— y la consigna no nombraba la palabra, así que el
+      // chico tenía que deducirla del emoji o esperar a que sonara aparte.
+      consignaVariada(ctx, ronda, "Armá la palabra " + palabra.p
+                      + ": tocá las sílabas en orden", "f");
       ctx.juego.innerHTML = "";
       const tablero = el("div", "tablero armarPalabraTablero");
       tablero.appendChild(el("div", "armarPalabraEmoji", palabra.e));
@@ -7842,7 +7902,9 @@ GAMES.armar_palabra = {
       });
       tablero.appendChild(filaSilabas);
       ctx.juego.appendChild(tablero);
-      setTimeout(() => reproducirConsigna(palabra.p), 1300);
+      // Ya no se repite la palabra suelta 1,3 s después: ahora va DENTRO de la consigna, y
+      // repetirla era decirla dos veces seguidas — justo lo que Pablo marcó el 30-jul con
+      // la voz de Valeria. El botón "Escuchar de nuevo" sigue estando para el que la quiera.
     };
     jugar();
   },
@@ -7939,7 +8001,10 @@ GAMES.suma_rapida = {
       let elegido = null;
       let resuelto = false;
       nums.forEach((v, idx) => {
-        const btn = el("button", "spriteBtn", `<span style="font-size:30px;font-family:'Baloo',sans-serif">${v}</span>`);
+        // Pablo, 31-jul-2026: *"suma burbujas, adentro no hay números con burbujas"*. Los
+        // números estaban, pero en cuadraditos: la consigna (que es audio GRABADO y dice
+        // "burbujas") no coincidía con lo que el chico veía en pantalla.
+        const btn = el("button", "spriteBtn burbuja", `<span style="font-size:30px;font-family:'Baloo',sans-serif">${v}</span>`);
         btn.addEventListener("click", async () => {
           if (resuelto || btn.disabled) return;
           if (elegido === null) {
@@ -9516,6 +9581,48 @@ function _botonIngles(cont, idPrefix, idx) {
   cont.appendChild(b);
 }
 
+/* Figura geométrica dibujada, para las preguntas que hablan de una.
+
+   Pablo, 31-jul-2026: *"detective de figuras no muestra la figura con un dibujo, podría
+   ser más claro"*. Tenía razón y el caso es peor de lo que parece: en 1.º el chico recién
+   está aprendiendo a leer, así que «¿cuántos lados tiene un triángulo?» sin triángulo a la
+   vista mide si SABE LEER la palabra "triángulo", no si entiende la figura.
+
+   Se dibuja con SVG y no con emoji ni imagen: son 4 líneas, escala sin pixelarse, toma el
+   color del tema y —lo que importa— el ROMBO es literalmente el cuadrado girado, que es la
+   pregunta más difícil del banco ("un cuadrado apoyado en una punta, ¿sigue siendo
+   cuadrado?"). Con un emoji esa pregunta no se puede ilustrar. */
+const _FIGURAS_SVG = {
+  triangulo: '<polygon points="50,8 92,88 8,88"/>',
+  cuadrado: '<rect x="14" y="14" width="72" height="72" rx="4"/>',
+  rectangulo: '<rect x="6" y="26" width="88" height="48" rx="4"/>',
+  circulo: '<circle cx="50" cy="50" r="41"/>',
+  rombo: '<polygon points="50,6 94,50 50,94 6,50"/>',      // el cuadrado, girado
+  pentagono: '<polygon points="50,6 94,38 77,90 23,90 6,38"/>',
+  // Las tres preguntas que van al revés —parten de un OBJETO y piden la figura— llevan
+  // dibujado el objeto, no la figura. Pablo, 31-jul-2026: *"¿por qué la primera no tiene
+  // dibujo?"*. En la primera versión las dejé sin nada para no regalar la respuesta, y el
+  // razonamiento estaba mal por dos motivos: al chico le quedaba una actividad que a veces
+  // muestra algo y a veces no (que se lee como que está rota), y sobre todo, sin el dibujo
+  // la pregunta mide si sabe LEER "rueda" — que es justo lo que en 1.º todavía no sabe.
+  // Dibujar el objeto no le da el nombre de la figura: lo tiene que poner él.
+  rueda: '<circle cx="50" cy="50" r="40"/><line x1="50" y1="12" x2="50" y2="88"/>'
+    + '<line x1="12" y1="50" x2="88" y2="50"/><line x1="23" y1="23" x2="77" y2="77"/>'
+    + '<line x1="77" y1="23" x2="23" y2="77"/><circle cx="50" cy="50" r="11"/>',
+  puerta: '<rect x="26" y="10" width="48" height="80" rx="3"/><circle cx="64" cy="52" r="4.5"/>',
+  casita: '<polygon points="50,8 90,44 10,44"/><rect x="22" y="44" width="56" height="46"/>',
+};
+
+function _figuraDibujada(nombre) {
+  const d = _FIGURAS_SVG[nombre];
+  if (!d) return null;
+  const c = el("div", "figuraDib");
+  c.innerHTML = '<svg viewBox="0 0 100 100" width="112" height="112" aria-hidden="true">'
+    + '<g fill="var(--soft)" stroke="var(--ac)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">'
+    + d + '</g></svg>';
+  return c;
+}
+
 function juegoTriviaTexto(banco, consigna, idPrefix, rondasDefault) {
   return {
     crear(ctx) {
@@ -9537,6 +9644,10 @@ function juegoTriviaTexto(banco, consigna, idPrefix, rondasDefault) {
         const item = banco[idx];
         ctx.item(idPrefix + "#" + idx);
         const arriba = el("div", "tablero");
+        // `dib` es opcional: sólo las preguntas que hablan de una figura la traen, y el
+        // resto del catálogo (212 actividades sobre este mismo motor) no cambia en nada.
+        const fig = item.dib ? _figuraDibujada(item.dib) : null;
+        if (fig) arriba.appendChild(fig);
         arriba.appendChild(el("div", "spriteQuieto",
           `<span style="font-size:21px;font-family:'Baloo',sans-serif">${item.q}</span>`));
         // Inglés: botón para OÍR el término, con voz nativa inglesa. Sin esto la
@@ -9896,8 +10007,8 @@ GAMES.independencia_arg = juegoTriviaTexto(INDEPENDENCIA_BANCO, "Elegí la respu
    errores típicos (C4) + explicación de la regla (C3). Reusa juegoTriviaTexto. ── */
 const ORTO2_BANCO = [
   { q: "🐴 El animal que relincha:", ops: ["caballo", "cabayo", "cavallo"], m: "Va con LL y con B: caballo." },
-  { q: "🧀 Lo que se hace con la leche:", ops: ["queso", "keso", "cueso"], m: "El sonido /ke/ se escribe QU: queso." },
-  { q: "🎸 El instrumento de cuerdas:", ops: ["guitarra", "gitarra", "guitara"], m: "Va con GU (sonido /gi/) y con RR: guitarra." },
+  { q: "🧀 Lo que se hace con la leche:", ops: ["queso", "keso", "cueso"], m: "El sonido «que» se escribe QU: queso." },
+  { q: "🎸 El instrumento de cuerdas:", ops: ["guitarra", "gitarra", "guitara"], m: "Va con GU, que suena «gui», y con RR: guitarra." },
   { q: "☔ El agua que cae del cielo:", ops: ["lluvia", "yuvia", "luvia"], m: "Va con LL: lluvia." },
   { q: "🪑 Sirve para sentarse:", ops: ["silla", "siya", "cilla"], m: "Va con LL: silla." },
   { q: "🐔 El ave que pone huevos:", ops: ["gallina", "gayina", "galina"], m: "Va con LL: gallina." },
@@ -10283,7 +10394,13 @@ GAMES.recta_numerica = {
     const jugar = () => {
       ctx.ronda(ronda);
       const prog = rondas > 1 ? ronda / (rondas - 1) : 1;
-      const max = (prog > 0.5 ? (ctx.cfg.max2 || 100000) : (ctx.cfg.max1 || 10000)) * (1 + ctx.bonusDominio);   // adaptativo: rango mayor al dominar
+      // Adaptativo, pero SIN pasarse del rango del grado. `max2` es el techo que le puso
+      // el DC a esa edad; antes el bonus lo multiplicaba por hasta 5, así que un chico de
+      // 1.º que la sacaba bien terminaba ubicando números en una recta de 0 a 500. Es la
+      // misma familia del bug de dificultad invertida que ya se arregló en "serie".
+      const techo = ctx.cfg.max2 || 100000;
+      const max = Math.min(techo,
+                           (prog > 0.5 ? techo : (ctx.cfg.max1 || 10000)) * (1 + ctx.bonusDominio));
       const paso = max / 10;
       const g100 = Math.max(1, Math.round(max / 100));       // paso "redondo" que escala con el rango
       const target = rint(1, Math.floor(max / g100) - 1) * g100;   // en (0, max); entero también si max<100 (1°/2°)
@@ -10323,10 +10440,31 @@ GAMES.recta_numerica = {
         linea.appendChild(z);
       }
       wrap.appendChild(linea);
-      const labels = el("div", ""); labels.style.cssText = "display:flex;justify-content:space-between;margin-top:6px;font-weight:700";
-      labels.appendChild(el("span", "", "0"));
-      labels.appendChild(el("span", "", fmt(max / 2)));
-      labels.appendChild(el("span", "", fmt(max)));
+      // Pablo, 31-jul-2026: *"recta gigante para primero es complicado"*. Lo era, y no por
+      // los números: la recta tenía DIEZ zonas y sólo tres carteles (0, la mitad y el
+      // final), así que para ubicar el 13 entre 0 y 20 el chico tenía que dividir la recta
+      // en décimos de cabeza — razonamiento proporcional, que no es de 1.º.
+      // Con el rango chico se rotula CADA marca: deja de ser "estimá la proporción" y pasa
+      // a ser "buscá entre qué dos números va", que sí es lo que el DC pide a esta edad.
+      // De 3.º en adelante (miles) los once carteles no entran, y además a esa edad estimar
+      // la proporción ES el ejercicio: ahí se mantienen los tres de siempre.
+      const labels = el("div", "");
+      labels.style.cssText = "display:flex;margin-top:6px;font-weight:700;font-size:"
+        + (max <= 100 ? "13px" : "inherit");
+      if (max <= 100) {
+        for (let i = 0; i <= 10; i++) {
+          const t = el("span", "", fmt(Math.round(i * paso)));
+          // media celda en las puntas: así cada cartel queda bajo SU marca y no corrido
+          t.style.cssText = "flex:" + (i === 0 || i === 10 ? "1" : "2")
+            + ";text-align:" + (i === 0 ? "left" : i === 10 ? "right" : "center");
+          labels.appendChild(t);
+        }
+      } else {
+        labels.style.justifyContent = "space-between";
+        labels.appendChild(el("span", "", "0"));
+        labels.appendChild(el("span", "", fmt(max / 2)));
+        labels.appendChild(el("span", "", fmt(max)));
+      }
       wrap.appendChild(labels);
       ctx.juego.appendChild(el("div", "tablero")).appendChild(wrap);
     };
@@ -12049,31 +12187,31 @@ GAMES.problemas_3ro = {
    en voz alta (voz argentina, ya funciona) → el chico ESCUCHA la palabra. Trivia
    con la letra correcta + distractores. Explicación con el sonido (C3). ── */
 const LETRA_INICIAL_BANCO = [
-  { q: "¿Con qué letra empieza «sol»?", ok: "S", d: ["L", "O"], m: "«sol» empieza con el sonido /s/: la letra S." },
-  { q: "¿Con qué letra empieza «luna»?", ok: "L", d: ["N", "U"], m: "«luna» empieza con el sonido /l/: la letra L." },
-  { q: "¿Con qué letra empieza «pato»?", ok: "P", d: ["B", "T"], m: "«pato» empieza con el sonido /p/: la letra P." },
-  { q: "¿Con qué letra empieza «mesa»?", ok: "M", d: ["N", "S"], m: "«mesa» empieza con el sonido /m/: la letra M." },
-  { q: "¿Con qué letra empieza «casa»?", ok: "C", d: ["S", "A"], m: "«casa» empieza con el sonido /k/: la letra C." },
-  { q: "¿Con qué letra empieza «dedo»?", ok: "D", d: ["B", "T"], m: "«dedo» empieza con el sonido /d/: la letra D." },
-  { q: "¿Con qué letra empieza «rana»?", ok: "R", d: ["L", "N"], m: "«rana» empieza con el sonido /r/: la letra R." },
-  { q: "¿Con qué letra empieza «foca»?", ok: "F", d: ["V", "C"], m: "«foca» empieza con el sonido /f/: la letra F." },
-  { q: "¿Con qué letra empieza «gato»?", ok: "G", d: ["J", "C"], m: "«gato» empieza con el sonido /g/: la letra G." },
-  { q: "¿Con qué letra empieza «nube»?", ok: "N", d: ["M", "U"], m: "«nube» empieza con el sonido /n/: la letra N." },
-  { q: "¿Con qué letra empieza «bota»?", ok: "B", d: ["P", "D"], m: "«bota» empieza con el sonido /b/: la letra B." },
-  { q: "¿Con qué letra empieza «tren»?", ok: "T", d: ["D", "R"], m: "«tren» empieza con el sonido /t/: la letra T." },
+  { q: "¿Con qué letra empieza «sol»?", ok: "S", d: ["L", "O"], m: "«sol» empieza con el sonido de la «S»." },
+  { q: "¿Con qué letra empieza «luna»?", ok: "L", d: ["N", "U"], m: "«luna» empieza con el sonido de la «L»." },
+  { q: "¿Con qué letra empieza «pato»?", ok: "P", d: ["B", "T"], m: "«pato» empieza con el sonido de la «P»." },
+  { q: "¿Con qué letra empieza «mesa»?", ok: "M", d: ["N", "S"], m: "«mesa» empieza con el sonido de la «M»." },
+  { q: "¿Con qué letra empieza «casa»?", ok: "C", d: ["S", "A"], m: "«casa» empieza con el sonido de la «C»." },
+  { q: "¿Con qué letra empieza «dedo»?", ok: "D", d: ["B", "T"], m: "«dedo» empieza con el sonido de la «D»." },
+  { q: "¿Con qué letra empieza «rana»?", ok: "R", d: ["L", "N"], m: "«rana» empieza con el sonido de la «R»." },
+  { q: "¿Con qué letra empieza «foca»?", ok: "F", d: ["V", "C"], m: "«foca» empieza con el sonido de la «F»." },
+  { q: "¿Con qué letra empieza «gato»?", ok: "G", d: ["J", "C"], m: "«gato» empieza con el sonido de la «G»." },
+  { q: "¿Con qué letra empieza «nube»?", ok: "N", d: ["M", "U"], m: "«nube» empieza con el sonido de la «N»." },
+  { q: "¿Con qué letra empieza «bota»?", ok: "B", d: ["P", "D"], m: "«bota» empieza con el sonido de la «B»." },
+  { q: "¿Con qué letra empieza «tren»?", ok: "T", d: ["D", "R"], m: "«tren» empieza con el sonido de la «T»." },
   // ampliado 20-jul-2026 (de 12 a 24 — engrosar bancos nodales, docs/auditoria-dc-caba/)
-  { q: "¿Con qué letra empieza «jugo»?", ok: "J", d: ["G", "U"], m: "«jugo» empieza con el sonido /j/: la letra J." },
+  { q: "¿Con qué letra empieza «jugo»?", ok: "J", d: ["G", "U"], m: "«jugo» empieza con el sonido de la «J»." },
   { q: "¿Con qué letra empieza «vaca»?", ok: "V", d: ["B", "F"], m: "«vaca» se escribe con V." },
   { q: "¿Con qué letra empieza «zapato»?", ok: "Z", d: ["S", "P"], m: "«zapato» se escribe con Z." },
   { q: "¿Con qué letra empieza «niño»?", ok: "N", d: ["M", "Ñ"], m: "«niño» empieza con N (la Ñ está en el medio)." },
   { q: "¿Con qué letra empieza «oso»?", ok: "O", d: ["S", "U"], m: "«oso» empieza con la vocal O." },
   { q: "¿Con qué letra empieza «isla»?", ok: "I", d: ["E", "L"], m: "«isla» empieza con la vocal I." },
   { q: "¿Con qué letra empieza «elefante»?", ok: "E", d: ["A", "L"], m: "«elefante» empieza con la vocal E." },
-  { q: "¿Con qué letra empieza «camión»?", ok: "C", d: ["K", "M"], m: "«camión» empieza con el sonido /k/ escrito con C." },
+  { q: "¿Con qué letra empieza «camión»?", ok: "C", d: ["K", "M"], m: "«camión» empieza con el sonido de la «K», pero se escribe con «C»." },
   { q: "¿Con qué letra empieza «queso»?", ok: "Q", d: ["C", "K"], m: "«queso» se escribe con QU: empieza con la letra Q." },
   { q: "¿Con qué letra empieza «árbol»?", ok: "A", d: ["E", "R"], m: "«árbol» empieza con la vocal A (con tilde)." },
-  { q: "¿Con qué letra empieza «pelota»?", ok: "P", d: ["B", "L"], m: "«pelota» empieza con el sonido /p/: la letra P." },
-  { q: "¿Con qué letra empieza «tigre»?", ok: "T", d: ["D", "G"], m: "«tigre» empieza con el sonido /t/: la letra T." },
+  { q: "¿Con qué letra empieza «pelota»?", ok: "P", d: ["B", "L"], m: "«pelota» empieza con el sonido de la «P»." },
+  { q: "¿Con qué letra empieza «tigre»?", ok: "T", d: ["D", "G"], m: "«tigre» empieza con el sonido de la «T»." },
 ];
 GAMES.letra_inicial = juegoTriviaBanco(LETRA_INICIAL_BANCO, "letraini");
 
