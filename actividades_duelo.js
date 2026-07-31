@@ -382,7 +382,12 @@ GAMES.duelo = {
             ver.textContent = "Ver el resultado";
             compartir.remove();   // ya no hay a quién invitar: el duelo está cerrado
           }
-        }).catch(() => {});
+        }).catch(() => {
+          // La partida ya no existe (venció a los 30 días, o se borró). Se saca sola en vez
+          // de esperar a que el chico toque un código muerto para enterarse.
+          _dueloOlvidar(d.c);
+          fila.remove();
+        });
       });
 
       const bCrear = el("button", "duelo-btn", "Empezar un duelo");

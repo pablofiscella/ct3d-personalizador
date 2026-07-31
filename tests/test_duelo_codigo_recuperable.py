@@ -132,3 +132,79 @@ def test_el_codigo_sigue_sin_ser_el_token_del_cuaderno():
     c = _funcion("_dueloLink")
     assert '"/reto/" + codigo' in c, "el link compartible dejó de ser /reto/<codigo>"
     assert "token" not in c.lower()
+
+
+# ── cuántos quedan, y hasta cuándo ───────────────────────────────────────────────
+
+def test_las_partidas_viejas_se_borran_de_verdad():
+    """Pablo, 31-jul-2026: *"¿quedan de por vida o al otro día se van?"*.
+
+    Al ir a mirar, la respuesta era la mala: `duelos.limpiar()` existía y estaba testeada,
+    pero **nadie la llamaba**. Los 30 días de `VIDA_DIAS` eran teóricos y el directorio
+    crecía para siempre. Se engancha a la creación —que es justo cuando el directorio
+    crece— y no a un timer nuevo: es una línea y no hay infra que mantener."""
+    import inspect
+    import duelos
+    assert "limpiar_si_toca()" in inspect.getsource(duelos.crear), \
+        "crear un duelo volvió a no podar los viejos"
+    assert duelos.VIDA_DIAS == 30
+
+
+def test_la_limpieza_no_recorre_el_directorio_en_cada_partida():
+    """Una marca de tiempo: como mucho una vez por día. Si no, cada duelo nuevo haría un
+    listdir del directorio entero."""
+    import inspect
+    import duelos
+    src = inspect.getsource(duelos.limpiar_si_toca)
+    assert "cada_horas" in src and "getmtime(marca)" in src
+
+
+def test_limpiar_borra_lo_viejo_y_respeta_lo_nuevo(tmp_path, monkeypatch):
+    """La poda de verdad, no leyendo el código: dos archivos, uno viejo y uno de hoy."""
+    import os
+    import time
+    import duelos
+    monkeypatch.setattr(duelos, "DUELOS_DIR", str(tmp_path))
+    viejo = tmp_path / "AAAAA.json"
+    nuevo = tmp_path / "BBBBB.json"
+    viejo.write_text("{}"); nuevo.write_text("{}")
+    hace_40_dias = time.time() - 40 * 86400
+    os.utime(str(viejo), (hace_40_dias, hace_40_dias))
+    assert duelos.limpiar() == 1
+    assert not viejo.exists() and nuevo.exists()
+
+
+def test_la_marca_de_limpieza_no_se_cuenta_como_partida(tmp_path, monkeypatch):
+    """El archivo de la marca vive en el mismo directorio: si se contara, `limpiar()`
+    intentaría borrarlo y devolvería un número que no es el de partidas."""
+    import os
+    import time
+    import duelos
+    monkeypatch.setattr(duelos, "DUELOS_DIR", str(tmp_path))
+    marca = tmp_path / duelos.MARCA_LIMPIEZA
+    marca.write_text("")
+    hace_40_dias = time.time() - 40 * 86400
+    os.utime(str(marca), (hace_40_dias, hace_40_dias))
+    assert duelos.limpiar() == 0
+    assert marca.exists()
+
+
+def test_un_codigo_muerto_se_saca_solo_de_la_pantalla():
+    """No alcanza con borrarlo del servidor: si el chico tiene el código guardado, la
+    pantalla se lo mostraría igual hasta que lo toque. Se saca solo al no encontrarlo."""
+    c = _cuerpo("const inicio = () => {")
+    i = c.index("_dueloPedir(\"/duelo/\" + d.c, {}).then(")
+    cuerpo = c[i:i + 900]
+    assert "_dueloOlvidar(d.c)" in cuerpo and "fila.remove()" in cuerpo, \
+        "un duelo que ya no existe se queda en la lista hasta que lo toquen"
+
+
+def test_el_tope_es_de_tres_y_esta_medido():
+    """Medido en el navegador el 31-jul-2026: creando CINCO duelos seguidos quedan tres,
+    los más nuevos. Es lo que responde "¿se siguen acumulando si sigo jugando?"."""
+    s = _src()
+    assert "DUELOS_GUARDADOS = 3" in s
+    c = _funcion("_dueloRecordar")
+    assert "slice(0, DUELOS_GUARDADOS)" in c
+    assert c.index("[{ c: codigo") < c.index("concat("), \
+        "el más nuevo tiene que quedar primero, si no el tope descarta el equivocado"

@@ -177,7 +177,120 @@ const _NOMBRE_LETRA = {
 const _NOMBRE_ENTRE_COMILLAS = Object.assign(
   { A: "a", E: "e", I: "i", O: "o", U: "u", Y: "i griega" }, _NOMBRE_LETRA);
 
+/* ── LAS CUENTAS SE DICEN EN PALABRAS ──────────────────────────────────────────
+   Pablo, 31-jul-2026, probando 2.º en producción: *"«760 + 1» dice «sitositoceta + 1»"*.
+
+   El sintetizador recibía la cuenta en crudo —"760 + 1"— y masticaba el número. Seis
+   actividades del catálogo dicen una cuenta pelada (cálculo redondo y formá 100 de 2.º,
+   mil más/menos y las dos de multiplicar de 3.º, jerarquía de operaciones de 6.º), así que
+   no era un caso suelto de una pantalla.
+
+   Se resuelve escribiéndole a la voz lo que una maestra DICE: "setecientos sesenta más
+   uno". En pantalla sigue viéndose "760 + 1", que es lo que el chico tiene que aprender a
+   leer; lo que cambia es cómo suena.
+
+   Sólo se convierte cuando el texto ENTERO es una cuenta. Un número suelto adentro de una
+   frase ("Da 761.") lo lee bien y no se toca: cuanto menos se reescriba, menos se rompe. */
+const _UNI = ["cero", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho",
+  "nueve", "diez", "once", "doce", "trece", "catorce", "quince", "dieciséis", "diecisiete",
+  "dieciocho", "diecinueve", "veinte", "veintiuno", "veintidós", "veintitrés",
+  "veinticuatro", "veinticinco", "veintiséis", "veintisiete", "veintiocho", "veintinueve"];
+const _DEC = ["", "", "", "treinta", "cuarenta", "cincuenta", "sesenta", "setenta",
+  "ochenta", "noventa"];
+const _CEN = ["", "ciento", "doscientos", "trescientos", "cuatrocientos", "quinientos",
+  "seiscientos", "setecientos", "ochocientos", "novecientos"];
+
+function _numeroEnPalabras(n) {
+  n = Math.trunc(Math.abs(n));
+  if (n < 30) return _UNI[n];
+  if (n < 100) {
+    const d = Math.floor(n / 10), u = n % 10;
+    return _DEC[d] + (u ? " y " + _UNI[u] : "");
+  }
+  if (n < 1000) {
+    if (n === 100) return "cien";
+    const c = Math.floor(n / 100), r = n % 100;
+    return _CEN[c] + (r ? " " + _numeroEnPalabras(r) : "");
+  }
+  if (n < 1000000) {
+    const m = Math.floor(n / 1000), r = n % 1000;
+    const cab = m === 1 ? "mil" : _numeroEnPalabras(m) + " mil";
+    return cab + (r ? " " + _numeroEnPalabras(r) : "");
+  }
+  return String(n);          // más grande que eso no aparece en el cuaderno
+}
+
+const _SIGNOS = { "+": "más", "-": "menos", "−": "menos", "×": "por", "*": "por",
+  "÷": "dividido", "=": "es igual a", "<": "es menor que", ">": "es mayor que" };
+// La barra NO está en la tabla a propósito: en este catálogo "3/4" es SIEMPRE una fracción
+// (la división se escribe con ÷), y decir "tres dividido cuatro" en la unidad que enseña
+// fracciones sería enseñar otra cosa. Se resuelve antes, en `_fraccionesEnPalabras`.
+
+/* ── LAS FRACCIONES SE DICEN COMO SE LLAMAN ────────────────────────────────────
+   Barriendo TODO lo que el cuaderno dice (6607 frases) aparecieron 66 fracciones escritas
+   "3/4", en las unidades de 5.º y 6.º que justamente enseñan fracciones. Medido contra el
+   sintetizador: "3/4" tarda MÁS que "tres cuartos", o sea que no lo está diciendo como
+   fracción. La medición es ruidosa y no puedo escucharlo, pero escribirlo en palabras no
+   puede ser peor — y es como lo dice la maestra. */
+const _ORDINAL_FRAC = { 2: "medio", 3: "tercio", 4: "cuarto", 5: "quinto", 6: "sexto",
+  7: "séptimo", 8: "octavo", 9: "noveno", 10: "décimo", 100: "centésimo", 1000: "milésimo" };
+
+function _nombreDenominador(m) {
+  if (_ORDINAL_FRAC[m]) return _ORDINAL_FRAC[m];
+  // el resto se arma con «-avo»: quince→quinceavo, treinta→treintavo, cuarenta→cuarentavo
+  const base = _numeroEnPalabras(m);
+  return (base.endsWith("a") ? base.slice(0, -1) : base) + "avo";
+}
+
+function _fraccionesEnPalabras(txt) {
+  // A la derecha se rechaza otro dígito o un DECIMAL («1/2,5»), pero NO el punto final de
+  // la oración: con `(?![\d,.])` a secas, «da 3/6.» se quedaba sin convertir — que es
+  // justo como termina la mitad de las explicaciones.
+  return String(txt).replace(/(?<![\d.,])(\d{1,4})\s*\/\s*(\d{1,4})(?!\d|[.,]\d)/g,
+    (m0, a, b) => {
+      const n = parseInt(a, 10), d = parseInt(b, 10);
+      if (!d) return m0;
+      // Denominador 1: es como se enseña que un entero también es una fracción («5 es
+      // 5/1»). Ahí no hay nombre —no existe "cinco unavos"— y se dice "cinco sobre uno".
+      if (d === 1) return _numeroEnPalabras(n) + " sobre uno";
+      const nombre = _nombreDenominador(d);
+      return n === 1 ? "un " + nombre : _numeroEnPalabras(n) + " " + nombre + "s";
+    });
+}
+// una cuenta y nada más: dígitos, signos, separador de miles y el hueco a completar
+const _ES_CUENTA = /^[\s\d.,+\-−×÷*/=<>_?¿]+$/;
+
+function _cuentaEnPalabras(txt) {
+  const t = String(txt).trim();
+  if (!_ES_CUENTA.test(t) || !/\d/.test(t) || !/[+\-−×÷*/=<>]/.test(t)) return null;
+  const partes = t.match(/\d[\d.]*|_{2,}|[+\-−×÷*/=<>]|[?¿]/g);
+  if (!partes) return null;
+  return partes.map((p) => {
+    if (/^\d/.test(p)) return _numeroEnPalabras(parseInt(p.replace(/\./g, ""), 10));
+    if (/^_+$/.test(p)) return "cuánto";
+    if (p === "?" || p === "¿") return "";
+    return _SIGNOS[p] || p;
+  }).filter(Boolean).join(" ");
+}
+
 function _deletrearParaLaVoz(txt) {
+  // Las fracciones van PRIMERO: si no, una "3/4" suelta caería en el camino de las cuentas
+  // y se diría "tres dividido cuatro".
+  txt = _fraccionesEnPalabras(txt);
+  // La flecha: acá significa "esto corresponde a esto" o "esto pasa a esto"
+  // («Municipio → intendente», «56 → 5,6»). Una coma la lee como la pausa que es, y no
+  // depende de que el sintetizador sepa qué hacer con el símbolo.
+  txt = String(txt).replace(/\s*→\s*/g, ", ");
+  // Grados de temperatura. NO se toca el «°» de orden («el 1° puesto»), que es otra cosa
+  // y que la voz ya dice bien.
+  txt = txt.replace(/(\d)\s*°\s*C\b/g, "$1 grados");
+  const cuenta = _cuentaEnPalabras(txt);
+  if (cuenta) return cuenta;
+  // Signos SUELTOS adentro de una frase («2/3 × 4/4 = 8/12», «Hidro = agua»). Se exige
+  // espacio de los dos lados para no tocar un guion de palabra ni un menos pegado a un
+  // número, y queda afuera el «-», que en prosa es raya y no resta.
+  // el «−» largo (U+2212) sí entra: es el signo matemático, nunca una raya de prosa
+  txt = txt.replace(/ ([×÷=<>+−]) /g, (m0, sg) => " " + (_SIGNOS[sg] || sg) + " ");
   return String(txt)
     // También en minúscula: «m» se dice igual que «M», y es lo que hace que una pareja
     // mayúscula/minúscula se entienda hablada («M» mayúscula y «m» minúscula) en vez de
