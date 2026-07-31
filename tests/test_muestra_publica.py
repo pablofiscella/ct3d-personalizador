@@ -120,13 +120,27 @@ def test_las_cuatro_muestras_tienen_leccion_en_video():
 # que llegara de la landing.
 
 def test_la_muestra_cierra_las_salidas_al_menu():
+    """El token de la muestra es PÚBLICO: cualquier salida al menú regala los 39 juegos
+    del grado. Se esconden las que existen.
+
+    30-jul-2026 — este test pedía esconder `btnBiblioteca`, el 📚 que llevaba a la cuenta.
+    Ese botón **se sacó del cuaderno el 27-jul** (el link lo tiene el chico, pero la sesión
+    abierta en ese teléfono es la del adulto: gatear por login no servía). O sea que exigía
+    esconder algo que ya no existe, y quedó en rojo — un guardián en rojo no protege nada.
+
+    Ahora verifica las dos que SÍ existen, y además que la biblioteca siga sin existir: si
+    alguien la vuelve a poner, este test falla y obliga a decidir si hay que esconderla."""
     src = _fuente_player()
     assert "function cerrarSalidasDeMuestra" in src
-    # las tres salidas: el ←, el 📚 de la biblioteca y el nombre (abre el selector de perfil)
     i = src.index("function cerrarSalidasDeMuestra")
-    bloque = src[i:i + 700]
-    for id_ in ("btnAtras", "btnBiblioteca", "hdrTitulo"):
+    fin = src.index("\n}", i)
+    bloque = src[i:fin]
+    # el ← y el nombre del cuaderno (que abre el selector de perfil)
+    for id_ in ("btnAtras", "hdrTitulo"):
         assert id_ in bloque, "la muestra no esconde %s" % id_
+    html = open(os.path.join(BASE, "actividades_player.html"), encoding="utf-8").read()
+    assert "btnBiblioteca" not in html, \
+        "volvió el botón de biblioteca: es una salida al menú y la muestra tiene que esconderlo"
 
 
 def test_pintar_menu_es_el_punto_unico_de_corte():

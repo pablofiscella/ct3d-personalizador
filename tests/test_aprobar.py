@@ -22,9 +22,17 @@ def test_slots_van_a_la_raiz_del_tema(tmp_path):
     # la invitación (un solo draft) se copia a TODAS las edades del tema (raíz)
     for e in (1, 2, 3):
         assert os.path.exists(os.path.join(base, "invitacion_%d.png" % e))
-    # afiche ahora es un extra: va a extras/, NO a la raíz
+    # El afiche va a los DOS lugares: extras/ (lo usa la venta del kit) y la RAÍZ (el arte
+    # base de "Invitación y afiche" y del cartel suelto).
+    #
+    # 30-jul-2026 — este test exigía lo contrario ("va a extras, NO a la raíz") y estaba
+    # rojo. No era un bug del código: la regla CAMBIÓ el 11-jul-2026 y el test quedó con la
+    # vieja. Iba sólo a extras/, y entonces la raíz se quedaba con el afiche viejo sin el
+    # número de edad ilustrado — las dos galerías mostraban cosas distintas, bug que
+    # encontró Pablo. Ver el comentario en ia_kit/aprobar.py, que lo explica desde ese día.
     assert os.path.exists(os.path.join(base, "extras", "afiche_2.png"))
-    assert not os.path.exists(os.path.join(base, "afiche_2.png"))
+    assert os.path.exists(os.path.join(base, "afiche_2.png")), \
+        "el afiche tiene que quedar TAMBIÉN en la raíz: si no, las dos galerías se separan"
     assert os.path.exists(os.path.join(base, "extras", "banderin.png"))
     assert os.path.exists(os.path.join(base, "extras", "topper_1.png"))
     assert res["n"] == 6   # invitacion_1/2/3 + afiche_2 + banderin + topper_1

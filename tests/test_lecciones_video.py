@@ -62,14 +62,31 @@ def test_el_motor_sirve_los_mp4_y_solo_los_de_lecciones():
         assert not aw._ASSET_RE.fullmatch(malo), "la whitelist acepta %r" % malo
 
 
+def _cuerpo_de_funcion(src, nombre):
+    """El cuerpo COMPLETO de una función de nivel superior, hasta el próximo `def`/`@`
+    sin indentar.
+
+    Reemplaza al `src[i:i+1600]` que tenía este test. Ese recorte por cantidad de
+    caracteres se rompió solo el 30-jul-2026: `archivo()` fue creciendo —más ramas de
+    assets, más docstring— y `LECCION_DIR` quedó FUERA de la ventana de 1600. El test se
+    puso rojo sin que nada estuviera roto, y quedó rojo, que es peor: un guardián en rojo
+    no avisa de nada. Subirle el número lo habría vuelto a romper en la próxima rama."""
+    i = src.index("def %s(" % nombre)
+    resto = src[i:]
+    m = re.search(r"\n(?=(?:@|def )\S)", resto[1:])
+    return resto[:m.start() + 1] if m else resto
+
+
 def test_los_videos_salen_del_repo_no_del_token():
     """Una sola copia para todos: mejorar una lección tiene que llegar también a los
     links ya vendidos, igual que el player y el audio de consignas."""
     import actividades_web as aw
     src = open(os.path.join(BASEDIR, "actividades_web.py"), encoding="utf-8").read()
-    i = src.index("def archivo(")
-    cuerpo = src[i:i + 1600]
+    cuerpo = _cuerpo_de_funcion(src, "archivo")
     assert "LECCION_DIR" in cuerpo, "los mp4 se estarían buscando en la carpeta del token"
+    # y que el .mp4 sea EL que va a esa carpeta, no otra rama que la nombre de paso
+    assert re.search(r'\.mp4["\']\)?:\s*\n\s*p = os\.path\.join\(LECCION_DIR', cuerpo), \
+        "la rama de los .mp4 ya no apunta a LECCION_DIR"
     assert aw.LECCION_DIR.endswith("lecciones_video")
 
 
