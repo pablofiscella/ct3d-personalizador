@@ -9544,6 +9544,18 @@ const _FIGURAS_SVG = {
   circulo: '<circle cx="50" cy="50" r="41"/>',
   rombo: '<polygon points="50,6 94,50 50,94 6,50"/>',      // el cuadrado, girado
   pentagono: '<polygon points="50,6 94,38 77,90 23,90 6,38"/>',
+  // Las tres preguntas que van al revés —parten de un OBJETO y piden la figura— llevan
+  // dibujado el objeto, no la figura. Pablo, 31-jul-2026: *"¿por qué la primera no tiene
+  // dibujo?"*. En la primera versión las dejé sin nada para no regalar la respuesta, y el
+  // razonamiento estaba mal por dos motivos: al chico le quedaba una actividad que a veces
+  // muestra algo y a veces no (que se lee como que está rota), y sobre todo, sin el dibujo
+  // la pregunta mide si sabe LEER "rueda" — que es justo lo que en 1.º todavía no sabe.
+  // Dibujar el objeto no le da el nombre de la figura: lo tiene que poner él.
+  rueda: '<circle cx="50" cy="50" r="40"/><line x1="50" y1="12" x2="50" y2="88"/>'
+    + '<line x1="12" y1="50" x2="88" y2="50"/><line x1="23" y1="23" x2="77" y2="77"/>'
+    + '<line x1="77" y1="23" x2="23" y2="77"/><circle cx="50" cy="50" r="11"/>',
+  puerta: '<rect x="26" y="10" width="48" height="80" rx="3"/><circle cx="64" cy="52" r="4.5"/>',
+  casita: '<polygon points="50,8 90,44 10,44"/><rect x="22" y="44" width="56" height="46"/>',
 };
 
 function _figuraDibujada(nombre) {
@@ -9551,7 +9563,7 @@ function _figuraDibujada(nombre) {
   if (!d) return null;
   const c = el("div", "figuraDib");
   c.innerHTML = '<svg viewBox="0 0 100 100" width="112" height="112" aria-hidden="true">'
-    + '<g fill="var(--soft)" stroke="var(--ac)" stroke-width="5" stroke-linejoin="round">'
+    + '<g fill="var(--soft)" stroke="var(--ac)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">'
     + d + '</g></svg>';
   return c;
 }

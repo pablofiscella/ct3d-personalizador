@@ -129,15 +129,41 @@ def test_la_burbuja_sigue_mostrando_el_numero():
 
 # ── 5. figuras ───────────────────────────────────────────────────────────────────
 
-def test_las_preguntas_de_figuras_traen_la_figura():
-    """Las que hablan de una figura concreta tienen que mostrarla."""
+def test_todas_las_preguntas_de_figuras_traen_dibujo():
+    """TODAS, sin excepción — y el "todas" es el arreglo.
+
+    La primera versión dejó 3 de 12 sin dibujo: las que van al revés (parten de un OBJETO
+    —rueda, puerta, techo— y piden la figura). El razonamiento era "dibujar la figura
+    regalaría la respuesta", y estaba mal por dos motivos. Pablo lo vio de una, 31-jul-2026:
+    *"¿por qué la primera no tiene dibujo?"* — como las preguntas salen mezcladas, le tocó
+    una de esas tres y la actividad se leyó como rota.
+
+    Y el motivo de fondo: sin dibujo, "¿qué figura tiene la puerta?" mide si sabe LEER
+    "puerta", que es justo lo que en 1.º todavía no sabe. Lo que había que dibujar no era la
+    figura, era el OBJETO: verlo no le da el nombre de la figura, lo tiene que poner él.
+
+    Un umbral de "la mayoría" es lo que dejó pasar el hueco, así que acá se exigen todas."""
     banco = _act("figuras_1")["banco"]
-    con_dib = [b for b in banco if b.get("dib")]
-    assert len(con_dib) >= 8, "sólo %d de %d preguntas muestran la figura" % (
-        len(con_dib), len(banco))
+    sin_dib = [b["q"] for b in banco if not b.get("dib")]
+    assert not sin_dib, "%d de %d preguntas siguen sin dibujo: %s" % (
+        len(sin_dib), len(banco), sin_dib)
     src = _player()
-    for b in con_dib:
-        assert '%s:' % b["dib"] in src, "el player no sabe dibujar %r" % b["dib"]
+    for b in banco:
+        assert "  %s:" % b["dib"] in src or "\n  %s:" % b["dib"] in src, \
+            "el player no sabe dibujar %r" % b["dib"]
+
+
+def test_las_preguntas_de_objeto_dibujan_el_objeto_y_no_la_figura():
+    """La distinción que hace que el ejercicio siga siendo un ejercicio: en estas tres el
+    chico ve el objeto y tiene que NOMBRAR la figura. Si dibujáramos la figura, no quedaría
+    nada que resolver."""
+    esperado = {"La rueda tiene forma de…": "rueda",
+                "¿Qué figura tiene la puerta?": "puerta",
+                "El techo de una casita dibujada suele ser un…": "casita"}
+    banco = {b["q"]: b.get("dib") for b in _act("figuras_1")["banco"]}
+    for q, dib in esperado.items():
+        assert banco.get(q) == dib, "%r dibuja %r y tendría que dibujar el objeto %r" % (
+            q, banco.get(q), dib)
 
 
 def test_el_cuadrado_girado_se_dibuja_como_rombo():

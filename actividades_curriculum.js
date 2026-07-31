@@ -17736,7 +17736,8 @@ const CUR_FIGURAS_1_BANCO = [
       "Cuadrado",
       "Triángulo"
     ],
-    "m": "Es redonda."
+    "m": "Es redonda.",
+    "dib": "rueda"
   },
   {
     "q": "¿Qué figura tiene la puerta?",
@@ -17745,7 +17746,8 @@ const CUR_FIGURAS_1_BANCO = [
       "Círculo",
       "Triángulo"
     ],
-    "m": "Cuatro lados, dos largos y dos cortos."
+    "m": "Cuatro lados, dos largos y dos cortos.",
+    "dib": "puerta"
   },
   {
     "q": "¿Cuántos lados tiene esta figura si tiene 5 puntas?",
@@ -17764,7 +17766,8 @@ const CUR_FIGURAS_1_BANCO = [
       "Círculo",
       "Cuadrado"
     ],
-    "m": "Tres lados."
+    "m": "Tres lados.",
+    "dib": "casita"
   }
 ];
 GAMES.figuras_1 = juegoTriviaTexto(CUR_FIGURAS_1_BANCO, "Contá los lados y las puntas.", "figuras_1");
