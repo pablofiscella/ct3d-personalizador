@@ -14862,7 +14862,7 @@ const CUR_CONECTORES_2_BANCO = [
       "y",
       "o"
     ],
-    "m": "Antes de una palabra que empieza con I o HI, la Y se cambia por E."
+    "m": "Antes de una palabra que empieza con I o HI, la «Y» se cambia por «E»."
   },
   {
     "q": "Uno ___ otro.",
@@ -16629,7 +16629,7 @@ const CUR_PAREJAS_LETRAS_1_BANCO = [
       "n",
       "w"
     ],
-    "m": "M y m."
+    "m": "«M» mayúscula y «m» minúscula son la misma letra."
   },
   {
     "q": "S",
@@ -16638,7 +16638,7 @@ const CUR_PAREJAS_LETRAS_1_BANCO = [
       "z",
       "c"
     ],
-    "m": "S y s."
+    "m": "«S» mayúscula y «s» minúscula son la misma letra."
   },
   {
     "q": "P",
@@ -16647,7 +16647,7 @@ const CUR_PAREJAS_LETRAS_1_BANCO = [
       "q",
       "b"
     ],
-    "m": "P y p."
+    "m": "«P» mayúscula y «p» minúscula son la misma letra."
   },
   {
     "q": "E",
@@ -16656,7 +16656,7 @@ const CUR_PAREJAS_LETRAS_1_BANCO = [
       "a",
       "i"
     ],
-    "m": "E y e."
+    "m": "«E» mayúscula y «e» minúscula son la misma letra."
   },
   {
     "q": "L",
@@ -16665,7 +16665,7 @@ const CUR_PAREJAS_LETRAS_1_BANCO = [
       "i",
       "t"
     ],
-    "m": "L y l."
+    "m": "«L» mayúscula y «l» minúscula son la misma letra."
   },
   {
     "q": "T",
@@ -16674,7 +16674,7 @@ const CUR_PAREJAS_LETRAS_1_BANCO = [
       "f",
       "l"
     ],
-    "m": "T y t."
+    "m": "«T» mayúscula y «t» minúscula son la misma letra."
   },
   {
     "q": "O",
@@ -16683,7 +16683,7 @@ const CUR_PAREJAS_LETRAS_1_BANCO = [
       "c",
       "a"
     ],
-    "m": "O y o."
+    "m": "«O» mayúscula y «o» minúscula son la misma letra."
   },
   {
     "q": "D",
@@ -16692,7 +16692,7 @@ const CUR_PAREJAS_LETRAS_1_BANCO = [
       "b",
       "p"
     ],
-    "m": "D y d. Ojo que la b y la d se parecen mucho."
+    "m": "«D» mayúscula y «d» minúscula son la misma letra. Ojo que la «b» y la «d» se parecen mucho."
   },
   {
     "q": "B",
@@ -16701,7 +16701,7 @@ const CUR_PAREJAS_LETRAS_1_BANCO = [
       "d",
       "p"
     ],
-    "m": "B y b."
+    "m": "«B» mayúscula y «b» minúscula son la misma letra."
   },
   {
     "q": "R",
@@ -16710,7 +16710,7 @@ const CUR_PAREJAS_LETRAS_1_BANCO = [
       "n",
       "m"
     ],
-    "m": "R y r."
+    "m": "«R» mayúscula y «r» minúscula son la misma letra."
   },
   {
     "q": "N",
@@ -16719,7 +16719,7 @@ const CUR_PAREJAS_LETRAS_1_BANCO = [
       "m",
       "u"
     ],
-    "m": "N y n."
+    "m": "«N» mayúscula y «n» minúscula son la misma letra."
   }
 ];
 GAMES.parejas_letras_1 = juegoTriviaTexto(CUR_PAREJAS_LETRAS_1_BANCO, "¿Cuál es la misma letra en minúscula (la chiquita)?", "parejas_le");

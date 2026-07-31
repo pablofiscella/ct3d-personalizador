@@ -141,6 +141,58 @@ async function cargarAudioManifest() {
 // este archivo nuevo llega a todos los links, incluidos los ya vendidos).
 const VOZ_TTS = "valeria";
 
+/* ── CÓMO SE DELETREA UNA LETRA, EN RIOPLATENSE ────────────────────────────────
+   Pablo, 31-jul-2026: *"«cómo se escribe vaca» dice que va con «u-ve», así lo pronuncia,
+   y nosotros decimos «ve corta»"*, y después: *"y le decimos «i griega», revisalo en todos
+   los cuadernos"*.
+
+   La voz sintetizada lee las letras con los nombres de España. Medido sobre el catálogo
+   entero: **32 actividades** deletrean alguna letra, así que no es un caso suelto de 2.º.
+
+   ESTO NO SE PUEDE HACER CON UN REEMPLAZO A CIEGAS, y por una letra en particular: la Y
+   suelta casi nunca es la letra — es la conjunción al empezar la oración ("Y esto quedó en
+   la Constitución", "Y llevamos uno a la próxima columna"). De 15 apariciones, sólo UNA era
+   la letra. Deletrear las otras catorce habría sido peor que el problema original.
+   Por eso hay dos reglas, y la Y sólo entra por la primera:
+
+     1. Letra entre « », que en este catálogo ya significa "esto, como token" («sol», «pan»):
+        SIEMPRE es la letra. Ahí sí entra la Y.
+     2. Letra suelta en mayúscula: sólo las que NO son además una palabra del español. Las
+        vocales no hacen falta (su nombre es la letra misma) y la Y queda afuera a propósito.
+
+   Los números romanos salen bien solos: «V (5)» se lee "ve corta, cinco", que es correcto,
+   y XX / XL / DC no están en la tabla, así que no se tocan.
+
+   Se aplica SÓLO al texto que va al sintetizador. Lo que se VE sigue diciendo «V»: el chico
+   tiene que ver la letra, es una actividad de ortografía. Y la búsqueda en el manifest se
+   hace con el texto ORIGINAL, así que los 229 mp3 ya grabados siguen funcionando — ninguno
+   tenía letras sueltas, se verificó antes de tocar nada. */
+const _NOMBRE_LETRA = {
+  B: "be larga", C: "ce", D: "de", F: "efe", G: "ge", H: "hache", J: "jota", K: "ka",
+  L: "ele", M: "eme", N: "ene", "Ñ": "eñe", P: "pe", Q: "cu", R: "erre", S: "ese",
+  T: "te", V: "ve corta", W: "doble ve", X: "equis", Z: "zeta",
+  LL: "doble ele", CH: "che", RR: "doble erre", QU: "cu", GU: "ge u", NV: "ene ve corta",
+};
+// Sólo para la regla de « »: acá la Y sí es la letra, y las vocales se nombran solas.
+const _NOMBRE_ENTRE_COMILLAS = Object.assign(
+  { A: "a", E: "e", I: "i", O: "o", U: "u", Y: "i griega" }, _NOMBRE_LETRA);
+
+function _deletrearParaLaVoz(txt) {
+  return String(txt)
+    // También en minúscula: «m» se dice igual que «M», y es lo que hace que una pareja
+    // mayúscula/minúscula se entienda hablada («M» mayúscula y «m» minúscula) en vez de
+    // sonar "eme y m". La ÚNICA excepción es la «y» minúscula, que en este catálogo es la
+    // CONJUNCIÓN entrecomillada ("el «y» reemplaza a la última coma", "coordinados por
+    // «y»"): ahí deletrearla diría "el i griega reemplaza a la última coma". En MAYÚSCULA
+    // sí es la letra, que es como quedó escrito el único caso que la nombra de verdad.
+    .replace(/«([A-Za-zÑñ]{1,2})»/g, (m0, L) =>
+      (L === "y" ? m0 : (_NOMBRE_ENTRE_COMILLAS[L.toUpperCase()] || m0)))
+    // sin lookbehind: se captura el carácter previo y se devuelve, para que ande también
+    // en los Safari viejos que todavía hay dando vueltas en tablets prestadas
+    .replace(/(^|[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ])([A-ZÑ]{1,2})(?![A-Za-zÁÉÍÓÚÜÑáéíóúüñ])/g,
+             (m0, pre, L) => pre + (_NOMBRE_LETRA[L] || L));
+}
+
 function reproducirConsigna(txt) {
   if (vozActual) { vozActual.pause(); vozActual = null; }
   if (!Sfx.on) return Promise.resolve(false);
@@ -154,7 +206,10 @@ function reproducirConsigna(txt) {
   // el cambio se propaga solo; esta URL, en cambio, era idéntica antes y después,
   // y el NAVEGADOR del que ya había usado el cuaderno seguía reproduciendo la voz
   // vieja desde su caché (Pablo lo cazó en "¿Qué número falta?", 25-jul-2026).
-  const archivo = AudioManifest[txt] || ("/tts?t=" + encodeURIComponent(txt) + "&v=" + VOZ_TTS);
+  // El manifest se busca con el texto ORIGINAL (los mp3 están grabados con esa clave);
+  // sólo lo que va al sintetizador pasa por el deletreo rioplatense.
+  const archivo = AudioManifest[txt]
+    || ("/tts?t=" + encodeURIComponent(_deletrearParaLaVoz(txt)) + "&v=" + VOZ_TTS);
   const audio = new Audio(archivo);
   vozActual = audio;
   return new Promise((resolve) => {
