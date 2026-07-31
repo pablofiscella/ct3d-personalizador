@@ -7797,7 +7797,12 @@ GAMES.armar_palabra = {
       const palabra = disp[rint(0, disp.length - 1)];
       usadas.push(palabra.p);
       ctx.item("armapal#" + palabra.p);
-      consignaVariada(ctx, ronda, "Escuchá la palabra y tocá las sílabas en orden para armarla", "f");
+      // Pablo, 31-jul-2026: *"dice «escuchá la palabra moto» y debería decir «armá la
+      // palabra moto»"*. Dos cosas mal: el verbo era el equivocado —lo que hay que hacer es
+      // ARMARLA, escuchar es el medio— y la consigna no nombraba la palabra, así que el
+      // chico tenía que deducirla del emoji o esperar a que sonara aparte.
+      consignaVariada(ctx, ronda, "Armá la palabra " + palabra.p
+                      + ": tocá las sílabas en orden", "f");
       ctx.juego.innerHTML = "";
       const tablero = el("div", "tablero armarPalabraTablero");
       tablero.appendChild(el("div", "armarPalabraEmoji", palabra.e));
@@ -7842,7 +7847,9 @@ GAMES.armar_palabra = {
       });
       tablero.appendChild(filaSilabas);
       ctx.juego.appendChild(tablero);
-      setTimeout(() => reproducirConsigna(palabra.p), 1300);
+      // Ya no se repite la palabra suelta 1,3 s después: ahora va DENTRO de la consigna, y
+      // repetirla era decirla dos veces seguidas — justo lo que Pablo marcó el 30-jul con
+      // la voz de Valeria. El botón "Escuchar de nuevo" sigue estando para el que la quiera.
     };
     jugar();
   },
@@ -7939,7 +7946,10 @@ GAMES.suma_rapida = {
       let elegido = null;
       let resuelto = false;
       nums.forEach((v, idx) => {
-        const btn = el("button", "spriteBtn", `<span style="font-size:30px;font-family:'Baloo',sans-serif">${v}</span>`);
+        // Pablo, 31-jul-2026: *"suma burbujas, adentro no hay números con burbujas"*. Los
+        // números estaban, pero en cuadraditos: la consigna (que es audio GRABADO y dice
+        // "burbujas") no coincidía con lo que el chico veía en pantalla.
+        const btn = el("button", "spriteBtn burbuja", `<span style="font-size:30px;font-family:'Baloo',sans-serif">${v}</span>`);
         btn.addEventListener("click", async () => {
           if (resuelto || btn.disabled) return;
           if (elegido === null) {
@@ -9516,6 +9526,36 @@ function _botonIngles(cont, idPrefix, idx) {
   cont.appendChild(b);
 }
 
+/* Figura geométrica dibujada, para las preguntas que hablan de una.
+
+   Pablo, 31-jul-2026: *"detective de figuras no muestra la figura con un dibujo, podría
+   ser más claro"*. Tenía razón y el caso es peor de lo que parece: en 1.º el chico recién
+   está aprendiendo a leer, así que «¿cuántos lados tiene un triángulo?» sin triángulo a la
+   vista mide si SABE LEER la palabra "triángulo", no si entiende la figura.
+
+   Se dibuja con SVG y no con emoji ni imagen: son 4 líneas, escala sin pixelarse, toma el
+   color del tema y —lo que importa— el ROMBO es literalmente el cuadrado girado, que es la
+   pregunta más difícil del banco ("un cuadrado apoyado en una punta, ¿sigue siendo
+   cuadrado?"). Con un emoji esa pregunta no se puede ilustrar. */
+const _FIGURAS_SVG = {
+  triangulo: '<polygon points="50,8 92,88 8,88"/>',
+  cuadrado: '<rect x="14" y="14" width="72" height="72" rx="4"/>',
+  rectangulo: '<rect x="6" y="26" width="88" height="48" rx="4"/>',
+  circulo: '<circle cx="50" cy="50" r="41"/>',
+  rombo: '<polygon points="50,6 94,50 50,94 6,50"/>',      // el cuadrado, girado
+  pentagono: '<polygon points="50,6 94,38 77,90 23,90 6,38"/>',
+};
+
+function _figuraDibujada(nombre) {
+  const d = _FIGURAS_SVG[nombre];
+  if (!d) return null;
+  const c = el("div", "figuraDib");
+  c.innerHTML = '<svg viewBox="0 0 100 100" width="112" height="112" aria-hidden="true">'
+    + '<g fill="var(--soft)" stroke="var(--ac)" stroke-width="5" stroke-linejoin="round">'
+    + d + '</g></svg>';
+  return c;
+}
+
 function juegoTriviaTexto(banco, consigna, idPrefix, rondasDefault) {
   return {
     crear(ctx) {
@@ -9537,6 +9577,10 @@ function juegoTriviaTexto(banco, consigna, idPrefix, rondasDefault) {
         const item = banco[idx];
         ctx.item(idPrefix + "#" + idx);
         const arriba = el("div", "tablero");
+        // `dib` es opcional: sólo las preguntas que hablan de una figura la traen, y el
+        // resto del catálogo (212 actividades sobre este mismo motor) no cambia en nada.
+        const fig = item.dib ? _figuraDibujada(item.dib) : null;
+        if (fig) arriba.appendChild(fig);
         arriba.appendChild(el("div", "spriteQuieto",
           `<span style="font-size:21px;font-family:'Baloo',sans-serif">${item.q}</span>`));
         // Inglés: botón para OÍR el término, con voz nativa inglesa. Sin esto la
@@ -10283,7 +10327,13 @@ GAMES.recta_numerica = {
     const jugar = () => {
       ctx.ronda(ronda);
       const prog = rondas > 1 ? ronda / (rondas - 1) : 1;
-      const max = (prog > 0.5 ? (ctx.cfg.max2 || 100000) : (ctx.cfg.max1 || 10000)) * (1 + ctx.bonusDominio);   // adaptativo: rango mayor al dominar
+      // Adaptativo, pero SIN pasarse del rango del grado. `max2` es el techo que le puso
+      // el DC a esa edad; antes el bonus lo multiplicaba por hasta 5, así que un chico de
+      // 1.º que la sacaba bien terminaba ubicando números en una recta de 0 a 500. Es la
+      // misma familia del bug de dificultad invertida que ya se arregló en "serie".
+      const techo = ctx.cfg.max2 || 100000;
+      const max = Math.min(techo,
+                           (prog > 0.5 ? techo : (ctx.cfg.max1 || 10000)) * (1 + ctx.bonusDominio));
       const paso = max / 10;
       const g100 = Math.max(1, Math.round(max / 100));       // paso "redondo" que escala con el rango
       const target = rint(1, Math.floor(max / g100) - 1) * g100;   // en (0, max); entero también si max<100 (1°/2°)
@@ -10323,10 +10373,31 @@ GAMES.recta_numerica = {
         linea.appendChild(z);
       }
       wrap.appendChild(linea);
-      const labels = el("div", ""); labels.style.cssText = "display:flex;justify-content:space-between;margin-top:6px;font-weight:700";
-      labels.appendChild(el("span", "", "0"));
-      labels.appendChild(el("span", "", fmt(max / 2)));
-      labels.appendChild(el("span", "", fmt(max)));
+      // Pablo, 31-jul-2026: *"recta gigante para primero es complicado"*. Lo era, y no por
+      // los números: la recta tenía DIEZ zonas y sólo tres carteles (0, la mitad y el
+      // final), así que para ubicar el 13 entre 0 y 20 el chico tenía que dividir la recta
+      // en décimos de cabeza — razonamiento proporcional, que no es de 1.º.
+      // Con el rango chico se rotula CADA marca: deja de ser "estimá la proporción" y pasa
+      // a ser "buscá entre qué dos números va", que sí es lo que el DC pide a esta edad.
+      // De 3.º en adelante (miles) los once carteles no entran, y además a esa edad estimar
+      // la proporción ES el ejercicio: ahí se mantienen los tres de siempre.
+      const labels = el("div", "");
+      labels.style.cssText = "display:flex;margin-top:6px;font-weight:700;font-size:"
+        + (max <= 100 ? "13px" : "inherit");
+      if (max <= 100) {
+        for (let i = 0; i <= 10; i++) {
+          const t = el("span", "", fmt(Math.round(i * paso)));
+          // media celda en las puntas: así cada cartel queda bajo SU marca y no corrido
+          t.style.cssText = "flex:" + (i === 0 || i === 10 ? "1" : "2")
+            + ";text-align:" + (i === 0 ? "left" : i === 10 ? "right" : "center");
+          labels.appendChild(t);
+        }
+      } else {
+        labels.style.justifyContent = "space-between";
+        labels.appendChild(el("span", "", "0"));
+        labels.appendChild(el("span", "", fmt(max / 2)));
+        labels.appendChild(el("span", "", fmt(max)));
+      }
       wrap.appendChild(labels);
       ctx.juego.appendChild(el("div", "tablero")).appendChild(wrap);
     };

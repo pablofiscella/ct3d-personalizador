@@ -7169,7 +7169,11 @@ CATALOGO = [
 
     # ══ 1° · LENGUA y MATEMÁTICA ════════════════════════════════════════════════
     {"id":"silabas_1","grado":1,"area":"lengua","titulo":"Contá las sílabas","icono":"👏",
-     "mecanica":"trivia","consigna":"¿Cuántas palmas tiene la palabra?",
+     "mecanica":"trivia","consigna":"¿Cuántas sílabas tiene? Contalas con palmas.",
+     # Pablo, 31-jul-2026: "dice «Contá las sílabas» y adentro el audio dice «cuántas
+     # palmas tiene la palabra»". La palmada es la TÉCNICA, sílaba es la PALABRA que el
+     # DC pide que aprenda: decir sólo "palmas" le escondía el nombre de lo que estaba
+     # haciendo, y encima no coincidía con el título de la tarjeta.
      "dc":"Contar y armar sílabas",
      "fuente":"docs/auditoria-dc-caba/grado-1.md · L3",
      "saber":{"id":"LEN-1-silabas","nombre":"Sílabas","prereqs":[]},
@@ -7188,12 +7192,16 @@ CATALOGO = [
       {"q":"«mesa»","ops":["2","1","3"],"m":"me-sa."},
       {"q":"«caramelo»","ops":["4","3","5"],"m":"ca-ra-me-lo."}]},
     {"id":"parejas_letras_1","grado":1,"area":"lengua","titulo":"Parejas de letras","icono":"🔠",
-     "mecanica":"trivia","consigna":"¿Cuál es la misma letra en chiquita?",
+     "mecanica":"trivia","consigna":"¿Cuál es la misma letra en minúscula (la chiquita)?",
+     # Pablo, 31-jul-2026: "dice cuál es la misma letra en chiquita y cuál es la misma
+     # letra en minúscula". Eran dos nombres para lo mismo en la misma actividad. Se dicen
+     # los DOS, y en ese orden: primero el del DC —que es el que tiene que aprender— y
+     # entre paréntesis el casero, que es el que ya entiende.
      "dc":"Mayúscula y minúscula de la misma letra",
      "fuente":"docs/auditoria-dc-caba/grado-1.md · L5",
      "saber":{"id":"LEN-1-parejas","nombre":"Mayúscula y minúscula","prereqs":[]},
      "banco":[
-      {"q":"A","ops":["a","e","o"],"m":"La A grande y la a chiquita son la misma letra."},
+      {"q":"A","ops":["a","e","o"],"m":"La A mayúscula y la a minúscula son la misma letra: la A."},
       {"q":"M","ops":["m","n","w"],"m":"M y m."},
       {"q":"S","ops":["s","z","c"],"m":"S y s."},
       {"q":"P","ops":["p","q","b"],"m":"P y p."},
@@ -7414,25 +7422,25 @@ CATALOGO = [
      "fuente":"docs/auditoria-dc-caba/grado-1.md · M11",
      "saber":{"id":"MAT-1-figuras","nombre":"Figuras y sus lados","prereqs":[]},
      "banco":[
-      {"q":"¿Cuántos lados tiene un triángulo?","ops":["3","4","5"],"m":"Tri es tres."},
-      {"q":"¿Y un cuadrado?","ops":["4","3","5"],"m":"Cuatro lados iguales."},
+      {"q":"¿Cuántos lados tiene un triángulo?","ops":["3","4","5"],"m":"Tri es tres.","dib":"triangulo"},
+      {"q":"¿Y un cuadrado?","ops":["4","3","5"],"m":"Cuatro lados iguales.","dib":"cuadrado"},
       {"q":"¿Cuántas puntas tiene un triángulo?","ops":["3","4","2"],
-       "m":"Tantas puntas como lados."},
+       "m":"Tantas puntas como lados.","dib":"triangulo"},
       {"q":"¿Cuántos lados tiene un círculo?","ops":["Ninguno, es todo curvo","4","1"],
-       "m":"No tiene lados rectos ni puntas."},
+       "m":"No tiene lados rectos ni puntas.","dib":"circulo"},
       {"q":"Un cuadrado tiene los cuatro lados…","ops":["Iguales","Distintos","Curvos"],
-       "m":"Todos del mismo largo."},
+       "m":"Todos del mismo largo.","dib":"cuadrado"},
       {"q":"Un rectángulo tiene…","ops":["4 lados, dos largos y dos cortos","3 lados",
-       "Ninguno"],"m":"Los de enfrente son iguales."},
-      {"q":"¿Cuántas puntas tiene un cuadrado?","ops":["4","3","5"],"m":"Cuatro esquinas."},
+       "Ninguno"],"m":"Los de enfrente son iguales.","dib":"rectangulo"},
+      {"q":"¿Cuántas puntas tiene un cuadrado?","ops":["4","3","5"],"m":"Cuatro esquinas.","dib":"cuadrado"},
       {"q":"Un cuadrado apoyado en una punta, ¿sigue siendo cuadrado?","ops":["Sí",
-       "No, es un triángulo","No, es un círculo"],"m":"Girarlo no lo cambia."},
+       "No, es un triángulo","No, es un círculo"],"m":"Girarlo no lo cambia.","dib":"rombo"},
       {"q":"La rueda tiene forma de…","ops":["Círculo","Cuadrado","Triángulo"],
        "m":"Es redonda."},
       {"q":"¿Qué figura tiene la puerta?","ops":["Rectángulo","Círculo","Triángulo"],
        "m":"Cuatro lados, dos largos y dos cortos."},
       {"q":"¿Cuántos lados tiene esta figura si tiene 5 puntas?","ops":["5","4","6"],
-       "m":"Tantos lados como puntas."},
+       "m":"Tantos lados como puntas.","dib":"pentagono"},
       {"q":"El techo de una casita dibujada suele ser un…","ops":["Triángulo","Círculo",
        "Cuadrado"],"m":"Tres lados."}]},
     {"id":"cuerpos_1","grado":1,"area":"matematica","titulo":"Caras y cuerpos","icono":"🎲",

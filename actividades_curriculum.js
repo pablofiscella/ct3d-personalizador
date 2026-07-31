@@ -16607,7 +16607,7 @@ const CUR_SILABAS_1_BANCO = [
     "m": "ca-ra-me-lo."
   }
 ];
-GAMES.silabas_1 = juegoTriviaTexto(CUR_SILABAS_1_BANCO, "¿Cuántas palmas tiene la palabra?", "silabas_1");
+GAMES.silabas_1 = juegoTriviaTexto(CUR_SILABAS_1_BANCO, "¿Cuántas sílabas tiene? Contalas con palmas.", "silabas_1");
 
 /* 1° · Parejas de letras — parejas_letras_1
    DC: Mayúscula y minúscula de la misma letra
@@ -16620,7 +16620,7 @@ const CUR_PAREJAS_LETRAS_1_BANCO = [
       "e",
       "o"
     ],
-    "m": "La A grande y la a chiquita son la misma letra."
+    "m": "La A mayúscula y la a minúscula son la misma letra: la A."
   },
   {
     "q": "M",
@@ -16722,7 +16722,7 @@ const CUR_PAREJAS_LETRAS_1_BANCO = [
     "m": "N y n."
   }
 ];
-GAMES.parejas_letras_1 = juegoTriviaTexto(CUR_PAREJAS_LETRAS_1_BANCO, "¿Cuál es la misma letra en chiquita?", "parejas_le");
+GAMES.parejas_letras_1 = juegoTriviaTexto(CUR_PAREJAS_LETRAS_1_BANCO, "¿Cuál es la misma letra en minúscula (la chiquita)?", "parejas_le");
 
 /* 1° · Despegá las palabras — despegar_palabras_1
    DC: Separación de palabras en la oración
@@ -17656,7 +17656,8 @@ const CUR_FIGURAS_1_BANCO = [
       "4",
       "5"
     ],
-    "m": "Tri es tres."
+    "m": "Tri es tres.",
+    "dib": "triangulo"
   },
   {
     "q": "¿Y un cuadrado?",
@@ -17665,7 +17666,8 @@ const CUR_FIGURAS_1_BANCO = [
       "3",
       "5"
     ],
-    "m": "Cuatro lados iguales."
+    "m": "Cuatro lados iguales.",
+    "dib": "cuadrado"
   },
   {
     "q": "¿Cuántas puntas tiene un triángulo?",
@@ -17674,7 +17676,8 @@ const CUR_FIGURAS_1_BANCO = [
       "4",
       "2"
     ],
-    "m": "Tantas puntas como lados."
+    "m": "Tantas puntas como lados.",
+    "dib": "triangulo"
   },
   {
     "q": "¿Cuántos lados tiene un círculo?",
@@ -17683,7 +17686,8 @@ const CUR_FIGURAS_1_BANCO = [
       "4",
       "1"
     ],
-    "m": "No tiene lados rectos ni puntas."
+    "m": "No tiene lados rectos ni puntas.",
+    "dib": "circulo"
   },
   {
     "q": "Un cuadrado tiene los cuatro lados…",
@@ -17692,7 +17696,8 @@ const CUR_FIGURAS_1_BANCO = [
       "Distintos",
       "Curvos"
     ],
-    "m": "Todos del mismo largo."
+    "m": "Todos del mismo largo.",
+    "dib": "cuadrado"
   },
   {
     "q": "Un rectángulo tiene…",
@@ -17701,7 +17706,8 @@ const CUR_FIGURAS_1_BANCO = [
       "3 lados",
       "Ninguno"
     ],
-    "m": "Los de enfrente son iguales."
+    "m": "Los de enfrente son iguales.",
+    "dib": "rectangulo"
   },
   {
     "q": "¿Cuántas puntas tiene un cuadrado?",
@@ -17710,7 +17716,8 @@ const CUR_FIGURAS_1_BANCO = [
       "3",
       "5"
     ],
-    "m": "Cuatro esquinas."
+    "m": "Cuatro esquinas.",
+    "dib": "cuadrado"
   },
   {
     "q": "Un cuadrado apoyado en una punta, ¿sigue siendo cuadrado?",
@@ -17719,7 +17726,8 @@ const CUR_FIGURAS_1_BANCO = [
       "No, es un triángulo",
       "No, es un círculo"
     ],
-    "m": "Girarlo no lo cambia."
+    "m": "Girarlo no lo cambia.",
+    "dib": "rombo"
   },
   {
     "q": "La rueda tiene forma de…",
@@ -17746,7 +17754,8 @@ const CUR_FIGURAS_1_BANCO = [
       "4",
       "6"
     ],
-    "m": "Tantos lados como puntas."
+    "m": "Tantos lados como puntas.",
+    "dib": "pentagono"
   },
   {
     "q": "El techo de una casita dibujada suele ser un…",
