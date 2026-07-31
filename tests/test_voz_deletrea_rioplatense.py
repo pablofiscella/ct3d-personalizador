@@ -215,3 +215,23 @@ def test_las_parejas_de_letras_se_entienden_habladas():
     assert not flojas, "quedan explicaciones que hablado no se entienden: %s" % flojas
     assert decir(["«M» mayúscula y «m» minúscula son la misma letra."]) == \
         ["eme mayúscula y eme minúscula son la misma letra."]
+
+
+def test_no_queda_notacion_fonetica_en_lo_que_se_escucha():
+    """Encontrado escuchando lo que el player le manda a la voz, no leyendo el código: las
+    explicaciones de fonética de 1.º decían "«sol» empieza con el sonido /s/". Escrito se
+    entiende; hablado, el sintetizador lee las barras — "barra ese barra". Son 18 textos, y
+    todos en las actividades que Pablo estaba revisando.
+
+    No se arregló en la capa de voz sino en el TEXTO, porque la notación /x/ tampoco le
+    aporta nada a un chico de 6 años que no la va a ver en ningún otro lado: ahora dice
+    "empieza con el sonido de la «S»", que se entiende leído y hablado."""
+    src = open(PLAYER, encoding="utf-8").read()
+    quedan = re.findall(r'm: "([^"]*?/[a-záéíóúñ]{1,4}/[^"]*?)"', src)
+    assert not quedan, "%d explicación(es) hablada(s) siguen con notación /fonema/: %s" % (
+        len(quedan), quedan[:3])
+    for aid, t in _textos_hablados():
+        assert not re.search(r"/[a-záéíóúñ]{1,4}/", t), \
+            "%s tiene notación fonética en algo que se escucha: %r" % (aid, t)
+    assert decir(["«sol» empieza con el sonido de la «S»."]) == \
+        ["«sol» empieza con el sonido de la ese."]

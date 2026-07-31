@@ -10007,8 +10007,8 @@ GAMES.independencia_arg = juegoTriviaTexto(INDEPENDENCIA_BANCO, "Elegí la respu
    errores típicos (C4) + explicación de la regla (C3). Reusa juegoTriviaTexto. ── */
 const ORTO2_BANCO = [
   { q: "🐴 El animal que relincha:", ops: ["caballo", "cabayo", "cavallo"], m: "Va con LL y con B: caballo." },
-  { q: "🧀 Lo que se hace con la leche:", ops: ["queso", "keso", "cueso"], m: "El sonido /ke/ se escribe QU: queso." },
-  { q: "🎸 El instrumento de cuerdas:", ops: ["guitarra", "gitarra", "guitara"], m: "Va con GU (sonido /gi/) y con RR: guitarra." },
+  { q: "🧀 Lo que se hace con la leche:", ops: ["queso", "keso", "cueso"], m: "El sonido «que» se escribe QU: queso." },
+  { q: "🎸 El instrumento de cuerdas:", ops: ["guitarra", "gitarra", "guitara"], m: "Va con GU, que suena «gui», y con RR: guitarra." },
   { q: "☔ El agua que cae del cielo:", ops: ["lluvia", "yuvia", "luvia"], m: "Va con LL: lluvia." },
   { q: "🪑 Sirve para sentarse:", ops: ["silla", "siya", "cilla"], m: "Va con LL: silla." },
   { q: "🐔 El ave que pone huevos:", ops: ["gallina", "gayina", "galina"], m: "Va con LL: gallina." },
@@ -12187,31 +12187,31 @@ GAMES.problemas_3ro = {
    en voz alta (voz argentina, ya funciona) → el chico ESCUCHA la palabra. Trivia
    con la letra correcta + distractores. Explicación con el sonido (C3). ── */
 const LETRA_INICIAL_BANCO = [
-  { q: "¿Con qué letra empieza «sol»?", ok: "S", d: ["L", "O"], m: "«sol» empieza con el sonido /s/: la letra S." },
-  { q: "¿Con qué letra empieza «luna»?", ok: "L", d: ["N", "U"], m: "«luna» empieza con el sonido /l/: la letra L." },
-  { q: "¿Con qué letra empieza «pato»?", ok: "P", d: ["B", "T"], m: "«pato» empieza con el sonido /p/: la letra P." },
-  { q: "¿Con qué letra empieza «mesa»?", ok: "M", d: ["N", "S"], m: "«mesa» empieza con el sonido /m/: la letra M." },
-  { q: "¿Con qué letra empieza «casa»?", ok: "C", d: ["S", "A"], m: "«casa» empieza con el sonido /k/: la letra C." },
-  { q: "¿Con qué letra empieza «dedo»?", ok: "D", d: ["B", "T"], m: "«dedo» empieza con el sonido /d/: la letra D." },
-  { q: "¿Con qué letra empieza «rana»?", ok: "R", d: ["L", "N"], m: "«rana» empieza con el sonido /r/: la letra R." },
-  { q: "¿Con qué letra empieza «foca»?", ok: "F", d: ["V", "C"], m: "«foca» empieza con el sonido /f/: la letra F." },
-  { q: "¿Con qué letra empieza «gato»?", ok: "G", d: ["J", "C"], m: "«gato» empieza con el sonido /g/: la letra G." },
-  { q: "¿Con qué letra empieza «nube»?", ok: "N", d: ["M", "U"], m: "«nube» empieza con el sonido /n/: la letra N." },
-  { q: "¿Con qué letra empieza «bota»?", ok: "B", d: ["P", "D"], m: "«bota» empieza con el sonido /b/: la letra B." },
-  { q: "¿Con qué letra empieza «tren»?", ok: "T", d: ["D", "R"], m: "«tren» empieza con el sonido /t/: la letra T." },
+  { q: "¿Con qué letra empieza «sol»?", ok: "S", d: ["L", "O"], m: "«sol» empieza con el sonido de la «S»." },
+  { q: "¿Con qué letra empieza «luna»?", ok: "L", d: ["N", "U"], m: "«luna» empieza con el sonido de la «L»." },
+  { q: "¿Con qué letra empieza «pato»?", ok: "P", d: ["B", "T"], m: "«pato» empieza con el sonido de la «P»." },
+  { q: "¿Con qué letra empieza «mesa»?", ok: "M", d: ["N", "S"], m: "«mesa» empieza con el sonido de la «M»." },
+  { q: "¿Con qué letra empieza «casa»?", ok: "C", d: ["S", "A"], m: "«casa» empieza con el sonido de la «C»." },
+  { q: "¿Con qué letra empieza «dedo»?", ok: "D", d: ["B", "T"], m: "«dedo» empieza con el sonido de la «D»." },
+  { q: "¿Con qué letra empieza «rana»?", ok: "R", d: ["L", "N"], m: "«rana» empieza con el sonido de la «R»." },
+  { q: "¿Con qué letra empieza «foca»?", ok: "F", d: ["V", "C"], m: "«foca» empieza con el sonido de la «F»." },
+  { q: "¿Con qué letra empieza «gato»?", ok: "G", d: ["J", "C"], m: "«gato» empieza con el sonido de la «G»." },
+  { q: "¿Con qué letra empieza «nube»?", ok: "N", d: ["M", "U"], m: "«nube» empieza con el sonido de la «N»." },
+  { q: "¿Con qué letra empieza «bota»?", ok: "B", d: ["P", "D"], m: "«bota» empieza con el sonido de la «B»." },
+  { q: "¿Con qué letra empieza «tren»?", ok: "T", d: ["D", "R"], m: "«tren» empieza con el sonido de la «T»." },
   // ampliado 20-jul-2026 (de 12 a 24 — engrosar bancos nodales, docs/auditoria-dc-caba/)
-  { q: "¿Con qué letra empieza «jugo»?", ok: "J", d: ["G", "U"], m: "«jugo» empieza con el sonido /j/: la letra J." },
+  { q: "¿Con qué letra empieza «jugo»?", ok: "J", d: ["G", "U"], m: "«jugo» empieza con el sonido de la «J»." },
   { q: "¿Con qué letra empieza «vaca»?", ok: "V", d: ["B", "F"], m: "«vaca» se escribe con V." },
   { q: "¿Con qué letra empieza «zapato»?", ok: "Z", d: ["S", "P"], m: "«zapato» se escribe con Z." },
   { q: "¿Con qué letra empieza «niño»?", ok: "N", d: ["M", "Ñ"], m: "«niño» empieza con N (la Ñ está en el medio)." },
   { q: "¿Con qué letra empieza «oso»?", ok: "O", d: ["S", "U"], m: "«oso» empieza con la vocal O." },
   { q: "¿Con qué letra empieza «isla»?", ok: "I", d: ["E", "L"], m: "«isla» empieza con la vocal I." },
   { q: "¿Con qué letra empieza «elefante»?", ok: "E", d: ["A", "L"], m: "«elefante» empieza con la vocal E." },
-  { q: "¿Con qué letra empieza «camión»?", ok: "C", d: ["K", "M"], m: "«camión» empieza con el sonido /k/ escrito con C." },
+  { q: "¿Con qué letra empieza «camión»?", ok: "C", d: ["K", "M"], m: "«camión» empieza con el sonido de la «K», pero se escribe con «C»." },
   { q: "¿Con qué letra empieza «queso»?", ok: "Q", d: ["C", "K"], m: "«queso» se escribe con QU: empieza con la letra Q." },
   { q: "¿Con qué letra empieza «árbol»?", ok: "A", d: ["E", "R"], m: "«árbol» empieza con la vocal A (con tilde)." },
-  { q: "¿Con qué letra empieza «pelota»?", ok: "P", d: ["B", "L"], m: "«pelota» empieza con el sonido /p/: la letra P." },
-  { q: "¿Con qué letra empieza «tigre»?", ok: "T", d: ["D", "G"], m: "«tigre» empieza con el sonido /t/: la letra T." },
+  { q: "¿Con qué letra empieza «pelota»?", ok: "P", d: ["B", "L"], m: "«pelota» empieza con el sonido de la «P»." },
+  { q: "¿Con qué letra empieza «tigre»?", ok: "T", d: ["D", "G"], m: "«tigre» empieza con el sonido de la «T»." },
 ];
 GAMES.letra_inicial = juegoTriviaBanco(LETRA_INICIAL_BANCO, "letraini");
 
