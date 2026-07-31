@@ -2,6 +2,7 @@
 PDF adentro, sirve el visor y los assets desde el repo, y el whitelist bloquea lo demás."""
 import json
 import os
+import re
 import zipfile
 
 import mandalas_web as mw
@@ -28,7 +29,16 @@ def test_html_inyecta_js_valido_y_boton_pdf(tmp_path):
     h = mw.html(tok)
     assert h is not None
     # NIVELES se inyecta como JSON CRUDO (no HTML-escapeado) → JS válido
-    assert '"src": "mandala_1.png"' in h
+    #
+    # 30-jul-2026 — esto comparaba el string exacto `"src": "mandala_1.png"` y estaba en
+    # rojo. No era un bug: al `src` se le agregó un parámetro de versión
+    # (`mandala_1.png?v=<mtime del arte>`) para romper el caché del navegador cuando se
+    # regenera un mándala. Se compara el prefijo y se verifica el `?v=` aparte, así el test
+    # sigue protegiendo lo que le importa —que el JSON llegue crudo— sin volver a romperse
+    # cada vez que se le agregue algo a la URL.
+    assert '"src": "mandala_1.png?v=' in h
+    assert re.search(r'"src": "mandala_1\.png\?v=\d+"', h), \
+        "el ?v= dejó de llevar la versión del arte: vuelve el caché viejo al regenerar"
     assert "&quot;" not in h.split("window.MANDALAS")[1][:400]
     assert "Tomás" in h                       # título personalizado
     assert 'href="kit.zip"' in h              # botón de descarga del PDF
