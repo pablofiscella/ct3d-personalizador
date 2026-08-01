@@ -14230,11 +14230,28 @@ const SUMA_COL_POTENCIA = ["×1", "×10", "×100", "×1.000", "×10.000"];
 const NUM_PALABRA = ["cero", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve",
   "diez", "once", "doce", "trece", "catorce", "quince", "dieciséis", "diecisiete", "dieciocho"];
 const SUMA_COL_CORTAS = ["Empezá por las unidades", "¿Y esta cuenta?", "Otra vez, por las unidades", "¿Y esta suma?"];
+/* Usar la ayuda no puede valer lo mismo que resolverlo.
+
+   Pablo, 31-jul-2026: *"puse ayuda, ayuda, ayuda hasta completar el número y me dijo
+   excelente"*. Además de que la ayuda de la suma COMPLETABA la cifra (ya arreglado), ni la
+   suma ni la resta anotaban que se había usado: el chico terminaba con 3★, y 3★ es lo que
+   marca DOMINIO y le sube el nivel de dificultad para la próxima. O sea que el motor
+   adaptativo se convencía de que domina algo que no hizo, y le endurecía la actividad.
+
+   El festejo de COMPLETAR se mantiene —pedir ayuda es legítimo y no se castiga con una
+   pantalla triste—; lo que cambia es cuántas estrellas. Es la misma regla que ya usa
+   `ctx.win`: las estrellas miden dominio real, no "llegué al final". */
+function _estrellasConAyuda(rondasConAyuda, rondas) {
+  if (!rondasConAyuda) return undefined;          // sin ayuda: puntúa como siempre
+  return rondasConAyuda > rondas / 2 ? 1 : 2;     // con ayuda, nunca 3
+}
+
 GAMES.suma_columnas = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 6;
     ctx.rondas(rondas);
     let ronda = 0;
+    let rondasConAyuda = 0;   // se anota para que la ayuda no puntúe como dominio
     // gutter: celda IGUAL en las 5 filas (ancho fijo) — el "+" de la fila B
     // vive ADENTRO de esta celda como cualquier otra, no como hermano extra
     // que desalinea el centrado del resto (bug real 15-jul-2026: Pablo
@@ -14242,6 +14259,7 @@ GAMES.suma_columnas = {
     // fila B unos px a la derecha del resto al centrarse cada fila sola).
     const gutter = (txt) => el("div", "sumaColGutter", txt || "");
     const jugar = () => {
+      let ayudaEnEstaRonda = false;
       ctx.ronda(ronda);
       ctx.juego.innerHTML = "";
       if (ronda === 0) {
@@ -14347,7 +14365,7 @@ GAMES.suma_columnas = {
           ctx.bien();
           ronda++;
           await espera(1100);
-          if (ronda >= rondas) ctx.win();
+          if (ronda >= rondas) ctx.win(_estrellasConAyuda(rondasConAyuda, rondas));
           else jugar();
         } else {
           marcarActiva();
@@ -14422,7 +14440,35 @@ GAMES.suma_columnas = {
           }
         });
       });
-      btnAyuda.addEventListener("click", () => resolverColumna(cifraEn(suma, activa)));
+      /* La ayuda EXPLICA la columna; no la completa.
+
+         Pablo, 31-jul-2026: *"en «suma con cifras» puse ayuda y completó el número; puse
+         ayuda, ayuda, ayuda hasta completar el número y me dijo excelente"*. Tenía razón y
+         era doble: el botón escribía la cifra correcta y avanzaba igual que un acierto, así
+         que se podía terminar la cuenta entera sin sumar nada — y encima puntuaba como si
+         la hubiera resuelto, o sea que el motor adaptativo la daba por dominada y le subía
+         el nivel.
+
+         Ahora hace lo mismo que su hermana, la resta en columnas (que ya explicaba en vez
+         de completar): dice cómo se resuelve ESA columna y el chico tiene que tocar la
+         cifra. Y usarla se anota: ver `rondasConAyuda`. */
+      const mostrarAyuda = () => {
+        const i = activa;
+        const llevaba = i > 0 && acarreo[i - 1] ? 1 : 0;
+        const total = cifraEn(a, i) + cifraEn(b, i) + llevaba;
+        const nombre = SUMA_COL_LARGO[i];
+        const cuenta = cifraEn(a, i) + " + " + cifraEn(b, i)
+          + (llevaba ? " + 1 que te llevabas" : "") + " = " + total;
+        const txt = total >= 10
+          ? "En las " + nombre + ": " + cuenta + ". Escribís el " + (total % 10)
+            + " y te llevás 1 a la columna de al lado."
+          : "En las " + nombre + ": " + cuenta + ".";
+        leccionBox.textContent = "💡 " + txt;
+        leccionBox.classList.remove("sumaColLeccion--oculto");
+        reproducirConsigna(txt);
+        if (!ayudaEnEstaRonda) { ayudaEnEstaRonda = true; rondasConAyuda++; }
+      };
+      btnAyuda.addEventListener("click", mostrarAyuda);
     };
     jugar();
   },
@@ -14442,9 +14488,11 @@ GAMES.resta_columnas = {
     const rondas = ctx.cfg.rondas || 6;
     ctx.rondas(rondas);
     let ronda = 0;
+    let rondasConAyuda = 0;   // se anota para que la ayuda no puntúe como dominio
     const gutter = (txt) => el("div", "sumaColGutter", txt || "");
     const cifraEn = (n, i) => Math.floor(n / 10 ** i) % 10;
     const jugar = () => {
+      let ayudaEnEstaRonda = false;
       ctx.ronda(ronda);
       ctx.juego.innerHTML = "";
       ctx.consigna(ronda === 0
@@ -14528,6 +14576,7 @@ GAMES.resta_columnas = {
         ayudaBox.textContent = "💡 " + txt;
         ayudaBox.classList.remove("sumaColLeccion--oculto");
         reproducirConsigna(txt);
+        if (!ayudaEnEstaRonda) { ayudaEnEstaRonda = true; rondasConAyuda++; }
       };
       btnAyuda.addEventListener("click", mostrarAyuda);
       botones.forEach((btn, d) => {
@@ -14552,7 +14601,7 @@ GAMES.resta_columnas = {
             ctx.bien();
             ronda++;
             await espera(1100);
-            if (ronda >= rondas) ctx.win(); else jugar();
+            if (ronda >= rondas) ctx.win(_estrellasConAyuda(rondasConAyuda, rondas)); else jugar();
           } else marcarActiva();
         });
       });
