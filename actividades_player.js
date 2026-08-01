@@ -8575,15 +8575,19 @@ GAMES.cuenta_larga = {
          pausa era de 950 ms — menos de lo que tarda un chico en leer "495 ÷ 5 = 99 y sobran
          2" después de haber hecho toda la división paso a paso.
 
-         La espera sigue al AUDIO en vez de ser un número fijo: si la voz está prendida,
-         termina de decirlo y recién ahí pasa; si está en silencio, se usan los 2 segundos
-         que pidió Pablo. Un número fijo cortaría la voz en las cuentas largas. */
+         La espera sigue al AUDIO, pero con TECHO. Medido en el navegador: esperar a que
+         la voz termine daba 6,3 s, porque cada resultado es una frase nueva y el
+         sintetizador la genera en el momento — o sea que el chico se quedaba mirando una
+         pantalla quieta, en silencio, la mitad de ese tiempo. Con el techo, la peor espera
+         son ~2,6 s (los "2 segundos" que pidió Pablo) y si la voz todavía está hablando,
+         sigue sonando: la corta recién la consigna de la cuenta siguiente. */
+      const TECHO_CIERRE = 2600;
       const cerrarCuenta = async (texto) => {
         zona.appendChild(el("p", "cuenta-preg", texto));
         ctx.bien();
         ronda++;
-        const sono = await reproducirConsigna(texto);
-        await espera(sono ? 800 : 2000);
+        await Promise.race([reproducirConsigna(texto).then((sono) => espera(sono ? 700 : 1900)),
+                            espera(TECHO_CIERRE)]);
         if (ronda >= rondas) ctx.win(); else jugar();
       };
 
