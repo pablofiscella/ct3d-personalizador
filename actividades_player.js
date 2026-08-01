@@ -9771,15 +9771,6 @@ const _FIGURAS_SVG = {
   // Geometría de 3.º y 6.º: además de las figuras, los ELEMENTOS de los que habla el
   // Diseño Curricular (vértices y diagonales). Los puntos y las diagonales van en color
   // pleno para que se distingan del contorno — que es justo lo que la pregunta señala.
-  /* Calendario y año, para «El calendario» de 1.º. Pablo, 31-jul-2026: la consigna decía
-     "Mirá el calendario" y no había ninguno, así que la actividad medía si el chico se
-     acordaba de memoria en vez de si sabe LEER un calendario — que es lo que pide el DC. */
-  calendario: '<rect x="6" y="14" width="88" height="76" rx="6"/>'
-    + '<line x1="6" y1="34" x2="94" y2="34"/>'
-    + '<line x1="24" y1="14" x2="24" y2="90"/><line x1="42" y1="14" x2="42" y2="90"/>'
-    + '<line x1="60" y1="14" x2="60" y2="90"/><line x1="78" y1="14" x2="78" y2="90"/>'
-    + '<line x1="6" y1="52" x2="94" y2="52"/><line x1="6" y1="70" x2="94" y2="70"/>'
-    + '<line x1="22" y1="6" x2="22" y2="20"/><line x1="78" y1="6" x2="78" y2="20"/>',
   /* Los ejes del plano, para 7.º. Muestran DÓNDE está el origen sin dibujar ninguna recta:
      así la consigna deja de prometer algo que no está, y no se le regala la respuesta a
      preguntas que son justamente sobre cómo se ve una recta en el plano. */
@@ -9838,7 +9829,46 @@ function _escenaDePosicion(esc) {
   return c;
 }
 
+/* Un calendario que se pueda LEER, para «El calendario» de 1.º.
+
+   El primer intento fue un ícono de calendario: cumplía la letra del pedido —ya había un
+   calendario— pero no el fondo, porque estaba vacío y "¿qué día viene después del lunes?"
+   seguía sin poder contestarse mirando. El DC de 1.º pide leer el calendario, así que tiene
+   que tener los días y los números de verdad.
+
+   Es un mes genérico que arranca en lunes: no es el mes real a propósito, porque el
+   cuaderno se juega cualquier día y un calendario que no coincide con hoy confunde más de
+   lo que ayuda. Lo que el chico practica es la ESTRUCTURA (siete días, el orden, la semana
+   que se repite), no la fecha. */
+const _DIAS_CAL = ["L", "M", "M", "J", "V", "S", "D"];
+
+function _calendarioDibujado() {
+  const c = el("div", "figuraDib figuraDib--cal");
+  const cw = 30, ch = 26, x0 = 4, y0 = 22;
+  let g = "";
+  _DIAS_CAL.forEach((d, i) => {
+    const finde = i >= 5;
+    g += '<text x="' + (x0 + cw * i + cw / 2) + '" y="14" text-anchor="middle"'
+      + ' font-size="14" font-weight="700" fill="'
+      + (finde ? "var(--star)" : "var(--ac)") + '">' + d + "</text>";
+  });
+  for (let n = 1; n <= 28; n++) {
+    const col = (n - 1) % 7, fila = Math.floor((n - 1) / 7);
+    const x = x0 + cw * col, y = y0 + ch * fila;
+    g += '<rect x="' + x + '" y="' + y + '" width="' + (cw - 2) + '" height="' + (ch - 2)
+      + '" rx="4" fill="' + (col >= 5 ? "color-mix(in srgb, var(--star) 22%, transparent)"
+                                      : "var(--soft)")
+      + '" stroke="color-mix(in srgb, var(--ink) 18%, transparent)" stroke-width="1"/>'
+      + '<text x="' + (x + cw / 2 - 1) + '" y="' + (y + ch / 2) + '" text-anchor="middle"'
+      + ' dominant-baseline="central" font-size="13" fill="var(--ink)">' + n + "</text>";
+  }
+  c.innerHTML = '<svg viewBox="0 0 214 130" width="260" height="158" aria-hidden="true">'
+    + g + "</svg>";
+  return c;
+}
+
 function _figuraDibujada(nombre) {
+  if (nombre === "calendario") return _calendarioDibujado();
   const d = _FIGURAS_SVG[nombre];
   if (!d) return null;
   const c = el("div", "figuraDib");
