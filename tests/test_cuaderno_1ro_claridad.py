@@ -179,7 +179,8 @@ def test_dibujar_es_opcional_y_no_toca_el_resto_del_catalogo():
     src = _player()
     c = _cuerpo(src, "function juegoTriviaTexto(")
     assert "item.dib ?" in c, "el dibujo dejó de ser opcional"
-    CON_DIBUJO = {"figuras_1", "figuras_3", "cuadrilateros_6"}   # las tres de geometría
+    CON_DIBUJO = {"figuras_1", "figuras_3", "cuadrilateros_6",    # geometría
+                  "calendario_1", "proporcionalidad_grafico_7"}   # calendario y plano
     otras = [a["id"] for a in cur.CATALOGO
              if a.get("mecanica") == "trivia" and a["id"] not in CON_DIBUJO
              and any(b.get("dib") for b in a.get("banco") or [])]
@@ -278,3 +279,92 @@ def test_la_adivinanza_de_2do_SIGUE_sin_dibujo():
     assert not any(b.get("dib") for b in a["banco"]), \
         "se le pusieron dibujos a la adivinanza: ahora se contesta mirando"
     assert "¿Qué soy?" in " ".join(b["q"] for b in a["banco"])
+
+
+# ── las tres que prometían algo visual ───────────────────────────────────────────
+
+def test_el_calendario_de_1ro_se_puede_LEER():
+    """Pablo, 31-jul-2026, sobre las tres que quedaban: *"hacelas ahora"*.
+
+    «El calendario» decía "Mirá el calendario" y no había ninguno, así que la actividad
+    medía si el chico se ACORDABA de memoria en vez de si sabe leer un calendario — que es
+    lo que pide el DC de 1.º.
+
+    OJO: el primer intento fue un ÍCONO de calendario. Cumplía la letra —ya había un
+    calendario— pero no el fondo: estaba vacío, y "¿qué día viene después del lunes?" seguía
+    sin poder contestarse mirando. Por eso este test no se conforma con que haya un dibujo,
+    exige que tenga los días y los números."""
+    a = [x for x in cur.CATALOGO if x["id"] == "calendario_1"][0]
+    sin = [b["q"] for b in a["banco"] if not b.get("dib")]
+    assert not sin, "%d preguntas del calendario sin dibujo: %s" % (len(sin), sin[:2])
+    src = _player()
+    i = src.index("function _calendarioDibujado")
+    cuerpo = src[i:i + 1800]
+    assert "_DIAS_CAL" in cuerpo, "el calendario no muestra los días de la semana"
+    assert "n <= 28" in cuerpo, "el calendario no muestra los números"
+    assert '_DIAS_CAL = ["L", "M", "M", "J", "V", "S", "D"]' in src
+
+
+def test_el_mes_del_calendario_es_generico_a_proposito():
+    """No es el mes real: el cuaderno se juega cualquier día y un calendario que no coincide
+    con hoy confunde más de lo que ayuda. Lo que se practica es la ESTRUCTURA."""
+    src = _player()
+    i = src.index("function _calendarioDibujado")
+    assert "Date" not in src[i:i + 1800], "el calendario empezó a depender de la fecha real"
+
+
+def test_donde_esta_muestra_la_escena():
+    """«¿Dónde está?» decía "Mirá dónde está cada cosa" sin nada que mirar, así que "el
+    pájaro vuela ___ del árbol" medía si sabe LEER «pájaro» y «árbol» —que a los 6 años es
+    justo lo que no sabe— en vez de si entiende «arriba»."""
+    a = [x for x in cur.CATALOGO if x["id"] == "donde_esta_1"][0]
+    sin = [b["q"] for b in a["banco"] if not b.get("escena")]
+    assert not sin, "%d preguntas de posición sin escena: %s" % (len(sin), sin[:2])
+    src = _player()
+    for b in a["banco"]:
+        rel = b["escena"]["rel"]
+        assert "  %s: (a, b)" % rel in src, "el player no sabe dibujar la posición %r" % rel
+
+
+def test_la_escena_de_posicion_usa_emoji_y_no_dibujos_a_mano():
+    """Decisión: un pájaro o un gato dibujados a mano salen mal y se vuelven otro acertijo.
+    El emoji lo reconoce cualquier chico, y acá lo que se enseña es la POSICIÓN."""
+    a = [x for x in cur.CATALOGO if x["id"] == "donde_esta_1"][0]
+    for b in a["banco"]:
+        for k in ("a", "b"):
+            assert len(b["escena"][k]) <= 4 and not b["escena"][k].isascii(), \
+                "la escena dejó de usar emoji: %r" % b["escena"]
+
+
+def test_proporcionalidad_de_7mo_ya_no_promete_un_grafico_que_no_esta():
+    """Acá el arreglo NO fue dibujar en todas, y es la diferencia con las otras dos.
+
+    La mayoría de las preguntas son de tabla o de cuenta ("si 1 kg cuesta $500…"), donde un
+    gráfico no aporta; y en las que SÍ son sobre el plano, dibujar la recta REGALA la
+    respuesta —la pregunta es justamente cómo se ve. Así que: la consigna deja de prometer,
+    y las cuatro que hablan del plano muestran los EJES con el origen marcado, que hace
+    concreto qué es "el origen" sin contestar nada."""
+    a = [x for x in cur.CATALOGO if x["id"] == "proporcionalidad_grafico_7"][0]
+    assert "Mirá" not in a["consigna"], \
+        "la consigna volvió a prometer algo que no está: %r" % a["consigna"]
+    con = [b for b in a["banco"] if b.get("dib")]
+    assert len(con) == 4, "cambió cuáles preguntas muestran el plano (%d)" % len(con)
+    assert all(b["dib"] == "plano_ejes" for b in con)
+    src = _player()
+    i = src.index("plano_ejes:")
+    cuerpo = src[i:i + 500]
+    assert "polygon" in cuerpo and "circle" in cuerpo, "el plano perdió las flechas o el origen"
+    assert "line x1=" in cuerpo
+
+
+def test_el_plano_no_dibuja_ninguna_recta():
+    """Si mañana alguien le agrega la recta, le está dando la respuesta a cuatro preguntas.
+
+    La ventana se corta en la coma que cierra la entrada: con un tamaño fijo se metía en la
+    figura siguiente y contaba SUS líneas."""
+    src = _player()
+    i = src.index("plano_ejes:")
+    cuerpo = src[i:src.index("\n  ", src.index("',", i))]
+    # sólo los dos ejes y las dos flechas; una recta más sería una tercera línea inclinada
+    assert cuerpo.count("<line") == 2, \
+        "el plano tiene %d líneas y tendría que tener los dos ejes" % cuerpo.count("<line")
