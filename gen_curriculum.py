@@ -39,6 +39,16 @@ for a in cur.CATALOGO:
                    % (a["id"], pl, json.dumps(a["consigna"], ensure_ascii=False), pfx))
         out.append("")
         continue
+    if a["mecanica"] == "reusa":
+        # La actividad no genera un juego nuevo: REUSA uno que ya existe en el player, con
+        # su propia consigna y su cfg. Nació el 31-jul-2026, cuando Pablo marcó que en 4.º
+        # la suma se ve en columnas y la resta no: la resta EN COLUMNAS ya estaba escrita
+        # (`GAMES.resta_columnas`, la usa 3.º), sólo que 4.º tenía una paramétrica en línea.
+        # Se delega en vez de asignar directo para no depender del orden de los <script>.
+        out.append('GAMES.%s = { crear(ctx) { return GAMES.%s.crear(ctx); } };'
+                   % (a["id"], a["juego"]))
+        out.append("")
+        continue
     if a["mecanica"] == "parametrica":
         # no tiene banco: el ejercicio se genera desde la plantilla en cada ronda
         pl = "CUR_%s_PLANTILLA" % a["id"].upper()

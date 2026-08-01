@@ -179,10 +179,11 @@ def test_dibujar_es_opcional_y_no_toca_el_resto_del_catalogo():
     src = _player()
     c = _cuerpo(src, "function juegoTriviaTexto(")
     assert "item.dib ?" in c, "el dibujo dejó de ser opcional"
-    sin_dib = [a["id"] for a in cur.CATALOGO
-               if a.get("mecanica") == "trivia" and a["id"] != "figuras_1"
-               and any(b.get("dib") for b in a.get("banco") or [])]
-    assert not sin_dib, "se coló `dib` en otra actividad sin querer: %s" % sin_dib
+    CON_DIBUJO = {"figuras_1", "figuras_3", "cuadrilateros_6"}   # las tres de geometría
+    otras = [a["id"] for a in cur.CATALOGO
+             if a.get("mecanica") == "trivia" and a["id"] not in CON_DIBUJO
+             and any(b.get("dib") for b in a.get("banco") or [])]
+    assert not otras, "se coló `dib` en otra actividad sin querer: %s" % otras
 
 
 # ── 6. la recta ──────────────────────────────────────────────────────────────────
@@ -222,3 +223,58 @@ def test_las_seis_siguen_en_el_menu_de_primero():
     for a in ("silabas_1", "parejas_letras_1", "armar_palabra", "suma_rapida",
               "figuras_1", "recta_numerica"):
         assert a in ids, "%s desapareció del cuaderno de 1.º" % a
+
+
+# ── la misma falla, en los otros grados ──────────────────────────────────────────
+
+def test_ninguna_actividad_promete_una_figura_que_no_muestra():
+    """Pablo, 31-jul-2026, empezando 3.º: *"Detective de figuras, apenas empieza dice «mirá
+    bien la figura» y no hay figura"*.
+
+    Era el mismo bug de 1.º en otra actividad, y al ir a buscarlo estaba en tres: `figuras_3`
+    (3.º, consigna "Mirá bien la figura", 0 de 12 con dibujo) y `cuadrilateros_6` (6.º,
+    "Mirá los lados, los ángulos y las diagonales", 0 de 15).
+
+    La regla que fija este test: si la CONSIGNA le pide al chico mirar algo, tiene que haber
+    algo que mirar. Es más fuerte que "todas las preguntas de figuras traen dibujo", porque
+    lo que rompe la confianza es la promesa incumplida."""
+    # La regla se acota a la promesa LITERAL de algo dibujado. Un primer intento buscó
+    # cualquier "mirá" y marcó doce actividades, casi todas legítimas: "mirá la última cifra"
+    # se refiere al número que está EN la pregunta, "mirá cómo está armado el poema" al poema
+    # que ya se muestra, y "mirá el cielo del sur" es una figura retórica. Marcar eso como
+    # error habría llevado a rellenar de dibujos actividades que no los necesitan.
+    import re as _re
+    PIDE_MIRAR = _re.compile(
+        r"mir[áa]\s+(bien\s+)?(la\s+figura|el\s+dibujo|la\s+imagen|el\s+gr[áa]fico)", _re.I)
+    malas = []
+    for a in cur.CATALOGO:
+        c = a.get("consigna") or ""
+        banco = a.get("banco") or []
+        if not (PIDE_MIRAR.search(c) and banco):
+            continue
+        sin = [b for b in banco if isinstance(b, dict) and not b.get("dib")]
+        if sin:
+            malas.append("%d.º %s (%r): %d de %d sin dibujo" % (
+                a["grado"], a["id"], c, len(sin), len(banco)))
+    assert not malas, "consignas que piden mirar algo que no está:\n  " + "\n  ".join(malas)
+
+
+@pytest.mark.parametrize("aid,grado,cuantas", [("figuras_3", 3, 12), ("cuadrilateros_6", 6, 15)])
+def test_las_de_geometria_de_3ro_y_6to_dibujan_todas(aid, grado, cuantas):
+    a = [x for x in cur.CATALOGO if x["id"] == aid][0]
+    assert a["grado"] == grado and len(a["banco"]) == cuantas
+    sin = [b["q"] for b in a["banco"] if not b.get("dib")]
+    assert not sin, "%s: %d sin dibujo: %s" % (aid, len(sin), sin[:2])
+    src = _player()
+    for b in a["banco"]:
+        assert "\n  %s:" % b["dib"] in src, "el player no sabe dibujar %r" % b["dib"]
+
+
+def test_la_adivinanza_de_2do_SIGUE_sin_dibujo():
+    """La excepción, y es a propósito. «Adiviná mi figura» es una ADIVINANZA: "tengo 3 lados
+    y 3 vértices, ¿qué soy?". Mostrarle la figura no arregla nada — le da la respuesta y
+    borra el juego. Su consigna («¿Qué figura es?») tampoco promete nada visible."""
+    a = [x for x in cur.CATALOGO if x["id"] == "adivina_figura"][0]
+    assert not any(b.get("dib") for b in a["banco"]), \
+        "se le pusieron dibujos a la adivinanza: ahora se contesta mirando"
+    assert "¿Qué soy?" in " ".join(b["q"] for b in a["banco"])

@@ -8560,10 +8560,34 @@ GAMES.cuenta_larga = {
           '<div class="cuenta-chip ac"><small>cociente</small><b>' + coc + '</b></div>';
       };
 
-      const finRonda = async () => {
+      const finRonda = async (ms) => {
         ctx.bien();
         ronda++;
-        await espera(950);
+        await espera(ms || 950);
+        if (ronda >= rondas) ctx.win(); else jugar();
+      };
+
+      /* Cierre de una cuenta: mostrar el resultado, DECIRLO y dar tiempo a leerlo.
+
+         Pablo, 31-jul-2026, revisando 4.º: *"la cuenta paso a paso no se llega a ver cómo
+         queda porque se va enseguida a la próxima; debería decir qué número quedó y esperar
+         2 segundos"*. Eran las dos cosas: el resultado se escribía pero no se decía, y la
+         pausa era de 950 ms — menos de lo que tarda un chico en leer "495 ÷ 5 = 99 y sobran
+         2" después de haber hecho toda la división paso a paso.
+
+         La espera sigue al AUDIO, pero con TECHO. Medido en el navegador: esperar a que
+         la voz termine daba 6,3 s, porque cada resultado es una frase nueva y el
+         sintetizador la genera en el momento — o sea que el chico se quedaba mirando una
+         pantalla quieta, en silencio, la mitad de ese tiempo. Con el techo, la peor espera
+         son ~2,6 s (los "2 segundos" que pidió Pablo) y si la voz todavía está hablando,
+         sigue sonando: la corta recién la consigna de la cuenta siguiente. */
+      const TECHO_CIERRE = 2600;
+      const cerrarCuenta = async (texto) => {
+        zona.appendChild(el("p", "cuenta-preg", texto));
+        ctx.bien();
+        ronda++;
+        await Promise.race([reproducirConsigna(texto).then((sono) => espera(sono ? 700 : 1900)),
+                            espera(TECHO_CIERRE)]);
         if (ronda >= rondas) ctx.win(); else jugar();
       };
 
@@ -8571,12 +8595,10 @@ GAMES.cuenta_larga = {
         pintarEstado();
         zona.innerHTML = "";
         if (R === 0) {
-          zona.appendChild(el("p", "cuenta-preg", "¡No sobró nada! " + D + " ÷ " + d + " = " + coc));
-          finRonda(); return;
+          cerrarCuenta("¡No sobró nada! " + D + " ÷ " + d + " = " + coc); return;
         }
         if (nivel === 1) {
-          zona.appendChild(el("p", "cuenta-preg", D + " ÷ " + d + " = " + coc + " y sobran " + R));
-          finRonda(); return;
+          cerrarCuenta(D + " ÷ " + d + " = " + coc + " y sobran " + R); return;
         }
         // nivel 2 — análisis del resto: comprobar c × d + r = D
         zona.appendChild(el("p", "cuenta-preg",
@@ -8589,7 +8611,11 @@ GAMES.cuenta_larga = {
           const btn = el("button", "op", v);
           btn.addEventListener("click", async () => {
             if (hecho) return;
-            if (v === correcto) { hecho = true; btn.classList.add("bien", "anim-pop"); await espera(550); finRonda(); }
+            if (v === correcto) {
+              hecho = true; btn.classList.add("bien", "anim-pop"); await espera(450);
+              // también acá: el chico comprobó la cuenta, que la vea cerrada
+              cerrarCuenta(D + " ÷ " + d + " = " + coc + " y sobran " + R);
+            }
             else { btn.classList.add("casi"); ctx.casi("Acordate: cociente × divisor + resto tiene que dar el número de arriba (" + D + ")."); }
           });
           fila.appendChild(btn);
@@ -9723,6 +9749,24 @@ const _FIGURAS_SVG = {
     + '<line x1="12" y1="50" x2="88" y2="50"/><line x1="23" y1="23" x2="77" y2="77"/>'
     + '<line x1="77" y1="23" x2="23" y2="77"/><circle cx="50" cy="50" r="11"/>',
   puerta: '<rect x="26" y="10" width="48" height="80" rx="3"/><circle cx="64" cy="52" r="4.5"/>',
+  // Geometría de 3.º y 6.º: además de las figuras, los ELEMENTOS de los que habla el
+  // Diseño Curricular (vértices y diagonales). Los puntos y las diagonales van en color
+  // pleno para que se distingan del contorno — que es justo lo que la pregunta señala.
+  cuadrilatero: '<polygon points="18,24 84,12 92,74 28,90"/>',
+  trapecio: '<polygon points="30,24 70,24 94,80 6,80"/>',
+  mediatriz: '<line x1="10" y1="62" x2="90" y2="62"/>'
+    + '<circle cx="50" cy="62" r="6" fill="var(--ac)"/>'
+    + '<line x1="50" y1="14" x2="50" y2="92" stroke="var(--ac)" stroke-dasharray="7 5"/>',
+  paralelogramo: '<polygon points="30,22 94,22 70,78 6,78"/>',
+  vertice: '<polygon points="50,12 88,84 12,84"/>'
+    + '<circle cx="50" cy="12" r="8" fill="var(--ac)"/>'
+    + '<circle cx="88" cy="84" r="8" fill="var(--ac)"/>'
+    + '<circle cx="12" cy="84" r="8" fill="var(--ac)"/>',
+  diagonal: '<rect x="14" y="14" width="72" height="72" rx="3"/>'
+    + '<line x1="14" y1="14" x2="86" y2="86" stroke="var(--ac)" stroke-dasharray="7 5"/>',
+  diagonales: '<rect x="14" y="14" width="72" height="72" rx="3"/>'
+    + '<line x1="14" y1="14" x2="86" y2="86" stroke="var(--ac)" stroke-dasharray="7 5"/>'
+    + '<line x1="86" y1="14" x2="14" y2="86" stroke="var(--ac)" stroke-dasharray="7 5"/>',
   casita: '<polygon points="50,8 90,44 10,44"/><rect x="22" y="44" width="56" height="46"/>',
 };
 

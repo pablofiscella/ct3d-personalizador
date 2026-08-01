@@ -6370,34 +6370,7 @@ GAMES.valor_posicional_4 = juegoTriviaTexto(CUR_VALOR_POSICIONAL_4_BANCO, "¿Qu�
 /* 4° · Resta con canje — resta_canje_4
    DC: Algoritmo de resta analizado en rangos de 10.000 y 100.000
    Fuente: docs/auditoria-dc-caba/grado-4.md · M4 */
-const CUR_RESTA_CANJE_4_PLANTILLA = {
-  "q": "{a} − {b}",
-  "vars": {
-    "a": {
-      "rango": [
-        1200,
-        9800
-      ],
-      "paso": 1
-    },
-    "b": {
-      "rango": [
-        150,
-        990
-      ],
-      "paso": 1
-    }
-  },
-  "ok": "a - b",
-  "distractores": [
-    "a - b + 10",
-    "a - b - 10",
-    "a - b + 100"
-  ],
-  "tope": 10000,
-  "m": "Cuando en una columna no alcanza, se pide 10 prestado a la de al lado Y esa columna queda con uno menos. Da {ok}."
-};
-GAMES.resta_canje_4 = juegoParametrico(CUR_RESTA_CANJE_4_PLANTILLA, "¿Cuánto da?", "resta_canj");
+GAMES.resta_canje_4 = { crear(ctx) { return GAMES.resta_columnas.crear(ctx); } };
 
 /* 4° · ¿Se arma el triángulo? — triangulos_4
    DC: Construcción de triángulos dados los lados; clasificación; desigualdad triangular
@@ -13031,7 +13004,8 @@ const CUR_FIGURAS_3_BANCO = [
       "3",
       "5"
     ],
-    "m": "'Cuadri' es cuatro."
+    "m": "'Cuadri' es cuatro.",
+    "dib": "cuadrilatero"
   },
   {
     "q": "Una figura con los 4 lados iguales pero sin ángulos rectos es un…",
@@ -13040,7 +13014,8 @@ const CUR_FIGURAS_3_BANCO = [
       "Cuadrado",
       "Rectángulo"
     ],
-    "m": "El rombo tiene los lados iguales pero está 'aplastado'."
+    "m": "El rombo tiene los lados iguales pero está 'aplastado'.",
+    "dib": "rombo"
   },
   {
     "q": "Un cuadrado apoyado en una punta, ¿sigue siendo cuadrado?",
@@ -13049,7 +13024,8 @@ const CUR_FIGURAS_3_BANCO = [
       "No, es un rombo",
       "No, es un triángulo"
     ],
-    "m": "La figura no cambia por girarla. Sigue teniendo 4 lados iguales y 4 ángulos rectos."
+    "m": "La figura no cambia por girarla. Sigue teniendo 4 lados iguales y 4 ángulos rectos.",
+    "dib": "rombo"
   },
   {
     "q": "¿Qué es un vértice?",
@@ -13058,7 +13034,8 @@ const CUR_FIGURAS_3_BANCO = [
       "Cada lado",
       "El centro"
     ],
-    "m": "Los vértices son las esquinas."
+    "m": "Los vértices son las esquinas.",
+    "dib": "vertice"
   },
   {
     "q": "¿Cuántos vértices tiene un triángulo?",
@@ -13067,7 +13044,8 @@ const CUR_FIGURAS_3_BANCO = [
       "4",
       "1"
     ],
-    "m": "Tres lados, tres vértices."
+    "m": "Tres lados, tres vértices.",
+    "dib": "triangulo"
   },
   {
     "q": "¿Qué es una diagonal?",
@@ -13076,7 +13054,8 @@ const CUR_FIGURAS_3_BANCO = [
       "Cualquier lado",
       "El borde de afuera"
     ],
-    "m": "Va de esquina a esquina cruzando la figura."
+    "m": "Va de esquina a esquina cruzando la figura.",
+    "dib": "diagonal"
   },
   {
     "q": "¿Cuántas diagonales tiene un cuadrado?",
@@ -13085,7 +13064,8 @@ const CUR_FIGURAS_3_BANCO = [
       "4",
       "1"
     ],
-    "m": "Une las dos parejas de vértices opuestos."
+    "m": "Une las dos parejas de vértices opuestos.",
+    "dib": "diagonales"
   },
   {
     "q": "Un paralelogramo tiene los lados opuestos…",
@@ -13094,7 +13074,8 @@ const CUR_FIGURAS_3_BANCO = [
       "Todos iguales",
       "Perpendiculares"
     ],
-    "m": "Los de enfrente son paralelos e iguales."
+    "m": "Los de enfrente son paralelos e iguales.",
+    "dib": "paralelogramo"
   },
   {
     "q": "¿El rectángulo es un paralelogramo?",
@@ -13103,7 +13084,8 @@ const CUR_FIGURAS_3_BANCO = [
       "No",
       "Sólo si es cuadrado"
     ],
-    "m": "Cumple la condición, así que sí."
+    "m": "Cumple la condición, así que sí.",
+    "dib": "rectangulo"
   },
   {
     "q": "¿Cuántos lados tiene un pentágono?",
@@ -13112,7 +13094,8 @@ const CUR_FIGURAS_3_BANCO = [
       "6",
       "4"
     ],
-    "m": "Penta es cinco."
+    "m": "Penta es cinco.",
+    "dib": "pentagono"
   },
   {
     "q": "Un triángulo con los 3 lados iguales se llama…",
@@ -13121,7 +13104,8 @@ const CUR_FIGURAS_3_BANCO = [
       "Isósceles",
       "Escaleno"
     ],
-    "m": "Equi es igual."
+    "m": "Equi es igual.",
+    "dib": "triangulo"
   },
   {
     "q": "¿Qué figura no tiene vértices?",
@@ -13130,7 +13114,8 @@ const CUR_FIGURAS_3_BANCO = [
       "El cuadrado",
       "El triángulo"
     ],
-    "m": "No tiene esquinas: su borde es una curva."
+    "m": "No tiene esquinas: su borde es una curva.",
+    "dib": "circulo"
   }
 ];
 GAMES.figuras_3 = juegoTriviaTexto(CUR_FIGURAS_3_BANCO, "Mirá bien la figura.", "figuras_3");
@@ -21721,7 +21706,8 @@ const CUR_CUADRILATEROS_6_BANCO = [
       "180°",
       "90°"
     ],
-    "m": "180° es el triángulo. Un cuadrilátero se parte en DOS triángulos: 180 × 2."
+    "m": "180° es el triángulo. Un cuadrilátero se parte en DOS triángulos: 180 × 2.",
+    "dib": "cuadrilatero"
   },
   {
     "q": "Tres ángulos de un cuadrilátero miden 90°, 90° y 100°. ¿Cuánto mide el cuarto?",
@@ -21730,7 +21716,8 @@ const CUR_CUADRILATEROS_6_BANCO = [
       "90°",
       "100°"
     ],
-    "m": "Los cuatro suman 360°: 360 − 280 = 80."
+    "m": "Los cuatro suman 360°: 360 − 280 = 80.",
+    "dib": "cuadrilatero"
   },
   {
     "q": "¿Qué es la mediatriz de un segmento?",
@@ -21739,7 +21726,8 @@ const CUR_CUADRILATEROS_6_BANCO = [
       "Cualquier recta que lo corta",
       "La recta paralela al segmento"
     ],
-    "m": "Tiene que cumplir las DOS cosas: pasar por el medio y ser perpendicular."
+    "m": "Tiene que cumplir las DOS cosas: pasar por el medio y ser perpendicular.",
+    "dib": "mediatriz"
   },
   {
     "q": "¿Qué tienen en común todos los paralelogramos?",
@@ -21748,7 +21736,8 @@ const CUR_CUADRILATEROS_6_BANCO = [
       "Los cuatro lados son iguales",
       "Todos los ángulos son rectos"
     ],
-    "m": "Los lados iguales son del rombo y los ángulos rectos del rectángulo: son casos particulares."
+    "m": "Los lados iguales son del rombo y los ángulos rectos del rectángulo: son casos particulares.",
+    "dib": "paralelogramo"
   },
   {
     "q": "¿El cuadrado es un rectángulo?",
@@ -21757,7 +21746,8 @@ const CUR_CUADRILATEROS_6_BANCO = [
       "No, son figuras distintas",
       "Sólo si está inclinado"
     ],
-    "m": "Rectángulo significa cuatro ángulos rectos, y el cuadrado los tiene."
+    "m": "Rectángulo significa cuatro ángulos rectos, y el cuadrado los tiene.",
+    "dib": "rectangulo"
   },
   {
     "q": "¿Cuántos pares de lados paralelos tiene un trapecio?",
@@ -21766,7 +21756,8 @@ const CUR_CUADRILATEROS_6_BANCO = [
       "Dos",
       "Ninguno"
     ],
-    "m": "Con dos pares sería un paralelogramo."
+    "m": "Con dos pares sería un paralelogramo.",
+    "dib": "trapecio"
   },
   {
     "q": "¿Cómo son las diagonales de un rombo?",
@@ -21775,7 +21766,8 @@ const CUR_CUADRILATEROS_6_BANCO = [
       "Iguales entre sí",
       "Paralelas"
     ],
-    "m": "Se cortan formando ángulo recto. Iguales son las del rectángulo."
+    "m": "Se cortan formando ángulo recto. Iguales son las del rectángulo.",
+    "dib": "rombo"
   },
   {
     "q": "En un paralelogramo, dos ángulos consecutivos suman…",
@@ -21784,7 +21776,8 @@ const CUR_CUADRILATEROS_6_BANCO = [
       "90°",
       "360°"
     ],
-    "m": "Son suplementarios, porque los lados opuestos son paralelos."
+    "m": "Son suplementarios, porque los lados opuestos son paralelos.",
+    "dib": "paralelogramo"
   },
   {
     "q": "¿Todo rombo es un cuadrado?",
@@ -21793,7 +21786,8 @@ const CUR_CUADRILATEROS_6_BANCO = [
       "Sí, siempre",
       "No, nunca"
     ],
-    "m": "El rombo tiene los cuatro lados iguales, pero puede estar aplastado."
+    "m": "El rombo tiene los cuatro lados iguales, pero puede estar aplastado.",
+    "dib": "rombo"
   },
   {
     "q": "¿Qué figura tiene los 4 lados iguales Y los 4 ángulos rectos?",
@@ -21802,7 +21796,8 @@ const CUR_CUADRILATEROS_6_BANCO = [
       "El rombo",
       "El rectángulo"
     ],
-    "m": "El rombo cumple lo de los lados y el rectángulo lo de los ángulos; el cuadrado, las dos."
+    "m": "El rombo cumple lo de los lados y el rectángulo lo de los ángulos; el cuadrado, las dos.",
+    "dib": "cuadrado"
   },
   {
     "q": "Un cuadrilátero tiene ángulos de 60°, 120° y 60°. El cuarto mide…",
@@ -21811,7 +21806,8 @@ const CUR_CUADRILATEROS_6_BANCO = [
       "60°",
       "90°"
     ],
-    "m": "360 − 240 = 120. Es un paralelogramo."
+    "m": "360 − 240 = 120. Es un paralelogramo.",
+    "dib": "cuadrilatero"
   },
   {
     "q": "¿Cuántas diagonales tiene un cuadrilátero?",
@@ -21820,7 +21816,8 @@ const CUR_CUADRILATEROS_6_BANCO = [
       "Cuatro",
       "Una"
     ],
-    "m": "Cada vértice se une con el opuesto: dos uniones en total."
+    "m": "Cada vértice se une con el opuesto: dos uniones en total.",
+    "dib": "diagonales"
   },
   {
     "q": "¿Las diagonales de un rectángulo son iguales?",
@@ -21829,7 +21826,8 @@ const CUR_CUADRILATEROS_6_BANCO = [
       "No, nunca",
       "Sólo si es un cuadrado"
     ],
-    "m": "En cualquier rectángulo las dos diagonales miden lo mismo."
+    "m": "En cualquier rectángulo las dos diagonales miden lo mismo.",
+    "dib": "diagonal"
   },
   {
     "q": "Los puntos de la mediatriz de un segmento están…",
@@ -21838,7 +21836,8 @@ const CUR_CUADRILATEROS_6_BANCO = [
       "Más cerca de un extremo",
       "Siempre fuera del segmento"
     ],
-    "m": "Esa propiedad es lo que la hace útil para construir figuras."
+    "m": "Esa propiedad es lo que la hace útil para construir figuras.",
+    "dib": "mediatriz"
   },
   {
     "q": "¿Un trapecio es un paralelogramo?",
@@ -21847,7 +21846,8 @@ const CUR_CUADRILATEROS_6_BANCO = [
       "Sí, siempre",
       "Sólo si es isósceles"
     ],
-    "m": "El paralelogramo necesita los DOS pares paralelos."
+    "m": "El paralelogramo necesita los DOS pares paralelos.",
+    "dib": "trapecio"
   }
 ];
 GAMES.cuadrilateros_6 = juegoTriviaTexto(CUR_CUADRILATEROS_6_BANCO, "Mirá los lados, los ángulos y las diagonales.", "cuadrilate");
