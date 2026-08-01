@@ -136,3 +136,70 @@ def test_el_festejo_de_completar_se_mantiene():
     for juego in COLUMNAS:
         assert "ctx.win(" in _juego(juego), "%s dejó de festejar" % juego
         assert "ctx.bien()" in _juego(juego)
+
+
+# ── el barrido de TODOS los cuadernos ────────────────────────────────────────────
+
+def _lineas():
+    return _src().split("\n")
+
+
+def test_ninguna_ayuda_del_cuaderno_completa_una_respuesta():
+    """Pablo, 31-jul-2026: *"revisá que todos los botones de ayuda no completen resultados"*
+    y *"barrido de todos los cuadernos"*.
+
+    Barrido hecho sobre el player entero (los 7 grados comparten el mismo archivo): se
+    buscan TODOS los lugares donde se escribe una respuesta en pantalla y se verifica que
+    ninguno cuelgue de un botón de ayuda. Al hacerlo aparecieron **9 lugares** y **2 botones
+    de ayuda** —los de suma y resta en columnas— y sólo el de la suma completaba.
+
+    Este test es el que evita que el próximo juego con ayuda repita el mismo error."""
+    lineas = _lineas()
+    escriben = re.compile(
+        r"(slots?\[[^\]]+\]\.textContent\s*=|huecos?\[[^\]]+\]\.textContent\s*=)")
+    sitios = [i for i, l in enumerate(lineas) if escriben.search(l)]
+    assert len(sitios) >= 8, "el barrido dejó de encontrar los lugares que escriben (%d)" % len(sitios)
+    # cada uno tiene que estar en una función que NO llame ninguna ayuda
+    src = _src()
+    for nombre in ("mostrarAyuda",):
+        for m in re.finditer(r"const %s = \(\) => \{(.*?)\n      \};" % nombre, src, re.S):
+            cuerpo = m.group(1)
+            assert ".textContent = String(" not in cuerpo, \
+                "una ayuda volvió a escribir una cifra en la cuenta"
+            assert "resolverColumna" not in cuerpo, "una ayuda volvió a resolver la columna"
+
+
+def test_solo_hay_dos_botones_de_ayuda_y_los_dos_explican():
+    """Si mañana aparece un tercero, este test lo hace visible: hay que decidir a mano si
+    explica o resuelve, y no descubrirlo cuando un chico saque 3★ sin hacer nada."""
+    src = _src()
+    botones = re.findall(r'el\("button", "[^"]*", "💡 Ayuda"\)', src)
+    assert len(botones) == 2, \
+        "cambió la cantidad de botones de ayuda (%d): revisar que el nuevo no resuelva" % len(botones)
+    for juego in COLUMNAS:
+        c = _juego(juego)
+        assert 'btnAyuda.addEventListener("click", mostrarAyuda)' in c, \
+            "%s: la ayuda dejó de estar enganchada a la explicación" % juego
+
+
+def test_la_leccion_automatica_tampoco_completa():
+    """La otra asistencia: cuando el chico erra DOS veces en la misma columna, aparece sola
+    una lección animada. Muestra el razonamiento paso a paso —"3 + 8 = 11", "anotamos el 1 y
+    llevamos 1"— pero tampoco escribe la cifra: eso lo sigue haciendo el chico."""
+    c = _juego("suma_columnas")
+    i = c.index("leccionBox.textContent")
+    bloque = c[max(0, i - 400):i + 1500]
+    assert "Anotamos el" in bloque, "la lección dejó de explicar el acarreo"
+    assert "resolverColumna" not in bloque, "la lección automática ahora resuelve la columna"
+
+
+def test_el_boton_como_es_muestra_la_regla_y_no_la_respuesta():
+    """`¿Cómo es?` abre la regla general de la actividad, no el ejercicio de esta ronda.
+    Se verifica que su handler no toque el tablero."""
+    src = _src()
+    i = src.index("function botonComoEs(")
+    cuerpo = src[i:src.index("\n}", i)]
+    assert "mostrarComoEs(id)" in cuerpo
+    for prohibido in ("slots", "ctx.bien", "resolverColumna", "textContent ="):
+        assert prohibido not in cuerpo, \
+            "«¿Cómo es?» toca el ejercicio: %r" % prohibido
