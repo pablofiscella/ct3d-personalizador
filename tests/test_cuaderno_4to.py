@@ -112,12 +112,18 @@ def test_la_cuenta_dice_el_resultado_antes_de_pasar_a_la_siguiente():
     assert "reproducirConsigna(texto)" in cuerpo, "el resultado no se dice en voz alta"
 
 
-def test_la_espera_sigue_al_audio_pero_con_techo():
-    """Esperar a que la voz TERMINE parecía lo correcto, y medido en el navegador daba
-    **6,3 s**: cada resultado es una frase nueva y el sintetizador la genera en el momento,
-    así que el chico se quedaba mirando una pantalla quieta, en silencio, la mitad de ese
-    tiempo. Con el techo la peor espera es ~2,6 s —los "2 segundos" que pidió Pablo— y si la
-    voz sigue hablando, sigue sonando: la corta recién la consigna de la cuenta siguiente."""
+def test_la_espera_deja_terminar_la_voz():
+    """Tres intentos hasta acertarle, y el del medio fue un error propio.
+
+    950 ms (original) → 2,6 s → 3,5-6 s → y ahí Pablo cazó lo que el techo rompía: *"dijo
+    «no sobró nada, 90 dividido 2 es…» y se quedó sin decir lo que faltaba porque se fue a
+    otro ejercicio"*. MEDIDO después: la frase de cierre tarda ~2 s en generarse y ~5 s en
+    decirse (6,7 a 7,7 s), así que el techo de 6 s la cortaba justo en el resultado — la
+    única parte que importa.
+
+    El techo salió de una preocupación mía por el "silencio" de los primeros segundos, que
+    Pablo nunca planteó: lo que pidió las dos veces fue MÁS tiempo. Ahora se espera a que
+    termine de hablar; el tope alto existe sólo por si el audio se cuelga."""
     c = _juego("cuenta_larga")
     i = c.index("const cerrarCuenta")
     cuerpo = c[i:i + 700]
@@ -125,6 +131,9 @@ def test_la_espera_sigue_al_audio_pero_con_techo():
     assert "Promise.race" in cuerpo, "sin techo, la espera depende de cuánto tarde la voz"
     assert re.search(r"PISO_CIERRE = 3[0-9]{3}", _juego("cuenta_larga")), \
         "el piso de espera bajó de los 3,5 s que pidió Pablo"
+    tope = re.search(r"TOPE_COLGADO = (\d+)", _juego("cuenta_larga"))
+    assert tope and int(tope.group(1)) >= 10000, \
+        "el tope volvió a ser bajo y va a cortar la voz: la frase tarda hasta 7,7 s"
 
 
 def test_los_tres_finales_de_la_cuenta_cierran_igual():

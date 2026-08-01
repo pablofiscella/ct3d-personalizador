@@ -8586,11 +8586,18 @@ GAMES.cuenta_larga = {
          siendo poco: terminar una división larga y ver el resultado un segundo y medio no
          alcanza para cerrar lo que hizo.
 
-         Ahora hay PISO y TECHO. El piso son 3,5 s garantizados aunque la voz esté apagada o
-         responda al toque; el techo, 6 s, para que una voz lenta no deje la pantalla clavada
-         (fue el problema del primer intento, que esperaba a la voz sin límite y daba 6,3 s
-         de los cuales la mitad era silencio mientras se generaba el audio). */
-      const PISO_CIERRE = 3500, TECHO_CIERRE = 6000;
+         El TECHO de 6 s fue un error mío y Pablo lo cazó enseguida: *"dijo «no sobró nada,
+         90 dividido 2 es…» y se quedó sin decir lo que faltaba porque se fue a otro
+         ejercicio"*. MEDIDO después: la frase de cierre tarda ~2 s en generarse y ~5 s en
+         decirse — entre 6,7 y 7,7 s en total— así que el techo la cortaba justo en el
+         resultado, que es la única parte que importa.
+
+         El techo salió de una preocupación mía por el "silencio" de los primeros segundos,
+         que Pablo nunca planteó: lo que él pidió las dos veces fue MÁS tiempo. Así que ahora
+         se espera a que termine de hablar, con un piso de 3,5 s por si la voz está apagada,
+         y un tope alto que sólo existe por si el audio se cuelga y nunca avisa que terminó —
+         no para cortarlo. */
+      const PISO_CIERRE = 3500, TOPE_COLGADO = 15000;
       const cerrarCuenta = async (texto) => {
         zona.appendChild(el("p", "cuenta-preg", texto));
         ctx.bien();
@@ -8598,7 +8605,7 @@ GAMES.cuenta_larga = {
         await Promise.all([
           espera(PISO_CIERRE),
           Promise.race([reproducirConsigna(texto).then((sono) => espera(sono ? 600 : 0)),
-                        espera(TECHO_CIERRE)]),
+                        espera(TOPE_COLGADO)]),
         ]);
         if (ronda >= rondas) ctx.win(); else jugar();
       };
