@@ -37,11 +37,32 @@ AREA_CDM = "cdm"          # Conocimiento del Mundo — 1° a 3° (DC CABA 2024)
 #   parametrica → SIN banco: "plantilla" {q, vars, ok, distractores, tope, m}
 #                  El ejercicio se genera cada vez, así que no hay nada que memorizar —
 #                  es la mecánica que la auditoría llama "paramétrica".  (juegoParametrico)
-MECANICAS = ("trivia", "clasificar", "ordenar", "parametrica", "manipular")
+#   reusa       → SIN banco: la actividad REUSA un juego que ya existe en el player
+#                  ("juego") con su propia consigna y su "cfg". Sirve cuando dos grados
+#                  necesitan el MISMO juego con distinto rango: 4.º usa la resta en
+#                  columnas de 3.º con números más grandes, en vez de un segundo juego
+#                  que haga lo mismo. Se declara `juego` y, si hace falta, `cfg`.
+MECANICAS = ("trivia", "clasificar", "ordenar", "parametrica", "manipular", "reusa")
 
 # Tamaño mínimo de banco. La auditoría fijó "mínimo real 30 ítems, insignia 40" para 2°;
 # por debajo de 12 el banco se agota en una sola partida y la actividad mide memoria.
 BANCO_MINIMO = 12
+
+_PLAYER_CACHE = []
+
+
+def _FUENTE_PLAYER():
+    """El player, leído una vez. Lo usa la validación de `reusa` para verificar que el
+    juego al que apunta EXISTA: si no, la tarjeta aparecería en el menú y no abriría."""
+    if not _PLAYER_CACHE:
+        import os as _os
+        try:
+            with open(_os.path.join(_os.path.dirname(_os.path.abspath(__file__)),
+                                    "actividades_player.js"), encoding="utf-8") as f:
+                _PLAYER_CACHE.append(f.read())
+        except OSError:
+            _PLAYER_CACHE.append("")
+    return _PLAYER_CACHE[0]
 
 
 CATALOGO = [
@@ -3175,26 +3196,20 @@ CATALOGO = [
     {
         "id": "resta_canje_4", "grado": 4, "area": "matematica",
         "titulo": "Resta con canje", "icono": "➖",
-        "mecanica": "parametrica",
+        # Pablo, 31-jul-2026, revisando 4.º: *"la resta con canje tendría que ser como las
+        # sumas grandes graficadas, porque así los números habría que hacerlos en un papel
+        # para saber qué valor tiene"*. Tenía razón y el desbalance era visible en el mismo
+        # menú: 4.º mostraba la SUMA en columnas y la resta como una cuenta en línea con
+        # opciones. Y el propio DC de este tema pide el "algoritmo de resta ANALIZADO", que
+        # es justo lo que muestra la versión en columnas y lo que la de opciones esconde.
+        # La resta en columnas ya estaba escrita —la usa 3.º— así que se reusa con el rango
+        # que este grado pide, en vez de escribir un segundo juego que haga lo mismo.
+        "mecanica": "reusa", "juego": "resta_columnas",
+        "cfg": {"cifrasMin": 4, "cifrasMax": 5},
         "consigna": "¿Cuánto da?",
         "dc": "Algoritmo de resta analizado en rangos de 10.000 y 100.000",
         "fuente": "docs/auditoria-dc-caba/grado-4.md · M4",
-        "saber": {"id": "MAT-4-resta", "nombre": "Resta con canje", "prereqs": []},
-        # Los distractores son los errores REALES del canje: quedarse con el 10 que se
-        # pidió prestado (a-b+10) o devolverlo de más (a-b-10), y el canje olvidado en
-        # las centenas (a-b+100). No son números al azar.
-        "plantilla": {
-            "q": "{a} − {b}",
-            "vars": {
-                "a": {"rango": [1200, 9800], "paso": 1},
-                "b": {"rango": [150, 990], "paso": 1},
-            },
-            "ok": "a - b",
-            "distractores": ["a - b + 10", "a - b - 10", "a - b + 100"],
-            "tope": 10000,
-            "m": "Cuando en una columna no alcanza, se pide 10 prestado a la de al lado "
-                 "Y esa columna queda con uno menos. Da {ok}.",
-        },
+        "saber": {"id": "MAT-4-resta", "nombre": "Resta con canje", "prereqs": []}
     },
     {
         "id": "triangulos_4", "grado": 4, "area": "matematica",
@@ -6191,33 +6206,33 @@ CATALOGO = [
         "saber": {"id": "MAT-3-figuras", "nombre": "Figuras y sus elementos", "prereqs": []},
         "banco": [
             {"q": "¿Cuántos lados tiene un cuadrilátero?", "ops": ["4", "3", "5"],
-             "m": "'Cuadri' es cuatro."},
+             "m": "'Cuadri' es cuatro.", "dib": "cuadrilatero"},
             {"q": "Una figura con los 4 lados iguales pero sin ángulos rectos es un…",
              "ops": ["Rombo", "Cuadrado", "Rectángulo"],
-             "m": "El rombo tiene los lados iguales pero está 'aplastado'."},
+             "m": "El rombo tiene los lados iguales pero está 'aplastado'.", "dib": "rombo"},
             {"q": "Un cuadrado apoyado en una punta, ¿sigue siendo cuadrado?",
              "ops": ["Sí, girarlo no lo cambia", "No, es un rombo", "No, es un triángulo"],
-             "m": "La figura no cambia por girarla. Sigue teniendo 4 lados iguales y 4 ángulos rectos."},
+             "m": "La figura no cambia por girarla. Sigue teniendo 4 lados iguales y 4 ángulos rectos.", "dib": "rombo"},
             {"q": "¿Qué es un vértice?", "ops": ["Cada punta donde se juntan dos lados",
-                     "Cada lado", "El centro"], "m": "Los vértices son las esquinas."},
+                     "Cada lado", "El centro"], "m": "Los vértices son las esquinas.", "dib": "vertice"},
             {"q": "¿Cuántos vértices tiene un triángulo?", "ops": ["3", "4", "1"],
-             "m": "Tres lados, tres vértices."},
+             "m": "Tres lados, tres vértices.", "dib": "triangulo"},
             {"q": "¿Qué es una diagonal?", "ops": ["La línea que une dos vértices no vecinos",
                      "Cualquier lado", "El borde de afuera"],
-             "m": "Va de esquina a esquina cruzando la figura."},
+             "m": "Va de esquina a esquina cruzando la figura.", "dib": "diagonal"},
             {"q": "¿Cuántas diagonales tiene un cuadrado?", "ops": ["2", "4", "1"],
-             "m": "Une las dos parejas de vértices opuestos."},
+             "m": "Une las dos parejas de vértices opuestos.", "dib": "diagonales"},
             {"q": "Un paralelogramo tiene los lados opuestos…",
              "ops": ["Paralelos y del mismo largo", "Todos iguales", "Perpendiculares"],
-             "m": "Los de enfrente son paralelos e iguales."},
+             "m": "Los de enfrente son paralelos e iguales.", "dib": "paralelogramo"},
             {"q": "¿El rectángulo es un paralelogramo?",
              "ops": ["Sí, sus lados opuestos son paralelos", "No", "Sólo si es cuadrado"],
-             "m": "Cumple la condición, así que sí."},
-            {"q": "¿Cuántos lados tiene un pentágono?", "ops": ["5", "6", "4"], "m": "Penta es cinco."},
+             "m": "Cumple la condición, así que sí.", "dib": "rectangulo"},
+            {"q": "¿Cuántos lados tiene un pentágono?", "ops": ["5", "6", "4"], "m": "Penta es cinco.", "dib": "pentagono"},
             {"q": "Un triángulo con los 3 lados iguales se llama…",
-             "ops": ["Equilátero", "Isósceles", "Escaleno"], "m": "Equi es igual."},
+             "ops": ["Equilátero", "Isósceles", "Escaleno"], "m": "Equi es igual.", "dib": "triangulo"},
             {"q": "¿Qué figura no tiene vértices?", "ops": ["El círculo", "El cuadrado",
-                     "El triángulo"], "m": "No tiene esquinas: su borde es una curva."},
+                     "El triángulo"], "m": "No tiene esquinas: su borde es una curva.", "dib": "circulo"},
         ],
     },
     {
@@ -8750,50 +8765,50 @@ CATALOGO = [
         "banco": [
             {"q": "¿Cuánto suman los ángulos interiores de un cuadrilátero?",
              "ops": ["360°", "180°", "90°"],
-             "m": "180° es el triángulo. Un cuadrilátero se parte en DOS triángulos: 180 × 2."},
+             "m": "180° es el triángulo. Un cuadrilátero se parte en DOS triángulos: 180 × 2.", "dib": "cuadrilatero"},
             {"q": "Tres ángulos de un cuadrilátero miden 90°, 90° y 100°. ¿Cuánto mide el cuarto?",
              "ops": ["80°", "90°", "100°"],
-             "m": "Los cuatro suman 360°: 360 − 280 = 80."},
+             "m": "Los cuatro suman 360°: 360 − 280 = 80.", "dib": "cuadrilatero"},
             {"q": "¿Qué es la mediatriz de un segmento?",
              "ops": ["La perpendicular que pasa por su punto medio",
                      "Cualquier recta que lo corta", "La recta paralela al segmento"],
-             "m": "Tiene que cumplir las DOS cosas: pasar por el medio y ser perpendicular."},
+             "m": "Tiene que cumplir las DOS cosas: pasar por el medio y ser perpendicular.", "dib": "mediatriz"},
             {"q": "¿Qué tienen en común todos los paralelogramos?",
              "ops": ["Los lados opuestos son paralelos e iguales", "Los cuatro lados son iguales",
                      "Todos los ángulos son rectos"],
-             "m": "Los lados iguales son del rombo y los ángulos rectos del rectángulo: son casos particulares."},
+             "m": "Los lados iguales son del rombo y los ángulos rectos del rectángulo: son casos particulares.", "dib": "paralelogramo"},
             {"q": "¿El cuadrado es un rectángulo?", "ops": ["Sí, es un rectángulo con los 4 lados iguales",
                      "No, son figuras distintas", "Sólo si está inclinado"],
-             "m": "Rectángulo significa cuatro ángulos rectos, y el cuadrado los tiene."},
+             "m": "Rectángulo significa cuatro ángulos rectos, y el cuadrado los tiene.", "dib": "rectangulo"},
             {"q": "¿Cuántos pares de lados paralelos tiene un trapecio?",
              "ops": ["Uno", "Dos", "Ninguno"],
-             "m": "Con dos pares sería un paralelogramo."},
+             "m": "Con dos pares sería un paralelogramo.", "dib": "trapecio"},
             {"q": "¿Cómo son las diagonales de un rombo?",
              "ops": ["Perpendiculares entre sí", "Iguales entre sí", "Paralelas"],
-             "m": "Se cortan formando ángulo recto. Iguales son las del rectángulo."},
+             "m": "Se cortan formando ángulo recto. Iguales son las del rectángulo.", "dib": "rombo"},
             {"q": "En un paralelogramo, dos ángulos consecutivos suman…", "ops": ["180°", "90°", "360°"],
-             "m": "Son suplementarios, porque los lados opuestos son paralelos."},
+             "m": "Son suplementarios, porque los lados opuestos son paralelos.", "dib": "paralelogramo"},
             {"q": "¿Todo rombo es un cuadrado?", "ops": ["No, sólo si además tiene ángulos rectos",
                      "Sí, siempre", "No, nunca"],
-             "m": "El rombo tiene los cuatro lados iguales, pero puede estar aplastado."},
+             "m": "El rombo tiene los cuatro lados iguales, pero puede estar aplastado.", "dib": "rombo"},
             {"q": "¿Qué figura tiene los 4 lados iguales Y los 4 ángulos rectos?",
              "ops": ["El cuadrado", "El rombo", "El rectángulo"],
-             "m": "El rombo cumple lo de los lados y el rectángulo lo de los ángulos; el cuadrado, las dos."},
+             "m": "El rombo cumple lo de los lados y el rectángulo lo de los ángulos; el cuadrado, las dos.", "dib": "cuadrado"},
             {"q": "Un cuadrilátero tiene ángulos de 60°, 120° y 60°. El cuarto mide…",
              "ops": ["120°", "60°", "90°"],
-             "m": "360 − 240 = 120. Es un paralelogramo."},
+             "m": "360 − 240 = 120. Es un paralelogramo.", "dib": "cuadrilatero"},
             {"q": "¿Cuántas diagonales tiene un cuadrilátero?", "ops": ["Dos", "Cuatro", "Una"],
-             "m": "Cada vértice se une con el opuesto: dos uniones en total."},
+             "m": "Cada vértice se une con el opuesto: dos uniones en total.", "dib": "diagonales"},
             {"q": "¿Las diagonales de un rectángulo son iguales?",
              "ops": ["Sí, siempre", "No, nunca", "Sólo si es un cuadrado"],
-             "m": "En cualquier rectángulo las dos diagonales miden lo mismo."},
+             "m": "En cualquier rectángulo las dos diagonales miden lo mismo.", "dib": "diagonal"},
             {"q": "Los puntos de la mediatriz de un segmento están…",
              "ops": ["A la misma distancia de los dos extremos", "Más cerca de un extremo",
                      "Siempre fuera del segmento"],
-             "m": "Esa propiedad es lo que la hace útil para construir figuras."},
+             "m": "Esa propiedad es lo que la hace útil para construir figuras.", "dib": "mediatriz"},
             {"q": "¿Un trapecio es un paralelogramo?", "ops": ["No, tiene un solo par de lados paralelos",
                      "Sí, siempre", "Sólo si es isósceles"],
-             "m": "El paralelogramo necesita los DOS pares paralelos."},
+             "m": "El paralelogramo necesita los DOS pares paralelos.", "dib": "trapecio"},
         ],
     },
     {
@@ -15526,10 +15541,13 @@ def menu_de_grado(grado):
     # `_menu_curricular` atrapa cualquier excepción para no dejar al chico sin cuaderno,
     # borraba EN SILENCIO todas las actividades del grado. El fallback defensivo escondía
     # el bug — y volvió a aparecer al sumar `manipular`, por eso ahora es una tupla.)
-    SIN_BANCO = ("parametrica", "manipular")
+    SIN_BANCO = ("parametrica", "manipular", "reusa")
     return [{"id": a["id"], "titulo": a["titulo"], "icono": a["icono"],
-             "cfg": {"rondas": 10 if a["mecanica"] in SIN_BANCO
-                     else min(10, max(6, len(a["banco"]) // 2))}}
+             # el `cfg` propio de la actividad (si lo declara) se suma al de las rondas:
+             # es lo que deja que una que REUSA un juego le pase su rango de trabajo
+             "cfg": dict({"rondas": 10 if a["mecanica"] in SIN_BANCO
+                          else min(10, max(6, len(a["banco"]) // 2))},
+                         **(a.get("cfg") or {}))}
             for a in _orden_pedagogico(actividades_de(grado))]
 
 
@@ -15729,8 +15747,12 @@ def validar():
         # una paramétrica no tiene banco: su contenido es la plantilla
         obligatorios = ["id", "grado", "area", "titulo", "icono", "mecanica", "dc",
                         "fuente", "saber"]
-        obligatorios.append("plantilla" if a.get("mecanica") in ("parametrica", "manipular")
-                    else "banco")
+        if a.get("mecanica") == "reusa":
+            obligatorios.append("juego")   # no tiene contenido propio: lo pone el que reusa
+        elif a.get("mecanica") in ("parametrica", "manipular"):
+            obligatorios.append("plantilla")
+        else:
+            obligatorios.append("banco")
         for campo in obligatorios:
             if not a.get(campo):
                 problemas.append("%s: falta '%s'" % (ref, campo))
@@ -15749,6 +15771,14 @@ def validar():
         if mec == "manipular":
             problemas.extend(_validar_manipular(ref, a))
             continue                      # no tiene banco: el ejercicio se genera
+        if mec == "reusa":
+            if not a.get("juego"):
+                problemas.append("%s: reusa sin decir QUÉ juego" % ref)
+            elif not re.search(r"GAMES\.%s\s*=" % re.escape(a["juego"]),
+                               _FUENTE_PLAYER()):
+                problemas.append("%s: reusa 'GAMES.%s', que no existe en el player"
+                                 % (ref, a["juego"]))
+            continue                      # no tiene banco: lo pone el juego que reusa
         # "ordenar" mide por SECUENCIAS, no por ítems sueltos: 12 secuencias de 4-5
         # tarjetas ya son muchas rondas distintas, así que el piso es más bajo.
         minimo = 8 if mec == "ordenar" else BANCO_MINIMO
