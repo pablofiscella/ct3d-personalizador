@@ -86,6 +86,18 @@ def test_el_banco_respeta_la_forma_de_su_mecanica(act):
             "%s: sólo %d objetivos distintos" % (act["id"], len(objetivos))
         assert all(isinstance(v, int) and v > 0 for v in pl["piezas"]), act["id"]
         assert pl.get("m"), "%s: sin explicación al errar" % act["id"]
+    elif mec == "reusa":
+        # No tiene contenido propio: REUSA un juego del player, que es donde vive su
+        # contrato. Lo único que hay que verificar acá es que ese juego EXISTA — si no, la
+        # tarjeta aparece en el menú y no abre, que es el peor síntoma porque no da error.
+        # (Nació el 31-jul-2026 para que la resta de 4.º use la misma resta en columnas
+        # que 3.º con otro rango, en vez de un segundo juego que haga lo mismo.)
+        assert act.get("juego"), "%s: reusa sin decir qué juego" % act["id"]
+        player = open(os.path.join(aw.BASEDIR, "actividades_player.js"), encoding="utf-8").read()
+        assert "GAMES.%s = {" % act["juego"] in player, \
+            "%s: reusa 'GAMES.%s', que no existe en el player" % (act["id"], act["juego"])
+        assert not act.get("banco") and not act.get("plantilla"), \
+            "%s: reusa un juego Y trae contenido propio; uno de los dos sobra" % act["id"]
     else:
         pytest.fail("mecánica sin contrato verificado: %r" % mec)
 
@@ -137,6 +149,12 @@ def test_el_js_generado_esta_sincronizado():
     for a in cur.CATALOGO:
         assert "GAMES.%s = " % a["id"] in js, \
             "%s está en el catálogo pero no en el JS: falta regenerar" % a["id"]
+        if a["mecanica"] == "reusa":
+            # no emite ni banco ni plantilla: delega en un juego que ya existe
+            assert "GAMES.%s = { crear(ctx) { return GAMES.%s.crear(ctx); } };" % (
+                a["id"], a["juego"]) in js, \
+                "%s: el JS no delega en %s" % (a["id"], a["juego"])
+            continue
         if a["mecanica"] in ("parametrica", "manipular"):
             # emiten la PLANTILLA, no un banco; tiene que ser la misma que el catálogo.
             # El sufijo difiere porque cada emisor nombra su constante distinto.
