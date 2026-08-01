@@ -17526,7 +17526,12 @@ const CUR_DONDE_ESTA_1_BANCO = [
       "abajo",
       "adentro"
     ],
-    "m": "Los pájaros vuelan por encima."
+    "m": "Los pájaros vuelan por encima.",
+    "escena": {
+      "a": "🐦",
+      "b": "🌳",
+      "rel": "arriba"
+    }
   },
   {
     "q": "El pez nada ___ del agua.",
@@ -17535,7 +17540,12 @@ const CUR_DONDE_ESTA_1_BANCO = [
       "arriba",
       "atrás"
     ],
-    "m": "En el agua."
+    "m": "En el agua.",
+    "escena": {
+      "a": "🐟",
+      "b": "🪣",
+      "rel": "adentro"
+    }
   },
   {
     "q": "Si estoy ENTRE dos amigos, tengo…",
@@ -17544,7 +17554,12 @@ const CUR_DONDE_ESTA_1_BANCO = [
       "Los dos adelante",
       "Ninguno"
     ],
-    "m": "Entre es en el medio."
+    "m": "Entre es en el medio.",
+    "escena": {
+      "a": "🧒",
+      "b": "🧍",
+      "rel": "entre"
+    }
   },
   {
     "q": "El techo está ___ de la casa.",
@@ -17553,7 +17568,12 @@ const CUR_DONDE_ESTA_1_BANCO = [
       "abajo",
       "al lado"
     ],
-    "m": "En lo alto."
+    "m": "En lo alto.",
+    "escena": {
+      "a": "🔺",
+      "b": "🏠",
+      "rel": "arriba"
+    }
   },
   {
     "q": "El piso está ___ de nuestros pies.",
@@ -17562,7 +17582,12 @@ const CUR_DONDE_ESTA_1_BANCO = [
       "arriba",
       "adelante"
     ],
-    "m": "Lo pisamos."
+    "m": "Lo pisamos.",
+    "escena": {
+      "a": "👣",
+      "b": "🟫",
+      "rel": "arriba"
+    }
   },
   {
     "q": "Si el gato está DEBAJO de la mesa, la mesa está…",
@@ -17571,7 +17596,12 @@ const CUR_DONDE_ESTA_1_BANCO = [
       "Debajo",
       "Al lado"
     ],
-    "m": "Es la misma relación al revés."
+    "m": "Es la misma relación al revés.",
+    "escena": {
+      "a": "🐈",
+      "b": "🪑",
+      "rel": "abajo"
+    }
   },
   {
     "q": "La puerta está ___ de la pared.",
@@ -17580,7 +17610,12 @@ const CUR_DONDE_ESTA_1_BANCO = [
       "arriba",
       "abajo"
     ],
-    "m": "Está en la pared."
+    "m": "Está en la pared.",
+    "escena": {
+      "a": "🚪",
+      "b": "🧱",
+      "rel": "adentro"
+    }
   },
   {
     "q": "Si camino ADELANTE, dejo la puerta…",
@@ -17589,7 +17624,12 @@ const CUR_DONDE_ESTA_1_BANCO = [
       "Adelante",
       "Arriba"
     ],
-    "m": "Lo que pasás queda atrás."
+    "m": "Lo que pasás queda atrás.",
+    "escena": {
+      "a": "🚶",
+      "b": "🚪",
+      "rel": "adelante"
+    }
   },
   {
     "q": "El sol está ___ de las nubes cuando el cielo está limpio.",
@@ -17598,7 +17638,12 @@ const CUR_DONDE_ESTA_1_BANCO = [
       "abajo",
       "adentro"
     ],
-    "m": "Muy arriba."
+    "m": "Muy arriba.",
+    "escena": {
+      "a": "☀️",
+      "b": "☁️",
+      "rel": "arriba"
+    }
   },
   {
     "q": "Las raíces están ___ de la tierra.",
@@ -17607,7 +17652,12 @@ const CUR_DONDE_ESTA_1_BANCO = [
       "arriba",
       "al lado"
     ],
-    "m": "Bajo tierra."
+    "m": "Bajo tierra.",
+    "escena": {
+      "a": "🌱",
+      "b": "🟫",
+      "rel": "abajo"
+    }
   },
   {
     "q": "Si pongo un libro SOBRE otro, el de abajo queda…",
@@ -17616,7 +17666,12 @@ const CUR_DONDE_ESTA_1_BANCO = [
       "Arriba",
       "Al lado"
     ],
-    "m": "Uno tapa al otro."
+    "m": "Uno tapa al otro.",
+    "escena": {
+      "a": "📗",
+      "b": "📕",
+      "rel": "arriba"
+    }
   },
   {
     "q": "Estar CERCA es lo contrario de…",
@@ -17625,7 +17680,12 @@ const CUR_DONDE_ESTA_1_BANCO = [
       "Arriba",
       "Adentro"
     ],
-    "m": "Cerca y lejos son opuestos."
+    "m": "Cerca y lejos son opuestos.",
+    "escena": {
+      "a": "🧒",
+      "b": "🏠",
+      "rel": "lejos"
+    }
   }
 ];
 GAMES.donde_esta_1 = juegoTriviaTexto(CUR_DONDE_ESTA_1_BANCO, "Mirá dónde está cada cosa.", "donde_esta");
@@ -17998,7 +18058,8 @@ const CUR_CALENDARIO_1_BANCO = [
       "5",
       "10"
     ],
-    "m": "Siete."
+    "m": "Siete.",
+    "dib": "calendario"
   },
   {
     "q": "¿Qué día viene después del lunes?",
@@ -18007,7 +18068,8 @@ const CUR_CALENDARIO_1_BANCO = [
       "Domingo",
       "Viernes"
     ],
-    "m": "Lunes, martes, miércoles…"
+    "m": "Lunes, martes, miércoles…",
+    "dib": "calendario"
   },
   {
     "q": "¿Qué día viene antes del sábado?",
@@ -18016,7 +18078,8 @@ const CUR_CALENDARIO_1_BANCO = [
       "Domingo",
       "Lunes"
     ],
-    "m": "Viernes, sábado, domingo."
+    "m": "Viernes, sábado, domingo.",
+    "dib": "calendario"
   },
   {
     "q": "¿Cuántos meses tiene el año?",
@@ -18025,7 +18088,8 @@ const CUR_CALENDARIO_1_BANCO = [
       "10",
       "7"
     ],
-    "m": "Doce."
+    "m": "Doce.",
+    "dib": "calendario"
   },
   {
     "q": "¿Cuál es el primer mes del año?",
@@ -18034,7 +18098,8 @@ const CUR_CALENDARIO_1_BANCO = [
       "Diciembre",
       "Marzo"
     ],
-    "m": "Enero abre el año."
+    "m": "Enero abre el año.",
+    "dib": "calendario"
   },
   {
     "q": "¿Y el último?",
@@ -18043,7 +18108,8 @@ const CUR_CALENDARIO_1_BANCO = [
       "Enero",
       "Noviembre"
     ],
-    "m": "Diciembre lo cierra."
+    "m": "Diciembre lo cierra.",
+    "dib": "calendario"
   },
   {
     "q": "¿Qué días no se va a la escuela?",
@@ -18052,7 +18118,8 @@ const CUR_CALENDARIO_1_BANCO = [
       "Lunes y martes",
       "Ninguno"
     ],
-    "m": "El fin de semana."
+    "m": "El fin de semana.",
+    "dib": "calendario"
   },
   {
     "q": "Si hoy es miércoles, mañana es…",
@@ -18061,7 +18128,8 @@ const CUR_CALENDARIO_1_BANCO = [
       "Martes",
       "Viernes"
     ],
-    "m": "El que sigue."
+    "m": "El que sigue.",
+    "dib": "calendario"
   },
   {
     "q": "Si hoy es martes, ayer fue…",
@@ -18070,7 +18138,8 @@ const CUR_CALENDARIO_1_BANCO = [
       "Miércoles",
       "Domingo"
     ],
-    "m": "El anterior."
+    "m": "El anterior.",
+    "dib": "calendario"
   },
   {
     "q": "¿En qué mes empiezan las clases en Argentina?",
@@ -18079,7 +18148,8 @@ const CUR_CALENDARIO_1_BANCO = [
       "Enero",
       "Julio"
     ],
-    "m": "Después del verano."
+    "m": "Después del verano.",
+    "dib": "calendario"
   },
   {
     "q": "Si tu cumpleaños es el 8 y hoy es 5, ¿cuántos días faltan?",
@@ -18088,7 +18158,8 @@ const CUR_CALENDARIO_1_BANCO = [
       "5",
       "8"
     ],
-    "m": "8 − 5."
+    "m": "8 − 5.",
+    "dib": "calendario"
   },
   {
     "q": "¿Cuántas semanas tiene más o menos un mes?",
@@ -18097,7 +18168,8 @@ const CUR_CALENDARIO_1_BANCO = [
       "2",
       "10"
     ],
-    "m": "Cuatro semanas de 7 días son 28."
+    "m": "Cuatro semanas de 7 días son 28.",
+    "dib": "calendario"
   }
 ];
 GAMES.calendario_1 = juegoTriviaTexto(CUR_CALENDARIO_1_BANCO, "Mirá el calendario.", "calendario");
@@ -29274,7 +29346,8 @@ const CUR_PROPORCIONALIDAD_GRAFICO_7_BANCO = [
       "Una curva",
       "Una recta que corta el eje arriba del cero"
     ],
-    "m": "Si no pasa por el (0,0), hay un valor fijo de arranque y ya no es proporcional."
+    "m": "Si no pasa por el (0,0), hay un valor fijo de arranque y ya no es proporcional.",
+    "dib": "plano_ejes"
   },
   {
     "q": "Si 1 kg cuesta $500, ¿cuánto cuestan 4 kg?",
@@ -29319,7 +29392,8 @@ const CUR_PROPORCIONALIDAD_GRAFICO_7_BANCO = [
       "El vertical (y)",
       "Cualquiera"
     ],
-    "m": "En y va la que depende de la otra."
+    "m": "En y va la que depende de la otra.",
+    "dib": "plano_ejes"
   },
   {
     "q": "Si 3 lápices cuestan $600, ¿cuál es la constante?",
@@ -29364,7 +29438,8 @@ const CUR_PROPORCIONALIDAD_GRAFICO_7_BANCO = [
       "El (1, 1)",
       "El (0, 1)"
     ],
-    "m": "Si no hay cantidad, no hay costo: por eso arranca en el origen."
+    "m": "Si no hay cantidad, no hay costo: por eso arranca en el origen.",
+    "dib": "plano_ejes"
   },
   {
     "q": "Un gráfico de proporcionalidad inversa se ve como…",
@@ -29373,7 +29448,8 @@ const CUR_PROPORCIONALIDAD_GRAFICO_7_BANCO = [
       "Una recta por el origen",
       "Una línea horizontal"
     ],
-    "m": "El producto se mantiene constante, así que la curva se acerca a los ejes sin tocarlos."
+    "m": "El producto se mantiene constante, así que la curva se acerca a los ejes sin tocarlos.",
+    "dib": "plano_ejes"
   },
   {
     "q": "Si la constante es 2,5 y x vale 6, ¿cuánto vale y?",
@@ -29385,7 +29461,7 @@ const CUR_PROPORCIONALIDAD_GRAFICO_7_BANCO = [
     "m": "y = constante × x."
   }
 ];
-GAMES.proporcionalidad_grafico_7 = juegoTriviaTexto(CUR_PROPORCIONALIDAD_GRAFICO_7_BANCO, "Mirá si pasa por el origen.", "proporcion");
+GAMES.proporcionalidad_grafico_7 = juegoTriviaTexto(CUR_PROPORCIONALIDAD_GRAFICO_7_BANCO, "La constante, la tabla y el gráfico.", "proporcion");
 
 /* 7° · ¿Moda, mediana o media? — media_mediana_moda_7
    DC: Moda, mediana y media; cuál es pertinente según la situación

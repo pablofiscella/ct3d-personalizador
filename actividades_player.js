@@ -9771,6 +9771,13 @@ const _FIGURAS_SVG = {
   // Geometría de 3.º y 6.º: además de las figuras, los ELEMENTOS de los que habla el
   // Diseño Curricular (vértices y diagonales). Los puntos y las diagonales van en color
   // pleno para que se distingan del contorno — que es justo lo que la pregunta señala.
+  /* Los ejes del plano, para 7.º. Muestran DÓNDE está el origen sin dibujar ninguna recta:
+     así la consigna deja de prometer algo que no está, y no se le regala la respuesta a
+     preguntas que son justamente sobre cómo se ve una recta en el plano. */
+  plano_ejes: '<line x1="14" y1="86" x2="94" y2="86"/><line x1="14" y1="6" x2="14" y2="86"/>'
+    + '<polygon points="94,86 86,82 86,90" fill="var(--ac)"/>'
+    + '<polygon points="14,6 10,14 18,14" fill="var(--ac)"/>'
+    + '<circle cx="14" cy="86" r="5" fill="var(--ac)"/>',
   cuadrilatero: '<polygon points="18,24 84,12 92,74 28,90"/>',
   trapecio: '<polygon points="30,24 70,24 94,80 6,80"/>',
   mediatriz: '<line x1="10" y1="62" x2="90" y2="62"/>'
@@ -9789,7 +9796,79 @@ const _FIGURAS_SVG = {
   casita: '<polygon points="50,8 90,44 10,44"/><rect x="22" y="44" width="56" height="46"/>',
 };
 
+/* Escenas de POSICIÓN para «¿Dónde está?» de 1.º.
+
+   Pablo, 31-jul-2026: la consigna decía "Mirá dónde está cada cosa" y no había nada que
+   mirar, así que "el pájaro vuela ___ del árbol" medía si sabe LEER «pájaro» y «árbol» —
+   que a los 6 años es justo lo que todavía no sabe— en vez de si entiende «arriba».
+
+   Se dibuja con EMOJI y no con SVG a propósito: un pájaro, un pez o un gato dibujados a
+   mano salen mal y se vuelven otro acertijo. El emoji lo reconoce cualquier chico, y acá
+   lo que se enseña es la POSICIÓN, no la figura. */
+const _POS_ESCENA = {
+  arriba: (a, b) => [[50, 26, a], [50, 74, b]],
+  abajo: (a, b) => [[50, 26, b], [50, 74, a]],
+  adentro: (a, b) => [[50, 52, b], [50, 52, a]],       // el chico va DENTRO del contenedor
+  entre: (a, b) => [[18, 52, b], [50, 52, a], [82, 52, b]],
+  adelante: (a, b) => [[30, 52, a], [72, 52, b]],
+  lejos: (a, b) => [[16, 52, a], [30, 52, a], [86, 52, b]],
+};
+
+function _escenaDePosicion(esc) {
+  const partes = (_POS_ESCENA[esc.rel] || _POS_ESCENA.arriba)(esc.a, esc.b);
+  const c = el("div", "figuraDib figuraDib--pos");
+  c.innerHTML = '<svg viewBox="0 0 100 100" width="128" height="128" aria-hidden="true">'
+    + (esc.rel === "adentro"
+       ? '<rect x="16" y="26" width="68" height="56" rx="10" fill="none" '
+         + 'stroke="var(--ac)" stroke-width="4"/>' : "")
+    + partes.map(([x, y, e], i) =>
+        '<text x="' + x + '" y="' + y + '" text-anchor="middle" dominant-baseline="central"'
+        + ' font-size="' + (esc.rel === "adentro" && i === 0 ? 30 : 26) + '">' + e + "</text>")
+      .join("")
+    + "</svg>";
+  return c;
+}
+
+/* Un calendario que se pueda LEER, para «El calendario» de 1.º.
+
+   El primer intento fue un ícono de calendario: cumplía la letra del pedido —ya había un
+   calendario— pero no el fondo, porque estaba vacío y "¿qué día viene después del lunes?"
+   seguía sin poder contestarse mirando. El DC de 1.º pide leer el calendario, así que tiene
+   que tener los días y los números de verdad.
+
+   Es un mes genérico que arranca en lunes: no es el mes real a propósito, porque el
+   cuaderno se juega cualquier día y un calendario que no coincide con hoy confunde más de
+   lo que ayuda. Lo que el chico practica es la ESTRUCTURA (siete días, el orden, la semana
+   que se repite), no la fecha. */
+const _DIAS_CAL = ["L", "M", "M", "J", "V", "S", "D"];
+
+function _calendarioDibujado() {
+  const c = el("div", "figuraDib figuraDib--cal");
+  const cw = 30, ch = 26, x0 = 4, y0 = 22;
+  let g = "";
+  _DIAS_CAL.forEach((d, i) => {
+    const finde = i >= 5;
+    g += '<text x="' + (x0 + cw * i + cw / 2) + '" y="14" text-anchor="middle"'
+      + ' font-size="14" font-weight="700" fill="'
+      + (finde ? "var(--star)" : "var(--ac)") + '">' + d + "</text>";
+  });
+  for (let n = 1; n <= 28; n++) {
+    const col = (n - 1) % 7, fila = Math.floor((n - 1) / 7);
+    const x = x0 + cw * col, y = y0 + ch * fila;
+    g += '<rect x="' + x + '" y="' + y + '" width="' + (cw - 2) + '" height="' + (ch - 2)
+      + '" rx="4" fill="' + (col >= 5 ? "color-mix(in srgb, var(--star) 22%, transparent)"
+                                      : "var(--soft)")
+      + '" stroke="color-mix(in srgb, var(--ink) 18%, transparent)" stroke-width="1"/>'
+      + '<text x="' + (x + cw / 2 - 1) + '" y="' + (y + ch / 2) + '" text-anchor="middle"'
+      + ' dominant-baseline="central" font-size="13" fill="var(--ink)">' + n + "</text>";
+  }
+  c.innerHTML = '<svg viewBox="0 0 214 130" width="260" height="158" aria-hidden="true">'
+    + g + "</svg>";
+  return c;
+}
+
 function _figuraDibujada(nombre) {
+  if (nombre === "calendario") return _calendarioDibujado();
   const d = _FIGURAS_SVG[nombre];
   if (!d) return null;
   const c = el("div", "figuraDib");
@@ -9822,7 +9901,8 @@ function juegoTriviaTexto(banco, consigna, idPrefix, rondasDefault) {
         const arriba = el("div", "tablero");
         // `dib` es opcional: sólo las preguntas que hablan de una figura la traen, y el
         // resto del catálogo (212 actividades sobre este mismo motor) no cambia en nada.
-        const fig = item.dib ? _figuraDibujada(item.dib) : null;
+        const fig = item.escena ? _escenaDePosicion(item.escena)
+                  : (item.dib ? _figuraDibujada(item.dib) : null);
         if (fig) arriba.appendChild(fig);
         arriba.appendChild(el("div", "spriteQuieto",
           `<span style="font-size:21px;font-family:'Baloo',sans-serif">${item.q}</span>`));
