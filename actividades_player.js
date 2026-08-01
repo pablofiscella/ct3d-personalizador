@@ -8581,13 +8581,25 @@ GAMES.cuenta_larga = {
          pantalla quieta, en silencio, la mitad de ese tiempo. Con el techo, la peor espera
          son ~2,6 s (los "2 segundos" que pidió Pablo) y si la voz todavía está hablando,
          sigue sonando: la corta recién la consigna de la cuenta siguiente. */
-      const TECHO_CIERRE = 2600;
+      /* Pablo, 31-jul-2026, después de probarlo: *"al de la división dale un rato más de
+         tiempo porque se va el resultado muy rápido"*. Los 2,6 s del primer intento seguían
+         siendo poco: terminar una división larga y ver el resultado un segundo y medio no
+         alcanza para cerrar lo que hizo.
+
+         Ahora hay PISO y TECHO. El piso son 3,5 s garantizados aunque la voz esté apagada o
+         responda al toque; el techo, 6 s, para que una voz lenta no deje la pantalla clavada
+         (fue el problema del primer intento, que esperaba a la voz sin límite y daba 6,3 s
+         de los cuales la mitad era silencio mientras se generaba el audio). */
+      const PISO_CIERRE = 3500, TECHO_CIERRE = 6000;
       const cerrarCuenta = async (texto) => {
         zona.appendChild(el("p", "cuenta-preg", texto));
         ctx.bien();
         ronda++;
-        await Promise.race([reproducirConsigna(texto).then((sono) => espera(sono ? 700 : 1900)),
-                            espera(TECHO_CIERRE)]);
+        await Promise.all([
+          espera(PISO_CIERRE),
+          Promise.race([reproducirConsigna(texto).then((sono) => espera(sono ? 600 : 0)),
+                        espera(TECHO_CIERRE)]),
+        ]);
         if (ronda >= rondas) ctx.win(); else jugar();
       };
 

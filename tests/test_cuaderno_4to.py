@@ -123,8 +123,8 @@ def test_la_espera_sigue_al_audio_pero_con_techo():
     cuerpo = c[i:i + 700]
     assert "reproducirConsigna(texto)" in cuerpo
     assert "Promise.race" in cuerpo, "sin techo, la espera depende de cuánto tarde la voz"
-    assert re.search(r"TECHO_CIERRE = 2[0-9]{3}", _juego("cuenta_larga")), \
-        "el techo dejó de estar cerca de los 2 segundos"
+    assert re.search(r"PISO_CIERRE = 3[0-9]{3}", _juego("cuenta_larga")), \
+        "el piso de espera bajó de los 3,5 s que pidió Pablo"
 
 
 def test_los_tres_finales_de_la_cuenta_cierran_igual():
