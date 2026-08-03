@@ -169,3 +169,79 @@ def test_el_audio_del_ACIERTO_no_cuenta_como_ayuda():
     j = cuerpo.index("ctx.bien()")
     assert "rondasConAudio++" not in cuerpo[j:], \
         "el audio que suena al acertar se está anotando como ayuda"
+
+
+# ── que cada clip diga LO QUE TIENE QUE DECIR (03-ago-2026) ────────────────────────────
+# Pablo, apretando el botón: *"apretás el botón y hasta habla en español o responde otra
+# cosa"*.
+#
+# Los clips se habían generado usando la RESPUESTA de cada pregunta. Es correcto en 19 de
+# las 24 —«¿Cómo se dice "perro" en inglés?» → *dog*— pero en las otras cinco la respuesta
+# es en castellano («¿Qué significa "book"?» → libro), así que el botón de una actividad
+# de inglés decía "libro", "rojo", "feliz", "amarillo" y "3" con voz británica.
+#
+# No se podía auditar: el nombre del archivo era un hash opaco, así que un clip equivocado
+# se veía igual que uno correcto. Ahora el nombre ES el hash del texto y de la voz, y este
+# test recalcula los 67 y compara. Un clip mal apareado no llega a producción.
+
+VOZ_INGLES = "ThT5KcBeYPX3keUQqHPh"
+
+
+def _termino_ingles_de_cada_clave():
+    """Qué palabra INGLESA le toca a cada clave, leída de las fuentes de verdad.
+
+    En `ingles_basico` el término es la respuesta cuando la pregunta pide el inglés
+    («¿Cómo se dice "perro" en inglés?» → dog); si no, está en « » dentro de la pregunta
+    («¿Qué significa "book"?» → book). Es exactamente la distinción que se había perdido."""
+    import re as _re
+    import actividades_curriculum as ac
+    fuera = {}
+    bloque = _re.search(r"const INGLES_BANCO = \[([\s\S]*?)\n\];", PLAYER).group(1)
+    for i, linea in enumerate(l for l in bloque.splitlines() if l.strip().startswith("{")):
+        q = _re.search(r'q: "([^"]*)"', linea).group(1)
+        ok = _re.search(r'ok: "([^"]*)"', linea).group(1)
+        fuera["ingles_basico#%d" % i] = ok if "en inglés?" in q \
+            else _re.search(r"«([^»]+)»", q).group(1)
+    for a in ac.CATALOGO:
+        if not a["id"].startswith("ingles"):
+            continue
+        for i, it in enumerate(a.get("banco") or []):
+            m = _re.search(r"«([^»]+)»", it.get("q", ""))
+            if m:
+                fuera["%s#%d" % (a["id"][:10], i)] = m.group(1)
+    return fuera
+
+
+def test_ningun_clip_dice_otra_cosa():
+    """EL test. El nombre del archivo es `sha1(voz|texto)`, así que se puede verificar sin
+    escuchar: si el clip fuera de otra palabra, el hash no daría."""
+    import hashlib
+    man = _manifest()
+    terminos = _termino_ingles_de_cada_clave()
+    malos = []
+    for k, fn in man.items():
+        t = terminos.get(k)
+        if t is None:
+            malos.append((k, "clave sin término en las fuentes"))
+            continue
+        esperado = "en_" + hashlib.sha1(
+            (VOZ_INGLES + "|" + t).encode()).hexdigest()[:16] + ".mp3"
+        if fn != esperado:
+            malos.append((k, "debería decir %r y el archivo no corresponde" % t))
+    assert not malos, "clips mal apareados: %s" % malos[:5]
+
+
+def test_ningun_clip_de_ingles_dice_una_palabra_en_castellano():
+    """El síntoma tal cual: una actividad de inglés no puede pronunciar «libro» ni «rojo».
+    Se mira contra las RESPUESTAS en castellano del propio banco, que es de donde salieron."""
+    import re as _re
+    terminos = _termino_ingles_de_cada_clave()
+    bloque = _re.search(r"const INGLES_BANCO = \[([\s\S]*?)\n\];", PLAYER).group(1)
+    for i, linea in enumerate(l for l in bloque.splitlines() if l.strip().startswith("{")):
+        q = _re.search(r'q: "([^"]*)"', linea).group(1)
+        if "en inglés?" in q:
+            continue                      # ahí la respuesta SÍ es el inglés
+        ok = _re.search(r'ok: "([^"]*)"', linea).group(1)
+        dice = terminos["ingles_basico#%d" % i]
+        assert dice != ok, \
+            "#%d dice %r, que es la respuesta en castellano de «%s»" % (i, dice, q)

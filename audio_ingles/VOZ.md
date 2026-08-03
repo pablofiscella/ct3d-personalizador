@@ -31,6 +31,22 @@ mp3 = audiolibro._tts_elevenlabs(
 El `model` va explícito: el default del repo es `eleven_v3`, que **no admite
 `speed`**, y el clip saldría al ritmo del audiolibro en vez del que se aprobó.
 
+## Qué dice cada clip (03-ago-2026)
+
+Pablo, apretando el botón: *"apretás el botón y hasta habla en español o responde otra
+cosa"*. Los clips se habían generado con la RESPUESTA de cada pregunta. Correcto en 19 de
+las 24 de `ingles_basico` —«¿Cómo se dice "perro" en inglés?» → *dog*— pero en **cinco** la
+respuesta es en castellano («¿Qué significa "book"?» → libro), así que el botón de una
+actividad de inglés decía *libro*, *rojo*, *feliz*, *amarillo* y *3* con voz británica.
+
+**La regla:** el clip dice el término INGLÉS. Es la respuesta cuando la pregunta pide el
+inglés; si no, es lo que está entre « » en la pregunta.
+
+**El nombre del archivo ES auditable:** `en_<sha1(voice_id|texto)[:16]>.mp3`. Antes era un
+hash opaco y un clip equivocado se veía igual que uno correcto — por eso el error sobrevivió
+desde que se armó la actividad. `test_ningun_clip_dice_otra_cosa` recalcula los 67 y compara,
+así que un clip mal apareado ya no llega a producción.
+
 ## El manifest
 
 `manifest.json` mapea `<idPrefijo>#<indice>` → archivo. **El idPrefijo viene
