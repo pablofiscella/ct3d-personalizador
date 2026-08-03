@@ -141,3 +141,42 @@ def test_no_habla_encima_de_una_leccion_abierta():
     # y antes de crear el Audio: cortar después no evitaría la superposición
     assert cuerpo.index("juegoTapado()") < cuerpo.index("new Audio("), \
         "el corte quedó DESPUÉS de arrancar el audio"
+
+
+# ── 4. La voz muere con la pantalla que la pidió ────────────────────────────────────────
+# Pablo, 03-ago-2026: *"salís de la actividad y sigue el audio de la tarjeta de donde
+# venías"*. El audio es un objeto suelto: vaciar el `#stage` se lleva el DOM pero no lo
+# que está sonando, así que la consigna anterior seguía hablando encima de la pantalla
+# nueva. `pararVoz()` existía y no lo llamaba nadie al navegar.
+
+_DESTINOS = [
+    ("Shell.abrir", "abrir una actividad"),
+    ("function pintarNivel(", "la pantalla de nivel"),
+    ("function pintarMenuPlano(", "el menú de actividades"),
+]
+
+
+def _cuerpo_desde(marca, largo=1400):
+    """El cuerpo desde la marca. `largo` generoso a propósito: estas funciones llevan
+    comentarios arriba y una ventana justa se rompe con el próximo párrafo que se agregue
+    — ya pasó con test_voz_deletrea_rioplatense el mismo día."""
+    src = open(PLAYER, encoding="utf-8").read()
+    i = src.index("  abrir(id) {" if marca == "Shell.abrir" else marca)
+    return src[i:i + largo]
+
+
+@pytest.mark.parametrize("marca,nombre", _DESTINOS)
+def test_al_cambiar_de_pantalla_se_corta_la_voz(marca, nombre):
+    """Los TRES destinos: cualquier camino del player termina en uno de estos. Si mañana
+    aparece un cuarto, este test no lo sabe — pero el comentario de `Shell.abrir` dice
+    dónde mirar, y los tres de acá tienen que seguir cortando."""
+    assert "pararVoz()" in _cuerpo_desde(marca), \
+        "al ir a %s no se corta la voz de la pantalla anterior" % nombre
+
+
+def test_se_corta_ANTES_de_pintar_lo_nuevo():
+    """Si se cortara después de armar la pantalla, la consigna nueva podría arrancar
+    primero y la vieja la pisaría al cortarse — el mismo ruido, más difícil de ver."""
+    cuerpo = _cuerpo_desde("Shell.abrir")
+    assert cuerpo.index("pararVoz()") < cuerpo.index('stage.innerHTML = ""'), \
+        "la voz se corta después de haber empezado a pintar"

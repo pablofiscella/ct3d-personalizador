@@ -4729,6 +4729,15 @@ const Shell = {
   abrir(id) {
     const item = D.menu.find((m) => m.id === id);
     if (!item || !GAMES[id]) return;
+    // La voz muere con la pantalla que la pidió (03-ago-2026). Pablo: *"salís de la
+    // actividad y sigue el audio de la tarjeta de donde venías"*. El audio es un objeto
+    // suelto: vaciar el `#stage` se lleva el DOM pero no lo que está sonando, así que la
+    // consigna anterior seguía hablando encima de la actividad nueva.
+    //
+    // Va en los TRES destinos —abrir una actividad, el menú y la pantalla de nivel— y no
+    // en los diez lugares que limpian el stage: cualquier camino termina en uno de estos
+    // tres, y son los que hay que revisar si mañana aparece un cuarto.
+    pararVoz();
     this.actual = id; this.fallos = 0;
     this._ultConsigna = null;
     this._itemId = null; this._rondaResp = false; this._rondaIdx = 0;
@@ -5426,6 +5435,7 @@ function barraNiveles(actual) {
 }
 
 function pintarNivel(n) {
+  pararVoz();                                  // ver el comentario en Shell.abrir
   Shell.actual = null; Shell.nivelActual = n;
   $("#btnAtras").classList.remove("ver");
   const nv = (D.niveles || []).find((x) => x.nivel === n) || { nombre: "", icono: "🌱" };
@@ -5678,6 +5688,7 @@ function notaESI(alContinuar) {
 }
 
 function pintarMenuPlano(items, stage) {
+  pararVoz();                                  // ver el comentario en Shell.abrir
   Shell.actual = null;
   if (!stage) {
     Shell.nivelActual = null;
