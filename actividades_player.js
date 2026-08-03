@@ -9800,15 +9800,14 @@ async function _cargarInglesManifest() {
   return _inglesManifest;
 }
 
-function _botonIngles(cont, idPrefix, idx) {
-  if (!/^ingles/.test(idPrefix || "")) return;
-  const b = el("button", "pill", "🔊 Escuchar");
-  b.style.cssText = "margin-top:10px;font-size:15px;cursor:pointer";
-  b.addEventListener("click", async (ev) => {
-    ev.stopPropagation();
-    const man = await _cargarInglesManifest();
+/* Suena el término en inglés. Devuelve una promesa que resuelve CUANDO TERMINA, para que
+   quien lo llame pueda esperarlo (la ronda no se va mientras el chico lo está oyendo).
+   Si no hay clip resuelve al toque: la actividad sigue, nunca se cuelga. */
+function _sonarIngles(idPrefix, idx) {
+  if (!/^ingles/.test(idPrefix || "")) return Promise.resolve(false);
+  return _cargarInglesManifest().then((man) => {
     const fn = man[idPrefix + "#" + idx];
-    if (!fn) return;                     // sin clip: el botón no hace nada, no rompe
+    if (!fn) return false;               // sin clip: no rompe, sigue en silencio
     if (vozActual) { vozActual.pause(); vozActual = null; }
     const a = new Audio(fn);
     // MÁS LENTO PARA APRENDER A PRONUNCIAR (03-ago-2026). Pablo: *"cuando se escucha el
@@ -9826,7 +9825,28 @@ function _botonIngles(cont, idPrefix, idx) {
     a.mozPreservesPitch = true;        // Firefox viejo
     a.webkitPreservesPitch = true;     // Safari viejo, que hay en las tablets prestadas
     vozActual = a;
-    a.play().catch(() => {});
+    return new Promise((resolve) => {
+      // Tope de 6 s: si el navegador bloquea el autoplay o el mp3 no carga, el `ended`
+      // no llega nunca y la ronda quedaría trabada esperando un audio que no suena.
+      const fin = setTimeout(() => resolve(false), 6000);
+      const listo = () => { clearTimeout(fin); resolve(true); };
+      a.addEventListener("ended", listo, { once: true });
+      a.addEventListener("error", listo, { once: true });
+      a.play().catch(() => listo());
+    });
+  }).catch(() => false);
+}
+
+/* El botón «🔊 Escuchar». `alTocar` es opcional y lo usa la actividad para anotar que se
+   escuchó ANTES de contestar, que cuenta como ayuda (ver `GAMES.ingles_basico`). */
+function _botonIngles(cont, idPrefix, idx, alTocar) {
+  if (!/^ingles/.test(idPrefix || "")) return;
+  const b = el("button", "pill", "🔊 Escuchar");
+  b.style.cssText = "margin-top:10px;font-size:15px;cursor:pointer";
+  b.addEventListener("click", (ev) => {
+    ev.stopPropagation();
+    if (typeof alTocar === "function") alTocar();
+    _sonarIngles(idPrefix, idx);
   });
   cont.appendChild(b);
 }
@@ -11959,15 +11979,15 @@ GAMES.problemas_multipaso = {
 const INGLES_BANCO = [
   { q: "¿Cómo se dice «perro» en inglés?", ok: "dog", d: ["cat", "cow"], m: "«dog» es perro; «cat» es gato." },
   { q: "¿Cómo se dice «casa» en inglés?", ok: "house", d: ["horse", "mouse"], m: "«house» es casa; «horse» es caballo." },
-  { enQ: 1, q: "¿Qué significa «red»?", ok: "rojo", d: ["verde", "azul"], m: "«red» es rojo; «green» es verde, «blue» es azul." },
+  { q: "¿Qué significa «red»?", ok: "rojo", d: ["verde", "azul"], m: "«red» es rojo; «green» es verde, «blue» es azul." },
   { q: "¿Cómo se dice «gracias» en inglés?", ok: "thank you", d: ["please", "sorry"], m: "«thank you» es gracias; «please» es por favor." },
-  { enQ: 1, q: "¿Qué número es «three»?", ok: "3", d: ["2", "4"], m: "«three» es 3; «two» es 2, «four» es 4." },
+  { q: "¿Qué número es «three»?", ok: "3", d: ["2", "4"], m: "«three» es 3; «two» es 2, «four» es 4." },
   { q: "¿Cómo se dice «agua» en inglés?", ok: "water", d: ["milk", "juice"], m: "«water» es agua; «milk» es leche." },
-  { enQ: 1, q: "¿Qué significa «book»?", ok: "libro", d: ["mesa", "silla"], m: "«book» es libro; «table» es mesa." },
+  { q: "¿Qué significa «book»?", ok: "libro", d: ["mesa", "silla"], m: "«book» es libro; «table» es mesa." },
   { q: "¿Cómo saludás a la mañana en inglés?", ok: "good morning", d: ["good night", "goodbye"], m: "«good morning» es buenos días; «good night» es buenas noches." },
-  { enQ: 1, q: "¿Qué color es «yellow»?", ok: "amarillo", d: ["negro", "blanco"], m: "«yellow» es amarillo; «black» es negro, «white» es blanco." },
+  { q: "¿Qué color es «yellow»?", ok: "amarillo", d: ["negro", "blanco"], m: "«yellow» es amarillo; «black» es negro, «white» es blanco." },
   { q: "¿Cómo se dice «familia» en inglés?", ok: "family", d: ["friend", "people"], m: "«family» es familia; «friend» es amigo." },
-  { enQ: 1, q: "¿Qué significa «happy»?", ok: "feliz", d: ["triste", "cansado"], m: "«happy» es feliz; «sad» es triste." },
+  { q: "¿Qué significa «happy»?", ok: "feliz", d: ["triste", "cansado"], m: "«happy» es feliz; «sad» es triste." },
   { q: "¿Cómo se dice «escuela» en inglés?", ok: "school", d: ["street", "store"], m: "«school» es escuela; «street» es calle." },
   // ampliado 20-jul-2026 (de 12 a 24 — engrosar bancos nodales, docs/auditoria-dc-caba/)
   { q: "¿Cómo se dice «gato» en inglés?", ok: "cat", d: ["dog", "fish"], m: "«cat» es gato; «dog» es perro." },
@@ -11988,6 +12008,21 @@ GAMES.ingles_basico = {
     const rondas = ctx.cfg.rondas || 10;
     ctx.rondas(rondas);
     let usados = [], ronda = 0;
+    // ESCUCHAR ANTES DE CONTESTAR ES AYUDA (Pablo, 03-ago-2026): *"lo que sí, si escucha
+    // no se tiene que tomar como bien"*. Es lo que permite tener el botón SIEMPRE sin
+    // arruinar la medición: en «¿Cómo se dice "agua" en inglés?» el clip dice *water*,
+    // así que oírlo y después elegir no prueba que lo sepa.
+    //
+    // Se anota igual que la ayuda de las cuentas en columna (ver `_estrellasConAyuda`,
+    // 31-jul-2026): el festejo de completar se mantiene —escuchar es legítimo y no se
+    // castiga con una pantalla triste—, lo que baja son las ESTRELLAS. Y las estrellas
+    // son lo que el motor adaptativo lee como dominio para endurecer la actividad: sin
+    // esto, un chico que resuelve escuchando se llevaría 3★ y el motor le subiría la
+    // dificultad convencido de que sabe.
+    //
+    // Sólo cuenta el que escucha ANTES de contestar. El que suena solo al acertar es
+    // premio, no ayuda: ya eligió.
+    let rondasConAudio = 0;
     const jugar = () => {
       ctx.ronda(ronda);
       let disp = INGLES_BANCO.map((_, i) => i).filter((i) => !usados.includes(i));
@@ -11998,28 +12033,24 @@ GAMES.ingles_basico = {
       ctx.item("ingles#" + idx);
       ctx.consigna(it.q);
       ctx.juego.innerHTML = "";
-      // PRONUNCIACIÓN: depende de DÓNDE está la palabra en inglés (03-ago-2026).
+      // EL BOTÓN DE ESCUCHAR ESTÁ SIEMPRE, DESDE ANTES DE ELEGIR (Pablo, 03-ago-2026):
+      // *"en el mismo momento en el que estoy por seleccionar qué opción es, debería
+      // tener el botón para escuchar; y sólo aparece después de que elijo y desaparece
+      // rápido porque viene la otra"*.
       //
-      // Pablo, en 7.º: *"aparece en english time, está el escuchar después de que elegís
-      // y no antes. O sea no se puede escuchar"*.
+      // El primer intento lo mostró antes SÓLO en las cinco preguntas donde el inglés
+      // está en el enunciado, para no servir la respuesta en las otras. No alcanzó, y la
+      // decisión es de Pablo: esto es para APRENDER a decirlo, no para tomar examen.
       //
-      // En la mayoría del banco («¿Cómo se dice "libro" en inglés?» → book) el término en
-      // inglés ES la respuesta, y oírlo antes sería servirla: ahí el botón sigue
-      // apareciendo recién al acertar.
-      //
-      // Pero en CINCO preguntas el inglés está en el ENUNCIADO y la respuesta es en
-      // castellano («¿Qué significa "book"?» → libro; «¿Qué número es "three"?» → 3). Ahí
-      // escuchar no revela nada: ES el ejercicio, y era justamente donde no se podía.
-      // Van marcadas con `enQ` en el banco.
-      //
-      // Y la zona sólo se agrega cuando hay algo adentro: un `.tablero` vacío se dibuja
-      // como una tarjeta blanca en blanco — la barra vacía que se veía arriba de las
-      // opciones en la captura de Pablo.
+      // Que en «¿Cómo se dice "agua"?» el clip diga *water* —y por lo tanto se pueda
+      // resolver escuchando— no rompe la medición: escuchar antes de contestar cuenta
+      // como AYUDA y baja las estrellas. Ver `rondasConAudio` arriba.
+      let escuchoAntes = false;
       const zonaAudio = el("div", "tablero");
-      if (it.enQ) {
-        ctx.juego.appendChild(zonaAudio);
-        _botonIngles(zonaAudio, "ingles_basico", idx);
-      }
+      ctx.juego.appendChild(zonaAudio);
+      _botonIngles(zonaAudio, "ingles_basico", idx, () => {
+        if (!escuchoAntes) { escuchoAntes = true; rondasConAudio++; }
+      });
       const opciones = shuffle([{ t: it.ok, ok: true }].concat(it.d.map((x) => ({ t: x, ok: false }))));
       const fila = el("div", "ops");
       let resuelto = false;
@@ -12029,12 +12060,14 @@ GAMES.ingles_basico = {
           if (resuelto) return;
           if (o.ok) {
             resuelto = true; b.classList.add("anim-pop"); ctx.bien();
-            if (!it.enQ) {                       // ya acertó: ahora sí puede oírlo
-              ctx.juego.insertBefore(zonaAudio, ctx.juego.firstChild);
-              _botonIngles(zonaAudio, "ingles_basico", idx);
-            }
-            ronda++; await espera(1600);
-            if (ronda >= rondas) ctx.win(); else jugar();
+            // La palabra suena SOLA al acertar, y la ronda espera a que termine: es el
+            // momento en que el chico ya sabe cuál era y puede asociar sonido con
+            // escritura. Antes la ronda se iba a los 1600 ms — Pablo: *"desaparece
+            // rápido porque viene la otra"*. `sonar` devuelve cuánto hay que esperar.
+            ronda++;
+            await Promise.all([espera(1600), _sonarIngles("ingles_basico", idx)]);
+            if (ronda >= rondas) ctx.win(_estrellasConAyuda(rondasConAudio, rondas));
+            else jugar();
           }
           else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(it.m); }
         });
