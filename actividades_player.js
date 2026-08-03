@@ -284,6 +284,24 @@ function _deletrearParaLaVoz(txt) {
   // Grados de temperatura. NO se toca el «°» de orden («el 1° puesto»), que es otra cosa
   // y que la voz ya dice bien.
   txt = txt.replace(/(\d)\s*°\s*C\b/g, "$1 grados");
+  // ACÁ LA PLATA ES EN PESOS (03-ago-2026). Pablo, en «Proporcionalidad aplicada» de 6.º:
+  // *"tiene que decir pesos y no dólares"*. En pantalla el «$» está bien —así se escribe
+  // el peso acá— pero el sintetizador lo lee como dólares, así que «$1.200» sonaba
+  // "mil doscientos dólares" en un cuaderno del Diseño Curricular porteño.
+  //
+  // Se arregla en la VOZ y no en el catálogo a propósito: son 10 actividades de 1.º a 7.º
+  // (el kiosco, el cajero de miles, descuentos, presupuesto, las dos billeteras…) más las
+  // explicaciones del "¿Cómo es?", y cambiar el texto obligaría a escribir "1200 pesos"
+  // en pantalla, que no es como se escribe un precio.
+  //
+  // VA ANTES que la regla de las cuentas: si corriera después, «$1200 ÷ 3» ya se habría
+  // convertido a «mil doscientos dividido tres» y el «$» quedaría suelto adelante,
+  // pegado a una palabra — peor que el problema original.
+  // El número tiene que TERMINAR EN DÍGITO: con `[\d.,]*` suelto, «cuestan $1.200, ¿cuánto»
+  // se comía la coma y quedaba «1.200, pesos ¿cuánto», y «Da $3.200.» terminaba en
+  // «3.200. pesos». El punto y la coma de adentro sí entran (miles y centavos).
+  txt = txt.replace(/\$\s*(\d(?:[\d.,]*\d)?)/g,
+                    (m0, n) => n + (n === "1" ? " peso" : " pesos"));
   const cuenta = _cuentaEnPalabras(txt);
   if (cuenta) return cuenta;
   // UNA CUENTA ENTERA adentro de una frase se dice entera en palabras, operandos

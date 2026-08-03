@@ -442,3 +442,58 @@ def test_esto_NO_afloja_la_regla_de_los_numeros_en_prosa():
 def test_el_guion_en_prosa_no_se_toma_como_resta():
     """«páginas 5 - 7» es un rango, no una cuenta. El menos matemático se escribe «−»."""
     assert decir(["Leé las páginas 5 - 7 del libro."]) == ["Leé las páginas 5 - 7 del libro."]
+
+
+# ── acá la plata es en PESOS (03-ago-2026) ─────────────────────────────────────────────
+# Pablo, en «Proporcionalidad aplicada» de 6.º: *"tiene que decir pesos y no dólares.
+# Fijate en otros casos que hable de dinero"*.
+#
+# En pantalla el «$» está bien —así se escribe el peso acá— pero el sintetizador lo lee
+# como dólares. Son 10 actividades del catálogo, de 1.º a 7.º, más las explicaciones del
+# "¿Cómo es?" del player. Por eso se arregla en la VOZ y no en el texto: escribir
+# "1200 pesos" en pantalla no es como se escribe un precio.
+
+@pytest.mark.parametrize("frase,dicho", [
+    ("Si 3 alfajores cuestan $1.200, ¿cuánto cuestan 8 alfajores?",
+     "Si 3 alfajores cuestan 1.200 pesos, ¿cuánto cuestan 8 alfajores?"),
+    ("Da $3.200.", "Da 3.200 pesos."),                       # el punto final no se traga
+    ("Para $1 podés usar una moneda.", "Para 1 peso podés usar una moneda."),  # singular
+    ("$0,50 es medio peso.", "0,50 pesos es medio peso."),   # centavos con coma
+    ("Con $3.000 el vuelto es $909", "Con 3.000 pesos el vuelto es 909 pesos"),
+])
+def test_el_signo_pesos_se_dice_pesos(frase, dicho):
+    assert decir([frase]) == [dicho]
+
+
+def test_nunca_dice_dolares():
+    """El síntoma tal cual lo escuchó Pablo. Es el catálogo del Diseño Curricular
+    porteño: la plata es en pesos."""
+    for d in decir(["Si 3 alfajores cuestan $1.200, ¿cuánto cuestan 8?",
+                    "$10.000 con 30% off → pagás $7.000"]):
+        assert "$" not in d, "quedó un signo que la voz va a leer como dólares: %r" % d
+
+
+def test_la_plata_se_convierte_ANTES_que_las_cuentas():
+    """Si corriera después, «$1.200 ÷ 3» ya sería «mil doscientos dividido tres» y el «$»
+    quedaría suelto pegado a una palabra — peor que el problema original."""
+    d = decir(["Primero cuánto sale UNO: $1.200 ÷ 3."])[0]
+    assert d == "Primero cuánto sale UNO: 1.200 pesos dividido 3."
+    assert "$" not in d
+
+
+def test_ninguna_actividad_del_catalogo_queda_diciendo_dolares():
+    """La barrida completa: se pasa por la voz TODO texto del catálogo que tenga «$» y se
+    exige que no quede ninguno. Es lo que contesta el "fijate en otros casos" sin que
+    haya que ir actividad por actividad."""
+    textos = []
+    for a in cur.CATALOGO:
+        for t in re.findall(r'"([^"]*\$[^"]*)"', json.dumps(a, ensure_ascii=False)):
+            t = re.sub(r"\{[a-z_]+\}", "1200", t.replace("\\u00e1", "á"))
+            # `plantilla.unidad` es "$" pelado: una etiqueta de FORMATO que el player
+            # antepone al número en pantalla ("Armá $500"), no una frase que se hable.
+            # Sin esta línea el test exigía convertir un símbolo suelto, que nadie dice.
+            if re.search(r"\$\s*\d", t):
+                textos.append(t)
+    assert textos, "no se encontró ninguna actividad con dinero: la barrida no probó nada"
+    for original, dicho in zip(textos, decir(textos)):
+        assert "$" not in dicho, "sigue diciendo dólares: %r → %r" % (original, dicho)
