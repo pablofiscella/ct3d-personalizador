@@ -14847,6 +14847,39 @@ GAMES.angulos = {
    Capa 0 C3: si eligen 180−θ, se nombra el error ("esa es la otra escala"). Los
    ángulos son múltiplos de 10 (lectura exacta) y evitan 90 (ahí las dos escalas
    coinciden y no hay nada que confundir). ── */
+/* El ángulo que se va a leer en el transportador. FALTABA (03-ago-2026): el juego la
+   llamaba y la función no existía en ningún archivo, así que `GAMES.transportador`
+   reventaba con ReferenceError en su primera línea útil. Pablo: *"Leé el transportador
+   5to grado no hay dibujo de ángulo"*. La consigna alcanzaba a mostrarse —se pide antes—
+   y de ahí en adelante no se dibujaba nada.
+
+   Contrato, leído de cómo se usa: devuelve un NÚMERO (no `{grados, tipo}` como
+   `_generarAngulo`, que es la de 4.º), múltiplo de 10 para que la lectura sea exacta, y
+   nunca 90 — ahí las dos escalas coinciden y no hay nada que confundir, que es
+   justamente lo que esta actividad enseña.
+
+   La dificultad va por la CERCANÍA A 90. Con 40° vs 140° el chico zafa mirando la forma
+   ("se ve agudo, entonces 40") sin leer la escala; con 80 vs 100 no le queda otra que
+   leerla. Por eso a más dominio, más cerca de 90. */
+function _generarAnguloTransportador(bonus, usados) {
+  // Se arma la lista de candidatos y se elige de ahí, en vez de sortear y descartar: con
+  // mucho dominio la banda queda en 80 y 100 nomás, y un sorteo por rechazo caía al
+  // respaldo una de cada cincuenta veces — devolviendo un ángulo fuera de la dificultad
+  // que correspondía. Con la lista, lo que sale siempre es lo que se quiso.
+  const cerca = Math.max(10, 60 - (bonus || 0) * 20);   // más dominio → más cerca de 90
+  const todos = [];
+  for (let g = 10; g <= 170; g += 10) {
+    if (g === 90) continue;                              // las dos escalas coinciden
+    if (bonus > 0 && Math.abs(g - 90) > cerca) continue;
+    todos.push(g);
+  }
+  // Los ya usados se evitan mientras quede alguno libre; si la partida es más larga que
+  // la banda, se repite antes que quedarse sin ángulo.
+  const libres = todos.filter((g) => !(usados || []).includes(g));
+  const pool = libres.length ? libres : todos;
+  return pool[rint(0, pool.length - 1)];
+}
+
 GAMES.transportador = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 8;
