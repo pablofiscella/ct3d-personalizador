@@ -286,6 +286,22 @@ function _deletrearParaLaVoz(txt) {
   txt = txt.replace(/(\d)\s*°\s*C\b/g, "$1 grados");
   const cuenta = _cuentaEnPalabras(txt);
   if (cuenta) return cuenta;
+  // UNA CUENTA ENTERA adentro de una frase se dice entera en palabras, operandos
+  // incluidos (03-ago-2026). Pablo, en «La cuenta paso a paso»: *"al final habla mal"*.
+  // El cierre dice «305 ÷ 6 = 50 y sobran 5», que no es una cuenta pelada —tiene
+  // palabras— así que sólo se le traducían los SIGNOS y quedaba «305 dividido 6 es igual
+  // a 50»: la mitad en palabras y la mitad en cifras. El sintetizador tropieza justo en
+  // ese híbrido, y encima la MISMA cuenta sola sí se decía bien («trescientos cinco
+  // dividido seis»), o sea que el cuaderno se contradecía a sí mismo.
+  //
+  // No afloja la regla de no reescribir números en prosa: hace falta un OPERADOR entre
+  // dos números para entrar acá. «Da 761», «Tocá dos burbujas que sumen 10» y «el 90%
+  // vive en ciudades» siguen intactos — hay test.
+  //
+  // El «-» queda afuera igual que abajo: en prosa es raya, y «página 5 - 7» es un rango,
+  // no una resta. El «−» largo (U+2212) sí, que es el signo matemático.
+  txt = txt.replace(/\d[\d.]*(?:\s*[+−×÷*=<>]\s*\d[\d.]*)+/g,
+                    (expr) => _cuentaEnPalabras(expr) || expr);
   // Signos SUELTOS adentro de una frase («2/3 × 4/4 = 8/12», «Hidro = agua»). Se exige
   // espacio de los dos lados para no tocar un guion de palabra ni un menos pegado a un
   // número, y queda afuera el «-», que en prosa es raya y no resta.
