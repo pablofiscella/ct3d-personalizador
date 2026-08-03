@@ -286,6 +286,22 @@ function _deletrearParaLaVoz(txt) {
   txt = txt.replace(/(\d)\s*°\s*C\b/g, "$1 grados");
   const cuenta = _cuentaEnPalabras(txt);
   if (cuenta) return cuenta;
+  // UNA CUENTA ENTERA adentro de una frase se dice entera en palabras, operandos
+  // incluidos (03-ago-2026). Pablo, en «La cuenta paso a paso»: *"al final habla mal"*.
+  // El cierre dice «305 ÷ 6 = 50 y sobran 5», que no es una cuenta pelada —tiene
+  // palabras— así que sólo se le traducían los SIGNOS y quedaba «305 dividido 6 es igual
+  // a 50»: la mitad en palabras y la mitad en cifras. El sintetizador tropieza justo en
+  // ese híbrido, y encima la MISMA cuenta sola sí se decía bien («trescientos cinco
+  // dividido seis»), o sea que el cuaderno se contradecía a sí mismo.
+  //
+  // No afloja la regla de no reescribir números en prosa: hace falta un OPERADOR entre
+  // dos números para entrar acá. «Da 761», «Tocá dos burbujas que sumen 10» y «el 90%
+  // vive en ciudades» siguen intactos — hay test.
+  //
+  // El «-» queda afuera igual que abajo: en prosa es raya, y «página 5 - 7» es un rango,
+  // no una resta. El «−» largo (U+2212) sí, que es el signo matemático.
+  txt = txt.replace(/\d[\d.]*(?:\s*[+−×÷*=<>]\s*\d[\d.]*)+/g,
+                    (expr) => _cuentaEnPalabras(expr) || expr);
   // Signos SUELTOS adentro de una frase («2/3 × 4/4 = 8/12», «Hidro = agua»). Se exige
   // espacio de los dos lados para no tocar un guion de palabra ni un menos pegado a un
   // número, y queda afuera el «-», que en prosa es raya y no resta.
@@ -309,6 +325,12 @@ function _deletrearParaLaVoz(txt) {
 function reproducirConsigna(txt) {
   if (vozActual) { vozActual.pause(); vozActual = null; }
   if (!Sfx.on) return Promise.resolve(false);
+  // La actividad NO habla encima de una lección abierta (03-ago-2026). `mostrarComoEs` y
+  // `mostrarVideoLeccion` llaman a `pararVoz()` al abrirse, pero eso corta lo que YA
+  // estaba sonando: no impide que el juego de atrás arranque una consigna nueva un
+  // segundo después y se superponga con la voz del video. Pablo: *"tapa la voz al
+  // video"*. Acá se corta en el origen, para cualquier consigna venga de donde venga.
+  if (juegoTapado()) return Promise.resolve(false);
   // Texto FIJO → mp3 pregrabado del manifest (voz argentina, instantáneo).
   // Texto DINÁMICO (consignas/explicaciones generadas, que no están en el
   // manifest) → endpoint /tts on-demand, MISMA voz argentina, cacheado en el
@@ -335,6 +357,33 @@ function reproducirConsigna(txt) {
 // si no, la voz sigue explicando sobre la actividad que el chico ya volvió a jugar.
 function pararVoz() {
   if (vozActual) { vozActual.pause(); vozActual = null; }
+}
+
+/* ¿Hay algo TAPANDO el juego? (03-ago-2026)
+
+   Pablo, jugando "Núcleo del sujeto" de 5.º: *"estaba viendo el video y por atrás la
+   práctica seguía sin poder contestar. O sea no sólo tapa la voz al video sino que le
+   queda como que no respondió nada"*.
+
+   Las actividades CONTRARRELOJ medían el tiempo con `Date.now()` contra un `inicio` fijo,
+   y su único guard era `barraWrap.isConnected` — que sigue en `true` cuando se abre una
+   lección encima: el juego no se fue del DOM, quedó atrás. Entonces el reloj corría
+   igual, se acababa, marcaba la pregunta como no contestada y cantaba la siguiente por
+   arriba del video.
+
+   Es peor con `ofrecerLeccion`, que se abre SOLA en medio de la actividad ("vi que te
+   está costando"): el chico ni la pidió y pierde la ronda por mirarla.
+
+   Se mira el DOM y no una bandera que cada capa tenga que acordarse de prender y apagar:
+   así cualquier lección futura que use `comoes-fondo` queda cubierta sin tocar nada. Y
+   `document.hidden` cubre lo mismo cuando el chico cambia de pestaña o le entra una
+   llamada — el reloj tampoco tiene que correr ahí. */
+function juegoTapado() {
+  try {
+    return document.hidden || !!document.querySelector(".comoes-fondo");
+  } catch (_) {
+    return false;
+  }
 }
 // Desbloqueo de audio (15-jul-2026): algunos navegadores móviles (sobre todo
 // iOS) solo permiten reproducir audio con sonido si el .play() ocurre cerca
@@ -4696,6 +4745,15 @@ const Shell = {
   abrir(id) {
     const item = D.menu.find((m) => m.id === id);
     if (!item || !GAMES[id]) return;
+    // La voz muere con la pantalla que la pidió (03-ago-2026). Pablo: *"salís de la
+    // actividad y sigue el audio de la tarjeta de donde venías"*. El audio es un objeto
+    // suelto: vaciar el `#stage` se lleva el DOM pero no lo que está sonando, así que la
+    // consigna anterior seguía hablando encima de la actividad nueva.
+    //
+    // Va en los TRES destinos —abrir una actividad, el menú y la pantalla de nivel— y no
+    // en los diez lugares que limpian el stage: cualquier camino termina en uno de estos
+    // tres, y son los que hay que revisar si mañana aparece un cuarto.
+    pararVoz();
     this.actual = id; this.fallos = 0;
     this._ultConsigna = null;
     this._itemId = null; this._rondaResp = false; this._rondaIdx = 0;
@@ -5393,6 +5451,7 @@ function barraNiveles(actual) {
 }
 
 function pintarNivel(n) {
+  pararVoz();                                  // ver el comentario en Shell.abrir
   Shell.actual = null; Shell.nivelActual = n;
   $("#btnAtras").classList.remove("ver");
   const nv = (D.niveles || []).find((x) => x.nivel === n) || { nombre: "", icono: "🌱" };
@@ -5645,6 +5704,7 @@ function notaESI(alContinuar) {
 }
 
 function pintarMenuPlano(items, stage) {
+  pararVoz();                                  // ver el comentario en Shell.abrir
   Shell.actual = null;
   if (!stage) {
     Shell.nivelActual = null;
@@ -13218,14 +13278,19 @@ GAMES.tablas_contrarreloj = {
         if (v > 0 && v !== correcta) opciones.add(v);
       }
       let resuelto = false;
-      const inicio = Date.now();
+      // El tiempo se ACUMULA sólo mientras se está jugando: si se abre una lección
+      // encima (o el chico cambia de pestaña), el reloj se congela. Ver `juegoTapado`.
+      let jugado = 0, ultimo = Date.now();
       intervalId = setInterval(() => {
         if (!barraWrap.isConnected) {   // el jugador se fue a otra pantalla — no seguir de fondo
           clearInterval(intervalId);
           intervalId = null;
           return;
         }
-        const restante = Math.max(0, 1 - (Date.now() - inicio) / TIEMPO_MS);
+        const ahora = Date.now();
+        if (!juegoTapado()) jugado += ahora - ultimo;
+        ultimo = ahora;
+        const restante = Math.max(0, 1 - jugado / TIEMPO_MS);
         barra.style.width = (restante * 100) + "%";
         if (restante <= 0 && !resuelto) {
           clearInterval(intervalId);
@@ -14798,6 +14863,39 @@ GAMES.angulos = {
    Capa 0 C3: si eligen 180−θ, se nombra el error ("esa es la otra escala"). Los
    ángulos son múltiplos de 10 (lectura exacta) y evitan 90 (ahí las dos escalas
    coinciden y no hay nada que confundir). ── */
+/* El ángulo que se va a leer en el transportador. FALTABA (03-ago-2026): el juego la
+   llamaba y la función no existía en ningún archivo, así que `GAMES.transportador`
+   reventaba con ReferenceError en su primera línea útil. Pablo: *"Leé el transportador
+   5to grado no hay dibujo de ángulo"*. La consigna alcanzaba a mostrarse —se pide antes—
+   y de ahí en adelante no se dibujaba nada.
+
+   Contrato, leído de cómo se usa: devuelve un NÚMERO (no `{grados, tipo}` como
+   `_generarAngulo`, que es la de 4.º), múltiplo de 10 para que la lectura sea exacta, y
+   nunca 90 — ahí las dos escalas coinciden y no hay nada que confundir, que es
+   justamente lo que esta actividad enseña.
+
+   La dificultad va por la CERCANÍA A 90. Con 40° vs 140° el chico zafa mirando la forma
+   ("se ve agudo, entonces 40") sin leer la escala; con 80 vs 100 no le queda otra que
+   leerla. Por eso a más dominio, más cerca de 90. */
+function _generarAnguloTransportador(bonus, usados) {
+  // Se arma la lista de candidatos y se elige de ahí, en vez de sortear y descartar: con
+  // mucho dominio la banda queda en 80 y 100 nomás, y un sorteo por rechazo caía al
+  // respaldo una de cada cincuenta veces — devolviendo un ángulo fuera de la dificultad
+  // que correspondía. Con la lista, lo que sale siempre es lo que se quiso.
+  const cerca = Math.max(10, 60 - (bonus || 0) * 20);   // más dominio → más cerca de 90
+  const todos = [];
+  for (let g = 10; g <= 170; g += 10) {
+    if (g === 90) continue;                              // las dos escalas coinciden
+    if (bonus > 0 && Math.abs(g - 90) > cerca) continue;
+    todos.push(g);
+  }
+  // Los ya usados se evitan mientras quede alguno libre; si la partida es más larga que
+  // la banda, se repite antes que quedarse sin ángulo.
+  const libres = todos.filter((g) => !(usados || []).includes(g));
+  const pool = libres.length ? libres : todos;
+  return pool[rint(0, pool.length - 1)];
+}
+
 GAMES.transportador = {
   crear(ctx) {
     const rondas = ctx.cfg.rondas || 8;
@@ -15417,14 +15515,20 @@ GAMES.analisis_sintactico = {
       barraWrap.appendChild(barra);
       ctx.juego.appendChild(barraWrap);
       let resuelto = false;
-      const inicio = Date.now();
+      // Igual que en tablas_contrarreloj: el reloj cuenta sólo el tiempo JUGADO. Con el
+      // video de la lección abierto encima, se congela en vez de dar la ronda por
+      // perdida — que es el caso que reportó Pablo con esta actividad.
+      let jugado = 0, ultimo = Date.now();
       intervalId = setInterval(() => {
         if (!barraWrap.isConnected) {
           clearInterval(intervalId);
           intervalId = null;
           return;
         }
-        const restante = Math.max(0, 1 - (Date.now() - inicio) / TIEMPO_MS);
+        const ahora = Date.now();
+        if (!juegoTapado()) jugado += ahora - ultimo;
+        ultimo = ahora;
+        const restante = Math.max(0, 1 - jugado / TIEMPO_MS);
         barra.style.width = (restante * 100) + "%";
         if (restante <= 0 && !resuelto) {
           clearInterval(intervalId);

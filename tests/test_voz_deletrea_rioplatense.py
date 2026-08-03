@@ -167,7 +167,12 @@ def test_ningun_mp3_grabado_queda_desincronizado():
     que no hay audio viejo diciendo "uve" que haya que regrabar."""
     src = open(PLAYER, encoding="utf-8").read()
     i = src.index("function reproducirConsigna(")
-    cuerpo = src[i:i + 1200]
+    # Hasta el `new Audio(`, que es donde se resuelve el archivo. Antes era una ventana
+    # fija de 1200 caracteres y se rompió el 03-ago-2026 al agregar un comentario arriba:
+    # el test se puso en rojo diciendo "el manifest dejó de buscarse con el texto
+    # original" cuando el manifest seguía intacto 300 caracteres más abajo. Un test que
+    # falla por dónde termina un comentario manda a buscar el bug donde no está.
+    cuerpo = src[i:src.index("new Audio(", i) + 40]
     assert "AudioManifest[txt]" in cuerpo, "el manifest dejó de buscarse con el texto original"
     assert "_deletrearParaLaVoz(txt)" in cuerpo, "el deletreo no llega al sintetizador"
     m = json.load(open(os.path.join(aw.AUDIO_DIR, "manifest.json"), encoding="utf-8"))
@@ -402,3 +407,38 @@ def test_no_queda_NADA_sin_decir_en_todo_el_cuaderno():
                 malos.append("%s → %s" % (nombre, d[:80]))
     assert not malos, "%d frase(s) siguen con algo sin decir:\n  %s" % (
         len(malos), "\n  ".join(malos[:6]))
+
+
+# ── una CUENTA adentro de una frase (03-ago-2026) ──────────────────────────────────────
+# Pablo, en «La cuenta paso a paso» de 5.º: *"al final habla mal"*. El cierre dice
+# «305 ÷ 6 = 50 y sobran 5»: como tiene palabras no era "una cuenta pelada", así que sólo
+# se le traducían los SIGNOS y quedaba «305 dividido 6 es igual a 50» — la mitad en
+# palabras y la mitad en cifras. Y la MISMA cuenta sola sí se decía bien, o sea que el
+# cuaderno se contradecía a sí mismo.
+
+@pytest.mark.parametrize("frase,dicho", [
+    ("305 ÷ 6 = 50 y sobran 5",
+     "trescientos cinco dividido seis es igual a cincuenta y sobran 5"),
+    ("¡No sobró nada! 305 ÷ 6 = 50",
+     "¡No sobró nada! trescientos cinco dividido seis es igual a cincuenta"),
+    ("Sobran 5. Comprobá: 50 × 6 + 5 = ?",
+     "Sobran 5. Comprobá: cincuenta por seis más cinco es igual a ?"),
+])
+def test_una_cuenta_adentro_de_una_frase_se_dice_entera_en_palabras(frase, dicho):
+    assert decir([frase]) == [dicho]
+
+
+def test_esto_NO_afloja_la_regla_de_los_numeros_en_prosa():
+    """El control de la regla nueva. Hace falta un OPERADOR ENTRE DOS NÚMEROS para
+    entrar: un número suelto en una frase se sigue leyendo tal cual. Sin este límite se
+    empezarían a deletrear años, porcentajes y cantidades — que es justo lo que el test
+    de más arriba viene cuidando desde el 31-jul."""
+    for t in ("Da 761.", "Tocá dos burbujas que sumen 10",
+              "Argentina es un país muy urbanizado: más del 90% vive en ciudades.",
+              "En 1810 empezó la Revolución de Mayo."):
+        assert decir([t]) == [t], "se reescribió un número que está en prosa: %r" % t
+
+
+def test_el_guion_en_prosa_no_se_toma_como_resta():
+    """«páginas 5 - 7» es un rango, no una cuenta. El menos matemático se escribe «−»."""
+    assert decir(["Leé las páginas 5 - 7 del libro."]) == ["Leé las páginas 5 - 7 del libro."]
