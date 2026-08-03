@@ -9791,10 +9791,33 @@ function _ordenPorDominio(ctx, libres, idPrefijo) {
    El botón es opcional a propósito — no interrumpe el juego ni da la respuesta:
    se toca cuando el chico quiere oírlo. */
 let _inglesManifest = null;
+/* La versión con la que se pidió ESTE player (`player.js?v=…`). Se usa para pedir el
+   manifest de inglés con la misma, para que los dos se renueven juntos. */
+function _versionDelPlayer() {
+  try {
+    const s = document.querySelector('script[src*="player.js?v="]');
+    return s ? (s.getAttribute("src").split("?v=")[1] || "") : "";
+  } catch (e) { return ""; }
+}
+
 async function _cargarInglesManifest() {
   if (_inglesManifest) return _inglesManifest;
   try {
-    const r = await fetch("ingles_manifest.json");
+    // CON VERSIÓN (03-ago-2026). Pablo, después de regenerar los clips: *"no se
+    // escucha"*, y después *"dice cualquier cosa"*.
+    //
+    // El manifest se pedía pelado, sin `?v=`, así que el navegador lo cacheaba por su
+    // cuenta. Al regenerar los audios los nombres cambian y los viejos se borran: con el
+    // manifest viejo en caché, el player pedía 66 archivos que ya no existían → 404 y
+    // silencio. Y peor que el silencio: mientras algunos seguían en caché y otros no,
+    // sonaba cualquier cosa.
+    //
+    // La versión sale del `?v=` del propio `player.js`, que ya incluye la fecha del
+    // manifest (ver `_player_version` en actividades_web.py): tocar los audios cambia la
+    // versión, y el manifest y el player se renuevan JUNTOS. Sin eso, arreglar la
+    // pronunciación no le llegaba nunca al que ya había abierto el cuaderno.
+    const v = _versionDelPlayer();
+    const r = await fetch("ingles_manifest.json" + (v ? "?v=" + encodeURIComponent(v) : ""));
     _inglesManifest = r.ok ? await r.json() : {};
   } catch (e) { _inglesManifest = {}; }
   return _inglesManifest;
