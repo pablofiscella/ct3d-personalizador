@@ -281,3 +281,43 @@ def test_la_version_del_player_mira_los_audios_de_ingles():
     finally:
         os.utime(p, (st.st_atime, st.st_mtime))
     assert aw._player_version() == antes, "no se restauró el mtime"
+
+
+# ── los iconos se tienen que VER (03-ago-2026) ─────────────────────────────────────────
+# Pablo: *"desaparecieron los iconos de inglés, tarjeta 1 (english time) y tarjeta 4
+# (vocabulario en inglés)"*.
+#
+# No se habían borrado: las dos usaban 🇬🇧, que es una BANDERA — dos "indicadores
+# regionales" (G + B) que el sistema tiene que componer. **Windows no compone banderas**:
+# Chrome dibuja las dos letras sueltas ("GB" en un recuadro gris, como se veía en la
+# primera captura) o directamente nada. Y la mayoría de las familias del país abre el
+# cuaderno desde una notebook con Windows.
+#
+# También estaba 🇦🇷 en «Camino a la independencia», con el mismo problema.
+
+def test_ningun_icono_es_una_bandera():
+    """Las banderas son el único emoji que depende de que el SISTEMA las componga. El
+    resto (📗, ⏱️, 🗣️, 🔤, 🎖️) se dibuja igual en Windows, Android, iPhone y Linux."""
+    import re as _re
+    import actividades_curriculum as ac
+    BANDERA = _re.compile("[\U0001F1E6-\U0001F1FF]")
+    malos = [(a["id"], a.get("icono")) for a in ac.CATALOGO
+             if BANDERA.search(a.get("icono") or "")]
+    ruta = os.path.join(BASEDIR, "actividades_web.py")
+    src = open(ruta, encoding="utf-8").read()
+    for m in _re.finditer(r'"id": "([^"]+)"[^}]*?"icono": "([^"]*)"', src):
+        if BANDERA.search(m.group(2)):
+            malos.append((m.group(1), m.group(2)))
+    assert not malos, ("estos iconos son banderas y en Windows no se ven: %s" % malos)
+
+
+def test_las_dos_de_ingles_tienen_icono():
+    """El control: que no se hayan quedado sin ninguno al sacarles la bandera."""
+    import actividades_curriculum as ac
+    src = open(os.path.join(BASEDIR, "actividades_web.py"), encoding="utf-8").read()
+    assert '"titulo": "English time", "icono": "' in src
+    i = src.index('"titulo": "English time", "icono": "')
+    icono = src[i + len('"titulo": "English time", "icono": "'):].split('"')[0]
+    assert icono.strip(), "English time se quedó sin icono"
+    voc = [a for a in ac.CATALOGO if a["id"] == "ingles_vocabulario_7"][0]
+    assert (voc.get("icono") or "").strip(), "Vocabulario en inglés se quedó sin icono"

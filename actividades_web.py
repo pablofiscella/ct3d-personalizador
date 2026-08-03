@@ -523,7 +523,7 @@ def _menu(banda, edad, escolar=False):
         # Proceso 1810-1853 (docs/auditoria-dc-caba/grado-5.md, gap #3: el contenido
         # de Sociales de 5°, ausente — solo había lo colonial de 4°). Revolución de
         # Mayo → Independencia → San Martín → unitarios/federales → Constitución 1853.
-        g.append({"id": "independencia_arg", "titulo": "Camino a la independencia", "icono": "🇦🇷", "cfg": {"rondas": 10}})
+        g.append({"id": "independencia_arg", "titulo": "Camino a la independencia", "icono": "🎖️", "cfg": {"rondas": 10}})
         g.append({"id": "camino_digestivo", "titulo": "El camino digestivo", "icono": "🍽️", "cfg": {"rondas": 4}})
         # Bimestre 2: fracciones nivel 2 + análisis sintáctico contrarreloj.
         # rondas=10: FRACCIONES_AVANZADO_BANCO tiene 24 ítems verificados, de sobra.
@@ -691,7 +691,7 @@ def _menu(banda, edad, escolar=False):
         # Azar y probabilidad (docs/auditoria-dc-caba/grado-7): diagrama de árbol,
         # principio multiplicativo y probabilidad simple (1 en a×b). Sigue de 6°.
         g.append({"id": "arbol_probabilidad", "titulo": "Árbol de combinaciones", "icono": "🌳", "cfg": {"rondas": 8}})
-        g.append({"id": "ingles_basico", "titulo": "English time", "icono": "🇬🇧", "cfg": {"rondas": 10}})
+        g.append({"id": "ingles_basico", "titulo": "English time", "icono": "🗣️", "cfg": {"rondas": 10}})
         # 3ª tanda 7° (19-jul-2026, nivelación): ecuaciones simples (álgebra
         # inicial), homófonos (ortografía) e historia del s.XX.
         g.append({"id": "ecuaciones_simples", "titulo": "Despejá la x", "icono": "🟰", "cfg": {"rondas": 10}})
