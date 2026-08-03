@@ -275,7 +275,10 @@ def test_la_version_del_player_mira_los_audios_de_ingles():
     antes = aw._player_version()
     st = os.stat(p)
     try:
-        os.utime(p, (st.st_atime, st.st_mtime + 60))
+        # +1 día y no +60 s: la versión es el MÁXIMO de varios mtimes, y si el player
+        # se tocó hace un rato (o sea, siempre que se esté trabajando) 60 segundos no
+        # alcanzan para pasarlo y el test falla sin que haya ningún bug.
+        os.utime(p, (st.st_atime, st.st_mtime + 86400))
         assert aw._player_version() != antes, \
             "tocar los audios de inglés no cambia la versión del player"
     finally:
@@ -321,3 +324,19 @@ def test_las_dos_de_ingles_tienen_icono():
     assert icono.strip(), "English time se quedó sin icono"
     voc = [a for a in ac.CATALOGO if a["id"] == "ingles_vocabulario_7"][0]
     assert (voc.get("icono") or "").strip(), "Vocabulario en inglés se quedó sin icono"
+
+
+def test_los_cuadernos_YA_ENTREGADOS_tampoco_muestran_la_bandera():
+    """El arreglo del catálogo sólo alcanza a los cuadernos NUEVOS: el `data.json` de cada
+    uno se generó cuando se creó, así que todos los ya entregados —incluidas las muestras
+    públicas— siguen con 🇬🇧 adentro.
+
+    Por eso el player también lo traduce al dibujar, que es lo que llega a los links ya
+    vendidos sin regenerar nada. Es el mismo criterio que el resto del player: se sirve del
+    repo justamente para que las mejoras alcancen lo ya entregado."""
+    assert "function _iconoSeguro" in PLAYER, "el player no protege el icono al dibujarlo"
+    assert "_iconoSeguro(m)" in PLAYER, "la tarjeta sigue pintando `m.icono` crudo"
+    i = PLAYER.index("c.innerHTML = `")
+    tarjeta = PLAYER[i:i + 900]
+    assert "${m.icono}" not in tarjeta, \
+        "quedó un lugar de la tarjeta pintando el icono sin proteger"

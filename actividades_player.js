@@ -5721,6 +5721,34 @@ function notaESI(alContinuar) {
   ov.addEventListener("click", (e) => { if (e.target === ov) ov.remove(); });
 }
 
+/* El icono de una tarjeta, garantizando que se DIBUJE (03-ago-2026).
+
+   Pablo: *"desaparecieron los iconos de inglés, tarjeta 1 (english time) y tarjeta 4
+   (vocabulario en inglés)"*. Las dos tenían 🇬🇧, que no es un emoji común: es una BANDERA
+   —dos indicadores regionales, G + B— que el SISTEMA tiene que componer. Windows no las
+   compone: Chrome dibuja las dos letras sueltas ("GB" en un recuadro gris) o nada. Y la
+   mayoría de las familias abre el cuaderno desde una notebook con Windows.
+
+   El arreglo de fondo ya está en el catálogo, PERO el `data.json` de cada cuaderno se
+   generó cuando se creó: todos los ya entregados —incluidas las muestras públicas— siguen
+   con la bandera adentro. Por eso también se traduce ACÁ, que es lo que llega a los links
+   ya vendidos sin regenerar nada.
+
+   Se elige por id cuando se sabe cuál es; si aparece una bandera nueva, cae al globo. */
+const _ICONO_POR_BANDERA = {
+  ingles_basico: "🗣️",
+  ingles_vocabulario_7: "🔤",
+  ingles_ver: "🔤",                    // ids truncados a 10, por si llegan así
+  independencia_arg: "🎖️",
+};
+const _ES_BANDERA = /[\u{1F1E6}-\u{1F1FF}]/u;
+
+function _iconoSeguro(m) {
+  const ic = (m && m.icono) || "";
+  if (!_ES_BANDERA.test(ic)) return ic;
+  return _ICONO_POR_BANDERA[m.id] || "🌎";
+}
+
 function pintarMenuPlano(items, stage) {
   pararVoz();                                  // ver el comentario en Shell.abrir
   Shell.actual = null;
@@ -5784,12 +5812,12 @@ function pintarMenuPlano(items, stage) {
     const _nd = nivelDeDificultad(m.id);
     const _ndMeta = _nd ? NIVEL_DIF[_nd - 1] : null;
     c.innerHTML = `
-      <div class="icono">${conSprite ? `<img src="${P[(i / 3 | 0) + 1]}" alt="">` : m.icono}</div>
+      <div class="icono">${conSprite ? `<img src="${P[(i / 3 | 0) + 1]}" alt="">` : _iconoSeguro(m)}</div>
       <div class="nombre">${m.titulo}</div>
       <div class="mini-est">${est}</div>
       ${_masAlla ? `<div class="nivel-chip nivel-chip--mas" title="Es del grado siguiente: el paso después de Experto">🚀 Más allá<small>es de ${m.grado}.º</small></div>` : ""}
       ${_ndMeta ? `<div class="nivel-chip" title="Nivel ${_nd} de 3 — se gana jugando">${_ndMeta.icono} ${_ndMeta.nombre}</div>` : ""}
-      ${conSprite ? `<div class="chip">${m.icono}</div>` : ""}`;
+      ${conSprite ? `<div class="chip">${_iconoSeguro(m)}</div>` : ""}`;
     // ESI: marca en la tarjeta + la nota completa la primera vez que se abre una.
     // No bloquea nada — después de leerla, el botón "Empezar" sigue al juego.
     const esEsi = ESI_IDS.has(m.id);
