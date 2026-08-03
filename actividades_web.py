@@ -2335,12 +2335,22 @@ def _limpiar_vencidos():
 # ── Servido (visor + assets) ──
 
 def _player_version():
-    """Cache-buster: cambia solo cuando se toca el player en el repo."""
+    """Cache-buster: cambia cuando se toca el player O los audios de inglés.
+
+    El manifest de inglés entra acá desde el 03-ago-2026. Regenerar los clips cambia sus
+    NOMBRES y borra los viejos, así que un navegador con el manifest cacheado pide
+    archivos que ya no existen: 404 y silencio. Pablo lo vivió — *"no se escucha"*, y
+    después *"dice cualquier cosa"* mientras unos seguían en caché y otros no.
+
+    Con el mtime del manifest acá, tocar los audios sube la versión, y el player pide el
+    manifest con ese mismo `?v=` (ver `_cargarInglesManifest`): los dos se renuevan
+    juntos. Sin esto, arreglar una pronunciación no le llega nunca al que ya abrió el
+    cuaderno."""
+    rutas = [TEMPLATE_JS, TEMPLATE_HTML, TEMPLATE_MOTOR,
+             os.path.join(INGLES_DIR, "manifest.json")]
     try:
-        return str(int(max(os.path.getmtime(TEMPLATE_JS),
-                           os.path.getmtime(TEMPLATE_HTML),
-                           os.path.getmtime(TEMPLATE_MOTOR))))
-    except OSError:
+        return str(int(max(os.path.getmtime(p) for p in rutas if os.path.exists(p))))
+    except (OSError, ValueError):
         return "1"
 
 

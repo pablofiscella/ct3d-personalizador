@@ -245,3 +245,39 @@ def test_ningun_clip_de_ingles_dice_una_palabra_en_castellano():
         dice = terminos["ingles_basico#%d" % i]
         assert dice != ok, \
             "#%d dice %r, que es la respuesta en castellano de «%s»" % (i, dice, q)
+
+
+# ── el manifest se renueva con el player (03-ago-2026) ─────────────────────────────────
+# Pablo, después de regenerar los clips: *"no se escucha"*, y enseguida *"dice cualquier
+# cosa"*. Los archivos nuevos estaban bien y servidos con 200 — lo que fallaba era el
+# CACHÉ: el manifest se pedía sin `?v=`, el navegador se quedaba con el viejo, y ése
+# apunta a los 66 archivos que la regeneración borra. Silencio; y mientras algunos mp3
+# seguían en caché y otros no, cualquier cosa.
+
+def test_el_manifest_se_pide_con_version():
+    """Sin `?v=`, arreglar una pronunciación no le llega NUNCA al que ya abrió el
+    cuaderno: se queda con el manifest viejo hasta que el navegador decida soltarlo."""
+    i = PLAYER.index("async function _cargarInglesManifest")
+    cuerpo = PLAYER[i:i + 1800]
+    assert 'fetch("ingles_manifest.json")' not in cuerpo, \
+        "el manifest se pide pelado: el navegador lo cachea y los clips nuevos no llegan"
+    assert '"?v=" + encodeURIComponent(v)' in cuerpo, "no se le agrega la versión"
+
+
+def test_la_version_del_player_mira_los_audios_de_ingles():
+    """Regenerar los clips cambia sus NOMBRES y borra los viejos. Si la versión no se
+    moviera, el player cacheado seguiría pidiendo archivos que ya no existen."""
+    import importlib
+    import os
+    import time
+    aw = importlib.import_module("actividades_web")
+    p = os.path.join(aw.INGLES_DIR, "manifest.json")
+    antes = aw._player_version()
+    st = os.stat(p)
+    try:
+        os.utime(p, (st.st_atime, st.st_mtime + 60))
+        assert aw._player_version() != antes, \
+            "tocar los audios de inglés no cambia la versión del player"
+    finally:
+        os.utime(p, (st.st_atime, st.st_mtime))
+    assert aw._player_version() == antes, "no se restauró el mtime"
