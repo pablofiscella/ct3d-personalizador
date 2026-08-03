@@ -16,6 +16,10 @@ BASEDIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIR = os.path.join(BASEDIR, "audio_ingles")
 PLAYER = open(os.path.join(BASEDIR, "actividades_player.js"), encoding="utf-8").read()
 
+# El ancla lleva el "= {": `GAMES.ingles_basico` a secas aparece ANTES, en un
+# comentario de `_botonIngles` que remite acá, y los tests medían 200 KB de otro
+# código creyendo que miraban la actividad.
+
 
 def _manifest():
     return json.load(open(os.path.join(DIR, "manifest.json"), encoding="utf-8"))
@@ -75,23 +79,38 @@ def test_la_voz_del_ingles_no_es_la_de_las_consignas():
         assert not aw._ASSET_RE.fullmatch(malo), "la whitelist acepta %r" % malo
 
 
-def test_el_boton_no_regala_la_respuesta():
-    """Lo que protege este test: que oír el clip nunca CONTESTE la pregunta.
+def test_se_puede_escuchar_ANTES_de_elegir():
+    """Pablo, 03-ago-2026, después de una primera versión que sólo lo mostraba antes en
+    cinco preguntas: *"en el mismo momento en el que estoy por seleccionar qué opción es,
+    debería tener el botón para escuchar; y sólo aparece después de que elijo y desaparece
+    rápido porque viene la otra"*.
 
-    Escrito el 27-jul daba por hecho que en `ingles_basico` el término en inglés es
-    siempre la respuesta, y por eso exigía que el botón se pintara después de acertar,
-    siempre. Es cierto en 19 de las 24 preguntas, pero no en las cinco donde el inglés
-    está en el ENUNCIADO («¿Qué significa "book"?» → libro): ahí escuchar no revela nada
-    y el botón tardío dejaba la actividad sin su mitad — Pablo lo encontró jugando el
-    03-ago-2026, *"o sea no se puede escuchar"*.
+    Decisión de Pablo, con su costo asumido: en «¿Cómo se dice "agua" en inglés?» el clip
+    dice *water*, así que se puede resolver escuchando. Es una actividad para APRENDER a
+    decirlo, no para tomar examen — y atar el sonido con cuál de tres escrituras le
+    corresponde sigue siendo el trabajo que cuesta en inglés.
 
-    Así que lo que se exige ahora es lo mismo de siempre, bien dicho: **el botón que
-    diría la respuesta sigue apareciendo recién al acertar**."""
-    i = PLAYER.index("GAMES.ingles_basico")
-    cuerpo = PLAYER[i:i + 3000]
-    tardio = cuerpo.index("if (!it.enQ) {")        # el que revelaría la respuesta
-    assert cuerpo.index("ctx.bien()") < tardio, \
-        "el botón de audio se pinta antes de acertar: daría la respuesta servida"
+    El test anterior exigía lo contrario (el botón recién al acertar). Se cambia a
+    propósito y queda escrito por qué, para que no se "arregle" de vuelta."""
+    i = PLAYER.index("GAMES.ingles_basico = {")
+    cuerpo = PLAYER[i:i + 6000]
+    pos_boton = cuerpo.index("_botonIngles(zonaAudio")
+    pos_ops = cuerpo.index("const opciones = shuffle")
+    assert pos_boton < pos_ops, \
+        "el botón de escuchar se dibuja después de las opciones: no está al elegir"
+    assert "it.enQ" not in cuerpo, \
+        "quedó el gate viejo: en algunas preguntas no se puede escuchar antes"
+
+
+def test_la_ronda_espera_a_que_termine_el_audio():
+    """*"desaparece rápido porque viene la otra"*: al acertar la palabra suena sola y la
+    ronda no se va hasta que termina. Con `espera(1600)` pelado se cortaba al medio."""
+    i = PLAYER.index("GAMES.ingles_basico = {")
+    cuerpo = PLAYER[i:i + 6000]
+    assert "_sonarIngles(\"ingles_basico\", idx)" in cuerpo, \
+        "al acertar no se reproduce la palabra"
+    assert "Promise.all([espera(1600)" in cuerpo, \
+        "la ronda no espera a que el audio termine"
 
 
 # ── el botón de escuchar y la velocidad (03-ago-2026) ──────────────────────────────────
@@ -105,47 +124,12 @@ def _banco_del_player():
     return [l for l in bloque.splitlines() if l.strip().startswith("{")]
 
 
-def test_cuando_el_ingles_esta_en_la_PREGUNTA_se_puede_escuchar_antes():
-    """El caso que reportó Pablo. En «¿Qué significa "book"?» la respuesta es en
-    castellano (libro/mesa/silla): oír el término NO la revela, y es el ejercicio.
-    Esconder el botón hasta después de contestar dejaba la actividad sin su mitad."""
-    import re as _re
-    marcadas = [l for l in _banco_del_player() if "enQ" in l]
-    assert len(marcadas) == 5, "cambió el banco: hay %d preguntas con el inglés en el enunciado" % len(marcadas)
-    for l in marcadas:
-        # el término entre « » de la pregunta tiene que ser el INGLÉS, no la respuesta
-        entre = _re.search(r"«([^»]+)»", l).group(1)
-        ok = _re.search(r'ok: "([^"]*)"', l).group(1)
-        assert entre != ok, "en %r el término de la pregunta es la respuesta" % l.strip()[:60]
-
-
-def test_cuando_el_ingles_es_la_RESPUESTA_el_boton_sigue_apareciendo_despues():
-    """El control. Si se mostrara siempre, «¿Cómo se dice "libro" en inglés?» se
-    resolvería tocando el parlante: la respuesta servida."""
-    assert "if (!it.enQ) {" in PLAYER, "se perdió el gate del botón tardío"
-    i = PLAYER.index("GAMES.ingles_basico")
-    cuerpo = PLAYER[i:i + 3000]
-    assert cuerpo.index("if (it.enQ)") < cuerpo.index("if (!it.enQ)"), \
-        "el botón temprano tiene que decidirse ANTES de dibujar las opciones"
-
-
-def test_no_queda_una_tarjeta_blanca_vacia():
-    """La barra en blanco de la captura: un `.tablero` vacío se dibuja igual. La zona del
-    audio sólo se agrega cuando tiene algo adentro."""
-    i = PLAYER.index("GAMES.ingles_basico")
-    cuerpo = PLAYER[i:i + 3000]
-    j = cuerpo.index('const zonaAudio = el("div", "tablero")')
-    entre = cuerpo[j:cuerpo.index("if (it.enQ)", j)]
-    assert "appendChild(zonaAudio)" not in entre, \
-        "la zona del audio se agrega al DOM antes de saber si va a tener botón"
-
-
 def test_se_escucha_mas_lento():
     """Se hace con `playbackRate` y NO regenerando los clips: la voz ya sale con
     `speed 0.8` de ElevenLabs y se MIDIÓ que bajarla a 0.7 —el mínimo— no cambia nada en
     palabras sueltas (el mismo "book": 1.13 s → 1.10 s)."""
-    i = PLAYER.index("function _botonIngles")
-    cuerpo = PLAYER[i:i + 1800]
+    i = PLAYER.index("function _sonarIngles")
+    cuerpo = PLAYER[i:i + 2200]
     assert "playbackRate = 0.8" in cuerpo, "el inglés no se reproduce más lento"
     assert "preservesPitch" in cuerpo, \
         "sin preservar el tono la voz suena a cinta ralentizada, peor que rápida"
@@ -158,3 +142,30 @@ def test_ninguna_palabra_del_banco_se_queda_sin_clip():
     n = len(_banco_del_player())
     faltan = [i for i in range(n) if "ingles_basico#%d" % i not in man]
     assert not faltan, "palabras del banco sin pronunciación: %s" % faltan
+
+
+def test_escuchar_antes_de_contestar_NO_puntua_como_dominio():
+    """Pablo, 03-ago-2026: *"lo que sí, si escucha no se tiene que tomar como bien"*.
+
+    Es lo que hace que el botón pueda estar SIEMPRE sin arruinar la medición: en «¿Cómo se
+    dice "agua" en inglés?» el clip dice *water*, así que oírlo y después elegir no prueba
+    que lo sepa. Se anota con el mismo mecanismo que la ayuda de las cuentas en columna
+    (`_estrellasConAyuda`, 31-jul-2026): el festejo de completar se mantiene, lo que baja
+    son las estrellas — que es lo que el motor adaptativo lee como dominio."""
+    i = PLAYER.index("GAMES.ingles_basico = {")
+    cuerpo = PLAYER[i:i + 4000]
+    assert "rondasConAudio" in cuerpo, "escuchar no se anota"
+    assert "_estrellasConAyuda(rondasConAudio, rondas)" in cuerpo, \
+        "las estrellas no miran si escuchó: resolver oyendo daría 3★ y el motor le subiría"
+    # una vez por ronda, no una por toque: si no, escuchar dos veces contaría doble
+    assert "if (!escuchoAntes)" in cuerpo, "cada toque del parlante cuenta como una ronda"
+
+
+def test_el_audio_del_ACIERTO_no_cuenta_como_ayuda():
+    """El que suena solo al acertar es premio, no ayuda: el chico ya eligió. Si contara,
+    todas las rondas quedarían marcadas y nadie podría sacar 3★ nunca."""
+    i = PLAYER.index("GAMES.ingles_basico = {")
+    cuerpo = PLAYER[i:i + 4000]
+    j = cuerpo.index("ctx.bien()")
+    assert "rondasConAudio++" not in cuerpo[j:], \
+        "el audio que suena al acertar se está anotando como ayuda"
