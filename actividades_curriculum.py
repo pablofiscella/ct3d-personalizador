@@ -13320,7 +13320,7 @@ CATALOGO = [
     # funcionan como reconocimiento escrito, que es lo que se puede entregar hoy.
     {
         "id": "ingles_vocabulario_7", "grado": 7, "area": "lengua",
-        "titulo": "Vocabulario en inglés", "icono": "🇬🇧",
+        "titulo": "Vocabulario en inglés", "icono": "🔤",
         "mecanica": "trivia",
         "consigna": "¿Qué significa?",
         "explica": "Ojo con los falsos amigos: se parecen al español y significan otra cosa.",
