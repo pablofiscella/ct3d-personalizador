@@ -284,6 +284,24 @@ function _deletrearParaLaVoz(txt) {
   // Grados de temperatura. NO se toca el «°» de orden («el 1° puesto»), que es otra cosa
   // y que la voz ya dice bien.
   txt = txt.replace(/(\d)\s*°\s*C\b/g, "$1 grados");
+  // ACÁ LA PLATA ES EN PESOS (03-ago-2026). Pablo, en «Proporcionalidad aplicada» de 6.º:
+  // *"tiene que decir pesos y no dólares"*. En pantalla el «$» está bien —así se escribe
+  // el peso acá— pero el sintetizador lo lee como dólares, así que «$1.200» sonaba
+  // "mil doscientos dólares" en un cuaderno del Diseño Curricular porteño.
+  //
+  // Se arregla en la VOZ y no en el catálogo a propósito: son 10 actividades de 1.º a 7.º
+  // (el kiosco, el cajero de miles, descuentos, presupuesto, las dos billeteras…) más las
+  // explicaciones del "¿Cómo es?", y cambiar el texto obligaría a escribir "1200 pesos"
+  // en pantalla, que no es como se escribe un precio.
+  //
+  // VA ANTES que la regla de las cuentas: si corriera después, «$1200 ÷ 3» ya se habría
+  // convertido a «mil doscientos dividido tres» y el «$» quedaría suelto adelante,
+  // pegado a una palabra — peor que el problema original.
+  // El número tiene que TERMINAR EN DÍGITO: con `[\d.,]*` suelto, «cuestan $1.200, ¿cuánto»
+  // se comía la coma y quedaba «1.200, pesos ¿cuánto», y «Da $3.200.» terminaba en
+  // «3.200. pesos». El punto y la coma de adentro sí entran (miles y centavos).
+  txt = txt.replace(/\$\s*(\d(?:[\d.,]*\d)?)/g,
+                    (m0, n) => n + (n === "1" ? " peso" : " pesos"));
   const cuenta = _cuentaEnPalabras(txt);
   if (cuenta) return cuenta;
   // UNA CUENTA ENTERA adentro de una frase se dice entera en palabras, operandos
@@ -9793,6 +9811,20 @@ function _botonIngles(cont, idPrefix, idx) {
     if (!fn) return;                     // sin clip: el botón no hace nada, no rompe
     if (vozActual) { vozActual.pause(); vozActual = null; }
     const a = new Audio(fn);
+    // MÁS LENTO PARA APRENDER A PRONUNCIAR (03-ago-2026). Pablo: *"cuando se escucha el
+    // inglés que sea más lento"*.
+    //
+    // Se hace acá y NO regenerando los clips: la voz ya se genera con `speed 0.8` en
+    // ElevenLabs, y se midió que bajarla a 0.7 —el mínimo— no cambia nada en palabras
+    // sueltas: el mismo "book" pasó de 1.13 s a 1.10 s. Habría costado 67 generaciones
+    // para que sonara igual.
+    //
+    // `preservesPitch` mantiene el tono: sin eso la voz baja de altura y suena a cinta
+    // ralentizada, que es peor que rápida para un chico que está imitando cómo se dice.
+    a.playbackRate = 0.8;
+    a.preservesPitch = true;
+    a.mozPreservesPitch = true;        // Firefox viejo
+    a.webkitPreservesPitch = true;     // Safari viejo, que hay en las tablets prestadas
     vozActual = a;
     a.play().catch(() => {});
   });
@@ -11927,15 +11959,15 @@ GAMES.problemas_multipaso = {
 const INGLES_BANCO = [
   { q: "¿Cómo se dice «perro» en inglés?", ok: "dog", d: ["cat", "cow"], m: "«dog» es perro; «cat» es gato." },
   { q: "¿Cómo se dice «casa» en inglés?", ok: "house", d: ["horse", "mouse"], m: "«house» es casa; «horse» es caballo." },
-  { q: "¿Qué significa «red»?", ok: "rojo", d: ["verde", "azul"], m: "«red» es rojo; «green» es verde, «blue» es azul." },
+  { enQ: 1, q: "¿Qué significa «red»?", ok: "rojo", d: ["verde", "azul"], m: "«red» es rojo; «green» es verde, «blue» es azul." },
   { q: "¿Cómo se dice «gracias» en inglés?", ok: "thank you", d: ["please", "sorry"], m: "«thank you» es gracias; «please» es por favor." },
-  { q: "¿Qué número es «three»?", ok: "3", d: ["2", "4"], m: "«three» es 3; «two» es 2, «four» es 4." },
+  { enQ: 1, q: "¿Qué número es «three»?", ok: "3", d: ["2", "4"], m: "«three» es 3; «two» es 2, «four» es 4." },
   { q: "¿Cómo se dice «agua» en inglés?", ok: "water", d: ["milk", "juice"], m: "«water» es agua; «milk» es leche." },
-  { q: "¿Qué significa «book»?", ok: "libro", d: ["mesa", "silla"], m: "«book» es libro; «table» es mesa." },
+  { enQ: 1, q: "¿Qué significa «book»?", ok: "libro", d: ["mesa", "silla"], m: "«book» es libro; «table» es mesa." },
   { q: "¿Cómo saludás a la mañana en inglés?", ok: "good morning", d: ["good night", "goodbye"], m: "«good morning» es buenos días; «good night» es buenas noches." },
-  { q: "¿Qué color es «yellow»?", ok: "amarillo", d: ["negro", "blanco"], m: "«yellow» es amarillo; «black» es negro, «white» es blanco." },
+  { enQ: 1, q: "¿Qué color es «yellow»?", ok: "amarillo", d: ["negro", "blanco"], m: "«yellow» es amarillo; «black» es negro, «white» es blanco." },
   { q: "¿Cómo se dice «familia» en inglés?", ok: "family", d: ["friend", "people"], m: "«family» es familia; «friend» es amigo." },
-  { q: "¿Qué significa «happy»?", ok: "feliz", d: ["triste", "cansado"], m: "«happy» es feliz; «sad» es triste." },
+  { enQ: 1, q: "¿Qué significa «happy»?", ok: "feliz", d: ["triste", "cansado"], m: "«happy» es feliz; «sad» es triste." },
   { q: "¿Cómo se dice «escuela» en inglés?", ok: "school", d: ["street", "store"], m: "«school» es escuela; «street» es calle." },
   // ampliado 20-jul-2026 (de 12 a 24 — engrosar bancos nodales, docs/auditoria-dc-caba/)
   { q: "¿Cómo se dice «gato» en inglés?", ok: "cat", d: ["dog", "fish"], m: "«cat» es gato; «dog» es perro." },
@@ -11966,10 +11998,28 @@ GAMES.ingles_basico = {
       ctx.item("ingles#" + idx);
       ctx.consigna(it.q);
       ctx.juego.innerHTML = "";
-      // pronunciación: acá el término en inglés es la RESPUESTA, así que el botón
-      // se muestra recién al acertar — antes daría la respuesta servida.
+      // PRONUNCIACIÓN: depende de DÓNDE está la palabra en inglés (03-ago-2026).
+      //
+      // Pablo, en 7.º: *"aparece en english time, está el escuchar después de que elegís
+      // y no antes. O sea no se puede escuchar"*.
+      //
+      // En la mayoría del banco («¿Cómo se dice "libro" en inglés?» → book) el término en
+      // inglés ES la respuesta, y oírlo antes sería servirla: ahí el botón sigue
+      // apareciendo recién al acertar.
+      //
+      // Pero en CINCO preguntas el inglés está en el ENUNCIADO y la respuesta es en
+      // castellano («¿Qué significa "book"?» → libro; «¿Qué número es "three"?» → 3). Ahí
+      // escuchar no revela nada: ES el ejercicio, y era justamente donde no se podía.
+      // Van marcadas con `enQ` en el banco.
+      //
+      // Y la zona sólo se agrega cuando hay algo adentro: un `.tablero` vacío se dibuja
+      // como una tarjeta blanca en blanco — la barra vacía que se veía arriba de las
+      // opciones en la captura de Pablo.
       const zonaAudio = el("div", "tablero");
-      ctx.juego.appendChild(zonaAudio);
+      if (it.enQ) {
+        ctx.juego.appendChild(zonaAudio);
+        _botonIngles(zonaAudio, "ingles_basico", idx);
+      }
       const opciones = shuffle([{ t: it.ok, ok: true }].concat(it.d.map((x) => ({ t: x, ok: false }))));
       const fila = el("div", "ops");
       let resuelto = false;
@@ -11979,7 +12029,10 @@ GAMES.ingles_basico = {
           if (resuelto) return;
           if (o.ok) {
             resuelto = true; b.classList.add("anim-pop"); ctx.bien();
-            _botonIngles(zonaAudio, "ingles_basico", idx);   // ya acertó: ahora sí puede oírlo
+            if (!it.enQ) {                       // ya acertó: ahora sí puede oírlo
+              ctx.juego.insertBefore(zonaAudio, ctx.juego.firstChild);
+              _botonIngles(zonaAudio, "ingles_basico", idx);
+            }
             ronda++; await espera(1600);
             if (ronda >= rondas) ctx.win(); else jugar();
           }
