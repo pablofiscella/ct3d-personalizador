@@ -167,7 +167,12 @@ def test_ningun_mp3_grabado_queda_desincronizado():
     que no hay audio viejo diciendo "uve" que haya que regrabar."""
     src = open(PLAYER, encoding="utf-8").read()
     i = src.index("function reproducirConsigna(")
-    cuerpo = src[i:i + 1200]
+    # Hasta el `new Audio(`, que es donde se resuelve el archivo. Antes era una ventana
+    # fija de 1200 caracteres y se rompió el 03-ago-2026 al agregar un comentario arriba:
+    # el test se puso en rojo diciendo "el manifest dejó de buscarse con el texto
+    # original" cuando el manifest seguía intacto 300 caracteres más abajo. Un test que
+    # falla por dónde termina un comentario manda a buscar el bug donde no está.
+    cuerpo = src[i:src.index("new Audio(", i) + 40]
     assert "AudioManifest[txt]" in cuerpo, "el manifest dejó de buscarse con el texto original"
     assert "_deletrearParaLaVoz(txt)" in cuerpo, "el deletreo no llega al sintetizador"
     m = json.load(open(os.path.join(aw.AUDIO_DIR, "manifest.json"), encoding="utf-8"))

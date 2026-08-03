@@ -309,6 +309,12 @@ function _deletrearParaLaVoz(txt) {
 function reproducirConsigna(txt) {
   if (vozActual) { vozActual.pause(); vozActual = null; }
   if (!Sfx.on) return Promise.resolve(false);
+  // La actividad NO habla encima de una lección abierta (03-ago-2026). `mostrarComoEs` y
+  // `mostrarVideoLeccion` llaman a `pararVoz()` al abrirse, pero eso corta lo que YA
+  // estaba sonando: no impide que el juego de atrás arranque una consigna nueva un
+  // segundo después y se superponga con la voz del video. Pablo: *"tapa la voz al
+  // video"*. Acá se corta en el origen, para cualquier consigna venga de donde venga.
+  if (juegoTapado()) return Promise.resolve(false);
   // Texto FIJO → mp3 pregrabado del manifest (voz argentina, instantáneo).
   // Texto DINÁMICO (consignas/explicaciones generadas, que no están en el
   // manifest) → endpoint /tts on-demand, MISMA voz argentina, cacheado en el
@@ -335,6 +341,33 @@ function reproducirConsigna(txt) {
 // si no, la voz sigue explicando sobre la actividad que el chico ya volvió a jugar.
 function pararVoz() {
   if (vozActual) { vozActual.pause(); vozActual = null; }
+}
+
+/* ¿Hay algo TAPANDO el juego? (03-ago-2026)
+
+   Pablo, jugando "Núcleo del sujeto" de 5.º: *"estaba viendo el video y por atrás la
+   práctica seguía sin poder contestar. O sea no sólo tapa la voz al video sino que le
+   queda como que no respondió nada"*.
+
+   Las actividades CONTRARRELOJ medían el tiempo con `Date.now()` contra un `inicio` fijo,
+   y su único guard era `barraWrap.isConnected` — que sigue en `true` cuando se abre una
+   lección encima: el juego no se fue del DOM, quedó atrás. Entonces el reloj corría
+   igual, se acababa, marcaba la pregunta como no contestada y cantaba la siguiente por
+   arriba del video.
+
+   Es peor con `ofrecerLeccion`, que se abre SOLA en medio de la actividad ("vi que te
+   está costando"): el chico ni la pidió y pierde la ronda por mirarla.
+
+   Se mira el DOM y no una bandera que cada capa tenga que acordarse de prender y apagar:
+   así cualquier lección futura que use `comoes-fondo` queda cubierta sin tocar nada. Y
+   `document.hidden` cubre lo mismo cuando el chico cambia de pestaña o le entra una
+   llamada — el reloj tampoco tiene que correr ahí. */
+function juegoTapado() {
+  try {
+    return document.hidden || !!document.querySelector(".comoes-fondo");
+  } catch (_) {
+    return false;
+  }
 }
 // Desbloqueo de audio (15-jul-2026): algunos navegadores móviles (sobre todo
 // iOS) solo permiten reproducir audio con sonido si el .play() ocurre cerca
@@ -13218,14 +13251,19 @@ GAMES.tablas_contrarreloj = {
         if (v > 0 && v !== correcta) opciones.add(v);
       }
       let resuelto = false;
-      const inicio = Date.now();
+      // El tiempo se ACUMULA sólo mientras se está jugando: si se abre una lección
+      // encima (o el chico cambia de pestaña), el reloj se congela. Ver `juegoTapado`.
+      let jugado = 0, ultimo = Date.now();
       intervalId = setInterval(() => {
         if (!barraWrap.isConnected) {   // el jugador se fue a otra pantalla — no seguir de fondo
           clearInterval(intervalId);
           intervalId = null;
           return;
         }
-        const restante = Math.max(0, 1 - (Date.now() - inicio) / TIEMPO_MS);
+        const ahora = Date.now();
+        if (!juegoTapado()) jugado += ahora - ultimo;
+        ultimo = ahora;
+        const restante = Math.max(0, 1 - jugado / TIEMPO_MS);
         barra.style.width = (restante * 100) + "%";
         if (restante <= 0 && !resuelto) {
           clearInterval(intervalId);
@@ -15417,14 +15455,20 @@ GAMES.analisis_sintactico = {
       barraWrap.appendChild(barra);
       ctx.juego.appendChild(barraWrap);
       let resuelto = false;
-      const inicio = Date.now();
+      // Igual que en tablas_contrarreloj: el reloj cuenta sólo el tiempo JUGADO. Con el
+      // video de la lección abierto encima, se congela en vez de dar la ronda por
+      // perdida — que es el caso que reportó Pablo con esta actividad.
+      let jugado = 0, ultimo = Date.now();
       intervalId = setInterval(() => {
         if (!barraWrap.isConnected) {
           clearInterval(intervalId);
           intervalId = null;
           return;
         }
-        const restante = Math.max(0, 1 - (Date.now() - inicio) / TIEMPO_MS);
+        const ahora = Date.now();
+        if (!juegoTapado()) jugado += ahora - ultimo;
+        ultimo = ahora;
+        const restante = Math.max(0, 1 - jugado / TIEMPO_MS);
         barra.style.width = (restante * 100) + "%";
         if (restante <= 0 && !resuelto) {
           clearInterval(intervalId);
