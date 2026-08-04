@@ -228,6 +228,50 @@ def test_el_boton_de_cancelar_se_VE():
         "volvió el fondo transparente: el texto blanco desaparece"
 
 
+def test_las_opciones_NO_reusan_la_clase_de_los_botones_de_juego():
+    """*"Está peor, textos muy grandes y sigue sin entrar"*.
+
+    La primera versión les puso `.op` a las opciones — la clase de los botones de los
+    JUEGOS, que son de 38px de letra y 84px de alto. Cada frase se partía en dos renglones
+    y el formulario no entraba ni de casualidad.
+
+    Y no alcanzaba con declarar `.rep-op` antes: `.op` vive 130 líneas más abajo y, con la
+    misma especificidad, gana la última. Por eso el arreglo no es pelear la especificidad
+    sino NO reusar una clase pensada para otra cosa."""
+    cuerpo = _cuerpo_abrir_reporte()
+    assert '"op rep-op"' not in cuerpo and '"rep-op op"' not in cuerpo, \
+        "las opciones volvieron a usar `.op`: letra de 38px y 84px de alto por opción"
+    assert '"rep-op"' in cuerpo, "las opciones no tienen su propia clase"
+
+
+def test_ninguna_regla_del_formulario_pierde_contra_una_posterior():
+    """El bug de fondo, medido.
+
+    A igual especificidad gana la regla que viene DESPUÉS en la hoja. `.rep-op` estaba
+    declarada 130 líneas ANTES que `.op`, así que `.op` ganaba y las opciones salían con
+    38px de letra y 84px de alto.
+
+    Reusar una clase de otra parte NO está mal por sí solo —`.btn-sondeo--ghost` se reusa
+    bien, porque vive antes que las reglas del formulario y éstas la ajustan—. Lo que no
+    puede pasar es que una clase ajena se declare DESPUÉS: ahí pisa al formulario y el
+    síntoma aparece en la pantalla, no en los tests."""
+    import re as _re
+    usadas = set()
+    for grupo in _re.findall(r'el\("[a-z]+", "([a-z0-9- ]+)"', _cuerpo_abrir_reporte()):
+        usadas.update(c for c in grupo.split() if c and not c.startswith("comoes"))
+    assert usadas, "no se encontró ninguna clase del formulario"
+    # dónde arrancan las reglas propias del formulario
+    primera_propia = min(HTML.index(".%s" % c) for c in usadas if c.startswith("rep-"))
+    for c in sorted(usadas):
+        if c.startswith("rep-"):
+            assert ".%s" % c in HTML, "la clase `%s` no tiene estilos propios" % c
+            continue
+        pos = HTML.find(".%s" % c)
+        assert pos >= 0 and pos < primera_propia, (
+            "el formulario usa `%s`, que se declara DESPUÉS de sus propias reglas: "
+            "con la misma especificidad pisa al formulario (es lo que pasó con `.op`)" % c)
+
+
 def test_el_formulario_ENTRA_sin_scrollear():
     """*"Tiene la barra de scroll porque por poco no entra"*. Un formulario que hay que
     scrollear para llegar al Enviar es un formulario que no se manda.
