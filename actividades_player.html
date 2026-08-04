@@ -289,6 +289,37 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 .btn-sondeo:active { transform: scale(.96); }
 @media (hover:hover) { .btn-sondeo:hover { filter: brightness(1.08); } }
 .btn-sondeo--ghost { background: var(--soft); color: var(--ink); box-shadow: none; font-size: 16px; }
+
+/* ── El formulario del 🚩 ────────────────────────────────────────────────────────────
+   Compacto A PROPÓSITO (04-ago-2026). La primera versión reusaba los estilos de las
+   lecciones —opciones de 12px de padding y botones de 54px de alto— y no entraba en la
+   pantalla: aparecía una barra de scroll y el "Enviar" quedaba abajo del pliegue. Pablo:
+   *"tiene la barra de scroll porque por poco no entra"*. Un formulario que hay que
+   scrollear para mandar es un formulario que no se manda. */
+.comoes--reporte { max-width: 460px; padding: 20px 20px 16px; }
+.comoes--reporte .comoes-h { font-size: 21px; margin-bottom: 6px; }
+.rep-donde { font-size: 14.5px; line-height: 1.45; opacity: .78; margin: 0 0 12px; }
+.rep-sel {
+  width: 100%; box-sizing: border-box; font: inherit; font-size: 15px;
+  padding: 10px 12px; margin-bottom: 12px; border-radius: 10px;
+  border: 1px solid var(--soft); background: var(--card); color: var(--ink);
+}
+.rep-ops { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+/* Alto fijo y texto a la izquierda: cinco opciones centradas se leen como cinco botones
+   iguales y hay que leerlas todas. Alineadas, el ojo baja por el borde. */
+.rep-op {
+  text-align: left; font-size: 15.5px; padding: 9px 12px; min-height: 0;
+  line-height: 1.25;
+}
+.rep-txt {
+  width: 100%; box-sizing: border-box; font: inherit; font-size: 15px;
+  padding: 9px 12px; border-radius: 10px; border: 1px solid var(--soft);
+  background: var(--card); color: var(--ink); resize: vertical;
+}
+/* Los dos botones en FILA: apilados sumaban 108px de alto para dos palabras. */
+.rep-acciones { display: flex; gap: 8px; margin-top: 12px; }
+.rep-btn { flex: 1; min-width: 0; min-height: 46px; padding: 11px 16px; font-size: 17px; }
+.rep-btn:disabled { opacity: .45; cursor: default; }
 .sondeo-paso {
   text-align: center; font-family: "Baloo", Archivo, sans-serif; font-weight: 700;
   font-size: 14px; letter-spacing: .06em; text-transform: uppercase;

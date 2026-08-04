@@ -92,6 +92,21 @@ def _leidos():
     return [json.loads(l) for l in open(p, encoding="utf-8")]
 
 
+def _cuerpo_abrir_reporte(sin_comentarios=False):
+    """El cuerpo completo de `abrirReporte`, delimitado por la función siguiente.
+
+    Con `sin_comentarios` saca las líneas `//`: un test que busca "background:transparent"
+    se cazaba a sí mismo, porque esa cadena vive en el comentario que explica POR QUÉ no
+    hay que usarla. Misma trampa que ya apareció hoy dos veces en este repo."""
+    import re as _re
+    i = PLAYER.index("function abrirReporte")
+    j = PLAYER.index("\nfunction gatePadres", i)
+    cuerpo = PLAYER[i:j]
+    if sin_comentarios:
+        cuerpo = _re.sub(r"^\s*//[^\n]*$", "", cuerpo, flags=_re.M)
+    return cuerpo
+
+
 # ── el dónde viaja solo ────────────────────────────────────────────────────────────────
 
 def test_el_reporte_guarda_DONDE_estaba(token):
@@ -121,8 +136,7 @@ def test_se_puede_enviar_sin_escribir_nada(token):
     """La mayoría no va a redactar. Si el envío dependiera del texto, el reporte no sale."""
     assert _postear({"motivo": "roto"})["code"] == 200
     assert _leidos()[-1]["motivo"] == "roto"
-    i = PLAYER.index("function abrirReporte")
-    cuerpo = PLAYER[i:i + 3500]
+    cuerpo = _cuerpo_abrir_reporte()
     assert "(opcional)" in cuerpo, "el texto libre no está marcado como opcional"
     assert "enviar.disabled = true" in cuerpo, \
         "se puede enviar sin elegir motivo: llegaría un reporte sin ninguna pista"
@@ -194,8 +208,67 @@ def test_el_boton_esta_en_el_header_junto_a_los_otros():
 def test_se_agradece_aunque_el_envio_falle():
     """La familia hizo su parte. Decirle "no se pudo" no le sirve y la deja con la
     sensación de que no la escuchamos; el que tiene que enterarse es el servidor."""
-    i = PLAYER.index("function abrirReporte")
-    cuerpo = PLAYER[i:i + 3500]
+    cuerpo = _cuerpo_abrir_reporte()
     assert "¡Gracias!" in cuerpo
     k = cuerpo.index("¡Gracias!")
     assert "if (!ok" not in cuerpo[:k], "el agradecimiento está condicionado al envío"
+
+
+# ── los tres defectos que encontró Pablo probándolo (04-ago-2026) ──────────────────────
+
+def test_el_boton_de_cancelar_se_VE():
+    """*"Tiene un botón blanco sin nada abajo, no sé qué es"*.
+
+    Era el "Ahora no". Estaba con `background: transparent` inline, y como `.btn-sondeo`
+    trae `color:#fff`, quedaba BLANCO SOBRE BLANCO: un rectángulo vacío. La hoja ya tenía
+    `.btn-sondeo--ghost` (fondo `--soft`, texto `--ink`) hecho justo para esto."""
+    cuerpo = _cuerpo_abrir_reporte(sin_comentarios=True)
+    assert "btn-sondeo--ghost" in cuerpo, "el botón de cancelar no usa el estilo con texto visible"
+    assert "background:transparent" not in cuerpo.replace(" ", ""), \
+        "volvió el fondo transparente: el texto blanco desaparece"
+
+
+def test_el_formulario_ENTRA_sin_scrollear():
+    """*"Tiene la barra de scroll porque por poco no entra"*. Un formulario que hay que
+    scrollear para llegar al Enviar es un formulario que no se manda.
+
+    Se mide sobre las reglas que lo hacen compacto: sin ellas hereda las de las lecciones
+    (opciones de 12px y botones de 54px apilados) y no entra."""
+    assert ".comoes--reporte" in HTML, "el formulario no tiene estilos propios"
+    for regla in (".rep-op", ".rep-acciones", ".rep-btn"):
+        assert regla in HTML, "falta %s: el formulario vuelve a los estilos grandes" % regla
+    i = HTML.index(".rep-acciones")
+    assert "display: flex" in HTML[i:i + 120], \
+        "los dos botones van en FILA; apilados suman 108px por dos palabras"
+
+
+def test_desde_el_MENU_se_puede_decir_en_que_actividad():
+    """*"Si se pudiera ser más específico en la actividad mejor"*.
+
+    Jugando, el player ya sabe dónde está. Pero el 🚩 también se toca desde el menú —que es
+    donde uno se acuerda de avisar— y ahí el reporte salía como "el cuaderno", sin
+    actividad: justo el dato que lo hace accionable."""
+    cuerpo = _cuerpo_abrir_reporte()
+    assert "const enUnJuego = !!Shell.actual" in cuerpo
+    assert 'document.createElement("select")' in cuerpo, \
+        "desde el menú no se puede elegir la actividad"
+    assert "(D.menu || []).map" in cuerpo, "la lista no sale del menú del cuaderno"
+    # y lo elegido tiene que MANDAR sobre el contexto vacío
+    assert "if (sel && sel.value)" in cuerpo, "se arma la lista pero no se usa al enviar"
+    assert "ctx.titulo = m.titulo" in cuerpo, "no viaja el título de la actividad elegida"
+
+
+def test_jugando_NO_pregunta_la_actividad():
+    """El control del anterior. Si preguntara siempre, se le estaría pidiendo a la familia
+    un dato que el player ya tiene — que es exactamente lo que esta pantalla evita."""
+    cuerpo = _cuerpo_abrir_reporte()
+    j = cuerpo.index("if (!enUnJuego)")
+    k = cuerpo.index('document.createElement("select")')
+    assert j < k, "la lista se arma sin mirar si ya está adentro de una actividad"
+
+
+def test_la_lista_deja_no_saber():
+    """Obligar a elegir una de 39 actividades para poder avisar es otra forma de que no
+    avisen. La primera opción es "no sé"."""
+    cuerpo = _cuerpo_abrir_reporte()
+    assert 'value=""' in cuerpo and "No sé" in cuerpo
