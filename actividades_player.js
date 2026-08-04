@@ -6282,25 +6282,33 @@ function abrirReporte() {
   pararVoz();
   const ctx = _contextoDelReporte();
   const fondo = el("div", "comoes-fondo");
-  const card = el("div", "comoes");
-  const donde = ctx.titulo
-    ? `en <b>${ctx.titulo}</b>` : "en el cuaderno";
+  const card = el("div", "comoes comoes--reporte");
+  const enUnJuego = !!Shell.actual;
   card.innerHTML =
     '<div class="comoes-h">🚩 ¿Encontraste un error?</div>' +
-    `<p style="font-size:16px;line-height:1.5;margin:0 0 4px">Contanos qué pasa ${donde} y lo arreglamos.</p>` +
-    // El "dónde" se MUESTRA para que se vea que ya lo sabemos: sin esto la familia
-    // escribe la ubicación igual, por las dudas, y el formulario se vuelve un trámite.
-    (ctx.consigna
-      ? `<p style="font-size:13.5px;opacity:.7;margin:0 0 14px">Ya sabemos dónde: «${ctx.consigna}»</p>`
-      : '<p style="font-size:13.5px;opacity:.7;margin:0 0 14px">Ya sabemos en qué parte estabas.</p>');
-  const ops = el("div");
-  ops.style.cssText = "display:flex;flex-direction:column;gap:8px;margin-bottom:12px";
+    (enUnJuego
+      ? `<p class="rep-donde">En <b>${ctx.titulo || "esta actividad"}</b>` +
+        (ctx.consigna ? ` · «${ctx.consigna}»` : "") + "</p>"
+      : '<p class="rep-donde">Elegí en qué actividad lo viste:</p>');
+  // DESDE EL MENÚ HAY QUE PODER DECIR CUÁL (04-ago-2026). Pablo: *"si se pudiera ser más
+  // específico en la actividad mejor"*. Jugando, el player ya sabe dónde está; pero el 🚩
+  // también se toca desde el menú —que es donde uno se acuerda de avisar— y ahí el reporte
+  // salía como "el cuaderno", sin actividad. Una lista desplegable y no botones: son hasta
+  // 39 actividades y en botones el formulario no entraría en la pantalla.
+  let sel = null;
+  if (!enUnJuego) {
+    sel = document.createElement("select");
+    sel.className = "rep-sel";
+    sel.innerHTML = '<option value="">— No sé / es de todo el cuaderno —</option>' +
+      (D.menu || []).map((m) => `<option value="${m.id}">${m.titulo}</option>`).join("");
+    card.appendChild(sel);
+  }
+  const ops = el("div", "rep-ops");
   let elegido = null;
   const botones = [];
   _REPORTE_MOTIVOS.forEach(([clave, texto]) => {
-    const b = el("button", "op", texto);
+    const b = el("button", "op rep-op", texto);
     b.type = "button";
-    b.style.cssText = "text-align:left;font-size:16px;padding:12px 14px";
     b.addEventListener("click", () => {
       elegido = clave;
       botones.forEach((x) => x.classList.remove("bien"));
@@ -6313,20 +6321,26 @@ function abrirReporte() {
   const txt = document.createElement("textarea");
   txt.rows = 2; txt.maxLength = 500;
   txt.placeholder = "Si querés, contanos más (opcional)";
-  txt.style.cssText = "width:100%;box-sizing:border-box;font:inherit;font-size:15px;" +
-    "padding:10px 12px;border-radius:10px;border:1px solid var(--linea, #ccc);" +
-    "background:var(--card);color:var(--ink);resize:vertical";
+  txt.className = "rep-txt";
   card.appendChild(txt);
-  const enviar = el("button", "btn-sondeo", "Enviar");
+  const acciones = el("div", "rep-acciones");
+  const enviar = el("button", "btn-sondeo rep-btn", "Enviar");
   enviar.disabled = true;
-  enviar.style.marginTop = "12px";
-  const cerrar = el("button", "btn-sondeo", "Ahora no");
-  cerrar.style.cssText = "margin-top:8px;background:transparent;opacity:.7";
-  card.appendChild(enviar); card.appendChild(cerrar);
+  // `--ghost` y no un estilo inline: con `background:transparent` el texto blanco de
+  // `.btn-sondeo` quedaba BLANCO SOBRE BLANCO y el botón se veía vacío. Pablo: *"tiene un
+  // botón blanco sin nada abajo, no sé qué es"*.
+  const cerrar = el("button", "btn-sondeo btn-sondeo--ghost rep-btn", "Ahora no");
+  acciones.appendChild(enviar); acciones.appendChild(cerrar);
+  card.appendChild(acciones);
   cerrar.addEventListener("click", () => fondo.remove());
   fondo.addEventListener("click", (ev) => { if (ev.target === fondo) fondo.remove(); });
   enviar.addEventListener("click", async () => {
     enviar.disabled = true; enviar.textContent = "Enviando…";
+    // desde el menú, lo elegido en la lista MANDA sobre el contexto vacío
+    if (sel && sel.value) {
+      const m = (D.menu || []).find((x) => x.id === sel.value) || {};
+      ctx.juego = sel.value; ctx.titulo = m.titulo || ""; ctx.grado = String(m.grado || ctx.grado || "");
+    }
     const cuerpo = Object.assign({ motivo: elegido, detalle: txt.value.slice(0, 500) }, ctx);
     let ok = false;
     try {
@@ -6340,8 +6354,8 @@ function abrirReporte() {
     // no le sirve de nada y la deja con la sensación de que no la escuchamos. El que
     // tiene que enterarse del fallo es el server, y ahí sí queda en el log.
     card.innerHTML = '<div class="comoes-h">🙌 ¡Gracias!</div>' +
-      '<p style="font-size:16px;line-height:1.5">Ya nos llegó. Lo miramos y lo arreglamos.</p>';
-    const listo = el("button", "btn-sondeo", "Seguir jugando");
+      '<p class="rep-donde">Ya nos llegó. Lo miramos y lo arreglamos.</p>';
+    const listo = el("button", "btn-sondeo rep-btn", "Seguir jugando");
     listo.addEventListener("click", () => fondo.remove());
     card.appendChild(listo);
     if (!ok && window.console) { console.warn("el reporte no se pudo enviar"); }
