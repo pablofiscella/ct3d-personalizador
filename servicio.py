@@ -1698,6 +1698,90 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", "0")
         self.end_headers()
 
+    def _act_reporte(self, token):
+        """«Encontré un error acá» — el reporte que manda una familia desde el cuaderno.
+
+        Pablo, 03-ago-2026: *"un icono arriba junto con los otros para que nos puedan
+        informar algo… tipo Waze pero de esto, encontré en tal lugar"*.
+
+        LO QUE LO HACE ÚTIL ES EL CONTEXTO AUTOMÁTICO, igual que en Waze: el que reporta
+        NO tiene que explicar dónde está. El player manda la actividad, el grado, la ronda
+        y la consigna que había en pantalla; la persona sólo dice QUÉ pasa. Un "está mal"
+        sin el dónde es un reporte que no se puede accionar.
+
+        SE GUARDA Y SE AVISA. Guardar solo no alcanza: un archivo que nadie mira es lo
+        mismo que no tener nada —ya pasó hoy con el faro del embudo, que juntaba datos
+        desde el 31-jul sin que ninguna pantalla los mostrara—. El aviso sale por el mismo
+        canal que el resto (`notificaciones`), y si falla el reporte QUEDA IGUAL: perder
+        el aviso es molesto, perder el reporte es perder al que se tomó el trabajo.
+
+        Sin auth, como el resto de `/act/<token>`: el que tiene el link es el dueño del
+        cuaderno. Acotado por tope de archivo, igual que la telemetría."""
+        import actividades_web as aw
+        d = os.path.join(aw.ACT_DIR, token)
+        if not os.path.isdir(d):
+            return self._json(404, {"ok": False})
+        try:
+            ev = json.loads(self._body() or b"{}")
+        except Exception:
+            return self._json(400, {"ok": False})
+        if not isinstance(ev, dict):
+            return self._json(400, {"ok": False})
+        # Lista cerrada de motivos: es un endpoint público que escribe en disco, y sin
+        # esto el campo se vuelve texto libre sin tope semántico.
+        MOTIVOS = {"respuesta": "La respuesta está mal",
+                   "consigna": "No se entiende la consigna",
+                   "audio": "El audio está mal o no suena",
+                   "roto": "No funciona / no carga",
+                   "otro": "Otra cosa"}
+        motivo = str(ev.get("motivo") or "")[:20]
+        if motivo not in MOTIVOS:
+            motivo = "otro"
+        rec = {
+            "ts": __import__("datetime").datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "token": token,
+            "motivo": motivo,
+            "detalle": str(ev.get("detalle") or "")[:500],
+            "juego": str(ev.get("juego") or "")[:60],
+            "titulo": str(ev.get("titulo") or "")[:80],
+            "grado": str(ev.get("grado") or "")[:4],
+            "ronda": str(ev.get("ronda") or "")[:8],
+            "consigna": str(ev.get("consigna") or "")[:300],
+            "ua": str(self.headers.get("User-Agent") or "")[:160],
+        }
+        guardado = False
+        try:
+            p = os.path.join(d, "reportes.jsonl")
+            if not (os.path.isfile(p) and os.path.getsize(p) > 2 * 1024 * 1024):
+                with open(p, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                guardado = True
+        except Exception:
+            # `log_error` y no un logger de módulo: servicio.py no tiene uno, y el del
+            # propio handler ya sale al journal con la IP y la hora.
+            self.log_error("reporte de %s: no se pudo guardar", token)
+        # El aviso es best-effort y va DESPUÉS de guardar: si la tienda no está o el
+        # canal falla, el reporte ya quedó en disco.
+        try:
+            import sys as _sys
+            if "/opt/ct3d/backend" not in _sys.path:
+                _sys.path.insert(0, "/opt/ct3d/backend")
+            from notificaciones import notif_emit
+            donde = rec["titulo"] or rec["juego"] or "el cuaderno"
+            notif_emit(
+                "reporte_cuaderno",
+                titulo="🚩 Reportaron un error en %s" % donde,
+                detalle="%s · %s.º grado · ronda %s\n%s\nConsigna: %s\nToken: %s" % (
+                    MOTIVOS[motivo], rec["grado"] or "?", rec["ronda"] or "?",
+                    rec["detalle"] or "(sin detalle)", rec["consigna"] or "(sin consigna)",
+                    token),
+                wa_texto="🚩 %s\n%s\n%s.º grado · ronda %s\n%s" % (
+                    donde, MOTIVOS[motivo], rec["grado"] or "?", rec["ronda"] or "?",
+                    rec["detalle"] or ""))
+        except Exception:
+            self.log_error("reporte de %s: no se pudo avisar", token)
+        return self._json(200, {"ok": guardado})
+
     def _act_progreso_get(self, token):
         """Snapshot de progreso por chico de un token, para el tablero del padre en la
         biblioteca. {"profiles": {<perfil>: {"resumen": {...}, "dominados": [...], "ts"}}}"""
@@ -2157,6 +2241,9 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
         m_prog = re.match(r"^/act/([A-Za-z0-9_-]+)/progreso$", path)
         if m_prog:
             return self._act_progreso_set(m_prog.group(1))
+        m_rep = re.match(r"^/act/([A-Za-z0-9_-]+)/reporte$", path)
+        if m_rep:
+            return self._act_reporte(m_rep.group(1))
         m_her = re.match(r"^/act/([A-Za-z0-9_-]+)/herencia$", path)
         if m_her:
             return self._act_herencia_set(m_her.group(1))

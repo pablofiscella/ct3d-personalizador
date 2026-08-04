@@ -6238,6 +6238,118 @@ function _demoProgreso() {
 
 // Compuerta "para grandes": una cuenta de 2 cifras antes de abrir el panel (el chico no
 // llega solo al momento de compra). El adulto la resuelve al toque.
+/* ── «ENCONTRÉ UN ERROR ACÁ» (03-ago-2026) ───────────────────────────────────────
+   Pablo: *"un icono arriba junto con los otros para que nos puedan informar algo, una
+   especie de formulario para que si encuentran un error nos puedan avisar. Tipo Waze
+   pero de esto, encontré en tal lugar, etc"*.
+
+   LO QUE LO HACE ÚTIL ES QUE EL «DÓNDE» VIAJA SOLO. En Waze uno no escribe la calle: el
+   teléfono ya sabe dónde está. Acá igual — el reporte lleva la actividad, el grado, la
+   ronda y la consigna que había en pantalla, así que la familia sólo dice QUÉ pasa. Un
+   "está mal" sin el dónde no se puede accionar, y pedirle a una madre que explique en
+   qué ejercicio estaba es pedirle que haga el trabajo de soporte.
+
+   MOTIVOS DE UN TOQUE, texto opcional. La mayoría no va a escribir nada: si el envío
+   depende de redactar, el reporte no sale. Con los cinco motivos ya se sabe si es
+   contenido, audio o algo roto — que es lo que decide quién lo mira. */
+const _REPORTE_MOTIVOS = [
+  ["respuesta", "✖️ La respuesta está mal"],
+  ["consigna", "❓ No se entiende qué hay que hacer"],
+  ["audio", "🔊 El audio está mal o no suena"],
+  ["roto", "🧩 No funciona / no carga"],
+  ["otro", "💬 Otra cosa"],
+];
+
+function _contextoDelReporte() {
+  // Lo que el player YA sabe: no se le pregunta nada de esto a la familia.
+  const item = (D.menu || []).find((m) => m.id === Shell.actual) || {};
+  const cons = document.getElementById("consignaTexto");
+  return {
+    juego: Shell.actual || "(en el menú)",
+    titulo: item.titulo || "",
+    grado: String(item.grado || _gradoDeD() || ""),
+    ronda: String((Shell._rondaIdx || 0) + 1),
+    consigna: cons ? (cons.textContent || "").trim().slice(0, 300) : "",
+  };
+}
+
+function _gradoDeD() {
+  const m = /(\d)\.º grado/.exec(D.titulo || "");
+  return m ? m[1] : "";
+}
+
+function abrirReporte() {
+  pararVoz();
+  const ctx = _contextoDelReporte();
+  const fondo = el("div", "comoes-fondo");
+  const card = el("div", "comoes");
+  const donde = ctx.titulo
+    ? `en <b>${ctx.titulo}</b>` : "en el cuaderno";
+  card.innerHTML =
+    '<div class="comoes-h">🚩 ¿Encontraste un error?</div>' +
+    `<p style="font-size:16px;line-height:1.5;margin:0 0 4px">Contanos qué pasa ${donde} y lo arreglamos.</p>` +
+    // El "dónde" se MUESTRA para que se vea que ya lo sabemos: sin esto la familia
+    // escribe la ubicación igual, por las dudas, y el formulario se vuelve un trámite.
+    (ctx.consigna
+      ? `<p style="font-size:13.5px;opacity:.7;margin:0 0 14px">Ya sabemos dónde: «${ctx.consigna}»</p>`
+      : '<p style="font-size:13.5px;opacity:.7;margin:0 0 14px">Ya sabemos en qué parte estabas.</p>');
+  const ops = el("div");
+  ops.style.cssText = "display:flex;flex-direction:column;gap:8px;margin-bottom:12px";
+  let elegido = null;
+  const botones = [];
+  _REPORTE_MOTIVOS.forEach(([clave, texto]) => {
+    const b = el("button", "op", texto);
+    b.type = "button";
+    b.style.cssText = "text-align:left;font-size:16px;padding:12px 14px";
+    b.addEventListener("click", () => {
+      elegido = clave;
+      botones.forEach((x) => x.classList.remove("bien"));
+      b.classList.add("bien");
+      enviar.disabled = false;
+    });
+    botones.push(b); ops.appendChild(b);
+  });
+  card.appendChild(ops);
+  const txt = document.createElement("textarea");
+  txt.rows = 2; txt.maxLength = 500;
+  txt.placeholder = "Si querés, contanos más (opcional)";
+  txt.style.cssText = "width:100%;box-sizing:border-box;font:inherit;font-size:15px;" +
+    "padding:10px 12px;border-radius:10px;border:1px solid var(--linea, #ccc);" +
+    "background:var(--card);color:var(--ink);resize:vertical";
+  card.appendChild(txt);
+  const enviar = el("button", "btn-sondeo", "Enviar");
+  enviar.disabled = true;
+  enviar.style.marginTop = "12px";
+  const cerrar = el("button", "btn-sondeo", "Ahora no");
+  cerrar.style.cssText = "margin-top:8px;background:transparent;opacity:.7";
+  card.appendChild(enviar); card.appendChild(cerrar);
+  cerrar.addEventListener("click", () => fondo.remove());
+  fondo.addEventListener("click", (ev) => { if (ev.target === fondo) fondo.remove(); });
+  enviar.addEventListener("click", async () => {
+    enviar.disabled = true; enviar.textContent = "Enviando…";
+    const cuerpo = Object.assign({ motivo: elegido, detalle: txt.value.slice(0, 500) }, ctx);
+    let ok = false;
+    try {
+      const r = await fetch("reporte", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cuerpo),
+      });
+      ok = r.ok;
+    } catch (e) { ok = false; }
+    // Se agradece IGUAL si falló el envío. La familia hizo su parte; decirle "no se pudo"
+    // no le sirve de nada y la deja con la sensación de que no la escuchamos. El que
+    // tiene que enterarse del fallo es el server, y ahí sí queda en el log.
+    card.innerHTML = '<div class="comoes-h">🙌 ¡Gracias!</div>' +
+      '<p style="font-size:16px;line-height:1.5">Ya nos llegó. Lo miramos y lo arreglamos.</p>';
+    const listo = el("button", "btn-sondeo", "Seguir jugando");
+    listo.addEventListener("click", () => fondo.remove());
+    card.appendChild(listo);
+    if (!ok && window.console) { console.warn("el reporte no se pudo enviar"); }
+  });
+  fondo.appendChild(card);
+  document.body.appendChild(fondo);
+}
+
 function gatePadres() {
   const a = rint(11, 19), b = rint(12, 19), ok = a * b;
   const ov = el("div");
@@ -6440,6 +6552,10 @@ async function boot() {
     if (e.key === "Enter") elegirPerfil($("#perfilInput").value);
   });
   $("#perfilCancelar").addEventListener("click", cerrarPerfil);
+  // El 🚩 vive en el header y anda SIEMPRE: jugando, en el menú o en la pantalla de
+  // niveles. El error se encuentra en cualquiera de las tres.
+  const _rep = $("#btnReportar");
+  if (_rep) _rep.addEventListener("click", () => { Sfx.pop(); abrirReporte(); });
   $("#btnSonido").addEventListener("click", () => {
     Sfx.on = !Sfx.on;
     Store.data.sound = Sfx.on; Store.save();
