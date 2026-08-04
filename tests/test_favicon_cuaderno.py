@@ -44,8 +44,8 @@ def test_el_cuaderno_declara_un_favicon():
 def test_cada_marca_lleva_el_suyo():
     """Un favicon único pondría la marca equivocada en la mitad de los cuadernos."""
     kydo, ct3d = _html_de(True), _html_de(False)
-    assert "favicon-kydo.svg" in kydo and "favicon-ct3d.svg" not in kydo
-    assert "favicon-ct3d.svg" in ct3d and "favicon-kydo.svg" not in ct3d
+    assert "favicon_kydo.svg" in kydo and "favicon_ct3d.svg" not in kydo
+    assert "favicon_ct3d.svg" in ct3d and "favicon_kydo.svg" not in ct3d
     assert "Kydo" in kydo and "Casatridimensional" in ct3d
 
 
@@ -55,7 +55,7 @@ def test_los_dos_archivos_existen_y_se_sirven():
     orig = aw._cargar
     aw._cargar = lambda t: {"titulo": "x"}
     try:
-        for n in ("favicon-kydo.svg", "favicon-ct3d.svg"):
+        for n in ("favicon_kydo.svg", "favicon_ct3d.svg"):
             assert os.path.isfile(os.path.join(_BASE, n)), "falta el archivo %s" % n
             r = aw.archivo("token-de-prueba", n)
             assert r, "el motor no sirve %s (¿está en _ASSET_RE?)" % n
@@ -69,7 +69,7 @@ def test_los_dos_archivos_existen_y_se_sirven():
 def test_no_sirve_cualquier_favicon():
     """La lista blanca es lo que impide que el token se convierta en un servidor de
     archivos. Un nombre que no sea uno de los dos no puede pasar."""
-    for malo in ("favicon-otro.svg", "favicon-.svg", "favicon-kydo.png", "../secreto.svg"):
+    for malo in ("favicon_otro.svg", "favicon_.svg", "favicon_kydo.png", "../secreto.svg"):
         assert not aw._ASSET_RE.fullmatch(malo), "la lista blanca acepta %r" % malo
 
 
@@ -78,6 +78,32 @@ def test_el_favicon_lleva_la_version():
     nunca al que ya tiene el cuaderno abierto. Es el mismo agujero que tenía el manifest
     de inglés, y que costó una tarde encontrar."""
     h = _html_de(True)
-    i = h.index("favicon-kydo.svg")
-    assert h[i:i + 30].startswith("favicon-kydo.svg?v="), \
+    i = h.index("favicon_kydo.svg")
+    assert h[i:i + 30].startswith("favicon_kydo.svg?v="), \
         "el favicon se pide sin versión: un cambio no llega a los cuadernos ya abiertos"
+
+
+def test_todo_lo_que_el_motor_sirve_es_ALCANZABLE_por_la_ruta():
+    """Dos filtros distintos tienen que coincidir, y no coincidían.
+
+    `_ASSET_RE` dice QUÉ se sirve; la ruta de `servicio.py` dice qué NOMBRES llegan
+    siquiera a preguntar. Su charset es `[a-z_0-9.]` — **sin guion medio**. Todos los
+    assets del repo usan guion BAJO (`motor_adaptativo.js`, `ingles_manifest.json`,
+    `audio_manifest.json`), así que nunca se había notado; el favicon entró con guion medio
+    y daba 404 aunque estuviera en la lista blanca y el archivo existiera. Se descubrió
+    verificando contra producción, no leyendo el código.
+
+    Este test prueba nombres REALES contra las dos rejas a la vez."""
+    import re
+    ruta_src = open(os.path.join(_BASE, "servicio.py"), encoding="utf-8").read()
+    m = re.search(r'r"\^/act/\(\[A-Za-z0-9_-\]\+\)\(\?:/\(([^)]+)\)\)\?\$"', ruta_src)
+    assert m, "cambió la ruta de /act/ en servicio.py: revisá este test"
+    charset = re.compile("^%s$" % m.group(1))
+    nombres = ["favicon_kydo.svg", "favicon_ct3d.svg", "player.js", "data.json",
+               "ingles_manifest.json", "audio_manifest.json", "motor_adaptativo.js",
+               "duelo.js", "actividades_curriculum.js", "portada.jpg", "escena.jpg"]
+    for n in nombres:
+        assert aw._ASSET_RE.fullmatch(n), "%s no está en la lista blanca" % n
+        assert charset.match(n), \
+            ("%s está en la lista blanca pero la ruta de /act/ no lo deja pasar: "
+             "daría 404. Los nombres van con guion BAJO." % n)
