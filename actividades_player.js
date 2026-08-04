@@ -6307,12 +6307,12 @@ function abrirReporte() {
   let elegido = null;
   const botones = [];
   _REPORTE_MOTIVOS.forEach(([clave, texto]) => {
-    const b = el("button", "op rep-op", texto);
+    const b = el("button", "rep-op", texto);
     b.type = "button";
     b.addEventListener("click", () => {
       elegido = clave;
-      botones.forEach((x) => x.classList.remove("bien"));
-      b.classList.add("bien");
+      botones.forEach((x) => x.classList.remove("sel"));
+      b.classList.add("sel");
       enviar.disabled = false;
     });
     botones.push(b); ops.appendChild(b);
