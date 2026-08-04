@@ -1092,6 +1092,12 @@ button.pill:active, a.pill:active { transform: scale(.94); }
   <div id="hdrTitulo"><b id="hdrNombre">¡Hola!</b><span id="hdrSub"></span></div>
   <div class="pill" id="hdrEstrellas" aria-label="Estrellas ganadas">⭐ <span id="totalEstrellas">0</span></div>
   <button id="btnSonido" class="pill" aria-label="Sonido">🔊</button>
+  <!-- 🚩 «encontré un error acá». Pablo, 03-ago-2026: *"un icono arriba junto con los
+       otros para que nos puedan informar algo… tipo Waze pero de esto"*. Va en el
+       HEADER y no escondido en el panel de grandes: el error se encuentra JUGANDO, y
+       si hay que salir a buscar dónde avisar, no se avisa. Lo mismo que Waze: el botón
+       está donde estás cuando ves el problema. -->
+  <button id="btnReportar" class="pill" aria-label="Avisar de un error" title="¿Encontraste un error? Avisanos">🚩</button>
 </header>
 
 <main id="stage"></main>
