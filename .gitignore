@@ -66,3 +66,9 @@ datos_premium/
 
 # Partidas de duelos: datos de runtime, uno por partida (ver duelos.py)
 duelos/
+
+# Los Shorts armados por `shorts.py`. Son un artefacto: se regeneran de las lecciones, que
+# sí están versionadas. Y hoy (4-ago-2026) aprendimos por qué esto importa: `redes.html`
+# quedó sin ignorar, el hook de pre-push lo bloqueó, y el backup diario a GitHub estuvo
+# caído un día entero sin que nadie lo notara.
+shorts_out/
