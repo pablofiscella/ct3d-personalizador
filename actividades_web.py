@@ -2502,14 +2502,21 @@ def html(token):
     # player: la línea escolar es Kydo y la de cumpleaños Casatridimensional. Se resuelve
     # acá y no sólo en el JS para que la pestaña no muestre la marca equivocada durante
     # el primer instante de carga.
-    marca = "Kydo" if _es_escolar(token, reg) else "Casatridimensional"
+    escolar = _es_escolar(token, reg)
+    marca = "Kydo" if escolar else "Casatridimensional"
+    # El favicon va por marca igual que el título. Con la versión pegada: son archivos del
+    # REPO servidos por token, así que sin `?v=` un cambio de icono no le llegaría nunca al
+    # que ya tiene el cuaderno abierto — el mismo agujero que tenía el manifest de inglés.
+    favicon = ("favicon-kydo.svg" if escolar else "favicon-ct3d.svg") + "?v=" + _player_version()
     return (t.replace("{{TITULO}}", _esc(reg.get("titulo") or "Actividades"))
              .replace("{{MARCA}}", marca)
+             .replace("{{FAVICON}}", favicon)
              .replace("{{V}}", _player_version()))
 
 
 _ASSET_RE = re.compile(
     r"^(data\.json|extras\.json|player\.js|duelo\.js|motor_adaptativo\.js|actividades_curriculum\.js|f[12]\.ttf|[ps]\d{2}\.png|colorear_\d\.png|escena\.jpg|portada\.jpg"
+    r"|favicon-(?:kydo|ct3d)\.svg"
     r"|audio_manifest\.json|c_[a-f0-9]{10}\.mp3"
     # lecciones en video del botón "¿Cómo es?": salen del REPO como el player y el
     # audio de consignas — una sola copia para todos los tokens, así mejorar una
@@ -2526,7 +2533,7 @@ LECCION_DIR = os.path.join(BASEDIR, "lecciones_video")
 INGLES_DIR = os.path.join(BASEDIR, "audio_ingles")
 _CT = {".json": "application/json; charset=utf-8", ".js": "text/javascript; charset=utf-8",
        ".ttf": "font/ttf", ".png": "image/png", ".jpg": "image/jpeg", ".mp3": "audio/mpeg",
-       ".mp4": "video/mp4"}
+       ".mp4": "video/mp4", ".svg": "image/svg+xml"}
 
 
 def archivo(token, nombre):
@@ -2556,6 +2563,10 @@ def archivo(token, nombre):
         _base, _ext = nombre.rsplit(".", 1)
         _g, _n = _base[6:].split("_")
         p = os.path.join(ARTE_DIR, "g%s" % _g, "romp_%s.%s" % (_n, _ext))
+    elif nombre.startswith("favicon-"):
+        # Del REPO, como el player: el icono de la pestaña es de la MARCA, no de la
+        # compra, y así cambiarlo llega también a los cuadernos ya entregados.
+        p = os.path.join(BASEDIR, nombre)
     elif nombre == "ingles_manifest.json":
         p = os.path.join(INGLES_DIR, "manifest.json")
     elif nombre.startswith("en_") and nombre.endswith(".mp3"):
