@@ -111,6 +111,30 @@ def _fondo(tema):
         return None
 
 
+# El dominio que va al pie, POR MARCA (5-ago-2026).
+#
+# LO QUE PASABA: estaba escrito a mano como "casatridimensional.com.ar" en los cuatro pies
+# de este archivo. O sea que un chico terminaba el cuaderno escolar de Kydo —tres estrellas
+# en TODOS los juegos, que es un rato largo de trabajo— y el diploma que se ganaba, imprimía
+# y mostraba en la casa llevaba la firma del negocio de las lámparas.
+#
+# Se vio generando el diploma de un cuaderno escolar real (`revision-1ro`, `escolar_on:
+# True`) y mirando la imagen. No lo cazó ningún test: el diploma se renderiza EN VIVO cuando
+# el player lo pide, así que no hay ningún archivo guardado donde se note.
+#
+# Sale de `escolar_on`, el mismo interruptor que ya decide el título de la pestaña, el
+# favicon y la carpeta de lecciones. `data` ya lo trae —`certificado_logro` pasa
+# `dict(reg)`— así que no hubo que cambiarle la firma a nadie: la marca ya estaba ahí,
+# sólo que este archivo no la miraba.
+DOMINIO_KYDO = "kydo.com.ar"
+DOMINIO_TIENDA = "casatridimensional.com.ar"
+
+
+def _dominio(data):
+    """El dominio de la marca de ESTE cuaderno."""
+    return DOMINIO_KYDO if (data or {}).get("escolar_on") else DOMINIO_TIENDA
+
+
 def generar_certificado(data, tema="safari"):
     acc = _accent(tema)
     nombre = (str(data.get("nombre") or "").strip()) or "______________"
@@ -161,7 +185,7 @@ def generar_certificado(data, tema="safari"):
         dr.text((WpH * 0.41, yb + _mm(7)), "Firma del adulto a cargo de los abrazos",
                 font=_font(40, False), fill=(140, 140, 150), anchor="mm")
         _roseta(dr, WpH * 0.63, yb - _mm(4), _mm(13), acc, GOLD)
-        dr.text((cx, HpH - _mm(9)), "casatridimensional.com.ar", font=_font(36, False),
+        dr.text((cx, HpH - _mm(9)), _dominio(data), font=_font(36, False),
                 fill=(150, 148, 145), anchor="mm",
                 stroke_width=5, stroke_fill=(255, 253, 246))
     else:
@@ -171,7 +195,7 @@ def generar_certificado(data, tema="safari"):
         dr.text((WpH * 0.27, yb + _mm(8)), "Firma del adulto a cargo de los abrazos",
                 font=_font(40, False), fill=(150, 150, 160), anchor="mm")
         _roseta(dr, WpH * 0.72, yb - _mm(10), _mm(17), acc, GOLD)
-        dr.text((cx, HpH - _mm(12)), "casatridimensional.com.ar", font=_font(36, False),
+        dr.text((cx, HpH - _mm(12)), _dominio(data), font=_font(36, False),
                 fill=(180, 180, 180), anchor="mm")
     return im
 
@@ -226,7 +250,7 @@ def generar_certificado_logro(data, tema="safari"):
         dr.text((WpH * 0.41, yb + _mm(7)), "Firma del adulto a cargo de los abrazos",
                 font=_font(40, False), fill=(140, 140, 150), anchor="mm")
         _roseta(dr, WpH * 0.63, yb - _mm(4), _mm(13), acc, GOLD)
-        dr.text((cx, HpH - _mm(9)), "casatridimensional.com.ar", font=_font(36, False),
+        dr.text((cx, HpH - _mm(9)), _dominio(data), font=_font(36, False),
                 fill=(150, 148, 145), anchor="mm",
                 stroke_width=5, stroke_fill=(255, 253, 246))
     else:
@@ -235,7 +259,7 @@ def generar_certificado_logro(data, tema="safari"):
         dr.text((WpH * 0.27, yb + _mm(8)), "Firma del adulto a cargo de los abrazos",
                 font=_font(40, False), fill=(150, 150, 160), anchor="mm")
         _roseta(dr, WpH * 0.72, yb - _mm(10), _mm(17), acc, GOLD)
-        dr.text((cx, HpH - _mm(12)), "casatridimensional.com.ar", font=_font(36, False),
+        dr.text((cx, HpH - _mm(12)), _dominio(data), font=_font(36, False),
                 fill=(180, 180, 180), anchor="mm")
     return im
 
