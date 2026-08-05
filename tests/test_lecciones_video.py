@@ -78,16 +78,28 @@ def _cuerpo_de_funcion(src, nombre):
 
 
 def test_los_videos_salen_del_repo_no_del_token():
-    """Una sola copia para todos: mejorar una lección tiene que llegar también a los
-    links ya vendidos, igual que el player y el audio de consignas."""
+    """Una sola copia POR SISTEMA: mejorar una lección tiene que llegar también a los
+    links ya vendidos, igual que el player y el audio de consignas.
+
+    Desde el 4-ago-2026 la carpeta la elige `_leccion_dir(token)` en vez de ser una
+    constante: los cuadernos de Kydo leen la suya y los de cumpleaños la suya, después de
+    que la marca de un negocio apareciera dentro de una lección del otro.
+
+    Lo que este test cuida NO cambió — que los videos salgan del REPO y no de la carpeta
+    del token — así que se comprueba esa idea y no el nombre de la constante. Atarlo al
+    literal es lo que lo hizo romperse con un cambio correcto; es el mismo error que ya
+    tenía anotado arriba con la ventana de 1600 caracteres."""
     import actividades_web as aw
     src = open(os.path.join(BASEDIR, "actividades_web.py"), encoding="utf-8").read()
     cuerpo = _cuerpo_de_funcion(src, "archivo")
-    assert "LECCION_DIR" in cuerpo, "los mp4 se estarían buscando en la carpeta del token"
-    # y que el .mp4 sea EL que va a esa carpeta, no otra rama que la nombre de paso
-    assert re.search(r'\.mp4["\']\)?:\s*\n\s*p = os\.path\.join\(LECCION_DIR', cuerpo), \
-        "la rama de los .mp4 ya no apunta a LECCION_DIR"
+    # la rama de los .mp4 apunta a una carpeta del REPO, no a la del token
+    assert re.search(r'\.mp4["\']\)?:\s*\n(?:\s*#[^\n]*\n)*\s*p = os\.path\.join\('
+                     r'(?:LECCION_DIR|_leccion_dir\()', cuerpo), \
+        "los mp4 se estarían buscando en la carpeta del token"
+    assert "ACT_DIR" not in cuerpo.split(".mp4")[1].split("else")[0], \
+        "la rama de los .mp4 pasó a leer la carpeta del token"
     assert aw.LECCION_DIR.endswith("lecciones_video")
+    assert aw.LECCION_DIR_KYDO.endswith("lecciones_video_kydo")
 
 
 # ── cuándo se muestra ───────────────────────────────────────────────────────────
