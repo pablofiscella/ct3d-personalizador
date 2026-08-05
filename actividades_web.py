@@ -2529,7 +2529,37 @@ _ASSET_RE = re.compile(
     # rioplatense de las consignas. Mismo criterio que el resto — salen del repo,
     # una sola copia para todos los tokens.
     r"|ingles_manifest\.json|en_[a-f0-9]{16}\.mp3)$")
-LECCION_DIR = os.path.join(BASEDIR, "lecciones_video")
+# ─────────────────────────────────────────────────────────────────────────────
+# LAS LECCIONES SON DE CADA SISTEMA, NO COMPARTIDAS (4-ago-2026)
+#
+# Pablo, al ver la marca de las lámparas dentro de una lección servida en un cuaderno de
+# Kydo: *"no puedo creer que siga pasando. ¿Sigue compartiendo cosas?"*. Y la decisión:
+# *"quiero que separemos todo. Nada tiene que compartir con Casatridimensional. Si algo se
+# duplica está bien porque son dos sistemas distintos"*.
+#
+# Hasta hoy había UNA carpeta de lecciones para las dos marcas, y por eso una línea escrita
+# en el cierre de una lección terminó apareciendo en el cuaderno del otro negocio.
+#
+# NO son dos copias que haya que mantener sincronizadas: son dos sistemas que **pueden
+# divergir**, que es exactamente el punto de la regla. El día que Kydo quiera una lección
+# distinta a la de cumpleaños, la cambia sin pedirle permiso a nadie.
+#
+# El que decide es `_es_escolar(token)`, el MISMO flag que ya elige la marca del título y
+# del favicon. Un solo lugar decide qué marca es un cuaderno; si mañana cambia, cambia una
+# vez.
+LECCION_DIR = os.path.join(BASEDIR, "lecciones_video")            # cumpleaños (CT3D)
+LECCION_DIR_KYDO = os.path.join(BASEDIR, "lecciones_video_kydo")  # escolar (Kydo)
+
+
+def _leccion_dir(token, reg=None):
+    """De qué carpeta salen las lecciones de ESTE cuaderno.
+
+    Si la carpeta de Kydo todavía no existe —por ejemplo en un despliegue a medias— cae a
+    la de cumpleaños en vez de dejar al chico sin la lección. Servir el video correcto
+    importa; servir NINGUNO es peor que el problema de marca que esto viene a arreglar."""
+    if _es_escolar(token, reg) and os.path.isdir(LECCION_DIR_KYDO):
+        return LECCION_DIR_KYDO
+    return LECCION_DIR
 INGLES_DIR = os.path.join(BASEDIR, "audio_ingles")
 _CT = {".json": "application/json; charset=utf-8", ".js": "text/javascript; charset=utf-8",
        ".ttf": "font/ttf", ".png": "image/png", ".jpg": "image/jpeg", ".mp3": "audio/mpeg",
@@ -2574,7 +2604,9 @@ def archivo(token, nombre):
     elif nombre == "audio_manifest.json" or nombre.endswith(".mp3"):
         p = os.path.join(AUDIO_DIR, "manifest.json" if nombre == "audio_manifest.json" else nombre)
     elif nombre.endswith(".mp4"):
-        p = os.path.join(LECCION_DIR, nombre)
+        # POR SISTEMA, no compartida: un cuaderno de Kydo lee de la carpeta de Kydo.
+        # Ver `_leccion_dir`.
+        p = os.path.join(_leccion_dir(token), nombre)
     else:
         p = os.path.join(ACT_DIR, token, nombre)
     if not os.path.isfile(p):
