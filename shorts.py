@@ -222,7 +222,19 @@ def titulos_de_lecciones():
     return out
 
 
-def _filtro(g, dur_leccion):
+VOCES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ganchos_voz")
+
+
+def voz_de(nombre):
+    """El clip de voz del gancho de esta lección, o None.
+
+    `lec_acentuacion_esdrujulas.mp4` → `ganchos_voz/acentuacion_esdrujulas.mp3`."""
+    slug = nombre[4:-4] if nombre.startswith("lec_") else os.path.splitext(nombre)[0]
+    ruta = os.path.join(VOCES, slug + ".mp3")
+    return ruta if os.path.exists(ruta) else None
+
+
+def _filtro(g, dur_leccion, voz=None):
     """El filtro de ffmpeg, en piezas para que se pueda leer.
 
     La lección va escalada al ancho completo y centrada. NO se recorta: recortar 16:9 a 9:16
@@ -243,14 +255,19 @@ def _filtro(g, dur_leccion):
     q, a = esc(g["q"]), esc(g["a"])
     cierre, url = esc(CIERRE), esc(CIERRE_URL)
     t0 = T_GANCHO
-    fin = dur_leccion
+    # El Short dura la lección MÁS la tarjeta del gancho: la lección ya no se pisa, empieza
+    # cuando la tarjeta se levanta. Si `fin` siguiera siendo `dur_leccion`, se cortarían los
+    # últimos 2,5 segundos de la explicación — que es donde suele estar la conclusión.
+    fin = dur_leccion + T_GANCHO
 
     return ";".join([
         "color=c=%s:s=%dx%d:d=%.2f[bg]" % (FONDO, W, H, fin),
 
-        # La lección desde el segundo CERO, imagen y voz en su tiempo original: sin
-        # `setpts` ni `adelay`, que eran los que metían el silencio.
-        "[0:v]scale=%d:-2[lec]" % W,
+        # IMAGEN Y SONIDO SE CORREN JUNTOS. El `setpts` acá y el `adelay` de abajo son la
+        # misma decisión partida en dos: si se mueve uno solo, la boca va por un lado y la
+        # voz por otro. El comentario de la versión anterior ya lo advertía —"los dos tienen
+        # que irse juntos"— y se cumplió sacando los dos; ahora se cumple poniéndolos.
+        "[0:v]scale=%d:-2,setpts=PTS+%.2f/TB[lec]" % (W, T_GANCHO),
         "[bg][lec]overlay=(W-w)/2:(H-h)/2[v0]",
 
         # GANCHO, TIEMPO 1 — la pregunta, pantalla entera. Tarjeta sólida encima de todo:
@@ -293,12 +310,40 @@ def _filtro(g, dur_leccion):
         "x=(w-text_w)/2:y=h-250:enable='gte(t,%.2f)'[vout]"
         % (FUENTE, url, ACENTO, fin - 2.5),
 
-        # El audio, TAL CUAL, sin correr. Acá vivía el `adelay` que metía los 2,5 segundos
-        # de silencio al abrir: se sacó junto con el `setpts` del video, y los dos tienen
-        # que irse juntos o la voz queda desfasada de la imagen. `apad` se queda porque
-        # evita que el archivo termine antes que la imagen si el audio es más corto.
-        "[0:a]apad[aout]",
-    ])
+        # ── LA REGLA DEL AUDIO (5-ago-2026) ────────────────────────────────────────
+        #
+        # **La voz de la lección NO puede sonar mientras la tarjeta del gancho tapa la
+        # pantalla.** Es lo único que hay que respetar acá, y se rompió de la forma más
+        # fácil de no ver: la imagen y el sonido eran correctos por separado.
+        #
+        # Pablo lo escuchó: *"los audios están corridos. No habla el texto inicial y eso
+        # hace que quede todo corrido"*. Medido después: −18,8 dB desde el segundo cero, o
+        # sea la explicación arrancando debajo de la pregunta.
+        #
+        # POR QUÉ ESTABA ASÍ, y no fue un descuido: la versión anterior corría la lección
+        # 2,5 s y el Short abría con silencio absoluto, que en un feed es peor. La solución
+        # fue taparlo con la voz del gancho... pero el motor NUNCA mezcló esa voz. Sólo
+        # existía en el Short que se armó a mano. O sea que la premisa del arreglo anterior
+        # —"la voz del gancho cubre el silencio"— no era cierta en el código.
+        #
+        # Ahora hay dos caminos y ninguno desincroniza:
+        #
+        #   · CON voz de gancho  → la voz suena desde 0 y la lección entra cuando termina
+        #     la tarjeta. Que es lo que se quería desde el principio.
+        #   · SIN voz de gancho  → la lección se corre lo que dura la tarjeta. Vuelven los
+        #     2,5 s sin explicación, pero se lee la pregunta y no se pierde nada de la
+        #     lección. Silencio es peor que nada; desincronizado es peor que silencio.
+        #
+        # Y el video se corre junto con el audio (`setpts`), o volvemos a tener el problema
+        # inverso: el sonido atrasado respecto de la imagen.
+    ] + ([
+        "[0:a]adelay=%d|%d[lecA]" % (int(T_GANCHO * 1000), int(T_GANCHO * 1000)),
+        "[1:a]adelay=0|0[gancho]",
+        "[gancho][lecA]amix=inputs=2:dropout_transition=0:normalize=0[am]",
+        "[am]apad[aout]",
+    ] if voz else [
+        "[0:a]adelay=%d|%d,apad[aout]" % (int(T_GANCHO * 1000), int(T_GANCHO * 1000)),
+    ]))
 
 
 def duracion(ruta):
@@ -327,13 +372,18 @@ def armar(nombre, salida_dir=SALIDA, leccion_dir=LECCIONES, quiet=False):
 
     os.makedirs(salida_dir, exist_ok=True)
     destino = os.path.join(salida_dir, nombre.replace("lec_", "short_"))
-    cmd = ["ffmpeg", "-v", "error", "-y", "-i", entrada,
-           "-filter_complex", _filtro(g, dur),
-           "-map", "[vout]", "-map", "[aout]",
-           "-c:v", "libx264", "-preset", "medium", "-crf", "20",
-           "-pix_fmt", "yuv420p", "-r", "30",
-           "-c:a", "aac", "-b:a", "128k",
-           "-t", "%.2f" % dur, destino]
+    voz = voz_de(nombre)
+    cmd = ["ffmpeg", "-v", "error", "-y", "-i", entrada]
+    if voz:
+        cmd += ["-i", voz]                     # entrada 1: la voz del gancho
+    cmd += ["-filter_complex", _filtro(g, dur, voz),
+            "-map", "[vout]", "-map", "[aout]",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "20",
+            "-pix_fmt", "yuv420p", "-r", "30",
+            "-c:a", "aac", "-b:a", "128k",
+            # La lección MÁS la tarjeta: si se cortara en `dur`, se perderían los últimos
+            # 2,5 segundos de la explicación, que es donde suele estar la conclusión.
+            "-t", "%.2f" % (dur + T_GANCHO), destino]
     r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode != 0:
         return False, "ffmpeg falló: %s" % (r.stderr.strip()[:400] or "sin detalle")
