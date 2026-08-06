@@ -87,11 +87,43 @@ FUENTE = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 FUENTE_R = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 
 # Los tiempos del gancho. El disparador entero antes de 1,5 s y el anclaje antes de 3.
-T_DISPARO = 1.25
-T_ANCLA = 1.25
-T_GANCHO = T_DISPARO + T_ANCLA
+# ═════════════════════════════════════════════════════════════════════════════
+# REGLA 1 — LA TARJETA DEL GANCHO DURA LO QUE DURA SU VOZ
+#
+# 6-ago-2026. Pablo: *"el momento en el que habla cuando comienza es más largo que lo que
+# dura el banner y se solapa con el audio de la explicación"*.
+#
+# `T_GANCHO` estaba fijo en 2,5 s. El gancho de esdrújulas dura 2,0 y entraba; los tres que
+# se grabaron después duran 3,2, 3,3 y 4,8 — así que la voz del gancho seguía hablando
+# mientras arrancaba la explicación. Dos voces encima, que es peor que el silencio original.
+#
+# Y es un error REPETIDO: el día anterior se arregló que la tarjeta del CIERRE durara lo que
+# dura su voz, y no se aplicó lo mismo al gancho. La misma regla, media aplicada.
+#
+# `T_GANCHO_MIN` es el piso: aunque no haya voz, la pregunta tiene que poder leerse.
+# ═════════════════════════════════════════════════════════════════════════════
+T_GANCHO_MIN = 2.5
 
 # ─────────────────────────────────────────────────────────────────────────────
+# ═════════════════════════════════════════════════════════════════════════════
+# REGLA 2 — EL GANCHO HABLADO ES UNA PREGUNTA CORTA DEL TEMA
+#
+# 6-ago-2026. Pablo, comparando: *"en el de las esdrújulas comenzaba mejor diciendo «¿sabés
+# la regla de las esdrújulas?». Ese es el gancho: una pregunta"*.
+#
+# El primer intento grabó el texto ESCRITO del gancho, que es más largo y no siempre es una
+# pregunta: «Camión lleva tilde. Camiones no. ¿Sabés por qué?» son una afirmación y después
+# una pregunta, y dura 4,8 segundos. La versión que funciona dura 2,0 y es una sola pregunta.
+#
+# Son dos textos DISTINTOS a propósito, y conviene entender por qué:
+#
+#   · el ESCRITO puede ser más largo y traer el ejemplo — se lee de un vistazo y se relee
+#   · el HABLADO tiene que ser una pregunta y nada más — se escucha una vez, y cada segundo
+#     antes de la explicación es un segundo donde alguien suelta
+#
+# El molde: «¿Sabés <la regla / qué es / por qué> …?» sobre el tema, sin ejemplo.
+# ═════════════════════════════════════════════════════════════════════════════
+
 # LOS GANCHOS, uno por lección y escritos a mano.
 #
 #   q   la pregunta. Específica, con un ejemplo real, nunca de sí o no.
@@ -253,7 +285,8 @@ def voz_de(nombre):
 IDX_GANCHO = 1
 
 
-def _filtro(g, dur_leccion, voz=None, llena=False, t_cierre=T_CIERRE, vc=False):
+def _filtro(g, dur_leccion, voz=None, llena=False, t_cierre=T_CIERRE, vc=False,
+            t_gancho=T_GANCHO_MIN):
     """El filtro completo. `voz` es el clip del gancho (o None) y `vc` si hay remate hablado.
 
     Los índices de entrada de ffmpeg dependen de qué clips existan: la lección es siempre 0,
@@ -279,7 +312,7 @@ def _filtro(g, dur_leccion, voz=None, llena=False, t_cierre=T_CIERRE, vc=False):
     del gancho no está escondiendo contenido. Y de paso el Short dura 2,5 segundos menos."""
     q, a = esc(g["q"]), esc(g["a"])
     cierre, url = esc(CIERRE), esc(CIERRE_URL)
-    t0 = T_GANCHO
+    t0 = t_gancho
     # El Short dura la lección MÁS la tarjeta del gancho: la lección ya no se pisa, empieza
     # cuando la tarjeta se levanta. Si `fin` siguiera siendo `dur_leccion`, se cortarían los
     # últimos 2,5 segundos de la explicación — que es donde suele estar la conclusión.
@@ -293,7 +326,7 @@ def _filtro(g, dur_leccion, voz=None, llena=False, t_cierre=T_CIERRE, vc=False):
     # En el Short que él aprobó el orden es ése: la lección cierra con su «En resumen», se
     # calla, y ahí entra la tarjeta. El remate es lo último que se ve y lo único que pide
     # algo — compartirlo con la explicación lo convierte en ruido.
-    fin_leccion = dur_leccion + T_GANCHO
+    fin_leccion = dur_leccion + t_gancho
     fin = fin_leccion + t_cierre
 
     return ";".join([
@@ -316,7 +349,7 @@ def _filtro(g, dur_leccion, voz=None, llena=False, t_cierre=T_CIERRE, vc=False):
         # el medio. Lo correcto es renderizar la lección vertical desde la fuente; esto es
         # la red para el que todavía no la tenga.
         "[0:v]scale=%d:%d:force_original_aspect_ratio=increase,"
-        "crop=%d:%d,setpts=PTS+%.2f/TB[lec]" % (W, H, W, H, T_GANCHO),
+        "crop=%d:%d,setpts=PTS+%.2f/TB[lec]" % (W, H, W, H, t_gancho),
         "[bg][lec]overlay=0:0[v0]",
 
         # GANCHO, TIEMPO 1 — la pregunta, pantalla entera. Tarjeta sólida encima de todo:
@@ -325,11 +358,11 @@ def _filtro(g, dur_leccion, voz=None, llena=False, t_cierre=T_CIERRE, vc=False):
         # porque después entraba la tarjeta del anclaje; sin ella quedaba un hueco de 1,25 s
         # con la lección a la vista y su audio todavía retenido.
         "[v0]drawbox=x=0:y=0:w=%d:h=%d:color=%s@1:t=fill:enable='lt(t,%.2f)'[v1]"
-        % (W, H, TINTA, T_GANCHO),
+        % (W, H, TINTA, t_gancho),
     ] + bloque_centrado(
         "v1", "v2", g["q"], FUENTE, BLANCO,
         tam_que_entra(g["q"].split("\n"), FUENTE, W - 2 * MARGEN, 130),
-        H // 2, enable="lt(t,%.2f)" % T_GANCHO,
+        H // 2, enable="lt(t,%.2f)" % t_gancho,
     ) + [
         # EL ANCLAJE SE FUE (6-ago-2026). Era una segunda tarjeta con «Lengua · 5.º
         # grado» y «en 20 segundos», entre el gancho y la lección. Pablo, mirando el primer
@@ -411,7 +444,7 @@ def _filtro(g, dur_leccion, voz=None, llena=False, t_cierre=T_CIERRE, vc=False):
         # Pablo pidió las tres: *"el gancho estaba hablado"* y *"el cierre hablando como al
         # comienzo"*. Un Short mudo en las puntas desperdicia justo los momentos donde se
         # decide si alguien se queda y si alguien hace clic.
-        "[0:a]adelay=%d|%d[lecA]" % (int(T_GANCHO * 1000), int(T_GANCHO * 1000)),
+        "[0:a]adelay=%d|%d[lecA]" % (int(t_gancho * 1000), int(t_gancho * 1000)),
     ] + ([
         "[%d:a]adelay=0|0[ganA]" % IDX_GANCHO,
     ] if voz else []) + ([
@@ -474,19 +507,22 @@ def armar(nombre, salida_dir=SALIDA, leccion_dir=LECCIONES, quiet=False):
     # mitad de frase.
     vc = voz_cierre()
     t_cierre = max(T_CIERRE, duracion(vc) + 0.3) if vc else T_CIERRE
+    # REGLA 1: la tarjeta dura lo que dura la voz del gancho, más un respiro. Con un valor
+    # fijo, un gancho hablado más largo sigue sonando debajo de la explicación.
+    t_gancho = max(T_GANCHO_MIN, duracion(voz) + 0.4) if voz else T_GANCHO_MIN
     cmd = ["ffmpeg", "-v", "error", "-y", "-i", entrada]
     if voz:
         cmd += ["-i", voz]                     # entrada 1: la voz del gancho
     if vc:
         cmd += ["-i", vc]                      # y después: el remate
-    cmd += ["-filter_complex", _filtro(g, dur, voz, llena, t_cierre, bool(vc)),
+    cmd += ["-filter_complex", _filtro(g, dur, voz, llena, t_cierre, bool(vc), t_gancho),
             "-map", "[vout]", "-map", "[aout]",
             "-c:v", "libx264", "-preset", "medium", "-crf", "20",
             "-pix_fmt", "yuv420p", "-r", "30",
             "-c:a", "aac", "-b:a", "128k",
             # La lección MÁS la tarjeta: si se cortara en `dur`, se perderían los últimos
             # 2,5 segundos de la explicación, que es donde suele estar la conclusión.
-            "-t", "%.2f" % (dur + T_GANCHO + t_cierre), destino]
+            "-t", "%.2f" % (dur + t_gancho + t_cierre), destino]
     r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode != 0:
         return False, "ffmpeg falló: %s" % (r.stderr.strip()[:400] or "sin detalle")

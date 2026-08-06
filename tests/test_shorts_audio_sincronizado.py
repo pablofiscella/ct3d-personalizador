@@ -38,6 +38,16 @@ RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, RAIZ)
 
 
+def _t_gancho(motor, nombre):
+    """Cuánto dura la tarjeta del gancho para ESA lección.
+
+    Desde el 6-ago-2026 ya no es una constante: sigue el largo de la voz. Los tests que
+    usaban `T_GANCHO` a secas se rompieron acá, y está bien que se hayan roto — asumían
+    justamente lo que la regla nueva vino a sacar."""
+    voz = motor.voz_de(nombre)
+    return max(motor.T_GANCHO_MIN, motor.duracion(voz) + 0.4) if voz else motor.T_GANCHO_MIN
+
+
 def _volumen(ruta, desde, dur=1.5):
     """El volumen medio de un tramo, en dB. -91 es silencio digital."""
     r = subprocess.run(
@@ -77,7 +87,7 @@ def test_sin_voz_de_gancho_la_leccion_NO_suena_bajo_la_tarjeta(shorts):
     for nombre, ruta, voz in shorts:
         if voz:
             continue
-        v = _volumen(ruta, 0, motor.T_GANCHO - 0.3)
+        v = _volumen(ruta, 0, _t_gancho(motor, nombre) - 0.3)
         assert v is not None, "no pude medir %s" % ruta
         assert v < -60, (
             "%s: la lección habla (%.1f dB) mientras la tarjeta del gancho tapa la "
@@ -101,7 +111,7 @@ def test_la_leccion_empieza_a_sonar_cuando_se_levanta_la_tarjeta(shorts):
     el `adelay` se pasó de largo y estamos perdiendo explicación."""
     import shorts as motor
     for nombre, ruta, _ in shorts:
-        v = _volumen(ruta, motor.T_GANCHO + 0.5, 2)
+        v = _volumen(ruta, _t_gancho(motor, nombre) + 0.5, 2)
         assert v is not None and v > -50, (
             "%s sigue mudo después de la tarjeta (%.1f dB)" % (nombre, v if v else -99))
 
@@ -113,7 +123,7 @@ def test_no_se_corta_el_final_de_la_leccion(shorts):
     for nombre, ruta, _ in shorts:
         d_lec = motor.duracion(os.path.join(motor.LECCIONES, nombre))
         d_short = motor.duracion(ruta)
-        assert d_short >= d_lec + motor.T_GANCHO - 0.5, (
+        assert d_short >= d_lec + _t_gancho(motor, nombre) - 0.5, (
             "%s dura %.1fs y la lección %.1fs: se está cortando el final"
             % (nombre, d_short, d_lec))
 
@@ -131,3 +141,63 @@ def test_la_voz_se_busca_por_el_nombre_de_la_leccion():
     assert motor.voz_de("lec_acentuacion_esdrujulas.mp4", ) == os.path.join(
         motor.VOCES, "acentuacion_esdrujulas.mp3")
     assert motor.voz_de("lec_no_existe_esta.mp4") is None
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# LAS DOS REGLAS DEL GANCHO (6-ago-2026)
+#
+# Pablo, escuchando los tres Shorts nuevos: *"el momento en el que habla cuando comienza es
+# más largo que lo que dura el banner y se solapa con el audio de la explicación"*. Y:
+# *"en el de las esdrújulas comenzaba mejor diciendo «¿sabés la regla de las esdrújulas?».
+# Ese es el gancho: una pregunta"*. Y cerró: *"faltan reglas al skill"*.
+#
+# Tenía razón en que faltaban. Van acá y no en un comentario porque una regla que nadie
+# verifica se rompe en la corrida siguiente — la del cierre se arregló un día antes y al
+# gancho no se le aplicó, siendo la misma.
+# ═════════════════════════════════════════════════════════════════════════════
+
+def test_REGLA_la_tarjeta_dura_LO_QUE_DURA_la_voz_del_gancho():
+    """Un valor fijo deja la voz sonando debajo de la explicación.
+
+    `T_GANCHO` estaba en 2,5 s. El gancho de esdrújulas dura 2,0 y entraba; los grabados
+    después duraban 3,2, 3,3 y 4,8 — dos voces encima, que es peor que el silencio que este
+    diseño vino a evitar."""
+    import shorts as motor
+    for nombre in motor.GANCHOS:
+        voz = motor.voz_de(nombre)
+        if not voz:
+            continue
+        d = motor.duracion(voz)
+        t = max(motor.T_GANCHO_MIN, d + 0.4)
+        assert t >= d, ("la tarjeta de %s dura %.1fs y su voz %.1fs: la voz sigue sonando "
+                        "debajo de la explicación" % (nombre, t, d))
+
+
+def test_REGLA_el_gancho_hablado_es_UNA_PREGUNTA():
+    """Se escucha una vez y no se puede releer. Una afirmación seguida de pregunta —
+    «Camión lleva tilde. Camiones no. ¿Sabés por qué?»— dura 4,8 s y el doble de lo que
+    hace falta para que alguien decida quedarse.
+
+    El molde es el de la que funciona: «¿Sabés <la regla / qué es / por qué>…?» sobre el
+    tema, sin ejemplo. El texto ESCRITO puede ser más largo y traer el ejemplo: ése se lee
+    de un vistazo y se relee. Son dos textos distintos a propósito."""
+    import shorts as motor
+    src = open(os.path.join(RAIZ, "shorts.py"), encoding="utf-8").read()
+    assert "REGLA 2" in src and "una pregunta" in src.lower(), (
+        "la regla del gancho hablado no está escrita en el módulo")
+
+
+def test_REGLA_ninguna_voz_de_gancho_es_larga():
+    """El piso práctico: si un gancho hablado pasa de 3 segundos, dejó de ser una pregunta.
+
+    No es un límite técnico —la regla 1 lo acomoda igual— es un límite de diseño: cada
+    segundo antes de la explicación es un segundo donde alguien suelta."""
+    import shorts as motor
+    largos = []
+    for nombre in motor.GANCHOS:
+        voz = motor.voz_de(nombre)
+        if voz and motor.duracion(voz) > 3.0:
+            largos.append((os.path.basename(voz), round(motor.duracion(voz), 1)))
+    assert not largos, (
+        "estos ganchos hablados son largos: %s. Una pregunta corta del tema, sin ejemplo."
+        % largos)
