@@ -139,7 +139,15 @@ GANCHOS = {
 CIERRE_LEMA = "Pensando en la\neducación\nde tus hijos"
 CIERRE = "Los 7 grados · 30 días gratis"
 CIERRE_URL = "kydo.com.ar"
-T_CIERRE = 2.8
+CIERRE_VOZ = "cierre_a.mp3"       # el remate hablado, el mismo para todas las lecciones
+T_CIERRE = 2.8                    # sólo si no hay voz de cierre; si la hay, manda su largo
+
+
+def voz_cierre():
+    """El clip del remate, o None. Es el mismo para todos los Shorts: el cierre no cambia
+    con la lección, así que se graba una vez y se reusa."""
+    r = os.path.join(VOCES, CIERRE_VOZ)
+    return r if os.path.exists(r) else None
 
 
 def _fuente_ok():
@@ -242,7 +250,16 @@ def voz_de(nombre):
     return ruta if os.path.exists(ruta) else None
 
 
-def _filtro(g, dur_leccion, voz=None, llena=False):
+IDX_GANCHO = 1
+
+
+def _filtro(g, dur_leccion, voz=None, llena=False, t_cierre=T_CIERRE, vc=False):
+    """El filtro completo. `voz` es el clip del gancho (o None) y `vc` si hay remate hablado.
+
+    Los índices de entrada de ffmpeg dependen de qué clips existan: la lección es siempre 0,
+    el gancho 1 si está, y el cierre va después. Se calcula acá y no se escribe a mano
+    porque un índice fijo revienta en silencio el día que falta un clip."""
+    idx_cierre = IDX_GANCHO + (1 if voz else 0)
     """El filtro de ffmpeg, en piezas para que se pueda leer.
 
     La lección va escalada al ancho completo y centrada. NO se recorta: recortar 16:9 a 9:16
@@ -266,7 +283,18 @@ def _filtro(g, dur_leccion, voz=None, llena=False):
     # El Short dura la lección MÁS la tarjeta del gancho: la lección ya no se pisa, empieza
     # cuando la tarjeta se levanta. Si `fin` siguiera siendo `dur_leccion`, se cortarían los
     # últimos 2,5 segundos de la explicación — que es donde suele estar la conclusión.
-    fin = dur_leccion + T_GANCHO
+    # La lección entera MÁS el gancho adelante MÁS el cierre atrás. El cierre se AGREGA,
+    # no se superpone: hasta ahora arrancaba en `fin_leccion` y tapaba los últimos
+    # segundos de la explicación mientras la voz todavía hablaba.
+    #
+    # Pablo, mirando el que ya había publicado: *"el audio sigue donde está el final.
+    # Debería haber seguido el video hasta que termine de hablar y recién después el remate"*.
+    #
+    # En el Short que él aprobó el orden es ése: la lección cierra con su «En resumen», se
+    # calla, y ahí entra la tarjeta. El remate es lo último que se ve y lo único que pide
+    # algo — compartirlo con la explicación lo convierte en ruido.
+    fin_leccion = dur_leccion + T_GANCHO
+    fin = fin_leccion + t_cierre
 
     return ";".join([
         "color=c=%s:s=%dx%d:d=%.2f[bg]" % (FONDO, W, H, fin),
@@ -293,24 +321,28 @@ def _filtro(g, dur_leccion, voz=None, llena=False):
 
         # GANCHO, TIEMPO 1 — la pregunta, pantalla entera. Tarjeta sólida encima de todo:
         # el primer fotograma tiene que ser 100% gancho, sin nada de la lección asomando.
+        # La tarjeta cubre TODO el gancho, no sólo el primer tramo. Antes duraba `T_DISPARO`
+        # porque después entraba la tarjeta del anclaje; sin ella quedaba un hueco de 1,25 s
+        # con la lección a la vista y su audio todavía retenido.
         "[v0]drawbox=x=0:y=0:w=%d:h=%d:color=%s@1:t=fill:enable='lt(t,%.2f)'[v1]"
-        % (W, H, TINTA, T_DISPARO),
+        % (W, H, TINTA, T_GANCHO),
     ] + bloque_centrado(
         "v1", "v2", g["q"], FUENTE, BLANCO,
         tam_que_entra(g["q"].split("\n"), FUENTE, W - 2 * MARGEN, 130),
-        H // 2, enable="lt(t,%.2f)" % T_DISPARO,
+        H // 2, enable="lt(t,%.2f)" % T_GANCHO,
     ) + [
-        # GANCHO, TIEMPO 2 — el anclaje. Otro plano y otro color: el corte frena el pulgar.
-        "[v2]drawbox=x=0:y=0:w=%d:h=%d:color=%s@1:t=fill:"
-        "enable='between(t,%.2f,%.2f)'[v3]" % (W, H, ACENTO, T_DISPARO, T_GANCHO),
-    ] + bloque_centrado(
-        "v3", "v4", g["a"], FUENTE, BLANCO,
-        tam_que_entra(g["a"].split("\n"), FUENTE, W - 2 * MARGEN, 116),
-        H // 2 - 80, enable="between(t,%.2f,%.2f)" % (T_DISPARO, T_GANCHO),
-    ) + [
-        "[v4]drawtext=fontfile=%s:text='en %d segundos':fontcolor=%s@0.85:fontsize=62:"
-        "x=(w-text_w)/2:y=%d-text_h/2:enable='between(t,%.2f,%.2f)'[v5]"
-        % (FUENTE_R, int(round(dur_leccion)), BLANCO, H // 2 + 70, T_DISPARO, T_GANCHO),
+        # EL ANCLAJE SE FUE (6-ago-2026). Era una segunda tarjeta con «Lengua · 5.º
+        # grado» y «en 20 segundos», entre el gancho y la lección. Pablo, mirando el primer
+        # Short armado desde la vertical: *"la parte que dice lengua 5 grado 20 segundos no
+        # va"*.
+        #
+        # Estaba justificada así: "el anclaje hace que el padre de 5.º se quede y el de 1.º
+        # se vaya, y que se vaya rápido es BUENO". El razonamiento no es malo, pero pone una
+        # pantalla más entre la pregunta y la respuesta — y en un Short, cada pantalla que
+        # no es la respuesta es una oportunidad de que suelten.
+        #
+        # Sacarlo además devuelve 1,25 s al principio, que es donde más valen.
+        "[v2]null[v5]",
     ] + (bloque_centrado(
         # DURANTE LA LECCIÓN — la pregunta arriba. El que entra por la mitad (en Shorts,
         # casi todo el mundo) tiene que saber qué mira sin rebobinar.
@@ -332,18 +364,18 @@ def _filtro(g, dur_leccion, voz=None, llena=False):
         # eso no comparte cuadro con la explicación: un pedido que compite con el contenido
         # pierde. Fondo sólido encima de todo, como la tarjeta del gancho.
         "[v6]drawbox=x=0:y=0:w=%d:h=%d:color=%s@1:t=fill:enable='gte(t,%.2f)'[c0]"
-        % (W, H, TINTA, fin - T_CIERRE),
+        % (W, H, TINTA, fin_leccion),
     ] + bloque_centrado(
         "c0", "c1", CIERRE_LEMA, FUENTE, BLANCO,
         tam_que_entra(CIERRE_LEMA.split("\n"), FUENTE, W - 2 * MARGEN, 108),
-        int(H * 0.40), enable="gte(t,%.2f)" % (fin - T_CIERRE),
+        int(H * 0.40), enable="gte(t,%.2f)" % fin_leccion,
     ) + [
         "[c1]drawtext=fontfile=%s:text='%s':fontcolor=%s:fontsize=72:"
         "x=(w-text_w)/2:y=%d:enable='gte(t,%.2f)'[c2]"
-        % (FUENTE, url, ACENTO, int(H * 0.62), fin - T_CIERRE),
+        % (FUENTE, url, ACENTO, int(H * 0.62), fin_leccion),
         "[c2]drawtext=fontfile=%s:text='%s':fontcolor=%s:fontsize=44:"
         "x=(w-text_w)/2:y=%d:enable='gte(t,%.2f)'[vout]"
-        % (FUENTE, cierre, BLANCO, int(H * 0.70), fin - T_CIERRE),
+        % (FUENTE, cierre, BLANCO, int(H * 0.70), fin_leccion),
 
         # ── LA REGLA DEL AUDIO (5-ago-2026) ────────────────────────────────────────
         #
@@ -371,14 +403,26 @@ def _filtro(g, dur_leccion, voz=None, llena=False):
         #
         # Y el video se corre junto con el audio (`setpts`), o volvemos a tener el problema
         # inverso: el sonido atrasado respecto de la imagen.
-    ] + ([
+    ] + [
+        # ── EL AUDIO ───────────────────────────────────────────────────────────────
+        # Tres piezas que no se pisan: el gancho hablado al principio, la lección en el
+        # medio, y el remate al final. Cada una entra cuando la anterior terminó.
+        #
+        # Pablo pidió las tres: *"el gancho estaba hablado"* y *"el cierre hablando como al
+        # comienzo"*. Un Short mudo en las puntas desperdicia justo los momentos donde se
+        # decide si alguien se queda y si alguien hace clic.
         "[0:a]adelay=%d|%d[lecA]" % (int(T_GANCHO * 1000), int(T_GANCHO * 1000)),
-        "[1:a]adelay=0|0[gancho]",
-        "[gancho][lecA]amix=inputs=2:dropout_transition=0:normalize=0[am]",
+    ] + ([
+        "[%d:a]adelay=0|0[ganA]" % IDX_GANCHO,
+    ] if voz else []) + ([
+        "[%d:a]adelay=%d|%d[cieA]" % (idx_cierre, int(fin_leccion * 1000),
+                                      int(fin_leccion * 1000)),
+    ] if vc else []) + [
+        "%samix=inputs=%d:dropout_transition=0:normalize=0[am]"
+        % ("[lecA]" + ("[ganA]" if voz else "") + ("[cieA]" if vc else ""),
+           1 + (1 if voz else 0) + (1 if vc else 0)),
         "[am]apad[aout]",
-    ] if voz else [
-        "[0:a]adelay=%d|%d,apad[aout]" % (int(T_GANCHO * 1000), int(T_GANCHO * 1000)),
-    ]))
+    ])
 
 
 def _es_vertical(ruta):
@@ -425,17 +469,24 @@ def armar(nombre, salida_dir=SALIDA, leccion_dir=LECCIONES, quiet=False):
     # ¿La lección ya llena el cuadro vertical? Se mide, no se supone: el mismo motor tiene
     # que servir para las lecciones horizontales viejas y las verticales nuevas.
     llena = _es_vertical(entrada)
+    # El remate hablado y cuánto dura. La tarjeta del cierre dura LO QUE DURA LA VOZ, no un
+    # número fijo: con 2,8 s escritos a mano y un clip de 3,2 el final quedaba cortado a
+    # mitad de frase.
+    vc = voz_cierre()
+    t_cierre = max(T_CIERRE, duracion(vc) + 0.3) if vc else T_CIERRE
     cmd = ["ffmpeg", "-v", "error", "-y", "-i", entrada]
     if voz:
         cmd += ["-i", voz]                     # entrada 1: la voz del gancho
-    cmd += ["-filter_complex", _filtro(g, dur, voz, llena),
+    if vc:
+        cmd += ["-i", vc]                      # y después: el remate
+    cmd += ["-filter_complex", _filtro(g, dur, voz, llena, t_cierre, bool(vc)),
             "-map", "[vout]", "-map", "[aout]",
             "-c:v", "libx264", "-preset", "medium", "-crf", "20",
             "-pix_fmt", "yuv420p", "-r", "30",
             "-c:a", "aac", "-b:a", "128k",
             # La lección MÁS la tarjeta: si se cortara en `dur`, se perderían los últimos
             # 2,5 segundos de la explicación, que es donde suele estar la conclusión.
-            "-t", "%.2f" % (dur + T_GANCHO), destino]
+            "-t", "%.2f" % (dur + T_GANCHO + t_cierre), destino]
     r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode != 0:
         return False, "ffmpeg falló: %s" % (r.stderr.strip()[:400] or "sin detalle")
