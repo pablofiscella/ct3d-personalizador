@@ -130,8 +130,16 @@ GANCHOS = {
 
 # El cierre va al FINAL, cuando el que mira ya recibió algo. Pedir antes de dar es el mismo
 # error que tenía el correo a las escuelas.
-CIERRE = "Los 7 grados, gratis 30 días"
+# EL CIERRE, a pantalla completa (5-ago-2026). Antes eran dos renglones abajo del video;
+# Pablo, comparando con el Short que aprobó: *"terminaba diciendo Kydo siempre pensando en la
+# educación, o el eslogan que sea... y ocupaba toda la pantalla"*.
+#
+# Va como tarjeta entera y no como pie porque es lo único del Short que PIDE algo. Un pedido
+# que comparte cuadro con la explicación compite con ella y pierde.
+CIERRE_LEMA = "Pensando en la\neducación\nde tus hijos"
+CIERRE = "Los 7 grados · 30 días gratis"
 CIERRE_URL = "kydo.com.ar"
+T_CIERRE = 2.8
 
 
 def _fuente_ok():
@@ -234,7 +242,7 @@ def voz_de(nombre):
     return ruta if os.path.exists(ruta) else None
 
 
-def _filtro(g, dur_leccion, voz=None):
+def _filtro(g, dur_leccion, voz=None, llena=False):
     """El filtro de ffmpeg, en piezas para que se pueda leer.
 
     La lección va escalada al ancho completo y centrada. NO se recorta: recortar 16:9 a 9:16
@@ -267,8 +275,21 @@ def _filtro(g, dur_leccion, voz=None):
         # misma decisión partida en dos: si se mueve uno solo, la boca va por un lado y la
         # voz por otro. El comentario de la versión anterior ya lo advertía —"los dos tienen
         # que irse juntos"— y se cumplió sacando los dos; ahora se cumple poniéndolos.
-        "[0:v]scale=%d:-2,setpts=PTS+%.2f/TB[lec]" % (W, T_GANCHO),
-        "[bg][lec]overlay=(W-w)/2:(H-h)/2[v0]",
+        # LA LECCIÓN NO SE ENCOGE SI YA VIENE VERTICAL.
+        #
+        # `scale=W:-2` sobre un video 1280×720 lo deja de 1080×608 en un lienzo de 1920: usa
+        # el 32% de la pantalla y las tarjetas de ejemplo quedan ilegibles en un teléfono.
+        # Eso ya estaba medido y descartado —el aviso viejo con la ilustración al 35% dio
+        # **3 segundos de reproducción promedio y 0,7% de finalización sobre 51.550
+        # impresiones**— y aun así lo repetí, porque no leí el comentario que lo decía.
+        #
+        # `force_original_aspect_ratio=increase` + recorte centrado: una lección que ya nace
+        # 1080×1920 pasa igual, y una horizontal se agranda hasta llenar en vez de flotar en
+        # el medio. Lo correcto es renderizar la lección vertical desde la fuente; esto es
+        # la red para el que todavía no la tenga.
+        "[0:v]scale=%d:%d:force_original_aspect_ratio=increase,"
+        "crop=%d:%d,setpts=PTS+%.2f/TB[lec]" % (W, H, W, H, T_GANCHO),
+        "[bg][lec]overlay=0:0[v0]",
 
         # GANCHO, TIEMPO 1 — la pregunta, pantalla entera. Tarjeta sólida encima de todo:
         # el primer fotograma tiene que ser 100% gancho, sin nada de la lección asomando.
@@ -290,25 +311,39 @@ def _filtro(g, dur_leccion, voz=None):
         "[v4]drawtext=fontfile=%s:text='en %d segundos':fontcolor=%s@0.85:fontsize=62:"
         "x=(w-text_w)/2:y=%d-text_h/2:enable='between(t,%.2f,%.2f)'[v5]"
         % (FUENTE_R, int(round(dur_leccion)), BLANCO, H // 2 + 70, T_DISPARO, T_GANCHO),
-    ] + bloque_centrado(
-        # DURANTE LA LECCIÓN — la pregunta arriba, siempre. El que entra por la mitad (en
-        # Shorts, casi todo el mundo) tiene que saber qué mira sin rebobinar.
+    ] + (bloque_centrado(
+        # DURANTE LA LECCIÓN — la pregunta arriba. El que entra por la mitad (en Shorts,
+        # casi todo el mundo) tiene que saber qué mira sin rebobinar.
         #
-        # Pablo, sobre el primer prototipo: *"el texto de arriba está muy chico"*. Y hay
-        # lugar de sobra: la lección ocupa una banda de 608 px en el centro, así que arriba
-        # quedan 656 px libres. Estaba chico por pereza mía, no por falta de espacio.
+        # SÓLO SI LA LECCIÓN NO LLENA LA PANTALLA. La justificación original era "la lección
+        # ocupa una banda de 608 px en el centro, así que arriba quedan 656 libres" — y eso
+        # valía con el video horizontal encogido. Con una lección que nace vertical no hay
+        # lugar: el recordatorio se le monta encima al contenido y tapa la explicación.
+        #
+        # Lo vio Pablo en el primer Short armado desde la vertical. Es la misma clase de
+        # error que el resto del día: una decisión correcta bajo un supuesto que después
+        # cambió, y el supuesto estaba escrito al lado.
         "v5", "v6", g["q"], FUENTE, TINTA,
         tam_que_entra(g["q"].split("\n"), FUENTE, W - 2 * MARGEN, 78),
         300, enable="gte(t,%.2f)" % t0,
-    ) + [
+    ) if not llena else ["[v5]null[v6]"]) + [
 
-        # EL CIERRE — los últimos 2,5 s. Recién acá se pide algo.
-        "[v6]drawtext=fontfile=%s:text='%s':fontcolor=%s:fontsize=54:"
-        "x=(w-text_w)/2:y=h-330:enable='gte(t,%.2f)'[v7]"
-        % (FUENTE, cierre, TINTA, fin - 2.5),
-        "[v7]drawtext=fontfile=%s:text='%s':fontcolor=%s:fontsize=64:"
-        "x=(w-text_w)/2:y=h-250:enable='gte(t,%.2f)'[vout]"
-        % (FUENTE, url, ACENTO, fin - 2.5),
+        # EL CIERRE — tarjeta ENTERA, los últimos segundos. Recién acá se pide algo, y por
+        # eso no comparte cuadro con la explicación: un pedido que compite con el contenido
+        # pierde. Fondo sólido encima de todo, como la tarjeta del gancho.
+        "[v6]drawbox=x=0:y=0:w=%d:h=%d:color=%s@1:t=fill:enable='gte(t,%.2f)'[c0]"
+        % (W, H, TINTA, fin - T_CIERRE),
+    ] + bloque_centrado(
+        "c0", "c1", CIERRE_LEMA, FUENTE, BLANCO,
+        tam_que_entra(CIERRE_LEMA.split("\n"), FUENTE, W - 2 * MARGEN, 108),
+        int(H * 0.40), enable="gte(t,%.2f)" % (fin - T_CIERRE),
+    ) + [
+        "[c1]drawtext=fontfile=%s:text='%s':fontcolor=%s:fontsize=72:"
+        "x=(w-text_w)/2:y=%d:enable='gte(t,%.2f)'[c2]"
+        % (FUENTE, url, ACENTO, int(H * 0.62), fin - T_CIERRE),
+        "[c2]drawtext=fontfile=%s:text='%s':fontcolor=%s:fontsize=44:"
+        "x=(w-text_w)/2:y=%d:enable='gte(t,%.2f)'[vout]"
+        % (FUENTE, cierre, BLANCO, int(H * 0.70), fin - T_CIERRE),
 
         # ── LA REGLA DEL AUDIO (5-ago-2026) ────────────────────────────────────────
         #
@@ -346,6 +381,20 @@ def _filtro(g, dur_leccion, voz=None):
     ]))
 
 
+def _es_vertical(ruta):
+    """¿El video ya viene en formato vertical (o más alto que 9:16)?
+
+    Decide si el recordatorio del gancho tiene lugar arriba o le tapa la lección."""
+    r = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0",
+                        "-show_entries", "stream=width,height", "-of", "csv=p=0", ruta],
+                       capture_output=True, text=True)
+    try:
+        w, h = [int(x) for x in r.stdout.strip().split(",")[:2]]
+        return h / float(w) >= 1.6          # 9:16 es 1.777; 4:3 es 0.75
+    except Exception:
+        return False
+
+
 def duracion(ruta):
     r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
                         "-of", "csv=p=0", ruta], capture_output=True, text=True)
@@ -373,10 +422,13 @@ def armar(nombre, salida_dir=SALIDA, leccion_dir=LECCIONES, quiet=False):
     os.makedirs(salida_dir, exist_ok=True)
     destino = os.path.join(salida_dir, nombre.replace("lec_", "short_"))
     voz = voz_de(nombre)
+    # ¿La lección ya llena el cuadro vertical? Se mide, no se supone: el mismo motor tiene
+    # que servir para las lecciones horizontales viejas y las verticales nuevas.
+    llena = _es_vertical(entrada)
     cmd = ["ffmpeg", "-v", "error", "-y", "-i", entrada]
     if voz:
         cmd += ["-i", voz]                     # entrada 1: la voz del gancho
-    cmd += ["-filter_complex", _filtro(g, dur, voz),
+    cmd += ["-filter_complex", _filtro(g, dur, voz, llena),
             "-map", "[vout]", "-map", "[aout]",
             "-c:v", "libx264", "-preset", "medium", "-crf", "20",
             "-pix_fmt", "yuv420p", "-r", "30",
