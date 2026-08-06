@@ -158,6 +158,66 @@ GANCHOS = {
         "q": "«Mesa» y «alegría».\n¿Cuál de los dos\nse puede tocar?",
         "a": "Lengua · 4.º grado",
     },
+
+    # ── La tanda del 6-ago-2026 ──────────────────────────────────────────────────────
+    # Pablo: *"tenés que empezar ya a hacer por lo menos los próximos 2 días… tienen que
+    # estar listos, no puede fallar"*. Con tres Shorts armados y dos ya en cola, mañana no
+    # había nada que publicar.
+    #
+    # El texto de acá es el ESCRITO —el de la tarjeta, que se lee de un vistazo y se puede
+    # releer— y puede traer el ejemplo. El HABLADO es otro, más corto, y vive en
+    # `ganchos_voz/`: se escucha una sola vez y no se puede rebobinar. Son dos textos
+    # distintos a propósito, y esa es la regla que salió del 6-ago a la mañana.
+    #
+    # Se eligieron de Lengua y Sociales por pedido de Pablo, y ninguna pasa de 30 s: los
+    # tres que ya salieron duran 26 y funcionan.
+    "lec_homofonos_4.mp4": {
+        "q": "«Hola» y «ola».\n¿Cuál de las dos\nlleva hache?",
+        "a": "Lengua · 4.º grado",
+    },
+    "lec_dialogo_signos_3.mp4": {
+        "q": "¿Sabés cómo\nse escribe\nun diálogo?",
+        "a": "Lengua · 3.º grado",
+    },
+    "lec_provincias_region.mp4": {
+        "q": "¿Cuántas provincias\ntiene la\nArgentina?",
+        "a": "Sociales · 4.º grado",
+    },
+    "lec_clases_palabra_4a.mp4": {
+        "q": "«Perro» y «rápido».\n¿Cuál de los dos\nes el sustantivo?",
+        "a": "Lengua · 4.º grado",
+    },
+    "lec_pronombres_6_a.mp4": {
+        "q": "¿Qué es\nexactamente\nun pronombre?",
+        "a": "Lengua · 6.º grado",
+    },
+    "lec_tildes_6_a.mp4": {
+        "q": "«Él» y «el».\n¿Sabés cuál\nlleva tilde?",
+        "a": "Lengua · 6.º grado",
+    },
+}
+
+# LO QUE DICE LA VOZ DEL GANCHO, que NO es el texto de arriba.
+#
+# REGLA 2 (6-ago-2026): el gancho hablado es UNA PREGUNTA del tema, sin ejemplo y de menos
+# de tres segundos. Pablo, comparando: *"en el de las esdrújulas comenzaba mejor diciendo
+# «¿sabés la regla de las esdrújulas?». Ese es el gancho: una pregunta"*.
+#
+# El escrito puede decir «Camión lleva tilde. Camiones no. ¿Sabés por qué?» porque se lee de
+# un golpe. Dicho, eso dura 4,8 s — el doble de lo que hace falta para que alguien decida
+# quedarse, y suena por debajo de la explicación.
+# Tres de estos textos salieron de 3 segundos en la primera grabación y hubo que acortarlos:
+# «¿"Hola" u "ola"? ¿Cuál lleva hache?» daba 3,2 s. La versión corta no pierde nada porque
+# **la tarjeta ya muestra las dos palabras**: la voz no tiene que repetir lo que se está
+# leyendo, sólo tiene que preguntar. Decir en voz alta lo que ya está escrito es justamente
+# lo que hacía largos a los ganchos.
+VOZ_GANCHO = {
+    "lec_homofonos_4.mp4":       "¿Cuál de las dos lleva hache?",
+    "lec_dialogo_signos_3.mp4":  "¿Sabés cómo se escribe un diálogo?",
+    "lec_provincias_region.mp4": "¿Cuántas provincias tiene la Argentina?",
+    "lec_clases_palabra_4a.mp4": "¿Cuál de los dos es el sustantivo?",
+    "lec_pronombres_6_a.mp4":    "¿Qué es exactamente un pronombre?",
+    "lec_tildes_6_a.mp4":        "¿Cuándo «él» lleva tilde?",
 }
 
 # El cierre va al FINAL, cuando el que mira ya recibió algo. Pedir antes de dar es el mismo
