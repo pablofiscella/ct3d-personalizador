@@ -210,8 +210,16 @@ GANCHOS = {
         "q": "Las constelaciones\nno están en el cielo.\n¿Sabés por qué?",
         "a": "Ciencias · 3.º grado",
     },
+    # El gancho de acá era "¿Por qué el cartel de PARE tiene ocho lados?" y Pablo lo frenó:
+    # *"el tercero, ¿el PARE tiene 8 caras? no entendí"*. Tenía razón, y el error es de
+    # método: **el dato del PARE es la ÚLTIMA frase de la lección**, un cierre al pasar. El
+    # video son 25 segundos sobre los tres tipos de señales.
+    #
+    # Una pregunta que promete lo que el video contesta de refilón es peor que una pregunta
+    # aburrida: el que entra por ella se va antes de llegar, y encima con razón. El gancho
+    # tiene que ser del TEMA, no del dato más llamativo que aparezca en algún lado.
     "lec_senales_3.mp4": {
-        "q": "¿Por qué el cartel\nde PARE tiene\nocho lados?",
+        "q": "Las señales de la calle\nson de tres tipos.\n¿Sabés cuáles?",
         "a": "Ciencias Sociales · 3.º grado",
     },
     "lec_camino_digestivo.mp4": {
@@ -266,9 +274,7 @@ VOZ_GANCHO = {
     # tiene que repetir lo que la tarjeta muestra, sólo preguntar.
     "lec_detectives_cielo.mp4":     "¿Por qué la Luna cambia de forma?",
     "lec_constelaciones_3.mp4":     "¿Las constelaciones existen?",
-    # "¿Por qué el PARE tiene ocho lados?" daba 3,0 s justos. La tarjeta ya dice "el cartel
-    # de PARE", así que la voz no necesita nombrarlo — sólo preguntar.
-    "lec_senales_3.mp4":            "¿Por qué tiene ocho lados?",
+    "lec_senales_3.mp4":            "¿Sabés cuáles son los tres?",
     "lec_camino_digestivo.mp4":     "¿Qué camino hace un bocado?",
     "lec_estados_agua_4.mp4":       "¿El hielo y el vapor son lo mismo?",
     "lec_reparto_fracciones.mp4":   "¿Cuánto le toca a cada uno?",
