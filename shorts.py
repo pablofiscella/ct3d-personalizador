@@ -195,6 +195,49 @@ GANCHOS = {
         "q": "«Él» y «el».\n¿Sabés cuál\nlleva tilde?",
         "a": "Lengua · 6.º grado",
     },
+
+    # ── La segunda tanda del 6-ago-2026: tres días más (9, 10 y 11) ──────────────────
+    # Se eligieron por el GANCHO que tenían adentro, no por el tema: la lección de las fases
+    # de la Luna abre diciendo "no es lo que la mayoría cree", y la de constelaciones,
+    # "las constelaciones no están en el cielo, las inventamos nosotros". Una lección que ya
+    # empieza contradiciendo algo no necesita que le inventen la pregunta — sólo hay que
+    # ponerla adelante.
+    "lec_detectives_cielo.mp4": {
+        "q": "¿Por qué la Luna\ncambia de forma?\nNo es lo que creés.",
+        "a": "Ciencias · 5.º grado",
+    },
+    "lec_constelaciones_3.mp4": {
+        "q": "Las constelaciones\nno están en el cielo.\n¿Sabés por qué?",
+        "a": "Ciencias · 3.º grado",
+    },
+    "lec_senales_3.mp4": {
+        "q": "¿Por qué el cartel\nde PARE tiene\nocho lados?",
+        "a": "Ciencias Sociales · 3.º grado",
+    },
+    "lec_camino_digestivo.mp4": {
+        "q": "¿Qué recorrido\nhace un bocado\nadentro tuyo?",
+        "a": "Ciencias · 5.º grado",
+    },
+    "lec_estados_agua_4.mp4": {
+        "q": "Hielo, agua y vapor.\n¿Son tres cosas\no una sola?",
+        "a": "Ciencias · 4.º grado",
+    },
+    "lec_reparto_fracciones.mp4": {
+        "q": "Tres chocolates,\ncuatro chicos.\n¿Cuánto le toca a cada uno?",
+        "a": "Matemática · 4.º grado",
+    },
+    "lec_hiperonimos_4.mp4": {
+        "q": "«Flor» abarca a\nrosa y clavel.\n¿Cómo se llama eso?",
+        "a": "Lengua · 4.º grado",
+    },
+    "lec_teatro_3.mp4": {
+        "q": "En una obra de teatro,\n¿qué va entre\nparéntesis?",
+        "a": "Lengua · 3.º grado",
+    },
+    "lec_linea_siglo_xx_7_b.mp4": {
+        "q": "El voto femenino\nes ley en 1947.\n¿Cuándo votaron?",
+        "a": "Sociales · 7.º grado",
+    },
 }
 
 # LO QUE DICE LA VOZ DEL GANCHO, que NO es el texto de arriba.
@@ -218,6 +261,20 @@ VOZ_GANCHO = {
     "lec_clases_palabra_4a.mp4": "¿Cuál de los dos es el sustantivo?",
     "lec_pronombres_6_a.mp4":    "¿Qué es exactamente un pronombre?",
     "lec_tildes_6_a.mp4":        "¿Cuándo «él» lleva tilde?",
+
+    # Segunda tanda. Todas se escribieron ya cortas: la de la primera enseñó que la voz no
+    # tiene que repetir lo que la tarjeta muestra, sólo preguntar.
+    "lec_detectives_cielo.mp4":     "¿Por qué la Luna cambia de forma?",
+    "lec_constelaciones_3.mp4":     "¿Las constelaciones existen?",
+    # "¿Por qué el PARE tiene ocho lados?" daba 3,0 s justos. La tarjeta ya dice "el cartel
+    # de PARE", así que la voz no necesita nombrarlo — sólo preguntar.
+    "lec_senales_3.mp4":            "¿Por qué tiene ocho lados?",
+    "lec_camino_digestivo.mp4":     "¿Qué camino hace un bocado?",
+    "lec_estados_agua_4.mp4":       "¿El hielo y el vapor son lo mismo?",
+    "lec_reparto_fracciones.mp4":   "¿Cuánto le toca a cada uno?",
+    "lec_hiperonimos_4.mp4":        "¿Qué es un hiperónimo?",
+    "lec_teatro_3.mp4":             "¿Qué es una didascalia?",
+    "lec_linea_siglo_xx_7_b.mp4":   "¿Cuándo votaron las mujeres acá?",
 }
 
 # El cierre va al FINAL, cuando el que mira ya recibió algo. Pedir antes de dar es el mismo
