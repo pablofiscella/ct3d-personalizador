@@ -30,7 +30,7 @@
     "font": "Rye-Regular.ttf",
     "color": "#ff0026",
     "anchor": "mm",
-    "tpl": "Tomás"
+    "tpl": "{nombre}"
   },
   "_oculto": []
 }

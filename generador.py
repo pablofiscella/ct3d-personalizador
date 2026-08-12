@@ -200,11 +200,27 @@ def _hex_rgb(h):
     except Exception:
         return None
 
+class _SinDato(dict):
+    """Un dict que, para la clave que no tiene, devuelve "" en vez de romper.
+
+    Existe porque `"{fecha}".format(**data)` lanza `KeyError` cuando el dato no vino, y eso
+    **tira la pieza entera**: no sale la invitación, no sale el kit. Se vio el 11-ago-2026
+    generando el kit de safari con los mismos datos de muestra que usa el panel
+    (`{"nombre", "edad", "anyo"}` — sin `fecha`): 13 piezas salieron y la invitación murió con
+    `'fecha'`. O sea que la vista previa de la invitación en el dash venía rota por esto.
+
+    Un campo sin dato tiene que salir VACÍO, no llevarse la pieza puesta: el resto del texto
+    —el título, el nombre, la decoración— sigue siendo correcto y útil."""
+
+    def __missing__(self, k):
+        return ""
+
+
 def _field_text(field, data):
     """Texto a dibujar: el custom del cliente (_text) tiene prioridad sobre el tpl."""
     t = field.get("_text")
     if t is None:
-        t = field["tpl"].format(**data)
+        t = field["tpl"].format_map(_SinDato(data))
     # sin edad no hay línea: "Cumple {edad} años" con edad vacía quedaba "Cumple  años"
     if "{edad}" in field.get("tpl", "") and not str(data.get("edad", "")).strip():
         return ""

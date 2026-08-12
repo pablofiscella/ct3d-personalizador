@@ -32,7 +32,7 @@
     "font": "DancingScript-VF.ttf",
     "color": "#c8674e",
     "anchor": "mm",
-    "tpl": "Federica",
+    "tpl": "{nombre}",
     "default_hidden": false
   },
   "_oculto": []

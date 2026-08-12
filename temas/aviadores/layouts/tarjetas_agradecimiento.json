@@ -30,7 +30,7 @@
     "font": "Baloo2-VF.ttf",
     "color": "#5ca9b5",
     "anchor": "mm",
-    "tpl": "Tomy"
+    "tpl": "{nombre}"
   },
   "_oculto": []
 }

@@ -41,9 +41,14 @@ _EXTRAS_TEXTO = {
     # la tarjeta de agradecimiento lleva 3 líneas de texto apiladas (Pablo 9-jul-2026)
     "tarjetas_agradecimiento": {"bg": "extras/tarjetas_agradecimiento.png", "size_px": [1536, 2176],
         "campos": [
+            # Las tres líneas vienen COMPLETAS por defecto, con el nombre del cliente en la
+            # última. Antes las dos de abajo llegaban vacías, y el resultado era que la misma
+            # pieza salía distinta según el tema: los nueve que tenían layout propio decían
+            # "al cumple de <nombre>" y los otros tres sólo "¡Gracias por venir!" — la mitad
+            # de la tarjeta en blanco, sin que eso lo hubiera decidido nadie.
             {"id": "texto1", "tpl": "¡Gracias por venir!", "x": 0.5, "y": 0.34, "size": 110, "maxw": 0.82},
-            {"id": "texto2", "tpl": "",                     "x": 0.5, "y": 0.50, "size": 88,  "maxw": 0.82},
-            {"id": "texto3", "tpl": "",                     "x": 0.5, "y": 0.64, "size": 88,  "maxw": 0.82},
+            {"id": "texto2", "tpl": "al cumple de",         "x": 0.5, "y": 0.50, "size": 88,  "maxw": 0.82},
+            {"id": "texto3", "tpl": "{nombre}",             "x": 0.5, "y": 0.64, "size": 88,  "maxw": 0.82},
         ]},
 }
 

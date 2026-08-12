@@ -32,7 +32,7 @@
     "font": "Fredoka-VF.ttf",
     "color": "#66c63a",
     "anchor": "mm",
-    "tpl": "Alejo",
+    "tpl": "{nombre}",
     "default_hidden": false
   },
   "_oculto": []
