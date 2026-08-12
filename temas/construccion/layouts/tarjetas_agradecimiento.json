@@ -30,7 +30,7 @@
     "font": "Bungee-Regular.ttf",
     "color": "#ec9441",
     "anchor": "mm",
-    "tpl": "Sabri"
+    "tpl": "{nombre}"
   },
   "_oculto": []
 }

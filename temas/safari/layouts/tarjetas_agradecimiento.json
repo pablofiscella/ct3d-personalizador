@@ -30,7 +30,7 @@
     "font": "DancingScript-VF.ttf",
     "color": "#c8674e",
     "anchor": "mm",
-    "tpl": "Valentin"
+    "tpl": "{nombre}"
   },
   "_oculto": []
 }

@@ -30,7 +30,7 @@
     "font": "Fredoka-VF.ttf",
     "color": "#4a4a4a",
     "anchor": "mm",
-    "tpl": "Carlitos"
+    "tpl": "{nombre}"
   },
   "_oculto": []
 }

@@ -8,7 +8,7 @@
     "font": "Fredoka-VF.ttf",
     "color": "#d23a34",
     "anchor": "mm",
-    "tpl": "¡Bienvenidos al cumple de!",
+    "tpl": "Bienvenidos al cumple de",
     "default_hidden": false
   },
   "nombre": {
