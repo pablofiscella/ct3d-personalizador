@@ -375,16 +375,22 @@ function _opcionesEnPantalla() {
 }
 
 function leerOpciones() {
-  if (!_menuQueHabla()) return Promise.resolve(false);   // sólo el ciclo inicial
+  if (typeof _menuQueHabla !== "function" || !_menuQueHabla()) return Promise.resolve(false);
   const t = _opcionesEnPantalla();
-  return t ? reproducirConsigna(t, false) : Promise.resolve(false);
+  return t ? Promise.resolve(reproducirConsigna(t, false)) : Promise.resolve(false);
 }
 
+/* SE ENVUELVE EN `Promise.resolve`, no se asume que devuelva una promesa.
+   Lo cazó `test_consigna_no_se_repite_hablada.py`, que reemplaza `reproducirConsigna` por
+   un espía que no devuelve nada: encadenarle `.then` reventaba. La función real sí devuelve
+   promesa siempre, pero encadenar a ciegas la vuelve imposible de espiar — y ese guardián
+   existe desde antes que esto. */
 function repetirLoUltimo(btn) {
   if (!_ultimoDicho) return;
   if (btn) btn.classList.add("sonando");
   const fin = () => { if (btn) btn.classList.remove("sonando"); };
-  reproducirConsigna(_ultimoDicho).then(() => leerOpciones()).then(fin, fin);
+  Promise.resolve(reproducirConsigna(_ultimoDicho))
+    .then(() => leerOpciones()).then(fin, fin);
 }
 
 /* Delegado en el documento: la consigna se rearma en cada pantalla y en cada ronda, y
@@ -4988,7 +4994,13 @@ const Shell = {
           self._ultConsigna = txt;
           // Las opciones todavía no están dibujadas cuando se pide la consigna: se leen
           // cuando la voz termina, que es cuando ya están y cuando además corresponde.
-          reproducirConsigna(txt).then(() => leerOpciones());
+          // `leerOpciones` se llama por nombre y con guarda: `test_consigna_no_se_repite_
+          // hablada.py` EXTRAE este método y lo ejecuta suelto, con sólo `$`, `self` y
+          // `reproducirConsigna` definidos. Cualquier global que este bloque dé por
+          // sentado rompe ese guardián — que existe desde antes y cuida algo distinto.
+          Promise.resolve(reproducirConsigna(txt)).then(() => {
+            if (typeof leerOpciones === "function") leerOpciones();
+          });
         }
       },
       rondas(n) {

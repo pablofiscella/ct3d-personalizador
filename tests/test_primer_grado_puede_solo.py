@@ -159,8 +159,11 @@ def test_las_OPCIONES_tambien_se_escuchan_en_el_ciclo_inicial():
     s = _player()
     assert "function leerOpciones" in s, "las opciones no se leen en voz"
     assert "function _opcionesEnPantalla" in s
-    assert re.search(r"reproducirConsigna\(txt\)\.then\(\(\) => leerOpciones\(\)\)", s), (
+    assert re.search(r"Promise\.resolve\(reproducirConsigna\(txt\)\)\.then\(", s), (
         "las opciones tienen que leerse DESPUÉS de la consigna, no encima")
+    assert re.search(r'if \(typeof leerOpciones === "function"\) leerOpciones\(\);', s), (
+        "el método consigna() se extrae y se ejecuta suelto en otro test: no puede dar por "
+        "sentado que exista leerOpciones")
     assert "_menuQueHabla()" in s[s.find("function leerOpciones"):s.find("function leerOpciones") + 300], (
         "leer las opciones tiene que estar acotado al ciclo inicial")
 
