@@ -478,6 +478,19 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 }
 .op-texto:active { transform: scale(.97); }
 
+/* ── EL CICLO INICIAL LEE MENOS Y MIRA MÁS ──────────────────────────────────────
+   14-ago-2026. Pablo, sobre «¿Es del campo o de la ciudad?»: *"¿cómo sabe un chico de
+   primero qué es, sin saber leer?"*. Medido: la palabra iba a 13 px y el emoji, que va
+   inline, medía los mismos 13 px. O sea que el dibujo —lo único que ese chico puede
+   interpretar— era del tamaño de la letra que no puede leer.
+   Acá se agranda todo el botón en 1.º a 3.º: crece la palabra para el que empieza a leer
+   y crece el dibujo para el que todavía no. Es lo más barato que mueve la aguja; lo que
+   falta —que la imagen sea grande y la palabra vaya debajo— toca el interior de cada
+   juego y va aparte. */
+body.ciclo1 .op-texto, body.ciclo1 .op,
+body.ciclo1 #juego button { font-size: 21px; }
+body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
+
 /* ── LA MARCA DEL ERROR TIENE QUE QUEDARSE ──────────────────────────────────────
    14-ago-2026. La única señal de que tocaste mal era `animation: sacudir .4s`. A los
    0,4 s no queda nada: el chico que mira para otro lado —o que vuelve la vista un

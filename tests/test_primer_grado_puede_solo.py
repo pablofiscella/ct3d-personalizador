@@ -80,8 +80,14 @@ def test_la_consigna_se_puede_volver_a_escuchar():
         "el botón de repetir tiene que estar en las DOS pantallas que arman la consigna "
         "(la del juego y la del sondeo)")
     assert "function repetirLoUltimo" in s and "_ultimoDicho" in s
-    assert re.search(r"function reproducirConsigna\(txt\) \{\s*if \(txt\) _ultimoDicho = txt;", s), (
+    assert re.search(r"function reproducirConsigna\(txt, recordar\) \{\s*"
+                     r"if \(txt && recordar !== false\) _ultimoDicho = txt;", s), (
         "reproducirConsigna dejó de recordar lo que dijo: el botón de repetir queda mudo")
+    # y repetir devuelve la pregunta Y las opciones, en ese orden
+    i = s.find("function repetirLoUltimo")
+    assert "leerOpciones()" in s[i:i + 400], (
+        "el botón de repetir dejó de decir las opciones: el chico vuelve a escuchar la "
+        "pregunta y sigue sin saber qué dice cada respuesta")
 
 
 def test_el_menu_habla_en_el_ciclo_inicial_y_no_despues():
@@ -107,3 +113,51 @@ def test_el_boton_de_repetir_es_grande_para_una_mano_chica():
     assert m, "no está el estilo del botón de repetir"
     anchos = [int(x) for x in re.findall(r"(?:width|height):\s*(\d+)px", m.group(0))]
     assert anchos and min(anchos) >= 44, "el botón de repetir mide menos de 44px: %s" % anchos
+
+
+def test_las_OPCIONES_tambien_se_escuchan_en_el_ciclo_inicial():
+    """14-ago-2026. Pablo, sobre «¿Es del campo o de la ciudad?» —un girasol y dos botones
+    que dicen «🌾 Campo» y «🏙️ Ciudad»—: *«¿cómo sabe un chico de primero qué es, sin saber
+    leer?»*.
+
+    Le habíamos arreglado la consigna y lo dejábamos adivinando la RESPUESTA: medido, la
+    palabra iba a 13 px, el emoji va inline y medía los mismos 13 px, y nadie las decía.
+
+    Este caso es el que explica por qué una auditoría de propiedades no alcanza: el botón
+    pasaba TODOS los chequeos —contraste bien, caja de 134×48, sin depender del color— y
+    fallaba en la única pregunta que ninguna métrica hacía.
+    """
+    s = _player()
+    assert "function leerOpciones" in s, "las opciones no se leen en voz"
+    assert "function _opcionesEnPantalla" in s
+    assert re.search(r"reproducirConsigna\(txt\)\.then\(\(\) => leerOpciones\(\)\)", s), (
+        "las opciones tienen que leerse DESPUÉS de la consigna, no encima")
+    assert "_menuQueHabla()" in s[s.find("function leerOpciones"):s.find("function leerOpciones") + 300], (
+        "leer las opciones tiene que estar acotado al ciclo inicial")
+
+
+def test_la_voz_no_lee_los_emojis():
+    """El sintetizador lee «🌾» como su nombre o lo saltea. El dibujo es para el ojo; la voz
+    dice la palabra."""
+    s = _player()
+    i = s.find("function _opcionesEnPantalla")
+    assert "Extended_Pictographic" in s[i:i + 700], (
+        "el texto que va a la voz no limpia los emojis")
+
+
+def test_el_ciclo_inicial_agranda_las_opciones():
+    """13 px para la palabra Y para el dibujo, que es lo único que ese chico puede
+    interpretar. En el ciclo inicial crecen las dos cosas."""
+    h = _html()
+    m = re.search(r"body\.ciclo1[^{]*\{[^}]*font-size:\s*(\d+)px", h, re.S)
+    assert m, "no está la regla de tamaño del ciclo inicial"
+    assert int(m.group(1)) >= 20, "las opciones de 1.º siguen chicas: %spx" % m.group(1)
+    assert "function _marcarCiclo" in _player(), "nadie marca el <body> como ciclo inicial"
+
+
+def test_la_marca_del_error_alcanza_a_los_juegos_SIN_la_clase_op():
+    """«¿Campo o ciudad?» arma sus botones sin `.op`. Escuchar por clase era escuchar una
+    convención que no todos los juegos siguen; el contenedor lo comparten los 76."""
+    s = _player()
+    assert 'closest("#juego button, .op, .op-texto")' in s, (
+        "la marca del error volvió a depender de que el juego use la clase .op")

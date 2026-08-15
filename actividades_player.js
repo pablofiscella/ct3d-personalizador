@@ -350,14 +350,41 @@ function _deletrearParaLaVoz(txt) {
    incluidas las que se agreguen mañana. */
 let _ultimoDicho = "";
 
+/* LAS OPCIONES TAMBIÉN HAY QUE PODER ESCUCHARLAS.
+   14-ago-2026. Pablo, mirando «¿Es del campo o de la ciudad?» —un girasol y dos botones
+   que dicen «🌾 Campo» y «🏙️ Ciudad»—: *"¿cómo sabe un chico de primero qué es, sin saber
+   leer?"*. Medido: la palabra va a 13 px, el dibujo va INLINE y mide los mismos 13 px, y
+   nadie las dice: cero pedidos de voz cuando aparecen. Le habíamos arreglado la consigna y
+   lo dejábamos adivinando la respuesta.
+   Se leen DESPUÉS de la consigna, no encima: `reproducirConsigna` devuelve una promesa que
+   termina cuando el audio terminó de sonar de verdad.
+   Y no quedan como «lo último dicho»: el botón de repetir tiene que devolver la pregunta Y
+   las opciones, en ese orden, y no sólo lo último que sonó. */
+function _opcionesEnPantalla() {
+  const bs = [...document.querySelectorAll("#juego button, #juego .op, #juego .op-texto")]
+    .filter((b) => b.offsetParent);
+  const t = [];
+  bs.forEach((b) => {
+    // El emoji NO va a la voz: el sintetizador lo lee como su nombre («espiga de trigo»)
+    // o lo saltea, y en los dos casos ensucia una lista que tiene que ser de dos palabras.
+    // El dibujo es para el ojo; la voz dice la palabra.
+    const x = (b.innerText || "").replace(/\p{Extended_Pictographic}|\uFE0F/gu, "").trim();
+    if (x && x.length <= 24 && t.indexOf(x) < 0) t.push(x);
+  });
+  return (t.length >= 2 && t.length <= 4) ? t.join(". ") : "";
+}
+
+function leerOpciones() {
+  if (!_menuQueHabla()) return Promise.resolve(false);   // sólo el ciclo inicial
+  const t = _opcionesEnPantalla();
+  return t ? reproducirConsigna(t, false) : Promise.resolve(false);
+}
+
 function repetirLoUltimo(btn) {
   if (!_ultimoDicho) return;
-  if (btn) {
-    btn.classList.add("sonando");
-    reproducirConsigna(_ultimoDicho).then(() => btn.classList.remove("sonando"));
-  } else {
-    reproducirConsigna(_ultimoDicho);
-  }
+  if (btn) btn.classList.add("sonando");
+  const fin = () => { if (btn) btn.classList.remove("sonando"); };
+  reproducirConsigna(_ultimoDicho).then(() => leerOpciones()).then(fin, fin);
 }
 
 /* Delegado en el documento: la consigna se rearma en cada pantalla y en cada ronda, y
@@ -379,8 +406,12 @@ document.addEventListener("click", (e) => {
    arrastre y de secuencia, donde el último clic puede no tener nada que ver. */
 let _ultimaOpcion = null, _ultimaOpcionT = 0;
 document.addEventListener("click", (e) => {
-  const b = e.target.closest && e.target.closest(".op, .op-texto");
-  if (b) { _ultimaOpcion = b; _ultimaOpcionT = Date.now(); }
+  /* CUALQUIER botón del tablero, no sólo los que llevan `.op`. Lo encontró Pablo en
+     «¿Campo o ciudad?»: ese juego arma sus botones sin esa clase, así que la marca del
+     error no lo alcanzaba. Escuchar por clase era escuchar una convención que no todos
+     los juegos siguen; el contenedor, en cambio, lo comparten los 76. */
+  const b = e.target.closest && e.target.closest("#juego button, .op, .op-texto");
+  if (b && !b.closest(".hablar")) { _ultimaOpcion = b; _ultimaOpcionT = Date.now(); }
 }, true);
 
 function marcarLoQueToco(clase) {
@@ -391,8 +422,8 @@ function marcarLoQueToco(clase) {
   _ultimaOpcion = null;
 }
 
-function reproducirConsigna(txt) {
-  if (txt) _ultimoDicho = txt;
+function reproducirConsigna(txt, recordar) {
+  if (txt && recordar !== false) _ultimoDicho = txt;
   if (vozActual) { vozActual.pause(); vozActual = null; }
   if (!Sfx.on) return Promise.resolve(false);
   // La actividad NO habla encima de una lección abierta (03-ago-2026). `mostrarComoEs` y
@@ -4936,7 +4967,9 @@ const Shell = {
         // por ronda— suena, que es justo lo que hace falta.
         if (txt !== self._ultConsigna) {
           self._ultConsigna = txt;
-          reproducirConsigna(txt);
+          // Las opciones todavía no están dibujadas cuando se pide la consigna: se leen
+          // cuando la voz termina, que es cuando ya están y cuando además corresponde.
+          reproducirConsigna(txt).then(() => leerOpciones());
         }
       },
       rondas(n) {
@@ -5688,6 +5721,13 @@ function gradoDelChico() { return ((D && D.edad) ? D.edad : 9) - 5; }
    rótulo de un vistazo y 68 cornetas serían ruido — y en 6.º y 7.º, además, leerían como
    material para más chicos, que es justo lo que un preadolescente rechaza. */
 function _menuQueHabla() { return gradoDelChico() <= 3; }
+
+/* El ciclo inicial se marca en el <body> para que la hoja de estilos pueda tratarlo
+   distinto sin que cada juego se entere. Hoy sirve para una sola cosa —agrandar las
+   opciones— y es el gancho por donde va a entrar el resto de lo que 1.º necesita. */
+function _marcarCiclo() {
+  document.body.classList.toggle("ciclo1", _menuQueHabla());
+}
 function itemDeMenu(id) {
   return (D.menu || []).find((m) => (typeof m === "string" ? m : m.id) === id) || null;
 }
@@ -5922,6 +5962,7 @@ function pintarMenuPlano(items, stage) {
     return c;
   };
 
+  _marcarCiclo();
   if (adaptOn) {
     _adaptCSS();
     _enviarProgreso();   // sincroniza el progreso al server → el padre lo ve en su biblioteca
