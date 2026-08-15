@@ -18565,27 +18565,27 @@ const CUR_ANTES_AHORA_1_BANCO = [
   {
     "q": "Hoy usamos la heladera. Antes se usaba…",
     "ops": [
-      "Una fresquera con hielo",
-      "Un horno",
-      "Una radio"
+      "🧊 Una fresquera con hielo",
+      "🔥 Un horno",
+      "📻 Una radio"
     ],
     "m": "Las dos sirven para conservar la comida fría."
   },
   {
     "q": "Hoy escuchamos música en el celular. Antes, en…",
     "ops": [
-      "Un tocadiscos",
-      "Una lámpara",
-      "Un reloj"
+      "💽 Un tocadiscos",
+      "💡 Una lámpara",
+      "⏰ Un reloj"
     ],
     "m": "Las dos reproducen música."
   },
   {
     "q": "Hoy escribimos en la computadora. Antes, con…",
     "ops": [
-      "Una máquina de escribir",
-      "Un martillo",
-      "Una plancha"
+      "⌨️ Una máquina de escribir",
+      "🔨 Un martillo",
+      "👔 Una plancha"
     ],
     "m": "Las dos sirven para escribir."
   },
@@ -18601,18 +18601,18 @@ const CUR_ANTES_AHORA_1_BANCO = [
   {
     "q": "Hoy sacamos fotos con el celular. Antes, con…",
     "ops": [
-      "Una cámara con rollo",
-      "Un espejo",
-      "Un cuaderno"
+      "📷 Una cámara con rollo",
+      "🪞 Un espejo",
+      "📓 Un cuaderno"
     ],
     "m": "Las dos capturan imágenes."
   },
   {
     "q": "Hoy vemos la hora en el celular. Antes, en…",
     "ops": [
-      "Un reloj de pared",
-      "Una radio",
-      "Un libro"
+      "⏰ Un reloj de pared",
+      "📻 Una radio",
+      "📖 Un libro"
     ],
     "m": "Las dos dan la hora."
   },
@@ -18628,9 +18628,9 @@ const CUR_ANTES_AHORA_1_BANCO = [
   {
     "q": "Hoy hay luz eléctrica. Antes se alumbraba con…",
     "ops": [
-      "Velas o faroles",
-      "Espejos",
-      "Ventanas"
+      "🕯️ Velas o faroles",
+      "🪞 Espejos",
+      "🪟 Ventanas"
     ],
     "m": "Las dos dan luz."
   },
