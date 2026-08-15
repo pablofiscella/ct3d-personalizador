@@ -420,11 +420,38 @@ document.addEventListener("click", (e) => {
   if (b && !b.closest(".hablar")) { _ultimaOpcion = b; _ultimaOpcionT = Date.now(); }
 }, true);
 
+/* LA CORRECCIÓN, EN DOS TIEMPOS.
+   La política del producto es «todo error dispara el porqué»
+   (docs/auditoria-dc-caba/CAPA-0-MOTOR-DOMINIO.md:19) y «cada distractor existe para
+   explicar» (grado-4.md:278). Se cumple — pero el porqué llega COMPLETO al primer error, y
+   muchas veces trae la respuesta adentro: «"queso" se escribe con QU: empieza con la letra
+   Q». Con eso no hay segundo intento; el chico ya no tiene nada que pensar.
+   Un profe da primero la regla y el número recién si vuelve a fallar. Y acá no hay que
+   inventar cómo partirlo: **214 explicaciones ya están escritas en dos partes**, separadas
+   por «: » — «Contá de nuevo: son 12», «El denominador es la cantidad de chicos: son 8».
+   La regla antes, el dato después. Los autores ya hicieron el trabajo.
+   Si una explicación no trae ese corte, se muestra entera como hasta ahora: nunca peor que
+   hoy, mejor donde se puede. */
+function _enDosTiempos(motivo, fallos) {
+  if (!motivo || fallos >= 2) return motivo;
+  const i = motivo.indexOf(": ");
+  if (i <= 0 || i > motivo.length - 3) return motivo;
+  const regla = motivo.slice(0, i).trim();
+  return /[.!?]$/.test(regla) ? regla : regla + ".";
+}
+
+/* `_ultimaMarcada` existe porque `_ultimaOpcion` se apaga acá para no marcar dos veces, y
+   el globo del porqué se posiciona DESPUÉS —`casi()` llama primero a marcar y después a
+   explicar—. Sin guardarla aparte, el globo no encontraba a qué anclarse y volvía al fondo
+   de la pantalla: el arreglo de posición quedaba escrito y sin efecto. */
+let _ultimaMarcada = null;
+
 function marcarLoQueToco(clase) {
   const b = _ultimaOpcion;
   if (!b || Date.now() - _ultimaOpcionT > 1200) return;
   if (!b.isConnected) return;
   b.classList.add(clase);
+  _ultimaMarcada = b;
   _ultimaOpcion = null;
 }
 
@@ -3053,8 +3080,9 @@ function mostrarExplicacion(txt) {
      un teléfono eso queda a unos 640 px de donde el chico estaba mirando: fuera de su campo
      visual. Se explica bien y en el lugar equivocado.
      Ahora se ancla debajo de la opción que tocó, que es exactamente donde está mirando. */
-  const ref = (typeof _ultimaOpcion !== "undefined" && _ultimaOpcion
-               && _ultimaOpcion.isConnected) ? _ultimaOpcion : null;
+  const cand = (typeof _ultimaMarcada !== "undefined" && _ultimaMarcada) ? _ultimaMarcada
+             : ((typeof _ultimaOpcion !== "undefined") ? _ultimaOpcion : null);
+  const ref = (cand && cand.isConnected) ? cand : null;
   if (ref) {
     const r = ref.getBoundingClientRect();
     const cx = Math.min(Math.max(r.left + r.width / 2, 120), window.innerWidth - 120);
@@ -5018,6 +5046,7 @@ const Shell = {
         self._rondaIdx = i;
         self._rondaResp = false;   // ronda nueva → la próxima respuesta es "primer intento"
         self._rondaT0 = Date.now(); self._rondaT1 = 0; self._rondaToques = 0;
+        self._rondaFallos = 0;   // la regla se da de nuevo en cada pregunta
         ocultarExplicacion();
         /* LA MARCA DE LA RESPUESTA DURA LO QUE DURA LA PREGUNTA. Antes se borraba sola a
            los 450 ms —35 juegos hacían el mismo `setTimeout`— y el chico que miraba para
@@ -5030,7 +5059,12 @@ const Shell = {
         });
       },
       bien(txt) { registrar(true); marcarLoQueToco("bien"); ocultarExplicacion(); Sfx.ok(); toast(txt || FRASES_BIEN[rint(0, FRASES_BIEN.length - 1)]); },
-      casi(motivo) { registrar(false, motivo); marcarLoQueToco("casi"); self.fallos++; Sfx.casi(); if (motivo) mostrarExplicacion(motivo); },
+      casi(motivo) {
+        registrar(false, motivo); marcarLoQueToco("casi");
+        self.fallos++; self._rondaFallos = (self._rondaFallos || 0) + 1;
+        Sfx.casi();
+        if (motivo) mostrarExplicacion(_enDosTiempos(motivo, self._rondaFallos));
+      },
       win(estrellas) {
         // Capa 0 · C2 (compuerta de dominio, docs/auditoria-dc-caba/): las
         // estrellas miden DOMINIO real —aciertos al PRIMER intento— no "completé

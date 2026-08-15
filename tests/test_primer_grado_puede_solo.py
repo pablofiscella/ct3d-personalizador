@@ -193,3 +193,42 @@ def test_la_marca_del_error_alcanza_a_los_juegos_SIN_la_clase_op():
     s = _player()
     assert 'closest("#juego button, .op, .op-texto")' in s, (
         "la marca del error volvió a depender de que el juego use la clase .op")
+
+
+def test_la_correccion_llega_en_DOS_TIEMPOS():
+    """Primero la regla, y el dato recién si vuelve a fallar.
+
+    La política dice «todo error dispara el porqué» (CAPA-0-MOTOR-DOMINIO.md:19) y se
+    cumplía — pero el porqué llegaba COMPLETO al primer error y muchas veces trae la
+    respuesta adentro: «"queso" se escribe con QU: empieza con la letra Q». Con eso no hay
+    segundo intento.
+
+    No hubo que inventar cómo partirlo: **214 explicaciones ya están escritas en dos
+    partes**, separadas por «: » — la regla antes, el dato después. Los autores ya habían
+    hecho el trabajo; lo que faltaba era usarlo.
+
+    Donde no hay ese corte se muestra entera, como hasta ahora: nunca peor que hoy.
+    """
+    s = _player()
+    assert "function _enDosTiempos" in s, "no existe el partidor de la explicación"
+    i = s.find("function _enDosTiempos")
+    assert 'indexOf(": ")' in s[i:i + 500], "el corte dejó de buscarse donde lo escribieron"
+    assert "fallos >= 2" in s[i:i + 500], "la segunda vez tiene que llegar completa"
+    j = s.find("      casi(motivo) {")
+    assert "_enDosTiempos(motivo, self._rondaFallos)" in s[j:j + 400], (
+        "casi() volvió a mostrar la explicación entera al primer error")
+    assert "self._rondaFallos = 0" in s, (
+        "los fallos no se reinician por ronda: la regla tiene que darse de nuevo en cada "
+        "pregunta")
+
+
+def test_el_globo_encuentra_a_QUE_anclarse():
+    """Un arreglo escrito y sin efecto es peor que ninguno: quedó puesto y el globo siguió
+    en el fondo de la pantalla porque `marcarLoQueToco` apagaba la referencia ANTES de que
+    el globo se posicionara. Medido en el navegador: y=661 antes, y=266 después."""
+    s = _player()
+    assert "_ultimaMarcada" in s, (
+        "el globo depende de `_ultimaOpcion`, que `marcarLoQueToco` apaga antes de tiempo")
+    i = s.find("function mostrarExplicacion")
+    assert "_ultimaMarcada" in s[i:i + 1800], (
+        "mostrarExplicacion volvió a mirar sólo la referencia que ya está apagada")
