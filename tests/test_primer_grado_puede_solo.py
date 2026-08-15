@@ -59,17 +59,46 @@ def test_la_marca_se_limpia_al_cambiar_de_pregunta():
     assert '#juego .casi' in s[i:i + 900], "ronda() ya no limpia las marcas de la anterior"
 
 
-def test_el_error_se_avisa_por_MAS_QUE_COLOR():
-    """Color, borde y un signo. Un chico que no distingue el rojo tiene que ver igual que
-    se equivocó — y el que tiene las animaciones apagadas, también."""
+def test_la_opcion_tocada_se_marca_SIN_CASTIGARLA():
+    """La marca dice «ésta ya la probaste», no «está mal».
+
+    La política del producto está escrita, y es anterior a esta auditoría:
+    `docs/auditoria-dc-caba/grado-4.md:278` — *«las vidas convierten el error en castigo y
+    contradicen la política del producto: EL ERROR ES EL MATERIAL DE ENSEÑANZA, cada
+    distractor existe para explicar»*. Y `README.md:123`: *«hay 82 llamadas a la función de
+    error, ninguna explica qué estuvo mal: sólo sacude»*.
+
+    Mi primera versión puso una **✗ roja**, que es exactamente el lenguaje que esa política
+    descarta. Lo cazó Pablo. Marcar la acción es necesario —sin eso el chico no ata lo que
+    hizo con lo que pasó—; teñirla de rojo con una cruz es otra cosa.
+
+    Lo que sí se refuerza en verde es el ACIERTO, que es el lado que la política quiere
+    subrayado.
+    """
     h = _html()
-    assert "--mal:" in h, "no está definido el color del error"
-    assert re.search(r"\.op-texto\.casi[^{]*\{[^}]*box-shadow[^}]*var\(--mal\)", h, re.S), (
-        "la opción equivocada no tiene borde propio: quedaría avisada sólo por color")
-    assert re.search(r'\.op-texto\.casi::after[^{]*\{[^}]*content:\s*"✗"', h), (
-        "falta el signo ✗: sin él, el aviso depende de distinguir el color")
+    assert "--tocada:" in h, "no está el color neutro de «ésta ya la probaste»"
+    assert re.search(r"\.op-texto\.casi[^{]*\{[^}]*box-shadow[^}]*var\(--tocada\)", h, re.S), (
+        "la opción tocada no tiene borde propio: quedaría avisada sólo por color")
+    assert re.search(r'\.op-texto\.casi::after[^{]*\{[^}]*content:\s*"↻"', h), (
+        "falta el ↻ («volvé a intentar»): sin signo, el aviso depende de distinguir el color")
+    assert not re.search(r'\.casi::after[^{]*\{[^}]*content:\s*"[✗✘×]"', h), (
+        "la opción tocada volvió a marcarse con una cruz: eso es lenguaje de castigo y "
+        "contradice docs/auditoria-dc-caba/grado-4.md:278")
     assert re.search(r'\.op-texto\.bien::after[^{]*\{[^}]*content:\s*"✓"', h), (
-        "falta el ✓ del acierto: la misma regla vale para el lado bueno")
+        "falta el ✓ del acierto: es el lado que la política quiere reforzado")
+
+
+def test_el_porque_aparece_DONDE_esta_mirando():
+    """`CAPA-0-MOTOR-DOMINIO.md:19` fija la regla: **todo error dispara el porqué**. El
+    porqué existe, pero el globo estaba clavado con `bottom:88px` fijo — en un teléfono eso
+    cae a unos 640 px de la opción que acaba de tocar, fuera de su campo visual. Explicar
+    bien en el lugar equivocado es no explicar."""
+    s = _player()
+    i = s.find("function mostrarExplicacion")
+    bloque = s[i:i + 1800]
+    assert "_ultimaOpcion" in bloque, (
+        "la explicación volvió a posicionarse sola, sin mirar dónde tocó el chico")
+    assert "getBoundingClientRect" in bloque
 
 
 def test_la_consigna_se_puede_volver_a_escuchar():

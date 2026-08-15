@@ -3041,9 +3041,28 @@ function mostrarExplicacion(txt) {
     document.body.appendChild(e);
   }
   e.textContent = "💡 " + txt;
+  /* EL PORQUÉ, AL LADO DE LO QUE TOCÓ. La regla del producto es «todo error dispara el
+     porqué» (docs/auditoria-dc-caba/CAPA-0-MOTOR-DOMINIO.md:19). El porqué existe desde
+     hace rato, pero el globo estaba clavado abajo de la pantalla —`bottom:88px` fijo— y en
+     un teléfono eso queda a unos 640 px de donde el chico estaba mirando: fuera de su campo
+     visual. Se explica bien y en el lugar equivocado.
+     Ahora se ancla debajo de la opción que tocó, que es exactamente donde está mirando. */
+  const ref = (typeof _ultimaOpcion !== "undefined" && _ultimaOpcion
+               && _ultimaOpcion.isConnected) ? _ultimaOpcion : null;
+  if (ref) {
+    const r = ref.getBoundingClientRect();
+    const cx = Math.min(Math.max(r.left + r.width / 2, 120), window.innerWidth - 120);
+    e.style.left = cx + "px";
+    e.style.bottom = "auto";
+    e.style.top = Math.min(r.bottom + 12, window.innerHeight - 120) + "px";
+  } else {
+    e.style.left = "50%"; e.style.top = "auto"; e.style.bottom = "88px";
+  }
   requestAnimationFrame(() => { e.style.opacity = "1"; });
   clearTimeout(_explicaTimer);
-  _explicaTimer = setTimeout(() => { e.style.opacity = "0"; }, 4200);
+  // En el ciclo inicial el porqué también se escucha, y leer va más lento: se queda más.
+  _explicaTimer = setTimeout(() => { e.style.opacity = "0"; },
+                             (typeof _menuQueHabla === "function" && _menuQueHabla()) ? 7000 : 4200);
   reproducirConsigna(txt);   // Capa 0 · C3: la explicación se LEE en voz alta (voz argentina vía /tts)
 }
 function ocultarExplicacion() {

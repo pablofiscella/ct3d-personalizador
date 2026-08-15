@@ -55,10 +55,17 @@
   --bg: #EDF5F5; --card: #FFFFFF; --ink: #1F3A3B; --ac: #2E8B8E;
   --ac2: #7C5CD6; --soft: #D6EAEA; --star: #F2A93B;
   --ok: #2F7D57;
-  /* El rojo del error. No estaba: la equivocación no tenía color propio, sólo una
-     sacudida. Es oscuro a propósito — tiene que leerse sobre `--soft` de las siete
-     paletas de grado, que van de turquesa claro a durazno. */
-  --mal: #A4231B;
+  /* LA MARCA DE «ÉSTA YA LA PROBASTE», QUE NO ES LA MARCA DE «ESTÁ MAL».
+     La política del producto está escrita en docs/auditoria-dc-caba/grado-4.md:278: «las
+     vidas convierten el error en castigo y contradicen la política del producto: EL ERROR
+     ES EL MATERIAL DE ENSEÑANZA, cada distractor existe para explicar». Y en
+     README.md:123: «hay 82 llamadas a la función de error, ninguna explica qué estuvo mal:
+     sólo sacude».
+     Por eso la opción tocada NO lleva una ✗ roja —eso es lenguaje de castigo— sino un ↻ en
+     gris azulado: «ésta ya la probaste, volvé a intentar». Se distingue sin dudas de la
+     correcta, que sí se refuerza en verde con ✓. Marcar la acción es lo que le permite al
+     chico atar lo que hizo con lo que pasó; teñirla de rojo es otra cosa. */
+  --tocada: #4A5A66;
 
   /* Kydo: 12px en tarjetas, 8px en controles chicos. El 26px de antes era
      redondez de app infantil genérica; 18px sigue siendo amable y se parece
@@ -505,8 +512,8 @@ body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
 .op-texto.casi, .op.casi { animation: sacudir .4s ease; }
 .op-texto.bien, .op-texto.casi, .op.bien, .op.casi { position: relative; }
 .op-texto.casi, .op.casi {
-  box-shadow: inset 0 0 0 3px var(--mal), var(--sombra);
-  color: var(--mal);
+  box-shadow: inset 0 0 0 3px var(--tocada), var(--sombra);
+  opacity: .72;
 }
 .op-texto.bien::after, .op.bien::after,
 .op-texto.casi::after, .op.casi::after {
@@ -515,7 +522,8 @@ body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
   font-family: Archivo, sans-serif; font-size: 15px; font-weight: 800; line-height: 1;
 }
 .op-texto.bien::after, .op.bien::after { content: "✓"; background: var(--ok); color: #fff; }
-.op-texto.casi::after, .op.casi::after { content: "✗"; background: var(--mal); color: #fff; }
+.op-texto.casi::after, .op.casi::after { content: "↻"; background: var(--tocada); color: #fff;
+  font-size: 17px; }
 
 /* ── La cuenta paso a paso (división por aproximaciones — M6 4° / M7 5°) ── */
 .cuenta { text-align: center; }
