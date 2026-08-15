@@ -18374,81 +18374,81 @@ const CUR_OFICIOS_1_BANCO = [
   {
     "q": "El martillo lo usa…",
     "ops": [
-      "La carpintera",
-      "La cocinera",
-      "El médico"
+      "🪚 La carpintera",
+      "🧑‍🍳 La cocinera",
+      "🩺 El médico"
     ],
     "m": "Sirve para clavar la madera."
   },
   {
     "q": "El estetoscopio lo usa…",
     "ops": [
-      "El médico",
-      "El panadero",
-      "La maestra"
+      "🩺 El médico",
+      "🥖 El panadero",
+      "🧑‍🏫 La maestra"
     ],
     "m": "Sirve para escuchar el corazón."
   },
   {
     "q": "La cuchara de madera la usa…",
     "ops": [
-      "El cocinero",
-      "La electricista",
-      "El chofer"
+      "🧑‍🍳 El cocinero",
+      "💡 La electricista",
+      "🚗 El chofer"
     ],
     "m": "Para revolver la comida."
   },
   {
     "q": "La tijera de podar la usa…",
     "ops": [
-      "La jardinera",
-      "La panadera",
-      "El piloto"
+      "🌱 La jardinera",
+      "🥖 La panadera",
+      "✈️ El piloto"
     ],
     "m": "Para cortar las ramas."
   },
   {
     "q": "El volante lo usa…",
     "ops": [
-      "La chofer",
-      "La médica",
-      "El carpintero"
+      "🚗 La chofer",
+      "🩺 La médica",
+      "🪚 El carpintero"
     ],
     "m": "Para manejar."
   },
   {
     "q": "El pincel lo usa…",
     "ops": [
-      "El pintor",
-      "El plomero",
-      "La cocinera"
+      "🎨 El pintor",
+      "🔧 El plomero",
+      "🧑‍🍳 La cocinera"
     ],
     "m": "Para pintar."
   },
   {
     "q": "La llave inglesa la usa…",
     "ops": [
-      "La plomera",
-      "La maestra",
-      "El panadero"
+      "🔧 La plomera",
+      "🧑‍🏫 La maestra",
+      "🥖 El panadero"
     ],
     "m": "Para ajustar los caños."
   },
   {
     "q": "El horno lo usa…",
     "ops": [
-      "La panadera",
-      "La jardinera",
-      "El chofer"
+      "🥖 La panadera",
+      "🌱 La jardinera",
+      "🚗 El chofer"
     ],
     "m": "Para hornear el pan."
   },
   {
     "q": "El pizarrón lo usa…",
     "ops": [
-      "El maestro",
-      "El plomero",
-      "La chofer"
+      "🧑‍🏫 El maestro",
+      "🔧 El plomero",
+      "🚗 La chofer"
     ],
     "m": "Para enseñar."
   },
@@ -18464,9 +18464,9 @@ const CUR_OFICIOS_1_BANCO = [
   {
     "q": "La regla y el metro los usa…",
     "ops": [
-      "La albañila",
-      "La cocinera",
-      "El médico"
+      "🧱 La albañila",
+      "🧑‍🍳 La cocinera",
+      "🩺 El médico"
     ],
     "m": "Para medir antes de construir."
   },
