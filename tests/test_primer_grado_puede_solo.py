@@ -170,10 +170,17 @@ def test_las_OPCIONES_tambien_se_escuchan_en_el_ciclo_inicial():
 
 def test_la_voz_no_lee_los_emojis():
     """El sintetizador lee «🌾» como su nombre o lo saltea. El dibujo es para el ojo; la voz
-    dice la palabra."""
+    dice la palabra.
+
+    Mira el CUERPO de la función y no los primeros 700 bytes: con la ventana, tres líneas de
+    comentario agregadas el 15-ago-2026 empujaron el `replace` fuera del recorte y el test dio
+    rojo con el código intacto. **Un test que se rompe cuando se comenta el código no está
+    midiendo el código.**"""
     s = _player()
     i = s.find("function _opcionesEnPantalla")
-    assert "Extended_Pictographic" in s[i:i + 700], (
+    assert i > 0, "cambió el nombre de _opcionesEnPantalla: revisar este test"
+    cuerpo = s[i:s.find("\n}", i) + 2]
+    assert "Extended_Pictographic" in cuerpo, (
         "el texto que va a la voz no limpia los emojis")
 
 

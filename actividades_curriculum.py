@@ -7206,7 +7206,7 @@ CATALOGO = [
        "Sol tiene más"],"m":"Las dos son de una sílaba."},
       {"q":"«mesa»","ops":["2","1","3"],"m":"me-sa."},
       {"q":"«caramelo»","ops":["4","3","5"],"m":"ca-ra-me-lo."}]},
-    {"id":"parejas_letras_1","grado":1,"area":"lengua","titulo":"Parejas de letras","icono":"🔠",
+    {"id":"parejas_letras_1","caja":True,"grado":1,"area":"lengua","titulo":"Parejas de letras","icono":"🔠",
      "mecanica":"trivia","consigna":"¿Cuál es la misma letra en minúscula (la chiquita)?",
      # Pablo, 31-jul-2026: "dice cuál es la misma letra en chiquita y cuál es la misma
      # letra en minúscula". Eran dos nombres para lo mismo en la misma actividad. Se dicen
@@ -7247,7 +7247,7 @@ CATALOGO = [
        "Por el tamaño","Por la primera letra"],"m":"El espacio separa una palabra de la otra."},
       {"q":"«la casa es grande»","ops":["4","3","5"],"m":"la / casa / es / grande."},
       {"q":"«sí»","ops":["1","2","3"],"m":"Una."}]},
-    {"id":"mayuscula_punto_1","grado":1,"area":"lengua","titulo":"Mayúscula y punto","icono":"🔵",
+    {"id":"mayuscula_punto_1","caja":True,"grado":1,"area":"lengua","titulo":"Mayúscula y punto","icono":"🔵",
      "mecanica":"trivia","consigna":"¿Cómo se escribe bien?",
      "dc":"Mayúscula inicial y punto final",
      "fuente":"docs/auditoria-dc-caba/grado-1.md · L7",

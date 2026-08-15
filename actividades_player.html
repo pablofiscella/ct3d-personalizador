@@ -496,6 +496,44 @@ button.pill:active, a.pill:active { transform: scale(.94); }
    juego y va aparte. */
 body.ciclo1 .op-texto, body.ciclo1 .op,
 body.ciclo1 #juego button { font-size: 21px; }
+
+/* ── 1.º SE VE EN IMPRENTA MAYÚSCULA (15-ago-2026, decisión de Pablo) ─────────────
+   Es el alfabeto con el que arranca el año en CABA. Antes la pantalla mezclaba —consigna en
+   minúscula y respuestas en mayúscula— o sea dos alfabetos a la vez para quien todavía está
+   fijando uno.
+   Va por `text-transform`, o sea SÓLO DE VISTA: el texto real no cambia, así que no cambia
+   la clave del manifiesto de voz ni lo que se manda al sintetizador. Cambiar el texto habría
+   dejado huérfanos los mp3 ya grabados.
+   `caja-importa` la apaga en las pantallas donde la caja de las letras ES el contenido; la
+   marca el player solo, comparando si dos opciones se vuelven idénticas en mayúsculas.
+   Los controles de formulario se nombran UNO POR UNO a propósito: el navegador les pone
+   `text-transform: none` por su cuenta y NO heredan. Sin esta segunda línea la consigna sale
+   en mayúscula y las respuestas en minúscula — la mezcla que este cambio venía a sacar. */
+body.g1:not(.caja-importa) #consigna .texto,
+body.g1:not(.caja-importa) #juego,
+body.g1:not(.caja-importa) #juego button,
+body.g1:not(.caja-importa) #juego input,
+body.g1:not(.caja-importa) #juego select,
+body.g1:not(.caja-importa) #juego textarea { text-transform: uppercase; }
+
+/* El menú, que es la primera pantalla y la que más veces ve. Sin el freno `caja-importa`:
+   el rótulo es el NOMBRE de la actividad, nunca la respuesta que se evalúa. Y `.nombre` se
+   nombra explícito porque la tarjeta es un `<button>` y el div de adentro hereda su `none`. */
+body.g1 .carta .nombre,
+body.g1 #hdrNombre,
+body.g1 #bienvenida h1,
+body.g1 #bienvenida p,
+body.g1 .cat-titulo,
+body.g1 .nivel-chip,
+body.g1 .btn-comoes,
+body.g1 .comoes,
+body.g1 .comoes button,
+body.g1 .carta[data-adapt]::after { text-transform: uppercase; }
+
+/* La duración del video («15 s») queda como está: la `s` de segundos es un símbolo de unidad
+   y en mayúscula significa otra cosa. Es el único texto donde la mayúscula cambiaría el
+   significado y no sólo la forma. */
+body.g1 .btn-video small { text-transform: none; }
 body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
 
 /* ── LA MARCA DEL ERROR TIENE QUE QUEDARSE ──────────────────────────────────────

@@ -368,7 +368,10 @@ function _opcionesEnPantalla() {
     // El emoji NO va a la voz: el sintetizador lo lee como su nombre («espiga de trigo»)
     // o lo saltea, y en los dos casos ensucia una lista que tiene que ser de dos palabras.
     // El dibujo es para el ojo; la voz dice la palabra.
-    const x = (b.innerText || "").replace(/\p{Extended_Pictographic}|\uFE0F/gu, "").trim();
+    // `textContent` y no `innerText`: el segundo devuelve lo que se VE, o sea ya en
+    // mayúsculas en 1.º, y el motor deletrea las mayúsculas cuando parecen siglas —
+    // Valeria diría «ce-a-eme-pe-o» en vez de «campo».
+    const x = (b.textContent || "").replace(/\p{Extended_Pictographic}|\uFE0F/gu, "").trim();
     if (x && x.length <= 24 && t.indexOf(x) < 0) t.push(x);
   });
   return (t.length >= 2 && t.length <= 4) ? t.join(". ") : "";
@@ -4920,6 +4923,7 @@ const Shell = {
       <div id="consigna"><img class="pista" id="consignaPista" alt="" style="display:none">
         <div class="texto" id="consignaTexto"></div><button type="button" id="consignaRepetir" class="repetir" aria-label="Escuchar de nuevo">🔊</button></div>
       <div id="progreso"></div><div id="juego"></div>`));
+    _vigilarCaja();
     scrollTo(0, 0);
     // Un solo listener en el contenedor del juego cuenta los toques de la ronda, sin
     // que cada juego tenga que instrumentarse. Va en captura para que lo vea aunque el
@@ -5528,6 +5532,7 @@ const Sondeo = {
     // partida entera. El juego que ignore cfg.rondas simplemente dura lo suyo.
     const corto = Object.assign({}, base, { cfg: Object.assign({}, base.cfg || {}, { rondas: 3 }) });
     Shell.actual = paso.juego; Shell.fallos = 0;
+    setTimeout(_vigilarCaja, 0);  // el sondeo arma su stage abajo; se vigila cuando ya está
     Shell._itemId = null; Shell._rondaResp = false; Shell._rondaIdx = 0;
     Shell.primerOk = 0; Shell.primerTotal = 0;
     Shell._rondaT0 = Date.now(); Shell._rondaT1 = 0; Shell._rondaToques = 0;
@@ -5792,6 +5797,62 @@ function _menuQueHabla() { return gradoDelChico() <= 3; }
    opciones— y es el gancho por donde va a entrar el resto de lo que 1.º necesita. */
 function _marcarCiclo() {
   document.body.classList.toggle("ciclo1", _menuQueHabla());
+  // 1.º va en imprenta MAYÚSCULA: es el alfabeto con el que arranca el año en CABA, y hasta
+  // ahora la pantalla mezclaba —consigna en minúscula, respuestas en mayúscula— o sea dos
+  // alfabetos a la vez para quien todavía está fijando uno.
+  document.body.classList.toggle("g1", gradoDelChico() === 1);
+}
+
+/* LA CAJA IMPORTA EN ALGUNAS PANTALLAS, Y SE DETECTA SOLA.
+   «Mayúscula y punto» pregunta cuál está bien escrita entre «El gato duerme.», «el gato
+   duerme.» y «El gato duerme»: en mayúsculas las tres son idénticas y la actividad queda
+   incontestable. No se excluye por id —una lista escrita a mano es una apuesta sobre el
+   contenido de mañana— sino por la prueba que lo define: si al pasar a mayúscula dos
+   opciones quedan iguales, esta pantalla no se transforma. */
+function _ajustarMayusculas() {
+  const juego = document.getElementById("juego");
+  if (!juego) return;
+  // (1) LO QUE DECLARA EL CONTENIDO. `CAJA_IMPORTA` lo emite `gen_curriculum.py` desde el
+  //     campo `caja` de la actividad, al lado del DC que lo justifica.
+  const declarado = (typeof CAJA_IMPORTA !== "undefined" && Shell && Shell.actual)
+    ? CAJA_IMPORTA.has(Shell.actual) : false;
+  // (2) LA RED, para lo que se escriba mañana sin marcarlo: si dos opciones se vuelven
+  //     idénticas en mayúscula, la caja importa aunque nadie lo haya declarado.
+  //     No alcanza sola —«A» con opciones a/e/o pasa esta prueba y se rompe igual— por eso
+  //     va DESPUÉS de la lista y no en lugar de ella.
+  const textos = [...juego.querySelectorAll("button, .op, .op-texto")]
+    .filter((b) => b.offsetParent)
+    .map((b) => (b.textContent || "").trim())
+    .filter(Boolean);
+  // Se comparan los DISTINTOS contra los distintos, no contra el total: en un memotest las
+  // cartas vienen de a pares y ya eran iguales antes de transformar. Contra el total, la red
+  // apagaba la mayúscula en memotest, «¿Dónde va?», «El kiosco» y suma rápida, donde la caja
+  // de la letra no es el contenido de nada. Lo que rompe una actividad es que dos opciones
+  // DISTINTAS se vuelvan la misma.
+  const distintos = new Set(textos).size;
+  const chocan = new Set(textos.map((t) => t.toUpperCase())).size < distintos;
+  document.body.classList.toggle("caja-importa", declarado || chocan);
+}
+
+/* SE ENGANCHA AL `#juego` QUE EXISTE AHORA, y por eso lo llama quien lo dibuja.
+   `Shell.abrir()` hace `stage.innerHTML = ""` y crea un `#juego` NUEVO en cada actividad: un
+   observer puesto una sola vez al cargar la página termina mirando un nodo que ya no está en
+   el documento. Además el player carga DESPUÉS de `DOMContentLoaded`, así que engancharse a
+   ese evento era engancharse a algo que ya pasó. Las dos fallas se veían igual desde afuera
+   —«no pasa nada»— y ninguna se veía leyendo el código.
+
+   El orden importa: primero marca (con lo declarado, que sólo necesita `Shell.actual`) y
+   recién después vigila. Así la excepción ya está puesta ANTES de que el juego dibuje, y no
+   hay un parpadeo en mayúsculas en la pantalla donde la minúscula es la respuesta. */
+let _vigiaCaja = null;
+function _vigilarCaja() {
+  const j = document.getElementById("juego");
+  if (!j) return;
+  _ajustarMayusculas();
+  if (typeof MutationObserver !== "function") return;
+  if (_vigiaCaja) _vigiaCaja.disconnect();
+  _vigiaCaja = new MutationObserver(() => _ajustarMayusculas());
+  _vigiaCaja.observe(j, { childList: true, subtree: true });
 }
 function itemDeMenu(id) {
   return (D.menu || []).find((m) => (typeof m === "string" ? m : m.id) === id) || null;

@@ -3,6 +3,7 @@
    entrada de datos, con el contenido del DC y el documento del que salió).
    Se carga DESPUÉS de player.js porque registra sobre GAMES. */
 
+const CAJA_IMPORTA = new Set(["parejas_letras_1", "mayuscula_punto_1"]);
 /* 1° · ¿De qué está hecho? — objeto_material
    DC: Los objetos y los materiales: de qué está hecho, qué propiedad lo hace servir para eso
    Fuente: docs/auditoria-dc-caba/grado-1.md · C4 */
