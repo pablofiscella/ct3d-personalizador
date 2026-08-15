@@ -53,16 +53,26 @@ def _html():
     return open(HTML, encoding="utf-8").read()
 
 
+def _css_sin_comentarios():
+    """La hoja SIN los `/* … */`.
+
+    Importa más de lo que parece: estas reglas van muy comentadas —cada excepción explica el
+    DC que la justifica— y un test que busque `#toast` en el texto crudo lo encuentra en el
+    comentario aunque el selector diga otra cosa. Pasó: una mutación que rompía la regla de
+    verdad dio VERDE porque el nombre seguía nombrado dos líneas más arriba, en prosa."""
+    return re.sub(r"/\*.*?\*/", " ", _html(), flags=re.S)
+
+
 def _regla_mayusculas():
-    """El bloque CSS que pone 1.º en mayúsculas, sin el comentario."""
-    m = re.search(r"(body\.g1:not\(\.caja-importa\)[^{]*\{[^}]*\})", _html())
+    """El bloque CSS que pone 1.º en mayúsculas."""
+    m = re.search(r"(body\.g1:not\(\.caja-importa\)[^{]*\{[^}]*\})", _css_sin_comentarios())
     assert m, "desapareció la regla que pone 1.º en mayúsculas"
     return m.group(1)
 
 
 def _reglas_g1():
     """Todos los bloques `body.g1 …` del cuaderno (el del juego y el del menú)."""
-    return "\n".join(re.findall(r"(body\.g1[^{]*\{[^}]*\})", _html()))
+    return "\n".join(re.findall(r"(body\.g1[^{]*\{[^}]*\})", _css_sin_comentarios()))
 
 
 def test_la_regla_nombra_a_los_controles_porque_no_heredan():
@@ -88,13 +98,90 @@ def test_cada_contenedor_que_se_transforma_nombra_sus_botones():
     también a sus botones.** Si mañana se agrega otro contenedor a la lista de arriba, este
     test lo obliga a traer su `button`."""
     reglas = _reglas_g1()
-    contenedores = [c for c in ("#juego", ".comoes", ".carta") if c in reglas]
+    contenedores = [c for c in ("#juego", ".comoes", ".carta",
+                                "#festejo", "#logro", "#perfil", "#candado") if c in reglas]
     assert contenedores, "no encontré ningún contenedor en las reglas de 1.º"
     for c in contenedores:
         assert re.search(re.escape(c) + r"\s+(button|\.nombre)", reglas), (
             "`%s` se transforma pero no nombra lo que lleva adentro. Los controles de "
             "formulario no heredan `text-transform`: el contenedor queda en mayúscula y el "
             "botón en minúscula." % c)
+
+
+def test_estan_todas_las_pantallas_del_chico():
+    """El recorrido de 1.º no es sólo el menú y el tablero. Un primer barrido dio «64 de 64»
+    y sonaba a terminado; lo que no cubría eran las pantallas que se abren ENCIMA y a las que
+    sólo se llega jugando:
+
+    · `#festejo`  — «¡Muy bien, Sofi!», aparece al cerrar CADA actividad
+    · `#logro`    — el diploma
+    · `#perfil`   — «¿Quién juega?»
+    · `#candado`  — «Este nivel está guardado, pedile a tu grande que lo abra»
+    · `#nivelbar` — los chips de nivel
+    · `#explica`  — EL PORQUÉ. Cuelga del `<body>`, no del `#juego`, así que ninguna regla de
+                    adentro del juego lo alcanzaba. Es lo que el chico lee justo cuando se
+                    equivoca, y es el único de la lista que lleva el freno `caja-importa`,
+                    porque en «Parejas de letras» la explicación habla de la letra chiquita.
+
+    Un barrido que mira sólo la pantalla que uno se acordó de abrir cuenta lo que eligió
+    contar."""
+    reglas = _reglas_g1()
+    for p in ("#festejo", "#logro", "#perfil", "#candado", "#nivelbar", "#explica"):
+        assert p in reglas, (
+            "`%s` es una pantalla que ve el chico de 1.º y quedó fuera de la mayúscula" % p)
+    assert "body.g1:not(.caja-importa) #explica" in _html(), (
+        "`#explica` tiene que llevar el freno `caja-importa`: en «Parejas de letras» la "
+        "explicación nombra la letra minúscula")
+    # y el Modo Profe, que es del adulto, NO se transforma
+    assert "#stage {" not in reglas and "#stage," not in reglas, (
+        "transformar `#stage` entero alcanzaría también al Modo Profe, que son cuatro "
+        "pantallas de autor para un adulto")
+
+
+def test_ninguna_pantalla_que_se_abre_encima_queda_sin_decidir():
+    """EL guardián que reemplaza a mi memoria. En vez de una lista escrita a mano —que es una
+    apuesta sobre el cuaderno de mañana— se ENUMERAN las pantallas que se abren encima
+    (`role="dialog"` en el HTML y los `position:fixed` que arma el JS) y se exige que cada una
+    esté decidida: o va en mayúsculas, o está declarada como pantalla del adulto.
+
+    Nace de haberme comido tres barridos seguidos. El primero miró el menú y dio «64 de 64».
+    El segundo jugó y encontró el festejo. El tercero cruzó los contenedores del HTML contra
+    las reglas y encontró el `#toast` —el «¡Muy bien!» de CADA acierto, el texto que más veces
+    ve en toda la sesión— y el «Preparando tus juegos…». **Un barrido sólo encuentra lo que
+    uno se acordó de abrir; un cruce encuentra lo que uno se olvidó.**"""
+    # Las que serían del adulto y por eso NO se transformarían, con el motivo al lado.
+    # Hoy está VACÍO a propósito: de las pantallas que se abren encima, ninguna es del
+    # adulto — las del adulto (Modo Profe, panel de padres, nota a la familia) no son
+    # diálogos con id, se dibujan en `#stage` o con clase propia. Si mañana aparece una,
+    # se anota acá con el motivo en vez de hacerle un agujero a la regla.
+    DEL_ADULTO = {}
+    html, reglas = _html(), _reglas_g1()
+    pantallas = set(re.findall(r'<\w+\s+id="([\w-]+)"[^>]*role="dialog"', html))
+    pantallas |= {m.group(1) for m in re.finditer(r'\.id\s*=\s*"([\w-]+)"', _player())
+                  if "position:fixed" in _player()[max(0, m.start() - 200):m.end() + 400]}
+    pantallas |= {"cargando", "toast"}          # las dos que se me habían pasado
+    assert len(pantallas) >= 6, "el enumerador dejó de encontrar pantallas: revisarlo"
+    sin_decidir = [p for p in sorted(pantallas)
+                   if not re.search(r"#" + re.escape(p) + r"\b", reglas) and p not in DEL_ADULTO]
+    assert not sin_decidir, (
+        "estas pantallas se le abren al chico y nadie decidió si van en mayúscula: %s. "
+        "O se agregan a la regla de 1.º, o se declaran en DEL_ADULTO con el motivo."
+        % ", ".join(sin_decidir))
+
+
+def test_el_grado_se_marca_antes_de_la_pantalla_de_carga():
+    """«Preparando tus juegos…» se ve ANTES de que exista el menú. Medido en el navegador:
+    salía con el `<body>` sin ninguna clase, así que la regla de mayúsculas no la alcanzaba —
+    la regla estaba escrita y no hacía nada, que es peor que no tenerla, porque cuenta como
+    hecha. `gradoDelChico()` sólo mira `D.edad`, que ya está cargado en ese momento."""
+    s = _player()
+    i = s.find("  P = D.personajes;")
+    assert i > 0, "cambió el arranque: revisar este test"
+    j = s.find('$("#cargando").remove()')
+    assert j > i, "cambió el orden del arranque: revisar este test"
+    assert "_marcarCiclo();" in s[i:j], (
+        "el grado se marca después de que se fue la pantalla de carga: lo primero que ve el "
+        "chico de 1.º queda en el alfabeto que todavía no lee")
 
 
 def test_es_solo_de_vista_no_cambia_el_texto():

@@ -6772,6 +6772,12 @@ async function boot() {
   // carga aparte — si un día no está, el cuaderno abre igual.
   if (typeof sumarDueloDeCompaneros === "function") sumarDueloDeCompaneros();
   P = D.personajes;
+  // EL GRADO SE MARCA ACÁ Y NO RECIÉN AL PINTAR EL MENÚ. `gradoDelChico()` sólo mira
+  // `D.edad`, que ya está cargado, y la pantalla «Preparando tus juegos…» se ve ANTES de
+  // que el menú exista: medido, salía con el `<body>` sin ninguna clase, o sea que la regla
+  // de mayúsculas no la alcanzaba. Lo primero que ve el chico de 1.º estaba en el alfabeto
+  // que todavía no lee. `_marcarCiclo()` se sigue llamando al pintar el menú: es idempotente.
+  _marcarCiclo();
   // paleta del tema → CSS vars (todo el look sale de acá)
   const root = document.documentElement;
   for (const [k, v] of Object.entries(D.paleta)) root.style.setProperty("--" + k, v);

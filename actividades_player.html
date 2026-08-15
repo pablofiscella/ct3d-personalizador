@@ -514,7 +514,20 @@ body.g1:not(.caja-importa) #juego,
 body.g1:not(.caja-importa) #juego button,
 body.g1:not(.caja-importa) #juego input,
 body.g1:not(.caja-importa) #juego select,
-body.g1:not(.caja-importa) #juego textarea { text-transform: uppercase; }
+body.g1:not(.caja-importa) #juego textarea,
+/* EL PORQUÉ. `#explica` cuelga del `<body>`, no del `#juego`, así que ninguna regla de
+   adentro del juego lo alcanzaba: era el texto que el chico lee JUSTO cuando se equivoca, y
+   se le seguía mostrando en el alfabeto que todavía no lee. Lleva el freno `caja-importa`
+   porque en «Parejas de letras» la explicación habla de la letra chiquita. */
+body.g1:not(.caja-importa) #explica,
+/* Y el `#toast`, que es el «¡Muy bien!» de CADA acierto — el texto que más veces ve en toda
+   la sesión— y que tampoco vive adentro del `#juego`. Lleva el mismo freno que el porqué:
+   algunos juegos le pasan contenido propio («¡Contalos tocándolos!»). */
+body.g1:not(.caja-importa) #toast { text-transform: uppercase; }
+
+/* Lo primero de todo: «Preparando tus juegos…». Va suelto porque se dibuja antes de que el
+   player sepa el grado… salvo que la clase `g1` ya esté puesta, que es el caso al recargar. */
+body.g1 #cargando { text-transform: uppercase; }
 
 /* El menú, que es la primera pantalla y la que más veces ve. Sin el freno `caja-importa`:
    el rótulo es el NOMBRE de la actividad, nunca la respuesta que se evalúa. Y `.nombre` se
@@ -528,7 +541,32 @@ body.g1 .nivel-chip,
 body.g1 .btn-comoes,
 body.g1 .comoes,
 body.g1 .comoes button,
-body.g1 .carta[data-adapt]::after { text-transform: uppercase; }
+body.g1 .carta[data-adapt]::after,
+/* LAS TRES PANTALLAS QUE SE ABREN ENCIMA Y NO ESTÁN NI EN EL MENÚ NI EN EL JUEGO:
+   el festejo del final de cada actividad («¡Muy bien, Sofi!», «🔁 Otra vez», «▶ Seguir»),
+   el diploma («¡Completaste TODO sin errores!») y el «¿Quién juega?».
+   Son las que el chico ve MÁS seguido —el festejo aparece al cerrar cada actividad— y se
+   escapaban de un barrido que sólo mirara el menú y el tablero: hay que JUGAR para llegar.
+   Van sin el freno `caja-importa`: acá nunca la caja de la letra es la respuesta. */
+body.g1 #festejo,
+body.g1 #festejo button,
+body.g1 #logro,
+body.g1 #logro button,
+body.g1 #perfil,
+body.g1 #perfil button,
+body.g1 #perfil input,
+/* Y las tres que quedan del recorrido del chico: la barra de niveles («🌱 Nivel 1»), el
+   candado («Este nivel está guardado, pedile a tu grande que lo abra») y el link al diploma.
+   La pantalla de nivel en sí reusa `#bienvenida`, que ya está arriba.
+   NO se transforma `#stage` entero, que sería más corto: adentro de `#stage` también se
+   dibuja el Modo Profe —cuatro pantallas de autor, para un adulto— y ahí la mayúscula sería
+   un estorbo. La lista explícita es más larga a propósito. */
+body.g1 #nivelbar button,
+body.g1 #candado,
+body.g1 #candado button,
+body.g1 #oferta,
+body.g1 #oferta button,
+body.g1 #pillLogro { text-transform: uppercase; }
 
 /* La duración del video («15 s») queda como está: la `s` de segundos es un símbolo de unidad
    y en mayúscula significa otra cosa. Es el único texto donde la mayúscula cambiaría el
