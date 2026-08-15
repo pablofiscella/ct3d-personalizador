@@ -340,7 +340,59 @@ function _deletrearParaLaVoz(txt) {
              (m0, pre, L) => pre + (_NOMBRE_LETRA[L] || L));
 }
 
+/* LO ÚLTIMO QUE SE DIJO, PARA PODER REPETIRLO.
+   14-ago-2026. La consigna se decía UNA vez y no había forma de volver a escucharla:
+   ni tocando el texto, ni el 🔊 del encabezado —que silencia, no repite—. Un chico de
+   6 años que se distrae cuatro segundos (que es lo que hace un chico de 6 años) se
+   quedaba sin la consigna y sin poder leerla.
+   Se recuerda ACÁ y no en cada juego porque son 76 juegos más el catálogo: cualquier
+   cosa que la seño diga —consigna, corrección, pista— queda disponible para repetir,
+   incluidas las que se agreguen mañana. */
+let _ultimoDicho = "";
+
+function repetirLoUltimo(btn) {
+  if (!_ultimoDicho) return;
+  if (btn) {
+    btn.classList.add("sonando");
+    reproducirConsigna(_ultimoDicho).then(() => btn.classList.remove("sonando"));
+  } else {
+    reproducirConsigna(_ultimoDicho);
+  }
+}
+
+/* Delegado en el documento: la consigna se rearma en cada pantalla y en cada ronda, y
+   un listener por instancia se pierde en la primera. */
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest("#consignaRepetir");
+  if (b) { e.preventDefault(); e.stopPropagation(); repetirLoUltimo(b); }
+});
+
+/* LA OPCIÓN QUE TOCÓ, PARA PODER MARCARLA.
+   14-ago-2026. Al equivocarse, la opción tocada no quedaba marcada: 40 juegos arman sus
+   propios botones `.op` y cada uno decide qué hacer, y casi ninguno hace nada. El chico
+   toca, no pasa nada visible, y no puede asociar su acción con el resultado — que es de
+   lo que está hecho aprender de un error.
+   No se arreglan los 40: se recuerda acá cuál fue el último botón tocado, y `ctx.bien()`
+   y `ctx.casi()` —el embudo por donde YA pasan todos— lo marcan. Un juego nuevo hereda
+   la marca sin que nadie se acuerde de pedirla.
+   El plazo de 1,2 s evita marcar de más: `ctx.casi()` también lo llaman juegos de
+   arrastre y de secuencia, donde el último clic puede no tener nada que ver. */
+let _ultimaOpcion = null, _ultimaOpcionT = 0;
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest(".op, .op-texto");
+  if (b) { _ultimaOpcion = b; _ultimaOpcionT = Date.now(); }
+}, true);
+
+function marcarLoQueToco(clase) {
+  const b = _ultimaOpcion;
+  if (!b || Date.now() - _ultimaOpcionT > 1200) return;
+  if (!b.isConnected) return;
+  b.classList.add(clase);
+  _ultimaOpcion = null;
+}
+
 function reproducirConsigna(txt) {
+  if (txt) _ultimoDicho = txt;
   if (vozActual) { vozActual.pause(); vozActual = null; }
   if (!Sfx.on) return Promise.resolve(false);
   // La actividad NO habla encima de una lección abierta (03-ago-2026). `mostrarComoEs` y
@@ -4782,7 +4834,7 @@ const Shell = {
     stage.innerHTML = "";
     stage.appendChild(el("div", "", `
       <div id="consigna"><img class="pista" id="consignaPista" alt="" style="display:none">
-        <div class="texto" id="consignaTexto"></div></div>
+        <div class="texto" id="consignaTexto"></div><button type="button" id="consignaRepetir" class="repetir" aria-label="Escuchar de nuevo">🔊</button></div>
       <div id="progreso"></div><div id="juego"></div>`));
     scrollTo(0, 0);
     // Un solo listener en el contenedor del juego cuenta los toques de la ronda, sin
@@ -4903,12 +4955,18 @@ const Shell = {
         self._rondaResp = false;   // ronda nueva → la próxima respuesta es "primer intento"
         self._rondaT0 = Date.now(); self._rondaT1 = 0; self._rondaToques = 0;
         ocultarExplicacion();
+        /* LA MARCA DE LA RESPUESTA DURA LO QUE DURA LA PREGUNTA. Antes se borraba sola a
+           los 450 ms —35 juegos hacían el mismo `setTimeout`— y el chico que miraba para
+           otro lado no veía nunca qué había tocado. Se limpia acá, cuando empieza la
+           pregunta siguiente, que es cuando la marca deja de significar algo. */
+        document.querySelectorAll("#juego .casi, #juego .bien")
+          .forEach((b) => b.classList.remove("casi", "bien"));
         document.querySelectorAll("#progreso i").forEach((d, j) => {
           d.className = j < i ? "hecho" : (j === i ? "actual" : "");
         });
       },
-      bien(txt) { registrar(true); ocultarExplicacion(); Sfx.ok(); toast(txt || FRASES_BIEN[rint(0, FRASES_BIEN.length - 1)]); },
-      casi(motivo) { registrar(false, motivo); self.fallos++; Sfx.casi(); if (motivo) mostrarExplicacion(motivo); },
+      bien(txt) { registrar(true); marcarLoQueToco("bien"); ocultarExplicacion(); Sfx.ok(); toast(txt || FRASES_BIEN[rint(0, FRASES_BIEN.length - 1)]); },
+      casi(motivo) { registrar(false, motivo); marcarLoQueToco("casi"); self.fallos++; Sfx.casi(); if (motivo) mostrarExplicacion(motivo); },
       win(estrellas) {
         // Capa 0 · C2 (compuerta de dominio, docs/auditoria-dc-caba/): las
         // estrellas miden DOMINIO real —aciertos al PRIMER intento— no "completé
@@ -5379,7 +5437,8 @@ const Sondeo = {
     stage.appendChild(el("div", "", '<div class="sondeo-paso">Juego ' + (this.idx + 1) +
       " de " + this.plan.length + " · " + (Adapt.labelCategoria ? Adapt.labelCategoria(paso.cat) : "") + "</div>" +
       '<div id="consigna"><img class="pista" id="consignaPista" alt="" style="display:none">' +
-      '<div class="texto" id="consignaTexto"></div></div>' +
+      '<div class="texto" id="consignaTexto"></div>' +
+      '<button type="button" id="consignaRepetir" class="repetir" aria-label="Escuchar de nuevo">🔊</button></div>' +
       '<div id="progreso"></div><div id="juego"></div>'));
     scrollTo(0, 0);
     $("#juego").addEventListener("pointerdown", () => {
@@ -5521,6 +5580,14 @@ function _adaptCSS() {
     "box-shadow:0 2px 4px color-mix(in srgb, var(--ink) 6%, transparent)," +
     "0 8px 20px color-mix(in srgb, var(--ink) 8%, transparent)}" +
     // el nivel ganado: abajo de todo y chiquito, para que no le gane al título
+    /* La corneta de la tarjeta: arriba a la izquierda, lejos del pulgar que abre el
+       juego, y con 44px de blanco para que un dedo de seis años la acierte sin
+       abrir la actividad por error. */
+    ".carta{position:relative}" +
+    ".carta .hablar{position:absolute;top:4px;left:4px;width:44px;height:44px;" +
+      "display:grid;place-items:center;font-size:19px;line-height:1;border-radius:50%;" +
+      "background:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.16)}" +
+    ".carta .hablar:active{transform:scale(.9)}" +
     ".carta .nivel-chip{margin-top:4px;font-family:\"Baloo\",Archivo,sans-serif;font-size:11px;" +
     "font-weight:700;letter-spacing:-.02em;white-space:nowrap;min-height:16px;" +
     "color:color-mix(in srgb, var(--ink) 62%, var(--card))}" +
@@ -5615,6 +5682,12 @@ function _perfilNuevo(nombre) {
 }
 
 function gradoDelChico() { return ((D && D.edad) ? D.edad : 9) - 5; }
+
+/* La corneta en las tarjetas es del CICLO INICIAL. En 1.º y 2.º es la diferencia entre
+   poder elegir y no poder; en 3.º todavía ayuda. De 4.º para arriba el chico lee el
+   rótulo de un vistazo y 68 cornetas serían ruido — y en 6.º y 7.º, además, leerían como
+   material para más chicos, que es justo lo que un preadolescente rechaza. */
+function _menuQueHabla() { return gradoDelChico() <= 3; }
 function itemDeMenu(id) {
   return (D.menu || []).find((m) => (typeof m === "string" ? m : m.id) === id) || null;
 }
@@ -5817,7 +5890,11 @@ function pintarMenuPlano(items, stage) {
       <div class="mini-est">${est}</div>
       ${_masAlla ? `<div class="nivel-chip nivel-chip--mas" title="Es del grado siguiente: el paso después de Experto">🚀 Más allá<small>es de ${m.grado}.º</small></div>` : ""}
       ${_ndMeta ? `<div class="nivel-chip" title="Nivel ${_nd} de 3 — se gana jugando">${_ndMeta.icono} ${_ndMeta.nombre}</div>` : ""}
-      ${conSprite ? `<div class="chip">${_iconoSeguro(m)}</div>` : ""}`;
+      ${conSprite ? `<div class="chip">${_iconoSeguro(m)}</div>` : ""}
+      ${_menuQueHabla() ? `<span class="hablar" aria-hidden="true">🔊</span>` : ""}`;
+    // El nombre del juego, para el lector de pantalla y para la voz: el 🔊 va oculto a
+    // la accesibilidad porque lo que dice ya está en el rótulo de la tarjeta.
+    c.setAttribute("aria-label", m.titulo);
     // ESI: marca en la tarjeta + la nota completa la primera vez que se abre una.
     // No bloquea nada — después de leerla, el botón "Empezar" sigue al juego.
     const esEsi = ESI_IDS.has(m.id);
@@ -5825,7 +5902,17 @@ function pintarMenuPlano(items, stage) {
       c.classList.add("esi");
       c.insertAdjacentHTML("beforeend", '<div class="esi-marca" title="Educación Sexual Integral">👪</div>');
     }
-    c.addEventListener("click", () => {
+    c.addEventListener("click", (ev) => {
+      // EL MENÚ SE PUEDE ESCUCHAR (14-ago-2026). Un chico de 1.º entra a un menú de 68
+      // tarjetas y 279 palabras, y para elegir tiene que LEER. Adentro de la actividad la
+      // seño habla; el menú era el único tramo mudo del recorrido, y es el primero.
+      // Va como corneta POR TARJETA y no como un botón que lea el menú entero: el chico
+      // pregunta por UNA tarjeta, la que está mirando.
+      if (ev && ev.target && ev.target.closest && ev.target.closest(".hablar")) {
+        ev.preventDefault(); ev.stopPropagation();
+        reproducirConsigna(m.titulo);
+        return;
+      }
       Sfx.pop();
       let visto = true;
       try { visto = localStorage.getItem(_esiVistoKey()) === "1"; } catch (e) {}
@@ -5875,7 +5962,12 @@ function _botonModoProfe() {
   b.style.cssText = "width:100%;display:flex;align-items:center;gap:12px;justify-content:center;" +
     // El degradado violeta era fijo y no pertenecía a la paleta de ningún grado: en el
     // verde agua de 4.º era lo más ruidoso de la pantalla. Ahora usa el acento del grado.
-    "background:var(--ac2);color:#fff;border:none;border-radius:14px;" +
+    /* EL ACENTO, OSCURECIDO LO JUSTO PARA QUE EL BLANCO SE LEA. El botón usaba `--ac2`
+       plano con texto blanco: en 6 de los 7 grados eso da entre 3,04:1 y 4,26:1, por
+       debajo del mínimo de 4,5:1 — medido en las siete paletas. No se toca la paleta del
+       grado (el acento se usa en veinte lugares más): se oscurece SÓLO acá. */
+    "background:color-mix(in srgb, var(--ac2) 74%, #0B0F0E);color:#fff;border:none;" +
+    "border-radius:14px;" +
     "padding:16px 18px;font-size:18px;font-weight:800;box-shadow:0 8px 22px rgba(0,0,0,.18);cursor:pointer;margin:2px 0 10px";
   // El emoji 🧑‍🏫 trae un PIZARRÓN adentro: un rectángulo oscuro que sobre la banda de
   // color se lee como un cuadrado pegado, no como un ícono (Pablo, 29-jul). El birrete no
@@ -7527,7 +7619,6 @@ GAMES.contar = {
             else jugar();
           } else {
             b.classList.add("casi");
-            setTimeout(() => b.classList.remove("casi"), 450);
             ctx.casi();
             if (contados < nBichos) toast("¡Contalos tocándolos! 👆");
           }
@@ -7605,7 +7696,6 @@ function juegoCuentas(resta) {
               else jugar();
             } else {
               btn.classList.add("casi");
-              setTimeout(() => btn.classList.remove("casi"), 450);
               ctx.casi();
             }
           });
@@ -7853,7 +7943,6 @@ GAMES.patron = {
             else jugar();
           } else {
             b.classList.add("casi");
-            setTimeout(() => b.classList.remove("casi"), 450);
             ctx.casi();
             // andamiaje: el patrón se repasa solo, resaltando en orden
             spriteEls.slice(0, -1).forEach((d, i) => setTimeout(() => d.classList.add("anim-brinco"), i * 140));
@@ -8590,7 +8679,6 @@ GAMES.tablas_ninja = {
             else jugar();
           } else {
             btn.classList.add("casi");
-            setTimeout(() => btn.classList.remove("casi"), 450);
             ctx.casi(o.m);   // C3: explica ESTE error puntual
           }
         });
@@ -8658,8 +8746,7 @@ GAMES.multiplicar = {
             ronda++; await espera(950);
             if (ronda >= rondas) ctx.win(); else jugar();
           } else {
-            btn.classList.add("casi"); setTimeout(() => btn.classList.remove("casi"), 450);
-            ctx.casi(o.m);
+            btn.classList.add("casi");            ctx.casi(o.m);
           }
         });
         fila.appendChild(btn);
@@ -8723,8 +8810,7 @@ GAMES.dividir = {
             ronda++; await espera(950);
             if (ronda >= rondas) ctx.win(); else jugar();
           } else {
-            btn.classList.add("casi"); setTimeout(() => btn.classList.remove("casi"), 450);
-            ctx.casi(o.m);
+            btn.classList.add("casi");            ctx.casi(o.m);
           }
         });
         fila.appendChild(btn);
@@ -9191,8 +9277,7 @@ GAMES.duelo_decimales = {
             ronda++; await espera(950);
             if (ronda >= rondas) ctx.win(); else jugar();
           } else {
-            btn.classList.add("casi"); setTimeout(() => btn.classList.remove("casi"), 450);
-            ctx.casi(motivo);
+            btn.classList.add("casi");            ctx.casi(motivo);
           }
         });
         fila.appendChild(btn);
@@ -9262,8 +9347,7 @@ GAMES.problemas_mult_div = {
             ronda++; await espera(950);
             if (ronda >= rondas) ctx.win(); else jugar();
           } else {
-            btn.classList.add("casi"); setTimeout(() => btn.classList.remove("casi"), 450);
-            ctx.casi(o.m);
+            btn.classList.add("casi");            ctx.casi(o.m);
           }
         });
         fila.appendChild(btn);
@@ -9317,8 +9401,7 @@ GAMES.plurales_z = {
             ronda++; await espera(950);
             if (ronda >= rondas) ctx.win(); else jugar();
           } else {
-            btn.classList.add("casi"); setTimeout(() => btn.classList.remove("casi"), 450);
-            ctx.casi(o.m);
+            btn.classList.add("casi");            ctx.casi(o.m);
           }
         });
         fila.appendChild(btn);
@@ -9566,7 +9649,6 @@ function juegoParametrico(PLANTILLA, consignaTxt, idPrefijo) {
               if (ronda >= rondas) ctx.win(); else jugar();
             } else {
               b.classList.add("casi");
-              setTimeout(() => b.classList.remove("casi"), 450);
               ctx.casi(it.m);
             }
           });
@@ -11432,8 +11514,7 @@ GAMES.comprension_lectora = {
             if (qi >= pasaje.preguntas.length) nuevoPasaje();
             render();
           } else {
-            b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450);
-            ctx.casi(o.m);
+            b.classList.add("casi");            ctx.casi(o.m);
           }
         });
         fila.appendChild(b);
@@ -11485,7 +11566,7 @@ GAMES.reparto_con_resto = {
         b.addEventListener("click", async () => {
           if (resuelto) return;
           if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(1000); if (ronda >= rondas) ctx.win(); else jugar(); }
-          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+          else { b.classList.add("casi"); ctx.casi(o.m); }
         });
         fila.appendChild(b);
       });
@@ -11530,7 +11611,7 @@ GAMES.comparar_numeros = {
         b.addEventListener("click", async () => {
           if (resuelto) return;
           if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
-          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(motivo); }
+          else { b.classList.add("casi"); ctx.casi(motivo); }
         });
         fila.appendChild(b);
       });
@@ -11583,7 +11664,7 @@ GAMES.estados_materia = {
         b.addEventListener("click", async () => {
           if (resuelto) return;
           if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
-          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(EXPL[it.r]); }
+          else { b.classList.add("casi"); ctx.casi(EXPL[it.r]); }
         });
         fila.appendChild(b);
       });
@@ -11680,7 +11761,7 @@ GAMES.conectores = {
         b.addEventListener("click", async () => {
           if (resuelto) return;
           if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
-          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(it.m); }
+          else { b.classList.add("casi"); ctx.casi(it.m); }
         });
         fila.appendChild(b);
       });
@@ -11783,7 +11864,7 @@ GAMES.equivalencias_medida = {
         b.addEventListener("click", async () => {
           if (resuelto) return;
           if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
-          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+          else { b.classList.add("casi"); ctx.casi(o.m); }
         });
         fila.appendChild(b);
       });
@@ -11847,7 +11928,7 @@ GAMES.verbos_pasado = {
         b.addEventListener("click", async () => {
           if (resuelto) return;
           if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
-          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(it.m); }
+          else { b.classList.add("casi"); ctx.casi(it.m); }
         });
         fila.appendChild(b);
       });
@@ -11907,7 +11988,7 @@ GAMES.buenos_aires = {
         b.addEventListener("click", async () => {
           if (resuelto) return;
           if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
-          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(it.m); }
+          else { b.classList.add("casi"); ctx.casi(it.m); }
         });
         fila.appendChild(b);
       });
@@ -11950,7 +12031,7 @@ GAMES.numeros_primos = {
         b.addEventListener("click", async () => {
           if (resuelto) return;
           if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
-          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+          else { b.classList.add("casi"); ctx.casi(o.m); }
         });
         fila.appendChild(b);
       });
@@ -11992,7 +12073,7 @@ GAMES.jerarquia_operaciones = {
         b.addEventListener("click", async () => {
           if (resuelto) return;
           if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
-          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+          else { b.classList.add("casi"); ctx.casi(o.m); }
         });
         fila.appendChild(b);
       });
@@ -12038,7 +12119,7 @@ GAMES.porcentajes = {
         b.addEventListener("click", async () => {
           if (resuelto) return;
           if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
-          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+          else { b.classList.add("casi"); ctx.casi(o.m); }
         });
         fila.appendChild(b);
       });
@@ -12086,7 +12167,7 @@ GAMES.potencias = {
         b.addEventListener("click", async () => {
           if (resuelto) return;
           if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
-          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+          else { b.classList.add("casi"); ctx.casi(o.m); }
         });
         fila.appendChild(b);
       });
@@ -12144,7 +12225,7 @@ GAMES.problemas_multipaso = {
         b.addEventListener("click", async () => {
           if (resuelto) return;
           if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
-          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+          else { b.classList.add("casi"); ctx.casi(o.m); }
         });
         fila.appendChild(b);
       });
@@ -12250,7 +12331,7 @@ GAMES.ingles_basico = {
             if (ronda >= rondas) ctx.win(_estrellasConAyuda(rondasConAudio, rondas));
             else jugar();
           }
-          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(it.m); }
+          else { b.classList.add("casi"); ctx.casi(it.m); }
         });
         fila.appendChild(b);
       });
@@ -12346,7 +12427,7 @@ GAMES.decimales_fraccion = {
         b.addEventListener("click", async () => {
           if (resuelto) return;
           if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
-          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(it.m); }
+          else { b.classList.add("casi"); ctx.casi(it.m); }
         });
         fila.appendChild(b);
       });
@@ -12388,7 +12469,7 @@ GAMES.suma_fracciones = {
         b2.addEventListener("click", async () => {
           if (resuelto) return;
           if (o.ok) { resuelto = true; b2.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
-          else { b2.classList.add("casi"); setTimeout(() => b2.classList.remove("casi"), 450); ctx.casi(o.m); }
+          else { b2.classList.add("casi"); ctx.casi(o.m); }
         });
         fila.appendChild(b2);
       });
@@ -12447,7 +12528,7 @@ GAMES.detectives_cielo = {
         b.addEventListener("click", async () => {
           if (resuelto) return;
           if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
-          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(it.m); }
+          else { b.classList.add("casi"); ctx.casi(it.m); }
         });
         fila.appendChild(b);
       });
@@ -12483,7 +12564,7 @@ function juegoTriviaBanco(BANCO, idPrefijo) {
           b.addEventListener("click", async () => {
             if (resuelto) return;
             if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
-            else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(it.m); }
+            else { b.classList.add("casi"); ctx.casi(it.m); }
           });
           fila.appendChild(b);
         });
@@ -12573,7 +12654,7 @@ GAMES.multiplicar_fracciones = {
         b2.addEventListener("click", async () => {
           if (resuelto) return;
           if (o.ok) { resuelto = true; b2.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
-          else { b2.classList.add("casi"); setTimeout(() => b2.classList.remove("casi"), 450); ctx.casi(o.m); }
+          else { b2.classList.add("casi"); ctx.casi(o.m); }
         });
         fila.appendChild(b2);
       });
@@ -12617,7 +12698,7 @@ GAMES.ecuaciones_simples = {
         b.addEventListener("click", async () => {
           if (resuelto) return;
           if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
-          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+          else { b.classList.add("casi"); ctx.casi(o.m); }
         });
         fila.appendChild(b);
       });
@@ -12755,7 +12836,7 @@ GAMES.problemas_3ro = {
         b.addEventListener("click", async () => {
           if (resuelto) return;
           if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
-          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+          else { b.classList.add("casi"); ctx.casi(o.m); }
         });
         fila.appendChild(b);
       });
@@ -12832,7 +12913,7 @@ GAMES.anterior_siguiente = {
         b.addEventListener("click", async () => {
           if (resuelto) return;
           if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
-          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+          else { b.classList.add("casi"); ctx.casi(o.m); }
         });
         fila.appendChild(b);
       });
@@ -12876,7 +12957,7 @@ GAMES.contar_saltando = {
         b.addEventListener("click", async () => {
           if (resuelto) return;
           if (o.ok) { resuelto = true; b.classList.add("anim-pop"); ctx.bien(); ronda++; await espera(950); if (ronda >= rondas) ctx.win(); else jugar(); }
-          else { b.classList.add("casi"); setTimeout(() => b.classList.remove("casi"), 450); ctx.casi(o.m); }
+          else { b.classList.add("casi"); ctx.casi(o.m); }
         });
         fila.appendChild(b);
       });
@@ -13002,7 +13083,6 @@ GAMES.grilla100 = {
             else jugar();
           } else {
             b.classList.add("casi");
-            setTimeout(() => b.classList.remove("casi"), 450);
             ctx.casi();
           }
         });
@@ -17698,7 +17778,6 @@ GAMES.serie = {
             else jugar();
           } else {
             b.classList.add("casi");
-            setTimeout(() => b.classList.remove("casi"), 450);
             ctx.casi();
           }
         });

@@ -55,6 +55,10 @@
   --bg: #EDF5F5; --card: #FFFFFF; --ink: #1F3A3B; --ac: #2E8B8E;
   --ac2: #7C5CD6; --soft: #D6EAEA; --star: #F2A93B;
   --ok: #2F7D57;
+  /* El rojo del error. No estaba: la equivocación no tenía color propio, sólo una
+     sacudida. Es oscuro a propósito — tiene que leerse sobre `--soft` de las siete
+     paletas de grado, que van de turquesa claro a durazno. */
+  --mal: #A4231B;
 
   /* Kydo: 12px en tarjetas, 8px en controles chicos. El 26px de antes era
      redondez de app infantil genérica; 18px sigue siendo amable y se parece
@@ -391,6 +395,20 @@ button.pill:active, a.pill:active { transform: scale(.94); }
   font-size: clamp(20px, 4vw, 26px); line-height: 1.2; letter-spacing: -.03em; flex: 1;
 }
 #consigna img.pista { width: 56px; height: 56px; object-fit: contain; flex: none; }
+
+/* VOLVER A ESCUCHAR. Va pegado a la consigna y no en el encabezado a propósito: el
+   🔊 de arriba silencia, y tenerlos juntos los confundiría. Acá el gesto es obvio —
+   «tocá la corneta al lado de lo que quiero que me repitan»— y el blanco táctil es de
+   48px, que es lo que necesita la mano de un chico de seis años. */
+#consigna .repetir {
+  flex: none; width: 48px; height: 48px; border: none; border-radius: 50%;
+  background: var(--soft); color: var(--ink); font-size: 22px; line-height: 1;
+  cursor: pointer; display: grid; place-items: center;
+  transition: transform .1s ease;
+}
+#consigna .repetir:active { transform: scale(.92); }
+#consigna .repetir:focus-visible { outline: 3px solid var(--ac); outline-offset: 2px; }
+#consigna .repetir.sonando { background: var(--ac); color: #fff; }
 #progreso { display: flex; gap: 8px; justify-content: center; margin: 2px 0 14px; }
 #progreso i {
   width: 12px; height: 12px; border-radius: 50%; background: var(--soft);
@@ -459,8 +477,32 @@ button.pill:active, a.pill:active { transform: scale(.94); }
   transition: transform .1s ease;
 }
 .op-texto:active { transform: scale(.97); }
-.op-texto.bien { background: var(--ok); color: #fff; }
-.op-texto.casi { animation: sacudir .4s ease; }
+
+/* ── LA MARCA DEL ERROR TIENE QUE QUEDARSE ──────────────────────────────────────
+   14-ago-2026. La única señal de que tocaste mal era `animation: sacudir .4s`. A los
+   0,4 s no queda nada: el chico que mira para otro lado —o que vuelve la vista un
+   segundo tarde— no ve NADA. Y peor: el bloque `prefers-reduced-motion` de más abajo
+   pone todas las animaciones en 0,01 ms, así que con esa preferencia activada el error
+   directamente no se avisa.
+   Ahora la marca PERSISTE hasta la ronda siguiente, y va por tres canales a la vez
+   —color, borde grueso y un signo—, no sólo por color: el chico que no distingue el
+   rojo ve igual el borde y la ✗. Es la misma regla que ya cumple `Ejemplo` en las
+   lecciones (color + glifo + texto) y que no se había propagado hasta acá. */
+.op-texto.bien, .op.bien { background: var(--ok); color: #fff; }
+.op-texto.casi, .op.casi { animation: sacudir .4s ease; }
+.op-texto.bien, .op-texto.casi, .op.bien, .op.casi { position: relative; }
+.op-texto.casi, .op.casi {
+  box-shadow: inset 0 0 0 3px var(--mal), var(--sombra);
+  color: var(--mal);
+}
+.op-texto.bien::after, .op.bien::after,
+.op-texto.casi::after, .op.casi::after {
+  position: absolute; top: -8px; right: -8px; width: 26px; height: 26px;
+  border-radius: 50%; display: grid; place-items: center;
+  font-family: Archivo, sans-serif; font-size: 15px; font-weight: 800; line-height: 1;
+}
+.op-texto.bien::after, .op.bien::after { content: "✓"; background: var(--ok); color: #fff; }
+.op-texto.casi::after, .op.casi::after { content: "✗"; background: var(--mal); color: #fff; }
 
 /* ── La cuenta paso a paso (división por aproximaciones — M6 4° / M7 5°) ── */
 .cuenta { text-align: center; }
