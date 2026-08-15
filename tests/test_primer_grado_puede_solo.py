@@ -232,3 +232,39 @@ def test_el_globo_encuentra_a_QUE_anclarse():
     i = s.find("function mostrarExplicacion")
     assert "_ultimaMarcada" in s[i:i + 1800], (
         "mostrarExplicacion volvió a mirar sólo la referencia que ya está apagada")
+
+
+def test_el_dibujo_de_las_opciones_NO_regala_la_respuesta():
+    """Vestir las respuestas con dibujo es para que un chico que no lee pueda elegir. Mal
+    hecho, es un atajo para acertar sin saber nada. Dos formas de arruinarlo, y me comí las
+    dos antes de encontrar la regla:
+
+    1. **El mismo emoji en la pregunta y en la correcta.** «🍋 Un limón es…» → «🍋 ácido».
+       Se gana emparejando dibujitos.
+    2. **Vestir sólo algunas.** Al saltear las chivatas, la correcta quedaba como la ÚNICA
+       sin dibujo — un chivato peor, porque es visible de un vistazo.
+
+    La regla es **todas o ninguna**, y ninguna si el emoji ya está en la pregunta.
+    """
+    s = _player()
+    i = s.index("const SENTIDOS_BANCO = [")
+    banco = s[i:s.index("];", i)]
+    emo = re.compile("[\U0001F300-\U0001FAFF☀-➿]")
+    mezclados, chivatos = [], []
+    for linea in banco.split("\n"):
+        m = re.search(r'q: "([^"]+)".*?ops: \[([^\]]*)\]', linea)
+        if not m:
+            continue
+        preg, ops = m.group(1), re.findall(r'"([^"]+)"', m.group(2))
+        con = [bool(emo.search(o)) for o in ops]
+        if len(set(con)) > 1:
+            mezclados.append(ops)
+        de_preg = set(emo.findall(preg))
+        if ops and emo.search(ops[0]) and emo.findall(ops[0])[0] in de_preg:
+            chivatos.append(ops[0])
+    assert not mezclados, (
+        "hay ítems donde unas opciones tienen dibujo y otras no: la correcta se elige por "
+        "descarte visual. Ejemplos: %s" % mezclados[:2])
+    assert not chivatos, (
+        "el dibujo de la opción correcta ya está en la pregunta: se acierta emparejando. "
+        "Ejemplos: %s" % chivatos[:3])
