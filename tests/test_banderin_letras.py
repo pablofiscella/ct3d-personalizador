@@ -39,17 +39,23 @@ def test_una_hoja_por_nombre_y_no_es_la_lamina_pelada():
 
 
 def test_las_letras_se_dibujan_de_verdad():
-    """Control del instrumento: la MISMA hoja, generada con el dibujo de texto anulado,
-    tiene que dejar menos tinta. Se compara contra sí misma y no contra otro nombre, así
-    lo único que cambia entre las dos corridas es si la letra llegó al papel."""
+    """Control del CAMINO DIBUJADO (el que corre en los temas sin abecedario ilustrado):
+    la misma hoja, con el dibujo de texto anulado, tiene que dejar menos tinta.
+
+    Fuerza el camino dibujado a propósito. Cuando safari ganó su abecedario, este test
+    empezó a fallar porque la letra ya no la dibuja `txt` sino la imagen — o sea que
+    estaba midiendo bien, y lo que cambió fue por dónde pasa el kit."""
     lam = _lamina()
-    con_letras = piezas.banderin_letras(lam, {"nombre": "ABC", "edad": "5"}, "safari")
-    original = piezas.txt
-    piezas.txt = lambda *a, **k: None          # el disco se dibuja igual; la letra no
+    original_letra = piezas.letra_dibujada
+    piezas.letra_dibujada = lambda tema, letra: None
+    original_txt = piezas.txt
     try:
+        con_letras = piezas.banderin_letras(lam, {"nombre": "ABC", "edad": "5"}, "safari")
+        piezas.txt = lambda *a, **k: None      # el disco se dibuja igual; la letra no
         sin_letras = piezas.banderin_letras(lam, {"nombre": "ABC", "edad": "5"}, "safari")
     finally:
-        piezas.txt = original
+        piezas.txt = original_txt
+        piezas.letra_dibujada = original_letra
     assert _tinta(con_letras) > _tinta(sin_letras) * 1.05
 
 
@@ -171,3 +177,62 @@ def test_el_orden_de_las_letras_es_el_del_nombre():
     c0, c1, c2 = (_celda(hoja, i, 3) for i in (0, 1, 2))
     assert list(c0.getdata()) == list(c1.getdata()), "las dos primeras deberían ser la misma letra"
     assert list(c1.getdata()) != list(c2.getdata()), "la tercera es otra letra"
+
+
+# ---------------- abecedario ilustrado (temas/<tema>/letras/) ----------------
+
+def _tiene_abecedario(tema="safari"):
+    return piezas.letra_dibujada(tema, "A") is not None
+
+
+def test_las_tildes_y_la_enie_tienen_su_archivo():
+    """«Tomás» e «Iñaki» son nombres comunes acá: si la Ñ o las vocales con tilde no
+    resuelven a un archivo, el nombre sale con un hueco en la guirnalda."""
+    if not _tiene_abecedario():
+        pytest.skip("safari todavía no tiene abecedario ilustrado")
+    for letra in ("Ñ", "Á", "É", "Í", "Ó", "Ú"):
+        assert piezas.letra_dibujada("safari", letra), "falta el banderín de " + letra
+
+
+def test_usa_el_abecedario_ilustrado_cuando_existe():
+    """Con abecedario, la hoja NO puede ser igual a la que dibuja el disco: si lo fuera,
+    las 32 imágenes estarían en disco sin que el producto las use."""
+    if not _tiene_abecedario():
+        pytest.skip("safari todavía no tiene abecedario ilustrado")
+    lam = _lamina()
+    con = piezas.banderin_letras(lam, {"nombre": "AB", "edad": "5"}, "safari")
+
+    original = piezas.letra_dibujada
+    piezas.letra_dibujada = lambda tema, letra: None      # finge un tema sin abecedario
+    try:
+        sin = piezas.banderin_letras(lam, {"nombre": "AB", "edad": "5"}, "safari")
+    finally:
+        piezas.letra_dibujada = original
+    assert list(con.getdata()) != list(sin.getdata())
+
+
+def test_si_falta_UNA_letra_la_hoja_entera_va_dibujada():
+    """Todo o nada. Media guirnalda ilustrada y media con disco tipografiado se ve peor
+    que cualquiera de las dos parejas, y el que la imprime no puede arreglarlo."""
+    if not _tiene_abecedario():
+        pytest.skip("safari todavía no tiene abecedario ilustrado")
+    lam = _lamina()
+    original = piezas.letra_dibujada
+    piezas.letra_dibujada = lambda tema, letra: None if letra == "B" else original(tema, letra)
+    try:
+        mixta = piezas.banderin_letras(lam, {"nombre": "AB", "edad": "5"}, "safari")
+        piezas.letra_dibujada = lambda tema, letra: None
+        toda_dibujada = piezas.banderin_letras(lam, {"nombre": "AB", "edad": "5"}, "safari")
+    finally:
+        piezas.letra_dibujada = original
+    assert list(mixta.getdata()) == list(toda_dibujada.getdata()), \
+        "faltando una letra, la hoja tiene que ir ENTERA con el método dibujado"
+
+
+def test_un_tema_sin_abecedario_no_rompe():
+    """princesas todavía no tiene letras ilustradas: tiene que seguir saliendo el kit."""
+    p = os.path.join(_PROY, "temas", "princesas", "extras", "banderin.png")
+    if not os.path.exists(p):
+        pytest.skip("sin lámina de princesas")
+    hoja = piezas.banderin_letras(p, {"nombre": "Emma", "edad": "5"}, "princesas")
+    assert hoja is not None and hoja.size == piezas.A4

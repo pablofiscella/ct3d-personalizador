@@ -197,8 +197,27 @@ def _grilla_banderines(n):
         return 3, 4
     return 4, (n + 3) // 4
 
+# Las letras con tilde y la Ñ no pueden ser el nombre del archivo tal cual: el zip del kit
+# y el repo viajan entre sistemas de archivos que normalizan los acentos distinto.
+_ARCHIVO_LETRA = {"Ñ": "ENIE", "Á": "A_TILDE", "É": "E_TILDE", "Í": "I_TILDE",
+                  "Ó": "O_TILDE", "Ú": "U_TILDE"}
+
+
+def letra_dibujada(tema, letra):
+    """Ruta del banderín que YA trae esa letra dibujada por el ilustrador
+    (`temas/<tema>/letras/<LETRA>.png`), o None si ese tema todavía no tiene abecedario."""
+    archivo = _ARCHIVO_LETRA.get(letra, letra)
+    p = os.path.join(_PROY, "temas", tema or "safari", "letras", "%s.png" % archivo)
+    return p if os.path.isfile(p) else None
+
+
 def banderin_letras(lamina_path, data, tema=None):
     """Hoja A4 con un banderín por letra del nombre, cada uno con SU letra.
+
+    Si el tema tiene abecedario ilustrado, usa ESOS banderines. Si le falta aunque sea
+    una letra del nombre, arma la hoja ENTERA con el método dibujado: media guirnalda
+    ilustrada y media con un disco tipografiado se ve peor que cualquiera de las dos
+    parejas.
 
     Devuelve None si no hay nombre utilizable: quien llama cae a la lámina de siempre
     (un banderín sin letra es mejor que un kit sin banderín)."""
@@ -207,6 +226,10 @@ def banderin_letras(lamina_path, data, tema=None):
     if not letras:
         return None
     letras = letras[:16]                       # 16 banderines ya son dos hojas de guirnalda
+
+    ilustradas = [letra_dibujada(tema, c) for c in letras]
+    usar_ilustradas = all(ilustradas)
+
     lam = Image.open(lamina_path).convert("RGBA")
     color = ink_c(tema)
     fuente = font_disp(tema)
@@ -214,8 +237,12 @@ def banderin_letras(lamina_path, data, tema=None):
     def cell(i, cw, ch):
         if i >= len(letras):
             return None
-        c = fit_into(lam, cw, ch)
         celda = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
+        if usar_ilustradas:
+            c = fit_into(Image.open(ilustradas[i]).convert("RGBA"), cw, ch)
+            celda.alpha_composite(c, ((cw - c.width) // 2, (ch - c.height) // 2))
+            return celda
+        c = fit_into(lam, cw, ch)
         celda.alpha_composite(c, ((cw - c.width) // 2, (ch - c.height) // 2))
         d = ImageDraw.Draw(celda)
         # El disco va DEBAJO de la escena, sobre el follaje: a media altura tapaba a los
