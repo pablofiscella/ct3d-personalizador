@@ -176,6 +176,59 @@ def banderin(data, tema=None):
     rows = max(2, (len(letters) + 1) // 2)
     return make_sheet(cell, 2, rows, margin=150, gap=70)
 
+# ---------------- Banderín con el nombre: UNA LETRA POR BANDERÍN ----------------
+# Pedido de Pablo (16-ago-2026): la guirnalda deletrea el nombre. Antes el kit traía
+# UN banderín grande con la escena del tema y sin nombre, porque `banderin` está en
+# `_NO_CORRESPONDE_DEFAULT` del generador.
+#
+# El arte NO se redibuja: se reusa la misma lámina del tema (extras/banderin.png) una vez
+# por letra. Así el banderín sigue siendo el del tema y no una pieza de otro estilo.
+
+def _grilla_banderines(n):
+    """Columnas y filas para n banderines en A4. Menos letras = banderines más grandes,
+    que es lo que se quiere: uno de 6 cm no se ve colgado."""
+    if n <= 4:
+        return 2, 2
+    if n <= 6:
+        return 2, 3
+    if n <= 9:
+        return 3, 3
+    if n <= 12:
+        return 3, 4
+    return 4, (n + 3) // 4
+
+def banderin_letras(lamina_path, data, tema=None):
+    """Hoja A4 con un banderín por letra del nombre, cada uno con SU letra.
+
+    Devuelve None si no hay nombre utilizable: quien llama cae a la lámina de siempre
+    (un banderín sin letra es mejor que un kit sin banderín)."""
+    nombre = str((data or {}).get("nombre") or "").strip()
+    letras = [c for c in nombre.upper() if not c.isspace()]
+    if not letras:
+        return None
+    letras = letras[:16]                       # 16 banderines ya son dos hojas de guirnalda
+    lam = Image.open(lamina_path).convert("RGBA")
+    color = ink_c(tema)
+    fuente = font_disp(tema)
+
+    def cell(i, cw, ch):
+        if i >= len(letras):
+            return None
+        c = fit_into(lam, cw, ch)
+        celda = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
+        celda.alpha_composite(c, ((cw - c.width) // 2, (ch - c.height) // 2))
+        d = ImageDraw.Draw(celda)
+        # El disco va DEBAJO de la escena, sobre el follaje: a media altura tapaba a los
+        # animales (probado y mirado), y más abajo el triángulo ya no da ancho para la letra.
+        cx, cy = cw / 2, ch * 0.735
+        r = min(cw, ch) * 0.135
+        d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=CREAM + (235,), outline=color + (255,), width=max(3, int(r * 0.07)))
+        txt(d, letras[i], cx, cy, fuente, r * 1.5, color, r * 1.5, wght=700)
+        return celda
+
+    cols, rows = _grilla_banderines(len(letras))
+    return make_sheet(cell, cols, rows, margin=110, gap=48)
+
 # ============================================================
 # Generalización por temática: si el tema NO tiene recortes (cutouts) como
 # safari, las piezas se arman desde la lámina + config "kit" del tema.json.

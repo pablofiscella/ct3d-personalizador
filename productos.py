@@ -416,6 +416,16 @@ def _mk_extra_edad(exdir, base, tema):
     return fn
 
 def _mk_extra_fijo(p, tema, base):
+    if base == "banderin":
+        # El banderín deletrea el nombre: una letra por banderín (Pablo, 16-ago-2026).
+        # Si no hay nombre, cae a la lámina de siempre — sin nombre no hay letras que
+        # repartir, y un kit sin banderín sería peor.
+        def _banderin(d):
+            hoja = piezas.banderin_letras(p, d, tema)
+            if hoja is not None:
+                return hoja
+            return _overlay_texto(Image.open(p).convert("RGBA"), tema, base, d)
+        return _banderin
     return lambda d: _overlay_texto(Image.open(p).convert("RGBA"), tema, base, d)
 
 def _piezas_kit(tema):
