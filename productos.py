@@ -418,6 +418,18 @@ def _mk_extra_edad(exdir, base, tema):
 def _mk_extra_fijo(p, tema, base):
     return lambda d: _overlay_texto(Image.open(p).convert("RGBA"), tema, base, d)
 
+
+def _mk_guirnalda(p, tema):
+    """La guirnalda que deletrea el nombre, un banderín por letra.
+
+    Es una pieza APARTE y no un reemplazo del banderín (Pablo, 16-ago-2026: *«está bien
+    que esté ese banderín también, se suma al de las letras»*): el banderín grande decora
+    y la guirnalda cuelga con el nombre. Sin nombre cae a una hoja de banderines lisos —
+    el armador del zip hace `to_rgb(fn(d))` y un None ahí rompe el kit entero."""
+    def _fn(d):
+        return piezas.banderin_letras(p, d, tema) or piezas.guirnalda_lisa(p, tema)
+    return _fn
+
 def _piezas_kit(tema):
     # Si el tema trae arte estático subido (temas/<tema>/extras/), el kit usa esos
     # diseños + la invitación PERSONALIZADA del motor. Si no, las 7 piezas genéricas.
@@ -433,6 +445,10 @@ def _piezas_kit(tema):
             p = os.path.join(exdir, f"{base}.png")
             if os.path.exists(p):
                 out.append((f"{n:02d}_{base}", _mk_extra_fijo(p, tema, base), True)); n += 1
+                if base == "banderin":
+                    # La guirnalda con el nombre va JUNTO al banderín, no en su lugar.
+                    out.append((f"{n:02d}_guirnalda_nombre", _mk_guirnalda(p, tema), True))
+                    n += 1
         return out
     return piezas.piezas_de(tema)  # genérico (las 7), con sus is_rgba
 
@@ -1106,6 +1122,7 @@ _PIEZA_LABELS = {
     "05_separadores": "Separadores", "06_etiqueta_botella": "Etiqueta de botella",
     "07_cajita_sorpresa": "Cajita sorpresa", "08_decoracion_sorbetes": "Decoración de sorbetes",
     "09_banderin": "Banderín", "10_etiquetas_multiuso": "Etiquetas multiuso",
+    "12_guirnalda_nombre": "Guirnalda con el nombre",
     "11_wrappers_cupcakes": "Wrappers de cupcakes", "12_tarjetas_agradecimiento": "Tarjetas de agradecimiento",
 }
 
