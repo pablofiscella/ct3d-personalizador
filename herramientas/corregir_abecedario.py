@@ -41,9 +41,16 @@ def corregir(tema, intentos=2, instalar=True):
     for vuelta in range(1, intentos + 2):
         filas = ver.analizar(tema)
         mal = [(f, q) for f, q, v, bien in filas if not bien]
-        print("%s · vuelta %d: %d letras, %d mal%s"
-              % (tema, vuelta, len(filas), len(mal),
-                 (" -> " + ", ".join(f for f, _ in mal)) if mal else ""), flush=True)
+        # Las que NO están en disco no aparecen en `analizar` —el glob sólo lista lo que
+        # hay— y son justamente las que el filtro de seguridad rechazó al generar. Sin
+        # esto, un tema al que le faltan letras se reporta "0 mal" y nunca se completa.
+        faltan = [(os.path.basename(abc.ruta(abc.crudas(tema), x)), x)
+                  for x in abc.LETRAS if not os.path.exists(abc.ruta(abc.crudas(tema), x))]
+        pendientes = mal + faltan
+        print("%s · vuelta %d: %d en disco, %d mal, %d sin generar%s"
+              % (tema, vuelta, len(filas), len(mal), len(faltan),
+                 (" -> " + ", ".join(f for f, _ in pendientes)) if pendientes else ""), flush=True)
+        mal = pendientes
         if not mal or vuelta > intentos:
             break
         for archivo, letra in mal:

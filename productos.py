@@ -447,7 +447,8 @@ def _piezas_kit(tema):
                 out.append((f"{n:02d}_{base}", _mk_extra_fijo(p, tema, base), True)); n += 1
                 if base == "banderin":
                     # La guirnalda con el nombre va JUNTO al banderín, no en su lugar.
-                    out.append((f"{n:02d}_guirnalda_nombre", _mk_guirnalda(p, tema), True)); n += 1
+                    out.append((f"{n:02d}_guirnalda_nombre", _mk_guirnalda(p, tema), True))
+                    n += 1
         return out
     return piezas.piezas_de(tema)  # genérico (las 7), con sus is_rgba
 
