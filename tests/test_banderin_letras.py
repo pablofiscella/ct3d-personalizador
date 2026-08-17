@@ -94,10 +94,32 @@ def test_nombre_larguisimo_no_explota():
     assert hoja is not None and hoja.size == piezas.A4
 
 
-def test_el_kit_usa_el_banderin_con_letras():
-    """El enganche: la pieza `banderin` del kit tiene que salir por banderin_letras.
-    Sin esto, la función existiría y el kit seguiría trayendo la lámina pelada — que es
-    exactamente el bug que se estaba arreglando."""
+def test_el_kit_trae_las_DOS_piezas():
+    """La guirnalda SE SUMA al banderín, no lo reemplaza (Pablo, 16-ago-2026). Si alguna
+    de las dos desapareciera, el kit seguiría armándose y nadie lo notaría hasta que un
+    cliente cuente las piezas que pagó."""
+    nombres = [n for n, _, _ in productos._piezas_kit("safari")]
+    assert any(n.endswith("_banderin") for n in nombres), "falta el banderín de siempre"
+    assert any(n.endswith("_guirnalda_nombre") for n in nombres), "falta la guirnalda"
+    # y la guirnalda va JUSTO detrás del banderín, que es como se lee la galería
+    i_band = next(i for i, n in enumerate(nombres) if n.endswith("_banderin"))
+    i_guir = next(i for i, n in enumerate(nombres) if n.endswith("_guirnalda_nombre"))
+    assert i_guir == i_band + 1
+
+
+def test_el_banderin_de_siempre_NO_lleva_letras():
+    """El banderín grande quedó como estaba: es la pieza que decora, no la que deletrea."""
+    llamadas = []
+    original = piezas.banderin_letras
+    piezas.banderin_letras = lambda *a, **k: llamadas.append(1)
+    try:
+        productos._mk_extra_fijo(_lamina(), "safari", "banderin")({"nombre": "Tomás", "edad": "5"})
+    finally:
+        piezas.banderin_letras = original
+    assert llamadas == [], "el banderín grande pasó por banderin_letras"
+
+
+def test_la_guirnalda_sale_por_banderin_letras():
     llamadas = []
     original = piezas.banderin_letras
 
@@ -107,12 +129,18 @@ def test_el_kit_usa_el_banderin_con_letras():
 
     piezas.banderin_letras = espia
     try:
-        fn = productos._mk_extra_fijo(_lamina(), "safari", "banderin")
-        img = fn({"nombre": "Tomás", "edad": "5"})
+        img = productos._mk_guirnalda(_lamina(), "safari")({"nombre": "Tomás", "edad": "5"})
     finally:
         piezas.banderin_letras = original
-    assert llamadas == ["safari"], "el kit no pasó por banderin_letras"
+    assert llamadas == ["safari"]
     assert isinstance(img, Image.Image)
+
+
+def test_la_guirnalda_sin_nombre_devuelve_imagen_igual():
+    """`generar_kit` hace `to_rgb(fn(d))`: un None ahí rompe el kit ENTERO, no sólo esta
+    pieza. Sin nombre tiene que salir la hoja de banderines lisos."""
+    img = productos._mk_guirnalda(_lamina(), "safari")({"nombre": "", "edad": "5"})
+    assert isinstance(img, Image.Image) and img.size == piezas.A4
 
 
 def test_otras_piezas_no_se_tocaron():

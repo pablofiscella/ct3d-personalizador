@@ -211,6 +211,24 @@ def letra_dibujada(tema, letra):
     return p if os.path.isfile(p) else None
 
 
+def guirnalda_lisa(lamina_path, tema=None, cuantos=4):
+    """Hoja de banderines del tema SIN letra. Es el respaldo de la guirnalda cuando no hay
+    nombre: la pieza tiene que existir igual porque el armador del zip hace `to_rgb(fn(d))`
+    y un None ahí rompe el kit entero."""
+    lam = Image.open(lamina_path).convert("RGBA")
+
+    def cell(i, cw, ch):
+        if i >= cuantos:
+            return None
+        c = fit_into(lam, cw, ch)
+        celda = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
+        celda.alpha_composite(c, ((cw - c.width) // 2, (ch - c.height) // 2))
+        return celda
+
+    cols, rows = _grilla_banderines(cuantos)
+    return make_sheet(cell, cols, rows, margin=110, gap=48)
+
+
 def banderin_letras(lamina_path, data, tema=None):
     """Hoja A4 con un banderín por letra del nombre, cada uno con SU letra.
 
