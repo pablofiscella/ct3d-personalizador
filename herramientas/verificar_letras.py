@@ -14,9 +14,10 @@ que estaba mal.
     python3 herramientas/verificar_letras.py <tema>
     python3 herramientas/verificar_letras.py --control    # el instrumento contra casos conocidos
 
-El control usa safari, cuyas 32 letras están revisadas a ojo una por una: el verificador
-tiene que acertarlas todas, y tiene que decir NINGUNA sobre la lámina pelada. Un
-verificador que no pasa su propio control no se usa.
+El control corre contra **varios temas** —safari, monstruos y fútbol— y no contra uno: el
+estilo de cada tema cambia dónde cae la letra, y la primera versión aprobaba safari
+mientras inventaba 7 errores en monstruos. Tiene que acertarlas todas y decir NONE sobre la
+lámina pelada. Un verificador que no pasa su propio control no se usa.
 """
 import base64
 import glob
@@ -45,11 +46,18 @@ PREGUNTA = (
 )
 
 
-def _recorte(path, lado=420):
-    """Sólo la mitad inferior, que es donde va la letra: menos tokens y menos ruido."""
+def _recorte(path, lado=512):
+    """La imagen ENTERA, sin recortar.
+
+    La primera versión mandaba sólo la mitad inferior «porque ahí va la letra» y perdía
+    **7 letras de monstruos**: en ese tema la letra va más arriba, el recorte la cortaba y
+    el modelo leía «A» donde había «Á» y «K» donde había una «T» perfecta. Siete falsos
+    positivos, y el control no los vio porque se corrió con un solo tema —safari— donde la
+    letra sí cae en la mitad de abajo.
+
+    La lección, que ya apareció tres veces hoy: un instrumento validado en UN caso no está
+    validado. Recortar ahorraba unos tokens y costaba la confianza en la medición."""
     im = Image.open(path).convert("RGB")
-    w, h = im.size
-    im = im.crop((int(w * 0.10), int(h * 0.40), int(w * 0.90), h))
     im.thumbnail((lado, lado), Image.LANCZOS)
     buf = io.BytesIO()
     im.save(buf, "JPEG", quality=80)
@@ -104,14 +112,19 @@ def control():
         print("  FALSO POSITIVO: le ve una letra a un banderín sin letra")
         ok = False
 
-    filas = analizar("safari")
-    fallan = [(f, q, v) for f, q, v, bien in filas if not bien]
-    print("safari: %d letras revisadas a ojo · el verificador acierta %d"
-          % (len(filas), len(filas) - len(fallan)))
-    for f, q, v in fallan:
-        print("   %s: esperaba %s, leyó %r" % (f, q, v))
-    if len(fallan) > 1:            # una discrepancia puede ser una letra fea de verdad
-        ok = False
+    # Varios temas y no uno: el estilo cambia dónde y cómo cae la letra, y un verificador
+    # que anda en safari puede fallar en monstruos (pasó, con 7 falsos positivos).
+    for tema in ("safari", "monstruos", "futbol"):
+        if not os.path.isdir("/root/ct3d-borradores-ml/abecedarios/" + tema):
+            continue
+        filas = analizar(tema)
+        fallan = [(f, q, v) for f, q, v, bien in filas if not bien]
+        print("%s: %d letras · el verificador acierta %d"
+              % (tema, len(filas), len(filas) - len(fallan)))
+        for f, q, v in fallan:
+            print("   %s: esperaba %s, leyó %r" % (f, q, v))
+        if len(fallan) > 1:        # una discrepancia puede ser una letra fea de verdad
+            ok = False
     print("CONTROL:", "OK" if ok else "NO SIRVE")
     return ok
 

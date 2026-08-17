@@ -40,6 +40,10 @@ sys.path.insert(0, _PROY)
 
 CONFIG = "/opt/ct3d/backend/config.json"
 MODELO = os.environ.get("MODELO_IMG", "gpt-image-1-mini")
+# Pausa entre pedidos. La API limita por minuto y contesta 429: pedir de corrido hizo
+# fallar 193 de 310 letras en la primera tanda de los diez temas, y los reintentos rápidos
+# sólo consumen más cupo. Es más rápido ir despacio.
+PAUSA = float(os.environ.get("PAUSA_IMG", "7"))
 
 # A-Z más lo que usan los nombres de acá: sin la Ñ ni las vocales con tilde, «Tomás» o
 # «Iñaki» salen con un hueco en la guirnalda.
@@ -64,7 +68,13 @@ PROMPT = (
     "- hand-drawn in the same style as the artwork, in the artwork's dark accent color, "
     "with a soft cream rounded plaque or label behind it so it reads against the leaves\n\n"
     "Keep the white margin around the pennant so it can be cut out. Do not add any other "
-    "letters, words, numbers or decorations."
+    "letters, words, numbers or decorations.\n\n"
+    # Estas dos líneas salieron de dos defectos reales, y con ellas las dos letras se
+    # rehicieron bien al PRIMER intento: la «I» de circo salió sin ninguna letra, y la «Í»
+    # de artistas salió dentro de una remerita del dibujo y sin la tilde.
+    "CRITICAL: the letter must be drawn ON TOP of the pennant, big and isolated, NOT inside "
+    "any object of the scene. If the letter carries an accent mark, the accent must be "
+    "clearly visible ABOVE the letter and must not be omitted."
 )
 
 
@@ -91,7 +101,8 @@ def generar(tema):
     ref = open(lam, "rb").read()
     carpeta = crudas(tema)
     os.makedirs(carpeta, exist_ok=True)
-    cli = OpenAIImageClient(json.load(open(CONFIG))["openai_api_key"], model=MODELO)
+    cli = OpenAIImageClient(json.load(open(CONFIG))["openai_api_key"], model=MODELO,
+                            max_retries=5, base_sleep=8.0)
     print("modelo: %s · tema: %s" % (MODELO, tema))
 
     pedidas = fallidas = 0
@@ -104,10 +115,12 @@ def generar(tema):
             open(destino, "wb").write(raw if isinstance(raw, bytes) else base64.b64decode(raw))
             pedidas += 1
             print("  %2d/%d  %s  ok" % (i, len(LETRAS), letra), flush=True)
+            time.sleep(PAUSA)
         except Exception as e:                       # noqa: BLE001 — una letra rota no corta la tanda
             fallidas += 1
             print("  %2d/%d  %s  FALLÓ: %s" % (i, len(LETRAS), letra, str(e)[:120]), flush=True)
-            time.sleep(2)
+            # tras un rechazo conviene aflojar más: si fue por cupo, insistir lo empeora
+            time.sleep(PAUSA * 3 if "429" in str(e) else PAUSA)
     print("pedidas: %d · fallidas: %d · en disco: %d de %d"
           % (pedidas, fallidas, sum(os.path.exists(ruta(carpeta, x)) for x in LETRAS), len(LETRAS)))
 
