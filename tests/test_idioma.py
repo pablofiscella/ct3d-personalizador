@@ -342,6 +342,47 @@ def test_el_kit_ENTERO_sale_en_ingles_en_las_12_tematicas():
         "el kit en inglés todavía imprime texto en español:\n  " + "\n  ".join(quedaron))
 
 
+def test_el_arte_con_español_QUEMADO_tiene_su_version_en_ingles():
+    """Traducir el motor no alcanza cuando el español está en los PÍXELES.
+
+    12 PNG de monstruos —topper, etiqueta de botella y cajita, edades 2 a 5— traen
+    «¡FELIZ CUMPLE!», «TOPPER PARA TORTA» y «CAJITA SORPRESA» pintados encima. La versión
+    en inglés vive al lado como `<archivo>.en.png` (la hace `herramientas/despintar.py`) y
+    `productos._arte_del_idioma` la elige sola.
+
+    Este test cuida las DOS mitades, y la segunda es la que importa: que pedir español
+    siga trayendo el original. Los once kits en español están vendiendo en Mercado Libre;
+    un `.en.png` que se colara en el kit español sería un kit que dice «HAPPY BIRTHDAY»."""
+    exdir = os.path.join(RAIZ, "temas", "monstruos", "extras")
+    faltan, colados = [], []
+    for base in ("topper", "etiqueta_botella", "cajita_sorpresa"):
+        for e in range(2, 6):
+            orig = os.path.join(exdir, "%s_%d.png" % (base, e))
+            if not os.path.exists(orig):
+                continue
+            en = orig[:-4] + ".en.png"
+            if not os.path.exists(en):
+                faltan.append(os.path.basename(en))
+                continue
+            assert productos._arte_del_idioma(orig, {"idioma": "en"}) == en, base
+            if productos._arte_del_idioma(orig, {}) != orig:
+                colados.append(base)
+            if productos._arte_del_idioma(orig, {"idioma": "es"}) != orig:
+                colados.append(base)
+    assert not faltan, ("falta el arte en inglés (correr herramientas/despintar.py "
+                        "--aplicar):\n  " + "\n  ".join(faltan))
+    assert not colados, ("el arte en INGLÉS se estaría colando en el kit en español: %s"
+                         % sorted(set(colados)))
+
+
+def test_sin_arte_en_ingles_se_usa_el_original():
+    """Las otras once temáticas no tienen `.en.png` y no lo necesitan: su arte no lleva
+    texto. Pedir inglés tiene que devolver el archivo de siempre, no reventar."""
+    p = os.path.join(RAIZ, "temas", "safari", "extras", "topper_1.png")
+    assert os.path.exists(p)
+    assert productos._arte_del_idioma(p, {"idioma": "en"}) == p
+
+
 def test_las_15_piezas_se_generan_en_ingles_sin_caerse():
     """Traducir cambia el largo del texto, y el motor achica la fuente para que entre. Que
     ninguna pieza reviente por eso."""

@@ -34,6 +34,7 @@ import base64
 import glob
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -43,15 +44,23 @@ CONFIG = "/opt/ct3d/backend/config.json"
 MODELO = "gpt-4o-mini"
 SALIDA = os.path.join(RAIZ, "salida", "quemado.json")
 
+# El prompt insiste en «letras escritas» porque la primera versión pedía «todo el texto que
+# veas» y el modelo empezó a NOMBRAR LOS OBJETOS DIBUJADOS: en el afiche de artistas, que no
+# tiene una sola letra, contestó «Birthday Party / Happy Birthday», y en los sorbetes
+# —pinceles y paletas dibujados— contestó «Palette · Paint · Brush · Canvas». Describir no es
+# leer, y confundirlos manda a arreglar archivos que están sanos.
 PROMPT = (
     "Look at this image, which is artwork for a printable birthday party kit.\n"
-    "List EVERY piece of readable text you can see rendered INSIDE the image "
-    "(words printed as part of the artwork).\n"
+    "Your job is to TRANSCRIBE, not to describe.\n"
+    "List every sequence of LETTERS that is actually WRITTEN in the image — real "
+    "typography you could point at, letter by letter.\n"
     "Rules:\n"
+    "- Do NOT name objects, themes or concepts you see. If you are naming what something "
+    "IS rather than reading letters printed on it, do not report it.\n"
+    "- If you are not sure the letters are really there, do not report them.\n"
     "- Report the text EXACTLY as written, including accents and punctuation.\n"
-    "- Ignore single digits that are just the child's age (like a big '5').\n"
-    "- Ignore single letters.\n"
-    "- If there is no readable word anywhere, answer exactly: NONE\n"
+    "- Ignore digits alone (like a big '5') and single letters.\n"
+    "- If no words are written anywhere, answer exactly: NONE\n"
     "Answer as a plain list, one text per line, nothing else."
 )
 
@@ -127,14 +136,27 @@ def main():
     # marcó como falla del modelo. El modelo tenía razón — la cajita de 1 año es otro
     # diseño, un cubo estampado sin una sola palabra. Un control armado de memoria acusa
     # al instrumento de un error propio.
+    # Las dos mitades del control cuidan errores OPUESTOS, y hacen falta las dos:
+    #   · con texto esperado  → que no se le escape lo que sí está (falso negativo);
+    #   · sin texto esperado  → que no invente (falso positivo). `afiche_7` de artistas está
+    #     acá justamente porque es donde el modelo se cayó: no tiene una letra y contestó
+    #     «Birthday Party». `decoracion_sorbetes_1` es la otra trampa: dibujos de paletas y
+    #     pinceles que el modelo leyó como las palabras «Palette» y «Brush».
+    # Los cuatro archivos se miraron con los ojos antes de ponerlos acá.
     CONTROL = [("temas/monstruos/extras/cajita_sorpresa_2.png", "CAJITA SORPRESA"),
-               ("temas/monstruos/extras/topper.png", "FELIZ CUMPLE"),
-               ("temas/monstruos/extras/cajita_sorpresa_1.png", None)]
+               ("temas/monstruos/extras/topper_5.png", "FELIZ CUMPLE"),
+               ("temas/monstruos/extras/cajita_sorpresa_1.png", None),
+               ("temas/artistas/extras/afiche_7.png", None),
+               ("temas/artistas/extras/decoracion_sorbetes_1.png", None)]
     print("control (mirado con los ojos antes de confiar en el modelo)…")
     fallo = []
     for rel, esperado in CONTROL:
         p = os.path.join(RAIZ, rel)
         if not os.path.exists(p):
+            # Un control que se saltea no controla. La primera versión apuntaba a
+            # `topper.png`, que no existe —son `topper_1..5`—, y el bucle lo pasaba de
+            # largo en silencio: quedaba media prueba menos sin que nada lo dijera.
+            fallo.append("%s: el archivo del control no existe" % rel)
             continue
         r = _mirar(p, key)
         visto = " · ".join(r) if r else "NADA"
@@ -167,12 +189,18 @@ def main():
 
     cones = {k: v for k, v in res.items() if v["espanol"]}
     print("\n%d de %d PNG tienen texto en español quemado." % (len(cones), len(res)))
+    # Se cuentan TEMÁTICAS DISTINTAS, no archivos. La primera versión hacía `.append()` por
+    # archivo y después informaba `len()` como si fueran temáticas: decía «4 temáticas»
+    # cuando eran 4 variantes de edad de UNA sola. Un resumen que exagera el alcance manda
+    # a arreglar donde no hay nada roto.
     porpieza = {}
-    for k, v in cones.items():
-        pieza = os.path.basename(k).rsplit("_", 1)[0].replace(".png", "")
-        porpieza.setdefault(pieza, []).append(k.split("/")[1])
-    for p, temas_ in sorted(porpieza.items(), key=lambda x: -len(x[1])):
-        print("  %-24s %2d temáticas" % (p, len(temas_)))
+    for k in cones:
+        pieza = re.sub(r"_\d+$", "", os.path.basename(k).replace(".png", ""))
+        porpieza.setdefault(pieza, {}).setdefault(k.split(os.sep)[1], []).append(k)
+    for p, portema in sorted(porpieza.items(), key=lambda x: -len(x[1])):
+        archivos = sum(len(v) for v in portema.values())
+        print("  %-24s %d archivo(s) en %d temática(s): %s"
+              % (p, archivos, len(portema), ", ".join(sorted(portema))))
     print("\ndetalle: %s" % SALIDA)
 
 
