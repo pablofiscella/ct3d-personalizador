@@ -275,10 +275,15 @@ def test_la_version_del_player_mira_los_audios_de_ingles():
     antes = aw._player_version()
     st = os.stat(p)
     try:
-        # +1 día y no +60 s: la versión es el MÁXIMO de varios mtimes, y si el player
-        # se tocó hace un rato (o sea, siempre que se esté trabajando) 60 segundos no
-        # alcanzan para pasarlo y el test falla sin que haya ningún bug.
-        os.utime(p, (st.st_atime, st.st_mtime + 86400))
+        # DESDE AHORA, no desde la fecha del manifest. La versión es el MÁXIMO de varios
+        # mtimes y uno es `actividades_player.js`: si el manifest es de hace unos días, su
+        # fecha +1 día sigue siendo anterior a la del player tocado hoy, el máximo no se
+        # mueve y el test falla sin que haya ningún bug.
+        #
+        # El comentario original ya veía la mitad —«+1 día y no +60 s»— pero sumaba sobre la
+        # fecha equivocada. Sumando sobre `time.time()` se pasa a cualquier otro archivo del
+        # conjunto, sin importar cuál se tocó recién.
+        os.utime(p, (st.st_atime, time.time() + 86400))
         assert aw._player_version() != antes, \
             "tocar los audios de inglés no cambia la versión del player"
     finally:

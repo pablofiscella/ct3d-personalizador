@@ -77,6 +77,11 @@ const CONSIGNA_CORTA_PREGUNTA = ["¿Y esta?", "¿Y esta otra?", "A ver esta", "O
 // vaciarla (no repite ninguna hasta agotar las demás) y al rebarajar se
 // evita que la primera que toque sea la misma que la última usada, para
 // que tampoco repita justo en el borde entre una bolsa y la siguiente.
+/* LAS MULETILLAS, JUNTAS. Se arma de las cuatro listas de arriba en vez de escribirlas otra
+   vez: una lista repetida es una lista que mañana dice otra cosa que la original. */
+const MULETILLAS = new Set([].concat(CONSIGNA_CORTA_MASC, CONSIGNA_CORTA_FEM,
+                                     CONSIGNA_CORTA_NEUTRO, CONSIGNA_CORTA_PREGUNTA));
+
 const _bolsaEstado = new WeakMap();
 function sacarDeBolsa(ctx, key, set) {
   let porJuego = _bolsaEstado.get(ctx);
@@ -388,11 +393,37 @@ function leerOpciones() {
    un espía que no devuelve nada: encadenarle `.then` reventaba. La función real sí devuelve
    promesa siempre, pero encadenar a ciegas la vuelve imposible de espiar — y ese guardián
    existe desde antes que esto. */
+/* LA CONSIGNA DE VERDAD, aparte de lo último que se dijo.
+
+   Pablo, 16-ago-2026: *"puse el parlante y no leyó la consigna"*. Medido: en la ronda 3 de
+   «Contá las sílabas», el 🔊 pedía `/tts?t=¿Y ahora?`.
+
+   El botón repetía `_ultimoDicho`, y desde la ronda 2 lo último que se dijo es una muletilla
+   —«¿Y esto?», «Va otra»—, no la consigna. A un chico de 1.º que no puede leerla y toca el
+   parlante justo para saber qué hacer, el cuaderno le contestaba «¿Y ahora?».
+
+   El arreglo del 29-jul —que Valeria no repita catorce veces la misma frase— está bien y no
+   se toca: vale para lo que el cuaderno DICE SOLO. El 🔊 es el caso opuesto, el chico
+   PIDIÉNDOLA, y ahí siempre va la instrucción entera. */
+let _consignaReal = "";
+
+function recordarConsignaReal(txt) {
+  const limpio = String(txt || "").replace(/<[^>]+>/g, "").trim();
+  if (!limpio) return;
+  if (typeof MULETILLAS !== "undefined" && MULETILLAS.has(limpio)) return;
+  _consignaReal = limpio;
+}
+
+function olvidarConsignaReal() { _consignaReal = ""; }
+
 function repetirLoUltimo(btn) {
-  if (!_ultimoDicho) return;
+  /* La REAL primero. `_ultimoDicho` queda de respaldo para las pantallas que hablan sin
+     pasar por `ctx.consigna` — el menú, por ejemplo. */
+  const decir = _consignaReal || _ultimoDicho;
+  if (!decir) return;
   if (btn) btn.classList.add("sonando");
   const fin = () => { if (btn) btn.classList.remove("sonando"); };
-  Promise.resolve(reproducirConsigna(_ultimoDicho))
+  Promise.resolve(reproducirConsigna(decir))
     .then(() => leerOpciones()).then(fin, fin);
 }
 
@@ -4912,6 +4943,9 @@ const Shell = {
     // tres, y son los que hay que revisar si mañana aparece un cuarto.
     pararVoz();
     this.actual = id; this.fallos = 0;
+    /* Se olvida la consigna de la actividad ANTERIOR: si no, el 🔊 de la nueva leería la de
+       la que el chico acaba de dejar, que es peor que no leer nada. */
+    if (typeof olvidarConsignaReal === "function") olvidarConsignaReal();
     this._ultConsigna = null;
     this._itemId = null; this._rondaResp = false; this._rondaIdx = 0;
     this.primerOk = 0; this.primerTotal = 0;
@@ -5010,6 +5044,12 @@ const Shell = {
       get juegoId() { return self.actual; },   // lo usan los juegos de banco
       consigna(txt, pistaSrc) {
         $("#consignaTexto").innerHTML = txt;
+        /* Se guarda la consigna REAL para el 🔊. Va acá y no en `reproducirConsigna` porque
+           acá está la que se MUESTRA, que es la que el chico necesita que le lean — aunque
+           esta ronda no se diga en voz por ser repetida.
+           Con guarda: `test_consigna_no_se_repite_hablada.py` extrae este método y lo corre
+           suelto, con sólo `$`, `self` y `reproducirConsigna` definidos. */
+        if (typeof recordarConsignaReal === "function") recordarConsignaReal(txt);
         const p = $("#consignaPista");
         if (pistaSrc) { p.src = pistaSrc; p.style.display = ""; }
         else p.style.display = "none";

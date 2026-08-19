@@ -112,9 +112,15 @@ def test_la_consigna_se_puede_volver_a_escuchar():
     assert re.search(r"function reproducirConsigna\(txt, recordar\) \{\s*"
                      r"if \(txt && recordar !== false\) _ultimoDicho = txt;", s), (
         "reproducirConsigna dejó de recordar lo que dijo: el botón de repetir queda mudo")
-    # y repetir devuelve la pregunta Y las opciones, en ese orden
+    # y repetir devuelve la pregunta Y las opciones, en ese orden.
+    #
+    # Se lee el CUERPO de la función, no los primeros 400 bytes: el 16-ago el arreglo del
+    # parlante agregó un comentario y `leerOpciones()` quedó fuera del recorte — rojo con el
+    # código intacto. Un test que se rompe cuando se comenta el código no mide el código.
     i = s.find("function repetirLoUltimo")
-    assert "leerOpciones()" in s[i:i + 400], (
+    assert i > 0, "cambió el nombre de repetirLoUltimo: revisar este test"
+    cuerpo = s[i:s.find("\n}", i) + 2]
+    assert "leerOpciones()" in cuerpo, (
         "el botón de repetir dejó de decir las opciones: el chico vuelve a escuchar la "
         "pregunta y sigue sin saber qué dice cada respuesta")
 
