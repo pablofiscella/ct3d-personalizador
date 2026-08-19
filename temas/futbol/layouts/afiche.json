@@ -1,38 +1,38 @@
 {
-  "nombre": {
-    "x": 0.5,
-    "y": 0.8558,
-    "size": 125.0,
-    "maxw": 0.62,
-    "wght": 700.0,
-    "font": "DancingScript-VF.ttf",
-    "color": "#c8674e",
-    "anchor": "mm"
-  },
-  "texto2": {
-    "x": 0.4917,
-    "y": 0.9114,
-    "size": 172.0,
-    "maxw": 0.9,
-    "wght": 500.0,
-    "font": "DancingScript-VF.ttf",
-    "color": "#c8674e",
-    "anchor": "mm"
-  },
-  "_oculto": [],
-  "_nuevos": [
-    {
-      "id": "texto2",
-      "tpl": "Tomás",
-      "x": 0.4917,
-      "y": 0.9114,
-      "size": 172.0,
-      "maxw": 0.9,
-      "wght": 500.0,
-      "font": "DancingScript-VF.ttf",
-      "color": "#c8674e",
-      "anchor": "mm",
-      "toggleable": true
-    }
-  ]
+ "nombre": {
+  "x": 0.5,
+  "y": 0.8558,
+  "size": 125.0,
+  "maxw": 0.62,
+  "wght": 700.0,
+  "font": "DancingScript-VF.ttf",
+  "color": "#c8674e",
+  "anchor": "mm"
+ },
+ "texto2": {
+  "x": 0.4917,
+  "y": 0.9114,
+  "size": 172.0,
+  "maxw": 0.9,
+  "wght": 500.0,
+  "font": "DancingScript-VF.ttf",
+  "color": "#c8674e",
+  "anchor": "mm"
+ },
+ "_oculto": [],
+ "_nuevos": [
+  {
+   "id": "texto2",
+   "tpl": "{nombre}",
+   "x": 0.4917,
+   "y": 0.9114,
+   "size": 172.0,
+   "maxw": 0.9,
+   "wght": 500.0,
+   "font": "DancingScript-VF.ttf",
+   "color": "#c8674e",
+   "anchor": "mm",
+   "toggleable": true
+  }
+ ]
 }
