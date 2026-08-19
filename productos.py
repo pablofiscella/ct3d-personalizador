@@ -309,12 +309,60 @@ def _zona_limpia_abajo(img):
                 actual = []
         if actual:
             runs.append(actual)
-        utiles = [r for r in runs if len(r) >= 5 and r[-1] < 83]  # ≥6% alto, sin tocar el borde
+        # El filtro `r[-1] < 83` descartaba la franja que llega al borde de la hoja, porque
+        # se suponía que ésa era el margen de abajo y no el recuadro. **Pero a 84 filas el
+        # borde inferior del recuadro no alcanza a cortar la franja**: el interior del
+        # recuadro y el margen de abajo se fusionan en UNA sola, que sí llega al borde. En
+        # safari eso pasaba en las SIETE edades: no detectaba nada, caía al respaldo de
+        # `y = 0.92` fijo, y el nombre salía bajo dentro del recuadro. Lo vio Pablo mirando
+        # la foto de la publicación — no se veía midiendo la vista previa, porque ésa usa
+        # otro camino (`generador.render`) y la `y` del layout.
+        utiles = [r for r in runs if len(r) >= 5]
         if not utiles:
             return None
         mejor = utiles[-1]                                        # la más baja
+        y0, y1 = mejor[0] / 84, (mejor[-1] + 1) / 84
+        fino = _borde_del_recuadro(img, y0, y1)
+        if fino:
+            return fino
+        if mejor[-1] >= 83:      # llega al borde y no se pudo afinar: no es de fiar
+            return None
         cy = (mejor[0] + mejor[-1] + 1) / 2 / 84
         alto = len(mejor) / 84
+        return cy, alto
+    except Exception:
+        return None
+
+
+def _borde_del_recuadro(img, y0, y1):
+    """Afina la franja lisa buscando las LÍNEAS del recuadro a resolución real.
+
+    La franja gruesa dice «por acá abajo hay algo liso»; esto dice dónde empieza y termina
+    el recuadro de verdad. Una tapa de recuadro es una línea horizontal de color que cruza
+    más de la mitad del ancho — el arte no tiene nada así, y el fondo tampoco.
+
+    Se busca el color de la línea por CONTRASTE contra el fondo de la propia franja, no por
+    un color fijo: el recuadro es terracota en safari, verde en monstruos y azul en otros.
+    """
+    try:
+        W, H = img.size
+        a = img.convert("RGB")
+        f0, f1 = int(H * y0), min(H, int(H * y1))
+        if f1 - f0 < 20:
+            return None
+        import numpy as _np
+        arr = _np.asarray(a.crop((0, f0, W, f1))).astype(int)
+        fondo = _np.median(arr.reshape(-1, 3), axis=0)
+        dif = _np.abs(arr - fondo).max(axis=-1)
+        frac = (dif > 45).sum(axis=1) / W
+        lineas = [i for i, v in enumerate(frac) if v > 0.50]
+        if len(lineas) < 2:
+            return None
+        arriba, abajo = lineas[0], lineas[-1]
+        if abajo - arriba < (f1 - f0) * 0.25:      # dos líneas casi pegadas no son un recuadro
+            return None
+        cy = (f0 + (arriba + abajo) / 2) / H
+        alto = (abajo - arriba) / H
         return cy, alto
     except Exception:
         return None
