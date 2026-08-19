@@ -456,6 +456,14 @@ def _mk_guirnalda(p, tema):
         return piezas.banderin_letras(p, d, tema) or piezas.guirnalda_lisa(p, tema)
     return _fn
 
+def _mk_guirnalda_lisa(p, tema):
+    """Banderines del tema SIN letra, para reimprimir a gusto.
+
+    No depende de los datos del comprador —no lleva nombre—, así que sale igual siempre. Se
+    envuelve en una función de todos modos porque el armador del zip llama a `fn(d)`."""
+    return lambda d: piezas.guirnalda_lisa(p, tema)
+
+
 def _piezas_kit(tema):
     # Si el tema trae arte estático subido (temas/<tema>/extras/), el kit usa esos
     # diseños + la invitación PERSONALIZADA del motor. Si no, las 7 piezas genéricas.
@@ -474,6 +482,15 @@ def _piezas_kit(tema):
                 if base == "banderin":
                     # La guirnalda con el nombre va JUNTO al banderín, no en su lugar.
                     out.append((f"{n:02d}_guirnalda_nombre", _mk_guirnalda(p, tema), True))
+                    n += 1
+                    # Y una hoja de banderines SIN letra, para reimprimir las veces que
+                    # haga falta (Pablo, 19-ago-2026: *«el banderín temático sin la letra
+                    # para que lo impriman las veces que quieran»*). Sirve para alargar la
+                    # guirnalda: la del nombre tiene tantos banderines como letras, y con
+                    # un nombre corto queda corta. Ya existía como respaldo cuando no hay
+                    # nombre; acá pasa a ser una pieza del kit por derecho propio.
+                    out.append((f"{n:02d}_guirnalda_lisa",
+                                _mk_guirnalda_lisa(p, tema), True))
                     n += 1
         return out
     return piezas.piezas_de(tema)  # genérico (las 7), con sus is_rgba

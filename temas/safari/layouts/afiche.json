@@ -9,5 +9,12 @@
     "color": "#c8674e",
     "anchor": "mm"
   },
-  "_oculto": []
+  "_oculto": [],
+  "_por_edad": {
+    "5": {
+      "nombre": {
+        "y": 0.8917
+      }
+    }
+  }
 }

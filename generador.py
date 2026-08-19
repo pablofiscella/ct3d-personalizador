@@ -513,11 +513,18 @@ def _campo_nuevo(nf):
 # (al guardar queda la decisión explícita en el layout y ese default deja de aplicar).
 _NO_CORRESPONDE_DEFAULT = {"banderin", "cajita_sorpresa", "decoracion_sorbetes"}
 
-def _effective_texts(spec, incluir_ocultos=False):
+def _effective_texts(spec, incluir_ocultos=False, edad=None):
     """Campos de texto con las posiciones/tamaños del editor (si hay layout), MÁS los
     campos que el admin agregó a la pieza (_nuevos), MENOS los que marcó como
     'no corresponde' (_oculto). Con incluir_ocultos=True los devuelve igual, marcados
-    con no_corresponde=True (para que el editor admin los pueda re-activar)."""
+    con no_corresponde=True (para que el editor admin los pueda re-activar).
+
+    `edad` habilita el bloque `_por_edad` del layout, que corrige una pieza para una edad
+    puntual. Hace falta porque **el arte de cada edad se generó por separado**: en safari,
+    el recuadro del nombre del afiche de 5 años está pintado 0.02 más abajo que en las otras
+    seis, así que un único `y` para todas deja el nombre alto justo en esa. Se midió: 145 px
+    de desvío en un recuadro de 1030 px, o sea el 14% de su alto. Con 12 temáticas por 7
+    edades esto va a volver a pasar, y una `y` sola no puede cubrirlo."""
     texts = copy.deepcopy(spec["text"])
     p = _layout_path(spec)
     base = os.path.splitext(os.path.basename(p))[0] if p else None
@@ -553,6 +560,15 @@ def _effective_texts(spec, incluir_ocultos=False):
                 c = _campo_nuevo(nf)
                 if c:
                     texts.append(c)
+            # Corrección para UNA edad puntual. Va DESPUÉS de todo lo demás —incluidos los
+            # `_nuevos`— porque su razón de ser es pisar lo general con lo particular.
+            if edad is not None:
+                pe = (ov.get("_por_edad") or {}).get(str(edad)) or {}
+                for f in texts:
+                    o = pe.get(f["id"]) or {}
+                    for k in ("x", "y", "size", "maxw", "wght"):
+                        if k in o:
+                            f[k] = o[k]
         except Exception:
             pass
     # Default 'no corresponde' para banderín/cajita/sorbetes mientras Pablo no haya
@@ -649,7 +665,7 @@ def render(data, spec=None):
         im = Image.open(os.path.join(ASSETS, layer["file"]))
         place(base, im, layer["anchor"], layer["x"], layer["y"], layer["w"], W, H)
     draw = ImageDraw.Draw(base)
-    texts = _effective_texts(spec)
+    texts = _effective_texts(spec, edad=data.get("edad"))
     # campo que "adopta" la posición/config de otro cuando ese otro está vacío
     byid = {f["id"]: f for f in texts}
     for f in texts:
