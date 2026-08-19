@@ -383,7 +383,62 @@ def test_sin_arte_en_ingles_se_usa_el_original():
     assert productos._arte_del_idioma(p, {"idioma": "en"}) == p
 
 
-def test_las_15_piezas_se_generan_en_ingles_sin_caerse():
+def test_el_nombre_va_CENTRADO_en_el_recuadro_del_afiche():
+    """El arte de cada edad se generó por separado, así que el recuadro del nombre NO está
+    en el mismo lugar en las siete. Con un único `y` para todas, el nombre queda descentrado
+    justo en las edades cuyo arte se apartó — y en safari eso pasa con la de 5 años, que es
+    la que se usó para las fotos de la publicación.
+
+    Se mide la TINTA del nombre restando el afiche con nombre menos el afiche sin nombre: el
+    punto del layout no sirve, porque el ancla `mm` de Pillow usa el medio tipográfico de la
+    fuente y en una manuscrita con cola eso no coincide con el medio de lo que se ve.
+
+    Lo protege el bloque `_por_edad` del layout. Si alguien lo saca, este test lo dice."""
+    import numpy as np
+    spec = generador.specs_de("safari")["afiche"]
+    for edad, esperado in (("5", 0.8920), ("3", 0.8722)):
+        con = np.asarray(generador.render({"nombre": "Emma", "edad": edad}, spec)
+                         .convert("RGB")).astype(int)
+        sin = np.asarray(generador.render({"nombre": "", "edad": edad}, spec)
+                         .convert("RGB")).astype(int)
+        ys, _ = np.nonzero(np.abs(con - sin).max(axis=-1) > 18)
+        assert len(ys), "edad %s: no se dibujó el nombre" % edad
+        centro = (ys.min() + ys.max()) / 2 / con.shape[0]
+        assert abs(centro - esperado) < 0.004, (
+            "edad %s: el nombre quedó en %.4f y tendría que estar en %.4f"
+            % (edad, centro, esperado))
+
+
+PIEZAS_DEL_KIT = 16          # ver test_el_kit_tiene_las_piezas_que_promete_la_publicacion
+
+
+def test_el_kit_tiene_las_piezas_que_promete_la_publicacion():
+    """El número de piezas es una PROMESA: está en el título de las publicaciones de Etsy y
+    de Mercado Libre, y en la foto principal.
+
+    Hasta el 19-ago-2026 ningún test lo afirmaba: el kit pasó de 15 a 16 piezas y los 2128
+    tests siguieron en verde, porque todos recorren las piezas que haya. O sea que una pieza
+    podía desaparecer en silencio y el comprador recibir menos de lo que pagó, sin que nada
+    lo dijera. Si este test falla, hay que decidir a propósito: o se repone la pieza, o se
+    cambia el número acá Y en las publicaciones."""
+    for tema in ("safari", "monstruos", "princesas"):
+        n = len(list(productos.piezas_tipo(tema, "kit")))
+        assert n == PIEZAS_DEL_KIT, (
+            "%s entrega %d piezas y las publicaciones prometen %d" % (tema, n, PIEZAS_DEL_KIT))
+
+
+def test_el_banderin_sin_letra_no_depende_del_nombre():
+    """La hoja de banderines lisos existe para reimprimirla y alargar la guirnalda, así que
+    tiene que salir IGUAL con cualquier nombre — si llevara el nombre no serviría para eso."""
+    m = {n: fn for n, fn, _ in productos.piezas_tipo("safari", "kit")}
+    lisa = [k for k in m if k.endswith("guirnalda_lisa")]
+    assert lisa, "falta la hoja de banderines sin letra"
+    a = pz.to_rgb(m[lisa[0]]({"nombre": "Emma", "edad": "5"})).tobytes()
+    b = pz.to_rgb(m[lisa[0]]({"nombre": "Maximiliano", "edad": "3"})).tobytes()
+    assert a == b, "la hoja de banderines lisos cambia con el nombre: no es lisa"
+
+
+def test_las_piezas_se_generan_en_ingles_sin_caerse():
     """Traducir cambia el largo del texto, y el motor achica la fuente para que entre. Que
     ninguna pieza reviente por eso."""
     data = {"nombre": "Emma", "edad": "5", "anyo": "2026", "idioma": "en"}
