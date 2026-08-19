@@ -105,6 +105,33 @@ EN = {
 TABLAS = {"en": EN}
 
 
+# El NOMBRE de cada temática, para la página del comprador de Etsy. Va acá y no en cada
+# `tema.json` porque el nombre en español es el que usa el panel de Pablo, y no se toca.
+# Se descubrió mirando la página andando: el selector le ofrecía «Bomberos al Rescate» a un
+# comprador de Estados Unidos.
+NOMBRE_TEMA_EN = {
+    "artistas": "Little Artists",
+    "aviadores": "Little Pilots",
+    "bomberos": "Firefighters to the Rescue",
+    "campamento": "Camping — Forest Adventure",
+    "circo": "Circus — The Big Show",
+    "construccion": "Construction — Let's Build!",
+    "futbol": "Soccer / Football",
+    "monstruos": "Monsters — Monstrous Party",
+    "princesas": "Princesses",
+    "safari": "Safari — Jungle Animals",
+    "superheroes": "Superheroes",
+    "un-espacio-de-locura": "Outer Space",
+}
+
+
+def nombre_tema(tema_id, nombre_es, lang):
+    """El nombre de la temática en el idioma pedido; si falta, el original."""
+    if lang == "en":
+        return NOMBRE_TEMA_EN.get(tema_id) or nombre_es
+    return nombre_es
+
+
 def traducir(texto, idioma):
     """La plantilla en el idioma pedido. Sin traducción, devuelve el original.
 
