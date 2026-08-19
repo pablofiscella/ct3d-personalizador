@@ -31,6 +31,7 @@ from PIL import Image, ImageDraw
 
 import piezas
 import temas
+import idioma
 from piezas import (A4, WHITE, CREAM, MUST, SAGE, make_sheet, txt, fit_into,
                     paste_center, accent, ink_c, font_disp, _band, animales,
                     load, has_recortes, _edad_any, lema, titulo)
@@ -97,8 +98,8 @@ def colorear(data, tema=None):
     d = ImageDraw.Draw(base)
     _frame(d, W, H, acc)
     nombre = (data.get("nombre") or "").strip()
-    txt(d, "¡Para pintar!", W / 2, 255, font_disp(tema), 140, acc, W * 0.7, wght=700)
-    txt(d, "Coloreá y decorá tu cumple", W / 2, 400, "Fredoka-VF.ttf", 60, ink, W * 0.7, wght=600)
+    txt(d, idioma.traducir("¡Para pintar!", idioma.de(data)), W / 2, 255, font_disp(tema), 140, acc, W * 0.7, wght=700)
+    txt(d, idioma.traducir("Coloreá y decorá tu cumple", idioma.de(data)), W / 2, 400, "Fredoka-VF.ttf", 60, ink, W * 0.7, wght=600)
     if nombre:
         _outline_text(d, nombre, W / 2, 620, font_disp(tema), 290, W * 0.72, wght=700, stroke=10)
     # globos (para pintar)
@@ -377,6 +378,30 @@ def _overlay_texto(img, tema, base, d):
             print("[kit] overlay de texto falló en %s: %s" % (base, e))
     return img
 
+def _arte_del_idioma(p, d):
+    """Si el comprador pidió otro idioma y existe el arte de ese idioma, ése va.
+
+    POR QUÉ EXISTE. `idioma.py` traduce el texto que DIBUJA el motor, pero hay arte con el
+    español metido en los píxeles: 12 PNG de monstruos —topper, etiqueta de botella y
+    cajita— dicen «¡FELIZ CUMPLE!», «TOPPER PARA TORTA» y «CAJITA SORPRESA» pintados
+    encima. Ninguna tabla de traducción toca un PNG.
+
+    La versión en inglés se guarda AL LADO, como `topper_5.en.png`, y el original queda
+    intacto. Se hace así y no reemplazando porque los once kits en español están vendiendo
+    en Mercado Libre: un arte que dijera «HAPPY BIRTHDAY» pisando al original arreglaría
+    Etsy rompiendo lo único que hoy factura.
+
+    Y no es la duplicación que se evitó en `idioma.py`: aquello eran los layouts, que el
+    admin edita con el editor visual y por eso se desincronizan solos. Esto es arte
+    estático — se genera una vez con `herramientas/despintar.py` y no lo toca nadie más.
+    Sin `.en.png`, se usa el original: las otras once temáticas no necesitan nada."""
+    lang = idioma.de(d)
+    if lang == idioma.IDIOMA_ORIGEN:
+        return p
+    alt = p[:-4] + "." + lang + ".png" if p.endswith(".png") else p
+    return alt if os.path.exists(alt) else p
+
+
 def _mk_extra_edad(exdir, base, tema):
     def fn(d):
         # stickers: se vende la hoja RECOMPUESTA con troquel uniforme y línea
@@ -412,11 +437,12 @@ def _mk_extra_edad(exdir, base, tema):
                 p = os.path.join(exdir, f"{base}_{elegida}.png")
             else:
                 p = os.path.join(exdir, f"{base}_1.png")
-        return _overlay_texto(Image.open(p).convert("RGBA"), tema, base, d)
+        return _overlay_texto(Image.open(_arte_del_idioma(p, d)).convert("RGBA"), tema, base, d)
     return fn
 
 def _mk_extra_fijo(p, tema, base):
-    return lambda d: _overlay_texto(Image.open(p).convert("RGBA"), tema, base, d)
+    return lambda d: _overlay_texto(
+        Image.open(_arte_del_idioma(p, d)).convert("RGBA"), tema, base, d)
 
 
 def _mk_guirnalda(p, tema):

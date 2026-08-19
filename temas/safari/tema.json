@@ -101,9 +101,9 @@
           "font": "Poppins-Medium.ttf",
           "size": 41,
           "color": "#6f4e37",
-          "x": 0.307,
-          "y": 0.981,
-          "anchor": "lm",
+          "x": 0.4733,
+          "y": 0.975,
+          "anchor": "rm",
           "maxw": 0.22
         },
         {
@@ -114,7 +114,7 @@
           "size": 41,
           "color": "#6f4e37",
           "x": 0.5033,
-          "y": 0.981,
+          "y": 0.975,
           "anchor": "lm",
           "maxw": 0.44
         }

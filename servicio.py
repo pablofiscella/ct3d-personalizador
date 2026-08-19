@@ -1046,6 +1046,35 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(body)))
             self.end_headers(); self.wfile.write(body)
             return
+        # ---- entrega a un comprador de ETSY (público) ----
+        # Etsy **no tiene API de mensajería** (probado: /conversations da 404), así que no
+        # hay forma de mandarle el archivo por código. La entrega es de autogestión: Etsy le
+        # da al comprador un PDF con este link, el comprador pone los datos de su cumple y
+        # se baja el kit solo. El vendedor no toca nada, que es todo el punto.
+        if path == "/etsy":
+            html = open(os.path.join(generador.BASEDIR, "etsy.html"), encoding="utf-8").read()
+            body = html.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers(); self.wfile.write(body)
+            return
+        if path == "/etsy/opciones":
+            # temáticas y edades, para que la página se llene sola: si mañana se agrega una
+            # temática, aparece sin tocar el HTML.
+            # Los nombres van EN INGLÉS. Se vio probando la página: el selector le ofrecía
+            # «Bomberos al Rescate» a un comprador de Estados Unidos. El nombre en español
+            # es el que usa el panel de Pablo y no se toca; la traducción vive en idioma.py.
+            import idioma as _idi
+            ts = []
+            for t in temas.list_temas():
+                tid = t["id"] if isinstance(t, dict) else str(t)
+                nom = (t.get("nombre") if isinstance(t, dict) else tid) or tid
+                ts.append({"id": tid, "nombre": _idi.nombre_tema(tid, nom, "en")})
+            ts.sort(key=lambda x: x["nombre"].lower())
+            return self._json(200, {"ok": True, "temas": ts,
+                                    "edades": [str(i) for i in range(1, 11)]})
         if path == "/cliente/layout":
             q = urllib.parse.parse_qs(u.query)
             pieza = q.get("pieza", ["invitacion"])[0]
@@ -2116,6 +2145,83 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
             json.dump(dj, f, ensure_ascii=False)
         return self._json(200, {"ok": True, "herencia": her})
 
+    def _etsy_generar(self):
+        """El comprador de Etsy pone su número de orden y los datos del cumple, y se lleva
+        el kit. Sin que el vendedor toque nada.
+
+        POR QUÉ SE HACE ACÁ Y NO CON UN BOT COMO EN MERCADO LIBRE: en ML el bot le escribe
+        al comprador y le adjunta el PDF. **En Etsy eso no se puede**: la API v3 no tiene
+        endpoint de mensajería (probado, da 404). O sea que o el vendedor adjunta el archivo
+        a mano en cada venta, o el comprador se lo arma solo. Esto es lo segundo.
+
+        SE GENERA LLAMÁNDOSE A SÍ MISMO por `/api/generar` en loopback. Es a propósito:
+        ese endpoint es el que usa la tienda de verdad —arma el zip, el token y la URL de
+        descarga— y duplicarlo acá sería tener dos caminos que se despegan. El servidor es
+        `ThreadingHTTPServer`, así que la llamada a sí mismo no se traba.
+        """
+        raw = self._body()
+        if raw is None:
+            return self._json(413, {"ok": False, "error": "Request too large."})
+        try:
+            p = json.loads(raw)
+        except Exception:
+            return self._json(400, {"ok": False, "error": "Invalid request."})
+
+        orden = str(p.get("orden", "")).strip()
+        nombre = str(p.get("nombre", "")).strip()
+        tema = str(p.get("tema", "safari")).strip() or "safari"
+        if not nombre:
+            return self._json(400, {"ok": False, "error": "Please enter your child's name."})
+        if not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "Unknown theme."})
+
+        # Falla CERRADO: si no se puede confirmar la compra, no se entrega. Un comprador
+        # que escribe se resuelve contestándole; un kit regalado a cualquiera con el link,
+        # no se resuelve.
+        import etsy_pedidos
+        try:
+            ok, info, err = etsy_pedidos.validar(orden)
+        except Exception as e:                                   # noqa: BLE001
+            print("[etsy] validar falló: %s" % e)
+            return self._json(503, {"ok": False, "error":
+                                    "We couldn't verify your order right now. Please try "
+                                    "again in a few minutes, or message us on Etsy."})
+        if not ok:
+            return self._json(403, {"ok": False, "error": err})
+
+        datos = {c: str(p.get(c, "")).strip() for c in CAMPOS}
+        datos["nombre"] = nombre
+        datos["idioma"] = "en"          # quien compra en Etsy compra en inglés
+        cuerpo = dict(datos)
+        cuerpo.update({"tema": tema, "tipo": "kit", "order_id": "etsy-%s" % orden})
+
+        req = urllib.request.Request(
+            "http://127.0.0.1:%d/api/generar" % PORT,
+            data=json.dumps(cuerpo).encode(), method="POST",
+            headers={"Content-Type": "application/json", "X-API-Key": API_KEY})
+        try:
+            with urllib.request.urlopen(req, timeout=600) as r:
+                d = json.loads(r.read().decode())
+        except Exception as e:                                   # noqa: BLE001
+            print("[etsy] generar falló para la orden %s: %s" % (orden, e))
+            return self._json(503, {"ok": False, "error":
+                                    "We couldn't build your kit right now. Please try again "
+                                    "in a few minutes, or message us on Etsy."})
+        if not d.get("ok") or not d.get("download_url"):
+            print("[etsy] /api/generar devolvió %r para la orden %s" % (d, orden))
+            return self._json(503, {"ok": False, "error":
+                                    "We couldn't build your kit right now. Please message "
+                                    "us on Etsy and we'll send it to you."})
+
+        # Se anota DESPUÉS de que el kit existe: si la generación falla, el canje no se
+        # gasta. Al revés, un error del servidor le comería un intento al comprador.
+        try:
+            etsy_pedidos.registrar_canje(orden, d.get("token", ""), datos)
+        except Exception as e:                                   # noqa: BLE001
+            print("[etsy] no se pudo registrar el canje de %s: %s" % (orden, e))
+        print("[etsy] kit entregado · orden %s · tema %s · %s" % (orden, tema, nombre))
+        return self._json(200, {"ok": True, "download_url": d["download_url"]})
+
     def _duelo_crear(self):
         """El chico terminó sus 5 preguntas y quiere desafiar a un compañero.
 
@@ -2235,6 +2341,8 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
             return self._dev_401()
         if not self._origin_ok():          # A5: rechaza POST cross-site de navegador
             return self._deny()
+        if path == "/etsy/generar":
+            return self._etsy_generar()
         m_tel = re.match(r"^/act/([A-Za-z0-9_-]+)/telemetria$", path)
         if m_tel:
             return self._act_telemetria(m_tel.group(1))
