@@ -53,16 +53,32 @@ def _layouts():
     return sorted(glob.glob(os.path.join(raiz, "temas", "*", "layouts", "*.json")))
 
 
+def _campos_con_tpl(d):
+    """TODOS los lugares donde un layout puede guardar un texto fijo.
+
+    La primera versión recorría sólo `d.items()` y salteaba lo que no fuera un dict — y
+    **`_nuevos` es una LISTA**. Ahí es justo donde el editor guarda los campos que el admin
+    AGREGA a mano, o sea el lugar más probable de que quede un nombre de prueba. El guardián
+    tenía un agujero del tamaño exacto del caso que venía a evitar: el 19-ago-2026
+    aparecieron «Tomás» fijo en el afiche de fútbol y en el banderín de monstruos, con los
+    once kits ya publicados y vendiendo en Mercado Libre.
+    """
+    for campo, cfg in d.items():
+        if isinstance(cfg, dict):
+            yield campo, cfg.get("tpl")
+    for n in (d.get("_nuevos") or []):
+        if isinstance(n, dict):
+            yield "_nuevos[%s]" % n.get("id"), n.get("tpl")
+
+
 def test_ningun_layout_tiene_el_nombre_de_otro_chico():
-    """EL test. Nueve temas salían con un nombre de prueba escrito a mano."""
+    """EL test. Nueve temas salían con un nombre de prueba escrito a mano, y dos más se
+    colaron después por `_nuevos`."""
     colados = []
     for f in _layouts():
         with open(f, encoding="utf-8") as fh:
             d = json.load(fh)
-        for campo, cfg in d.items():
-            if not isinstance(cfg, dict):
-                continue
-            t = cfg.get("tpl")
+        for campo, t in _campos_con_tpl(d):
             if not (isinstance(t, str) and t.strip()):
                 continue
             if "{" in t:                       # tiene marcador: lo completa el motor
