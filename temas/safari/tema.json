@@ -104,7 +104,9 @@
           "x": 0.4733,
           "y": 0.975,
           "anchor": "rm",
-          "maxw": 0.22
+          "maxw": 0.22,
+          "stroke": 5,
+          "stroke_color": "#FFFFFF"
         },
         {
           "id": "rsvp",
@@ -116,7 +118,9 @@
           "x": 0.5033,
           "y": 0.975,
           "anchor": "lm",
-          "maxw": 0.44
+          "maxw": 0.44,
+          "stroke": 5,
+          "stroke_color": "#FFFFFF"
         }
       ]
     },

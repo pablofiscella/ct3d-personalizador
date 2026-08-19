@@ -50,18 +50,18 @@
     "anchor": "lm"
   },
   "confirma": {
-    "x": 0.307,
-    "y": 0.981,
+    "x": 0.4733,
+    "y": 0.975,
     "size": 41.0,
     "maxw": 0.22,
     "wght": 500.0,
     "font": "Poppins-Medium.ttf",
     "color": "#6f4e37",
-    "anchor": "lm"
+    "anchor": "rm"
   },
   "rsvp": {
     "x": 0.5033,
-    "y": 0.981,
+    "y": 0.975,
     "size": 41.0,
     "maxw": 0.44,
     "wght": 500.0,

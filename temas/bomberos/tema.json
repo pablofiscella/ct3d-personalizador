@@ -149,11 +149,13 @@
           "size": 40,
           "color": "#E53935",
           "x": 0.5,
-          "y": 0.516,
+          "y": 0.975,
           "anchor": "mm",
           "maxw": 0.8,
           "wght": 700,
-          "toggleable": true
+          "toggleable": true,
+          "stroke": 5,
+          "stroke_color": "#FFFFFF"
         },
         {
           "id": "pie",
@@ -163,11 +165,13 @@
           "size": 30,
           "color": "#3E3E3E",
           "x": 0.5,
-          "y": 0.548,
+          "y": 0.945,
           "anchor": "mm",
           "maxw": 0.86,
           "wght": 500,
-          "toggleable": true
+          "toggleable": true,
+          "stroke": 4,
+          "stroke_color": "#FFFFFF"
         }
       ]
     },
