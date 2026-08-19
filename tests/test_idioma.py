@@ -384,29 +384,45 @@ def test_sin_arte_en_ingles_se_usa_el_original():
 
 
 def test_el_nombre_va_CENTRADO_en_el_recuadro_del_afiche():
-    """El arte de cada edad se generó por separado, así que el recuadro del nombre NO está
-    en el mismo lugar en las siete. Con un único `y` para todas, el nombre queda descentrado
-    justo en las edades cuyo arte se apartó — y en safari eso pasa con la de 5 años, que es
-    la que se usó para las fotos de la publicación.
+    """El nombre del afiche tiene que quedar centrado en su recuadro, en TODAS las edades.
 
-    Se mide la TINTA del nombre restando el afiche con nombre menos el afiche sin nombre: el
-    punto del layout no sirve, porque el ancla `mm` de Pillow usa el medio tipográfico de la
-    fuente y en una manuscrita con cola eso no coincide con el medio de lo que se ve.
+    SE MIDE SOBRE LA PIEZA DEL KIT, no sobre la vista previa, y esa distinción es el bug.
+    El afiche se arma por DOS caminos distintos: la vista previa usa `generador.render()` y
+    la `y` del layout; **el kit usa `productos._overlay_texto`, que ignora esa `y` y ubica
+    el nombre donde `_zona_limpia_abajo` detecta el recuadro**. Yo arreglé el camino de la
+    vista previa, medí ahí mismo, y di el problema por resuelto — mientras la pieza que
+    recibe el comprador seguía mal. Lo cazó Pablo mirando la foto de la publicación.
 
-    Lo protege el bloque `_por_edad` del layout. Si alguien lo saca, este test lo dice."""
+    El detector devolvía None en las siete edades de safari (el interior del recuadro y el
+    margen de abajo se fusionaban en una sola franja lisa, que el filtro descartaba por
+    tocar el borde de la hoja), así que caía a un `y = 0.92` fijo: el nombre pegado al borde
+    inferior del recuadro.
+
+    Un test que mide el camino equivocado da la misma tranquilidad que uno que mide bien, y
+    ninguna de las dos garantías."""
     import numpy as np
-    spec = generador.specs_de("safari")["afiche"]
-    for edad, esperado in (("5", 0.8920), ("3", 0.8722)):
-        con = np.asarray(generador.render({"nombre": "Emma", "edad": edad}, spec)
-                         .convert("RGB")).astype(int)
-        sin = np.asarray(generador.render({"nombre": "", "edad": edad}, spec)
-                         .convert("RGB")).astype(int)
+    m = {n: fn for n, fn, _ in productos.piezas_tipo("safari", "kit")}
+    afiche = [k for k in m if k.endswith("_afiche")]
+    assert afiche, "el kit no trae afiche"
+    fn = m[afiche[0]]
+    peor = []
+    for edad in ("1", "3", "5", "7"):
+        arte = os.path.join(RAIZ, "temas", "safari", "extras", "afiche_%s.png" % edad)
+        if not os.path.exists(arte):
+            continue
+        from PIL import Image as _Im
+        zona = productos._zona_limpia_abajo(_Im.open(arte))
+        assert zona, "edad %s: no se detectó el recuadro del nombre" % edad
+        cy, _alto = zona
+        con = np.asarray(pz.to_rgb(fn({"nombre": "Emma", "edad": edad}))).astype(int)
+        sin = np.asarray(pz.to_rgb(fn({"nombre": "", "edad": edad}))).astype(int)
         ys, _ = np.nonzero(np.abs(con - sin).max(axis=-1) > 18)
         assert len(ys), "edad %s: no se dibujó el nombre" % edad
         centro = (ys.min() + ys.max()) / 2 / con.shape[0]
-        assert abs(centro - esperado) < 0.004, (
-            "edad %s: el nombre quedó en %.4f y tendría que estar en %.4f"
-            % (edad, centro, esperado))
+        if abs(centro - cy) > 0.012:
+            peor.append("edad %s: el nombre en %.4f y el centro del recuadro en %.4f"
+                        % (edad, centro, cy))
+    assert not peor, "el nombre no queda centrado en el recuadro:\n  " + "\n  ".join(peor)
 
 
 PIEZAS_DEL_KIT = 16          # ver test_el_kit_tiene_las_piezas_que_promete_la_publicacion
