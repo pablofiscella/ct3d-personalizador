@@ -36,6 +36,7 @@ W, H = 1500, 2100
 # El motor es genérico; la temática vive en disco (multi-temática).
 # ----------------------------------------------------------------------------
 import temas
+import idioma
 TEMA_DEFAULT = "safari"
 _tema = temas.cargar_tema(TEMA_DEFAULT)
 SPECS = _tema["specs"]
@@ -218,15 +219,20 @@ class _SinDato(dict):
 
 def _field_text(field, data):
     """Texto a dibujar: el custom del cliente (_text) tiene prioridad sobre el tpl."""
+    lang = idioma.de(data)
     t = field.get("_text")
     if t is None:
-        t = field["tpl"].format_map(_SinDato(data))
+        # Se traduce la PLANTILLA, nunca el resultado: así «{nombre}» sigue siendo un
+        # marcador y lo completa el motor con el dato del comprador. Al revés
+        # («HAPPY BIRTHDAY Emma» → traducir) habría que adivinar qué parte es el dato.
+        t = idioma.traducir(field["tpl"], lang).format_map(_SinDato(data))
+    # `_text` NO se traduce: son las palabras que escribió el cliente, no del diseño.
     # sin edad no hay línea: "Cumple {edad} años" con edad vacía quedaba "Cumple  años"
     if "{edad}" in field.get("tpl", "") and not str(data.get("edad", "")).strip():
         return ""
-    # plural inteligente de la edad: "1 año" / "5 años"
+    # plural inteligente de la edad: "1 año" / "5 años" — y "1 year old" en inglés
     if "{edad}" in field.get("tpl", "") and str(data.get("edad", "")).strip() == "1":
-        t = t.replace(" años", " año")
+        t = idioma.singular_edad(t, lang)
     return t
 
 _CREAM = (248, 245, 239)

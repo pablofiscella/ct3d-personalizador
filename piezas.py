@@ -7,6 +7,7 @@ Genera PNG + PDF (300 DPI) de cada pieza y una grilla de revision.
 """
 import os, json
 from PIL import Image, ImageDraw, ImageChops, ImageFilter
+import idioma
 from generador import (ASSETS, OUT, DPI, CREAM, BROWN, TERRA, OLIVE,
                        fit_font, get_font, crop_alpha, render, SPECS, specs_de, _hex_rgb)
 
@@ -22,11 +23,11 @@ def _edad(data):
     e = str(data.get("edad", "1")).strip()
     return e if e in ("1", "2", "3") else "1"
 def lema_edad(data):
-    return {"1": "¡Un añito salvaje!", "2": "¡Dos añitos salvajes!",
-            "3": "¡Tres añitos salvajes!"}[_edad(data)]
+    return idioma.traducir({"1": "¡Un añito salvaje!", "2": "¡Dos añitos salvajes!",
+                            "3": "¡Tres añitos salvajes!"}[_edad(data)], idioma.de(data))
 def titulo_edad(data):
-    return {"1": "El primer añito de", "2": "Los dos añitos de",
-            "3": "Los tres añitos de"}[_edad(data)]
+    return idioma.traducir({"1": "El primer añito de", "2": "Los dos añitos de",
+                            "3": "Los tres añitos de"}[_edad(data)], idioma.de(data))
 
 _PROY = os.path.dirname(os.path.abspath(__file__))
 def _tema_recortes(tema):
@@ -113,7 +114,7 @@ def cupcakes(data, tema=None):
             paste_center(c, fit_into(load("numero_%s.png" % e, tema), D * 0.78, D * 0.78), cx, cy)
         elif kind == "name":
             txt(d, data["nombre"], cx, cy - D * 0.04, "DancingScript-VF.ttf", D * 0.34, TERRA, D * 0.72, wght=700)
-            txt(d, "cumple " + e, cx, cy + D * 0.24, "Poppins-Medium.ttf", D * 0.11, BROWN, D * 0.7)
+            txt(d, idioma.traducir("cumple ", idioma.de(data)) + e, cx, cy + D * 0.24, "Poppins-Medium.ttf", D * 0.11, BROWN, D * 0.7)
         else:
             txt(d, l1, cx, cy - D * 0.11, "Fredoka-VF.ttf", D * 0.15, OLIVE, D * 0.78, wght=600)
             txt(d, l2, cx, cy + D * 0.11, "Fredoka-VF.ttf", D * 0.15, OLIVE, D * 0.78, wght=600)
@@ -147,7 +148,7 @@ def tags(data, tema=None):
         d.rounded_rectangle([4, 4, cw - 4, ch - 4], radius=34, fill=CREAM + (255,),
                             outline=SAGE + (255,), width=5)
         d.ellipse([cw / 2 - 22, 30, cw / 2 + 22, 74], outline=BROWN + (255,), width=6)
-        txt(d, "¡Gracias por venir!", cw / 2, ch * 0.27, "Fredoka-VF.ttf", ch * 0.085, OLIVE, cw * 0.82, wght=600)
+        txt(d, idioma.traducir("¡Gracias por venir!", idioma.de(data)), cw / 2, ch * 0.27, "Fredoka-VF.ttf", ch * 0.085, OLIVE, cw * 0.82, wght=600)
         paste_center(c, fit_into(load(an[i % len(an)], tema), cw * 0.5, ch * 0.34), cw / 2, ch * 0.55)
         txt(d, data["nombre"], cw / 2, ch * 0.84, "DancingScript-VF.ttf", ch * 0.17, TERRA, cw * 0.8, wght=700)
         return c
@@ -291,13 +292,16 @@ def font_disp(tema): return _kit(tema).get("font") or "DancingScript-VF.ttf"
 def _edad_any(data):
     return str(data.get("edad", "1")).strip() or "1"
 def lema(data, tema):
+    # se traduce la PLANTILLA («¡Cumplo {edad}!»), no el resultado: el marcador sobrevive
+    lang = idioma.de(data)
     t = _kit(tema).get("lema")
-    if t: return t.format(edad=_edad_any(data))
-    return lema_edad(data) if has_recortes(tema) else "¡Cumplo %s!" % _edad_any(data)
+    if t: return idioma.traducir(t, lang).format(edad=_edad_any(data))
+    return lema_edad(data) if has_recortes(tema) else idioma.traducir("¡Cumplo %s!", lang) % _edad_any(data)
 def titulo(data, tema):
+    lang = idioma.de(data)
     t = _kit(tema).get("titulo")
-    if t: return t.format(edad=_edad_any(data), nombre=data.get("nombre", ""))
-    return titulo_edad(data) if has_recortes(tema) else "El cumple de"
+    if t: return idioma.traducir(t, lang).format(edad=_edad_any(data), nombre=data.get("nombre", ""))
+    return titulo_edad(data) if has_recortes(tema) else idioma.traducir("El cumple de", lang)
 def has_recortes(tema):
     # safari (tema base) usa los recortes GLOBALES (/recortes); el resto, sólo si
     # tienen su propia carpeta recortes/ con cutouts. Si no, se arman desde la lámina.
@@ -359,7 +363,7 @@ def cupcakes_l(data, tema):
             txt(d, e, cx, cy, fnt, D * 0.6, acc, D * 0.8, wght=700)
         elif kind == "name":
             txt(d, data["nombre"], cx, cy - D * 0.04, fnt, D * 0.34, acc, D * 0.78, wght=700)
-            txt(d, "cumple " + e, cx, cy + D * 0.24, "Poppins-Medium.ttf", D * 0.11, ink, D * 0.7)
+            txt(d, idioma.traducir("cumple ", idioma.de(data)) + e, cx, cy + D * 0.24, "Poppins-Medium.ttf", D * 0.11, ink, D * 0.7)
         else:
             txt(d, lema(data, tema), cx, cy, "Fredoka-VF.ttf", D * 0.14, acc, D * 0.82, wght=600)
         c = _circle_clip(cont, box)
@@ -387,7 +391,7 @@ def tags_l(data, tema):
         c = Image.new("RGBA", (cw, ch), (0, 0, 0, 0)); d = ImageDraw.Draw(c)
         d.rounded_rectangle([4, 4, cw - 4, ch - 4], radius=34, fill=CREAM + (255,), outline=acc + (255,), width=5)
         d.ellipse([cw / 2 - 22, 30, cw / 2 + 22, 74], outline=acc + (255,), width=6)
-        txt(d, "¡Gracias por venir!", cw / 2, ch * 0.27, "Fredoka-VF.ttf", ch * 0.085, acc, cw * 0.82, wght=600)
+        txt(d, idioma.traducir("¡Gracias por venir!", idioma.de(data)), cw / 2, ch * 0.27, "Fredoka-VF.ttf", ch * 0.085, acc, cw * 0.82, wght=600)
         paste_center(c, fit_into(band, cw * 0.6, ch * 0.34), cw / 2, ch * 0.55)
         txt(d, data["nombre"], cw / 2, ch * 0.84, fnt, ch * 0.17, acc, cw * 0.8, wght=700)
         return c

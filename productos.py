@@ -31,6 +31,7 @@ from PIL import Image, ImageDraw
 
 import piezas
 import temas
+import idioma
 from piezas import (A4, WHITE, CREAM, MUST, SAGE, make_sheet, txt, fit_into,
                     paste_center, accent, ink_c, font_disp, _band, animales,
                     load, has_recortes, _edad_any, lema, titulo)
@@ -97,8 +98,8 @@ def colorear(data, tema=None):
     d = ImageDraw.Draw(base)
     _frame(d, W, H, acc)
     nombre = (data.get("nombre") or "").strip()
-    txt(d, "¡Para pintar!", W / 2, 255, font_disp(tema), 140, acc, W * 0.7, wght=700)
-    txt(d, "Coloreá y decorá tu cumple", W / 2, 400, "Fredoka-VF.ttf", 60, ink, W * 0.7, wght=600)
+    txt(d, idioma.traducir("¡Para pintar!", idioma.de(data)), W / 2, 255, font_disp(tema), 140, acc, W * 0.7, wght=700)
+    txt(d, idioma.traducir("Coloreá y decorá tu cumple", idioma.de(data)), W / 2, 400, "Fredoka-VF.ttf", 60, ink, W * 0.7, wght=600)
     if nombre:
         _outline_text(d, nombre, W / 2, 620, font_disp(tema), 290, W * 0.72, wght=700, stroke=10)
     # globos (para pintar)
