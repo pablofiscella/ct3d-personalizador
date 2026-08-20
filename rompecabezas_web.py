@@ -22,6 +22,7 @@ import base64
 import glob
 import io
 import json
+import idioma
 import math
 import os
 import re
@@ -286,6 +287,14 @@ def _render_portada(titulo, tema_nombre, pal, img):
     return im
 
 
+def _nombre_corto(n):
+    """El nombre del tema hasta la raya: «Safari — Jungle Animals» → «Safari».
+
+    El nombre largo está pensado para un selector, donde el subtítulo ayuda a elegir. En un
+    título compuesto queda torpe: «Safari — Jungle Animals puzzles»."""
+    return (n or "").split("—")[0].split(" - ")[0].strip() or (n or "")
+
+
 def crear(data, tema, token=None):
     """Genera rompecabezas_web/<token>/ completo. Síncrono y rápido (sin
     llamadas IA: cortes procedurales + copiar arte ya existente del tema).
@@ -332,13 +341,20 @@ def crear(data, tema, token=None):
                         "w": w, "h": h, "grillas": grillas})
 
     from cuaderno import _tema_nombre
-    titulo = ("Los rompecabezas de %s" % nombre) if nombre \
-        else "Rompecabezas %s" % _tema_nombre(tema)
+    # El título va a la portada que dibuja el servidor y al encabezado del player, así
+    # que se traduce acá con la misma tabla del motor.
+    _idi = idioma.de(data)
+    titulo = (idioma.traducir("Los rompecabezas de %s", _idi) % nombre) if nombre \
+        else idioma.traducir("Rompecabezas %s", _idi) % _nombre_corto(
+            idioma.nombre_tema(tema, _tema_nombre(tema), _idi))
     pal = _paleta(tema)
     dj = {
         "v": 1, "tema": tema, "tema_nombre": _tema_nombre(tema),
         "nombre": nombre, "titulo": titulo,
         "paleta": pal, "targets": targets,
+        # El player es JS y no puede leer la tabla de `idioma.py`: el idioma viaja acá
+        # y el player elige de su propio diccionario.
+        "idioma": idioma.de(data),
         "masco": _mascota(tema, d),
         "puzzles": puzzles, "bordes": bordes,
     }
@@ -546,8 +562,18 @@ def html(token):
         dv = str(int(os.path.getmtime(os.path.join(ROMPE_DIR, token, "data.json"))))
     except OSError:
         dv = "1"
+    # El idioma se inyecta en el HTML además de ir en el data.json: la pantalla de
+    # «cargando» se ve ANTES de que el data.json llegue, y en inglés tiene que decir
+    # «Getting your puzzles ready…» desde el primer instante.
+    idi = "es"
+    try:
+        with open(os.path.join(ROMPE_DIR, token, "data.json"), encoding="utf-8") as f:
+            idi = (json.load(f).get("idioma") or "es")
+    except Exception:
+        pass
     return (t.replace("{{TITULO}}", _esc(reg.get("titulo") or "Rompecabezas"))
              .replace("{{V}}", _player_version())
+             .replace("{{IDIOMA}}", "en" if idi == "en" else "es")
              .replace("{{DV}}", dv))
 
 

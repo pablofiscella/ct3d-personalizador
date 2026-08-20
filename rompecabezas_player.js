@@ -25,6 +25,56 @@ const ESC = 0.9;           // escala del knob (idéntica a rompecabezas._dibujar
 const DV = window.DV || "1";
 const bust = (src) => src + "?v=" + DV;
 
+/* ---- IDIOMA ----------------------------------------------------------------
+   El player es JS servido del repo: NO puede leer la tabla de `idioma.py`, que es
+   Python. Por eso lleva su propio diccionario, chico, con las frases que ve el chico.
+   Es la misma idea que en el motor —una sola fuente por lado— implementada dos veces.
+
+   El idioma llega por DOS caminos y hacen falta los dos:
+     · `window.IDIOMA`, que el servidor inyecta en el HTML → sirve ANTES de que cargue
+       el data.json, para la pantalla de «cargando».
+     · `D.idioma` del data.json → manda una vez cargado.
+   Sin el primero, el comprador de Etsy veía «Preparando tus rompecabezas…» en español
+   durante los primeros segundos, que es justo la primera impresión. */
+const T = {
+  cargando:    { es: "Preparando tus rompecabezas…", en: "Getting your puzzles ready…" },
+  hola:        { es: "¡Hola!",                       en: "Hi!" },
+  holaN:       { es: "¡Hola, %s!",                   en: "Hi, %s!" },
+  muyBien:     { es: "¡Muy bien!",                   en: "Well done!" },
+  muyBienN:    { es: "¡Muy bien, %s!",               en: "Well done, %s!" },
+  seguir:      { es: "¡Seguir!",                     en: "Keep going!" },
+  cuantas:     { es: "¿De cuántas piezas lo armás?", en: "How many pieces?" },
+  piezas:      { es: "%s piezas",                    en: "%s pieces" },
+  comprar:     { es: "Comprá",                       en: "Buy" },
+  comprarArmar:{ es: "Comprá para armar",            en: "Buy to play" },
+  comprarlo:   { es: "Comprarlo →",                  en: "Get it →" },
+  noCargo:     { es: "No pudimos cargar 😕<br>Probá recargar la página.",
+                 en: "We couldn't load it 😕<br>Try reloading the page." },
+  bienvenida:  { es: "Elegí una foto, armala y ganá estrellas ⭐",
+                 en: "Pick a picture, put it together and earn stars ⭐" },
+  demo:        { es: "🎮 <b>Demo:</b> armá 1 rompecabezas gratis, hasta %d piezas. " +
+                     "Comprá el completo —con la foto de tu peque y guardado en tu " +
+                     "biblioteca— para armar los %d rompecabezas, con más piezas cada uno. ",
+                 en: "🎮 <b>Demo:</b> play 1 puzzle free, up to %d pieces. " +
+                     "Get the full set —with your child's photo, saved in your " +
+                     "library— to play all %d puzzles, with more pieces each. " },
+};
+const FESTEJO = {
+  es: ["¡Pieza por pieza lo lograste!", "¡Qué bien miraste cada forma!",
+       "¡Lo armaste vos!", "¡Sos de no rendirte!", "¡Cuánta paciencia le pusiste!"],
+  en: ["Piece by piece, you did it!", "You looked at every shape!",
+       "You built it yourself!", "You never gave up!", "What patience you had!"],
+};
+function idi() {
+  return ((D && D.idioma) || window.IDIOMA || "es") === "en" ? "en" : "es";
+}
+function t(clave, ...args) {
+  const e = T[clave];
+  let s = (e && (e[idi()] || e.es)) || "";
+  args.forEach(a => { s = s.replace(/%[sd]/, a); });
+  return s;
+}
+
 /* MODO DEMO ("Probalo gratis"): la URL es /armar/demo-<tema>/. Pablo 17-jul-2026,
    bajado de "mitad de las escenas, sin límite de piezas" (permitía jugar horas
    gratis) a "1 sola escena, hasta 6 piezas" — el resto (más escenas, más piezas
@@ -122,10 +172,7 @@ const Confeti = {
   },
 };
 
-const FRASES_FESTEJO = [
-  "¡Pieza por pieza lo lograste!", "¡Qué bien miraste cada forma!",
-  "¡Lo armaste vos!", "¡Sos de no rendirte!", "¡Cuánta paciencia le pusiste!",
-];
+
 
 function toast(txt) {
   const t = $("#toast");
@@ -138,8 +185,9 @@ function toast(txt) {
 function festejar(estrellas, alCerrar) {
   Sfx.fanfarria();
   Confeti.tirar(140);
-  $("#festejoTitulo").textContent = D.nombre ? `¡Muy bien, ${D.nombre}!` : "¡Muy bien!";
-  $("#festejoFrase").textContent = FRASES_FESTEJO[rint(0, FRASES_FESTEJO.length - 1)];
+  $("#festejoTitulo").textContent = D.nombre ? t("muyBienN", D.nombre) : t("muyBien");
+  const fr = FESTEJO[idi()] || FESTEJO.es;
+  $("#festejoFrase").textContent = fr[rint(0, fr.length - 1)];
   const cont = $("#festejoEstrellas");
   cont.innerHTML = "";
   for (let i = 0; i < 3; i++) {
@@ -157,7 +205,7 @@ function cerrarFestejo() { $("#festejo").classList.remove("ver"); }
 /* ── pantallas ── */
 function pintarHeader() {
   $("#totalEstrellas").textContent = Store.total();
-  $("#hdrNombre").textContent = D.nombre ? `¡Hola, ${D.nombre}!` : "¡Hola!";
+  $("#hdrNombre").textContent = D.nombre ? t("holaN", D.nombre) : t("hola");
   $("#hdrSub").textContent = `${D.tema_nombre} · Casatridimensional`;
   const av = $("#avatar"), mf = $("#mascoFestejo");
   if (D.masco) {
@@ -182,16 +230,14 @@ function pintarMenu() {
   $("#btnAtras").classList.remove("ver");
   const stage = $("#stage");
   stage.className = ""; stage.innerHTML = "";
-  const bienv = el("div", "", `<h1>${D.titulo}</h1><p>Elegí una foto, armala y ganá estrellas ⭐</p>`);
+  const bienv = el("div", "", `<h1>${D.titulo}</h1><p>${t("bienvenida")}</p>`);
   bienv.id = "bienvenida";
   stage.appendChild(bienv);
   const LIBRES = ES_DEMO ? 1 : D.puzzles.length;
   if (ES_DEMO) {
     stage.appendChild(el("div", "demo-banner",
-      `🎮 <b>Demo:</b> armá 1 rompecabezas gratis, hasta ${DEMO_MAX_PIEZAS} piezas. ` +
-      `Comprá el completo —con la foto de tu peque y guardado en tu biblioteca— para armar ` +
-      `los ${D.puzzles.length} rompecabezas, con más piezas cada uno. ` +
-      `<a href="${urlComprar()}">Comprarlo →</a>`));
+      t("demo", DEMO_MAX_PIEZAS, D.puzzles.length) +
+      `<a href="${urlComprar()}">${t("comprarlo")}</a>`));
   }
   const menu = el("div"); menu.id = "menu";
   D.puzzles.forEach((p, i) => {
@@ -199,7 +245,7 @@ function pintarMenu() {
     const c = el("button", "carta" + (bloq ? " carta--lock" : ""), `
       <div class="foto"><img src="${bust(p.thumb)}" alt="" loading="lazy">${bloq ? '<span class="lock-ov">🔒</span>' : ''}</div>
       <div class="nombre">Rompecabezas ${i + 1}</div>
-      <div class="mini-est">${bloq ? 'Comprá para armar' : estrellitas(Math.min(3, Math.round(starsPuzzle(i) / D.targets.length)))}</div>`);
+      <div class="mini-est">${bloq ? t("comprarArmar") : estrellitas(Math.min(3, Math.round(starsPuzzle(i) / D.targets.length)))}</div>`);
     c.addEventListener("click", () => {
       if (bloq) { location.href = urlComprar(); }
       else { Sfx.pop(); pintarNiveles(i); }
@@ -218,7 +264,7 @@ function pintarNiveles(pi) {
   const p = D.puzzles[pi];
   const cont = el("div"); cont.id = "niveles";
   cont.appendChild(el("div", "foto", `<img src="${bust(p.thumb)}" alt="">`));
-  cont.appendChild(el("h2", "", "¿De cuántas piezas lo armás?"));
+  cont.appendChild(el("h2", "", t("cuantas")));
   const btns = el("div"); btns.id = "nivelBtns";
   D.targets.forEach((t) => {
     // niveles grandes (>70) solo en pantallas anchas (tablet/desktop): en un
@@ -233,7 +279,7 @@ function pintarNiveles(pi) {
     const [c, f] = p.grillas[String(t)].split("x").map(Number);
     const bloq = nivelBloqueado(t);
     const b = el("button", "nivelBtn" + (bloq ? " nivelBtn--lock" : ""), bloq
-      ? `<div class="n">🔒</div><div class="t">${c * f} piezas</div><div class="est">Comprá</div>`
+      ? `<div class="n">🔒</div><div class="t">${t("piezas", c * f)}</div><div class="est">${t("comprar")}</div>`
       : `<div class="n">${c * f}</div><div class="t">piezas</div>
          <div class="est">${estrellitas(Store.stars(pi + "|" + t))}</div>`);
     b.addEventListener("click", () => {
@@ -560,15 +606,29 @@ function jugar(pi, target) {
   Juego.abrir(pi, target);
 }
 
+/* Los textos que ya vienen escritos en el HTML se traducen ANTES de pedir el data.json:
+   la pantalla de «cargando» y el botón del festejo se ven en el primer instante, y un
+   comprador de Etsy que ve «Preparando tus rompecabezas…» ya arrancó mal. Usa
+   `window.IDIOMA`, que inyecta el servidor. */
+function traducirHtmlEstatico() {
+  const poner = (sel, clave) => { const e = $(sel); if (e) e.textContent = t(clave); };
+  poner("#txtCargando", "cargando");
+  poner("#hdrNombre", "hola");
+  poner("#festejoTitulo", "muyBien");
+  poner("#btnSeguir", "seguir");
+  if (idi() === "en") document.documentElement.lang = "en";
+}
+
 /* ── arranque ── */
 async function boot() {
+  traducirHtmlEstatico();
   Store.load();
   Sfx.on = Store.data.sound !== false;
   $("#btnSonido").textContent = Sfx.on ? "🔊" : "🔇";
   try {
     D = await (await fetch(bust("data.json"))).json();
   } catch (e) {
-    $("#cargando").innerHTML = "<div class='fx' style='font-size:22px'>No pudimos cargar 😕<br>Probá recargar la página.</div>";
+    $("#cargando").innerHTML = "<div class='fx' style='font-size:22px'>" + t("noCargo") + "</div>";
     return;
   }
   const root = document.documentElement.style;

@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <title>{{TITULO}} · Casatridimensional</title>
 <meta property="og:title" content="{{TITULO}}">
-<meta property="og:description" content="Rompecabezas interactivos — armá las escenas de tu tema y ganá estrellas.">
+<meta property="og:description" content="Interactive jigsaw puzzles — put the scenes together and earn stars.">
 <meta property="og:image" content="portada.jpg">
 <style>
 /* ══ Rompecabezas interactivo — Casatridimensional ══
@@ -216,7 +216,7 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 </style>
 </head>
 <body>
-<div id="cargando"><div class="aro"></div><div class="fx" style="font-size:22px">Preparando tus rompecabezas…</div></div>
+<div id="cargando"><div class="aro"></div><div class="fx" style="font-size:22px" id="txtCargando">Preparando tus rompecabezas…</div></div>
 
 <header id="hdr">
   <a href="https://casatridimensional.com.ar/mi-cuenta" class="pill" id="btnBiblioteca" aria-label="Volver a Mi biblioteca">📚</a>
@@ -245,7 +245,7 @@ button.pill:active, a.pill:active { transform: scale(.94); }
   </div>
 </div>
 
-<script>window.DV = "{{DV}}";</script>
+<script>window.DV = "{{DV}}"; window.IDIOMA = "{{IDIOMA}}";</script>
 <script src="player.js?v={{V}}"></script>
 </body>
 </html>
