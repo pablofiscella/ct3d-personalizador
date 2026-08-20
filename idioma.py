@@ -100,6 +100,19 @@ EN = {
     "cumple":                         "turns",          # «cumple 5» → «turns 5»
     "¡para pintar!":                  "Time to color!",
     "coloreá y decorá tu cumple":     "Color and decorate your party",
+
+    # ── rompecabezas imprimible (rompecabezas.py) ─────────────────────────────
+    # Se sumó el 19-ago-2026 al preparar la publicación de Etsy: el rompecabezas es el
+    # único producto que se entrega como descarga instantánea —no lleva personalización—,
+    # así que sus hojas tienen que salir en inglés sin que nadie intervenga.
+    "rompecabezas %d · %d piezas":    "PUZZLE %d · %d pieces",
+    "bandeja %d · armá el rompecabezas acá encima":
+        "TRAY %d · build the puzzle on top",
+    "pegá esta hoja sobre cartulina o cartón fino y recortá por las líneas.":
+        "Glue this sheet onto card stock or thin cardboard and cut along the lines.",
+    "así queda":                      "how it looks",
+    "cada pieza tiene un solo lugar. ¡mirá la referencia si te trabás!":
+        "Every piece has one spot. Check the picture if you get stuck!",
 }
 
 TABLAS = {"en": EN}
