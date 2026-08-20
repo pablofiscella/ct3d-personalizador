@@ -23,6 +23,12 @@
   .cuenta { display:inline-block; background:rgba(255,207,74,.13); color:var(--acento);
             border-radius:9px; padding:7px 13px; font-size:14.5px; margin-bottom:20px;
             font-variant-numeric:tabular-nums; word-break:break-all; }
+  /* Entró bien, pero con la cuenta que no era. Va en rojo y no en el amarillo del aviso
+     normal: no es información de contexto, es el motivo por el que no pasó. */
+  .ajena { background:rgba(255,120,120,.12); color:#ffb3b3; border-radius:11px;
+           padding:11px 14px; font-size:14.5px; margin-bottom:20px; line-height:1.5;
+           text-align:left; }
+  .ajena span { color:var(--suave); font-size:13.5px; }
   #boton { display:flex; justify-content:center; min-height:44px; }
   .aviso { margin-top:20px; font-size:13px; color:var(--suave); }
   .error { display:none; margin-top:16px; background:rgba(255,90,90,.13);

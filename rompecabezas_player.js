@@ -43,6 +43,16 @@ const T = {
   muyBien:     { es: "¡Muy bien!",                   en: "Well done!" },
   muyBienN:    { es: "¡Muy bien, %s!",               en: "Well done, %s!" },
   seguir:      { es: "¡Seguir!",                     en: "Keep going!" },
+  // El nombre de cada carta del menú. Estaba escrito suelto en el HTML de la carta
+  // —«Rompecabezas ${i+1}»— y por eso salía en español dentro de un producto en inglés:
+  // el diccionario no lo veía porque el texto no pasaba por él. Lo encontró Pablo
+  // jugándolo en el teléfono, con 2191 tests en verde.
+  puzzleN:     { es: "Rompecabezas %d",               en: "Puzzle %d" },
+  // Las tres de abajo salieron del MISMO barrido que encontró la de arriba: texto
+  // escrito directo en el HTML del player, que nunca pasaba por el diccionario.
+  piezasSolo:  { es: "piezas",                        en: "pieces" },
+  espiar:      { es: "🖼️ Espiar",                     en: "🖼️ Peek" },
+  mezclar:     { es: "🔀 Mezclar",                    en: "🔀 Shuffle" },
   cuantas:     { es: "¿De cuántas piezas lo armás?", en: "How many pieces?" },
   piezas:      { es: "%s piezas",                    en: "%s pieces" },
   comprar:     { es: "Comprá",                       en: "Buy" },
@@ -244,7 +254,7 @@ function pintarMenu() {
     const bloq = i >= LIBRES;
     const c = el("button", "carta" + (bloq ? " carta--lock" : ""), `
       <div class="foto"><img src="${bust(p.thumb)}" alt="" loading="lazy">${bloq ? '<span class="lock-ov">🔒</span>' : ''}</div>
-      <div class="nombre">Rompecabezas ${i + 1}</div>
+      <div class="nombre">${t("puzzleN", i + 1)}</div>
       <div class="mini-est">${bloq ? t("comprarArmar") : estrellitas(Math.min(3, Math.round(starsPuzzle(i) / D.targets.length)))}</div>`);
     c.addEventListener("click", () => {
       if (bloq) { location.href = urlComprar(); }
@@ -280,7 +290,7 @@ function pintarNiveles(pi) {
     const bloq = nivelBloqueado(t);
     const b = el("button", "nivelBtn" + (bloq ? " nivelBtn--lock" : ""), bloq
       ? `<div class="n">🔒</div><div class="t">${t("piezas", c * f)}</div><div class="est">${t("comprar")}</div>`
-      : `<div class="n">${c * f}</div><div class="t">piezas</div>
+      : `<div class="n">${c * f}</div><div class="t">${t("piezasSolo")}</div>
          <div class="est">${estrellitas(Store.stars(pi + "|" + t))}</div>`);
     b.addEventListener("click", () => {
       if (bloq) { location.href = urlComprar(); return; }
@@ -325,9 +335,9 @@ const Juego = {
     j.innerHTML = `
       <canvas id="lienzo"></canvas>
       <div id="barraJuego">
-        <div class="estado"><span id="puestas">0</span> / ${c * f} piezas</div>
-        <button class="btn suave" id="btnEspiar">🖼️ Espiar</button>
-        <button class="btn suave" id="btnMezclar">🔀 Mezclar</button>
+        <div class="estado"><span id="puestas">0</span> / ${t("piezas", c * f)}</div>
+        <button class="btn suave" id="btnEspiar">${t("espiar")}</button>
+        <button class="btn suave" id="btnMezclar">${t("mezclar")}</button>
       </div>`;
     stage.appendChild(j);
     Pantalla.actual = "juego";

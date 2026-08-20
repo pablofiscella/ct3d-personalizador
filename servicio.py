@@ -1452,7 +1452,11 @@ class Handler(BaseHTTPRequestHandler):
                     body = acceso.pagina_login(
                         volver="/armar/%s/" % token,
                         lang=(_man.get("idioma") or "es"),
-                        dueño=_dueño).encode("utf-8")
+                        dueño=_dueño,
+                        # quién es el que está mirando, si es alguien: sin esto la puerta
+                        # no puede decirle que entró con la cuenta equivocada.
+                        entrado_como=acceso.quien_es(
+                            self.headers.get("Cookie"))).encode("utf-8")
                     self.send_response(403)
                     self.send_header("Content-Type", "text/html; charset=utf-8")
                     self.send_header("Cache-Control", "no-store")
