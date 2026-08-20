@@ -567,3 +567,62 @@ def test_las_piezas_se_generan_en_ingles_sin_caerse():
         except Exception as e:        # noqa: BLE001
             caidas.append("%s: %s" % (nombre, e))
     assert not caidas, "piezas que no se generan en inglés: %s" % caidas
+
+
+def test_el_player_no_ESCRIBE_español_por_fuera_del_diccionario():
+    """El guardián que faltaba, y el que hubiera encontrado el bug de verdad.
+
+    `test_el_player_del_rompecabezas_tiene_las_frases_en_los_dos_idiomas` comprueba que
+    cada frase DEL DICCIONARIO tenga su inglés. Eso deja pasar lo contrario: un texto
+    escrito suelto en el código, que nunca entra al diccionario y por lo tanto nunca se
+    traduce. **El diccionario no puede avisar de lo que no conoce.**
+
+    Pasó el 20-ago-2026: cada carta del menú decía «Rompecabezas 1» dentro de un producto
+    en inglés. 2191 tests en verde, y lo encontró Pablo jugándolo en el teléfono. Cuando
+    se buscó bien, no era uno: eran cuatro —«piezas», «0 / N piezas», «🖼️ Espiar» y
+    «🔀 Mezclar»—.
+
+    LA REGLA ES POR LISTA BLANCA, Y ESO IMPORTA. La primera versión buscaba palabras
+    españolas conocidas; encontró «Rompecabezas» y «piezas», y se le escaparon «Espiar» y
+    «Mezclar» porque no estaban en la lista. Una lista de lo prohibido siempre se queda
+    corta: hay que agregarle cada palabra nueva justo cuando ya se cometió el error.
+
+    Acá la regla es al revés: **todo texto visible del HTML tiene que salir de `t(...)` o
+    de una variable.** Lo que quede escrito a mano, en cualquier idioma, es un error —
+    porque el problema no es que esté en español, es que no puede cambiar de idioma.
+    """
+    js = open(os.path.join(RAIZ, "rompecabezas_player.js"), encoding="utf-8").read()
+    js = re.sub(r"/\*.*?\*/", " ", js, flags=re.S)        # comentarios de bloque
+    js = re.sub(r"^\s*//.*$", " ", js, flags=re.M)          # y de línea
+
+    # el diccionario y las frases de festejo se sacan: ahí el español ES lo correcto, y
+    # de que cada entrada tenga su inglés ya se ocupa el otro test
+    for nombre in ("T", "FESTEJO"):
+        m = re.search(r"const %s\s*=\s*\{" % nombre, js)
+        if m:
+            k, prof = m.end(), 1
+            while k < len(js) and prof:
+                prof += (js[k] == "{") - (js[k] == "}")
+                k += 1
+            js = js[:m.start()] + js[k:]
+
+    # SÓLO etiquetas HTML de verdad. Buscar cualquier `>...<` agarraba los operadores
+    # `>=` y `=>` del propio JavaScript, y el test se llenaba de ruido — que es la forma
+    # más rápida de que alguien lo termine borrando.
+    ETIQUETAS = r"div|span|button|p|h[1-6]|a|b|small|em|strong|label|li"
+    culpables = []
+    for crudo in re.findall(r"<(?:%s)\b[^<>]*>([^<>]{1,120})<" % ETIQUETAS, js):
+        # lo que viene de una variable o de `t()` ya es traducible: se saca. Las dos
+        # formas, porque el player usa las dos: `${t("x")}` adentro de un template y
+        # `" + t("x") + "` cuando el HTML se arma concatenando.
+        limpio = re.sub(r"\$\{[^}]*\}", "", crudo)
+        limpio = re.sub(r"""["']\s*\+.*?\+\s*["']""", "", limpio, flags=re.S).strip()
+        # tres letras seguidas = una palabra escrita a mano (los números, los emojis y
+        # los signos sueltos no molestan a nadie)
+        if re.search(r"[A-Za-zÁÉÍÓÚÑáéíóúñ]{3,}", limpio):
+            culpables.append(crudo.strip()[:70])
+
+    assert not culpables, (
+        "hay texto escrito a mano en el HTML del player: no pasa por el diccionario, así "
+        "que no puede cambiar de idioma y va a salir igual en los dos productos.\n  "
+        + "\n  ".join(repr(c) for c in sorted(set(culpables))[:12]))

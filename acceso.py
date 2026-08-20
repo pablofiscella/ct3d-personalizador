@@ -260,6 +260,11 @@ TEXTOS = {
         "aviso": ("Sólo usamos tu mail para reconocerte. Si entrás con otra cuenta, "
                   "no vas a poder abrirlo."),
         "error": "No pudimos verificar tu cuenta. Probá de nuevo.",
+        # Entró bien, pero con OTRA cuenta. Sin este mensaje la página lo devuelve a la
+        # misma puerta sin decir nada, y parece rota.
+        "otra_cuenta": "Entraste como %s, pero este link es de %s.",
+        "otra_cuenta_ayuda": ("Volvé a entrar eligiendo la otra cuenta. Si tenés varios "
+                              "correos de Google, es el que usaste al comprar."),
     },
     "en": {
         "titulo": "Sign in to open",
@@ -270,6 +275,9 @@ TEXTOS = {
         "aviso": ("We only use your email to recognise you. Signing in with a different "
                   "account won't open it."),
         "error": "We couldn't verify your account. Please try again.",
+        "otra_cuenta": "You're signed in as %s, but this link belongs to %s.",
+        "otra_cuenta_ayuda": ("Sign in again choosing the other account. If you have more "
+                              "than one Google address, it's the one you bought with."),
     },
 }
 
@@ -293,7 +301,8 @@ def _volver_seguro(volver):
     return v
 
 
-def pagina_login(volver="/", lang="es", dueño=None, client_id=None):
+def pagina_login(volver="/", lang="es", dueño=None, client_id=None,
+                 entrado_como=None):
     """El HTML de la puerta. Se lee del repo en cada pedido, igual que los players: así
     una mejora llega también a los links ya vendidos."""
     lang = "en" if lang == "en" else "es"
@@ -301,7 +310,16 @@ def pagina_login(volver="/", lang="es", dueño=None, client_id=None):
     with open(LOGIN_HTML, encoding="utf-8") as f:
         html = f.read()
     cuenta = ""
-    if dueño:
+    if entrado_como and dueño and normalizar(entrado_como) != normalizar(dueño):
+        # EL caso que la primera versión dejaba mudo (lo encontró Pablo probándolo en el
+        # teléfono, 20-ago-2026): entrar con Google salía bien, y la página lo devolvía a
+        # la misma puerta sin explicar nada. Quien tiene dos cuentas de Gmail y usa la
+        # que no es, no tiene forma de darse cuenta — y concluye que está rota.
+        cuenta = ('<div class="ajena">%s<br><span>%s</span></div>'
+                  % (_esc(t["otra_cuenta"] % (pista_de_mail(entrado_como),
+                                              pista_de_mail(dueño))),
+                     _esc(t["otra_cuenta_ayuda"])))
+    elif dueño:
         cuenta = ('<div class="cuenta">%s</div>'
                   % _esc(t["cuenta"] % pista_de_mail(dueño)))
     for k, v in {

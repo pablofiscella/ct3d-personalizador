@@ -776,3 +776,53 @@ def test_a_QUIEN_LE_REENVIARON_el_link_no_le_sirve_entrar_con_SU_google(servidor
     for arch in ("data.json", "p0.jpg"):
         est, _, _ = _pedir(puerto, "/armar/reenviado1/%s" % arch, cookie=galleta)
         assert est == 403, "%s se bajó con una cuenta ajena" % arch
+
+
+# ── 9. entrar con la cuenta equivocada tiene que DECIRLO ─────────────────────
+#
+# 20-ago-2026. Lo encontró Pablo probándolo en el teléfono, y sólo se ve probándolo:
+# *«Si elijo no hace nada mas y vuelve al login»*. Entrar con Google salía bien —el
+# login funcionaba— pero como la cuenta no era la del dueño, la página lo devolvía a la
+# MISMA puerta sin explicar nada.
+#
+# Quien tiene dos cuentas de Gmail y usa la que no es, no tiene forma de darse cuenta.
+# Ve la misma pantalla dos veces y concluye que está rota. Después escribe por Etsy, o
+# no escribe y pide la devolución.
+
+def test_entrar_con_OTRA_cuenta_lo_dice_en_vez_de_quedarse_mudo(servidor):
+    puerto, rompe = servidor
+    _token_falso(rompe, "cuentamala1", dueño="ana@gmail.com")
+    c = "ct3d_acceso=%s" % acceso.sesion_crear("otro@gmail.com")
+
+    est, _, cuerpo = _pedir(puerto, "/armar/cuentamala1/", cookie=c)
+    txt = cuerpo.decode("utf-8")
+    assert est == 403
+    assert "signed in as" in txt.lower() or "entraste como" in txt.lower(), (
+        "la puerta no dice que entró con la cuenta equivocada: el comprador ve la misma "
+        "pantalla otra vez y no tiene forma de saber por qué")
+    # los dos mails, en pista: el suyo para que se ubique, el del dueño para que sepa
+    # con cuál tiene que entrar
+    assert txt.count("•") >= 8, "no muestra las dos cuentas"
+    assert "otro@gmail.com" not in txt and "ana@gmail.com" not in txt, (
+        "filtró un mail entero")
+
+
+def test_sin_ninguna_sesion_NO_dice_que_entraste_con_otra(servidor):
+    """El mensaje tiene que aparecer sólo cuando corresponde. A quien todavía no entró
+    hay que invitarlo a entrar, no acusarlo de haberlo hecho mal."""
+    puerto, rompe = servidor
+    _token_falso(rompe, "cuentamala2", dueño="ana@gmail.com")
+    est, _, cuerpo = _pedir(puerto, "/armar/cuentamala2/")
+    txt = cuerpo.decode("utf-8").lower()
+    assert est == 403
+    assert "signed in as" not in txt and "entraste como" not in txt
+    assert "this link belongs to" in txt
+
+
+def test_el_dueño_no_ve_ningun_reproche(servidor):
+    """Y el dueño entra y ya: no ve ni la puerta ni el mensaje."""
+    puerto, rompe = servidor
+    _token_falso(rompe, "cuentamala3", dueño="ana@gmail.com")
+    c = "ct3d_acceso=%s" % acceso.sesion_crear("ana@gmail.com")
+    est, _, _ = _pedir(puerto, "/armar/cuentamala3/", cookie=c)
+    assert est == 200
