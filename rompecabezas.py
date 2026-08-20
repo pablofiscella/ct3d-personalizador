@@ -17,6 +17,7 @@ código muerto que nunca se llamaba):
 """
 import os, math, json, glob, zlib, random
 from PIL import Image, ImageDraw, ImageFont
+import idioma
 
 KIT = os.path.dirname(os.path.abspath(__file__))
 TEMAS = os.path.join(KIT, "temas")
@@ -239,7 +240,7 @@ def puzzle_pagina(data, tema="safari", idx=0):
 
     im = Image.new("RGBA", (Wp, Hp), CREAM + (255,))
     dr = ImageDraw.Draw(im)
-    dr.text((60, 55), "ROMPECABEZAS %d · %d piezas" % (idx + 1, cols * filas),
+    dr.text((60, 55), idioma.traducir("ROMPECABEZAS %d · %d piezas", idioma.de(data)) % (idx + 1, cols * filas),
             font=_font(44, False), fill=_tint(acc, 0.3))
 
     aw, ah = _mm(180), _mm(240)
@@ -251,7 +252,7 @@ def puzzle_pagina(data, tema="safari", idx=0):
 
     dr2 = ImageDraw.Draw(im)
     dr2.text((Wp / 2, ay + ah + _mm(12)),
-             "Pegá esta hoja sobre cartulina o cartón fino y recortá por las líneas.",
+             idioma.traducir("Pegá esta hoja sobre cartulina o cartón fino y recortá por las líneas.", idioma.de(data)),
              font=_font(38, False), fill=_tint(INK, 0.25), anchor="mm")
     dr2.text((Wp / 2, Hp - 60), "casatridimensional.com.ar", font=_font(36, False),
              fill=(180, 180, 180), anchor="mm")
@@ -267,7 +268,7 @@ def bandeja_pagina(data, tema="safari", idx=0):
 
     im = Image.new("RGBA", (Wp, Hp), CREAM + (255,))
     dr = ImageDraw.Draw(im)
-    dr.text((60, 55), "BANDEJA %d · armá el rompecabezas acá encima" % (idx + 1),
+    dr.text((60, 55), idioma.traducir("BANDEJA %d · armá el rompecabezas acá encima", idioma.de(data)) % (idx + 1),
             font=_font(44, False), fill=_tint(acc, 0.3))
 
     aw, ah = _mm(180), _mm(240)
@@ -287,10 +288,10 @@ def bandeja_pagina(data, tema="safari", idx=0):
     im.alpha_composite(mini, (mx, my))
     dr2 = ImageDraw.Draw(im)
     dr2.rectangle([mx, my, mx + mini.width, my + mini.height], outline=acc, width=5)
-    dr2.text((mx + mini.width / 2, my - _mm(4)), "así queda",
+    dr2.text((mx + mini.width / 2, my - _mm(4)), idioma.traducir("así queda", idioma.de(data)),
              font=_font(28, False), fill=_tint(INK, 0.35), anchor="mm")
     dr2.text((Wp / 2, ay + ah + _mm(12)),
-             "Cada pieza tiene un solo lugar. ¡Mirá la referencia si te trabás!",
+             idioma.traducir("Cada pieza tiene un solo lugar. ¡Mirá la referencia si te trabás!", idioma.de(data)),
              font=_font(36, False), fill=_tint(INK, 0.25), anchor="mm")
     dr2.text((Wp / 2, Hp - 60), "casatridimensional.com.ar", font=_font(36, False),
              fill=(180, 180, 180), anchor="mm")

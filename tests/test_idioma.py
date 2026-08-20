@@ -375,6 +375,49 @@ def test_el_arte_con_español_QUEMADO_tiene_su_version_en_ingles():
                          % sorted(set(colados)))
 
 
+def test_el_ROMPECABEZAS_tambien_sale_en_ingles():
+    """El rompecabezas es el único producto que Etsy entrega SOLO, al instante: no lleva
+    personalización, así que el ZIP se sube como archivo de la publicación y nadie lo mira
+    antes de que llegue al comprador.
+
+    Por eso su texto en español no lo caza nadie aguas abajo — se descubrió mirando la foto
+    del producto, donde las hojas decían «ROMPECABEZAS 1 · 4 piezas» y «Pegá esta hoja sobre
+    cartulina…» en una publicación en inglés.
+
+    NO se compara la imagen en español contra la inglesa. Esa fue la primera versión y quedó
+    VERDE al romper una de las cuatro traducciones: alcanzaba con que UNA frase cambiara para
+    que las dos imágenes difirieran. «Algo cambió» no es «todo se tradujo».
+
+    Acá se intercepta `ImageDraw.text` —por donde pasa cada palabra que el rompecabezas
+    escribe— y se mira que ninguna quede en español."""
+    from PIL import ImageDraw as _ID
+    dibujados = []
+    original = _ID.ImageDraw.text
+
+    def espia(self, xy, text="", *a, **k):
+        if isinstance(text, str) and text.strip():
+            dibujados.append(text)
+        return original(self, xy, text, *a, **k)
+
+    _ID.ImageDraw.text = espia
+    try:
+        for nombre, fn, _ in list(productos.piezas_tipo("safari", "rompecabezas"))[:2]:
+            pz.to_rgb(fn({"idioma": "en"}))
+    finally:
+        _ID.ImageDraw.text = original
+
+    assert dibujados, "el rompecabezas no escribió nada: el espía no funcionó"
+    quedaron = set()
+    for t in dibujados:
+        if t.strip() == "casatridimensional.com.ar":      # la marca no se traduce
+            continue
+        motivo = _rastro_de_español(t)
+        if motivo:
+            quedaron.add("%r  (%s)" % (t, motivo))
+    assert not quedaron, ("el rompecabezas escribe español con idioma=en:\n  "
+                          + "\n  ".join(sorted(quedaron)))
+
+
 def test_sin_arte_en_ingles_se_usa_el_original():
     """Las otras once temáticas no tienen `.en.png` y no lo necesitan: su arte no lleva
     texto. Pedir inglés tiene que devolver el archivo de siempre, no reventar."""
