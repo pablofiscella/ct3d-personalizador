@@ -200,6 +200,12 @@ def _cargar(token):
         return None
 
 
+def manifest(token):
+    """El manifest del token, o None. Lo usa `servicio.py` para saber si el link tiene
+    dueño antes de servirlo — ver `acceso.puede_abrir`."""
+    return _cargar(token)
+
+
 # ── Generación ──
 
 def _mascota(tema, d):
@@ -364,9 +370,18 @@ def crear(data, tema, token=None):
     _render_portada(titulo, dj["tema_nombre"], pal,
                     imgs[0]).save(os.path.join(d, "portada.jpg"), quality=88)
 
+    # El DUEÑO va acá y no en data.json: el data.json se lo sirve el motor al navegador
+    # para que lo lea el player, así que todo lo que se escriba ahí es público. El mail
+    # del comprador es un dato personal y se queda del lado del servidor.
+    # Sin `dueño`, el token no lleva candado y el link abre solo — que es como funcionan
+    # TODOS los links ya vendidos, y tienen que seguir funcionando.
+    man = {"tema": tema, "nombre": nombre, "titulo": titulo,
+           "creado": int(time.time()), "idioma": _idi}
+    _dueño = (data.get("dueño") or "").strip().lower()
+    if _dueño:
+        man["dueño"] = _dueño
     with open(os.path.join(d, "manifest.json"), "w", encoding="utf-8") as f:
-        json.dump({"tema": tema, "nombre": nombre, "titulo": titulo,
-                   "creado": int(time.time())}, f, ensure_ascii=False)
+        json.dump(man, f, ensure_ascii=False)
     try:
         os.remove(_marca_gen(token))
     except OSError:

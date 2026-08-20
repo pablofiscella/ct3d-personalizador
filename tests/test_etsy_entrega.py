@@ -292,3 +292,128 @@ def test_el_tope_cuenta_igual_si_el_numero_llega_como_entero(monkeypatch):
     assert not ok, "el tope no contó: la orden podría generar kits sin límite"
     ok, _, _ = etsy_pedidos.validar("3210987654")                     # texto
     assert not ok
+
+
+# ── que la orden sea DE ESTE producto ─────────────────────────────────────────
+#
+# 19-ago-2026. Encontrado leyendo `validar` para agregar el producto web: comprobaba
+# que la orden existiera y estuviera paga, y nada más. La tienda tiene 22 publicaciones
+# —11 kits a USD 12 y 11 rompecabezas imprimibles a USD 7— así que el número de orden
+# del de USD 7, que Etsy entrega directo sin pasar por acá, servía para armar además el
+# de USD 12. Cinco veces, que es el tope de canjes.
+
+KIT_ID, PUZZLE_ID = 4558813047, 4559060474
+
+
+@pytest.fixture
+def mapa(tmp_path, monkeypatch):
+    import json as _json
+    p = tmp_path / "productos.json"
+    p.write_text(_json.dumps({"kit": [KIT_ID], "rompecabezas": [PUZZLE_ID]}))
+    monkeypatch.setattr(etsy_pedidos, "MAPA_PRODUCTOS", str(p))
+    return p
+
+
+def _recibo_con(*listing_ids):
+    def _f(ruta, *a, **k):
+        if ruta.endswith("/transactions"):
+            return {"results": [{"listing_id": i} for i in listing_ids]}
+        return {"receipt_id": 3210987654, "is_paid": True, "name": "Emma's mum"}
+    return _f
+
+
+def test_la_orden_de_OTRO_producto_no_arma_el_kit(monkeypatch, mapa):
+    """EL test de este bloque. Compró el rompecabezas de USD 7 —y ya lo tiene, Etsy se
+    lo entregó— y con ese número quiere el kit de USD 12."""
+    monkeypatch.setattr(etsy_pedidos, "_get", _recibo_con(PUZZLE_ID))
+    ok, _, err = etsy_pedidos.validar("3210987654", tipo="kit")
+    assert not ok, "una orden de otro producto armó el kit"
+    assert "order doesn" in err or "check" in err
+
+
+def test_la_orden_del_kit_SI_arma_el_kit(monkeypatch, mapa):
+    monkeypatch.setattr(etsy_pedidos, "_get", _recibo_con(KIT_ID))
+    ok, info, err = etsy_pedidos.validar("3210987654", tipo="kit")
+    assert ok and err is None
+
+
+def test_una_orden_con_LOS_DOS_productos_arma_el_kit(monkeypatch, mapa):
+    """Comprar las dos cosas juntas es lo normal, no la excepción: son la misma tienda y
+    el mismo cumpleaños. Si el chequeo pidiera que la orden sea SÓLO del kit, el
+    comprador que más gastó sería el único que no puede canjear."""
+    monkeypatch.setattr(etsy_pedidos, "_get", _recibo_con(PUZZLE_ID, KIT_ID))
+    ok, _, err = etsy_pedidos.validar("3210987654", tipo="kit")
+    assert ok, err
+
+
+def test_si_no_se_puede_saber_QUE_compro_no_se_entrega(monkeypatch, mapa):
+    """Misma política que el resto del archivo: falla cerrado. Se agrega porque acá la
+    tentación es al revés — «la orden existe y está paga, ya está» — y esa es justo la
+    forma de razonar que dejó el agujero."""
+    def sin_transacciones(ruta, *a, **k):
+        if ruta.endswith("/transactions"):
+            raise RuntimeError("HTTP 404 en GET .../transactions")
+        return {"receipt_id": 3210987654, "is_paid": True}
+    monkeypatch.setattr(etsy_pedidos, "_get", sin_transacciones)
+    ok, _, err = etsy_pedidos.validar("3210987654", tipo="kit")
+    assert not ok and err
+
+
+def test_sin_mapa_de_productos_no_se_entrega(monkeypatch, tmp_path):
+    """Si el archivo no está, no se sabe qué publicación es qué — y no saber no puede
+    significar «dale igual»."""
+    monkeypatch.setattr(etsy_pedidos, "MAPA_PRODUCTOS", str(tmp_path / "no-existe.json"))
+    monkeypatch.setattr(etsy_pedidos, "_get", _recibo_con(KIT_ID))
+    ok, _, err = etsy_pedidos.validar("3210987654", tipo="kit")
+    assert not ok and err
+
+
+def test_sin_tipo_se_comporta_como_antes(monkeypatch, mapa):
+    """Compatibilidad: los llamadores que no pasan `tipo` no se rompen, y tampoco gastan
+    la llamada de las transacciones."""
+    rutas = []
+
+    def espia(ruta, *a, **k):
+        rutas.append(ruta)
+        return {"receipt_id": 3210987654, "is_paid": True}
+    monkeypatch.setattr(etsy_pedidos, "_get", espia)
+    ok, _, _ = etsy_pedidos.validar("3210987654")
+    assert ok
+    assert not any(r.endswith("/transactions") for r in rutas)
+
+
+def test_el_recibo_que_YA_trae_sus_transacciones_no_pide_otra_vez(monkeypatch, mapa):
+    """Una llamada menos por venta. Y —más importante— un camino menos que puede fallar
+    justo cuando alguien está esperando lo que pagó."""
+    rutas = []
+
+    def espia(ruta, *a, **k):
+        rutas.append(ruta)
+        return {"receipt_id": 3210987654, "is_paid": True,
+                "transactions": [{"listing_id": KIT_ID}]}
+    monkeypatch.setattr(etsy_pedidos, "_get", espia)
+    ok, _, err = etsy_pedidos.validar("3210987654", tipo="kit")
+    assert ok, err
+    assert not any(r.endswith("/transactions") for r in rutas)
+
+
+def test_la_pagina_del_kit_pide_el_producto_kit():
+    """El chequeo puede existir y no estar enchufado. Se mira el llamador real."""
+    s = open(os.path.join(RAIZ, "servicio.py"), encoding="utf-8").read()
+    i = s.index("def _etsy_generar")
+    cuerpo = s[i:s.index("def _duelo_crear", i)]
+    assert 'validar(orden, tipo="kit")' in cuerpo, (
+        "la página del kit valida sin decir qué producto espera")
+
+
+def test_el_mapa_de_productos_del_repo_tiene_las_11_publicaciones():
+    """El archivo real, no uno de mentira: si queda vacío o a medias, el comprador de una
+    temática que falte se queda afuera — y eso no lo dice ningún otro test."""
+    import json as _json
+    p = os.path.join(RAIZ, "etsy_productos.json")
+    assert os.path.isfile(p), "falta etsy_productos.json"
+    d = _json.load(open(p, encoding="utf-8"))
+    assert len(d.get("kit") or []) == 11, "los kits publicados son 11, uno por temática"
+    assert len(set(d["kit"])) == 11, "hay ids repetidos"
+    assert not (set(d["kit"]) & set(d.get("rompecabezas") or [])), (
+        "una publicación no puede ser de dos productos a la vez")

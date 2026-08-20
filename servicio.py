@@ -1060,6 +1060,31 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(body)))
             self.end_headers(); self.wfile.write(body)
             return
+        if path == "/etsy/juego":
+            # La página del rompecabezas WEB. Aparte de /etsy a propósito: aquélla ya
+            # está vendiendo y no se le meten ramas por un producto que todavía no
+            # facturó nada. El client_id de Google se inyecta acá (es público por
+            # diseño: viaja en el HTML de cualquiera que abra la página).
+            import acceso
+            html = open(os.path.join(generador.BASEDIR, "etsy_juego.html"),
+                        encoding="utf-8").read()
+            body = html.replace("{{CLIENT_ID}}",
+                                acceso._esc(acceso.GOOGLE_CLIENT_ID)).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers(); self.wfile.write(body)
+            return
+        if path == "/acceso/quien":
+            # Para que la página sepa si mostrar el botón de Google o el mail ya
+            # reconocido. Devuelve la PISTA («a•••@gmail.com»), no el mail: esta
+            # respuesta la puede pedir cualquiera que tenga la página abierta, y el
+            # navegador de un chico también es cualquiera.
+            import acceso
+            _em = acceso.quien_es(self.headers.get("Cookie"))
+            return self._json(200, {"ok": True, "entrado": bool(_em),
+                                    "pista": acceso.pista_de_mail(_em) if _em else ""})
         if path == "/etsy/opciones":
             # temáticas y edades, para que la página se llene sola: si mañana se agrega una
             # temática, aparece sin tocar el HTML.
@@ -1393,6 +1418,35 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_header("Location", "/armar/%s/" % token)
                 self.end_headers()
                 return
+            # ── el candado ────────────────────────────────────────────────────
+            # Sólo para los tokens que tienen dueño anotado (los de Etsy). Los que no
+            # —todos los vendidos hasta hoy por Mercado Libre— siguen abriendo con la
+            # sola URL: si el candado fuera para todos, se romperían de golpe.
+            #
+            # Va ANTES del `if arch`, y eso es el punto: si sólo protegiera el HTML,
+            # cualquiera con el link se bajaría `data.json` y los `p0.jpg`, que SON el
+            # producto. Poner la cerradura en la puerta y dejar la ventana abierta es
+            # el error clásico; acá las dos dan al mismo lado.
+            _man = rw.manifest(token)
+            if _man is not None:
+                import acceso
+                _ok, _dueño = acceso.puede_abrir(_man, self.headers.get("Cookie"))
+                if not _ok:
+                    # Un archivo suelto no puede mostrar una pantalla de login (lo pide
+                    # el <img>, no la persona): devuelve 403 seco. La página sí la pide
+                    # una persona, así que a ella se le muestra la puerta.
+                    if arch:
+                        return self._json(403, {"ok": False, "error": "requiere cuenta"})
+                    body = acceso.pagina_login(
+                        volver="/armar/%s/" % token,
+                        lang=(_man.get("idioma") or "es"),
+                        dueño=_dueño).encode("utf-8")
+                    self.send_response(403)
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.send_header("Cache-Control", "no-store")
+                    self.send_header("Content-Length", str(len(body)))
+                    self.end_headers(); self.wfile.write(body)
+                    return
             if arch:
                 r = rw.archivo(token, arch)
                 if r is None:
@@ -1400,7 +1454,16 @@ class Handler(BaseHTTPRequestHandler):
                 data_b, ct = r
                 self.send_response(200)
                 self.send_header("Content-Type", ct)
-                self.send_header("Cache-Control", "public, max-age=86400")
+                # `public` deja que Cloudflare guarde el archivo en el borde — y CF
+                # cachea .jpg por extensión sin necesidad de ninguna regla. Con el
+                # candado puesto eso sería un agujero completo: bastaría que el dueño
+                # abriera el link UNA vez para que el borde después le sirviera las
+                # imágenes a cualquiera, sin volver a preguntarle al motor. Un token
+                # con dueño se sirve `private` y no se cachea en ningún lado.
+                if _man is not None and _man.get("dueño"):
+                    self.send_header("Cache-Control", "private, no-store")
+                else:
+                    self.send_header("Cache-Control", "public, max-age=86400")
                 self.send_header("Content-Length", str(len(data_b)))
                 self.end_headers(); self.wfile.write(data_b)
                 return
@@ -2159,6 +2222,13 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
         descarga— y duplicarlo acá sería tener dos caminos que se despegan. El servidor es
         `ThreadingHTTPServer`, así que la llamada a sí mismo no se traba.
         """
+        # Cada intento gasta una llamada a la API de Etsy, que tiene cuota diaria. Sin
+        # tope, alguien probando números inventados nos la quema — y el que se queda sin
+        # poder validar es el comprador de verdad. Diez cada cinco minutos es holgado:
+        # el tope de canjes por orden es 5.
+        if not _rate_ok(self._client_ip(), limit=10, window=300):
+            return self._json(429, {"ok": False, "error":
+                                    "Too many attempts. Please wait a few minutes."})
         raw = self._body()
         if raw is None:
             return self._json(413, {"ok": False, "error": "Request too large."})
@@ -2180,7 +2250,9 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
         # no se resuelve.
         import etsy_pedidos
         try:
-            ok, info, err = etsy_pedidos.validar(orden)
+            # `tipo="kit"`: sin esto, el número de orden del rompecabezas de USD 7
+            # —que Etsy entrega directo, sin pasar por acá— también armaba este kit.
+            ok, info, err = etsy_pedidos.validar(orden, tipo="kit")
         except Exception as e:                                   # noqa: BLE001
             print("[etsy] validar falló: %s" % e)
             return self._json(503, {"ok": False, "error":
@@ -2277,6 +2349,118 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
                               {"ok": False, "error": err})
         return self._json(200, {"ok": True, "duelo": d})
 
+    def _etsy_generar_juego(self):
+        """El comprador del rompecabezas WEB canjea su orden y se lleva SU link.
+
+        LA DIFERENCIA CON EL KIT, que es la que manda todo el diseño: el kit se entrega
+        como un archivo. Una vez bajado ya es del comprador y no hay nada más que
+        cuidar. Esto es un link vivo: se juega en nuestro servidor, cada vez, para
+        siempre. Un link vivo se reenvía por WhatsApp y sigue andando — no se "gasta".
+
+        Por eso el mail va PRIMERO y el rompecabezas se crea a su nombre. El link no es
+        la llave: la llave es la cuenta. Pedido de Pablo, textual: «si se loguea en
+        casatridimensional tiene acceso y no otros».
+
+        Se genera en proceso (no por loopback como el kit) porque `rompecabezas_web.crear`
+        es sincrónico y rápido: no llama a ninguna IA, arma los cortes y copia el arte
+        que el tema ya tiene."""
+        import acceso
+        import etsy_pedidos
+        import rompecabezas_web as rw
+
+        if not _rate_ok(self._client_ip(), limit=10, window=300):   # ver _etsy_generar
+            return self._json(429, {"ok": False, "error":
+                                    "Too many attempts. Please wait a few minutes."})
+        raw = self._body()
+        if raw is None:
+            return self._json(413, {"ok": False, "error": "Request too large."})
+        try:
+            p = json.loads(raw)
+        except Exception:
+            return self._json(400, {"ok": False, "error": "Invalid request."})
+
+        # El mail va primero: si no hay con qué atar el link, no se genera nada. Al revés
+        # —generar y después pedir la cuenta— quedaría un link sin dueño ya entregado, y
+        # ése no se puede cerrar más sin romperle el producto a quien pagó.
+        email = acceso.quien_es(self.headers.get("Cookie"))
+        if not email:
+            return self._json(401, {"ok": False, "necesita_cuenta": True,
+                                    "error": "Please sign in with Google first."})
+
+        orden = str(p.get("orden", "")).strip()
+        tema = str(p.get("tema", "safari")).strip() or "safari"
+        nombre = str(p.get("nombre", "")).strip()[:24]
+        if not temas.existe(tema):
+            return self._json(400, {"ok": False, "error": "Unknown theme."})
+
+        try:
+            ok, info, err = etsy_pedidos.validar(orden, tipo="rompecabezas-web")
+        except Exception as e:                                   # noqa: BLE001
+            print("[etsy] validar (juego) falló: %s" % e)
+            return self._json(503, {"ok": False, "error":
+                                    "We couldn't verify your order right now. Please try "
+                                    "again in a few minutes, or message us on Etsy."})
+        if not ok:
+            return self._json(403, {"ok": False, "error": err})
+
+        try:
+            tok = rw.crear({"nombre": nombre, "idioma": "en", "dueño": email}, tema)
+        except Exception as e:                                   # noqa: BLE001
+            print("[etsy] no se pudo armar el rompecabezas web de la orden %s: %s"
+                  % (orden, e))
+            return self._json(503, {"ok": False, "error":
+                                    "We couldn't build your puzzles right now. Please "
+                                    "message us on Etsy and we'll sort it out."})
+
+        # Igual que en el kit: el canje se anota DESPUÉS de que el producto existe, así
+        # un error del servidor no le come un intento al comprador.
+        try:
+            etsy_pedidos.registrar_canje(orden, tok, {"nombre": nombre})
+        except Exception as e:                                   # noqa: BLE001
+            print("[etsy] no se pudo registrar el canje de %s: %s" % (orden, e))
+        print("[etsy] rompecabezas web entregado · orden %s · tema %s" % (orden, tema))
+        return self._json(200, {"ok": True,
+                                "url": "%s/armar/%s/" % (self.base_url(), tok)})
+
+    def _acceso_google(self):
+        """El comprador entró con Google en la puerta de un link con dueño.
+
+        Recibe el ID token que emitió Google en el navegador, lo verifica CONTRA Google
+        (firma, vencimiento y —lo que Google no puede saber— que haya sido emitido para
+        nuestra app), y a cambio emite la cookie de acceso del motor.
+
+        No crea ninguna cuenta de Casatridimensional, que es exactamente lo que pidió
+        Pablo: el comprador de Etsy no tiene por qué registrarse en la tienda para abrir
+        lo que ya pagó. Acá el mail no es un usuario, es sólo una identidad verificada.
+
+        Devuelve `ok` incluso cuando el mail NO es el del dueño: quién es dueño de qué
+        se decide al servir el link, no acá. Si respondiera «esa no es la cuenta», este
+        endpoint se convertiría en una forma de preguntarle al motor qué mail compró
+        qué — con sólo tener el link."""
+        import acceso
+        if not _rate_ok(self._client_ip()):
+            return self._json(429, {"ok": False})
+        try:
+            ev = json.loads(self._body() or b"{}")
+        except Exception:
+            return self._json(400, {"ok": False, "error": "cuerpo inválido"})
+        email = acceso.email_de_google(ev.get("credential"))
+        if not email:
+            return self._json(401, {"ok": False,
+                                    "error": "no pudimos verificar tu cuenta"})
+        # La PISTA, no el mail: se la devuelve al mismo navegador que acaba de entrar,
+        # así que no revela nada que no supiera — pero mandar el mail entero de vuelta
+        # es un hábito que después se copia a una respuesta donde sí importa.
+        body = json.dumps({"ok": True,
+                           "pista": acceso.pista_de_mail(email)}).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Set-Cookie", acceso.cookie_set(acceso.sesion_crear(email)))
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def _act_interes(self, token):
         """Activación escalable por niveles · CAPTURAR EVENTO (público, desde el
         player): el chico tocó el candado de un nivel (motivo='pidio') o dominó su
@@ -2343,6 +2527,10 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
             return self._deny()
         if path == "/etsy/generar":
             return self._etsy_generar()
+        if path == "/etsy/generar-juego":
+            return self._etsy_generar_juego()
+        if path == "/acceso/google":
+            return self._acceso_google()
         m_tel = re.match(r"^/act/([A-Za-z0-9_-]+)/telemetria$", path)
         if m_tel:
             return self._act_telemetria(m_tel.group(1))

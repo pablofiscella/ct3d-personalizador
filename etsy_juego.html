@@ -1,0 +1,188 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Your online jigsaw puzzles</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<!--
+  La página que abre el comprador del ROMPECABEZAS WEB (el que se juega en el navegador,
+  no el que se imprime). La sirve `servicio.py` en /etsy/juego.
+
+  ES UNA PÁGINA APARTE de /etsy, y no un modo de aquélla, a propósito: /etsy ya está
+  vendiendo el kit. Meterle ramas a la página que factura, para estrenar un producto que
+  todavía no vendió nada, es cambiarle el riesgo de lugar sin necesidad.
+
+  LA DIFERENCIA GRANDE CON EL KIT: el kit se entrega como un archivo que se descarga; una
+  vez bajado, es del comprador y se acabó. Esto es un LINK VIVO — se juega en nuestro
+  servidor, cada vez. Un link vivo se reenvía, y ahí no hay nada que se haya "gastado".
+  Por eso acá se entra con Google ANTES de generar: el link queda atado a ese mail y no
+  lo abre nadie más. Pedido de Pablo, textual: «si se loguea en casatridimensional tiene
+  acceso y no otros».
+
+  Google se usa porque el comprador de Etsy no tiene —ni tiene por qué tener— una cuenta
+  nuestra. No se crea ninguna: el mail sólo sirve para reconocerlo.
+-->
+<style>
+  :root{
+    --tinta:#5a4230; --papel:#faf7f0; --acento:#c8674e; --verde:#6b7a4f;
+    --linea:#e3d9c8; --gris:#8b7d6b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--papel);color:var(--tinta);
+       font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+  .caja{max-width:560px;margin:0 auto;padding:28px 20px 64px}
+  h1{font-size:26px;line-height:1.2;margin:0 0 6px}
+  .sub{color:var(--gris);margin:0 0 26px}
+  .paso{background:#fff;border:1px solid var(--linea);border-radius:14px;padding:18px;margin:0 0 18px}
+  .paso h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;margin:0 0 4px;color:var(--acento)}
+  .ayuda{color:var(--gris);font-size:14px;margin:0 0 14px}
+  label{display:block;font-size:14px;font-weight:600;margin:14px 0 5px}
+  input,select{width:100%;padding:12px 13px;font-size:16px;border:1px solid var(--linea);
+       border-radius:9px;background:#fff;color:var(--tinta)}
+  input:focus,select:focus{outline:2px solid var(--acento);outline-offset:1px}
+  button{width:100%;margin-top:22px;padding:15px;font-size:17px;font-weight:700;
+       border:0;border-radius:11px;background:var(--acento);color:#fff;cursor:pointer}
+  button:disabled{opacity:.55;cursor:default}
+  .aviso{margin-top:16px;padding:13px 15px;border-radius:10px;font-size:15px;display:none}
+  .mal{background:#fdecea;border:1px solid #f0bbb2;color:#8d2f1e}
+  .bien{background:#eef4e6;border:1px solid #c8d9ae;color:#3f5227}
+  .bien a{display:inline-block;margin-top:10px;font-weight:700;color:#3f5227;
+       word-break:break-all}
+  .pie{color:var(--gris);font-size:13px;margin-top:26px;text-align:center}
+  .opc{font-weight:400;color:var(--gris)}
+  #gbtn{display:flex;justify-content:center;min-height:44px;margin-top:6px}
+  .entrado{background:#eef4e6;border:1px solid #c8d9ae;color:#3f5227;border-radius:10px;
+       padding:11px 14px;font-size:15px;display:none}
+  .porque{font-size:13.5px;color:var(--gris);margin-top:11px}
+</style>
+
+<div class="caja" id="caja" data-client-id="{{CLIENT_ID}}">
+  <h1>Your online jigsaw puzzles</h1>
+  <p class="sub">Six puzzles your child plays in the browser — nothing to print, nothing
+    to install.</p>
+
+  <form id="f" autocomplete="off">
+    <div class="paso">
+      <h2>1 · Sign in</h2>
+      <p class="ayuda">Your puzzles live at a private link. Sign in with Google so the
+        link belongs to you — and keeps working on any device you sign in from.</p>
+      <div id="gbtn"></div>
+      <div class="entrado" id="entrado"></div>
+      <p class="porque">We don't create an account for you, and we don't email you.
+        Your address is only used to recognise you when you open the link.</p>
+    </div>
+
+    <div class="paso">
+      <h2>2 · Your Etsy order</h2>
+      <p class="ayuda">The order number is on your Etsy receipt — digits only.</p>
+      <label for="orden">Etsy order number</label>
+      <input id="orden" name="orden" inputmode="numeric" placeholder="e.g. 3210987654" required>
+    </div>
+
+    <div class="paso">
+      <h2>3 · Who's playing</h2>
+      <label for="nombre">Child's name <span class="opc">· optional</span></label>
+      <input id="nombre" name="nombre" maxlength="24" placeholder="Emma">
+
+      <label for="tema">Theme</label>
+      <select id="tema" name="tema"></select>
+    </div>
+
+    <button id="b" type="submit" disabled>Sign in first</button>
+  </form>
+
+  <div id="mal" class="aviso mal"></div>
+  <div id="bien" class="aviso bien"></div>
+
+  <p class="pie">Something wrong? Message us on Etsy with your order number and we'll fix it.</p>
+</div>
+
+<script>
+var CAJA = document.getElementById("caja");
+var CLIENT_ID = CAJA.getAttribute("data-client-id");
+var f = document.getElementById("f"), b = document.getElementById("b");
+var mal = document.getElementById("mal"), bien = document.getElementById("bien");
+var entrado = document.getElementById("entrado"), gbtn = document.getElementById("gbtn");
+var YA = false;
+
+function error(t) { mal.textContent = t; mal.style.display = "block"; }
+
+function estadoBoton() {
+  b.disabled = !YA;
+  b.textContent = YA ? "Create my puzzles" : "Sign in first";
+}
+
+function mostrarEntrado(pista) {
+  YA = true;
+  entrado.textContent = "Signed in as " + pista;
+  entrado.style.display = "block";
+  gbtn.style.display = "none";
+  estadoBoton();
+}
+
+// ¿ya estaba entrado? Puede venir de la cuenta de la tienda (cookie del dominio padre)
+// o de haber entrado antes con Google acá mismo.
+fetch("/acceso/quien").then(function (r) { return r.json(); }).then(function (d) {
+  if (d && d.entrado) mostrarEntrado(d.pista);
+}).catch(function () {});
+
+// Las temáticas salen del motor: si mañana se agrega una, aparece sin tocar esta página.
+fetch("/etsy/opciones").then(function (r) { return r.json(); }).then(function (d) {
+  var sel = document.getElementById("tema");
+  (d.temas || []).forEach(function (t) {
+    var o = document.createElement("option");
+    o.value = t.id; o.textContent = t.nombre;
+    sel.appendChild(o);
+  });
+});
+
+function entrarConGoogle(resp) {
+  fetch("/acceso/google", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    body: JSON.stringify({ credential: resp.credential })
+  }).then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (d && d.ok) { mostrarEntrado(d.pista || "your Google account"); return; }
+      error("We couldn't verify your Google account. Please try again.");
+    })
+    .catch(function () { error("We couldn't verify your Google account. Please try again."); });
+}
+
+window.addEventListener("load", function () {
+  if (!window.google || !google.accounts) {
+    error("Google sign-in didn't load. Check your connection and refresh the page.");
+    return;
+  }
+  google.accounts.id.initialize({ client_id: CLIENT_ID, callback: entrarConGoogle });
+  google.accounts.id.renderButton(gbtn,
+    { theme: "filled_blue", size: "large", shape: "pill", text: "signin_with" });
+});
+
+f.addEventListener("submit", async function (e) {
+  e.preventDefault();
+  mal.style.display = bien.style.display = "none";
+  if (!YA) { error("Please sign in with Google first."); return; }
+  b.disabled = true; b.textContent = "Creating…";
+  var cuerpo = {
+    orden: document.getElementById("orden").value.trim(),
+    nombre: document.getElementById("nombre").value.trim(),
+    tema: document.getElementById("tema").value
+  };
+  try {
+    const r = await fetch("/etsy/generar-juego", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      credentials: "same-origin", body: JSON.stringify(cuerpo)
+    });
+    const d = await r.json();
+    if (!d.ok) { error(d.error || "Something went wrong."); estadoBoton(); return; }
+    bien.innerHTML = "Your puzzles are ready. Open them on any device where you're " +
+      "signed in with the same Google account:<br><a href=\"" + d.url + "\">" +
+      d.url + "</a>";
+    bien.style.display = "block";
+    f.style.display = "none";
+  } catch (err) {
+    error("Something went wrong. Please try again in a minute.");
+    estadoBoton();
+  }
+});
+</script>
