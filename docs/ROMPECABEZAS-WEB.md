@@ -182,6 +182,25 @@ navegador para que lo lea el player, así que todo lo que se escriba ahí es pú
   sí la pide una persona, y a ella se le muestra la puerta (`acceso.pagina_login`), en el
   idioma del token.
 
+### GOTCHA: el botón de Google y el `Referrer-Policy`
+
+El motor manda `Referrer-Policy: no-referrer` en **todas** las respuestas, y tiene que
+seguir haciéndolo: los tokens viajan EN LA URL, así que no mandar Referer evita que un
+recurso externo se entere del link.
+
+**Pero GSI no funciona con eso.** Necesita que el navegador le diga a Google desde qué
+origen viene; sin Referer, Google contesta:
+
+    [GSI_LOGGER]: The given origin is not allowed for the given client ID.
+
+...que es **el mismo mensaje que da un origen sin autorizar en la consola de Google**. Si
+alguna vez el botón deja de andar, mirá el header ANTES de tocar la configuración de
+Google: el error miente sobre dónde está el problema.
+
+Las páginas con botón (`/etsy/juego` y la puerta de `acceso.pagina_login`) piden
+`self._ref_policy = "strict-origin"`, que manda el origen y **nunca** la ruta. No usar
+`no-referrer-when-downgrade`: ésa manda la URL entera a destinos https, o sea el token.
+
 ### La entrega por Etsy
 
 `/etsy/juego` (HTML en `etsy_juego.html`) → el comprador entra con Google, pone su número

@@ -209,14 +209,22 @@ def puede_abrir(manifest, cookie_header):
     return (quien_es(cookie_header) == d), d
 
 
+# Cuántos puntitos lleva la pista. Es FIJO, no el largo del usuario: con «•» por letra,
+# `pablofiscella@gmail.com` salía «p••••••••••••@gmail.com», que (a) no entraba en la
+# caja y se partía a mitad de «gmail.com», y (b) le contaba a cualquiera que tenga el
+# link cuántas letras tiene el mail del comprador. Cuatro alcanzan para que el dueño se
+# reconozca, que es todo lo que la pista tiene que lograr.
+_PUNTITOS = 4
+
+
 def pista_de_mail(email):
-    """«ana@gmail.com» → «a•••@gmail.com». Para que el dueño reconozca su cuenta sin
-    publicarle el mail a quien haya conseguido el link."""
+    """«anabelen@gmail.com» → «a••••@gmail.com». Para que el dueño reconozca su cuenta
+    sin publicarle el mail a quien haya conseguido el link."""
     e = normalizar(email)
     if "@" not in e:
         return ""
     u, dom = e.split("@", 1)
-    return "%s%s@%s" % (u[:1], "•" * max(3, len(u) - 1), dom)
+    return "%s%s@%s" % (u[:1], "•" * _PUNTITOS, dom)
 
 
 # ── utilidades ───────────────────────────────────────────────────────────────

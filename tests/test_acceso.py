@@ -240,6 +240,22 @@ def test_la_pagina_de_login_NO_muestra_el_mail_entero(config_falso):
     assert html.count("a•") == 1    # la inicial y los puntitos
 
 
+def test_la_pista_no_delata_CUANTAS_letras_tiene_el_mail():
+    """Los puntitos son un número fijo, no uno por letra.
+
+    Con un puntito por letra, `pablofiscella@gmail.com` salía
+    «p••••••••••••@gmail.com»: (a) no entraba en la caja y se partía a mitad de
+    «gmail.com» —se vio en la captura de la página, no en el código— y (b) le contaba el
+    largo del mail del comprador a cualquiera que tuviera el link. Lo segundo es poco,
+    pero es gratis no darlo."""
+    corto = acceso.pista_de_mail("ana@gmail.com")
+    largo = acceso.pista_de_mail("pablofiscella@gmail.com")
+    assert corto.count("•") == largo.count("•"), (
+        "la cantidad de puntitos revela el largo del usuario")
+    assert len(largo) <= 20, "la pista no entra en la caja y se parte a mitad de palabra"
+    assert largo.startswith("p") and largo.endswith("@gmail.com")
+
+
 def test_la_pagina_de_login_habla_los_dos_idiomas(config_falso):
     assert "This link is yours" in acceso.pagina_login("/x/", "en")
     assert "Este link es tuyo" in acceso.pagina_login("/x/", "es")
@@ -665,3 +681,98 @@ def test_strict_origin_no_filtra_la_ruta_donde_vive_el_token():
         "esa política manda la URL completa: filtraría el token del link")
     assert "unsafe-url" not in fuente
     assert '_ref_policy = "strict-origin"' in fuente
+
+
+def test_EL_CICLO_COMPLETO_entrar_con_google_y_abrir_el_link(servidor, monkeypatch):
+    """De punta a punta: Google verifica → el motor emite su cookie → esa cookie abre el
+    link. Los otros tests arman la cookie a mano con `sesion_crear`; éste la toma de la
+    respuesta HTTP real del endpoint de login.
+
+    Por qué importa la diferencia: si `cookie_set` emitiera algo que `email_de_la_sesion`
+    no sabe leer —otro nombre, otra derivación de secreto, un formato distinto— todos los
+    demás tests seguirían en verde y ningún comprador podría entrar. Es la costura entre
+    las dos mitades, y es justo donde nadie mira."""
+    import acceso as acc
+    import servicio
+    puerto, rompe = servidor
+    _token_falso(rompe, "ciclocompleto", dueño="ana@gmail.com")
+
+    # sin cuenta: no pasa
+    est, _, _ = _pedir(puerto, "/armar/ciclocompleto/data.json")
+    assert est == 403
+
+    # Google dice que sí (se intercepta la llamada a Google, no la lógica de acceso:
+    # lo que se prueba es lo NUESTRO).
+    monkeypatch.setattr(acc, "email_de_google", lambda *a, **k: "ana@gmail.com")
+    c = http.client.HTTPConnection("127.0.0.1", puerto, timeout=20)
+    c.request("POST", "/acceso/google",
+              body=json.dumps({"credential": "lo-que-manda-el-boton"}).encode(),
+              headers={"Content-Type": "application/json"})
+    r = c.getresponse()
+    cuerpo = json.loads(r.read())
+    set_cookie = r.getheader("Set-Cookie") or ""
+    c.close()
+
+    assert r.status == 200 and cuerpo.get("ok") is True
+    assert "ana@gmail.com" not in json.dumps(cuerpo), "devolvió el mail entero"
+    assert cuerpo.get("pista", "").endswith("@gmail.com")
+
+    # los atributos importan tanto como el valor: sin Domain del dominio padre la cookie
+    # no viaja a kit.*, y sin HttpOnly la puede leer cualquier script de la página.
+    assert "HttpOnly" in set_cookie and "Secure" in set_cookie
+    assert "Domain=.casatridimensional.com.ar" in set_cookie
+    assert "SameSite=Lax" in set_cookie, (
+        "el link llega de un PDF o un mail: con SameSite=Strict la cookie no viaja en "
+        "esa primera navegación y el dueño vería la puerta otra vez")
+
+    # y ahora sí: con ESA cookie —la que emitió el servidor, no una armada a mano— abre
+    galleta = set_cookie.split(";")[0]
+    for arch in ("data.json", "p0.jpg"):
+        est, _, _ = _pedir(puerto, "/armar/ciclocompleto/%s" % arch, cookie=galleta)
+        assert est == 200, "la cookie que emite el login no abre el link (%s)" % arch
+
+
+def test_a_QUIEN_LE_REENVIARON_el_link_no_le_sirve_entrar_con_SU_google(servidor,
+                                                                       monkeypatch):
+    """EL escenario que este trabajo vino a impedir, entero y por las rutas de verdad.
+
+    No es «alguien sin cuenta»: es alguien con una cuenta de Google perfectamente
+    legítima, que entra bien, que el motor reconoce — y que igual no puede abrir ESTE
+    link porque no es suyo. Tener sesión no es tener derecho.
+
+    Se prueba por el ciclo completo (login real → cookie real → pedido real) porque es la
+    única forma de ver que el «no» ocurre en el lugar correcto: si el endpoint de login
+    rechazara a los que no son dueños, se convertiría en una forma de preguntarle al motor
+    qué mail compró qué, con sólo tener el link. El login dice que sí; el candado dice que
+    no."""
+    import acceso as acc
+    puerto, rompe = servidor
+    _token_falso(rompe, "reenviado1", dueño="ana@gmail.com")
+
+    monkeypatch.setattr(acc, "email_de_google", lambda *a, **k: "curioso@gmail.com")
+    c = http.client.HTTPConnection("127.0.0.1", puerto, timeout=20)
+    c.request("POST", "/acceso/google",
+              body=json.dumps({"credential": "token-legitimo-de-otra-persona"}).encode(),
+              headers={"Content-Type": "application/json"})
+    r = c.getresponse()
+    ok = json.loads(r.read()).get("ok")
+    galleta = (r.getheader("Set-Cookie") or "").split(";")[0]
+    c.close()
+
+    assert ok is True, ("el login tiene que dejar entrar: quién es dueño de qué se decide "
+                        "al servir el link, no acá")
+    assert galleta.startswith("ct3d_acceso=")
+
+    # entró bien, el motor lo reconoce...
+    est, _, cuerpo = _pedir(puerto, "/acceso/quien", cookie=galleta)
+    assert json.loads(cuerpo)["entrado"] is True
+
+    # ...y el link ajeno sigue cerrado, en la página y en los archivos
+    est, _, cuerpo = _pedir(puerto, "/armar/reenviado1/", cookie=galleta)
+    assert est == 403
+    assert "This link is yours" in cuerpo.decode("utf-8")
+    assert "ana@gmail.com" not in cuerpo.decode("utf-8"), (
+        "le dijo al curioso el mail de quien compró")
+    for arch in ("data.json", "p0.jpg"):
+        est, _, _ = _pedir(puerto, "/armar/reenviado1/%s" % arch, cookie=galleta)
+        assert est == 403, "%s se bajó con una cuenta ajena" % arch
