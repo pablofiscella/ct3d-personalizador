@@ -143,8 +143,70 @@ def registrar_canje(numero, token, datos):
 
 # ── validación ────────────────────────────────────────────────────────────────
 
-def validar(numero, shop_id=None):
+MAPA_PRODUCTOS = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                              "etsy_productos.json")
+
+
+def _listings_del_tipo(tipo):
+    """Los listing_id de la tienda que corresponden a este producto.
+
+    Vive en un archivo y no se adivina por el título: qué publicación es qué producto es
+    un dato del negocio, y adivinarlo por el texto significa que el día que Pablo edite
+    un título para SEO, la puerta cambia de lugar sin que nadie lo pida."""
+    try:
+        with open(MAPA_PRODUCTOS, encoding="utf-8") as f:
+            return {int(x) for x in (json.load(f).get(tipo) or [])}
+    except Exception:
+        return set()
+
+
+def _ids_de(transacciones):
+    ids = set()
+    for t in (transacciones or []):
+        v = (t or {}).get("listing_id")
+        if v is not None:
+            try:
+                ids.add(int(v))
+            except (TypeError, ValueError):
+                pass
+    return ids
+
+
+def listings_de_la_orden(numero, shop_id=None, recibo=None):
+    """Qué publicaciones trae esa orden. Lanza si no se puede saber — quien llama tiene
+    que decidir, y la decisión correcta es no entregar.
+
+    DOS CAMINOS, a propósito. Primero se mira el recibo que el llamador YA pidió: si
+    trae sus transacciones adentro, no hace falta gastar otra llamada. Si no las trae,
+    se pide el endpoint dedicado. Se probó contra la API real que ese endpoint existe y
+    que el token tiene permiso (contesta 404 «no encontré transacciones para ese
+    recibo», que es lo que corresponde a un número inventado, y no 403). Pero no hay
+    ninguna venta todavía con la cual ver la respuesta de una orden de verdad — por eso
+    dos caminos y no uno: si el primero viene vacío, queda el otro."""
+    ids = _ids_de((recibo or {}).get("transactions"))
+    if ids:
+        return ids
+    c = _cred()
+    shop = str(shop_id or c.get("shop_id") or "").strip()
+    r = _get("/application/shops/%s/receipts/%s/transactions" % (shop, numero))
+    return _ids_de(r.get("results"))
+
+
+def validar(numero, shop_id=None, tipo=None):
     """(ok, info, error). `info` trae el estado de la orden y cuántos canjes lleva.
+
+    `tipo` es QUÉ producto se está queriendo canjear («kit», «rompecabezas-web»). Si se
+    pasa, la orden tiene que contener esa publicación.
+
+    POR QUÉ HIZO FALTA (19-ago-2026, encontrado leyendo esto para agregar el producto
+    web): sin `tipo`, esta función sólo comprobaba que la orden EXISTIERA y estuviera
+    paga. La tienda tiene hoy 22 publicaciones: 11 kits a USD 12 y 11 rompecabezas
+    imprimibles a USD 7. O sea que quien compraba el de USD 7 —que Etsy le entrega
+    directo, sin pasar por acá— podía además poner ese mismo número de orden en la
+    página del kit y llevarse el de USD 12. Cinco veces, que es el tope de canjes.
+
+    No es un caso rebuscado: los dos productos se venden en la misma tienda, al mismo
+    comprador, y el link de la página del kit está en el PDF de todos.
 
     Falla CERRADO: cualquier duda, no se entrega."""
     numero = str(numero or "").strip()
@@ -172,6 +234,29 @@ def validar(numero, shop_id=None):
 
     if not r.get("is_paid", False):
         return False, None, "That order still shows as unpaid."
+
+    # ¿La orden es de ESTE producto? Se chequea después de que la orden ya se confirmó,
+    # para no gastar la llamada de más en un número que ni existe.
+    if tipo:
+        esperados = _listings_del_tipo(tipo)
+        if not esperados:
+            print("[etsy] no hay publicaciones mapeadas para el tipo %r — no se entrega"
+                  % tipo)
+            return False, None, ("We can't verify your purchase right now. Message us on "
+                                 "Etsy with your order number and we'll send it to you.")
+        try:
+            comprados = listings_de_la_orden(numero, shop_id=shop, recibo=r)
+        except Exception as e:                                   # noqa: BLE001
+            print("[etsy] no pude leer las transacciones de la orden %s: %s" % (numero, e))
+            return False, None, ("We can't verify your purchase right now. Message us on "
+                                 "Etsy with your order number and we'll send it to you.")
+        if not (comprados & esperados):
+            print("[etsy] la orden %s no incluye el producto %r (trae %s)"
+                  % (numero, tipo, sorted(comprados)))
+            return False, None, ("That order doesn't include this product. Please check "
+                                 "you're using the right order number, or message us on "
+                                 "Etsy and we'll sort it out.")
+
     usados = canjes_de(numero)
     if usados >= MAX_CANJES:
         return False, None, ("That order has already built the kit %d times. If you need "

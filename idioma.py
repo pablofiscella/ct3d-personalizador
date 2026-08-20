@@ -111,6 +111,11 @@ EN = {
     "pegá esta hoja sobre cartulina o cartón fino y recortá por las líneas.":
         "Glue this sheet onto card stock or thin cardboard and cut along the lines.",
     "así queda":                      "how it looks",
+    # ── rompecabezas web: el título que dibuja el servidor en la portada ──────
+    "los rompecabezas de %s":         "%s's puzzles",
+    "rompecabezas %s":                "%s puzzles",
+    "tu rompecabezas":                "Your puzzle",
+
     "cada pieza tiene un solo lugar. ¡mirá la referencia si te trabás!":
         "Every piece has one spot. Check the picture if you get stuck!",
 }

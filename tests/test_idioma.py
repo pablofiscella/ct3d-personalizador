@@ -418,6 +418,65 @@ def test_el_ROMPECABEZAS_tambien_sale_en_ingles():
                           + "\n  ".join(sorted(quedaron)))
 
 
+def test_el_ROMPECABEZAS_WEB_sale_en_ingles():
+    """El rompecabezas interactivo es un LINK, y el player es JavaScript: no puede leer la
+    tabla de `idioma.py`. El idioma viaja por dos caminos y los dos hacen falta.
+
+    · `data.json` → lo lee el player una vez cargado.
+    · el HTML → lleva `window.IDIOMA` inyectado, porque la pantalla de «cargando» se ve
+      ANTES de que el data.json llegue. Sin eso, un comprador de Etsy veía «Preparando tus
+      rompecabezas…» en los primeros segundos, que es la primera impresión del producto.
+
+    Y el TÍTULO lo dibuja el servidor (va a la portada), así que ése sí usa la tabla."""
+    import json as _js
+    import rompecabezas_web as rw
+
+    tok_en = rw.crear({"nombre": "Emma", "idioma": "en"}, "safari")
+    tok_es = rw.crear({"nombre": "Valentina"}, "safari")
+
+    def leer(tok):
+        with open(os.path.join(rw.ROMPE_DIR, tok, "data.json"), encoding="utf-8") as f:
+            return _js.load(f)
+
+    d_en, d_es = leer(tok_en), leer(tok_es)
+    assert d_en.get("idioma") == "en", "el data.json no lleva el idioma"
+    assert d_es.get("idioma") == "es", "sin idioma tiene que quedar español"
+    assert d_en["titulo"] == "Emma's puzzles", d_en["titulo"]
+    assert d_es["titulo"] == "Los rompecabezas de Valentina", d_es["titulo"]
+
+    # El HTML servido lleva el idioma inyectado, no el marcador. Se llama a `rw.html`
+    # DIRECTO y sin red de seguridad: la primera versión buscaba la función entre varios
+    # nombres posibles y, si no la encontraba, se salteaba las comprobaciones en silencio.
+    # Un test que puede no ejecutarse es peor que uno que no existe: da tranquilidad igual.
+    html_en = rw.html(tok_en)
+    html_es = rw.html(tok_es)
+    assert "{{IDIOMA}}" not in html_en, "el marcador quedó sin reemplazar en el HTML"
+    assert 'window.IDIOMA = "en"' in html_en, "el HTML no le pasa el idioma al player"
+    assert 'window.IDIOMA = "es"' in html_es, "en español tiene que inyectar es"
+
+
+def test_el_player_del_rompecabezas_tiene_las_frases_en_los_dos_idiomas():
+    """El diccionario del player vive en el JS. Si alguien agrega una frase en español y se
+    olvida del inglés, el chico ve mitad y mitad — y no hay test de Python que lo vea porque
+    el texto no pasa por el motor. Esto lo mira desde afuera, sobre el archivo."""
+    js = open(os.path.join(RAIZ, "rompecabezas_player.js"), encoding="utf-8").read()
+    assert "const T = {" in js, "falta el diccionario del player"
+    bloque = js[js.index("const T = {"):js.index("function idi()")]
+    import re as _re
+    claves = _re.findall(r"^\s{2}(\w+)\s*:\s*\{", bloque, _re.M)
+    assert len(claves) >= 10, "el diccionario quedó con muy pocas frases: %s" % claves
+    faltan = [k for k in claves
+              if not _re.search(r"\b%s\s*:\s*\{[^}]*\ben\s*:" % k, bloque, _re.S)]
+    assert not faltan, "estas frases del player no tienen inglés: %s" % faltan
+    # y las frases de festejo, que son una lista aparte
+    assert "const FESTEJO = {" in js
+    fest = js[js.index("const FESTEJO = {"):js.index("function idi()")]
+    assert "es:" in fest and "en:" in fest, "las frases de festejo no tienen los dos idiomas"
+    n_es = fest.count('"', fest.index("es:"), fest.index("en:")) // 2
+    n_en = fest[fest.index("en:"):].count('"') // 2
+    assert n_es == n_en, "hay %d frases de festejo en español y %d en inglés" % (n_es, n_en)
+
+
 def test_sin_arte_en_ingles_se_usa_el_original():
     """Las otras once temáticas no tienen `.en.png` y no lo necesitan: su arte no lleva
     texto. Pedir inglés tiene que devolver el archivo de siempre, no reventar."""

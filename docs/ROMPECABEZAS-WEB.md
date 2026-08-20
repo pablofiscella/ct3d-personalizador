@@ -121,3 +121,95 @@ mismo patch que se aplicó para actividades-web:
   UX infantil recomienda SIN rotación por defecto.
 - Foto propia del cliente como puzzle extra (subida en el editor de compra).
 - PWA offline (service worker) para jugar sin señal.
+
+
+## El candado por cuenta (20-ago-2026)
+
+Un token de `/armar/` puede tener **dueño**: un mail anotado en su `manifest.json`. Si lo
+tiene, el link **sólo abre para esa persona**; si no lo tiene, abre con la sola URL, como
+siempre.
+
+**El candado es opt-in y eso no es un detalle.** Todo lo vendido por Mercado Libre son
+links sin dueño. Si el candado aplicara a todos, cada cliente que ya pagó se quedaría
+afuera de un día para el otro.
+
+### Por qué este producto lo necesita y el kit no
+
+El kit se entrega como un archivo: una vez bajado ya es del comprador y no hay nada más
+que cuidar. El rompecabezas web es un **link vivo** — se juega en nuestro servidor, cada
+vez, para siempre. Un link vivo se reenvía y sigue andando: no se "gasta". En Mercado
+Libre eso no importaba (el link se lo mandamos a una persona por mensaje), pero en Etsy el
+comprador se **baja** el archivo de entrega, y ese archivo se reenvía.
+
+Pedido de Pablo, textual: *«Tiene que haber alguna forma asociada al mail. Si se loguea en
+casatridimensional tiene acceso y no otros»* y *«con cuenta de google, no tiene que crearse
+una cuenta para casatridimensional»*.
+
+### Cómo se pone
+
+```python
+rompecabezas_web.crear({"nombre": "Emma", "idioma": "en",
+                        "dueño": "ana@gmail.com"}, tema)
+```
+
+El mail va al `manifest.json`, **nunca** al `data.json`: ese se lo sirve el motor al
+navegador para que lo lea el player, así que todo lo que se escriba ahí es público.
+
+### Las dos puertas
+
+1. **La cuenta de la tienda** (`ct3d_cliente`): es una cookie de
+   `.casatridimensional.com.ar`, así que llega también a `kit.*` y el motor la valida solo
+   (`acceso.email_de_la_tienda`). Se valida **entera** —firma y vencimiento—, no que
+   exista: el resto del motor mira `"ct3d_cliente=" in cookie` porque ahí decide un banner,
+   y acá decide un acceso.
+2. **Google** (`POST /acceso/google`), para el comprador de Etsy que no tiene cuenta
+   nuestra. **No se le crea ninguna**: el mail sólo sirve para reconocerlo. El ID token se
+   verifica contra Google y se compara el `aud` — eso último es lo único que Google no
+   puede chequear por nosotros, y sin eso un token de cualquier otra app entra igual.
+
+### Tres cosas que hay que saber antes de tocar esto
+
+- **El candado va antes de servir los archivos, no sólo la página.** El producto son el
+  `data.json` y los `p*.jpg`, que se piden aparte: con el candado sólo en el HTML, alcanza
+  con pedir los archivos derecho. Hay un test que mueve el candado al lugar equivocado para
+  comprobar que se nota.
+- **Los archivos con dueño van `Cache-Control: private, no-store`.** Cloudflare cachea
+  `.jpg` **por extensión**, sin necesidad de ninguna regla (al revés que `/preview`, que sí
+  necesitó una porque su ruta no tiene extensión). Con `public`, la primera visita del dueño
+  dejaba las imágenes servidas en el borde para cualquiera con el link.
+- **Un archivo suelto recibe 403 seco, no la pantalla de login.** El `<img>` no es una
+  persona: mostrarle un HTML de login a una etiqueta de imagen no sirve para nada. La página
+  sí la pide una persona, y a ella se le muestra la puerta (`acceso.pagina_login`), en el
+  idioma del token.
+
+### GOTCHA: el botón de Google y el `Referrer-Policy`
+
+El motor manda `Referrer-Policy: no-referrer` en **todas** las respuestas, y tiene que
+seguir haciéndolo: los tokens viajan EN LA URL, así que no mandar Referer evita que un
+recurso externo se entere del link.
+
+**Pero GSI no funciona con eso.** Necesita que el navegador le diga a Google desde qué
+origen viene; sin Referer, Google contesta:
+
+    [GSI_LOGGER]: The given origin is not allowed for the given client ID.
+
+...que es **el mismo mensaje que da un origen sin autorizar en la consola de Google**. Si
+alguna vez el botón deja de andar, mirá el header ANTES de tocar la configuración de
+Google: el error miente sobre dónde está el problema.
+
+Las páginas con botón (`/etsy/juego` y la puerta de `acceso.pagina_login`) piden
+`self._ref_policy = "strict-origin"`, que manda el origen y **nunca** la ruta. No usar
+`no-referrer-when-downgrade`: ésa manda la URL entera a destinos https, o sea el token.
+
+### La entrega por Etsy
+
+`/etsy/juego` (HTML en `etsy_juego.html`) → el comprador entra con Google, pone su número
+de orden y `POST /etsy/generar-juego` crea el rompecabezas a su nombre. El mail se pide
+**antes** de generar: al revés quedaría un link sin dueño ya entregado, y ése no se puede
+cerrar nunca más sin romperle el producto a quien pagó.
+
+`etsy_pedidos.validar(orden, tipo="rompecabezas-web")` exige que la orden incluya una
+publicación de este producto, según `etsy_productos.json`. **Mientras esa lista esté vacía,
+la entrega falla cerrada**: es lo correcto hasta que las publicaciones existan.
+
+Tests: `tests/test_acceso.py` y `tests/test_etsy_entrega.py`.
