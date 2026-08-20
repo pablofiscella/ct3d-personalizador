@@ -417,3 +417,14 @@ def test_el_mapa_de_productos_del_repo_tiene_las_11_publicaciones():
     assert len(set(d["kit"])) == 11, "hay ids repetidos"
     assert not (set(d["kit"]) & set(d.get("rompecabezas") or [])), (
         "una publicación no puede ser de dos productos a la vez")
+
+    # El producto web se publicó el 20-ago-2026, once temáticas a USD 9. Mientras esta
+    # lista estuvo vacía la entrega fallaba CERRADA a propósito; ahora que existe, el
+    # riesgo se da vuelta: si le faltara una temática, el comprador de ésa paga y no
+    # puede canjear — y no hay ninguna otra cosa que lo avise.
+    web = set(d.get("rompecabezas-web") or [])
+    assert len(web) == 11, "los rompecabezas web publicados son 11, uno por temática"
+    assert not (web & set(d["kit"])), "un id no puede ser kit y juego a la vez"
+    assert not (web & set(d["rompecabezas"])), (
+        "el rompecabezas IMPRIMIBLE y el WEB son productos distintos: si comparten id, "
+        "el número de orden de uno sirve para llevarse el otro")
