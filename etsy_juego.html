@@ -133,6 +133,12 @@ fetch("/etsy/opciones").then(function (r) { return r.json(); }).then(function (d
     o.value = t.id; o.textContent = t.nombre;
     sel.appendChild(o);
   });
+  // El link del PDF trae su temática (?tema=safari) y hay que respetarla. Sin esto la
+  // lista queda en la primera por orden alfabético —Camping— y el comprador de safari
+  // se lleva el rompecabezas equivocado sin enterarse de por qué. Se vio mirando la
+  // página, no leyendo el código: `etsy.html` ya lo hacía y esta copia se olvidó.
+  var q = new URLSearchParams(location.search);
+  if (q.get("tema")) sel.value = q.get("tema");
 });
 
 function entrarConGoogle(resp) {
@@ -154,8 +160,12 @@ window.addEventListener("load", function () {
     return;
   }
   google.accounts.id.initialize({ client_id: CLIENT_ID, callback: entrarConGoogle });
+  // `locale: "en"`: sin esto Google dibuja el botón en el idioma del NAVEGADOR, y en una
+  // página que está entera en inglés aparecía «Acceder con Google». El comprador de Etsy
+  // es de habla inglesa; el idioma de su navegador no tiene por qué serlo.
   google.accounts.id.renderButton(gbtn,
-    { theme: "filled_blue", size: "large", shape: "pill", text: "signin_with" });
+    { theme: "filled_blue", size: "large", shape: "pill", text: "signin_with",
+      locale: "en" });
 });
 
 f.addEventListener("submit", async function (e) {

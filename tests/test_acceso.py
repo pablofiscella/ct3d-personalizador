@@ -576,3 +576,92 @@ def test_no_se_puede_martillar_la_entrega_probando_ordenes(servidor, monkeypatch
                for i in range(14)]
     assert 429 in codigos, "se pudo martillar la entrega sin tope"
     assert len(llamadas) <= 10, ("se le pegó a la API de Etsy %d veces" % len(llamadas))
+
+
+def test_la_pagina_del_juego_respeta_la_tematica_que_trae_el_link():
+    """El PDF que Etsy entrega lleva `?tema=safari`, y la página tiene que arrancar en esa.
+
+    Sin esto la lista queda en la PRIMERA por orden alfabético —Camping— y el comprador de
+    safari se lleva el rompecabezas equivocado, sin ninguna señal de que algo salió mal.
+    Es un test de PARIDAD contra `etsy.html`, que ya lo hacía: la página del juego se
+    escribió copiando aquélla y esta parte se quedó afuera. Sólo apareció mirando la
+    página con un navegador — leyendo el código no se ve lo que falta.
+    """
+    kit = open(os.path.join(RAIZ, "etsy.html"), encoding="utf-8").read()
+    juego = open(os.path.join(RAIZ, "etsy_juego.html"), encoding="utf-8").read()
+    for pagina, nombre in ((kit, "etsy.html"), (juego, "etsy_juego.html")):
+        assert "URLSearchParams" in pagina, "%s no lee los parámetros de la URL" % nombre
+        assert 'get("tema")' in pagina, "%s no respeta el ?tema= del link" % nombre
+
+
+def test_el_boton_de_google_habla_ingles():
+    """Sin `locale`, Google dibuja el botón en el idioma del NAVEGADOR: en una página que
+    está entera en inglés aparecía «Acceder con Google». El comprador de Etsy es de habla
+    inglesa, pero el idioma de su navegador no tiene por qué serlo — y el nuestro tampoco,
+    que es como se descubrió."""
+    juego = open(os.path.join(RAIZ, "etsy_juego.html"), encoding="utf-8").read()
+    i = juego.index("renderButton")
+    assert 'locale: "en"' in juego[i:i + 300], (
+        "el botón de Google va a salir en el idioma del navegador de quien mire")
+
+
+# ── 8. el header que rompía el botón de Google ───────────────────────────────
+#
+# 20-ago-2026, encontrado abriendo la página con un navegador de verdad. El botón no
+# funcionaba y Google decía «The given origin is not allowed for the given client ID»,
+# que es EL MISMO mensaje que da un origen sin autorizar — así que la primera lectura
+# fue «falta agregar el origen». Pero el origen estaba: una página de prueba servida en
+# ese MISMO origen andaba bien.
+#
+# La diferencia eran los headers. El motor manda `Referrer-Policy: no-referrer` en todo,
+# y GSI necesita que el navegador le diga a Google de qué origen viene. Sin Referer,
+# Google no puede verificarlo y contesta lo mismo que si el origen estuviera prohibido.
+
+def test_la_pagina_con_boton_de_google_permite_que_Google_vea_el_origen(servidor):
+    puerto, _ = servidor
+    _, hdrs, _ = _pedir(puerto, "/etsy/juego")
+    rp = hdrs.get("Referrer-Policy", "")
+    assert rp != "no-referrer", (
+        "con `no-referrer` el botón de Google no funciona: Google no puede ver el origen "
+        "y contesta que no está permitido, aunque lo esté")
+    assert "strict-origin" in rp
+
+
+def test_la_puerta_del_candado_tambien_lo_permite(servidor):
+    """La pantalla de login también tiene botón de Google, y se sirve desde otra rama del
+    código: si sólo se arreglara `/etsy/juego`, el comprador podría entrar a canjear pero
+    no a abrir su propio link."""
+    puerto, rompe = servidor
+    _token_falso(rompe, "puertaref1", dueño="ana@gmail.com")
+    est, hdrs, _ = _pedir(puerto, "/armar/puertaref1/")
+    assert est == 403
+    assert "strict-origin" in hdrs.get("Referrer-Policy", "")
+
+
+def test_el_RESTO_del_motor_sigue_sin_mandar_referer(servidor):
+    """EL contrapeso, y por qué el arreglo es por ruta y no global: los tokens viajan EN
+    LA URL. Si `/armar/<token>/` mandara Referer, cualquier recurso externo que el player
+    cargue se entera del link — que es justo lo que este trabajo vino a cerrar.
+
+    Se mira una página con token y una respuesta común, porque el header lo pone
+    `end_headers`, que es de TODAS las respuestas: un cambio ahí se escapa a todo el
+    motor sin que nadie lo note."""
+    puerto, rompe = servidor
+    _token_falso(rompe, "sinreferer1")
+    for ruta in ("/armar/sinreferer1/", "/armar/sinreferer1/data.json", "/health"):
+        _, hdrs, _ = _pedir(puerto, ruta)
+        assert hdrs.get("Referrer-Policy") == "no-referrer", (
+            "%s dejó de proteger el token en la URL" % ruta)
+
+
+def test_strict_origin_no_filtra_la_ruta_donde_vive_el_token():
+    """Por qué `strict-origin` y no `no-referrer-when-downgrade`, que también arreglaría
+    el botón: aquélla manda la URL ENTERA a destinos https, o sea el token. Ésta manda
+    sólo el origen, siempre. Es un test de la decisión, no del código — está para que el
+    día que alguien afloje este header sepa cuál era el límite."""
+    import servicio
+    fuente = open(os.path.join(RAIZ, "servicio.py"), encoding="utf-8").read()
+    assert "no-referrer-when-downgrade" not in fuente, (
+        "esa política manda la URL completa: filtraría el token del link")
+    assert "unsafe-url" not in fuente
+    assert '_ref_policy = "strict-origin"' in fuente

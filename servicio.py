@@ -504,6 +504,16 @@ class Handler(BaseHTTPRequestHandler):
 
     def end_headers(self):
         for k, v in _SEC_HEADERS:
+            # `no-referrer` es lo correcto en casi todo el motor: los tokens viajan EN LA
+            # URL (`/armar/<token>/`), así que no mandar Referer evita que un recurso
+            # externo se entere del link. Pero el botón de Google no anda con eso: GSI le
+            # pide al navegador que le diga a Google desde qué origen viene, y sin Referer
+            # Google contesta «The given origin is not allowed for the given client ID»
+            # —el MISMO mensaje que da un origen sin autorizar, que fue lo que despistó—.
+            # Las páginas con botón piden `strict-origin`, que manda el origen y NUNCA la
+            # ruta: alcanza para Google y el token sigue sin salir.
+            if k == "Referrer-Policy" and getattr(self, "_ref_policy", None):
+                v = self._ref_policy
             self.send_header(k, v)
         if DEV:                    # el espejo nunca se indexa
             self.send_header("X-Robots-Tag", "noindex, nofollow, noarchive")
@@ -1066,6 +1076,7 @@ class Handler(BaseHTTPRequestHandler):
             # facturó nada. El client_id de Google se inyecta acá (es público por
             # diseño: viaja en el HTML de cualquiera que abra la página).
             import acceso
+            self._ref_policy = "strict-origin"      # el botón de Google no anda sin esto
             html = open(os.path.join(generador.BASEDIR, "etsy_juego.html"),
                         encoding="utf-8").read()
             body = html.replace("{{CLIENT_ID}}",
@@ -1437,6 +1448,7 @@ class Handler(BaseHTTPRequestHandler):
                     # una persona, así que a ella se le muestra la puerta.
                     if arch:
                         return self._json(403, {"ok": False, "error": "requiere cuenta"})
+                    self._ref_policy = "strict-origin"   # ídem: acá hay botón de Google
                     body = acceso.pagina_login(
                         volver="/armar/%s/" % token,
                         lang=(_man.get("idioma") or "es"),
