@@ -626,3 +626,49 @@ def test_el_player_no_ESCRIBE_español_por_fuera_del_diccionario():
         "hay texto escrito a mano en el HTML del player: no pasa por el diccionario, así "
         "que no puede cambiar de idioma y va a salir igual en los dos productos.\n  "
         + "\n  ".join(repr(c) for c in sorted(set(culpables))[:12]))
+
+
+def test_todo_texto_del_HTML_del_player_se_traduce():
+    """El mismo agujero, del otro lado: el HTML.
+
+    El barrido de literales mira el `.js`. Pero el player también tiene texto ESCRITO EN
+    EL HTML —el cartel de carga, el saludo, el título del festejo, los botones— y ése se
+    traduce aparte, en `traducirHtmlEstatico()`, elemento por elemento.
+
+    Lo que pasó el 20-ago-2026: al terminar un rompecabezas, el festejo decía «Well done,
+    Emma!» y «Keep going!» en inglés, y al lado un botón «🔁 Otra vez» en español. Estaba
+    en el HTML y nadie lo había agregado a la lista de la función. Lo encontró un video
+    del juego — ni los tests de texto ni los que ejecutan el player lo veían, porque para
+    llegar a esa pantalla hay que TERMINAR un rompecabezas.
+
+    Este test cruza las dos listas: cada elemento del HTML que tenga texto propio tiene
+    que estar nombrado en `traducirHtmlEstatico`.
+    """
+    html = open(os.path.join(RAIZ, "rompecabezas_player.html"), encoding="utf-8").read()
+    js = open(os.path.join(RAIZ, "rompecabezas_player.js"), encoding="utf-8").read()
+
+    i = js.index("function traducirHtmlEstatico")
+    traduce = js[i:js.index("\n}", i)]
+
+    faltan = []
+    # El `<` final va en lookahead —`(?=<)`— y no como parte del match. Sin eso, el
+    # match de un `<div>` seguido de un salto de línea SE COME el `<` del elemento
+    # siguiente, y ese elemento nunca llega a evaluarse. Así fue como este test pasó en
+    # verde con el error puesto: encontraba 4 elementos de 5 y el que faltaba era justo
+    # el culpable. Se descubrió probándolo en rojo; leyéndolo, parecía correcto.
+    for etiqueta, atributos, texto in re.findall(
+            r"<(div|span|b|h[12]|button|p|a)\s([^>]*)>([^<>]{2,60})(?=<)", html):
+        limpio = texto.strip()
+        # sólo lo que tiene palabras: los emojis y las flechas sueltas no se traducen
+        if not re.search(r"[A-Za-zÁÉÍÓÚÑáéíóúñ]{3,}", limpio):
+            continue
+        m = re.search(r'id="([^"]+)"', atributos)
+        if not m:
+            faltan.append("%s (sin id, no se puede traducir): %r" % (etiqueta, limpio))
+        elif ('"#%s"' % m.group(1)) not in traduce:
+            faltan.append("#%s: %r" % (m.group(1), limpio))
+
+    assert not faltan, (
+        "hay texto en el HTML del player que `traducirHtmlEstatico()` no toca: va a "
+        "salir siempre en español, aunque el resto de la pantalla esté en inglés.\n  "
+        + "\n  ".join(faltan[:10]))
