@@ -51,6 +51,9 @@ const T = {
   // Las tres de abajo salieron del MISMO barrido que encontró la de arriba: texto
   // escrito directo en el HTML del player, que nunca pasaba por el diccionario.
   piezasSolo:  { es: "piezas",                        en: "pieces" },
+  // Este vive en el HTML, no acá: lo encontró el video del festejo, donde el título y el
+  // otro botón salían en inglés y éste seguía en español, al lado.
+  otraVez:     { es: "🔁 Otra vez",                   en: "🔁 Again" },
   espiar:      { es: "🖼️ Espiar",                     en: "🖼️ Peek" },
   mezclar:     { es: "🔀 Mezclar",                    en: "🔀 Shuffle" },
   cuantas:     { es: "¿De cuántas piezas lo armás?", en: "How many pieces?" },
@@ -631,6 +634,7 @@ function traducirHtmlEstatico() {
   poner("#hdrNombre", "hola");
   poner("#festejoTitulo", "muyBien");
   poner("#btnSeguir", "seguir");
+  poner("#btnOtraVez", "otraVez");
   if (idi() === "en") document.documentElement.lang = "en";
 }
 
