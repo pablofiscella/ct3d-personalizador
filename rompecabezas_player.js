@@ -267,6 +267,11 @@ function pintarMenu() {
 }
 
 function pintarNiveles(pi) {
+  // OJO con el nombre de la variable del forEach de abajo: `t` es la FUNCIÓN de
+  // traducción, global. Si se la usa como nombre de variable acá adentro, la tapa, y
+  // cualquier `t("clave")` de este cuerpo revienta con «t is not a function» —
+  // pantalla en blanco al tocar una carta, sin ningún error visible para el usuario.
+  // Pasó dos veces: en el modo demo (19-ago) y en el modo normal (20-ago).
   Juego.cerrar();
   $("#btnAtras").classList.add("ver");
   const stage = $("#stage");
@@ -276,25 +281,25 @@ function pintarNiveles(pi) {
   cont.appendChild(el("div", "foto", `<img src="${bust(p.thumb)}" alt="">`));
   cont.appendChild(el("h2", "", t("cuantas")));
   const btns = el("div"); btns.id = "nivelBtns";
-  D.targets.forEach((t) => {
+  D.targets.forEach((tg) => {
     // niveles grandes (>70) solo en pantallas anchas (tablet/desktop): en un
     // celular la BANDEJA de piezas sueltas (área de ancho fijo) se vuelve un
     // amontonamiento ilegible mucho antes que el tablero — probado con el
     // motor real (Pablo 13-jul-2026, "quizás en tablets que aparezca un botón
     // de más piezas que en el teléfono no"). En pantalla ancha la bandeja
     // tiene más aire real y sigue siendo jugable hasta ~100.
-    if (t > 70 && innerWidth < 700) return;
+    if (tg > 70 && innerWidth < 700) return;
     // conteo REAL de la grilla (el tope "48" puede ser 6x8=48 o 7x7=49 según
     // la proporción de la foto — siempre piezas cuadradas)
-    const [c, f] = p.grillas[String(t)].split("x").map(Number);
-    const bloq = nivelBloqueado(t);
+    const [c, f] = p.grillas[String(tg)].split("x").map(Number);
+    const bloq = nivelBloqueado(tg);
     const b = el("button", "nivelBtn" + (bloq ? " nivelBtn--lock" : ""), bloq
       ? `<div class="n">🔒</div><div class="t">${t("piezas", c * f)}</div><div class="est">${t("comprar")}</div>`
       : `<div class="n">${c * f}</div><div class="t">${t("piezasSolo")}</div>
-         <div class="est">${estrellitas(Store.stars(pi + "|" + t))}</div>`);
+         <div class="est">${estrellitas(Store.stars(pi + "|" + tg))}</div>`);
     b.addEventListener("click", () => {
       if (bloq) { location.href = urlComprar(); return; }
-      Sfx.pop(); jugar(pi, t);
+      Sfx.pop(); jugar(pi, tg);
     });
     btns.appendChild(b);
   });
