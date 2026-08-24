@@ -234,9 +234,24 @@ GANCHOS = {
         "q": "Tres chocolates,\ncuatro chicos.\n¿Cuánto le toca a cada uno?",
         "a": "Matemática · 4.º grado",
     },
+    # Decía "¿Cómo se llama eso?" y la voz preguntaba "¿qué es un hiperónimo?". Pablo:
+    # *"hiperónimo, no entendí"*. Claro: un gancho que arranca con la palabra técnica le
+    # pide a la persona que ya sepa la respuesta para entender la pregunta. Al revés — el
+    # ejemplo primero, el nombre después — se entiende sin saber nada, que es lo único que
+    # un gancho tiene que lograr.
     "lec_hiperonimos_4.mp4": {
-        "q": "«Flor» abarca a\nrosa y clavel.\n¿Cómo se llama eso?",
+        "q": "«Rosa», «clavel»,\n«jazmín». ¿Qué palabra\nlas abarca a todas?",
         "a": "Lengua · 4.º grado",
+    },
+    # Reemplaza a la línea de tiempo del siglo XX. Pablo: *"¿qué tienen que ver las fechas
+    # con el voto femenino?"*. Nada, y ése era el problema: esa lección son dos frases sobre
+    # cosas distintas —fechas del mundo por un lado, el dato del voto por otro— y no hay
+    # video de 30 segundos que las hilvane. Un Short necesita UN hilo.
+    #
+    # Ésta tiene uno solo y lo contesta en la primera frase.
+    "lec_gobierno_argentina.mp4": {
+        "q": "¿Quién hace las leyes\nen la Argentina?\n¿Y quién las aplica?",
+        "a": "Sociales · 4.º grado",
     },
     "lec_teatro_3.mp4": {
         "q": "En una obra de teatro,\n¿qué va entre\nparéntesis?",
@@ -245,6 +260,63 @@ GANCHOS = {
     "lec_linea_siglo_xx_7_b.mp4": {
         "q": "El voto femenino\nes ley en 1947.\n¿Cuándo votaron?",
         "a": "Sociales · 7.º grado",
+    },
+    # ── La tanda del 23-ago-2026 ─────────────────────────────────────────────────────
+    # Pablo: *"necesito videos shorts de kydo de los que salen de kydo.com.ar"*. La cola de
+    # contenido llegaba hasta el 25-sep y después quedaban sólo los «Así es el cuaderno».
+    #
+    # Las doce se eligieron MIRANDO la lección, no por el título: el gancho promete algo y
+    # el video tiene que contestarlo. Y se eligieron por una razón sola — que abran una
+    # pregunta que el padre YA se hizo alguna vez y no supo contestar. Es la misma regla que
+    # midió 1.586 vistas contra 3 en Wild Mechanics: resolver una curiosidad que la persona
+    # ya tenía, no informar sobre algo que no sabía que existía.
+    "lec_jerarquia_operaciones.mp4": {
+        "q": "2 + 3 × 4.\n¿Da 14\no da 20?",
+        "a": "Matemática · 6.º grado",
+    },
+    "lec_numeros_primos.mp4": {
+        "q": "¿Por qué el 1\nno es\nun número primo?",
+        "a": "Matemática · 6.º grado",
+    },
+    "lec_suma_angulos.mp4": {
+        "q": "¿Puede un triángulo\ntener dos\nángulos rectos?",
+        "a": "Matemática · 6.º grado",
+    },
+    "lec_densidad_7.mp4": {
+        "q": "0,25 y 0,3.\n¿Cuál de los dos\nes más grande?",
+        "a": "Matemática · 7.º grado",
+    },
+    "lec_area_perimetro_6.mp4": {
+        "q": "Dos figuras con\nla misma área.\n¿Mismo perímetro?",
+        "a": "Matemática · 6.º grado",
+    },
+    "lec_tilde_pasado_3.mp4": {
+        "q": "«Mandó» y «mando».\n¿Cuál de las dos\npasó ayer?",
+        "a": "Lengua · 3.º grado",
+    },
+    "lec_plurales_z.mp4": {
+        "q": "«Pez» en plural.\n¿Pezes\no peces?",
+        "a": "Lengua · 4.º grado",
+    },
+    "lec_hiato_diptongo_3.mp4": {
+        "q": "«Aire» y «maestro».\n¿Cuál tiene\ntres sílabas?",
+        "a": "Lengua · 3.º grado",
+    },
+    "lec_polisemia_5.mp4": {
+        "q": "«Hoja».\n¿Cuántas cosas\ndistintas nombra?",
+        "a": "Lengua · 5.º grado",
+    },
+    "lec_luz_propia.mp4": {
+        "q": "¿La Luna\ntiene\nluz propia?",
+        "a": "Ciencias Naturales",
+    },
+    "lec_eclipses_5.mp4": {
+        "q": "El Sol ilumina\nsiempre media Luna.\n¿Por qué la vemos cambiar?",
+        "a": "Ciencias · 5.º grado",
+    },
+    "lec_imanes_4.mp4": {
+        "q": "Si partís un imán\nal medio,\n¿qué te queda?",
+        "a": "Ciencias · 4.º grado",
     },
 }
 
@@ -278,9 +350,25 @@ VOZ_GANCHO = {
     "lec_camino_digestivo.mp4":     "¿Qué camino hace un bocado?",
     "lec_estados_agua_4.mp4":       "¿El hielo y el vapor son lo mismo?",
     "lec_reparto_fracciones.mp4":   "¿Cuánto le toca a cada uno?",
-    "lec_hiperonimos_4.mp4":        "¿Qué es un hiperónimo?",
+    # El ejemplo primero, el nombre técnico después: "¿qué es un hiperónimo?" le pide a la
+    # persona que ya sepa la respuesta para entender la pregunta.
+    "lec_hiperonimos_4.mp4":        "¿Qué palabra las abarca a todas?",
     "lec_teatro_3.mp4":             "¿Qué es una didascalia?",
-    "lec_linea_siglo_xx_7_b.mp4":   "¿Cuándo votaron las mujeres acá?",
+    "lec_gobierno_argentina.mp4":   "¿Quién hace las leyes acá?",
+    # La tanda del 23-ago-2026. Todas cortas y sin repetir lo que la tarjeta ya muestra: la
+    # voz sólo pregunta.
+    "lec_jerarquia_operaciones.mp4": "¿Da catorce o veinte?",
+    "lec_numeros_primos.mp4":        "¿Por qué el uno no es primo?",
+    "lec_suma_angulos.mp4":          "¿Puede tener dos ángulos rectos?",
+    "lec_densidad_7.mp4":            "¿Cuál de los dos es más grande?",
+    "lec_area_perimetro_6.mp4":      "¿Misma área es mismo perímetro?",
+    "lec_tilde_pasado_3.mp4":        "¿Cuál de las dos pasó ayer?",
+    "lec_plurales_z.mp4":            "¿Se escribe con zeta o con ce?",
+    "lec_hiato_diptongo_3.mp4":      "¿Cuál tiene tres sílabas?",
+    "lec_polisemia_5.mp4":           "¿Cuántas cosas nombra?",
+    "lec_luz_propia.mp4":            "¿La Luna tiene luz propia?",
+    "lec_eclipses_5.mp4":            "¿Por qué la vemos cambiar?",
+    "lec_imanes_4.mp4":              "¿Qué queda si partís un imán?",
 }
 
 # El cierre va al FINAL, cuando el que mira ya recibió algo. Pedir antes de dar es el mismo
@@ -471,8 +559,23 @@ def _filtro(g, dur_leccion, voz=None, llena=False, t_cierre=T_CIERRE, vc=False,
         # 1080×1920 pasa igual, y una horizontal se agranda hasta llenar en vez de flotar en
         # el medio. Lo correcto es renderizar la lección vertical desde la fuente; esto es
         # la red para el que todavía no la tenga.
-        "[0:v]scale=%d:%d:force_original_aspect_ratio=increase,"
-        "crop=%d:%d,setpts=PTS+%.2f/TB[lec]" % (W, H, W, H, t_gancho),
+        # LA LECCIÓN ENTRA ENTERA, aunque quede una banda arriba y otra abajo.
+        #
+        # 23-ago-2026. Con `increase`+`crop` una lección de 1280×720 se agranda a 3413 de
+        # ancho para llenar los 1920 de alto y después se recorta a 1080: **se tiran dos
+        # tercios del ancho**. El texto quedaba cortado por los dos lados —se leía
+        # «GISLATIVO» en vez de «LEGISLATIVO»— en LOS 27 Shorts, incluidos los cinco que ya
+        # se habían publicado. `borde_cortado.py` los marcaba a todos y nadie lo había mirado.
+        #
+        # Con `decrease`+`pad` la lección se ve chica pero COMPLETA, que es la única versión
+        # que sirve: un Short donde no se lee el texto no enseña nada. El relleno usa el
+        # mismo color que el fondo de las lecciones (#E4F0F0), así que no se ve una banda,
+        # se ve una lección centrada.
+        #
+        # Sigue siendo la red: lo correcto es renderizar la lección vertical desde la fuente.
+        "[0:v]scale=%d:%d:force_original_aspect_ratio=decrease,"
+        "pad=%d:%d:(ow-iw)/2:(oh-ih)/2:color=0xE4F0F0,"
+        "setpts=PTS+%.2f/TB[lec]" % (W, H, W, H, t_gancho),
         "[bg][lec]overlay=0:0[v0]",
 
         # GANCHO, TIEMPO 1 — la pregunta, pantalla entera. Tarjeta sólida encima de todo:
