@@ -60,13 +60,15 @@ def _volumen(ruta, desde, dur=1.5):
 
 @pytest.fixture(scope="module")
 def shorts():
-    """Dos Shorts recién armados: uno CON voz de gancho y otro SIN.
+    """Dos Shorts recién armados, los dos CON voz de gancho.
 
-    Son los dos caminos del filtro, y hay que probar los dos: el bug vivía justamente en que
-    uno de ellos —el que no tiene voz— nunca se había escuchado."""
+    Hasta el 24-ago el segundo era `lec_multiplicar` a propósito, para cubrir el camino SIN
+    voz. Ese camino es el que Pablo rechazó (*"comienzan en silencio"*): sin clip, el motor
+    deja 2,5 s mudos. Ya no hay lección con gancho escrito y sin voz, así que se prueban
+    dos que sí la tienen — el otro camino queda en `test_todo_gancho_escrito_tiene_voz`."""
     import shorts as motor
     pares = []
-    for nombre in ("lec_acentuacion_esdrujulas.mp4", "lec_multiplicar.mp4"):
+    for nombre in ("lec_acentuacion_esdrujulas.mp4", "lec_abstractos_concretos.mp4"):
         if nombre not in motor.GANCHOS:
             pytest.skip("%s no tiene gancho escrito" % nombre)
         if not os.path.exists(os.path.join(motor.LECCIONES, nombre)):
@@ -201,3 +203,19 @@ def test_REGLA_ninguna_voz_de_gancho_es_larga():
     assert not largos, (
         "estos ganchos hablados son largos: %s. Una pregunta corta del tema, sin ejemplo."
         % largos)
+
+
+def test_todo_gancho_escrito_tiene_voz():
+    """Sin el mp3, `shorts.py` arma igual y el Short abre 2,5 s mudo.
+
+    24-ago-2026. Pablo no aprobó Mesa/alegría ni el de multiplicar: *«comienzan en
+    silencio»*. Tenían gancho escrito y nunca se grabó la voz — `voz_de()` devolvía
+    None, `t_gancho` caía a `T_GANCHO_MIN` y el audio de la lección arrancaba después.
+    Medido: −91 dB hasta el segundo 2,6.
+
+    «No hay voz» no puede ser un caso válido de un Short que se va a publicar."""
+    import shorts as motor
+    mudos = [n for n in motor.GANCHOS if not motor.voz_de(n)]
+    assert not mudos, (
+        "estos ganchos no tienen clip en ganchos_voz/: %s. Grabalos con "
+        "grabar_ganchos.py — si no, el Short abre en silencio." % mudos)

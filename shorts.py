@@ -355,6 +355,11 @@ VOZ_GANCHO = {
     "lec_hiperonimos_4.mp4":        "¿Qué palabra las abarca a todas?",
     "lec_teatro_3.mp4":             "¿Qué es una didascalia?",
     "lec_gobierno_argentina.mp4":   "¿Quién hace las leyes acá?",
+    # Primera tanda: tenían gancho ESCRITO desde el día uno y nunca se grabó la voz.
+    # 24-ago-2026. Pablo no los aprobó: *"comienzan en silencio"*. Sin clip, el motor
+    # deja 2,5 s mudos (T_GANCHO_MIN) — medido −91 dB — y en un Short eso es un swipe.
+    "lec_abstractos_concretos.mp4": "¿Cuál de los dos se puede tocar?",
+    "lec_multiplicar.mp4":          "¿Por qué se corre un lugar?",
     # La tanda del 23-ago-2026. Todas cortas y sin repetir lo que la tarjeta ya muestra: la
     # voz sólo pregunta.
     "lec_jerarquia_operaciones.mp4": "¿Da catorce o veinte?",
@@ -736,7 +741,7 @@ def armar(nombre, salida_dir=SALIDA, leccion_dir=LECCIONES, quiet=False):
     # REGLA 1: la tarjeta dura lo que dura la voz del gancho, más un respiro. Con un valor
     # fijo, un gancho hablado más largo sigue sonando debajo de la explicación.
     t_gancho = max(T_GANCHO_MIN, duracion(voz) + 0.4) if voz else T_GANCHO_MIN
-    cmd = ["ffmpeg", "-v", "error", "-y", "-i", entrada]
+    cmd = ["ffmpeg", "-v", "error", "-y", "-threads", "1", "-i", entrada]
     if voz:
         cmd += ["-i", voz]                     # entrada 1: la voz del gancho
     if vc:
