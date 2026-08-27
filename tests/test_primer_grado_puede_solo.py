@@ -281,3 +281,21 @@ def test_el_dibujo_de_las_opciones_NO_regala_la_respuesta():
     assert not chivatos, (
         "el dibujo de la opción correcta ya está en la pregunta: se acierta emparejando. "
         "Ejemplos: %s" % chivatos[:3])
+
+def test_los_botones_con_dibujo_tambien_llegan_al_piso_de_44():
+    """El mismo piso que el botón de repetir, para el mismo dedo.
+
+    Medido el 20-ago-2026 en las 26 actividades que usan `.spriteBtn`: las de 1.º a 3.º
+    miden 60-68 px, pero las de clasificar de 4.º para arriba caían a **40-42** — catorce
+    actividades por debajo del piso. Nadie lo vio porque los tests del cuaderno miran qué
+    dice la actividad, no cuánto mide lo que hay que tocar.
+
+    Es un piso (`min-height`), no un alto: las de 60 y 68 no se movieron, y no apareció
+    ningún desborde ni scroll lateral nuevo."""
+    h = _html()
+    m = re.search(r"\.spriteBtn \{[^}]*\}", h, re.S)
+    assert m, "desapareció el estilo del botón con dibujo"
+    mm = re.search(r"min-height:\s*(\d+)px", m.group(0))
+    assert mm and int(mm.group(1)) >= 44, (
+        "el botón con dibujo volvió a quedar por debajo de 44 px. Es el piso para un dedo "
+        "de seis a diez años, el mismo que ya cumple el botón de repetir.")

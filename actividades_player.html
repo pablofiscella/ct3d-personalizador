@@ -924,8 +924,12 @@ body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
 
 /* filas de sprites genéricas (patrón, distinto, tamaño, más/menos, sumas) */
 .filaSprites { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+/* min-height (20-ago-2026): las de 1.º a 3.º miden 60-68 px, pero las de clasificar de
+   4.º para arriba caían a 40-42 — por debajo del piso de 44 que fija esta misma auditoría.
+   Es un piso, no un alto: las grandes no se tocan. Medido en las 26 actividades que la
+   usan: cero desbordes nuevos, cero scroll lateral. */
 .spriteBtn { border: none; background: var(--card); border-radius: var(--radio-chico); box-shadow: var(--sombra);
-  cursor: pointer; padding: 10px; transition: transform .12s; }
+  cursor: pointer; padding: 10px; transition: transform .12s; min-height: 44px; }
 .spriteBtn:active { transform: scale(.92); }
 /* suma rápida (14-jul-2026): la burbuja tocada primero queda marcada
    mientras se espera la segunda */
