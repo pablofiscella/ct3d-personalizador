@@ -3,6 +3,7 @@
    entrada de datos, con el contenido del DC y el documento del que salió).
    Se carga DESPUÉS de player.js porque registra sobre GAMES. */
 
+const CAJA_IMPORTA = new Set(["parejas_letras_1", "mayuscula_punto_1"]);
 /* 1° · ¿De qué está hecho? — objeto_material
    DC: Los objetos y los materiales: de qué está hecho, qué propiedad lo hace servir para eso
    Fuente: docs/auditoria-dc-caba/grado-1.md · C4 */
@@ -18374,81 +18375,81 @@ const CUR_OFICIOS_1_BANCO = [
   {
     "q": "El martillo lo usa…",
     "ops": [
-      "La carpintera",
-      "La cocinera",
-      "El médico"
+      "🪚 La carpintera",
+      "🧑‍🍳 La cocinera",
+      "🩺 El médico"
     ],
     "m": "Sirve para clavar la madera."
   },
   {
     "q": "El estetoscopio lo usa…",
     "ops": [
-      "El médico",
-      "El panadero",
-      "La maestra"
+      "🩺 El médico",
+      "🥖 El panadero",
+      "🧑‍🏫 La maestra"
     ],
     "m": "Sirve para escuchar el corazón."
   },
   {
     "q": "La cuchara de madera la usa…",
     "ops": [
-      "El cocinero",
-      "La electricista",
-      "El chofer"
+      "🧑‍🍳 El cocinero",
+      "💡 La electricista",
+      "🚗 El chofer"
     ],
     "m": "Para revolver la comida."
   },
   {
     "q": "La tijera de podar la usa…",
     "ops": [
-      "La jardinera",
-      "La panadera",
-      "El piloto"
+      "🌱 La jardinera",
+      "🥖 La panadera",
+      "✈️ El piloto"
     ],
     "m": "Para cortar las ramas."
   },
   {
     "q": "El volante lo usa…",
     "ops": [
-      "La chofer",
-      "La médica",
-      "El carpintero"
+      "🚗 La chofer",
+      "🩺 La médica",
+      "🪚 El carpintero"
     ],
     "m": "Para manejar."
   },
   {
     "q": "El pincel lo usa…",
     "ops": [
-      "El pintor",
-      "El plomero",
-      "La cocinera"
+      "🎨 El pintor",
+      "🔧 El plomero",
+      "🧑‍🍳 La cocinera"
     ],
     "m": "Para pintar."
   },
   {
     "q": "La llave inglesa la usa…",
     "ops": [
-      "La plomera",
-      "La maestra",
-      "El panadero"
+      "🔧 La plomera",
+      "🧑‍🏫 La maestra",
+      "🥖 El panadero"
     ],
     "m": "Para ajustar los caños."
   },
   {
     "q": "El horno lo usa…",
     "ops": [
-      "La panadera",
-      "La jardinera",
-      "El chofer"
+      "🥖 La panadera",
+      "🌱 La jardinera",
+      "🚗 El chofer"
     ],
     "m": "Para hornear el pan."
   },
   {
     "q": "El pizarrón lo usa…",
     "ops": [
-      "El maestro",
-      "El plomero",
-      "La chofer"
+      "🧑‍🏫 El maestro",
+      "🔧 El plomero",
+      "🚗 La chofer"
     ],
     "m": "Para enseñar."
   },
@@ -18464,9 +18465,9 @@ const CUR_OFICIOS_1_BANCO = [
   {
     "q": "La regla y el metro los usa…",
     "ops": [
-      "La albañila",
-      "La cocinera",
-      "El médico"
+      "🧱 La albañila",
+      "🧑‍🍳 La cocinera",
+      "🩺 El médico"
     ],
     "m": "Para medir antes de construir."
   },
@@ -18565,27 +18566,27 @@ const CUR_ANTES_AHORA_1_BANCO = [
   {
     "q": "Hoy usamos la heladera. Antes se usaba…",
     "ops": [
-      "Una fresquera con hielo",
-      "Un horno",
-      "Una radio"
+      "🧊 Una fresquera con hielo",
+      "🔥 Un horno",
+      "📻 Una radio"
     ],
     "m": "Las dos sirven para conservar la comida fría."
   },
   {
     "q": "Hoy escuchamos música en el celular. Antes, en…",
     "ops": [
-      "Un tocadiscos",
-      "Una lámpara",
-      "Un reloj"
+      "💽 Un tocadiscos",
+      "💡 Una lámpara",
+      "⏰ Un reloj"
     ],
     "m": "Las dos reproducen música."
   },
   {
     "q": "Hoy escribimos en la computadora. Antes, con…",
     "ops": [
-      "Una máquina de escribir",
-      "Un martillo",
-      "Una plancha"
+      "⌨️ Una máquina de escribir",
+      "🔨 Un martillo",
+      "👔 Una plancha"
     ],
     "m": "Las dos sirven para escribir."
   },
@@ -18601,18 +18602,18 @@ const CUR_ANTES_AHORA_1_BANCO = [
   {
     "q": "Hoy sacamos fotos con el celular. Antes, con…",
     "ops": [
-      "Una cámara con rollo",
-      "Un espejo",
-      "Un cuaderno"
+      "📷 Una cámara con rollo",
+      "🪞 Un espejo",
+      "📓 Un cuaderno"
     ],
     "m": "Las dos capturan imágenes."
   },
   {
     "q": "Hoy vemos la hora en el celular. Antes, en…",
     "ops": [
-      "Un reloj de pared",
-      "Una radio",
-      "Un libro"
+      "⏰ Un reloj de pared",
+      "📻 Una radio",
+      "📖 Un libro"
     ],
     "m": "Las dos dan la hora."
   },
@@ -18628,9 +18629,9 @@ const CUR_ANTES_AHORA_1_BANCO = [
   {
     "q": "Hoy hay luz eléctrica. Antes se alumbraba con…",
     "ops": [
-      "Velas o faroles",
-      "Espejos",
-      "Ventanas"
+      "🕯️ Velas o faroles",
+      "🪞 Espejos",
+      "🪟 Ventanas"
     ],
     "m": "Las dos dan luz."
   },

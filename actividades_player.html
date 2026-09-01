@@ -55,6 +55,17 @@
   --bg: #EDF5F5; --card: #FFFFFF; --ink: #1F3A3B; --ac: #2E8B8E;
   --ac2: #7C5CD6; --soft: #D6EAEA; --star: #F2A93B;
   --ok: #2F7D57;
+  /* LA MARCA DE «ÉSTA YA LA PROBASTE», QUE NO ES LA MARCA DE «ESTÁ MAL».
+     La política del producto está escrita en docs/auditoria-dc-caba/grado-4.md:278: «las
+     vidas convierten el error en castigo y contradicen la política del producto: EL ERROR
+     ES EL MATERIAL DE ENSEÑANZA, cada distractor existe para explicar». Y en
+     README.md:123: «hay 82 llamadas a la función de error, ninguna explica qué estuvo mal:
+     sólo sacude».
+     Por eso la opción tocada NO lleva una ✗ roja —eso es lenguaje de castigo— sino un ↻ en
+     gris azulado: «ésta ya la probaste, volvé a intentar». Se distingue sin dudas de la
+     correcta, que sí se refuerza en verde con ✓. Marcar la acción es lo que le permite al
+     chico atar lo que hizo con lo que pasó; teñirla de rojo es otra cosa. */
+  --tocada: #4A5A66;
 
   /* Kydo: 12px en tarjetas, 8px en controles chicos. El 26px de antes era
      redondez de app infantil genérica; 18px sigue siendo amable y se parece
@@ -391,6 +402,20 @@ button.pill:active, a.pill:active { transform: scale(.94); }
   font-size: clamp(20px, 4vw, 26px); line-height: 1.2; letter-spacing: -.03em; flex: 1;
 }
 #consigna img.pista { width: 56px; height: 56px; object-fit: contain; flex: none; }
+
+/* VOLVER A ESCUCHAR. Va pegado a la consigna y no en el encabezado a propósito: el
+   🔊 de arriba silencia, y tenerlos juntos los confundiría. Acá el gesto es obvio —
+   «tocá la corneta al lado de lo que quiero que me repitan»— y el blanco táctil es de
+   48px, que es lo que necesita la mano de un chico de seis años. */
+#consigna .repetir {
+  flex: none; width: 48px; height: 48px; border: none; border-radius: 50%;
+  background: var(--soft); color: var(--ink); font-size: 22px; line-height: 1;
+  cursor: pointer; display: grid; place-items: center;
+  transition: transform .1s ease;
+}
+#consigna .repetir:active { transform: scale(.92); }
+#consigna .repetir:focus-visible { outline: 3px solid var(--ac); outline-offset: 2px; }
+#consigna .repetir.sonando { background: var(--ac); color: #fff; }
 #progreso { display: flex; gap: 8px; justify-content: center; margin: 2px 0 14px; }
 #progreso i {
   width: 12px; height: 12px; border-radius: 50%; background: var(--soft);
@@ -459,8 +484,122 @@ button.pill:active, a.pill:active { transform: scale(.94); }
   transition: transform .1s ease;
 }
 .op-texto:active { transform: scale(.97); }
-.op-texto.bien { background: var(--ok); color: #fff; }
-.op-texto.casi { animation: sacudir .4s ease; }
+
+/* ── EL CICLO INICIAL LEE MENOS Y MIRA MÁS ──────────────────────────────────────
+   14-ago-2026. Pablo, sobre «¿Es del campo o de la ciudad?»: *"¿cómo sabe un chico de
+   primero qué es, sin saber leer?"*. Medido: la palabra iba a 13 px y el emoji, que va
+   inline, medía los mismos 13 px. O sea que el dibujo —lo único que ese chico puede
+   interpretar— era del tamaño de la letra que no puede leer.
+   Acá se agranda todo el botón en 1.º a 3.º: crece la palabra para el que empieza a leer
+   y crece el dibujo para el que todavía no. Es lo más barato que mueve la aguja; lo que
+   falta —que la imagen sea grande y la palabra vaya debajo— toca el interior de cada
+   juego y va aparte. */
+body.ciclo1 .op-texto, body.ciclo1 .op,
+body.ciclo1 #juego button { font-size: 21px; }
+
+/* ── 1.º SE VE EN IMPRENTA MAYÚSCULA (15-ago-2026, decisión de Pablo) ─────────────
+   Es el alfabeto con el que arranca el año en CABA. Antes la pantalla mezclaba —consigna en
+   minúscula y respuestas en mayúscula— o sea dos alfabetos a la vez para quien todavía está
+   fijando uno.
+   Va por `text-transform`, o sea SÓLO DE VISTA: el texto real no cambia, así que no cambia
+   la clave del manifiesto de voz ni lo que se manda al sintetizador. Cambiar el texto habría
+   dejado huérfanos los mp3 ya grabados.
+   `caja-importa` la apaga en las pantallas donde la caja de las letras ES el contenido; la
+   marca el player solo, comparando si dos opciones se vuelven idénticas en mayúsculas.
+   Los controles de formulario se nombran UNO POR UNO a propósito: el navegador les pone
+   `text-transform: none` por su cuenta y NO heredan. Sin esta segunda línea la consigna sale
+   en mayúscula y las respuestas en minúscula — la mezcla que este cambio venía a sacar. */
+body.g1:not(.caja-importa) #consigna .texto,
+body.g1:not(.caja-importa) #juego,
+body.g1:not(.caja-importa) #juego button,
+body.g1:not(.caja-importa) #juego input,
+body.g1:not(.caja-importa) #juego select,
+body.g1:not(.caja-importa) #juego textarea,
+/* EL PORQUÉ. `#explica` cuelga del `<body>`, no del `#juego`, así que ninguna regla de
+   adentro del juego lo alcanzaba: era el texto que el chico lee JUSTO cuando se equivoca, y
+   se le seguía mostrando en el alfabeto que todavía no lee. Lleva el freno `caja-importa`
+   porque en «Parejas de letras» la explicación habla de la letra chiquita. */
+body.g1:not(.caja-importa) #explica,
+/* Y el `#toast`, que es el «¡Muy bien!» de CADA acierto — el texto que más veces ve en toda
+   la sesión— y que tampoco vive adentro del `#juego`. Lleva el mismo freno que el porqué:
+   algunos juegos le pasan contenido propio («¡Contalos tocándolos!»). */
+body.g1:not(.caja-importa) #toast { text-transform: uppercase; }
+
+/* Lo primero de todo: «Preparando tus juegos…». Va suelto porque se dibuja antes de que el
+   player sepa el grado… salvo que la clase `g1` ya esté puesta, que es el caso al recargar. */
+body.g1 #cargando { text-transform: uppercase; }
+
+/* El menú, que es la primera pantalla y la que más veces ve. Sin el freno `caja-importa`:
+   el rótulo es el NOMBRE de la actividad, nunca la respuesta que se evalúa. Y `.nombre` se
+   nombra explícito porque la tarjeta es un `<button>` y el div de adentro hereda su `none`. */
+body.g1 .carta .nombre,
+body.g1 #hdrNombre,
+body.g1 #bienvenida h1,
+body.g1 #bienvenida p,
+body.g1 .cat-titulo,
+body.g1 .nivel-chip,
+body.g1 .btn-comoes,
+body.g1 .comoes,
+body.g1 .comoes button,
+body.g1 .carta[data-adapt]::after,
+/* LAS TRES PANTALLAS QUE SE ABREN ENCIMA Y NO ESTÁN NI EN EL MENÚ NI EN EL JUEGO:
+   el festejo del final de cada actividad («¡Muy bien, Sofi!», «🔁 Otra vez», «▶ Seguir»),
+   el diploma («¡Completaste TODO sin errores!») y el «¿Quién juega?».
+   Son las que el chico ve MÁS seguido —el festejo aparece al cerrar cada actividad— y se
+   escapaban de un barrido que sólo mirara el menú y el tablero: hay que JUGAR para llegar.
+   Van sin el freno `caja-importa`: acá nunca la caja de la letra es la respuesta. */
+body.g1 #festejo,
+body.g1 #festejo button,
+body.g1 #logro,
+body.g1 #logro button,
+body.g1 #perfil,
+body.g1 #perfil button,
+body.g1 #perfil input,
+/* Y las tres que quedan del recorrido del chico: la barra de niveles («🌱 Nivel 1»), el
+   candado («Este nivel está guardado, pedile a tu grande que lo abra») y el link al diploma.
+   La pantalla de nivel en sí reusa `#bienvenida`, que ya está arriba.
+   NO se transforma `#stage` entero, que sería más corto: adentro de `#stage` también se
+   dibuja el Modo Profe —cuatro pantallas de autor, para un adulto— y ahí la mayúscula sería
+   un estorbo. La lista explícita es más larga a propósito. */
+body.g1 #nivelbar button,
+body.g1 #candado,
+body.g1 #candado button,
+body.g1 #oferta,
+body.g1 #oferta button,
+body.g1 #pillLogro { text-transform: uppercase; }
+
+/* La duración del video («15 s») queda como está: la `s` de segundos es un símbolo de unidad
+   y en mayúscula significa otra cosa. Es el único texto donde la mayúscula cambiaría el
+   significado y no sólo la forma. */
+body.g1 .btn-video small { text-transform: none; }
+body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
+
+/* ── LA MARCA DEL ERROR TIENE QUE QUEDARSE ──────────────────────────────────────
+   14-ago-2026. La única señal de que tocaste mal era `animation: sacudir .4s`. A los
+   0,4 s no queda nada: el chico que mira para otro lado —o que vuelve la vista un
+   segundo tarde— no ve NADA. Y peor: el bloque `prefers-reduced-motion` de más abajo
+   pone todas las animaciones en 0,01 ms, así que con esa preferencia activada el error
+   directamente no se avisa.
+   Ahora la marca PERSISTE hasta la ronda siguiente, y va por tres canales a la vez
+   —color, borde grueso y un signo—, no sólo por color: el chico que no distingue el
+   rojo ve igual el borde y la ✗. Es la misma regla que ya cumple `Ejemplo` en las
+   lecciones (color + glifo + texto) y que no se había propagado hasta acá. */
+.op-texto.bien, .op.bien { background: var(--ok); color: #fff; }
+.op-texto.casi, .op.casi { animation: sacudir .4s ease; }
+.op-texto.bien, .op-texto.casi, .op.bien, .op.casi { position: relative; }
+.op-texto.casi, .op.casi {
+  box-shadow: inset 0 0 0 3px var(--tocada), var(--sombra);
+  opacity: .72;
+}
+.op-texto.bien::after, .op.bien::after,
+.op-texto.casi::after, .op.casi::after {
+  position: absolute; top: -8px; right: -8px; width: 26px; height: 26px;
+  border-radius: 50%; display: grid; place-items: center;
+  font-family: Archivo, sans-serif; font-size: 15px; font-weight: 800; line-height: 1;
+}
+.op-texto.bien::after, .op.bien::after { content: "✓"; background: var(--ok); color: #fff; }
+.op-texto.casi::after, .op.casi::after { content: "↻"; background: var(--tocada); color: #fff;
+  font-size: 17px; }
 
 /* ── La cuenta paso a paso (división por aproximaciones — M6 4° / M7 5°) ── */
 .cuenta { text-align: center; }
@@ -785,8 +924,12 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 
 /* filas de sprites genéricas (patrón, distinto, tamaño, más/menos, sumas) */
 .filaSprites { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+/* min-height (20-ago-2026): las de 1.º a 3.º miden 60-68 px, pero las de clasificar de
+   4.º para arriba caían a 40-42 — por debajo del piso de 44 que fija esta misma auditoría.
+   Es un piso, no un alto: las grandes no se tocan. Medido en las 26 actividades que la
+   usan: cero desbordes nuevos, cero scroll lateral. */
 .spriteBtn { border: none; background: var(--card); border-radius: var(--radio-chico); box-shadow: var(--sombra);
-  cursor: pointer; padding: 10px; transition: transform .12s; }
+  cursor: pointer; padding: 10px; transition: transform .12s; min-height: 44px; }
 .spriteBtn:active { transform: scale(.92); }
 /* suma rápida (14-jul-2026): la burbuja tocada primero queda marcada
    mientras se espera la segunda */

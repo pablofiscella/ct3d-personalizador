@@ -9,6 +9,7 @@ NO editar el .js a mano: se pisa en la próxima corrida. La fuente es
 `actividades_curriculum.py`, donde una actividad es UNA entrada de datos.
 """
 import json
+import json
 
 import actividades_curriculum as cur
 
@@ -25,6 +26,14 @@ out = [
     "   entrada de datos, con el contenido del DC y el documento del que salió).\n"
     "   Se carga DESPUÉS de player.js porque registra sobre GAMES. */\n",
 ]
+
+# Las actividades donde la CAJA de la letra es el contenido: 1.º se ve en imprenta
+# mayúscula, pero «Parejas de letras» pide justamente la minúscula de una letra y
+# «Mayúscula y punto» pregunta cuál oración está bien escrita. La excepción viaja
+# con el dato, al lado del DC que la justifica, y no en una lista suelta del player.
+out.append("const CAJA_IMPORTA = new Set(%s);"
+           % json.dumps([a["id"] for a in cur.CATALOGO if a.get("caja")],
+                        ensure_ascii=False))
 
 for a in cur.CATALOGO:
     out.append("/* %d° · %s — %s\n   DC: %s\n   Fuente: %s */"
