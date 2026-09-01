@@ -139,6 +139,27 @@ entero → cold render de 40-70s**. Tres capas para que eso NO enlentezca la tie
 Si algún preview tarda de golpe, es un cold render (cache vencido/borrado): warmealo
 pidiendo la URL, o corré `systemctl start ct3d-preview-warm.service`.
 
+### El arranque del motor y la tipografía (31-ago-2026)
+
+**Cada reinicio del motor costaba ~1 hora de caída.** Causa: `_font` buscaba el `.ttf` con
+`glob.glob(f"{KIT}/**/Fredoka*.ttf", recursive=True)` **en cada pedido de letra** — una
+hoja de calendario llama a `_font` 39 veces y se comía 6,9 de sus 7,3 segundos globeando.
+Como `_warm_calendarios_al_iniciar` encola 288 hojas contra el propio motor, quedaba al
+143% de CPU sin completar ningún render. Arreglado memoizando en los 16 módulos que
+repetían el glob (guardián: `tests/test_fuente_se_busca_una_sola_vez.py`).
+
+**Lo que hay que llevarse de esto, más que el arreglo:**
+
+- **El costo depende del tamaño del árbol y crece solo.** Producción camina 42.162
+  archivos por glob (0,20s); el espejo dev, 12.664 (0,07s). Por eso **este tipo de
+  defecto no aparece en dev** aunque el código sea idéntico: probar en dev no dice nada
+  sobre problemas que escalan con el volumen de datos.
+- **`glob` con `**` no baja a directorios ocultos**, así que `.git`, `.cache` y los
+  worktrees de `.claude/` no se recorren. Útil para estimar el costo real.
+- Si el motor vuelve a quedar al palo, **mirá los stacks antes de reiniciar**:
+  `py-spy dump --pid $(systemctl show -p MainPID --value ct3d-kit)`. Reiniciar borra la
+  evidencia y el cuelgue vuelve igual.
+
 ## El espejo DEV (28-jul-2026) — probar antes de tocar el vivo
 
 > **REGLA DE PABLO (28-jul-2026): se trabaja SIEMPRE en el dev. A producción se sube SÓLO
