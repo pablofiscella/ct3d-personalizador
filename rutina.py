@@ -25,8 +25,31 @@ SOLY = (240, 170, 40)            # amarillo sol (mañana)
 NOCHE = (74, 86, 140)            # azul noche
 
 
+# La tipografia se resuelve UNA vez por proceso, no en cada llamada (31-ago-2026).
+#
+# `glob.glob(f"{KIT}/**/Fredoka*.ttf", recursive=True)` camina el arbol entero del
+# proyecto — ~42.000 entradas — y estaba adentro de _font, o sea una vez por CADA
+# pedido de letra. Medido con el motor caido: una hoja de calendario llama a _font 39
+# veces y el glob se comia 6,9 de sus 7,3 segundos (95%). Como el arranque encola ~576
+# hojas de warm, el motor quedaba al 143% de CPU sin completar NINGUN render (cero
+# archivos escritos en 20 minutos) y /health no contestaba.
+#
+# El .ttf no se mueve mientras el proceso vive. Los dos candidatos que hay
+# (fonts/ y web/fonts/) son el MISMO archivo (mismo md5), asi que ordenarlos no
+# cambia cual gana; se ordena para que sea determinista. Si dos hilos entran a la vez
+# el peor caso es que ambos globeen una vez: el resultado es el mismo, no hace falta lock.
+_FREDOKA = None
+
+
+def _fuentes_fredoka():
+    global _FREDOKA
+    if _FREDOKA is None:
+        _FREDOKA = sorted(glob.glob(f"{KIT}/**/Fredoka*.ttf", recursive=True))
+    return _FREDOKA
+
+
 def _font(sz, bold=True):
-    for p in glob.glob(f"{KIT}/**/Fredoka*.ttf", recursive=True):
+    for p in _fuentes_fredoka():
         try:
             f = ImageFont.truetype(p, sz)
             try: f.set_variation_by_axes([700 if bold else 500])
