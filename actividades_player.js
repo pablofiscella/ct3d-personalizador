@@ -5406,6 +5406,20 @@ function senoCurso() {
   return (c && c !== "1") ? c : null;
 }
 
+/* `?seno=EJEMPLO` es la MUESTRA PÚBLICA: se puede arrastrar y probar todo, pero no se
+   guarda nada.
+
+   Pablo, 04-sep-2026, pidiendo el botón para la web: *"que te lleve a una muestra que no
+   grabe nada. Porque es bien genérico para muchas escuelas"*. Tiene razón y era un defecto
+   real: el cuaderno de muestra es UNO, así que veinte escuelas mirando la demo escribían
+   todas en la misma clave y se pisaban entre sí. Ninguna lo aplicaba a nadie, pero dejaba
+   basura y hacía que la demo mostrara el orden que había dejado el anterior. */
+const SENO_EJEMPLO = "EJEMPLO";
+
+function senoEsMuestra() {
+  return senoCurso() === SENO_EJEMPLO;
+}
+
 /* La muestra es UNA actividad, no una puerta al grado entero.
    Pablo (26-jul-2026): "cuando entras a probar una actividad y pones atrás tenés acceso a
    todas las actividades de cuarto grado. Creo que desde la página no debería poder ir para
@@ -6242,6 +6256,7 @@ function _senoArmar(stage) {
     return;
   }
 
+  const muestra = senoEsMuestra();
   _senoNota(stage);
 
   // LA BARRA VA A TODO EL ANCHO, como el header (Pablo, 04-sep-2026: *"el banner de abajo
@@ -6266,14 +6281,21 @@ function _senoArmar(stage) {
   // la barra mide más que eso.
   stage.style.paddingBottom = "calc(124px + env(safe-area-inset-bottom))";
 
-  const guardar = el("button", "", "Guardar este orden");
+  // En la MUESTRA PÚBLICA no hay botón de guardar: no se guarda nada, y un botón que no
+  // hace lo que dice es peor que no estar. Se explica en su lugar, con el mismo peso.
+  const guardar = el("button", "",
+                     muestra ? "Es una muestra: no se guarda" : "Guardar este orden");
   guardar.style.cssText =
-    "min-height:48px;padding:0 22px;border:0;border-radius:14px;cursor:pointer;" +
-    "font:700 16px Archivo,system-ui,sans-serif;background:var(--ac2);color:#fff";
+    "min-height:48px;padding:0 22px;border:0;border-radius:14px;" +
+    "font:700 16px Archivo,system-ui,sans-serif;" +
+    (muestra
+      ? "background:transparent;color:#666;cursor:default;box-shadow:inset 0 0 0 2px #ccc"
+      : "background:var(--ac2);color:#fff;cursor:pointer");
+  if (muestra) guardar.setAttribute("aria-disabled", "true");
   const estado = el("span");
   estado.id = "senoEstado";
   estado.style.cssText = "font:14px Archivo,system-ui,sans-serif;color:#555";
-  guardar.addEventListener("click", () => _senoGuardar(guardar, estado));
+  if (!muestra) guardar.addEventListener("click", () => _senoGuardar(guardar, estado));
   barra.appendChild(guardar);
   barra.appendChild(estado);
   document.body.appendChild(barra);
@@ -6345,6 +6367,7 @@ function _senoQuieto(fn) {
 
 function _senoTour(stage) {
   if (_senoTourVisto()) return;
+  if (document.getElementById("senoTour")) return;   // ya hay uno abierto
   const cartas = stage.querySelectorAll(".carta");
   const barra = document.getElementById("senoBarra");
   if (cartas.length < 2 || !barra) return;           // pantalla incompleta: no hay tour
@@ -6356,9 +6379,12 @@ function _senoTour(stage) {
     { el: cartas[1], titulo: "Tocá para probar",
       texto: "Un toque abre la actividad y la podés jugar, para saber qué le vas a dar "
              + "a tus alumnos antes de decidir dónde va." },
-    { el: barra, titulo: "Guardá cuando termines",
-      texto: "Esto guarda tu orden acá. Después, en la pantalla del curso, se lo pasás "
-             + "a tus alumnos." },
+    { el: barra, titulo: senoEsMuestra() ? "Acá no se guarda" : "Guardá cuando termines",
+      texto: senoEsMuestra()
+        ? "Ésta es una muestra: movelas y probalas todo lo que quieras. Con el código de "
+          + "tu curso, el orden que armes les llega a tus alumnos."
+        : "Esto guarda tu orden acá. Después, en la pestaña de tu curso, se lo pasás a "
+          + "tus alumnos." },
   ];
 
   const lento = window.matchMedia &&
@@ -6466,7 +6492,25 @@ function _senoNota(stage) {
   nota.innerHTML =
     "<b>Éste es el cuaderno tal cual lo ve el chico.</b><br>" +
     "Arrastrá una tarjeta para moverla de lugar dentro de su materia, " +
-    "o tocala para probar la actividad.";
+    "o tocala para probar la actividad." +
+    (senoEsMuestra()
+      ? "<br><br><b>Es una muestra:</b> movelas y probalas todo lo que quieras, " +
+        "no se guarda nada."
+      : "") +
+    // VOLVER A VER LA AYUDA. Pablo: *"quiero volver a ver la ayuda, supongo que tenés que
+    // borrar el local storage"*. Tenía razón en el diagnóstico, y ésa es exactamente la
+    // razón por la que hace falta el link: el recorrido se ve una vez y para repetirlo hay
+    // que borrar una clave del navegador, que no es algo que se le pueda pedir a nadie.
+    ' <a href="#" data-verayuda style="color:var(--ac2);font-weight:700">' +
+    "Ver la ayuda de nuevo</a>";
+  const rever = nota.querySelector("[data-verayuda]");
+  if (rever) {
+    rever.addEventListener("click", (e) => {
+      e.preventDefault();
+      try { localStorage.removeItem(SENO_TOUR_KEY); } catch (err) {}
+      _senoTour(stage);
+    });
+  }
   stage.insertBefore(nota, stage.firstChild);
 }
 

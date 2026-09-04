@@ -1875,6 +1875,14 @@ def _orden_seno_sano(pedido, previo, menu):
 #: Cómo se llama un CURSO en la clave del borrador. Se sanea porque viene de la URL.
 _CURSO_RE = re.compile(r"^[A-Za-z0-9_-]{1,40}$")
 
+#: El curso RESERVADO de la muestra pública. `?seno=EJEMPLO` es el link que Kydo publica en
+#: su web para que cualquier escuela vea cómo funciona: se puede arrastrar y probar todo,
+#: pero no se guarda nada. El player ya no ofrece el botón de guardar en ese modo; esto es
+#: la segunda cerradura, del lado del servidor, porque el link es público y el cuerpo del
+#: POST lo escribe quien quiera. Sin ella, veinte escuelas mirando la demo escribirían todas
+#: en la misma clave del único cuaderno de muestra.
+CURSO_MUESTRA = "EJEMPLO"
+
 
 def _curso_sano(curso):
     c = str(curso or "").strip().upper()
@@ -1924,6 +1932,12 @@ def orden_seno_guardar(token, ids, curso=None):
         return {"ok": False, "error": "token inexistente"}
     limpio = _orden_seno_sano(ids, None, dj.get("menu") or [])
     c = _curso_sano(curso)
+    if c == CURSO_MUESTRA:
+        # LA MUESTRA PÚBLICA NO GUARDA NADA, y se corta ACÁ y no en `_curso_sano`: si esa
+        # función devolviera `None`, el pedido caería en el camino «sin curso» y escribiría
+        # en `orden_seno`, o sea que le cambiaría el cuaderno de muestra A TODO EL MUNDO.
+        # Sería peor que el problema que se está tapando.
+        return {"ok": True, "ids": limpio, "curso": c, "guardado": False}
     if c:
         cursos = dj.get("orden_seno_cursos")
         if not isinstance(cursos, dict):

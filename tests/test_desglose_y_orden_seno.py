@@ -377,3 +377,55 @@ def test_sin_curso_sigue_guardando_el_orden_del_chico(token):
     ids = [m["id"] for m in d["menu"]][:3]
     aw.orden_seno_guardar(token, ids)
     assert aw.orden_seno_leer(token) == ids
+
+
+# ── la MUESTRA PÚBLICA no guarda nada ────────────────────────────────────────
+
+def test_la_muestra_publica_no_guarda_NADA(token):
+    """Pablo, pidiendo el botón para la web de Kydo: *"que te lleve a una muestra que no
+    grabe nada. Porque es bien genérico para muchas escuelas"*. El cuaderno de muestra es
+    UNO, así que veinte escuelas mirando la demo escribirían todas en la misma clave."""
+    d = json.load(open(os.path.join(aw.ACT_DIR, token, "data.json"), encoding="utf-8"))
+    ids = [m["id"] for m in d["menu"]][:3]
+    aw.orden_seno_guardar(token, [])                      # se parte de cero
+    r = aw.orden_seno_guardar(token, ids, curso=aw.CURSO_MUESTRA)
+    assert r["ok"] and r["guardado"] is False
+    assert aw.orden_seno_leer(token, aw.CURSO_MUESTRA) == [], "guardó el borrador de la demo"
+
+
+def test_la_muestra_NO_cae_al_camino_sin_curso(token):
+    """LA trampa de este arreglo, y sería peor que el problema: si «EJEMPLO» se descartara
+    como curso inválido, el pedido caería en la rama «sin curso» y escribiría en
+    `orden_seno` — o sea que le cambiaría el cuaderno de muestra A TODO EL MUNDO."""
+    d = json.load(open(os.path.join(aw.ACT_DIR, token, "data.json"), encoding="utf-8"))
+    ids = [m["id"] for m in d["menu"]][:3]
+    aw.orden_seno_guardar(token, [])
+    aw.orden_seno_guardar(token, ids, curso=aw.CURSO_MUESTRA)
+    assert aw.orden_seno_leer(token) == [], \
+        "la demo terminó cambiándole el cuaderno de muestra a todo el mundo"
+
+
+def test_un_curso_de_verdad_SI_guarda(token):
+    """El control: el corte es sólo para la clave reservada."""
+    d = json.load(open(os.path.join(aw.ACT_DIR, token, "data.json"), encoding="utf-8"))
+    ids = [m["id"] for m in d["menu"]][:3]
+    r = aw.orden_seno_guardar(token, ids, curso="4A")
+    assert r["ok"] and aw.orden_seno_leer(token, "4A") == ids
+
+
+def test_el_player_no_ofrece_guardar_en_la_muestra():
+    """Un botón que no hace lo que dice es peor que no estar."""
+    js = _player()
+    assert "function senoEsMuestra()" in js
+    assert 'if (!muestra) guardar.addEventListener' in js, \
+        "en la muestra el botón de guardar sigue enganchado"
+    assert "Es una muestra: no se guarda" in js
+
+
+def test_se_puede_volver_a_ver_la_ayuda():
+    """Pablo: *"quiero volver a ver la ayuda, supongo que tenés que borrar el local
+    storage"*. Ése es justamente el motivo del link: el recorrido se ve una vez y repetirlo
+    exigía borrar una clave del navegador, que no se le puede pedir a nadie."""
+    js = _player()
+    assert "data-verayuda" in js, "no hay forma de volver a ver la ayuda"
+    assert "localStorage.removeItem(SENO_TOUR_KEY)" in js
