@@ -6212,26 +6212,49 @@ function pintarMenuPlano(items, stage) {
    ── */
 
 /* Cartel de arriba + barra de guardar. Se arma después de pintar el menú, sobre el menú
-   real: no hay una segunda vista que mantener en sincronía con la del chico. */
+   real: no hay una segunda vista que mantener en sincronía con la del chico.
+
+   Corre CADA VEZ que se pinta el menú —también al volver de probar una actividad—, así que
+   el cartel y el arrastre se rehacen sobre las cartas nuevas. La barra, en cambio, vive en
+   el `<body>` y se reusa: se crea una vez y acá sólo se vuelve a mostrar. */
 function _senoArmar(stage) {
-  if (!stage || document.getElementById("senoBarra")) return;
+  if (!stage) return;
 
-  const nota = el("div");
-  nota.id = "senoNota";
-  nota.style.cssText =
-    "background:#fff;border:2px solid var(--ac2);border-radius:16px;padding:13px 16px;" +
-    "margin:0 0 14px;font:15px/1.45 Archivo,system-ui,sans-serif;color:#333";
-  nota.innerHTML =
-    "<b>Éste es el cuaderno tal cual lo ve el chico.</b><br>" +
-    "Arrastrá una tarjeta para moverla de lugar dentro de su materia, " +
-    "o tocala para probar la actividad.";
-  stage.insertBefore(nota, stage.firstChild);
+  const yaHay = document.getElementById("senoBarra");
+  if (yaHay) {
+    // Volvimos al menú desde una actividad: la barra reaparece y el arrastre se engancha a
+    // las cartas NUEVAS (las de antes se fueron con el `innerHTML = ""` de la pantalla).
+    yaHay.style.display = "flex";
+    stage.style.paddingBottom = "calc(124px + env(safe-area-inset-bottom))";
+    _senoNota(stage);
+    _senoArrastre(stage);
+    return;
+  }
 
+  _senoNota(stage);
+
+  // LA BARRA VA A TODO EL ANCHO, como el header (Pablo, 04-sep-2026: *"el banner de abajo
+  // que ocupe toda la pantalla como el header"*). Antes era `sticky` DENTRO del `#stage`,
+  // que está limitado a 1020px y centrado: en una pantalla ancha quedaba una franja
+  // flotando en el medio en vez de leerse como parte del cuaderno.
+  //
+  // `fixed` y colgada del `<body>`: un `sticky` no puede salirse de su contenedor, y
+  // `left:0;right:0` se mide contra el contenedor posicionado más cercano. Lleva el mismo
+  // vidrio esmerilado y el mismo filete que `#hdr` —sólo que arriba— para que se lean como
+  // la misma pieza arriba y abajo.
   const barra = el("div");
   barra.id = "senoBarra";
   barra.style.cssText =
-    "position:sticky;bottom:0;z-index:50;display:flex;flex-wrap:wrap;gap:10px;" +
-    "align-items:center;padding:12px 0;margin-top:16px;background:var(--bg,#fff)";
+    "position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;flex-wrap:wrap;" +
+    "gap:10px;align-items:center;justify-content:center;" +
+    "padding:12px 16px calc(12px + env(safe-area-inset-bottom));" +
+    "background:color-mix(in srgb,var(--bg) 88%,transparent);" +
+    "backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);" +
+    "box-shadow:inset 0 1px 0 color-mix(in srgb,var(--ink) 10%,transparent)";
+  // Aire abajo para que la última fila de cartas no quede tapada: `#stage` reserva 72px y
+  // la barra mide más que eso.
+  stage.style.paddingBottom = "calc(124px + env(safe-area-inset-bottom))";
+
   const guardar = el("button", "", "Guardar este orden");
   guardar.style.cssText =
     "min-height:48px;padding:0 22px;border:0;border-radius:14px;cursor:pointer;" +
@@ -6242,9 +6265,39 @@ function _senoArmar(stage) {
   guardar.addEventListener("click", () => _senoGuardar(guardar, estado));
   barra.appendChild(guardar);
   barra.appendChild(estado);
-  stage.appendChild(barra);
+  document.body.appendChild(barra);
+
+  // AL ABRIR UNA ACTIVIDAD LA BARRA SE ESCONDE. Vive en el `<body>`, así que si no se
+  // esconde queda flotando encima del juego que la maestra fue a probar. Se envuelve
+  // `Shell.abrir` UNA sola vez y sólo en modo seño: el camino de todos los cuadernos no se
+  // toca. Al volver al menú, `_senoArmar` la muestra de nuevo.
+  if (!Shell._senoEnvuelto) {
+    Shell._senoEnvuelto = true;
+    const abrirOriginal = Shell.abrir.bind(Shell);
+    Shell.abrir = function (id) {
+      const b = document.getElementById("senoBarra");
+      if (b) b.style.display = "none";
+      return abrirOriginal(id);
+    };
+  }
 
   _senoArrastre(stage);
+}
+
+/* El cartel que explica de qué se trata. Se rehace en cada pintada del menú porque el
+   stage se vacía entero al abrir una actividad. */
+function _senoNota(stage) {
+  if (document.getElementById("senoNota")) return;
+  const nota = el("div");
+  nota.id = "senoNota";
+  nota.style.cssText =
+    "background:#fff;border:2px solid var(--ac2);border-radius:16px;padding:13px 16px;" +
+    "margin:0 0 14px;font:15px/1.45 Archivo,system-ui,sans-serif;color:#333";
+  nota.innerHTML =
+    "<b>Éste es el cuaderno tal cual lo ve el chico.</b><br>" +
+    "Arrastrá una tarjeta para moverla de lugar dentro de su materia, " +
+    "o tocala para probar la actividad.";
+  stage.insertBefore(nota, stage.firstChild);
 }
 
 /* El orden que quedó en pantalla: TODAS las materias seguidas, en el orden en que están
