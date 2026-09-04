@@ -6285,6 +6285,22 @@ async function _senoGuardar(boton, estado) {
      abre la actividad. Se distinguen por el gesto: si el dedo se movió menos de 8px, fue
      un toque y se abre; si se movió más, fue un arrastre y no se abre. Sin ese umbral,
      probar una tarjeta era imposible en el celular — cualquier temblor la movía. */
+/* Deja la carta pegada al puntero, calculando el translate contra la posición REAL de su
+   slot. No acumula nada: `arr.dx` es el translate que está puesto, así que
+   `r.left - arr.dx` es la posición natural del slot donde la carta está AHORA. Si acaba de
+   saltar de lugar, la base cambió y la cuenta se corrige sola.
+
+   Se llama en dos momentos y los dos hacen falta: en cada movimiento del dedo, y otra vez
+   justo después de un intercambio —si no, queda un frame con la carta corrida un ancho de
+   tarjeta, que es lo que se ve como un salto al costado. */
+function _senoPegar(arr, px, py) {
+  const r = arr.c.getBoundingClientRect();
+  arr.dx = px - arr.agarreX - (r.left - arr.dx);
+  arr.dy = py - arr.agarreY - (r.top - arr.dy);
+  arr.c.style.transition = "none";
+  arr.c.style.transform = `translate(${arr.dx}px,${arr.dy}px)`;
+}
+
 function _senoArrastre(stage) {
   const UMBRAL = 8;                       // px: menos que esto es un toque, no un arrastre
   const lento = window.matchMedia &&
@@ -6367,12 +6383,7 @@ function _senoArrastre(stage) {
     //
     // Se sacó el `scale(1.04)`: escalaba la caja y ensuciaba justamente esta medición. El
     // efecto de «levantada» lo da la sombra, que no toca la geometría.
-    const r = arr.c.getBoundingClientRect();
-    const baseX = r.left - arr.dx, baseY = r.top - arr.dy;
-    arr.dx = ev.clientX - arr.agarreX - baseX;
-    arr.dy = ev.clientY - arr.agarreY - baseY;
-    arr.c.style.transition = "none";
-    arr.c.style.transform = `translate(${arr.dx}px,${arr.dy}px)`;
+    _senoPegar(arr, ev.clientX, ev.clientY);
 
     // ── LAS DOS GUARDAS CONTRA LA VIBRACIÓN ──────────────────────────────────
     // Pablo, 04-sep-2026: *"hay momentos en los que entran en una vibración"*. Medido con
@@ -6416,10 +6427,12 @@ function _senoArrastre(stage) {
       arr.g.insertBefore(arr.c, destino);
     }
     animar(hermanos, antes);
-    // NO se reancla nada acá. El `pointermove` recalcula el translate desde la posición
-    // real del slot en cada movimiento, así que el salto de lugar se absorbe solo. El
-    // reanclaje que había —sumarle el salto a un origen guardado— es justo lo que
-    // despegaba la carta del puntero cuando cambiaba de fila.
+    // VOLVER A PEGARLA AL PUNTERO **EN ESTE MISMO FRAME**. El swap le cambió la base a la
+    // carta —en una grilla, cambiar de fila la corre 177px en X— y el translate que tiene
+    // puesto es el de la base anterior. Recalcularlo recién en el `pointermove` siguiente
+    // deja UN frame con la carta corrida un ancho de tarjeta: medido, y es exactamente el
+    // «se va dos tarjetas al costado y el puntero queda en otro lado» que reportó Pablo.
+    _senoPegar(arr, ev.clientX, ev.clientY);
   }, { passive: false });
 
   function soltar() {
