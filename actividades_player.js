@@ -6141,9 +6141,25 @@ function pintarMenuPlano(items, stage) {
     }
     stage.appendChild(_botonModoProfe());   // Modo Creador (el diferencial: crear, no solo resolver)
     const EMOJI = { lengua: "✏️", matematica: "🔢", naturales: "🌱", sociales: "🌎", logica: "🎲" };
+    // EL ORDEN QUE ARMÓ LA MAESTRA gana sobre la recomendación del motor (Pablo,
+    // 04-sep-2026: *"que la profe pueda ordenar las tarjetas como creo que las tiene que
+    // ver el alumno"*). Manda ella y no a medias: si el motor pudiera reacomodarle las
+    // tarjetas por encima, lo que la seño ordenó en su panel no sería lo que el chico ve,
+    // y el panel estaría mintiendo. Lo que el motor SÍ sigue haciendo es marcar con su
+    // etiqueta (🔁 Repasá, ✨ Recomendado) — sólo deja de reordenar.
+    //
+    // Lo que la maestra no ubicó va después, en el orden de siempre: una lista parcial no
+    // puede esconderle al chico el resto del cuaderno.
+    // Sin `orden_seno` —todo cuaderno entregado hasta hoy— el orden es exactamente el de
+    // antes, que es la razón de que esto se pueda soltar a links ya vendidos.
+    const ordSeno = Array.isArray(D.orden_seno) ? D.orden_seno : [];
+    const posSeno = new Map(ordSeno.map((id, i) => [id, i]));
+    const ordenar = posSeno.size
+      ? (a, b) => (posSeno.has(a.id) ? posSeno.get(a.id) : 1e6 + Adapt.peso(a.id)) -
+                  (posSeno.has(b.id) ? posSeno.get(b.id) : 1e6 + Adapt.peso(b.id))
+      : (a, b) => Adapt.peso(a.id) - Adapt.peso(b.id);
     Adapt.ordenCategorias().forEach((cat) => {
-      const delCat = visibles.filter((m) => Adapt.categoria(m.id) === cat)
-                             .sort((a, b) => Adapt.peso(a.id) - Adapt.peso(b.id));
+      const delCat = visibles.filter((m) => Adapt.categoria(m.id) === cat).sort(ordenar);
       if (!delCat.length) return;                    // categoría vacía en este grado → no se muestra
       // la clase por materia le da el color de la marca al título (ver _adaptCSS)
       stage.appendChild(el("h3", "cat-titulo cat-" + cat,

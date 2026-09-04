@@ -1848,6 +1848,61 @@ def catalogo_actividades():
     return out
 
 
+def _orden_seno_sano(pedido, previo, menu):
+    """La lista de ids que ordenó la maestra, saneada contra el menú REAL del token.
+
+    Se queda con los ids que existen en este cuaderno y en el orden pedido; lo que la
+    maestra no ubicó queda afuera de la lista y el player lo pinta después, en el orden de
+    siempre. Así una lista parcial (ordenó Matemática y nada más) no le esconde el resto
+    del cuaderno al chico — que es lo que pasaría si el player tratara «no está en la
+    lista» como «no va».
+
+    `pedido` gana sobre `previo`: `None` es "no me mandaron nada, dejá lo que había", y
+    una lista vacía es "la maestra deshizo su orden", que son cosas distintas.
+    """
+    crudo = pedido if isinstance(pedido, list) else (
+        previo if isinstance(previo, list) else [])
+    validos = {m.get("id") for m in menu if isinstance(m, dict)}
+    out, vistos = [], set()
+    for x in crudo[:300]:
+        i = str(x)[:60]
+        if i in validos and i not in vistos:
+            vistos.add(i)
+            out.append(i)
+    return out
+
+
+def orden_seno_leer(token):
+    """[ids] con el orden que dejó la maestra, o [] si nunca ordenó. Nunca lanza."""
+    try:
+        d = json.load(open(os.path.join(ACT_DIR, token, "data.json"), encoding="utf-8"))
+        o = d.get("orden_seno")
+        return [str(x)[:60] for x in o] if isinstance(o, list) else []
+    except Exception:
+        return []
+
+
+def orden_seno_guardar(token, ids):
+    """Guarda el orden de la maestra en el `data.json` del token.
+
+    Va en `data.json` y no en un archivo aparte porque es lo que el player ya se baja: sin
+    esto habría que agregarle un fetch más al arranque del cuaderno, en un teléfono de
+    escuela con la conexión que hay. Lo escribe la TIENDA server-to-server desde el panel
+    del docente.
+    """
+    p = os.path.join(ACT_DIR, token, "data.json")
+    try:
+        dj = json.load(open(p, encoding="utf-8"))
+    except Exception:
+        return {"ok": False, "error": "token inexistente"}
+    dj["orden_seno"] = _orden_seno_sano(ids, None, dj.get("menu") or [])
+    tmp = p + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(dj, f, ensure_ascii=False)
+    os.replace(tmp, p)          # el player puede estar leyéndolo justo ahora
+    return {"ok": True, "ids": dj["orden_seno"]}
+
+
 def _extras_path(token):
     return os.path.join(ACT_DIR, token, "extras.json")
 
@@ -2296,6 +2351,15 @@ def crear(data, tema, token=None):
     # siempre, así los cuadernos ya entregados no cambian. Se PRESERVA al regenerar.
     dj["biblioteca_url"] = (str(data.get("biblioteca_url") or "").strip()[:200]
                             or _prev.get("biblioteca_url") or "")
+    # EL ORDEN QUE ARMÓ LA MAESTRA (Pablo, 04-sep-2026: *"que la profe pueda ordenar las
+    # tarjetas como creo que las tiene que ver el alumno"*). Lista de ids de actividad; el
+    # player pinta en ese orden dentro de cada materia. Vacío → el orden de siempre, así
+    # que los cuadernos ya entregados no cambian solos.
+    #
+    # Se PRESERVA al regenerar como el resto: el trabajo de la docente no es un dato del
+    # padrón, es trabajo, y re-armar el token no puede borrarlo.
+    dj["orden_seno"] = _orden_seno_sano(data.get("orden_seno"),
+                                        _prev.get("orden_seno"), dj.get("menu") or [])
     with open(os.path.join(d, "data.json"), "w", encoding="utf-8") as f:
         json.dump(dj, f, ensure_ascii=False)
 
