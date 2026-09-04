@@ -7058,6 +7058,13 @@ function modoMaestro() {
    viejo, que es peor que no restaurar nada. */
 async function recuperarProgresoDelServidor() {
   try {
+    // LA MUESTRA PÚBLICA ARRANCA LIMPIA. Sin esto, la escuela que abre la demo hereda el
+    // progreso que dejó la anterior —el cuaderno de muestra es uno solo— y ve estrellas y
+    // sellos de «Dominado» en tarjetas que nadie de su escuela tocó. Producción ya tenía
+    // cuatro perfiles ahí de gente que probó.
+    //
+    // Es la otra mitad de lo mismo que `_enviarProgreso`: la muestra ni escribe ni lee.
+    if (senoEsMuestra()) return;
     if (Object.keys(Store.data.profiles || {}).length) return;   // ya hay algo local
     const r = await fetch("progreso", { cache: "no-store" });
     if (!r.ok) return;
@@ -7086,6 +7093,16 @@ async function recuperarProgresoDelServidor() {
 function _enviarProgreso() {
   try {
     if (!D.adaptativo_on || typeof Adapt === "undefined") return;
+    // LA MUESTRA PÚBLICA NO ESCRIBE NADA EN EL SERVIDOR (04-sep-2026). El cuaderno de
+    // muestra es UNO y en modo seño todos entran con el mismo perfil («Invitado»), así que
+    // el progreso de una escuela le quedaba a la siguiente: la segunda directora abría la
+    // demo y veía estrellas y sellos de «Dominado» en tarjetas que nadie de su escuela
+    // tocó. Se descubrió al mirar el `progreso.json` de producción, que ya tenía cuatro
+    // perfiles acumulados de gente que probó.
+    //
+    // El progreso sigue guardándose en el navegador de quien mira —así puede jugar—; lo
+    // que no viaja es al servidor. Es la misma regla que el orden en `_senoGuardar`.
+    if (senoEsMuestra()) return;
     const perfil = Store.data.activeProfile;
     if (!perfil) return;
     // Nivel de dificultad por actividad: es lo que el padre necesita para ver si el chico

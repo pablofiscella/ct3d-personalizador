@@ -429,3 +429,22 @@ def test_se_puede_volver_a_ver_la_ayuda():
     js = _player()
     assert "data-verayuda" in js, "no hay forma de volver a ver la ayuda"
     assert "localStorage.removeItem(SENO_TOUR_KEY)" in js
+
+
+def test_la_muestra_no_manda_el_progreso_al_servidor():
+    """El cuaderno de muestra es UNO y en modo seño todos entran como «Invitado», así que
+    el progreso de una escuela le quedaba a la siguiente. Se descubrió mirando el
+    `progreso.json` de producción, que ya tenía cuatro perfiles de gente que probó."""
+    js = _player()
+    i = js.index("function _enviarProgreso")
+    assert "if (senoEsMuestra()) return;" in js[i:i + 1200], \
+        "la muestra sigue escribiendo el progreso en el servidor"
+
+
+def test_la_muestra_arranca_limpia():
+    """La otra mitad: si lee el progreso del servidor, la escuela hereda las estrellas de
+    la anterior en tarjetas que nadie de su escuela tocó."""
+    js = _player()
+    i = js.index("async function recuperarProgresoDelServidor")
+    assert "if (senoEsMuestra()) return;" in js[i:i + 900], \
+        "la muestra sigue heredando el progreso de quien la abrió antes"
