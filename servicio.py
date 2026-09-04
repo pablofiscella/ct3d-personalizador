@@ -1305,6 +1305,14 @@ class Handler(BaseHTTPRequestHandler):
         m_prog = re.match(r"^/act/([A-Za-z0-9_-]+)/progreso$", path)
         if m_prog:
             return self._act_progreso_get(m_prog.group(1))
+        # el desglose TARJETA POR TARJETA, para el panel de la maestra (04-sep-2026)
+        m_desg = re.match(r"^/act/([A-Za-z0-9_-]+)/desglose$", path)
+        if m_desg:
+            return self._act_desglose_get(m_desg.group(1))
+        # el orden de las tarjetas que armó la maestra
+        m_ord = re.match(r"^/act/([A-Za-z0-9_-]+)/orden$", path)
+        if m_ord:
+            return self._act_orden_get(m_ord.group(1))
         # informe imprimible para la maestra (lo lleva la familia, no lo pide la escuela)
         m_inf = re.match(r"^/act/([A-Za-z0-9_-]+)/informe$", path)
         if m_inf:
@@ -1904,6 +1912,69 @@ class Handler(BaseHTTPRequestHandler):
         except Exception:
             data = {"profiles": {}}
         return self._json(200, data)
+
+    def _act_desglose_get(self, token):
+        """Qué hizo el chico en CADA TARJETA, para el panel de la maestra (04-sep-2026).
+
+        Lo pide la TIENDA server-to-server, igual que `/progreso`, y por eso no lleva auth:
+        el token ya es el secreto. La diferencia con `/progreso` es quién lo lee y para
+        qué — `/progreso` es el rollup por materia que ve el padre en su biblioteca, esto
+        es el detalle actividad por actividad que la maestra necesita para armar la clase.
+
+        Se puede acotar a un perfil con `?perfil=`: un cuaderno puede tener hermanos, y en
+        la pantalla del docente cada chico es una fila distinta.
+        """
+        import desglose as dg
+        try:
+            perfil = urllib.parse.parse_qs(
+                urllib.parse.urlparse(self.path).query).get("perfil", [None])[0]
+        except Exception:
+            perfil = None
+        try:
+            r = dg.desglose(token, perfil)
+        except Exception as e:
+            return self._json(500, {"ok": False, "error": str(e)[:200]})
+        if r is None:
+            return self._json(404, {"ok": False})
+        return self._json(200, r)
+
+    def _act_orden_get(self, token):
+        """El orden de tarjetas que armó la maestra: {"ids": [...]}. Vacío si nunca ordenó.
+
+        Con `?curso=` devuelve el BORRADOR de ese curso sobre el cuaderno de muestra; sin
+        él, el orden que rige el menú del chico. Ver `actividades_web.orden_seno_guardar`.
+        """
+        import actividades_web as aw
+        if not os.path.isdir(os.path.join(aw.ACT_DIR, token)):
+            return self._json(404, {"ok": False})
+        try:
+            curso = urllib.parse.parse_qs(
+                urllib.parse.urlparse(self.path).query).get("curso", [None])[0]
+        except Exception:
+            curso = None
+        return self._json(200, {"ok": True, "ids": aw.orden_seno_leer(token, curso)})
+
+    def _act_orden_set(self, token):
+        """La TIENDA manda el orden que la maestra armó arrastrando las tarjetas.
+
+        Server-to-server desde el panel del docente, igual que `extras`. El motor igual
+        sanea contra el menú real del token: el panel del curso ordena UNA lista para
+        todos los chicos, pero cada cuaderno tiene el menú de SU grado, así que un id que
+        acá no existe hay que descartarlo en vez de guardarlo y que el player tropiece.
+        """
+        import actividades_web as aw
+        if not os.path.isdir(os.path.join(aw.ACT_DIR, token)):
+            return self._json(404, {"ok": False})
+        try:
+            body = json.loads(self._body() or b"{}")
+        except Exception:
+            return self._json(400, {"ok": False})
+        if not isinstance(body, dict) or not isinstance(body.get("ids"), list):
+            return self._json(400, {"ok": False})
+        # `curso` lo manda el modo seño del player: separa el BORRADOR de cada división del
+        # orden que ve el chico. Sin él se guarda como antes.
+        r = aw.orden_seno_guardar(token, body["ids"], body.get("curso"))
+        return self._json(200 if r.get("ok") else 400, r)
 
     def _act_extras_get(self, token):
         """Actividades EXTRA que el padre eligió para ese token. Las lee la TIENDA (para
@@ -2562,6 +2633,10 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
         m_ext = re.match(r"^/act/([A-Za-z0-9_-]+)/extras$", path)
         if m_ext:
             return self._act_extras_set(m_ext.group(1))
+        # el orden de tarjetas que armó la maestra, desde el panel del docente
+        m_ord = re.match(r"^/act/([A-Za-z0-9_-]+)/orden$", path)
+        if m_ord:
+            return self._act_orden_set(m_ord.group(1))
         if path == "/duelo":
             return self._duelo_crear()
         m_dj = re.match(r"^/duelo/([A-Za-z0-9]{5})/jugue$", path)

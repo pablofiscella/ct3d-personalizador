@@ -1848,6 +1848,121 @@ def catalogo_actividades():
     return out
 
 
+def _orden_seno_sano(pedido, previo, menu):
+    """La lista de ids que ordenó la maestra, saneada contra el menú REAL del token.
+
+    Se queda con los ids que existen en este cuaderno y en el orden pedido; lo que la
+    maestra no ubicó queda afuera de la lista y el player lo pinta después, en el orden de
+    siempre. Así una lista parcial (ordenó Matemática y nada más) no le esconde el resto
+    del cuaderno al chico — que es lo que pasaría si el player tratara «no está en la
+    lista» como «no va».
+
+    `pedido` gana sobre `previo`: `None` es "no me mandaron nada, dejá lo que había", y
+    una lista vacía es "la maestra deshizo su orden", que son cosas distintas.
+    """
+    crudo = pedido if isinstance(pedido, list) else (
+        previo if isinstance(previo, list) else [])
+    validos = {m.get("id") for m in menu if isinstance(m, dict)}
+    out, vistos = [], set()
+    for x in crudo[:300]:
+        i = str(x)[:60]
+        if i in validos and i not in vistos:
+            vistos.add(i)
+            out.append(i)
+    return out
+
+
+#: Cómo se llama un CURSO en la clave del borrador. Se sanea porque viene de la URL.
+_CURSO_RE = re.compile(r"^[A-Za-z0-9_-]{1,40}$")
+
+#: El curso RESERVADO de la muestra pública. `?seno=EJEMPLO` es el link que Kydo publica en
+#: su web para que cualquier escuela vea cómo funciona: se puede arrastrar y probar todo,
+#: pero no se guarda nada. El player ya no ofrece el botón de guardar en ese modo; esto es
+#: la segunda cerradura, del lado del servidor, porque el link es público y el cuerpo del
+#: POST lo escribe quien quiera. Sin ella, veinte escuelas mirando la demo escribirían todas
+#: en la misma clave del único cuaderno de muestra.
+CURSO_MUESTRA = "EJEMPLO"
+
+
+def _curso_sano(curso):
+    c = str(curso or "").strip().upper()
+    return c if _CURSO_RE.match(c) else None
+
+
+def orden_seno_leer(token, curso=None):
+    """[ids] con el orden que dejó la maestra, o [] si nunca ordenó. Nunca lanza.
+
+    Con `curso` lee el BORRADOR de ESE curso; sin él, el orden que rige el menú del chico.
+    Ver `orden_seno_guardar` para por qué son dos cosas distintas.
+    """
+    try:
+        d = json.load(open(os.path.join(ACT_DIR, token, "data.json"), encoding="utf-8"))
+    except Exception:
+        return []
+    c = _curso_sano(curso)
+    o = ((d.get("orden_seno_cursos") or {}).get(c) if c else d.get("orden_seno"))
+    return [str(x)[:60] for x in o] if isinstance(o, list) else []
+
+
+def orden_seno_guardar(token, ids, curso=None):
+    """Guarda el orden de la maestra en el `data.json` del token.
+
+    Va en `data.json` y no en un archivo aparte porque es lo que el player ya se baja: sin
+    esto habría que agregarle un fetch más al arranque del cuaderno, en un teléfono de
+    escuela con la conexión que hay.
+
+    DOS DESTINOS DISTINTOS, y la diferencia importa (04-sep-2026):
+
+    · SIN `curso` → `orden_seno`: **el orden que el chico ve** en SU cuaderno. Lo escribe
+      la tienda, en el token de cada alumno, cuando la maestra se lo pasa al curso.
+    · CON `curso` → `orden_seno_cursos[<curso>]`: el BORRADOR de esa maestra sobre el
+      cuaderno de muestra del grado, mientras lo está armando.
+
+    POR QUÉ EL BORRADOR VA SEPARADO Y POR CURSO. El borrador vive en el cuaderno de MUESTRA
+    del grado, que es UNO por grado y además es **público** —es el que abre cualquiera
+    desde «probalo gratis»—. Guardándolo en `orden_seno` pasaban dos cosas: la seño de 4.º A
+    y la de 4.º B se pisaban el borrador (Pablo: *"a menos que sea A y B"*, que es
+    exactamente el caso: casi toda escuela tiene dos divisiones), y encima el orden a medio
+    armar de una maestra le cambiaba el cuaderno de muestra a todo el que entrara a probar.
+    """
+    p = os.path.join(ACT_DIR, token, "data.json")
+    try:
+        dj = json.load(open(p, encoding="utf-8"))
+    except Exception:
+        return {"ok": False, "error": "token inexistente"}
+    limpio = _orden_seno_sano(ids, None, dj.get("menu") or [])
+    c = _curso_sano(curso)
+    if c == CURSO_MUESTRA:
+        # LA MUESTRA PÚBLICA NO GUARDA NADA, y se corta ACÁ y no en `_curso_sano`: si esa
+        # función devolviera `None`, el pedido caería en el camino «sin curso» y escribiría
+        # en `orden_seno`, o sea que le cambiaría el cuaderno de muestra A TODO EL MUNDO.
+        # Sería peor que el problema que se está tapando.
+        return {"ok": True, "ids": limpio, "curso": c, "guardado": False}
+    if c:
+        cursos = dj.get("orden_seno_cursos")
+        if not isinstance(cursos, dict):
+            cursos = {}
+        # Tope de cursos por cuaderno de muestra: es un archivo público y cualquiera puede
+        # inventar códigos. 200 divisiones de un mismo grado no existen.
+        if len(cursos) < 200 or c in cursos:
+            cursos[c] = limpio
+        dj["orden_seno_cursos"] = cursos
+        _guardar_atomico(p, dj)
+        return {"ok": True, "ids": limpio, "curso": c}
+    dj["orden_seno"] = limpio
+    _guardar_atomico(p, dj)
+    return {"ok": True, "ids": limpio}
+
+
+def _guardar_atomico(p, dj):
+    """Escribe el `data.json` sin dejarlo a medias: el player puede estar leyéndolo justo
+    ahora, y un archivo truncado deja el cuaderno sin abrir."""
+    tmp = p + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(dj, f, ensure_ascii=False)
+    os.replace(tmp, p)
+
+
 def _extras_path(token):
     return os.path.join(ACT_DIR, token, "extras.json")
 
@@ -2296,6 +2411,15 @@ def crear(data, tema, token=None):
     # siempre, así los cuadernos ya entregados no cambian. Se PRESERVA al regenerar.
     dj["biblioteca_url"] = (str(data.get("biblioteca_url") or "").strip()[:200]
                             or _prev.get("biblioteca_url") or "")
+    # EL ORDEN QUE ARMÓ LA MAESTRA (Pablo, 04-sep-2026: *"que la profe pueda ordenar las
+    # tarjetas como creo que las tiene que ver el alumno"*). Lista de ids de actividad; el
+    # player pinta en ese orden dentro de cada materia. Vacío → el orden de siempre, así
+    # que los cuadernos ya entregados no cambian solos.
+    #
+    # Se PRESERVA al regenerar como el resto: el trabajo de la docente no es un dato del
+    # padrón, es trabajo, y re-armar el token no puede borrarlo.
+    dj["orden_seno"] = _orden_seno_sano(data.get("orden_seno"),
+                                        _prev.get("orden_seno"), dj.get("menu") or [])
     with open(os.path.join(d, "data.json"), "w", encoding="utf-8") as f:
         json.dump(dj, f, ensure_ascii=False)
 

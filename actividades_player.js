@@ -5367,6 +5367,59 @@ function muestraPedida() {
   return (id && typeof GAMES !== "undefined" && GAMES[id]) ? id : null;
 }
 
+/* ── MODO SEÑO ────────────────────────────────────────────────────────────────
+   Pablo, 04-sep-2026: *"La seño me gustaría que en el flip vea lo mismo que ven los chicos
+   y poder probar las tarjetas... que sea casi exacto a lo que ve el chico. O sea que vea el
+   cuaderno tal cual y que lo pueda ordenar y probar"*.
+
+   POR QUÉ ACÁ Y NO EN EL PANEL DE LA TIENDA. La primera versión dibujaba una lista de
+   filas en el panel del docente. Se ordenaba bien, pero la maestra estaba ordenando
+   nombres, no las tarjetas: no veía el arte, ni el color del grado, ni el tamaño real de
+   la carta, y no tenía forma de saber qué hace «Sopa de letras» sin abrirla. Acá el
+   cuaderno **es** el cuaderno —el mismo player, el mismo tema, las mismas cartas—, así que
+   no hay nada que imitar ni que se pueda despegar de lo que ve el chico.
+
+   Se enciende SOLO con `?seno=1` y sobre el cuaderno de MUESTRA del grado. Sin el
+   parámetro este código no toca un solo pixel, que es lo que permite que viva en el player
+   que se sirve del repo a todos los cuadernos ya vendidos.
+
+   Qué cambia con el parámetro, y nada más que esto:
+     · no se pide «¿Quién juega?» ni se ofrece el sondeo — no es un chico el que entra;
+     · las cartas se pueden ARRASTRAR (mismo FLIP que el panel) dentro de su materia;
+     · un toque corto sigue ABRIENDO la actividad, que es «probar la tarjeta»;
+     · aparece una barra para guardar el orden.
+   ── */
+let SENO_ON = false;
+
+function senoPedida() {
+  return /[?&]seno(?:=[A-Za-z0-9_-]{0,40})?(?:&|$)/.test(location.search);
+}
+
+/* El CURSO cuyo borrador se está armando, o null.
+   `?seno=4A` separa el borrador de cada división: el cuaderno de muestra es UNO por grado,
+   así que la seño de 4.º A y la de 4.º B lo comparten —y además es el cuaderno público que
+   abre cualquiera desde «probalo gratis»—. Sin el curso, `?seno=1` sigue andando y guarda
+   como antes. */
+function senoCurso() {
+  const m = /[?&]seno=([A-Za-z0-9_-]{1,40})(?:&|$)/.exec(location.search);
+  const c = m && m[1].toUpperCase();
+  return (c && c !== "1") ? c : null;
+}
+
+/* `?seno=EJEMPLO` es la MUESTRA PÚBLICA: se puede arrastrar y probar todo, pero no se
+   guarda nada.
+
+   Pablo, 04-sep-2026, pidiendo el botón para la web: *"que te lleve a una muestra que no
+   grabe nada. Porque es bien genérico para muchas escuelas"*. Tiene razón y era un defecto
+   real: el cuaderno de muestra es UNO, así que veinte escuelas mirando la demo escribían
+   todas en la misma clave y se pisaban entre sí. Ninguna lo aplicaba a nadie, pero dejaba
+   basura y hacía que la demo mostrara el orden que había dejado el anterior. */
+const SENO_EJEMPLO = "EJEMPLO";
+
+function senoEsMuestra() {
+  return senoCurso() === SENO_EJEMPLO;
+}
+
 /* La muestra es UNA actividad, no una puerta al grado entero.
    Pablo (26-jul-2026): "cuando entras a probar una actividad y pones atrás tenés acceso a
    todas las actividades de cuarto grado. Creo que desde la página no debería poder ir para
@@ -5531,6 +5584,9 @@ const Sondeo = {
 
   disponible() {
     if (!D.adaptativo_on || typeof Adapt === "undefined") return false;
+    // En modo seño no hay a quién ubicar: la maestra viene a ver y ordenar el cuaderno,
+    // no a que el motor le mida el nivel.
+    if (SENO_ON) return false;
     if (Store.sondeoHecho()) return false;
     if (Store.total() > 0) return false;    // ya venía jugando: ubicarlo ahora sería raro
     return this._plan().length >= 2;        // con una sola materia no vale la pena
@@ -6141,9 +6197,25 @@ function pintarMenuPlano(items, stage) {
     }
     stage.appendChild(_botonModoProfe());   // Modo Creador (el diferencial: crear, no solo resolver)
     const EMOJI = { lengua: "✏️", matematica: "🔢", naturales: "🌱", sociales: "🌎", logica: "🎲" };
+    // EL ORDEN QUE ARMÓ LA MAESTRA gana sobre la recomendación del motor (Pablo,
+    // 04-sep-2026: *"que la profe pueda ordenar las tarjetas como creo que las tiene que
+    // ver el alumno"*). Manda ella y no a medias: si el motor pudiera reacomodarle las
+    // tarjetas por encima, lo que la seño ordenó en su panel no sería lo que el chico ve,
+    // y el panel estaría mintiendo. Lo que el motor SÍ sigue haciendo es marcar con su
+    // etiqueta (🔁 Repasá, ✨ Recomendado) — sólo deja de reordenar.
+    //
+    // Lo que la maestra no ubicó va después, en el orden de siempre: una lista parcial no
+    // puede esconderle al chico el resto del cuaderno.
+    // Sin `orden_seno` —todo cuaderno entregado hasta hoy— el orden es exactamente el de
+    // antes, que es la razón de que esto se pueda soltar a links ya vendidos.
+    const ordSeno = Array.isArray(D.orden_seno) ? D.orden_seno : [];
+    const posSeno = new Map(ordSeno.map((id, i) => [id, i]));
+    const ordenar = posSeno.size
+      ? (a, b) => (posSeno.has(a.id) ? posSeno.get(a.id) : 1e6 + Adapt.peso(a.id)) -
+                  (posSeno.has(b.id) ? posSeno.get(b.id) : 1e6 + Adapt.peso(b.id))
+      : (a, b) => Adapt.peso(a.id) - Adapt.peso(b.id);
     Adapt.ordenCategorias().forEach((cat) => {
-      const delCat = visibles.filter((m) => Adapt.categoria(m.id) === cat)
-                             .sort((a, b) => Adapt.peso(a.id) - Adapt.peso(b.id));
+      const delCat = visibles.filter((m) => Adapt.categoria(m.id) === cat).sort(ordenar);
       if (!delCat.length) return;                    // categoría vacía en este grado → no se muestra
       // la clase por materia le da el color de la marca al título (ver _adaptCSS)
       stage.appendChild(el("h3", "cat-titulo cat-" + cat,
@@ -6157,6 +6229,528 @@ function pintarMenuPlano(items, stage) {
     visibles.forEach((m, i) => menu.appendChild(hacerCarta(m, i)));
     stage.appendChild(menu);
   }
+  if (SENO_ON) _senoArmar(stage);
+}
+
+/* ── MODO SEÑO: arrastrar las cartas del cuaderno ────────────────────────────
+   Todo lo de acá abajo corre SÓLO con `?seno=1`. Ver la nota de `senoPedida()`.
+   ── */
+
+/* Cartel de arriba + barra de guardar. Se arma después de pintar el menú, sobre el menú
+   real: no hay una segunda vista que mantener en sincronía con la del chico.
+
+   Corre CADA VEZ que se pinta el menú —también al volver de probar una actividad—, así que
+   el cartel y el arrastre se rehacen sobre las cartas nuevas. La barra, en cambio, vive en
+   el `<body>` y se reusa: se crea una vez y acá sólo se vuelve a mostrar. */
+function _senoArmar(stage) {
+  if (!stage) return;
+
+  const yaHay = document.getElementById("senoBarra");
+  if (yaHay) {
+    // Volvimos al menú desde una actividad: la barra reaparece y el arrastre se engancha a
+    // las cartas NUEVAS (las de antes se fueron con el `innerHTML = ""` de la pantalla).
+    yaHay.style.display = "flex";
+    stage.style.paddingBottom = "calc(124px + env(safe-area-inset-bottom))";
+    _senoNota(stage);
+    _senoArrastre(stage);
+    return;
+  }
+
+  const muestra = senoEsMuestra();
+  _senoNota(stage);
+
+  // LA BARRA VA A TODO EL ANCHO, como el header (Pablo, 04-sep-2026: *"el banner de abajo
+  // que ocupe toda la pantalla como el header"*). Antes era `sticky` DENTRO del `#stage`,
+  // que está limitado a 1020px y centrado: en una pantalla ancha quedaba una franja
+  // flotando en el medio en vez de leerse como parte del cuaderno.
+  //
+  // `fixed` y colgada del `<body>`: un `sticky` no puede salirse de su contenedor, y
+  // `left:0;right:0` se mide contra el contenedor posicionado más cercano. Lleva el mismo
+  // vidrio esmerilado y el mismo filete que `#hdr` —sólo que arriba— para que se lean como
+  // la misma pieza arriba y abajo.
+  const barra = el("div");
+  barra.id = "senoBarra";
+  barra.style.cssText =
+    "position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;flex-wrap:wrap;" +
+    "gap:10px;align-items:center;justify-content:center;" +
+    "padding:12px 16px calc(12px + env(safe-area-inset-bottom));" +
+    "background:color-mix(in srgb,var(--bg) 88%,transparent);" +
+    "backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);" +
+    "box-shadow:inset 0 1px 0 color-mix(in srgb,var(--ink) 10%,transparent)";
+  // Aire abajo para que la última fila de cartas no quede tapada: `#stage` reserva 72px y
+  // la barra mide más que eso.
+  stage.style.paddingBottom = "calc(124px + env(safe-area-inset-bottom))";
+
+  // En la MUESTRA PÚBLICA no hay botón de guardar: no se guarda nada, y un botón que no
+  // hace lo que dice es peor que no estar. Se explica en su lugar, con el mismo peso.
+  const guardar = el("button", "",
+                     muestra ? "Es una muestra: no se guarda" : "Guardar este orden");
+  guardar.style.cssText =
+    "min-height:48px;padding:0 22px;border:0;border-radius:14px;" +
+    "font:700 16px Archivo,system-ui,sans-serif;" +
+    (muestra
+      ? "background:transparent;color:#666;cursor:default;box-shadow:inset 0 0 0 2px #ccc"
+      : "background:var(--ac2);color:#fff;cursor:pointer");
+  if (muestra) guardar.setAttribute("aria-disabled", "true");
+  const estado = el("span");
+  estado.id = "senoEstado";
+  estado.style.cssText = "font:14px Archivo,system-ui,sans-serif;color:#555";
+  if (!muestra) guardar.addEventListener("click", () => _senoGuardar(guardar, estado));
+  barra.appendChild(guardar);
+  barra.appendChild(estado);
+  document.body.appendChild(barra);
+
+  // AL ABRIR UNA ACTIVIDAD LA BARRA SE ESCONDE. Vive en el `<body>`, así que si no se
+  // esconde queda flotando encima del juego que la maestra fue a probar. Se envuelve
+  // `Shell.abrir` UNA sola vez y sólo en modo seño: el camino de todos los cuadernos no se
+  // toca. Al volver al menú, `_senoArmar` la muestra de nuevo.
+  if (!Shell._senoEnvuelto) {
+    Shell._senoEnvuelto = true;
+    const abrirOriginal = Shell.abrir.bind(Shell);
+    Shell.abrir = function (id) {
+      const b = document.getElementById("senoBarra");
+      if (b) b.style.display = "none";
+      return abrirOriginal(id);
+    };
+  }
+
+  _senoArrastre(stage);
+  // El recorrido va ÚLTIMO y con un respiro: mide la posición de elementos reales, así que
+  // necesita la pantalla ya armada. Se muestra una sola vez por dispositivo.
+  setTimeout(() => _senoTour(stage), 600);
+}
+
+/* El cartel que explica de qué se trata. Se rehace en cada pintada del menú porque el
+   stage se vacía entero al abrir una actividad. */
+/* ── EL RECORRIDO GUIADO de la primera vez ───────────────────────────────────
+   Pablo, 04-sep-2026: *"cuando hay una actualización o es la primera vez que se entra la
+   pantalla aparece con un modal en un lugar determinado explicando qué hace, ponés
+   entiendo y se va a otro lugar"*.
+
+   TRES PASOS Y NO MÁS. La regla que más se rompe en estos recorridos es la cantidad: el
+   sexto globo no lo lee nadie, y el que se cansa en el tercero se pierde el que importaba.
+   Acá se explican SÓLO las dos cosas que no se descubren solas —que las cartas se
+   arrastran, y que tocarlas abre la actividad para probarla— más dónde se guarda.
+
+   Lo que NO va: nada que ya diga la pantalla. El botón «Guardar este orden» se explica
+   solo; lo que no se adivina es que eso después hay que pasárselo al curso.
+
+   SE VE UNA SOLA VEZ POR DISPOSITIVO, y el salteo se respeta igual que el final: quien lo
+   cerró no lo vuelve a ver. La clave lleva versión (`v1`) para que el día que haya algo
+   nuevo se pueda mostrar un recorrido corto SÓLO de lo nuevo, en vez de repetir éste.
+
+   Es propio y no una librería (Shepherd, Driver, Intro.js) a propósito: son tres globos, y
+   este archivo se sirve DEL REPO a todos los cuadernos vendidos — sumar una dependencia
+   sería peso de descarga para miles de chicos que nunca van a ver el recorrido. ── */
+const SENO_TOUR_KEY = "kydo-seno-tour-v1";
+
+function _senoTourVisto() {
+  try { return localStorage.getItem(SENO_TOUR_KEY) === "1"; } catch (e) { return false; }
+}
+
+function _senoTourMarcar() {
+  try { localStorage.setItem(SENO_TOUR_KEY, "1"); } catch (e) { /* modo privado */ }
+}
+
+/* Llama a `fn` cuando el scroll dejó de moverse. `scrollIntoView` no avisa cuándo terminó
+   ni en modo instantáneo, así que se espera a que la posición se repita dos cuadros
+   seguidos. Medir antes es lo que hacía que el recorte cayera sobre el elemento equivocado. */
+function _senoQuieto(fn) {
+  let previo = null, iguales = 0;
+  (function mirar() {
+    const y = window.scrollY;
+    iguales = (y === previo) ? iguales + 1 : 0;
+    previo = y;
+    if (iguales >= 2) fn(); else requestAnimationFrame(mirar);
+  })();
+}
+
+function _senoTour(stage) {
+  if (_senoTourVisto()) return;
+  if (document.getElementById("senoTour")) return;   // ya hay uno abierto
+  const cartas = stage.querySelectorAll(".carta");
+  const barra = document.getElementById("senoBarra");
+  if (cartas.length < 2 || !barra) return;           // pantalla incompleta: no hay tour
+
+  const pasos = [
+    { el: cartas[0], titulo: "Arrastrá para mover",
+      texto: "Agarrá una tarjeta y llevala a donde querés que vaya. Las demás se "
+             + "acomodan solas. Se ordena dentro de cada materia." },
+    { el: cartas[1], titulo: "Tocá para probar",
+      texto: "Un toque abre la actividad y la podés jugar, para saber qué le vas a dar "
+             + "a tus alumnos antes de decidir dónde va." },
+    { el: barra, titulo: senoEsMuestra() ? "Acá no se guarda" : "Guardá cuando termines",
+      texto: senoEsMuestra()
+        ? "Ésta es una muestra: movelas y probalas todo lo que quieras. Con el código de "
+          + "tu curso, el orden que armes les llega a tus alumnos."
+        : "Esto guarda tu orden acá. Después, en la pestaña de tu curso, se lo pasás a "
+          + "tus alumnos." },
+  ];
+
+  const lento = window.matchMedia &&
+                window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let i = 0;
+
+  const velo = el("div");
+  velo.id = "senoTour";
+  velo.setAttribute("role", "dialog");
+  velo.setAttribute("aria-modal", "true");
+  velo.style.cssText = "position:fixed;inset:0;z-index:95";
+
+  // El recorte se hace con una sombra enorme alrededor del hueco, que es la forma de
+  // oscurecer TODO menos un rectángulo sin tener que dibujar cuatro paneles y mantenerlos
+  // cuadrados entre sí.
+  const hueco = el("div");
+  hueco.style.cssText =
+    "position:fixed;border-radius:18px;pointer-events:none;"
+    + "box-shadow:0 0 0 9999px rgba(0,0,0,.58);"
+    + (lento ? "" : "transition:top .25s ease,left .25s ease,width .25s ease,height .25s ease");
+  velo.appendChild(hueco);
+
+  const globo = el("div");
+  globo.style.cssText =
+    "position:fixed;max-width:min(330px,calc(100vw - 32px));background:#fff;"
+    + "border-radius:16px;padding:15px 17px 13px;box-shadow:0 14px 40px rgba(0,0,0,.3);"
+    + "font:15px/1.45 Archivo,system-ui,sans-serif;color:#333"
+    + (lento ? "" : ";transition:top .25s ease,left .25s ease");
+  velo.appendChild(globo);
+  document.body.appendChild(velo);
+
+  function cerrar() {
+    _senoTourMarcar();
+    velo.remove();
+    document.removeEventListener("keydown", tecla);
+  }
+
+  function tecla(e) {
+    if (e.key === "Escape") cerrar();
+    else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); avanzar(); }
+  }
+
+  function avanzar() {
+    i += 1;
+    if (i >= pasos.length) cerrar(); else pintar();
+  }
+
+  function pintar() {
+    const p = pasos[i];
+    // Si el elemento quedó fuera de la pantalla, se lo trae ANTES de medir: un globo que
+    // señala algo que no se ve es peor que no explicar nada.
+    // INSTANTÁNEO y no `smooth`: con el suave la medición salía a mitad del
+    // desplazamiento y el recorte terminaba señalando el borde de OTRA tarjeta. Lo que se
+    // desliza es el recorte, que ya tiene su transición.
+    p.el.scrollIntoView({ block: "center", behavior: "auto" });
+    _senoQuieto(() => {
+      const r = p.el.getBoundingClientRect();
+      const m = 8;
+      hueco.style.top = (r.top - m) + "px";
+      hueco.style.left = (r.left - m) + "px";
+      hueco.style.width = (r.width + m * 2) + "px";
+      hueco.style.height = (r.height + m * 2) + "px";
+
+      globo.innerHTML =
+        `<div style="font-weight:800;font-size:17px;margin-bottom:5px">${p.titulo}</div>`
+        + `<div style="color:#555">${p.texto}</div>`
+        + `<div style="display:flex;align-items:center;gap:12px;margin-top:13px">`
+        + `<button data-sig style="min-height:42px;padding:0 18px;border:0;border-radius:12px;`
+        + `cursor:pointer;font:700 15px Archivo,system-ui,sans-serif;`
+        + `background:var(--ac2);color:#fff">`
+        + `${i === pasos.length - 1 ? "Entendido" : "Entendido"}</button>`
+        + `<button data-salir style="border:0;background:none;cursor:pointer;`
+        + `font:14px Archivo,system-ui,sans-serif;color:#777;text-decoration:underline">`
+        + `${i === pasos.length - 1 ? "Cerrar" : "Saltear"}</button>`
+        + `<span style="margin-left:auto;font:13px Archivo,system-ui,sans-serif;`
+        + `color:#999">${i + 1} de ${pasos.length}</span></div>`;
+
+      // Debajo del elemento; si no entra, arriba. Nunca tapando lo que está señalando.
+      const alto = globo.offsetHeight || 150, ancho = globo.offsetWidth || 300;
+      const abajo = r.bottom + 14;
+      globo.style.top = (abajo + alto < window.innerHeight - 8
+                         ? abajo : Math.max(8, r.top - alto - 14)) + "px";
+      globo.style.left =
+        Math.max(16, Math.min(window.innerWidth - ancho - 16,
+                              r.left + r.width / 2 - ancho / 2)) + "px";
+      globo.querySelector("[data-sig]").addEventListener("click", avanzar);
+      globo.querySelector("[data-salir]").addEventListener("click", cerrar);
+      globo.querySelector("[data-sig]").focus();
+    });
+  }
+
+  // Clic afuera del globo = cerrar. No atrapar a nadie en un recorrido que no pidió.
+  velo.addEventListener("click", (e) => { if (!globo.contains(e.target)) cerrar(); });
+  document.addEventListener("keydown", tecla);
+  pintar();
+}
+
+function _senoNota(stage) {
+  if (document.getElementById("senoNota")) return;
+  const nota = el("div");
+  nota.id = "senoNota";
+  nota.style.cssText =
+    "background:#fff;border:2px solid var(--ac2);border-radius:16px;padding:13px 16px;" +
+    "margin:0 0 14px;font:15px/1.45 Archivo,system-ui,sans-serif;color:#333";
+  nota.innerHTML =
+    "<b>Éste es el cuaderno tal cual lo ve el chico.</b><br>" +
+    "Arrastrá una tarjeta para moverla de lugar dentro de su materia, " +
+    "o tocala para probar la actividad." +
+    (senoEsMuestra()
+      ? "<br><br><b>Es una muestra:</b> movelas y probalas todo lo que quieras, " +
+        "no se guarda nada."
+      : "") +
+    // VOLVER A VER LA AYUDA. Pablo: *"quiero volver a ver la ayuda, supongo que tenés que
+    // borrar el local storage"*. Tenía razón en el diagnóstico, y ésa es exactamente la
+    // razón por la que hace falta el link: el recorrido se ve una vez y para repetirlo hay
+    // que borrar una clave del navegador, que no es algo que se le pueda pedir a nadie.
+    ' <a href="#" data-verayuda style="color:var(--ac2);font-weight:700">' +
+    "Ver la ayuda de nuevo</a>";
+  const rever = nota.querySelector("[data-verayuda]");
+  if (rever) {
+    rever.addEventListener("click", (e) => {
+      e.preventDefault();
+      try { localStorage.removeItem(SENO_TOUR_KEY); } catch (err) {}
+      _senoTour(stage);
+    });
+  }
+  stage.insertBefore(nota, stage.firstChild);
+}
+
+/* El orden que quedó en pantalla: TODAS las materias seguidas, en el orden en que están
+   dibujadas. El motor lo aplica dentro de cada materia, así que el orden entre materias
+   no molesta. */
+function _senoIds(stage) {
+  return [].slice.call(stage.querySelectorAll(".carta[data-seno-id]"))
+           .map((c) => c.getAttribute("data-seno-id"));
+}
+
+async function _senoGuardar(boton, estado) {
+  const stage = document.getElementById("stage");
+  boton.disabled = true;
+  estado.textContent = "Guardando…";
+  try {
+    // Mismo origen (el motor sirve este player desde el propio token): sin CORS y sin
+    // pasarle al navegador una URL de destino que venga del query string.
+    const r = await fetch("orden", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      // El curso viaja para que el borrador de 4.º A no le pise el de 4.º B: el cuaderno
+      // de muestra es uno solo por grado. Ver `senoCurso()`.
+      body: JSON.stringify({ ids: _senoIds(stage), curso: senoCurso() }),
+    });
+    // El cuaderno se abre desde el panel en una pestaña NUEVA, así que la del curso quedó
+    // abierta atrás: alcanza con decirle que vuelva ahí. No se le pasa un link de vuelta
+    // por la URL a propósito — un destino que venga del query string convierte al cuaderno
+    // en un trampolín a cualquier sitio.
+    estado.textContent = r.ok
+      ? "Listo. Volvé a la pestaña de tu curso y tocá «Pasárselo a los chicos»."
+      : "No se pudo guardar. Probá de nuevo en un minuto.";
+  } catch (e) {
+    estado.textContent = "No se pudo guardar. Probá de nuevo en un minuto.";
+  }
+  boton.disabled = false;
+}
+
+/* Arrastre con FLIP sobre las cartas del cuaderno.
+   Dos diferencias con el de la tienda, las dos por la forma de esta pantalla:
+
+   · ES 2D. Las cartas van en grilla, no en lista: el FLIP tiene que invertir X **y** Y, y
+     el vecino con el que se compara no es el de arriba/abajo sino el más cercano al
+     centro de la carta que se arrastra.
+   · NO HAY ASA. La carta entera es el asa, porque la carta entera también es el botón que
+     abre la actividad. Se distinguen por el gesto: si el dedo se movió menos de 8px, fue
+     un toque y se abre; si se movió más, fue un arrastre y no se abre. Sin ese umbral,
+     probar una tarjeta era imposible en el celular — cualquier temblor la movía. */
+/* Deja la carta pegada al puntero, calculando el translate contra la posición REAL de su
+   slot. No acumula nada: `arr.dx` es el translate que está puesto, así que
+   `r.left - arr.dx` es la posición natural del slot donde la carta está AHORA. Si acaba de
+   saltar de lugar, la base cambió y la cuenta se corrige sola.
+
+   Se llama en dos momentos y los dos hacen falta: en cada movimiento del dedo, y otra vez
+   justo después de un intercambio —si no, queda un frame con la carta corrida un ancho de
+   tarjeta, que es lo que se ve como un salto al costado. */
+function _senoPegar(arr, px, py) {
+  const r = arr.c.getBoundingClientRect();
+  arr.dx = px - arr.agarreX - (r.left - arr.dx);
+  arr.dy = py - arr.agarreY - (r.top - arr.dy);
+  arr.c.style.transition = "none";
+  arr.c.style.transform = `translate(${arr.dx}px,${arr.dy}px)`;
+}
+
+function _senoArrastre(stage) {
+  const UMBRAL = 8;                       // px: menos que esto es un toque, no un arrastre
+  const lento = window.matchMedia &&
+                window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let arr = null;
+
+  [].slice.call(stage.querySelectorAll(".carta")).forEach((c) => {
+    c.style.touchAction = "none";       // sin esto el navegador se queda el gesto y scrollea
+    c.style.cursor = "grab";
+  });
+  // El id del juego no está en el DOM: lo pone el modo seño, para no tocar `hacerCarta`,
+  // que es el camino de todos los cuadernos.
+  _senoMarcarIds(stage);
+
+  function grupo(carta) { return carta.parentNode; }
+
+  function medir(items) {
+    const m = new Map();
+    items.forEach((c) => {
+      const r = c.getBoundingClientRect();
+      m.set(c, { x: r.left, y: r.top });
+    });
+    return m;
+  }
+
+  function animar(items, antes) {
+    if (lento) return;
+    items.forEach((c) => {
+      const a = antes.get(c), r = c.getBoundingClientRect();
+      const dx = a.x - r.left, dy = a.y - r.top;
+      if (!dx && !dy) return;
+      c.style.transition = "none";
+      c.style.transform = `translate(${dx}px,${dy}px)`;
+    });
+    void stage.offsetHeight;             // el reflow que hace que el FLIP se vea
+    items.forEach((c) => {
+      c.style.transition = "transform .22s cubic-bezier(.2,.7,.3,1)";
+      c.style.transform = "";
+    });
+  }
+
+  stage.addEventListener("pointerdown", (ev) => {
+    const c = ev.target.closest && ev.target.closest(".carta");
+    if (!c || ev.button > 0) return;
+    const caja = c.getBoundingClientRect();
+    arr = { c, x0: ev.clientX, y0: ev.clientY, movido: false, g: grupo(c),
+            // DÓNDE agarró DENTRO de la carta. Es lo que hay que mantener fijo bajo el
+            // dedo: si se pierde, la carta se despega del puntero.
+            agarreX: ev.clientX - caja.left, agarreY: ev.clientY - caja.top,
+            dx: 0, dy: 0, quietoHasta: 0 };
+  }, true);
+
+  document.addEventListener("pointermove", (ev) => {
+    if (!arr) return;
+    if (!arr.movido &&
+        Math.hypot(ev.clientX - arr.x0, ev.clientY - arr.y0) < UMBRAL) return;
+    if (!arr.movido) {
+      arr.movido = true;
+      arr.c.style.zIndex = "60";
+      arr.c.style.boxShadow = "0 12px 28px rgba(0,0,0,.28)";
+      arr.c.style.cursor = "grabbing";
+    }
+    ev.preventDefault();
+
+    // EL TRANSFORM SE RECALCULA DESDE LA POSICIÓN REAL DEL SLOT, en cada movimiento.
+    //
+    // Pablo, 04-sep-2026: *"Se va dos tarjetas al costado y el puntero del mouse queda en
+    // otro lado"*. Medido: al cambiar de FILA la carta se despegaba **177 px** del
+    // puntero, más que el ancho de una carta.
+    //
+    // La causa era el reanclaje: cuando la carta cambiaba de lugar se le sumaba el salto
+    // a un origen guardado (`x0 += nueva.left - r.left`). Eso ACUMULA: alcanza con que un
+    // salto se mida mal —y en una grilla, cambiar de fila mueve la carta en X aunque el
+    // dedo vaya en Y— para que el error quede pegado el resto del arrastre.
+    //
+    // Ahora no hay nada que acumular. `arr.dx` es el translate que está puesto, así que
+    // `r.left - arr.dx` es la posición NATURAL del slot donde la carta cayó, y el nuevo
+    // translate se calcula contra eso. Si la carta saltó tres lugares, la base cambió y la
+    // cuenta se corrige sola en el mismo frame.
+    //
+    // Se sacó el `scale(1.04)`: escalaba la caja y ensuciaba justamente esta medición. El
+    // efecto de «levantada» lo da la sombra, que no toca la geometría.
+    _senoPegar(arr, ev.clientX, ev.clientY);
+
+    // ── LAS DOS GUARDAS CONTRA LA VIBRACIÓN ──────────────────────────────────
+    // Pablo, 04-sep-2026: *"hay momentos en los que entran en una vibración"*. Medido con
+    // un MutationObserver: mover una carta TRES lugares producía 22 reordenamientos del
+    // DOM en vez de 3. Dos causas, las dos hay que tapar:
+    //
+    // 1. SE DECIDÍA MIENTRAS EL FLIP ANIMABA. `getBoundingClientRect()` devuelve la caja
+    //    CON el `transform` aplicado, así que durante los 220ms de la transición los
+    //    vecinos están a mitad de camino y el hit-test contesta sobre posiciones que ya no
+    //    son ni las de antes ni las de después. Ahora no se evalúa nada hasta que la
+    //    animación terminó.
+    // 2. NO HABÍA HISTÉRESIS. Bastaba rozar el borde del vecino para intercambiar, y
+    //    después del intercambio el centro seguía sobre él —ahora en el otro lugar—, así
+    //    que volvía a dispararse: ida y vuelta sin fin mientras el dedo quedaba en el
+    //    límite. Ahora el centro tiene que entrar BIEN ADENTRO de la carta vecina.
+    if (performance.now() < arr.quietoHasta) return;
+
+    // Dónde está el centro de la carta AHORA, ya movida por el translate de arriba.
+    const rc = arr.c.getBoundingClientRect();
+    const cx = rc.left + rc.width / 2, cy = rc.top + rc.height / 2;
+    const hermanos = [].slice.call(arr.g.children).filter((x) => x !== arr.c);
+    let destino = null;
+    for (const h of hermanos) {
+      const hr = h.getBoundingClientRect();
+      const mx = hr.width * 0.3, my = hr.height * 0.3;   // 30% de margen en cada lado
+      if (cx >= hr.left + mx && cx <= hr.right - mx &&
+          cy >= hr.top + my && cy <= hr.bottom - my) {
+        destino = h; break;
+      }
+    }
+    if (!destino) return;
+    arr.quietoHasta = performance.now() + 240;   // 220ms de transición + un respiro
+
+    // El FLIP se le aplica a los VECINOS: la que se arrastra la mueve el dedo, y animarla
+    // también la haría pelear contra su propia transformación.
+    const antes = medir(hermanos);
+    const orden = [].slice.call(arr.g.children);
+    if (orden.indexOf(arr.c) < orden.indexOf(destino)) {
+      arr.g.insertBefore(destino, arr.c);
+    } else {
+      arr.g.insertBefore(arr.c, destino);
+    }
+    animar(hermanos, antes);
+    // VOLVER A PEGARLA AL PUNTERO **EN ESTE MISMO FRAME**. El swap le cambió la base a la
+    // carta —en una grilla, cambiar de fila la corre 177px en X— y el translate que tiene
+    // puesto es el de la base anterior. Recalcularlo recién en el `pointermove` siguiente
+    // deja UN frame con la carta corrida un ancho de tarjeta: medido, y es exactamente el
+    // «se va dos tarjetas al costado y el puntero queda en otro lado» que reportó Pablo.
+    _senoPegar(arr, ev.clientX, ev.clientY);
+  }, { passive: false });
+
+  function soltar() {
+    if (!arr) return;
+    const c = arr.c;
+    c.style.transition = "transform .16s ease";
+    c.style.transform = "";
+    c.style.zIndex = ""; c.style.boxShadow = ""; c.style.cursor = "grab";
+    const movido = arr.movido;
+    arr = null;
+    if (movido) {
+      // Se movió: el click que viene atrás del `pointerup` abriría la actividad, y la
+      // maestra quería moverla, no jugarla. Se come UNO SOLO y **sólo si sale de la carta
+      // que se arrastró**: con un `once` a secas, el primer click en cualquier lado
+      // quedaba anulado —incluido el de «Guardar este orden», que después de mover una
+      // tarjeta no hacía nada—. Encontrado probándolo, no leyéndolo.
+      const tragar = (e) => {
+        if (e.target.closest && e.target.closest(".carta") === c) {
+          e.preventDefault(); e.stopPropagation();
+        }
+        document.removeEventListener("click", tragar, true);
+      };
+      document.addEventListener("click", tragar, true);
+      const est = document.getElementById("senoEstado");
+      if (est) est.textContent = "Movida. Acordate de guardar.";
+    }
+  }
+  document.addEventListener("pointerup", soltar);
+  document.addEventListener("pointercancel", soltar);
+}
+
+/* Le pega a cada carta el id de su juego. Se hace recorriendo el menú por título y no por
+   posición: `visibles` filtra las que este cuaderno no tiene, así que el índice de la
+   carta dibujada no es el de `D.menu`. */
+function _senoMarcarIds(stage) {
+  const porTitulo = new Map();
+  (D.menu || []).forEach((m) => {
+    const it = (typeof m === "string") ? { id: m, titulo: m } : m;
+    if (!porTitulo.has(it.titulo)) porTitulo.set(it.titulo, it.id);
+  });
+  [].slice.call(stage.querySelectorAll(".carta")).forEach((c) => {
+    const n = c.querySelector(".nombre");
+    const id = n && porTitulo.get(n.textContent.trim());
+    if (id) c.setAttribute("data-seno-id", id);
+  });
 }
 
 /* ── Modo Creador / "Modo Profe" (post-dominio) ──────────────────────────────
@@ -6464,6 +7058,13 @@ function modoMaestro() {
    viejo, que es peor que no restaurar nada. */
 async function recuperarProgresoDelServidor() {
   try {
+    // LA MUESTRA PÚBLICA ARRANCA LIMPIA. Sin esto, la escuela que abre la demo hereda el
+    // progreso que dejó la anterior —el cuaderno de muestra es uno solo— y ve estrellas y
+    // sellos de «Dominado» en tarjetas que nadie de su escuela tocó. Producción ya tenía
+    // cuatro perfiles ahí de gente que probó.
+    //
+    // Es la otra mitad de lo mismo que `_enviarProgreso`: la muestra ni escribe ni lee.
+    if (senoEsMuestra()) return;
     if (Object.keys(Store.data.profiles || {}).length) return;   // ya hay algo local
     const r = await fetch("progreso", { cache: "no-store" });
     if (!r.ok) return;
@@ -6492,6 +7093,16 @@ async function recuperarProgresoDelServidor() {
 function _enviarProgreso() {
   try {
     if (!D.adaptativo_on || typeof Adapt === "undefined") return;
+    // LA MUESTRA PÚBLICA NO ESCRIBE NADA EN EL SERVIDOR (04-sep-2026). El cuaderno de
+    // muestra es UNO y en modo seño todos entran con el mismo perfil («Invitado»), así que
+    // el progreso de una escuela le quedaba a la siguiente: la segunda directora abría la
+    // demo y veía estrellas y sellos de «Dominado» en tarjetas que nadie de su escuela
+    // tocó. Se descubrió al mirar el `progreso.json` de producción, que ya tenía cuatro
+    // perfiles acumulados de gente que probó.
+    //
+    // El progreso sigue guardándose en el navegador de quien mira —así puede jugar—; lo
+    // que no viaja es al servidor. Es la misma regla que el orden en `_senoGuardar`.
+    if (senoEsMuestra()) return;
     const perfil = Store.data.activeProfile;
     if (!perfil) return;
     // Nivel de dificultad por actividad: es lo que el padre necesita para ver si el chico
@@ -6853,7 +7464,15 @@ async function boot() {
   }
 
   const _muestra = muestraPedida();
-  if (_muestra) {
+  // MODO SEÑO: la maestra ve el cuaderno tal cual, para ordenarlo y probarlo. No se le
+  // pregunta «¿Quién juega?» ni se le ofrece el sondeo —no es un chico el que entra— y por
+  // eso va antes que el camino normal. Ver la nota de `senoPedida()`.
+  SENO_ON = !_muestra && senoPedida();
+  if (SENO_ON) {
+    if (!Store.data.activeProfile) elegirPerfil(NOMBRE_INVITADO);
+    pintarHeader();
+    pintarMenu();
+  } else if (_muestra) {
     if (!Store.data.activeProfile) elegirPerfil(NOMBRE_INVITADO);
     pintarHeader();
     cerrarSalidasDeMuestra(_muestra);   // ANTES de abrir: el juego no puede pintar el ←
