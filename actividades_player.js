@@ -5392,7 +5392,18 @@ function muestraPedida() {
 let SENO_ON = false;
 
 function senoPedida() {
-  return /[?&]seno(?:=1)?(?:&|$)/.test(location.search);
+  return /[?&]seno(?:=[A-Za-z0-9_-]{0,40})?(?:&|$)/.test(location.search);
+}
+
+/* El CURSO cuyo borrador se está armando, o null.
+   `?seno=4A` separa el borrador de cada división: el cuaderno de muestra es UNO por grado,
+   así que la seño de 4.º A y la de 4.º B lo comparten —y además es el cuaderno público que
+   abre cualquiera desde «probalo gratis»—. Sin el curso, `?seno=1` sigue andando y guarda
+   como antes. */
+function senoCurso() {
+  const m = /[?&]seno=([A-Za-z0-9_-]{1,40})(?:&|$)/.exec(location.search);
+  const c = m && m[1].toUpperCase();
+  return (c && c !== "1") ? c : null;
 }
 
 /* La muestra es UNA actividad, no una puerta al grado entero.
@@ -6460,7 +6471,9 @@ async function _senoGuardar(boton, estado) {
     // pasarle al navegador una URL de destino que venga del query string.
     const r = await fetch("orden", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids: _senoIds(stage) }),
+      // El curso viaja para que el borrador de 4.º A no le pise el de 4.º B: el cuaderno
+      // de muestra es uno solo por grado. Ver `senoCurso()`.
+      body: JSON.stringify({ ids: _senoIds(stage), curso: senoCurso() }),
     });
     estado.textContent = r.ok
       ? "Listo. Volvé a la pantalla del curso para pasárselo a tus alumnos."

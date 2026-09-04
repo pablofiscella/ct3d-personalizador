@@ -1939,11 +1939,20 @@ class Handler(BaseHTTPRequestHandler):
         return self._json(200, r)
 
     def _act_orden_get(self, token):
-        """El orden de tarjetas que armó la maestra: {"ids": [...]}. Vacío si nunca ordenó."""
+        """El orden de tarjetas que armó la maestra: {"ids": [...]}. Vacío si nunca ordenó.
+
+        Con `?curso=` devuelve el BORRADOR de ese curso sobre el cuaderno de muestra; sin
+        él, el orden que rige el menú del chico. Ver `actividades_web.orden_seno_guardar`.
+        """
         import actividades_web as aw
         if not os.path.isdir(os.path.join(aw.ACT_DIR, token)):
             return self._json(404, {"ok": False})
-        return self._json(200, {"ok": True, "ids": aw.orden_seno_leer(token)})
+        try:
+            curso = urllib.parse.parse_qs(
+                urllib.parse.urlparse(self.path).query).get("curso", [None])[0]
+        except Exception:
+            curso = None
+        return self._json(200, {"ok": True, "ids": aw.orden_seno_leer(token, curso)})
 
     def _act_orden_set(self, token):
         """La TIENDA manda el orden que la maestra armó arrastrando las tarjetas.
@@ -1962,7 +1971,9 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(400, {"ok": False})
         if not isinstance(body, dict) or not isinstance(body.get("ids"), list):
             return self._json(400, {"ok": False})
-        r = aw.orden_seno_guardar(token, body["ids"])
+        # `curso` lo manda el modo seño del player: separa el BORRADOR de cada división del
+        # orden que ve el chico. Sin él se guarda como antes.
+        r = aw.orden_seno_guardar(token, body["ids"], body.get("curso"))
         return self._json(200 if r.get("ok") else 400, r)
 
     def _act_extras_get(self, token):

@@ -1872,35 +1872,81 @@ def _orden_seno_sano(pedido, previo, menu):
     return out
 
 
-def orden_seno_leer(token):
-    """[ids] con el orden que dejó la maestra, o [] si nunca ordenó. Nunca lanza."""
+#: Cómo se llama un CURSO en la clave del borrador. Se sanea porque viene de la URL.
+_CURSO_RE = re.compile(r"^[A-Za-z0-9_-]{1,40}$")
+
+
+def _curso_sano(curso):
+    c = str(curso or "").strip().upper()
+    return c if _CURSO_RE.match(c) else None
+
+
+def orden_seno_leer(token, curso=None):
+    """[ids] con el orden que dejó la maestra, o [] si nunca ordenó. Nunca lanza.
+
+    Con `curso` lee el BORRADOR de ESE curso; sin él, el orden que rige el menú del chico.
+    Ver `orden_seno_guardar` para por qué son dos cosas distintas.
+    """
     try:
         d = json.load(open(os.path.join(ACT_DIR, token, "data.json"), encoding="utf-8"))
-        o = d.get("orden_seno")
-        return [str(x)[:60] for x in o] if isinstance(o, list) else []
     except Exception:
         return []
+    c = _curso_sano(curso)
+    o = ((d.get("orden_seno_cursos") or {}).get(c) if c else d.get("orden_seno"))
+    return [str(x)[:60] for x in o] if isinstance(o, list) else []
 
 
-def orden_seno_guardar(token, ids):
+def orden_seno_guardar(token, ids, curso=None):
     """Guarda el orden de la maestra en el `data.json` del token.
 
     Va en `data.json` y no en un archivo aparte porque es lo que el player ya se baja: sin
     esto habría que agregarle un fetch más al arranque del cuaderno, en un teléfono de
-    escuela con la conexión que hay. Lo escribe la TIENDA server-to-server desde el panel
-    del docente.
+    escuela con la conexión que hay.
+
+    DOS DESTINOS DISTINTOS, y la diferencia importa (04-sep-2026):
+
+    · SIN `curso` → `orden_seno`: **el orden que el chico ve** en SU cuaderno. Lo escribe
+      la tienda, en el token de cada alumno, cuando la maestra se lo pasa al curso.
+    · CON `curso` → `orden_seno_cursos[<curso>]`: el BORRADOR de esa maestra sobre el
+      cuaderno de muestra del grado, mientras lo está armando.
+
+    POR QUÉ EL BORRADOR VA SEPARADO Y POR CURSO. El borrador vive en el cuaderno de MUESTRA
+    del grado, que es UNO por grado y además es **público** —es el que abre cualquiera
+    desde «probalo gratis»—. Guardándolo en `orden_seno` pasaban dos cosas: la seño de 4.º A
+    y la de 4.º B se pisaban el borrador (Pablo: *"a menos que sea A y B"*, que es
+    exactamente el caso: casi toda escuela tiene dos divisiones), y encima el orden a medio
+    armar de una maestra le cambiaba el cuaderno de muestra a todo el que entrara a probar.
     """
     p = os.path.join(ACT_DIR, token, "data.json")
     try:
         dj = json.load(open(p, encoding="utf-8"))
     except Exception:
         return {"ok": False, "error": "token inexistente"}
-    dj["orden_seno"] = _orden_seno_sano(ids, None, dj.get("menu") or [])
+    limpio = _orden_seno_sano(ids, None, dj.get("menu") or [])
+    c = _curso_sano(curso)
+    if c:
+        cursos = dj.get("orden_seno_cursos")
+        if not isinstance(cursos, dict):
+            cursos = {}
+        # Tope de cursos por cuaderno de muestra: es un archivo público y cualquiera puede
+        # inventar códigos. 200 divisiones de un mismo grado no existen.
+        if len(cursos) < 200 or c in cursos:
+            cursos[c] = limpio
+        dj["orden_seno_cursos"] = cursos
+        _guardar_atomico(p, dj)
+        return {"ok": True, "ids": limpio, "curso": c}
+    dj["orden_seno"] = limpio
+    _guardar_atomico(p, dj)
+    return {"ok": True, "ids": limpio}
+
+
+def _guardar_atomico(p, dj):
+    """Escribe el `data.json` sin dejarlo a medias: el player puede estar leyéndolo justo
+    ahora, y un archivo truncado deja el cuaderno sin abrir."""
     tmp = p + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(dj, f, ensure_ascii=False)
-    os.replace(tmp, p)          # el player puede estar leyéndolo justo ahora
-    return {"ok": True, "ids": dj["orden_seno"]}
+    os.replace(tmp, p)
 
 
 def _extras_path(token):

@@ -19,6 +19,7 @@ Lo que se verifica acá y no es adorno:
 """
 import json
 import os
+import re
 import shutil
 import sys
 
@@ -322,3 +323,57 @@ def test_el_player_conserva_el_orden_de_siempre_sin_orden_seno():
     assert "Adapt.peso(a.id) - Adapt.peso(b.id)" in js, \
         "se borró el orden de siempre: los cuadernos ya entregados cambiarían solos"
     assert "D.orden_seno" in js
+
+
+# ── el BORRADOR es por CURSO, no por grado ────────────────────────────────────
+
+def test_dos_divisiones_del_mismo_grado_no_se_pisan_el_borrador(token):
+    """Pablo, cuando le conté el riesgo: *"a menos que sea A y B"*. Ése es justo el caso —
+    casi toda escuela tiene dos divisiones—, y el cuaderno de MUESTRA donde la maestra
+    arma el orden es UNO por grado. Sin la clave del curso, la seño de 4.º B le pisaba el
+    borrador a la de 4.º A."""
+    d = json.load(open(os.path.join(aw.ACT_DIR, token, "data.json"), encoding="utf-8"))
+    ids = [m["id"] for m in d["menu"]]
+    a, bb = ids[:3], ids[3:6]
+
+    aw.orden_seno_guardar(token, a, curso="4A")
+    aw.orden_seno_guardar(token, bb, curso="4B")
+
+    assert aw.orden_seno_leer(token, "4A") == a, "4.º B le pisó el borrador a 4.º A"
+    assert aw.orden_seno_leer(token, "4B") == bb
+    assert aw.orden_seno_leer(token, "4C") == [], "una división sin borrador no hereda otro"
+
+
+def test_el_borrador_NO_cambia_el_cuaderno_de_muestra_publico(token):
+    """El de muestra es el cuaderno que abre cualquiera desde «probalo gratis». El orden a
+    medio armar de una maestra no puede cambiárselo a todo el que entre a probar."""
+    d = json.load(open(os.path.join(aw.ACT_DIR, token, "data.json"), encoding="utf-8"))
+    ids = [m["id"] for m in d["menu"]][:4]
+    aw.orden_seno_guardar(token, [])          # se parte de un cuaderno sin orden propio
+    aw.orden_seno_guardar(token, ids, curso="4A")
+    # `orden_seno` es lo que el player usa para ordenar el menú del que entra
+    assert aw.orden_seno_leer(token) == [], \
+        "el borrador de una maestra le cambió el cuaderno de muestra a todo el mundo"
+    assert aw.orden_seno_leer(token, "4A") == ids, "y el borrador sí quedó guardado"
+
+
+def test_el_curso_se_sanea_no_se_confia_en_la_url(token):
+    """El código viaja en el query string del link, así que lo puede escribir cualquiera."""
+    d = json.load(open(os.path.join(aw.ACT_DIR, token, "data.json"), encoding="utf-8"))
+    ids = [m["id"] for m in d["menu"]][:2]
+    for feo in ("../../etc", "a b", "4A/../x", "x" * 60, ""):
+        r = aw.orden_seno_guardar(token, ids, curso=feo)
+        # o lo rechaza como curso (y guarda el orden del chico) o lo normaliza, pero nunca
+        # crea una clave con esos caracteres
+        for k in (json.load(open(os.path.join(aw.ACT_DIR, token, "data.json"),
+                                 encoding="utf-8")).get("orden_seno_cursos") or {}):
+            assert re.match(r"^[A-Z0-9_-]{1,40}$", k), "clave de curso sin sanear: %r" % k
+        assert r["ok"]
+
+
+def test_sin_curso_sigue_guardando_el_orden_del_chico(token):
+    """Compatibilidad: así es como la tienda le escribe el orden al cuaderno de cada alumno."""
+    d = json.load(open(os.path.join(aw.ACT_DIR, token, "data.json"), encoding="utf-8"))
+    ids = [m["id"] for m in d["menu"]][:3]
+    aw.orden_seno_guardar(token, ids)
+    assert aw.orden_seno_leer(token) == ids
