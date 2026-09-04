@@ -6330,7 +6330,7 @@ function _senoArrastre(stage) {
     const c = ev.target.closest && ev.target.closest(".carta");
     if (!c || ev.button > 0) return;
     arr = { c, x0: ev.clientX, y0: ev.clientY, movido: false,
-            g: grupo(c), base: c.getBoundingClientRect() };
+            g: grupo(c), base: c.getBoundingClientRect(), quietoHasta: 0 };
   }, true);
 
   document.addEventListener("pointermove", (ev) => {
@@ -6347,18 +6347,36 @@ function _senoArrastre(stage) {
     arr.c.style.transition = "none";
     arr.c.style.transform = `translate(${dx}px,${dy}px) scale(1.04)`;
 
-    // ¿sobre qué hermano cayó el centro de la carta que se arrastra?
+    // ── LAS DOS GUARDAS CONTRA LA VIBRACIÓN ──────────────────────────────────
+    // Pablo, 04-sep-2026: *"hay momentos en los que entran en una vibración"*. Medido con
+    // un MutationObserver: mover una carta TRES lugares producía 22 reordenamientos del
+    // DOM en vez de 3. Dos causas, las dos hay que tapar:
+    //
+    // 1. SE DECIDÍA MIENTRAS EL FLIP ANIMABA. `getBoundingClientRect()` devuelve la caja
+    //    CON el `transform` aplicado, así que durante los 220ms de la transición los
+    //    vecinos están a mitad de camino y el hit-test contesta sobre posiciones que ya no
+    //    son ni las de antes ni las de después. Ahora no se evalúa nada hasta que la
+    //    animación terminó.
+    // 2. NO HABÍA HISTÉRESIS. Bastaba rozar el borde del vecino para intercambiar, y
+    //    después del intercambio el centro seguía sobre él —ahora en el otro lugar—, así
+    //    que volvía a dispararse: ida y vuelta sin fin mientras el dedo quedaba en el
+    //    límite. Ahora el centro tiene que entrar BIEN ADENTRO de la carta vecina.
+    if (performance.now() < arr.quietoHasta) return;
+
     const r = arr.c.getBoundingClientRect();
     const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
     const hermanos = [].slice.call(arr.g.children).filter((x) => x !== arr.c);
     let destino = null;
     for (const h of hermanos) {
       const hr = h.getBoundingClientRect();
-      if (cx >= hr.left && cx <= hr.right && cy >= hr.top && cy <= hr.bottom) {
+      const mx = hr.width * 0.3, my = hr.height * 0.3;   // 30% de margen en cada lado
+      if (cx >= hr.left + mx && cx <= hr.right - mx &&
+          cy >= hr.top + my && cy <= hr.bottom - my) {
         destino = h; break;
       }
     }
     if (!destino) return;
+    arr.quietoHasta = performance.now() + 240;   // 220ms de transición + un respiro
 
     // El FLIP se le aplica a los VECINOS: la que se arrastra la mueve el dedo, y animarla
     // también la haría pelear contra su propia transformación.
