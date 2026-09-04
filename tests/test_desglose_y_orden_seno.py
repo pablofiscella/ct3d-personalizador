@@ -211,6 +211,56 @@ def test_el_orden_sobrevive_a_regenerar_el_token(token):
 
 # ── 3. el player ──────────────────────────────────────────────────────────────
 
+def _player():
+    return open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                             "actividades_player.js"), encoding="utf-8").read()
+
+
+# ── el MODO SEÑO: la maestra ve el cuaderno tal cual y lo ordena ──────────────
+
+def test_el_modo_seno_esta_gateado_por_la_url():
+    """GUARDIÁN. `actividades_player.js` se sirve DEL REPO: todo lo que se agregue acá
+    llega a los cuadernos ya vendidos. El modo seño no puede encenderse solo — arranca
+    apagado y sólo lo prende `?seno=1`."""
+    js = _player()
+    assert "let SENO_ON = false;" in js, "el modo seño dejó de arrancar apagado"
+    assert "function senoPedida()" in js
+    assert "SENO_ON = !_muestra && senoPedida();" in js, \
+        "el modo seño se enciende por otro camino que el parámetro de la URL"
+
+
+def test_en_modo_seno_no_se_pide_el_nombre_ni_el_sondeo():
+    """No es un chico el que entra: preguntarle «¿Quién juega?» a una maestra que viene a
+    ordenar el cuaderno es un trámite que no le corresponde, y el sondeo mediría el nivel
+    de nadie."""
+    js = _player()
+    assert "if (SENO_ON) return false;" in js, "el sondeo sigue apareciendo en modo seño"
+    i = js.index("SENO_ON = !_muestra && senoPedida();")
+    tramo = js[i:i + 400]
+    assert "elegirPerfil(NOMBRE_INVITADO)" in tramo and "pintarMenu()" in tramo
+
+
+def test_el_modo_seno_guarda_en_su_propio_origen():
+    """El destino del guardado NO sale del query string: es una ruta relativa del propio
+    token. Un destino que viniera de la URL convertiría el cuaderno en un trampolín para
+    mandarle un POST a cualquier sitio."""
+    js = _player()
+    i = js.index("async function _senoGuardar")
+    tramo = js[i:i + 900]
+    assert 'fetch("orden"' in tramo, "el guardado dejó de ser al propio token"
+    assert "http://" not in tramo and "https://" not in tramo, \
+        "apareció una URL absoluta en el guardado del modo seño"
+
+
+def test_arrastrar_y_probar_se_distinguen_por_el_umbral():
+    """La carta es a la vez el asa y el botón que abre la actividad. Sin el umbral en
+    píxeles, cualquier temblor del dedo contaba como arrastre y probar una tarjeta en el
+    celular era imposible."""
+    js = _player()
+    assert "const UMBRAL = 8;" in js
+    assert "Math.hypot(dx, dy) < UMBRAL" in js
+
+
 def test_el_player_conserva_el_orden_de_siempre_sin_orden_seno():
     """GUARDIÁN. `actividades_player.js` se sirve DEL REPO: lo que se toque acá llega a
     todos los cuadernos ya vendidos. El camino sin `orden_seno` tiene que seguir siendo

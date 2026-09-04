@@ -5367,6 +5367,34 @@ function muestraPedida() {
   return (id && typeof GAMES !== "undefined" && GAMES[id]) ? id : null;
 }
 
+/* ── MODO SEÑO ────────────────────────────────────────────────────────────────
+   Pablo, 04-sep-2026: *"La seño me gustaría que en el flip vea lo mismo que ven los chicos
+   y poder probar las tarjetas... que sea casi exacto a lo que ve el chico. O sea que vea el
+   cuaderno tal cual y que lo pueda ordenar y probar"*.
+
+   POR QUÉ ACÁ Y NO EN EL PANEL DE LA TIENDA. La primera versión dibujaba una lista de
+   filas en el panel del docente. Se ordenaba bien, pero la maestra estaba ordenando
+   nombres, no las tarjetas: no veía el arte, ni el color del grado, ni el tamaño real de
+   la carta, y no tenía forma de saber qué hace «Sopa de letras» sin abrirla. Acá el
+   cuaderno **es** el cuaderno —el mismo player, el mismo tema, las mismas cartas—, así que
+   no hay nada que imitar ni que se pueda despegar de lo que ve el chico.
+
+   Se enciende SOLO con `?seno=1` y sobre el cuaderno de MUESTRA del grado. Sin el
+   parámetro este código no toca un solo pixel, que es lo que permite que viva en el player
+   que se sirve del repo a todos los cuadernos ya vendidos.
+
+   Qué cambia con el parámetro, y nada más que esto:
+     · no se pide «¿Quién juega?» ni se ofrece el sondeo — no es un chico el que entra;
+     · las cartas se pueden ARRASTRAR (mismo FLIP que el panel) dentro de su materia;
+     · un toque corto sigue ABRIENDO la actividad, que es «probar la tarjeta»;
+     · aparece una barra para guardar el orden.
+   ── */
+let SENO_ON = false;
+
+function senoPedida() {
+  return /[?&]seno(?:=1)?(?:&|$)/.test(location.search);
+}
+
 /* La muestra es UNA actividad, no una puerta al grado entero.
    Pablo (26-jul-2026): "cuando entras a probar una actividad y pones atrás tenés acceso a
    todas las actividades de cuarto grado. Creo que desde la página no debería poder ir para
@@ -5531,6 +5559,9 @@ const Sondeo = {
 
   disponible() {
     if (!D.adaptativo_on || typeof Adapt === "undefined") return false;
+    // En modo seño no hay a quién ubicar: la maestra viene a ver y ordenar el cuaderno,
+    // no a que el motor le mida el nivel.
+    if (SENO_ON) return false;
     if (Store.sondeoHecho()) return false;
     if (Store.total() > 0) return false;    // ya venía jugando: ubicarlo ahora sería raro
     return this._plan().length >= 2;        // con una sola materia no vale la pena
@@ -6173,6 +6204,214 @@ function pintarMenuPlano(items, stage) {
     visibles.forEach((m, i) => menu.appendChild(hacerCarta(m, i)));
     stage.appendChild(menu);
   }
+  if (SENO_ON) _senoArmar(stage);
+}
+
+/* ── MODO SEÑO: arrastrar las cartas del cuaderno ────────────────────────────
+   Todo lo de acá abajo corre SÓLO con `?seno=1`. Ver la nota de `senoPedida()`.
+   ── */
+
+/* Cartel de arriba + barra de guardar. Se arma después de pintar el menú, sobre el menú
+   real: no hay una segunda vista que mantener en sincronía con la del chico. */
+function _senoArmar(stage) {
+  if (!stage || document.getElementById("senoBarra")) return;
+
+  const nota = el("div");
+  nota.id = "senoNota";
+  nota.style.cssText =
+    "background:#fff;border:2px solid var(--ac2);border-radius:16px;padding:13px 16px;" +
+    "margin:0 0 14px;font:15px/1.45 Archivo,system-ui,sans-serif;color:#333";
+  nota.innerHTML =
+    "<b>Éste es el cuaderno tal cual lo ve el chico.</b><br>" +
+    "Arrastrá una tarjeta para moverla de lugar dentro de su materia, " +
+    "o tocala para probar la actividad.";
+  stage.insertBefore(nota, stage.firstChild);
+
+  const barra = el("div");
+  barra.id = "senoBarra";
+  barra.style.cssText =
+    "position:sticky;bottom:0;z-index:50;display:flex;flex-wrap:wrap;gap:10px;" +
+    "align-items:center;padding:12px 0;margin-top:16px;background:var(--bg,#fff)";
+  const guardar = el("button", "", "Guardar este orden");
+  guardar.style.cssText =
+    "min-height:48px;padding:0 22px;border:0;border-radius:14px;cursor:pointer;" +
+    "font:700 16px Archivo,system-ui,sans-serif;background:var(--ac2);color:#fff";
+  const estado = el("span");
+  estado.id = "senoEstado";
+  estado.style.cssText = "font:14px Archivo,system-ui,sans-serif;color:#555";
+  guardar.addEventListener("click", () => _senoGuardar(guardar, estado));
+  barra.appendChild(guardar);
+  barra.appendChild(estado);
+  stage.appendChild(barra);
+
+  _senoArrastre(stage);
+}
+
+/* El orden que quedó en pantalla: TODAS las materias seguidas, en el orden en que están
+   dibujadas. El motor lo aplica dentro de cada materia, así que el orden entre materias
+   no molesta. */
+function _senoIds(stage) {
+  return [].slice.call(stage.querySelectorAll(".carta[data-seno-id]"))
+           .map((c) => c.getAttribute("data-seno-id"));
+}
+
+async function _senoGuardar(boton, estado) {
+  const stage = document.getElementById("stage");
+  boton.disabled = true;
+  estado.textContent = "Guardando…";
+  try {
+    // Mismo origen (el motor sirve este player desde el propio token): sin CORS y sin
+    // pasarle al navegador una URL de destino que venga del query string.
+    const r = await fetch("orden", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: _senoIds(stage) }),
+    });
+    estado.textContent = r.ok
+      ? "Listo. Volvé a la pantalla del curso para pasárselo a tus alumnos."
+      : "No se pudo guardar. Probá de nuevo en un minuto.";
+  } catch (e) {
+    estado.textContent = "No se pudo guardar. Probá de nuevo en un minuto.";
+  }
+  boton.disabled = false;
+}
+
+/* Arrastre con FLIP sobre las cartas del cuaderno.
+   Dos diferencias con el de la tienda, las dos por la forma de esta pantalla:
+
+   · ES 2D. Las cartas van en grilla, no en lista: el FLIP tiene que invertir X **y** Y, y
+     el vecino con el que se compara no es el de arriba/abajo sino el más cercano al
+     centro de la carta que se arrastra.
+   · NO HAY ASA. La carta entera es el asa, porque la carta entera también es el botón que
+     abre la actividad. Se distinguen por el gesto: si el dedo se movió menos de 8px, fue
+     un toque y se abre; si se movió más, fue un arrastre y no se abre. Sin ese umbral,
+     probar una tarjeta era imposible en el celular — cualquier temblor la movía. */
+function _senoArrastre(stage) {
+  const UMBRAL = 8;                       // px: menos que esto es un toque, no un arrastre
+  const lento = window.matchMedia &&
+                window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let arr = null;
+
+  [].slice.call(stage.querySelectorAll(".carta")).forEach((c) => {
+    c.style.touchAction = "none";       // sin esto el navegador se queda el gesto y scrollea
+    c.style.cursor = "grab";
+  });
+  // El id del juego no está en el DOM: lo pone el modo seño, para no tocar `hacerCarta`,
+  // que es el camino de todos los cuadernos.
+  _senoMarcarIds(stage);
+
+  function grupo(carta) { return carta.parentNode; }
+
+  function medir(items) {
+    const m = new Map();
+    items.forEach((c) => {
+      const r = c.getBoundingClientRect();
+      m.set(c, { x: r.left, y: r.top });
+    });
+    return m;
+  }
+
+  function animar(items, antes) {
+    if (lento) return;
+    items.forEach((c) => {
+      const a = antes.get(c), r = c.getBoundingClientRect();
+      const dx = a.x - r.left, dy = a.y - r.top;
+      if (!dx && !dy) return;
+      c.style.transition = "none";
+      c.style.transform = `translate(${dx}px,${dy}px)`;
+    });
+    void stage.offsetHeight;             // el reflow que hace que el FLIP se vea
+    items.forEach((c) => {
+      c.style.transition = "transform .22s cubic-bezier(.2,.7,.3,1)";
+      c.style.transform = "";
+    });
+  }
+
+  stage.addEventListener("pointerdown", (ev) => {
+    const c = ev.target.closest && ev.target.closest(".carta");
+    if (!c || ev.button > 0) return;
+    arr = { c, x0: ev.clientX, y0: ev.clientY, movido: false,
+            g: grupo(c), base: c.getBoundingClientRect() };
+  }, true);
+
+  document.addEventListener("pointermove", (ev) => {
+    if (!arr) return;
+    const dx = ev.clientX - arr.x0, dy = ev.clientY - arr.y0;
+    if (!arr.movido && Math.hypot(dx, dy) < UMBRAL) return;
+    if (!arr.movido) {
+      arr.movido = true;
+      arr.c.style.zIndex = "60";
+      arr.c.style.boxShadow = "0 12px 28px rgba(0,0,0,.28)";
+      arr.c.style.cursor = "grabbing";
+    }
+    ev.preventDefault();
+    arr.c.style.transition = "none";
+    arr.c.style.transform = `translate(${dx}px,${dy}px) scale(1.04)`;
+
+    // ¿sobre qué hermano cayó el centro de la carta que se arrastra?
+    const r = arr.c.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const hermanos = [].slice.call(arr.g.children).filter((x) => x !== arr.c);
+    let destino = null;
+    for (const h of hermanos) {
+      const hr = h.getBoundingClientRect();
+      if (cx >= hr.left && cx <= hr.right && cy >= hr.top && cy <= hr.bottom) {
+        destino = h; break;
+      }
+    }
+    if (!destino) return;
+
+    // El FLIP se le aplica a los VECINOS: la que se arrastra la mueve el dedo, y animarla
+    // también la haría pelear contra su propia transformación.
+    const antes = medir(hermanos);
+    const orden = [].slice.call(arr.g.children);
+    if (orden.indexOf(arr.c) < orden.indexOf(destino)) {
+      arr.g.insertBefore(destino, arr.c);
+    } else {
+      arr.g.insertBefore(arr.c, destino);
+    }
+    animar(hermanos, antes);
+    // reanclar: si no, la carta salta al cambiar de lugar
+    const nueva = arr.c.getBoundingClientRect();
+    arr.x0 += nueva.left - r.left;
+    arr.y0 += nueva.top - r.top;
+  }, { passive: false });
+
+  function soltar() {
+    if (!arr) return;
+    const c = arr.c;
+    c.style.transition = "transform .16s ease";
+    c.style.transform = "";
+    c.style.zIndex = ""; c.style.boxShadow = ""; c.style.cursor = "grab";
+    const movido = arr.movido;
+    arr = null;
+    if (movido) {
+      // Se movió: el click que viene atrás del pointerup abriría la actividad. Se come uno
+      // solo, con `capture` y `once`, para que el toque siguiente sí abra.
+      document.addEventListener("click", (e) => {
+        e.preventDefault(); e.stopPropagation();
+      }, { capture: true, once: true });
+      const est = document.getElementById("senoEstado");
+      if (est) est.textContent = "Movida. Acordate de guardar.";
+    }
+  }
+  document.addEventListener("pointerup", soltar);
+  document.addEventListener("pointercancel", soltar);
+}
+
+/* Le pega a cada carta el id de su juego. Se hace recorriendo el menú por título y no por
+   posición: `visibles` filtra las que este cuaderno no tiene, así que el índice de la
+   carta dibujada no es el de `D.menu`. */
+function _senoMarcarIds(stage) {
+  const porTitulo = new Map();
+  (D.menu || []).forEach((m) => {
+    const it = (typeof m === "string") ? { id: m, titulo: m } : m;
+    if (!porTitulo.has(it.titulo)) porTitulo.set(it.titulo, it.id);
+  });
+  [].slice.call(stage.querySelectorAll(".carta")).forEach((c) => {
+    const n = c.querySelector(".nombre");
+    const id = n && porTitulo.get(n.textContent.trim());
+    if (id) c.setAttribute("data-seno-id", id);
+  });
 }
 
 /* ── Modo Creador / "Modo Profe" (post-dominio) ──────────────────────────────
@@ -6869,7 +7108,15 @@ async function boot() {
   }
 
   const _muestra = muestraPedida();
-  if (_muestra) {
+  // MODO SEÑO: la maestra ve el cuaderno tal cual, para ordenarlo y probarlo. No se le
+  // pregunta «¿Quién juega?» ni se le ofrece el sondeo —no es un chico el que entra— y por
+  // eso va antes que el camino normal. Ver la nota de `senoPedida()`.
+  SENO_ON = !_muestra && senoPedida();
+  if (SENO_ON) {
+    if (!Store.data.activeProfile) elegirPerfil(NOMBRE_INVITADO);
+    pintarHeader();
+    pintarMenu();
+  } else if (_muestra) {
     if (!Store.data.activeProfile) elegirPerfil(NOMBRE_INVITADO);
     pintarHeader();
     cerrarSalidasDeMuestra(_muestra);   // ANTES de abrir: el juego no puede pintar el ←
