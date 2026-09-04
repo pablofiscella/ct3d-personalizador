@@ -6573,10 +6573,24 @@ async function _senoGuardar(boton, estado) {
    justo después de un intercambio —si no, queda un frame con la carta corrida un ancho de
    tarjeta, que es lo que se ve como un salto al costado. */
 function _senoPegar(arr, px, py) {
-  const r = arr.c.getBoundingClientRect();
-  arr.dx = px - arr.agarreX - (r.left - arr.dx);
-  arr.dy = py - arr.agarreY - (r.top - arr.dy);
+  // SE MIDE LA BASE CON EL TRANSFORM SACADO, no restándolo de la caja.
+  //
+  // La versión anterior calculaba la base como `r.left - arr.dx`, o sea confiando en que
+  // la caja medida incluía EXACTAMENTE el translate que se había puesto. Cuando no lo
+  // incluía —una transición todavía corriendo, un reflow a mitad de camino— el error del
+  // frame entraba en la cuenta del siguiente y se REALIMENTABA: medido, el transform
+  // llegaba a `translate(1688px, -2324px)` en seis movimientos y la carta salía volando
+  // de la pantalla. Pablo lo vio de las dos formas: *"no deja mover la tarjeta"* en el
+  // celular y *"hago click y la tarjeta desaparece"* en la web — era el mismo defecto.
+  //
+  // Quitando el transform antes de medir, la base es la posición REAL del slot y no hay
+  // nada que acumular: cada frame arranca de cero. Cuesta un reflow, sobre un solo
+  // elemento y sólo mientras se arrastra.
   arr.c.style.transition = "none";
+  arr.c.style.transform = "";
+  const base = arr.c.getBoundingClientRect();
+  arr.dx = px - arr.agarreX - base.left;
+  arr.dy = py - arr.agarreY - base.top;
   arr.c.style.transform = `translate(${arr.dx}px,${arr.dy}px)`;
 }
 

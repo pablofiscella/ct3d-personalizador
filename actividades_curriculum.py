@@ -1118,7 +1118,7 @@ CATALOGO = [
     {
         "id": "aparatos_cuerpo",
         "grado": 5, "area": "naturales",
-        "titulo": "¿De qué sistema es?", "icono": "🫀",
+        "titulo": "¿De qué sistema es?", "icono": "❤️",
         "mecanica": "clasificar",
         "consigna": "¿A qué sistema del cuerpo pertenece?",
         "categorias": [{"cat": "digestivo", "label": "🍽️ Digestivo"},
@@ -1812,7 +1812,7 @@ CATALOGO = [
     },
     {
         "id": "objeto_material_4", "grado": 4, "area": "naturales",
-        "titulo": "Objeto o material", "icono": "🪵",
+        "titulo": "Objeto o material", "icono": "🌳",
         "mecanica": "clasificar",
         "consigna": "¿De dónde sale este material?",
         "categorias": [
@@ -2062,7 +2062,7 @@ CATALOGO = [
     },
     {
         "id": "hiperonimos_4", "grado": 4, "area": "lengua",
-        "titulo": "La palabra que abarca", "icono": "🪆",
+        "titulo": "La palabra que abarca", "icono": "📦",
         "mecanica": "trivia",
         "consigna": "Pensá qué palabra incluye a la otra.",
         "dc": "Cohesión léxica: hiperónimos, hipónimos y sinonimia",
@@ -5785,7 +5785,7 @@ CATALOGO = [
     },
     {
         "id": "conectores_3", "grado": 3, "area": "lengua",
-        "titulo": "El conector justo", "icono": "🪢",
+        "titulo": "El conector justo", "icono": "➰",
         "mecanica": "trivia", "consigna": "¿Qué palabra une mejor las dos partes?",
         "dc": "Conectores adversativos y continuativos; cohesión",
         "fuente": "docs/auditoria-dc-caba/grado-3.md · L10",
@@ -6735,7 +6735,7 @@ CATALOGO = [
        "m":"Si preguntan la hora, buscás el número con 'h'."},
       {"q":"«Taller de dibujo. Cupo: 15 chicos.» ¿Cuántos entran?","ops":["15","Dibujo","Cupo"],
        "m":"El cupo es la cantidad."}]},
-    {"id":"conectores_2","grado":2,"area":"lengua","titulo":"El conector justo","icono":"🪢",
+    {"id":"conectores_2","grado":2,"area":"lengua","titulo":"El conector justo","icono":"➰",
      "mecanica":"trivia","consigna":"¿Qué palabra une mejor?",
      "dc":"Conectores y/e/ni, o/u y temporales",
      "fuente":"docs/auditoria-dc-caba/grado-2.md · L12",
@@ -7038,7 +7038,7 @@ CATALOGO = [
       {"items":["El agua se filtra en la tierra","Queda bajo el suelo","Se saca con una bomba"]},
       {"items":["El sol evapora el agua","Se forma la nube","Vuelve a llover"]},
       {"items":["Se llena el vaso","Se toma el agua","Se lava el vaso"]}]},
-    {"id":"salud_2","grado":2,"area":"cdm","titulo":"¿Se contagia?","icono":"🩺",
+    {"id":"salud_2","grado":2,"area":"cdm","titulo":"¿Se contagia?","icono":"🏥",
      "mecanica":"clasificar","consigna":"¿Esto se contagia o no?",
      "categorias":[{"cat":"contagia","label":"🦠 Se contagia"},
       {"cat":"nocontagia","label":"🚫 No se contagia"}],
@@ -10418,7 +10418,7 @@ CATALOGO = [
     },
     {
         "id": "heliocentrismo_6", "grado": 6, "area": "naturales",
-        "titulo": "Del geocentrismo al heliocentrismo", "icono": "🪐",
+        "titulo": "Del geocentrismo al heliocentrismo", "icono": "🌌",
         "mecanica": "trivia",
         "consigna": "¿Qué modelo explica mejor lo que se observa?",
         "explica": "La ciencia cambió de modelo cuando el viejo dejó de explicar las observaciones.",
@@ -11570,7 +11570,7 @@ CATALOGO = [
     },
     {
         "id": "its_violencia_6", "grado": 6, "area": "naturales",
-        "titulo": "Mitos, ITS y tipos de violencia", "icono": "❤️‍🩹",
+        "titulo": "Mitos, ITS y tipos de violencia", "icono": "⚕️",
         "mecanica": "trivia",
         "consigna": "Distinguí lo que es cierto de lo que se dice.",
         "explica": "La información correcta es la primera forma de cuidarse.",
@@ -13047,7 +13047,7 @@ CATALOGO = [
     },
     {
         "id": "ambiguedad_7", "grado": 7, "area": "lengua",
-        "titulo": "Corregí el error", "icono": "🩹",
+        "titulo": "Corregí el error", "icono": "⚕️",
         "mecanica": "trivia",
         "consigna": "Encontrá el problema de la frase.",
         "explica": "Una frase ambigua se puede entender de dos maneras, y las dos son válidas.",
@@ -14045,7 +14045,7 @@ CATALOGO = [
     },
     {
         "id": "reproductor_7", "grado": 7, "area": "naturales",
-        "titulo": "Sistema reproductor", "icono": "🫀",
+        "titulo": "Sistema reproductor", "icono": "❤️",
         "mecanica": "trivia",
         "consigna": "Reconocé cada órgano y su función.",
         "explica": "Nombrar bien las partes del cuerpo es parte del cuidado de la salud.",
@@ -14959,7 +14959,7 @@ CATALOGO = [
     # nunca describiendo cómo se comete. Marcados para revisión docente.
     {
         "id": "anticoncepcion_7", "grado": 7, "area": "naturales",
-        "titulo": "Anticoncepción y prevención", "icono": "🩺",
+        "titulo": "Anticoncepción y prevención", "icono": "🏥",
         "mecanica": "trivia",
         "consigna": "¿Qué previene cada método?",
         "explica": "Sólo el preservativo previene el embarazo Y las infecciones a la vez.",
