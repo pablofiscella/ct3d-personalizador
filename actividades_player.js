@@ -6385,11 +6385,18 @@ function _senoArrastre(stage) {
     const movido = arr.movido;
     arr = null;
     if (movido) {
-      // Se movió: el click que viene atrás del pointerup abriría la actividad. Se come uno
-      // solo, con `capture` y `once`, para que el toque siguiente sí abra.
-      document.addEventListener("click", (e) => {
-        e.preventDefault(); e.stopPropagation();
-      }, { capture: true, once: true });
+      // Se movió: el click que viene atrás del `pointerup` abriría la actividad, y la
+      // maestra quería moverla, no jugarla. Se come UNO SOLO y **sólo si sale de la carta
+      // que se arrastró**: con un `once` a secas, el primer click en cualquier lado
+      // quedaba anulado —incluido el de «Guardar este orden», que después de mover una
+      // tarjeta no hacía nada—. Encontrado probándolo, no leyéndolo.
+      const tragar = (e) => {
+        if (e.target.closest && e.target.closest(".carta") === c) {
+          e.preventDefault(); e.stopPropagation();
+        }
+        document.removeEventListener("click", tragar, true);
+      };
+      document.addEventListener("click", tragar, true);
       const est = document.getElementById("senoEstado");
       if (est) est.textContent = "Movida. Acordate de guardar.";
     }
