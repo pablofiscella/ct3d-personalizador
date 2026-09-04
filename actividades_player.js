@@ -6282,10 +6282,153 @@ function _senoArmar(stage) {
   }
 
   _senoArrastre(stage);
+  // El recorrido va ÚLTIMO y con un respiro: mide la posición de elementos reales, así que
+  // necesita la pantalla ya armada. Se muestra una sola vez por dispositivo.
+  setTimeout(() => _senoTour(stage), 600);
 }
 
 /* El cartel que explica de qué se trata. Se rehace en cada pintada del menú porque el
    stage se vacía entero al abrir una actividad. */
+/* ── EL RECORRIDO GUIADO de la primera vez ───────────────────────────────────
+   Pablo, 04-sep-2026: *"cuando hay una actualización o es la primera vez que se entra la
+   pantalla aparece con un modal en un lugar determinado explicando qué hace, ponés
+   entiendo y se va a otro lugar"*.
+
+   TRES PASOS Y NO MÁS. La regla que más se rompe en estos recorridos es la cantidad: el
+   sexto globo no lo lee nadie, y el que se cansa en el tercero se pierde el que importaba.
+   Acá se explican SÓLO las dos cosas que no se descubren solas —que las cartas se
+   arrastran, y que tocarlas abre la actividad para probarla— más dónde se guarda.
+
+   Lo que NO va: nada que ya diga la pantalla. El botón «Guardar este orden» se explica
+   solo; lo que no se adivina es que eso después hay que pasárselo al curso.
+
+   SE VE UNA SOLA VEZ POR DISPOSITIVO, y el salteo se respeta igual que el final: quien lo
+   cerró no lo vuelve a ver. La clave lleva versión (`v1`) para que el día que haya algo
+   nuevo se pueda mostrar un recorrido corto SÓLO de lo nuevo, en vez de repetir éste.
+
+   Es propio y no una librería (Shepherd, Driver, Intro.js) a propósito: son tres globos, y
+   este archivo se sirve DEL REPO a todos los cuadernos vendidos — sumar una dependencia
+   sería peso de descarga para miles de chicos que nunca van a ver el recorrido. ── */
+const SENO_TOUR_KEY = "kydo-seno-tour-v1";
+
+function _senoTourVisto() {
+  try { return localStorage.getItem(SENO_TOUR_KEY) === "1"; } catch (e) { return false; }
+}
+
+function _senoTourMarcar() {
+  try { localStorage.setItem(SENO_TOUR_KEY, "1"); } catch (e) { /* modo privado */ }
+}
+
+function _senoTour(stage) {
+  if (_senoTourVisto()) return;
+  const cartas = stage.querySelectorAll(".carta");
+  const barra = document.getElementById("senoBarra");
+  if (cartas.length < 2 || !barra) return;           // pantalla incompleta: no hay tour
+
+  const pasos = [
+    { el: cartas[0], titulo: "Arrastrá para mover",
+      texto: "Agarrá una tarjeta y llevala a donde querés que vaya. Las demás se "
+             + "acomodan solas. Se ordena dentro de cada materia." },
+    { el: cartas[1], titulo: "Tocá para probar",
+      texto: "Un toque abre la actividad y la podés jugar, para saber qué le vas a dar "
+             + "a tus alumnos antes de decidir dónde va." },
+    { el: barra, titulo: "Guardá cuando termines",
+      texto: "Esto guarda tu orden acá. Después, en la pantalla del curso, se lo pasás "
+             + "a tus alumnos." },
+  ];
+
+  const lento = window.matchMedia &&
+                window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let i = 0;
+
+  const velo = el("div");
+  velo.id = "senoTour";
+  velo.setAttribute("role", "dialog");
+  velo.setAttribute("aria-modal", "true");
+  velo.style.cssText = "position:fixed;inset:0;z-index:95";
+
+  // El recorte se hace con una sombra enorme alrededor del hueco, que es la forma de
+  // oscurecer TODO menos un rectángulo sin tener que dibujar cuatro paneles y mantenerlos
+  // cuadrados entre sí.
+  const hueco = el("div");
+  hueco.style.cssText =
+    "position:fixed;border-radius:18px;pointer-events:none;"
+    + "box-shadow:0 0 0 9999px rgba(0,0,0,.58);"
+    + (lento ? "" : "transition:top .25s ease,left .25s ease,width .25s ease,height .25s ease");
+  velo.appendChild(hueco);
+
+  const globo = el("div");
+  globo.style.cssText =
+    "position:fixed;max-width:min(330px,calc(100vw - 32px));background:#fff;"
+    + "border-radius:16px;padding:15px 17px 13px;box-shadow:0 14px 40px rgba(0,0,0,.3);"
+    + "font:15px/1.45 Archivo,system-ui,sans-serif;color:#333"
+    + (lento ? "" : ";transition:top .25s ease,left .25s ease");
+  velo.appendChild(globo);
+  document.body.appendChild(velo);
+
+  function cerrar() {
+    _senoTourMarcar();
+    velo.remove();
+    document.removeEventListener("keydown", tecla);
+  }
+
+  function tecla(e) {
+    if (e.key === "Escape") cerrar();
+    else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); avanzar(); }
+  }
+
+  function avanzar() {
+    i += 1;
+    if (i >= pasos.length) cerrar(); else pintar();
+  }
+
+  function pintar() {
+    const p = pasos[i];
+    // Si el elemento quedó fuera de la pantalla, se lo trae ANTES de medir: un globo que
+    // señala algo que no se ve es peor que no explicar nada.
+    p.el.scrollIntoView({ block: "center", behavior: lento ? "auto" : "smooth" });
+    setTimeout(() => {
+      const r = p.el.getBoundingClientRect();
+      const m = 8;
+      hueco.style.top = (r.top - m) + "px";
+      hueco.style.left = (r.left - m) + "px";
+      hueco.style.width = (r.width + m * 2) + "px";
+      hueco.style.height = (r.height + m * 2) + "px";
+
+      globo.innerHTML =
+        `<div style="font-weight:800;font-size:17px;margin-bottom:5px">${p.titulo}</div>`
+        + `<div style="color:#555">${p.texto}</div>`
+        + `<div style="display:flex;align-items:center;gap:12px;margin-top:13px">`
+        + `<button data-sig style="min-height:42px;padding:0 18px;border:0;border-radius:12px;`
+        + `cursor:pointer;font:700 15px Archivo,system-ui,sans-serif;`
+        + `background:var(--ac2);color:#fff">`
+        + `${i === pasos.length - 1 ? "Entendido" : "Entendido"}</button>`
+        + `<button data-salir style="border:0;background:none;cursor:pointer;`
+        + `font:14px Archivo,system-ui,sans-serif;color:#777;text-decoration:underline">`
+        + `${i === pasos.length - 1 ? "Cerrar" : "Saltear"}</button>`
+        + `<span style="margin-left:auto;font:13px Archivo,system-ui,sans-serif;`
+        + `color:#999">${i + 1} de ${pasos.length}</span></div>`;
+
+      // Debajo del elemento; si no entra, arriba. Nunca tapando lo que está señalando.
+      const alto = globo.offsetHeight || 150, ancho = globo.offsetWidth || 300;
+      const abajo = r.bottom + 14;
+      globo.style.top = (abajo + alto < window.innerHeight - 8
+                         ? abajo : Math.max(8, r.top - alto - 14)) + "px";
+      globo.style.left =
+        Math.max(16, Math.min(window.innerWidth - ancho - 16,
+                              r.left + r.width / 2 - ancho / 2)) + "px";
+      globo.querySelector("[data-sig]").addEventListener("click", avanzar);
+      globo.querySelector("[data-salir]").addEventListener("click", cerrar);
+      globo.querySelector("[data-sig]").focus();
+    }, lento ? 0 : 260);
+  }
+
+  // Clic afuera del globo = cerrar. No atrapar a nadie en un recorrido que no pidió.
+  velo.addEventListener("click", (e) => { if (!globo.contains(e.target)) cerrar(); });
+  document.addEventListener("keydown", tecla);
+  pintar();
+}
+
 function _senoNota(stage) {
   if (document.getElementById("senoNota")) return;
   const nota = el("div");
