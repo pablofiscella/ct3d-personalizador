@@ -6696,7 +6696,7 @@ function _senoArrastre(stage) {
     }
   }, true);
 
-  document.addEventListener("pointermove", (ev) => {
+  function _senoMover(ev) {
     if (!arr) return;
     const lejos = Math.hypot(ev.clientX - arr.x0, ev.clientY - arr.y0) >= UMBRAL;
     // CON EL DEDO, moverse ANTES de que la carta se levante quiere decir «estoy
@@ -6778,7 +6778,7 @@ function _senoArrastre(stage) {
     // deja UN frame con la carta corrida un ancho de tarjeta: medido, y es exactamente el
     // «se va dos tarjetas al costado y el puntero queda en otro lado» que reportó Pablo.
     _senoPegar(arr, ev.clientX, ev.clientY);
-  }, { passive: false });
+  }
 
   function soltar() {
     if (!arr) return;
@@ -6815,8 +6815,34 @@ function _senoArrastre(stage) {
       if (est) est.textContent = "Movida. Acordate de guardar.";
     }
   }
-  document.addEventListener("pointerup", soltar);
-  document.addEventListener("pointercancel", soltar);
+  // LOS LISTENERS DE `document` SE REGISTRAN UNA SOLA VEZ. `_senoArrastre` corre en cada
+  // pintada del menú —también al volver de probar una actividad—, así que sin esta guarda
+  // se acumulaban y cada movimiento del dedo se procesaba varias veces.
+  if (!_senoArrastre._enganchado) {
+    _senoArrastre._enganchado = true;
+    document.addEventListener("pointermove", _senoMover, { passive: false });
+    document.addEventListener("pointerup", soltar);
+    document.addEventListener("pointercancel", soltar);
+    // EL `touchmove` NATIVO, Y NO ALCANZA CON EL POINTER EVENT (04-sep-2026).
+    //
+    // Pablo: *"sigue sin funcionar en celular"*. Reproducido con eventos táctiles reales
+    // (`Input.dispatchTouchEvent`, que sí pasan por el pipeline de gestos del navegador,
+    // a diferencia de los PointerEvent sintéticos con los que yo venía probando y que
+    // daban verde): al mantener presionado y mover, la pantalla SCROLLEABA y la carta no
+    // se movía.
+    //
+    // La causa: `touch-action: none` puesto cuando la carta se levanta llega TARDE. El
+    // navegador ya decidió de quién es el gesto, y esa propiedad recién manda en el
+    // siguiente. Lo único que le saca un gesto en curso es `preventDefault()` sobre el
+    // `touchmove` NATIVO, y para poder llamarlo el listener tiene que ser NO PASIVO —los
+    // de touch son pasivos por defecto justamente para que nadie frene el scroll.
+    //
+    // Funciona porque cuando el temporizador se cumple el dedo está QUIETO: el navegador
+    // todavía no empezó a scrollear, así que el primer `preventDefault` llega a tiempo.
+    document.addEventListener("touchmove", (ev) => {
+      if (arr && arr.movido) ev.preventDefault();
+    }, { passive: false });
+  }
 }
 
 /* Le pega a cada carta el id de su juego. Se hace recorriendo el menú por título y no por
