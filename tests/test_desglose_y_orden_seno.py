@@ -255,12 +255,38 @@ def test_el_modo_seno_guarda_en_su_propio_origen():
 
 def test_arrastrar_y_probar_se_distinguen_por_el_umbral():
     """La carta es a la vez el asa y el botón que abre la actividad. Sin el umbral en
-    píxeles, cualquier temblor del dedo contaba como arrastre y probar una tarjeta en el
-    celular era imposible."""
+    píxeles, cualquier temblor del dedo contaba como arrastre y probar una tarjeta era
+    imposible."""
     js = _player()
     assert "const UMBRAL = 8;" in js
-    assert "< UMBRAL) return;" in js, "se perdió la comparación contra el umbral"
-    assert "Math.hypot(" in js
+    assert "Math.hypot(ev.clientX - arr.x0, ev.clientY - arr.y0) >= UMBRAL" in js
+
+
+def test_con_el_dedo_el_arrastre_arranca_por_MANTENER_PRESIONADO():
+    """Pablo: *"en el celular cuando voy a ordenar no puedo hacer scroll porque creo que
+    voy a mover tarjetas de lugar"*. Y era literal: la carta entera se quedaba con el
+    gesto, así que sobre una tarjeta —o sea en casi toda la pantalla— el dedo no
+    scrolleaba.
+
+    No se arregla eligiendo mejor el umbral: deslizar sobre una carta es a la vez «quiero
+    scrollear» y «quiero moverla», y no se distinguen POR EL MOVIMIENTO. Se distinguen por
+    el TIEMPO, como en cualquier app que reordena iconos."""
+    js = _player()
+    assert "const ESPERA_DEDO = 400;" in js, "se perdió el mantener presionado"
+    assert 'ev.pointerType === "touch"' in js, "ya no distingue el dedo del mouse"
+    # y lo que hacía imposible el scroll no puede volver: `touch-action:none` de entrada
+    i = js.index("function _senoArrastre")
+    tramo = js[i:i + 1500]
+    assert 'touchAction = "none"' not in tramo, \
+        "volvió el touch-action de entrada: la pantalla se queda sin scroll"
+
+
+def test_al_soltar_la_carta_devuelve_el_scroll():
+    """Si el `touch-action` queda en «none», esa carta se lleva el scroll para siempre y la
+    pantalla se traba de a poco, carta por carta."""
+    js = _player()
+    i = js.index("function soltar()")
+    assert 'c.style.touchAction = "";' in js[i:i + 900]
 
 
 def test_no_se_reordena_mientras_el_flip_anima():
