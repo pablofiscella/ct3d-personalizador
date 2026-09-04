@@ -259,7 +259,7 @@ def _menu(banda, edad, escolar=False):
         g.append({"id": "abecedario", "titulo": "El abecedario", "icono": "🔡", "cfg": {"rondas": 5, "letras": 4}})
         # NAP 1° grado Bimestre 2 "Ideas web": "suma rápida — tocar burbujas
         # que sumen 10".
-        g.append({"id": "suma_rapida", "titulo": "Suma rápida", "icono": "🫧", "cfg": {"rondas": 5}})
+        g.append({"id": "suma_rapida", "titulo": "Suma rápida", "icono": "💧", "cfg": {"rondas": 5}})
         # NAP 1° grado Bimestre 3 "Ideas web": "clasificar ¿Campo o Ciudad?"
         # y "unir planta con su fruto/semilla".
         # rondas=10 (14-jul-2026): CAMPO_CIUDAD_BANCO ya tiene 10 ítems —
@@ -272,7 +272,7 @@ def _menu(banda, edad, escolar=False):
         # NAP 1° grado Bimestre 4 "Ideas web": "trivia de materiales" y
         # "rompecabezas numérico de la grilla 1-100".
         # rondas=10 (14-jul-2026): MATERIALES_BANCO creció de 6 a 10.
-        g.append({"id": "materiales", "titulo": "¿De qué material es?", "icono": "🪟", "cfg": {"rondas": 10}})
+        g.append({"id": "materiales", "titulo": "¿De qué material es?", "icono": "🏠", "cfg": {"rondas": 10}})
         # Los sentidos (CdM 1°: el cuerpo y los 5 sentidos). Pista visual + opciones
         # cortas para 1°.
         g.append({"id": "sentidos", "titulo": "Los cinco sentidos", "icono": "👀", "cfg": {"rondas": 10}})
@@ -282,7 +282,7 @@ def _menu(banda, edad, escolar=False):
         # Los moldes de 3°+ (fracciones, comprensión de 4°…) NO aplican a 6 años;
         # el resto de 1° es contenido fonético/lector age-específico (fase engrosar).
         g.append({"id": "recta_numerica", "titulo": "Recta gigante", "icono": "📍", "cfg": {"rondas": 8, "max1": 20, "max2": 100}})
-        g.append({"id": "ordenar_numeros", "titulo": "Ordená los números", "icono": "🪜", "cfg": {"rondas": 8, "max": 20, "cant": 3}})
+        g.append({"id": "ordenar_numeros", "titulo": "Ordená los números", "icono": "📊", "cfg": {"rondas": 8, "max": 20, "cant": 3}})
         # 2ª tanda 1° (19-jul-2026, nivelación age-específica): fonética (letra
         # inicial, con AUDIO) + anterior/siguiente de un número (NAP nodal).
         g.append({"id": "letra_inicial", "titulo": "¿Con qué letra empieza?", "icono": "🅰️", "cfg": {"rondas": 8}})
@@ -324,7 +324,7 @@ def _menu(banda, edad, escolar=False):
         # age-específico (fase engrosar).
         g.append({"id": "recta_numerica", "titulo": "Recta gigante", "icono": "📍", "cfg": {"rondas": 8, "max1": 100, "max2": 1000}})
         g.append({"id": "comparar_numeros", "titulo": "Tres en fila", "icono": "🥇", "cfg": {"rondas": 10, "max": 999}})
-        g.append({"id": "ordenar_numeros", "titulo": "Ordená los números", "icono": "🪜", "cfg": {"rondas": 8, "max": 100, "cant": 4}})
+        g.append({"id": "ordenar_numeros", "titulo": "Ordená los números", "icono": "📊", "cfg": {"rondas": 8, "max": 100, "cant": 4}})
         # Valor posicional (docs/auditoria-dc-caba/grado-2.md, gap #2: hasta 1.000,
         # ausente). Cuánto vale cada cifra, descomposición, unidades/decenas/centenas.
         g.append({"id": "valor_posicional", "titulo": "¿Cuánto vale?", "icono": "🧮", "cfg": {"rondas": 10}})
@@ -424,7 +424,7 @@ def _menu(banda, edad, escolar=False):
         # PROCEDIMIENTO por aproximaciones (restar múltiplos amigables del divisor,
         # resta acumulada visible, cociente cifra por cifra) — no solo la trivia
         # "cuántas veces entra". Es LA pared de 4°. nivel 1 = ÷1 cifra, exacta.
-        g.append({"id": "cuenta_larga", "titulo": "La cuenta paso a paso", "icono": "🪜", "cfg": {"rondas": 8, "nivel": 1}})
+        g.append({"id": "cuenta_larga", "titulo": "La cuenta paso a paso", "icono": "🧗", "cfg": {"rondas": 8, "nivel": 1}})
         # Bimestre 1: abstracto/concreto + provincia → región.
         # rondas=10 (14-jul-2026): ABSTRACTOS_BANCO creció de 8 a 10.
         g.append({"id": "abstractos_concretos", "titulo": "Abstracto o concreto", "icono": "💭", "cfg": {"rondas": 10}})
@@ -478,7 +478,7 @@ def _menu(banda, edad, escolar=False):
         # "cero actividades" de originarios→conquista→colonia→fundaciones). La
         # línea de tiempo ORDENA la cronología; esto enseña el CONTENIDO (quiénes
         # eran, qué pasó, por qué), trivia con distractores por misconception.
-        g.append({"id": "historia_originarios", "titulo": "Pueblos y colonia", "icono": "🪶", "cfg": {"rondas": 8}})
+        g.append({"id": "historia_originarios", "titulo": "Pueblos y colonia", "icono": "🐦", "cfg": {"rondas": 8}})
         g.append({"id": "historia_orden", "titulo": "Ordená el cuento", "icono": "📖", "cfg": {"rondas": 8}})
         # M1 "Recta gigante" (19-jul-2026): MECÁNICA NUEVA de recta numérica —
         # ubicar un número por zonas en la recta (0-10.000 → 0-100.000).
@@ -495,7 +495,7 @@ def _menu(banda, edad, escolar=False):
         # Conectores (docs/auditoria-dc-caba/grado-4.md, gap #3 de Lengua): nivel 1,
         # subconjunto simple (temporales/causales/«pero»), sin adversativos cargados
         # que quedan para 5°+. Ícono 🪢 (🔗 ya lo usa prefijos_sufijos en 4°).
-        g.append({"id": "conectores", "titulo": "El conector justo", "icono": "🪢", "cfg": {"rondas": 10, "nivel": 1}})
+        g.append({"id": "conectores", "titulo": "El conector justo", "icono": "➰", "cfg": {"rondas": 10, "nivel": 1}})
         # Pablo 15-jul-2026, probando el link en vivo: "las sumas en 4°
         # grado son de 4 a 5 cifras y en las actividades parecen muy
         # fáciles para esa edad". El `sumas` genérico (conteo de sprites,
@@ -534,7 +534,7 @@ def _menu(banda, edad, escolar=False):
         # predicado. Complementa la fluidez de arriba (que ya da el núcleo).
         g.append({"id": "sujeto_predicado", "titulo": "Sujeto y predicado", "icono": "✂️", "cfg": {"rondas": 8}})
         # Bimestre 3: pago exacto + actividad económica por región.
-        g.append({"id": "pago_exacto", "titulo": "Pago exacto", "icono": "🪙", "cfg": {"rondas": 5}})
+        g.append({"id": "pago_exacto", "titulo": "Pago exacto", "icono": "💰", "cfg": {"rondas": 5}})
         # rondas=10 (14-jul-2026): ECONOMIA_BANCO creció de 6 a 10.
         g.append({"id": "actividad_economica", "titulo": "¿Qué se produce acá?", "icono": "🌾", "cfg": {"rondas": 10}})
         # Bimestre 4: planta potabilizadora + derechos y constitución.
@@ -551,7 +551,7 @@ def _menu(banda, edad, escolar=False):
         # M7 "División por aproximaciones" (docs/auditoria-dc-caba/grado-5.md): modo
         # guiado paso a paso, ahora CON resto + comprobación c×d+r=D (análisis del
         # resto, nodal de 5°). nivel 2.
-        g.append({"id": "cuenta_larga", "titulo": "La cuenta paso a paso", "icono": "🪜", "cfg": {"rondas": 8, "nivel": 2}})
+        g.append({"id": "cuenta_larga", "titulo": "La cuenta paso a paso", "icono": "🧗", "cfg": {"rondas": 8, "nivel": 2}})
         g.append({"id": "comprension_lectora", "titulo": "Detective de textos", "icono": "🔎", "cfg": {"rondas": 8}})
         g.append({"id": "duelo_decimales", "titulo": "Duelo de decimales", "icono": "💲", "cfg": {"rondas": 10}})
         g.append({"id": "duelo_fracciones", "titulo": "Duelo de fracciones", "icono": "🍫", "cfg": {"rondas": 10}})
@@ -586,7 +586,7 @@ def _menu(banda, edad, escolar=False):
         g.append({"id": "hechos_opiniones", "titulo": "Hecho u opinión", "icono": "📰", "cfg": {"rondas": 10}})
         # Bimestre 2: sistema nervioso + viaje del inmigrante.
         # rondas=10 (14-jul-2026): NERVIOSO_BANCO creció de 5 a 10.
-        g.append({"id": "sistema_nervioso", "titulo": "Sistema nervioso", "icono": "🫨", "cfg": {"rondas": 10}})
+        g.append({"id": "sistema_nervioso", "titulo": "Sistema nervioso", "icono": "🌋", "cfg": {"rondas": 10}})
         g.append({"id": "viaje_inmigrante", "titulo": "El viaje del inmigrante", "icono": "🚢", "cfg": {"rondas": 4}})
         # Bimestre 3: fracción de una cantidad + sufragio argentino.
         # rondas=10 (14-jul-2026): FRACCION_CANTIDAD_BANCO creció de 5 a 10.
@@ -607,7 +607,7 @@ def _menu(banda, edad, escolar=False):
         # mult/división y racionales reusando los moldes con dificultad de 6°.
         g.append({"id": "tablas_ninja", "titulo": "Tablas ninja", "icono": "🥷", "cfg": {"rondas": 10, "nivel": 3}})
         g.append({"id": "dividir", "titulo": "La división", "icono": "🧮", "cfg": {"rondas": 10, "nivel": 2}})
-        g.append({"id": "cuenta_larga", "titulo": "La cuenta paso a paso", "icono": "🪜", "cfg": {"rondas": 8, "nivel": 2}})
+        g.append({"id": "cuenta_larga", "titulo": "La cuenta paso a paso", "icono": "🧗", "cfg": {"rondas": 8, "nivel": 2}})
         g.append({"id": "comprension_lectora", "titulo": "Detective de textos", "icono": "🔎", "cfg": {"rondas": 8}})
         g.append({"id": "duelo_fracciones", "titulo": "Duelo de fracciones", "icono": "🍫", "cfg": {"rondas": 10}})
         g.append({"id": "duelo_decimales", "titulo": "Duelo de decimales", "icono": "💲", "cfg": {"rondas": 10}})
@@ -649,7 +649,7 @@ def _menu(banda, edad, escolar=False):
         g.append({"id": "traductor_algebraico", "titulo": "Traductor algebraico", "icono": "🧮", "cfg": {"rondas": 10}})
         # rondas=8 (14-jul-2026): PLANETAS_BANCO se queda en 8 (techo real —
         # son los 8 planetas del sistema solar, ver comentario del banco).
-        g.append({"id": "planetas_tipo", "titulo": "¿Terrestre o gaseoso?", "icono": "🪐", "cfg": {"rondas": 8}})
+        g.append({"id": "planetas_tipo", "titulo": "¿Terrestre o gaseoso?", "icono": "🌍", "cfg": {"rondas": 8}})
         # Bimestre 2: línea de tiempo de la democracia + aparato reproductor.
         g.append({"id": "linea_democracia", "titulo": "Línea de tiempo: la democracia", "icono": "🕊️", "cfg": {"rondas": 4}})
         # rondas=10 (14-jul-2026): REPRODUCTOR_BANCO creció de 5 a 10.
@@ -671,7 +671,7 @@ def _menu(banda, edad, escolar=False):
         # mult/división y racionales reusando los moldes con la máxima dificultad.
         g.append({"id": "tablas_ninja", "titulo": "Tablas ninja", "icono": "🥷", "cfg": {"rondas": 10, "nivel": 3}})
         g.append({"id": "dividir", "titulo": "La división", "icono": "➗", "cfg": {"rondas": 10, "nivel": 2}})
-        g.append({"id": "cuenta_larga", "titulo": "La cuenta paso a paso", "icono": "🪜", "cfg": {"rondas": 8, "nivel": 2}})
+        g.append({"id": "cuenta_larga", "titulo": "La cuenta paso a paso", "icono": "🧗", "cfg": {"rondas": 8, "nivel": 2}})
         g.append({"id": "comprension_lectora", "titulo": "Detective de textos", "icono": "🔎", "cfg": {"rondas": 8}})
         g.append({"id": "duelo_fracciones", "titulo": "Duelo de fracciones", "icono": "🍫", "cfg": {"rondas": 10}})
         g.append({"id": "duelo_decimales", "titulo": "Duelo de decimales", "icono": "💲", "cfg": {"rondas": 10}})
