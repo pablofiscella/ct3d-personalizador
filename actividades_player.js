@@ -6330,6 +6330,19 @@ function _senoTourMarcar() {
   try { localStorage.setItem(SENO_TOUR_KEY, "1"); } catch (e) { /* modo privado */ }
 }
 
+/* Llama a `fn` cuando el scroll dejó de moverse. `scrollIntoView` no avisa cuándo terminó
+   ni en modo instantáneo, así que se espera a que la posición se repita dos cuadros
+   seguidos. Medir antes es lo que hacía que el recorte cayera sobre el elemento equivocado. */
+function _senoQuieto(fn) {
+  let previo = null, iguales = 0;
+  (function mirar() {
+    const y = window.scrollY;
+    iguales = (y === previo) ? iguales + 1 : 0;
+    previo = y;
+    if (iguales >= 2) fn(); else requestAnimationFrame(mirar);
+  })();
+}
+
 function _senoTour(stage) {
   if (_senoTourVisto()) return;
   const cartas = stage.querySelectorAll(".carta");
@@ -6397,8 +6410,11 @@ function _senoTour(stage) {
     const p = pasos[i];
     // Si el elemento quedó fuera de la pantalla, se lo trae ANTES de medir: un globo que
     // señala algo que no se ve es peor que no explicar nada.
-    p.el.scrollIntoView({ block: "center", behavior: lento ? "auto" : "smooth" });
-    setTimeout(() => {
+    // INSTANTÁNEO y no `smooth`: con el suave la medición salía a mitad del
+    // desplazamiento y el recorte terminaba señalando el borde de OTRA tarjeta. Lo que se
+    // desliza es el recorte, que ya tiene su transición.
+    p.el.scrollIntoView({ block: "center", behavior: "auto" });
+    _senoQuieto(() => {
       const r = p.el.getBoundingClientRect();
       const m = 8;
       hueco.style.top = (r.top - m) + "px";
@@ -6431,7 +6447,7 @@ function _senoTour(stage) {
       globo.querySelector("[data-sig]").addEventListener("click", avanzar);
       globo.querySelector("[data-salir]").addEventListener("click", cerrar);
       globo.querySelector("[data-sig]").focus();
-    }, lento ? 0 : 260);
+    });
   }
 
   // Clic afuera del globo = cerrar. No atrapar a nadie en un recorrido que no pidió.
