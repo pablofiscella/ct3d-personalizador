@@ -6489,10 +6489,16 @@ function _senoNota(stage) {
   nota.style.cssText =
     "background:#fff;border:2px solid var(--ac2);border-radius:16px;padding:13px 16px;" +
     "margin:0 0 14px;font:15px/1.45 Archivo,system-ui,sans-serif;color:#333";
+  // El gesto se explica según con qué se esté señalando: en el celular hay que MANTENER
+  // PRESIONADO para mover (si no, el dedo scrollea), y con mouse alcanza con arrastrar.
+  const conDedo = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
   nota.innerHTML =
     "<b>Éste es el cuaderno tal cual lo ve el chico.</b><br>" +
-    "Arrastrá una tarjeta para moverla de lugar dentro de su materia, " +
-    "o tocala para probar la actividad." +
+    (conDedo
+      ? "<b>Mantené apretada</b> una tarjeta para moverla de lugar dentro de su materia. "
+        + "Un toque corto la abre para probarla, y deslizando se baja la pantalla."
+      : "Arrastrá una tarjeta para moverla de lugar dentro de su materia, "
+        + "o tocala para probar la actividad.") +
     (senoEsMuestra()
       ? "<br><br><b>Es una muestra:</b> movelas y probalas todo lo que quieras, " +
         "no se guarda nada."
@@ -6581,7 +6587,11 @@ function _senoArrastre(stage) {
   let arr = null;
 
   [].slice.call(stage.querySelectorAll(".carta")).forEach((c) => {
-    c.style.touchAction = "none";       // sin esto el navegador se queda el gesto y scrollea
+    // NO se toca `touch-action` acá (04-sep-2026). Ponerlo en «none» de entrada le saca al
+    // navegador el manejo del gesto sobre la carta, y con 74 tarjetas eso deja la pantalla
+    // SIN SCROLL en el celular. Pablo: *"en el celular cuando voy a ordenar no puedo hacer
+    // scroll porque creo que voy a mover tarjetas de lugar"*. Se apaga recién cuando el
+    // arrastre empieza de verdad — ver `_senoArranque`.
     c.style.cursor = "grab";
   });
   // El id del juego no está en el DOM: lo pone el modo seño, para no tocar `hacerCarta`,
@@ -6615,27 +6625,75 @@ function _senoArrastre(stage) {
     });
   }
 
+  /* CÓMO ARRANCA EL ARRASTRE, y es distinto con el dedo que con el mouse.
+
+     Pablo, 04-sep-2026: *"en el celular cuando voy a ordenar no puedo hacer scroll porque
+     creo que voy a mover tarjetas de lugar"*. Y era literal: la carta entera respondía al
+     gesto, así que sobre una tarjeta —o sea, en casi toda la pantalla— el dedo no
+     scrolleaba. Con 74 tarjetas eso deja la pantalla inservible.
+
+     El problema no tiene arreglo eligiendo mejor el umbral: en un celular, deslizar hacia
+     abajo sobre una carta es a la vez «quiero scrollear» y «quiero mover esta carta», y no
+     hay forma de distinguirlos POR EL MOVIMIENTO. Se distinguen por el TIEMPO, que es lo
+     que hace cualquier app para reordenar iconos:
+
+       toque corto ....... abre la actividad (probarla)
+       deslizar .......... scroll normal, la carta no se entera
+       mantener 400ms .... la carta se levanta y recién ahí se arrastra
+
+     Con MOUSE no hay conflicto —la rueda scrollea— así que ahí sigue alcanzando con mover
+     8px, que es más ágil. Por eso el camino se elige por `pointerType` y no por el ancho
+     de la pantalla: lo que manda es con qué se está señalando. */
+  const ESPERA_DEDO = 400;          // ms de mantener presionado, con el dedo
+
+  function _senoArranque(c, ev) {
+    const caja = c.getBoundingClientRect();
+    return { c, x0: ev.clientX, y0: ev.clientY, movido: false, g: grupo(c),
+             dedo: ev.pointerType === "touch",
+             listo: ev.pointerType !== "touch",   // con mouse ya se puede arrastrar
+             timer: null,
+             // DÓNDE agarró DENTRO de la carta. Es lo que hay que mantener fijo bajo el
+             // dedo: si se pierde, la carta se despega del puntero.
+             agarreX: ev.clientX - caja.left, agarreY: ev.clientY - caja.top,
+             dx: 0, dy: 0, quietoHasta: 0 };
+  }
+
+  function _senoLevantar() {
+    if (!arr || arr.movido) return;
+    arr.movido = true;
+    arr.c.style.touchAction = "none";    // recién ACÁ se le saca el gesto al navegador
+    arr.c.style.zIndex = "60";
+    arr.c.style.boxShadow = "0 12px 28px rgba(0,0,0,.28)";
+    arr.c.style.cursor = "grabbing";
+    // Un golpecito para avisar que la carta quedó agarrada: sin señal, el que mantiene
+    // presionado no sabe si funcionó y suelta antes.
+    try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) {}
+  }
+
   stage.addEventListener("pointerdown", (ev) => {
     const c = ev.target.closest && ev.target.closest(".carta");
     if (!c || ev.button > 0) return;
-    const caja = c.getBoundingClientRect();
-    arr = { c, x0: ev.clientX, y0: ev.clientY, movido: false, g: grupo(c),
-            // DÓNDE agarró DENTRO de la carta. Es lo que hay que mantener fijo bajo el
-            // dedo: si se pierde, la carta se despega del puntero.
-            agarreX: ev.clientX - caja.left, agarreY: ev.clientY - caja.top,
-            dx: 0, dy: 0, quietoHasta: 0 };
+    arr = _senoArranque(c, ev);
+    if (arr.dedo) {
+      // Se levanta sola a los 400ms si el dedo no se movió. El `pointermove` cancela.
+      arr.timer = setTimeout(() => {
+        if (arr) { arr.listo = true; _senoLevantar(); }
+      }, ESPERA_DEDO);
+    }
   }, true);
 
   document.addEventListener("pointermove", (ev) => {
     if (!arr) return;
-    if (!arr.movido &&
-        Math.hypot(ev.clientX - arr.x0, ev.clientY - arr.y0) < UMBRAL) return;
-    if (!arr.movido) {
-      arr.movido = true;
-      arr.c.style.zIndex = "60";
-      arr.c.style.boxShadow = "0 12px 28px rgba(0,0,0,.28)";
-      arr.c.style.cursor = "grabbing";
+    const lejos = Math.hypot(ev.clientX - arr.x0, ev.clientY - arr.y0) >= UMBRAL;
+    // CON EL DEDO, moverse ANTES de que la carta se levante quiere decir «estoy
+    // scrolleando»: se suelta el gesto y el navegador hace lo suyo. Es lo que devuelve el
+    // scroll a la pantalla.
+    if (arr.dedo && !arr.listo) {
+      if (lejos) { clearTimeout(arr.timer); arr = null; }
+      return;
     }
+    if (!arr.movido && !lejos) return;
+    if (!arr.movido) _senoLevantar();
     ev.preventDefault();
 
     // EL TRANSFORM SE RECALCULA DESDE LA POSICIÓN REAL DEL SLOT, en cada movimiento.
@@ -6710,10 +6768,14 @@ function _senoArrastre(stage) {
 
   function soltar() {
     if (!arr) return;
+    clearTimeout(arr.timer);          // si soltó antes de los 400ms, no se levanta después
     const c = arr.c;
     c.style.transition = "transform .16s ease";
     c.style.transform = "";
     c.style.zIndex = ""; c.style.boxShadow = ""; c.style.cursor = "grab";
+    // Se le DEVUELVE el gesto al navegador: si queda en «none», esa carta se lleva el
+    // scroll para siempre y la pantalla vuelve a trabarse de a poco, carta por carta.
+    c.style.touchAction = "";
     const movido = arr.movido;
     arr = null;
     if (movido) {
