@@ -258,7 +258,58 @@ def test_arrastrar_y_probar_se_distinguen_por_el_umbral():
     celular era imposible."""
     js = _player()
     assert "const UMBRAL = 8;" in js
-    assert "Math.hypot(dx, dy) < UMBRAL" in js
+    assert "< UMBRAL) return;" in js, "se perdió la comparación contra el umbral"
+    assert "Math.hypot(" in js
+
+
+def test_no_se_reordena_mientras_el_flip_anima():
+    """Pablo: *"hay momentos en los que entran en una vibración"*. Una de las dos causas:
+    `getBoundingClientRect()` devuelve la caja CON el transform, así que durante los 220ms
+    de la animación los vecinos están a mitad de camino y el hit-test contesta sobre
+    posiciones que ya no son ni las de antes ni las de después.
+
+    Medido con un MutationObserver: 22 reordenamientos por arrastre de tres lugares."""
+    js = _player()
+    assert "performance.now() < arr.quietoHasta" in js, "volvería la vibración"
+    assert "arr.quietoHasta = performance.now() +" in js
+
+
+def test_hay_histeresis_en_el_borde_de_la_carta_vecina():
+    """La otra causa de la vibración: bastaba rozar el borde para intercambiar, y después
+    del intercambio el centro seguía sobre el vecino —ahora en el otro lugar—, así que
+    volvía a dispararse. El centro tiene que entrar BIEN ADENTRO."""
+    js = _player()
+    assert "hr.width * 0.3" in js and "hr.height * 0.3" in js, \
+        "se perdió el margen que evita el ida y vuelta en el límite"
+
+
+def test_la_carta_se_vuelve_a_pegar_al_puntero_en_el_MISMO_frame():
+    """Pablo: *"se va dos tarjetas al costado y el puntero del mouse queda en otro lado"*.
+    El intercambio le cambia la base a la carta —en una grilla, cambiar de fila la corre
+    177px en X— y el translate puesto es el de la base anterior. Recalcularlo recién en el
+    movimiento siguiente deja UN frame con la carta corrida un ancho de tarjeta.
+
+    Por eso `_senoPegar` se llama en DOS lugares, y los dos hacen falta."""
+    js = _player()
+    assert js.count("_senoPegar(arr,") >= 2, \
+        "el reanclaje después del intercambio se perdió: vuelve el salto al costado"
+    assert "function _senoPegar" in js
+    # y NO puede volver el reanclaje por deltas acumulados, que era la causa original
+    assert "arr.x0 += " not in js, "volvió el reanclaje que acumulaba el error"
+
+
+def test_la_carta_arrastrada_no_se_escala():
+    """El `scale(1.04)` cambiaba el tamaño de la caja y ensuciaba la medición de la
+    posición, que es de lo que depende que la carta siga al dedo. El efecto de «levantada»
+    lo da la sombra, que no toca la geometría."""
+    js = _player()
+    i = js.index("function _senoArrastre")
+    # sólo el CÓDIGO: el comentario que explica por qué se sacó nombra `scale(` y daría un
+    # falso positivo — lo dio, de hecho, la primera vez que se corrió este test.
+    codigo = "\n".join(l for l in js[i:i + 6000].splitlines()
+                       if not l.strip().startswith(("//", "*", "/*")))
+    assert "scale(" not in codigo, "volvió la escala sobre la carta que se arrastra"
+    assert "boxShadow" in codigo
 
 
 def test_el_player_conserva_el_orden_de_siempre_sin_orden_seno():
