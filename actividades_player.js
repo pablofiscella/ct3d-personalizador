@@ -6784,6 +6784,11 @@ function _senoArrastre(stage) {
       // que se arrastró**: con un `once` a secas, el primer click en cualquier lado
       // quedaba anulado —incluido el de «Guardar este orden», que después de mover una
       // tarjeta no hacía nada—. Encontrado probándolo, no leyéndolo.
+      //
+      // Y SE DESARMA SOLO A LOS 400ms. El click que hay que comerse es el que el navegador
+      // dispara AL TERMINAR ESTE MISMO GESTO; sin vencimiento, el listener se quedaba
+      // esperando para siempre y a la seño que movía una carta y la tocaba un rato después
+      // para probarla no se le abría. Se vio probando los tres gestos seguidos.
       const tragar = (e) => {
         if (e.target.closest && e.target.closest(".carta") === c) {
           e.preventDefault(); e.stopPropagation();
@@ -6791,6 +6796,7 @@ function _senoArrastre(stage) {
         document.removeEventListener("click", tragar, true);
       };
       document.addEventListener("click", tragar, true);
+      setTimeout(() => document.removeEventListener("click", tragar, true), 400);
       const est = document.getElementById("senoEstado");
       if (est) est.textContent = "Movida. Acordate de guardar.";
     }
