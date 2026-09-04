@@ -6491,8 +6491,12 @@ async function _senoGuardar(boton, estado) {
       // de muestra es uno solo por grado. Ver `senoCurso()`.
       body: JSON.stringify({ ids: _senoIds(stage), curso: senoCurso() }),
     });
+    // El cuaderno se abre desde el panel en una pestaña NUEVA, así que la del curso quedó
+    // abierta atrás: alcanza con decirle que vuelva ahí. No se le pasa un link de vuelta
+    // por la URL a propósito — un destino que venga del query string convierte al cuaderno
+    // en un trampolín a cualquier sitio.
     estado.textContent = r.ok
-      ? "Listo. Volvé a la pantalla del curso para pasárselo a tus alumnos."
+      ? "Listo. Volvé a la pestaña de tu curso y tocá «Pasárselo a los chicos»."
       : "No se pudo guardar. Probá de nuevo en un minuto.";
   } catch (e) {
     estado.textContent = "No se pudo guardar. Probá de nuevo en un minuto.";
