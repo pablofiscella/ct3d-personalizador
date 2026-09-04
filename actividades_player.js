@@ -6329,14 +6329,18 @@ function _senoArrastre(stage) {
   stage.addEventListener("pointerdown", (ev) => {
     const c = ev.target.closest && ev.target.closest(".carta");
     if (!c || ev.button > 0) return;
-    arr = { c, x0: ev.clientX, y0: ev.clientY, movido: false,
-            g: grupo(c), base: c.getBoundingClientRect(), quietoHasta: 0 };
+    const caja = c.getBoundingClientRect();
+    arr = { c, x0: ev.clientX, y0: ev.clientY, movido: false, g: grupo(c),
+            // DÓNDE agarró DENTRO de la carta. Es lo que hay que mantener fijo bajo el
+            // dedo: si se pierde, la carta se despega del puntero.
+            agarreX: ev.clientX - caja.left, agarreY: ev.clientY - caja.top,
+            dx: 0, dy: 0, quietoHasta: 0 };
   }, true);
 
   document.addEventListener("pointermove", (ev) => {
     if (!arr) return;
-    const dx = ev.clientX - arr.x0, dy = ev.clientY - arr.y0;
-    if (!arr.movido && Math.hypot(dx, dy) < UMBRAL) return;
+    if (!arr.movido &&
+        Math.hypot(ev.clientX - arr.x0, ev.clientY - arr.y0) < UMBRAL) return;
     if (!arr.movido) {
       arr.movido = true;
       arr.c.style.zIndex = "60";
@@ -6344,8 +6348,31 @@ function _senoArrastre(stage) {
       arr.c.style.cursor = "grabbing";
     }
     ev.preventDefault();
+
+    // EL TRANSFORM SE RECALCULA DESDE LA POSICIÓN REAL DEL SLOT, en cada movimiento.
+    //
+    // Pablo, 04-sep-2026: *"Se va dos tarjetas al costado y el puntero del mouse queda en
+    // otro lado"*. Medido: al cambiar de FILA la carta se despegaba **177 px** del
+    // puntero, más que el ancho de una carta.
+    //
+    // La causa era el reanclaje: cuando la carta cambiaba de lugar se le sumaba el salto
+    // a un origen guardado (`x0 += nueva.left - r.left`). Eso ACUMULA: alcanza con que un
+    // salto se mida mal —y en una grilla, cambiar de fila mueve la carta en X aunque el
+    // dedo vaya en Y— para que el error quede pegado el resto del arrastre.
+    //
+    // Ahora no hay nada que acumular. `arr.dx` es el translate que está puesto, así que
+    // `r.left - arr.dx` es la posición NATURAL del slot donde la carta cayó, y el nuevo
+    // translate se calcula contra eso. Si la carta saltó tres lugares, la base cambió y la
+    // cuenta se corrige sola en el mismo frame.
+    //
+    // Se sacó el `scale(1.04)`: escalaba la caja y ensuciaba justamente esta medición. El
+    // efecto de «levantada» lo da la sombra, que no toca la geometría.
+    const r = arr.c.getBoundingClientRect();
+    const baseX = r.left - arr.dx, baseY = r.top - arr.dy;
+    arr.dx = ev.clientX - arr.agarreX - baseX;
+    arr.dy = ev.clientY - arr.agarreY - baseY;
     arr.c.style.transition = "none";
-    arr.c.style.transform = `translate(${dx}px,${dy}px) scale(1.04)`;
+    arr.c.style.transform = `translate(${arr.dx}px,${arr.dy}px)`;
 
     // ── LAS DOS GUARDAS CONTRA LA VIBRACIÓN ──────────────────────────────────
     // Pablo, 04-sep-2026: *"hay momentos en los que entran en una vibración"*. Medido con
@@ -6363,8 +6390,9 @@ function _senoArrastre(stage) {
     //    límite. Ahora el centro tiene que entrar BIEN ADENTRO de la carta vecina.
     if (performance.now() < arr.quietoHasta) return;
 
-    const r = arr.c.getBoundingClientRect();
-    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    // Dónde está el centro de la carta AHORA, ya movida por el translate de arriba.
+    const rc = arr.c.getBoundingClientRect();
+    const cx = rc.left + rc.width / 2, cy = rc.top + rc.height / 2;
     const hermanos = [].slice.call(arr.g.children).filter((x) => x !== arr.c);
     let destino = null;
     for (const h of hermanos) {
@@ -6388,10 +6416,10 @@ function _senoArrastre(stage) {
       arr.g.insertBefore(arr.c, destino);
     }
     animar(hermanos, antes);
-    // reanclar: si no, la carta salta al cambiar de lugar
-    const nueva = arr.c.getBoundingClientRect();
-    arr.x0 += nueva.left - r.left;
-    arr.y0 += nueva.top - r.top;
+    // NO se reancla nada acá. El `pointermove` recalcula el translate desde la posición
+    // real del slot en cada movimiento, así que el salto de lugar se absorbe solo. El
+    // reanclaje que había —sumarle el salto a un origen guardado— es justo lo que
+    // despegaba la carta del puntero cuando cambiaba de fila.
   }, { passive: false });
 
   function soltar() {
