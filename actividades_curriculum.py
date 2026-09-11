@@ -829,6 +829,26 @@ CATALOGO = [
         ],
     },
 
+    # ── 2° · números en palabras (juego del player, con el rango de 2.º) ────────────
+    {
+        "id": "numeros_palabras_2", "grado": 2, "area": "matematica",
+        "titulo": "Números en palabras", "icono": "🔤",
+        # Pablo, 11-sep-2026: *"pasar un número a texto y al revés. Por ejemplo 880 y que
+        # aparezcan palabras como ochocientos, novecientos, setenta, etc, y de un texto qué
+        # número es"*. En 1.º-3.º no había ninguna actividad así: leer y escribir números
+        # aparecía recién en 4.º y 5.º, como opción múltiple. Las fichas no son ninguna
+        # mecánica del catálogo, así que el juego vive en el player
+        # (`GAMES.numeros_palabras`) y acá se declara con el rango del grado.
+        "mecanica": "reusa", "juego": "numeros_palabras",
+        "cfg": {"cifras": 3},
+        "consigna": "Leé el número escrito en palabras y tocá cómo se escribe con cifras.",
+        "dc": "Lectura y escritura de números hasta 1.000: cómo se dice y cómo se escribe "
+              "(ochocientos ochenta es 880, no 80080)",
+        "fuente": "docs/auditoria-dc-caba/grado-2.md · M6",
+        "saber": {"id": "MAT-2-en-palabras", "nombre": "Leer y escribir números hasta 1.000",
+                  "prereqs": ["MAT-2-NUM"]},
+    },
+
     # ── 2° · cálculo redondo (PARAMÉTRICA: ejercicio nuevo cada vez) ─────────────
     {
         "id": "calculo_redondo",
@@ -5554,6 +5574,23 @@ CATALOGO = [
             {"it": "Un botiquín de primeros auxilios", "cat": "necesario",
              "m": "Barato y no se discute."},
         ],
+    },
+
+    # ── 3° · números en palabras (el juego de 2.º, con cuatro cifras) ──────────────
+    {
+        "id": "numeros_palabras_3", "grado": 3, "area": "matematica",
+        "titulo": "Números en palabras", "icono": "🔤",
+        # El mismo pedido de Pablo que en 2.º (11-sep-2026). Acá entran los miles, y con
+        # ellos el cero que más cuesta: el de «tres mil cinco» (3005), donde entre el mil y
+        # el cinco no se nombra nada.
+        "mecanica": "reusa", "juego": "numeros_palabras",
+        "cfg": {"cifras": 4},
+        "consigna": "Leé el número escrito en palabras y tocá cómo se escribe con cifras.",
+        "dc": "Lectura y escritura de números de 3 y 4 cifras: cómo se dice y cómo se escribe "
+              "(tres mil cuatrocientos es 3400, no 3000400)",
+        "fuente": "docs/auditoria-dc-caba/grado-3.md · M2",
+        "saber": {"id": "MAT-3-en-palabras", "nombre": "Leer y escribir números de 4 cifras",
+                  "prereqs": ["MAT-3-NUM"]},
     },
 
     # ══ 3° · las primeras MANIPULATIVAS ═════════════════════════════════════════
