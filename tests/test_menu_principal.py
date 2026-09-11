@@ -203,6 +203,24 @@ def test_esconder_una_tarjeta_la_esconde_de_verdad():
     assert ".carta[hidden]" in s[i:i + 11000], "esconder tarjetas no funciona sin la regla"
 
 
+def test_el_emoji_de_materia_se_declara_antes_de_usarse():
+    """El 11-sep-2026 el menú de 4.º quedó sin NINGUNA tarjeta con este error: los chips de
+    la barra de filtros usaban `EMOJI` y el `const` estaba más abajo, en la misma función. Un
+    `const` usado antes de su línea no vale «indefinido»: tira ReferenceError y corta el
+    dibujado entero, así que la pantalla queda con el encabezado y nada más.
+
+    Ninguno de los tests de acá lo vio —todos leen el archivo, no la pantalla— y lo encontró
+    la corrida en el espejo dev, que es para lo que está. Esto es lo más barato que sí lo
+    agarra desde el código: que la declaración venga antes del primer uso."""
+    s = _fuente()
+    i = s.index("function pintarMenuPlano(")
+    cuerpo = s[i:s.index("\nfunction ", i + 1)]
+    decl = cuerpo.index("const EMOJI =")
+    uso = min(m.start() for m in re.finditer(r"EMOJI\[", cuerpo))
+    assert decl < uso, ("`EMOJI` se usa antes de declararse: el menú entero tira "
+                        "ReferenceError y no se dibuja ninguna tarjeta")
+
+
 def test_cuando_no_hay_resultados_se_avisa():
     s = _fuente()
     assert "#sinResultados" in s and "No encontré nada con" in s, (

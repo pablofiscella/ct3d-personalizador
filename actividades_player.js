@@ -6344,6 +6344,13 @@ function pintarMenuPlano(items, stage) {
       bp.addEventListener("click", gatePadres);   // compuerta para grandes → panel
       const anchor = $("#btnSonido"); if (anchor) anchor.insertAdjacentElement("afterend", bp);
     }
+    // El emoji de cada materia. Va ACÁ ARRIBA, antes de todo lo que lo usa: lo piden los
+    // chips de la barra de filtros y el título de cada sección. Un `const` usado antes de
+    // su línea NO vale "indefinido" — tira ReferenceError y corta el dibujado entero.
+    // Pasó de verdad el 11-sep-2026: el menú de 4.º quedó sin una sola tarjeta, y ningún
+    // test lo vio porque todos leen el archivo, no la pantalla. Lo encontró la corrida en
+    // el espejo dev, que es para lo que está.
+    const EMOJI = { lengua: "✏️", matematica: "🔢", naturales: "🌱", sociales: "🌎", logica: "🎲" };
     // ── RACHA DE DÍAS en el encabezado, al lado de las estrellas. Desde 2 días: con uno
     // solo no hay racha que mostrar, y un «🔥 1» el primer día promete algo que no pasó.
     const _racha = Store.rachaDias();
@@ -6427,7 +6434,6 @@ function pintarMenuPlano(items, stage) {
     }
 
     stage.appendChild(_botonModoProfe());   // Modo Creador (el diferencial: crear, no solo resolver)
-    const EMOJI = { lengua: "✏️", matematica: "🔢", naturales: "🌱", sociales: "🌎", logica: "🎲" };
     // EL ORDEN QUE ARMÓ LA MAESTRA gana sobre la recomendación del motor (Pablo,
     // 04-sep-2026: *"que la profe pueda ordenar las tarjetas como creo que las tiene que
     // ver el alumno"*). Manda ella y no a medias: si el motor pudiera reacomodarle las
