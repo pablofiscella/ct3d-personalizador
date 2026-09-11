@@ -85,6 +85,7 @@ CATEGORIA = {
     "multiplicacion_concepto": "matematica",
     "multiplicar": "matematica",
     "multiplicar_fracciones": "matematica",
+    "numeros_palabras": "matematica",
     "numeros_primos": "matematica",
     "ordenar_numeros": "matematica",
     "pago_exacto": "matematica",
