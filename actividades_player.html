@@ -533,6 +533,13 @@ body.g1 #cargando { text-transform: uppercase; }
    el rótulo es el NOMBRE de la actividad, nunca la respuesta que se evalúa. Y `.nombre` se
    nombra explícito porque la tarjeta es un `<button>` y el div de adentro hereda su `none`. */
 body.g1 .carta .nombre,
+/* «Seguí por acá» (11-sep-2026) es la primera tarjeta del menú, y es un `<button>`: sus
+   hijos heredan el `none` del botón, así que se nombran uno por uno igual que `.nombre`.
+   Si quedara afuera, en 1.º la tarjeta más grande de la pantalla sería la única en
+   minúscula — justo la mezcla de alfabetos que esta regla vino a sacar. */
+body.g1 .seguir-aca small,
+body.g1 .seguir-aca b,
+body.g1 .seguir-aca span,
 body.g1 #hdrNombre,
 body.g1 #bienvenida h1,
 body.g1 #bienvenida p,

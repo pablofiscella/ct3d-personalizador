@@ -594,6 +594,22 @@ function _hoyStr(d) {
          "-" + String(d.getDate()).padStart(2, "0");
 }
 
+/* Días seguidos hasta HOY, para la racha. Si todavía no jugó hoy cuenta hasta ayer: la
+   racha se corta cuando se saltea un día entero, no por no haber entrado todavía.
+   Pura a propósito — `tests/test_menu_principal.py` la corre con node, sin navegador. */
+function _rachaDeDias(dias, hoy) {
+  const set = new Set(dias || []);
+  const DIA = 86400000;
+  const t0 = Date.parse(hoy + "T00:00:00Z");
+  if (isNaN(t0)) return 0;
+  let n = 0;
+  for (let t = set.has(hoy) ? t0 : t0 - DIA; n <= 400; t -= DIA) {
+    if (!set.has(new Date(t).toISOString().slice(0, 10))) break;
+    n++;
+  }
+  return n;
+}
+
 const Store = {
   key: "ct3d_act::" + location.pathname.replace(/\/$/, ""),
   data: { sound: true, activeProfile: null, profiles: {} },
@@ -633,6 +649,22 @@ const Store = {
     if (Object.keys(m).length >= 60) return;     // banco más grande que esto no hay
     m[itemId] = 1;
     this.save();
+  },
+  // ── RACHA DE DÍAS (11-sep-2026). Se anota el DÍA en que jugó, no la hora: lo que se
+  // quiere marcar es el hábito de venir, y no castiga nada — cortar la racha no borra
+  // estrellas ni sellos, sólo deja de sumar. Idea vista en Mudi, adaptada a esta regla.
+  marcarDia(hoy) {
+    const p = this._perfil(); if (!p) return;
+    const d = hoy || _hoyStr();
+    if (!p.dias) p.dias = [];
+    if (p.dias.indexOf(d) >= 0) return;            // ya vino hoy
+    p.dias.push(d);
+    if (p.dias.length > 400) p.dias = p.dias.slice(-400);   // más de un año no hace falta
+    this.save();
+  },
+  rachaDias(hoy) {
+    const p = this._perfil();
+    return _rachaDeDias((p && p.dias) || [], hoy || _hoyStr());
   },
   // Avatar elegido por el chico: índice dentro de D.personajes. Si no eligió, el 0 —
   // que es lo que hacía siempre el cuaderno antes de que se pudiera elegir.
@@ -5138,6 +5170,7 @@ const Shell = {
         }
         const yaEstabaCompleto = todoCompleto();
         Store.setStars(self.actual, e);
+        Store.marcarDia();                    // la racha cuenta días con partida ganada
         // dificultad adaptativa: si le salió fácil (3★) sube el nivel para la próxima;
         // si le costó, se queda igual (repite ese nivel hasta dominarlo). Gateado.
         // El nivel VISIBLE se mide antes y después: si la actividad cambió de escalón
@@ -5771,6 +5804,54 @@ function _adaptCSS() {
     ".carta.adapt-recomendado{outline:1.5px solid color-mix(in srgb, #2F7D57 45%, var(--card))}" +
     ".carta.adapt-reforzar{outline:1.5px solid color-mix(in srgb, #C4703C 55%, var(--card))}" +
     ".carta.adapt-repaso{outline:1.5px solid color-mix(in srgb, #1F6FA8 45%, var(--card))}" +
+    // «Seguí por acá»: ancha, del color de la marca del grado, y con la flecha a la derecha
+    ".seguir-aca{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:none;" +
+    "cursor:pointer;background:var(--ac);color:var(--card);border-radius:var(--radio);" +
+    "padding:14px 16px;margin:6px 0 2px;box-shadow:var(--sombra);min-height:88px;" +
+    "font-family:\"Baloo\",Archivo,sans-serif}" +
+    ".seguir-aca:active{transform:scale(.98)}" +
+    ".seguir-aca .ico{width:58px;height:58px;flex:none;border-radius:16px;display:grid;" +
+    "place-items:center;font-size:32px;background:color-mix(in srgb,var(--card) 22%,transparent)}" +
+    ".seguir-aca .ico img{width:48px;height:48px;object-fit:contain}" +
+    ".seguir-aca .txt{flex:1;min-width:0}" +
+    ".seguir-aca small{display:block;font-size:12px;font-weight:700;letter-spacing:.02em}" +
+    ".seguir-aca b{display:block;font-size:21px;line-height:1.12;letter-spacing:-.02em}" +
+    ".seguir-aca span{display:block;font-family:Archivo,system-ui,sans-serif;font-size:13px;line-height:1.25}" +
+    ".seguir-aca .ir{font-size:20px}" +
+    // el progreso de la materia, a la derecha del título de la sección
+    ".cat-titulo small{margin-left:auto;font-family:Archivo,system-ui,sans-serif;font-size:12px;" +
+    "font-weight:700;color:color-mix(in srgb, var(--ink) 55%, var(--card))}" +
+    ".cat-titulo.cat-repaso{color:#1F6FA8}" +
+    // buscador + filtros + vista en lista (4.º para arriba)
+    "#filtroMenu{position:sticky;z-index:30;display:flex;flex-direction:column;gap:8px;" +
+    "padding:10px 0 12px;background:var(--bg);margin-bottom:2px}" +
+    "#buscarAct{width:100%;box-sizing:border-box;min-height:48px;border-radius:14px;" +
+    "border:1.5px solid color-mix(in srgb,var(--ink) 18%,var(--card));background:var(--card);" +
+    "color:var(--ink);padding:0 14px;font:16px Archivo,system-ui,sans-serif}" +
+    "#filtroMenu .filtro-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}" +
+    "#filtroMenu .filtro-chips::-webkit-scrollbar{display:none}" +
+    "#filtroMenu .filtro-abajo{display:flex;gap:8px;align-items:center}" +
+    "#filtroMenu .chip{flex:none;min-height:40px;cursor:pointer;white-space:nowrap;" +
+    "border:1.5px solid color-mix(in srgb,var(--ink) 16%,var(--card));background:var(--card);" +
+    "color:var(--ink);border-radius:999px;padding:0 14px;font:700 14px Archivo,system-ui,sans-serif}" +
+    "#filtroMenu .chip.on{background:var(--ink);color:var(--card);border-color:var(--ink)}" +
+    "#estadoAct{min-height:40px;border-radius:999px;padding:0 10px;color:var(--ink);" +
+    "border:1.5px solid color-mix(in srgb,var(--ink) 16%,var(--card));background:var(--card);" +
+    "font:700 14px Archivo,system-ui,sans-serif}" +
+    "#sinResultados{padding:18px 4px;font:600 16px Archivo,system-ui,sans-serif;" +
+    "color:color-mix(in srgb,var(--ink) 65%,var(--card))}" +
+    // esconder DE VERDAD: `.carta` es flex y le gana al [hidden] del navegador
+    ".menu-cat[hidden],.cat-titulo[hidden],.carta[hidden],.seguir-aca[hidden]," +
+    "#sinResultados[hidden]{display:none!important}" +
+    // vista en lista: la misma tarjeta en fila, entra el doble por pantalla
+    "#stage.lista .menu-cat{grid-template-columns:1fr;gap:8px}" +
+    "#stage.lista .carta{flex-direction:row;align-items:center;justify-content:flex-start;" +
+    "min-height:0;padding:10px 14px;gap:12px;text-align:left}" +
+    "#stage.lista .carta .icono{width:44px;height:44px;font-size:24px;border-radius:12px;flex:none}" +
+    "#stage.lista .carta .icono img{width:34px;height:34px}" +
+    "#stage.lista .carta .nombre{flex:1;text-align:left;font-size:16px}" +
+    "#stage.lista .carta .nivel-chip,#stage.lista .carta .hablar,#stage.lista .carta .chip{display:none}" +
+    "#stage.lista .carta[data-adapt]::after{position:static;transform:none;margin-left:auto}" +
     ".carta[data-adapt]::after{content:attr(data-adapt);position:absolute;top:6px;left:50%;" +
     "transform:translateX(-50%);font-family:\"Baloo\",Archivo,sans-serif;font-size:10px;" +
     "font-weight:700;letter-spacing:-.01em;" +
@@ -6084,6 +6165,55 @@ function _iconoSeguro(m) {
   return _ICONO_POR_BANDERA[m.id] || "🌎";
 }
 
+/* ── EL BUSCADOR Y LOS FILTROS DEL MENÚ (11-sep-2026) ────────────────────────────────
+   Medido en el menú de 4.º: 73 tarjetas, unas 6 por pantalla de celular —más de diez
+   pantallas—, y Matemática empieza recién después de las 19 de Lengua. Buscar era bajar.
+
+   Filtra el DOM YA DIBUJADO en vez de volver a pintar el menú: cada tarjeta guarda en qué
+   se busca (`data-busca`), de qué materia es (`data-cat`) y en qué estado está
+   (`data-estado`). Así escribir una letra no re-arma 73 tarjetas ni pierde el scroll, y el
+   orden que armó la maestra se respeta igual, porque no se reordena nada.
+
+   Los títulos de materia se esconden con su sección: una materia con el título solo,
+   sin tarjetas abajo, se lee como un error. */
+function _filtrarMenu(stage) {
+  if (!stage) return;
+  const caja = stage.querySelector("#buscarAct");
+  const q = (caja ? caja.value : "").trim().toLowerCase();
+  const cat = stage.dataset.filtroCat || "";
+  const est = stage.dataset.filtroEst || "";
+  const filtrando = !!(q || cat || est);
+  let total = 0;
+  stage.querySelectorAll(".menu-cat").forEach((grid) => {
+    let n = 0;
+    grid.querySelectorAll(".carta").forEach((c) => {
+      const ver = (!q || (c.dataset.busca || "").indexOf(q) >= 0)
+        && (!cat || c.dataset.cat === cat)
+        && (!est || c.dataset.estado === est);
+      c.hidden = !ver;
+      if (ver) n++;
+    });
+    grid.hidden = !n;
+    const tit = grid.previousElementSibling;
+    if (tit && tit.classList && tit.classList.contains("cat-titulo")) tit.hidden = !n;
+    total += n;
+  });
+  // Con un filtro puesto, «Seguí por acá» estorba: el chico está buscando otra cosa.
+  const arriba = stage.querySelector(".seguir-aca");
+  if (arriba) arriba.hidden = filtrando;
+  let vacio = stage.querySelector("#sinResultados");
+  if (!vacio) {
+    vacio = el("div"); vacio.id = "sinResultados"; vacio.hidden = true;
+    const barra = stage.querySelector("#filtroMenu");
+    if (barra) barra.insertAdjacentElement("afterend", vacio);
+    else stage.appendChild(vacio);
+  }
+  vacio.hidden = !(filtrando && total === 0);
+  if (!vacio.hidden) {
+    vacio.textContent = q ? `No encontré nada con «${q}».` : "No hay actividades con ese filtro.";
+  }
+}
+
 function pintarMenuPlano(items, stage) {
   pararVoz();                                  // ver el comentario en Shell.abrir
   Shell.actual = null;
@@ -6100,16 +6230,22 @@ function pintarMenuPlano(items, stage) {
   // extras del padre hay que inyectarlo aunque el token no tenga el motor adaptativo,
   // si no la marca queda invisible.
   if (items.some((m) => m && m.escuela)) _adaptCSS();
-  // Capa 0 · nota de repaso del día (arriba del menú) si hay algo para repasar.
-  const repasos = items.filter((m) => GAMES[m.id] && Store.repasoPendiente(m.id));
-  if (repasos.length) {
-    stage.appendChild(el("div", "repaso-nota",
-      `🔁 Tenés ${repasos.length} ${repasos.length === 1 ? "repaso" : "repasos"} para hacer hoy — ¡a ver si te lo acordás!`));
-  }
   // Piloto adaptativo (gateado por D.adaptativo_on): separa el menú por categorías y decora
   // por estado de saber, SIN bloquear. Los links sin el flag ven el menú plano de siempre.
   const adaptOn = !!(D.adaptativo_on && typeof Adapt !== "undefined");
   const visibles = items.filter((m) => GAMES[m.id] && P.length >= (GAMES[m.id].minP || 0));
+  // Capa 0 · lo que toca repasar hoy. Con el motor va como TARJETAS abajo del «Seguí por
+  // acá» (11-sep-2026): el cartel decía «tenés 2 repasos» y no se podía tocar, así que el
+  // chico tenía que ir a buscarlas entre las 73. Sin motor, el cartel de siempre.
+  const repasos = items.filter((m) => GAMES[m.id] && Store.repasoPendiente(m.id));
+  if (repasos.length && !adaptOn) {
+    stage.appendChild(el("div", "repaso-nota",
+      `🔁 Tenés ${repasos.length} ${repasos.length === 1 ? "repaso" : "repasos"} para hacer hoy — ¡a ver si te lo acordás!`));
+  }
+  // LA ÚNICA RECOMENDADA. El motor ya sabía cuál conviene ahora; lo que faltaba era decirlo
+  // en un solo lugar en vez de marcar casi todas las tarjetas.
+  const _idSeguir = (adaptOn && Adapt.proximaRecomendada)
+    ? Adapt.proximaRecomendada(visibles.map((m) => m.id)) : null;
 
   // Aviso de ESI: va arriba del menú del grado que lo tiene, y en las DOS ramas
   // (con y sin motor adaptativo), porque las actividades curriculares aparecen igual.
@@ -6126,7 +6262,11 @@ function pintarMenuPlano(items, stage) {
     const repaso = Store.repasoPendiente(m.id);
     const adaptEst = adaptOn ? Adapt.estadoActividad(m.id) : null;
     const c = el("button", "carta" + (repaso ? " repaso" : "") + (adaptEst ? " adapt-" + adaptEst : ""));
-    if (adaptOn && (adaptEst === "recomendado" || adaptEst === "reforzar")) {
+    // «✨ Recomendado» SÓLO en la que se recomienda (11-sep-2026). Con un perfil nuevo el
+    // motor marca casi todas —las 73 de 4.º— y una etiqueta que llevan todas no recomienda
+    // nada: es ruido en cada tarjeta. La elegida ahora va arriba, en «Seguí por acá».
+    // «🌱 Reforzá antes» se queda: esa sí es de pocas y avisa que le faltan temas previos.
+    if (adaptOn && (adaptEst === "reforzar" || (adaptEst === "recomendado" && m.id === _idSeguir))) {
       const etq = Adapt.etiqueta(m.id); if (etq) c.dataset.adapt = etq;
     }
     // las cartas alternan emoji y personajes del tema para que el menú viva
@@ -6157,6 +6297,15 @@ function pintarMenuPlano(items, stage) {
     // El nombre del juego, para el lector de pantalla y para la voz: el 🔊 va oculto a
     // la accesibilidad porque lo que dice ya está en el rótulo de la tarjeta.
     c.setAttribute("aria-label", m.titulo);
+    // Para el buscador y los filtros: en qué se busca, de qué materia es y en qué estado
+    // está. Va en la tarjeta —y no en un índice aparte— porque el filtro trabaja sobre el
+    // DOM ya dibujado, que es lo que hace que buscar no re-arme el menú entero.
+    if (adaptOn) {
+      c.dataset.cat = Adapt.categoria(m.id);
+      c.dataset.busca = ((m.titulo || "") + " " +
+                         (Adapt.labelCategoria(c.dataset.cat) || "")).toLowerCase();
+      c.dataset.estado = sello !== "practicando" ? "dominada" : (st ? "practicando" : "nueva");
+    }
     // ESI: marca en la tarjeta + la nota completa la primera vez que se abre una.
     // No bloquea nada — después de leerla, el botón "Empezar" sigue al juego.
     const esEsi = ESI_IDS.has(m.id);
@@ -6195,6 +6344,88 @@ function pintarMenuPlano(items, stage) {
       bp.addEventListener("click", gatePadres);   // compuerta para grandes → panel
       const anchor = $("#btnSonido"); if (anchor) anchor.insertAdjacentElement("afterend", bp);
     }
+    // ── RACHA DE DÍAS en el encabezado, al lado de las estrellas. Desde 2 días: con uno
+    // solo no hay racha que mostrar, y un «🔥 1» el primer día promete algo que no pasó.
+    const _racha = Store.rachaDias();
+    let _rp = document.getElementById("hdrRacha");
+    if (_racha >= 2) {
+      if (!_rp) {
+        _rp = el("div", "pill"); _rp.id = "hdrRacha";
+        _rp.title = "Días seguidos que jugaste";
+        const anc = document.getElementById("hdrEstrellas");
+        if (anc) anc.insertAdjacentElement("afterend", _rp); else $("#hdr").appendChild(_rp);
+      }
+      _rp.textContent = "🔥 " + _racha;
+    } else if (_rp) { _rp.remove(); }
+
+    // ── BUSCADOR, MATERIAS, ESTADO Y VISTA EN LISTA — de 4.º para arriba.
+    // En 1.º-3.º el menú se deja como está: son menos tarjetas y un chico que todavía
+    // está aprendiendo a leer no busca escribiendo (misma línea que `_menuQueHabla`).
+    // Con menos de 20 tarjetas tampoco aparece: buscar entre 15 es más trabajo que mirar.
+    if (gradoDelChico() >= 4 && visibles.length >= 20) {
+      const KVISTA = Store.key + "::vista";
+      try { if (localStorage.getItem(KVISTA) === "lista") stage.classList.add("lista"); } catch (e) {}
+      const barra = el("div"); barra.id = "filtroMenu";
+      const inp = el("input"); inp.id = "buscarAct"; inp.type = "search";
+      inp.placeholder = "Buscá una actividad o una materia…";
+      inp.setAttribute("aria-label", "Buscar una actividad");
+      inp.addEventListener("input", () => _filtrarMenu(stage));
+      const fila = el("div", "filtro-chips");
+      const cats = Adapt.ordenCategorias()
+        .filter((c) => visibles.some((m) => Adapt.categoria(m.id) === c));
+      [["", "Todas"]].concat(cats.map((c) => [c, `${EMOJI[c] || "•"} ${Adapt.labelCategoria(c)}`]))
+        .forEach(([valor, texto]) => {
+          const b = el("button", "chip" + (valor ? "" : " on"), texto);
+          b.addEventListener("click", () => {
+            stage.dataset.filtroCat = valor;
+            fila.querySelectorAll(".chip").forEach((x) => x.classList.remove("on"));
+            b.classList.add("on");
+            _filtrarMenu(stage);
+          });
+          fila.appendChild(b);
+        });
+      const abajo = el("div", "filtro-abajo");
+      const sel = el("select"); sel.id = "estadoAct";
+      sel.setAttribute("aria-label", "Filtrar por estado");
+      [["", "Todas"], ["nueva", "Sin empezar"], ["practicando", "Practicando"],
+       ["dominada", "Dominadas"]].forEach(([v, t]) => {
+        const o = el("option", "", t); o.value = v; sel.appendChild(o);
+      });
+      sel.addEventListener("change", () => {
+        stage.dataset.filtroEst = sel.value; _filtrarMenu(stage);
+      });
+      const bv = el("button", "chip", stage.classList.contains("lista") ? "▦ Tarjetas" : "☰ Lista");
+      bv.id = "vistaAct";
+      bv.setAttribute("aria-label", "Cambiar cómo se ven las actividades");
+      bv.addEventListener("click", () => {
+        const lista = stage.classList.toggle("lista");
+        bv.textContent = lista ? "▦ Tarjetas" : "☰ Lista";
+        try { localStorage.setItem(KVISTA, lista ? "lista" : "cartas"); } catch (e) {}
+      });
+      abajo.appendChild(sel); abajo.appendChild(bv);
+      barra.appendChild(inp); barra.appendChild(fila); barra.appendChild(abajo);
+      stage.appendChild(barra);
+      // Se pega ABAJO del encabezado, que también es pegajoso y mide distinto en cada
+      // aparato (la muesca del teléfono entra en su relleno): se mide, no se adivina.
+      const hdr = document.getElementById("hdr");
+      if (hdr) barra.style.top = hdr.offsetHeight + "px";
+    }
+
+    // ── «SEGUÍ POR ACÁ»: una sola tarjeta ancha con lo que conviene ahora.
+    const _itSeguir = _idSeguir ? visibles.find((m) => m.id === _idSeguir) : null;
+    if (_itSeguir) {
+      const _esRep = Store.repasoPendiente(_itSeguir.id);
+      const bs = el("button", "seguir-aca");
+      bs.innerHTML = `<div class="ico">${_iconoSeguro(_itSeguir)}</div>
+        <div class="txt"><small>${_esRep ? "🔁 Te toca repasar" : "✨ Seguí por acá"}</small>
+          <b>${_itSeguir.titulo}</b>
+          <span>${_esRep ? "Ya lo sabías: a ver si te lo acordás." : "Es lo que te conviene hacer ahora."}</span></div>
+        <div class="ir" aria-hidden="true">▶</div>`;
+      bs.setAttribute("aria-label", (_esRep ? "Te toca repasar: " : "Seguí por acá: ") + _itSeguir.titulo);
+      bs.addEventListener("click", () => { Sfx.pop(); Shell.abrir(_itSeguir.id); });
+      stage.appendChild(bs);
+    }
+
     stage.appendChild(_botonModoProfe());   // Modo Creador (el diferencial: crear, no solo resolver)
     const EMOJI = { lengua: "✏️", matematica: "🔢", naturales: "🌱", sociales: "🌎", logica: "🎲" };
     // EL ORDEN QUE ARMÓ LA MAESTRA gana sobre la recomendación del motor (Pablo,
@@ -6214,12 +6445,25 @@ function pintarMenuPlano(items, stage) {
       ? (a, b) => (posSeno.has(a.id) ? posSeno.get(a.id) : 1e6 + Adapt.peso(a.id)) -
                   (posSeno.has(b.id) ? posSeno.get(b.id) : 1e6 + Adapt.peso(b.id))
       : (a, b) => Adapt.peso(a.id) - Adapt.peso(b.id);
+    // ── LOS REPASOS DE HOY, TOCABLES. Van arriba de las materias: son pocos, vencen hoy
+    // y hasta ahora había que ir a buscarlos al medio del menú.
+    if (repasos.length) {
+      stage.appendChild(el("h3", "cat-titulo cat-repaso",
+        `🔁 Repasos de hoy<small>${repasos.length === 1 ? "es 1" : "son " + repasos.length}</small>`));
+      const gRep = el("div", "menu-cat");
+      repasos.forEach((m, i) => gRep.appendChild(hacerCarta(m, i)));
+      stage.appendChild(gRep);
+    }
     Adapt.ordenCategorias().forEach((cat) => {
       const delCat = visibles.filter((m) => Adapt.categoria(m.id) === cat).sort(ordenar);
       if (!delCat.length) return;                    // categoría vacía en este grado → no se muestra
       // la clase por materia le da el color de la marca al título (ver _adaptCSS)
+      // PROGRESO DE LA MATERIA al lado del título: cuántas tiene con sello. Hasta hoy eso
+      // sólo se veía en el panel de grandes (📊), y es la pregunta del chico: ¿cuánto me falta?
+      const _conSello = delCat.filter((m) => Store.sello(m.id) !== "practicando").length;
       stage.appendChild(el("h3", "cat-titulo cat-" + cat,
-        `${EMOJI[cat] || "•"} ${Adapt.labelCategoria(cat)}`));
+        `${EMOJI[cat] || "•"} ${Adapt.labelCategoria(cat)}` +
+        `<small class="cat-prog">${_conSello} de ${delCat.length} 🏅</small>`));
       const grid = el("div", "menu-cat");
       delCat.forEach((m, i) => grid.appendChild(hacerCarta(m, i)));
       stage.appendChild(grid);
