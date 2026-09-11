@@ -1040,6 +1040,28 @@ body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
 .armarPalabraSlot:empty { animation: latido 1.8s ease infinite; }
 .armarPalabraSilabas .spriteBtn:disabled { opacity: .35; cursor: default; }
 
+/* números en palabras (11-sep-2026, 2.º M6 · 3.º M2): arriba el número o las palabras;
+   en el tramo de fichas, los huecos se llenan con lo que se toca. Las palabras son largas
+   («cuatrocientos», 13 letras): huecos y fichas crecen con el texto y la fila se parte en
+   renglones en vez de desbordar en un celular de 400 px. */
+.numPalTablero { text-align: center; }
+.numPalNumero { font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 64px;
+  line-height: 1.1; letter-spacing: .06em; margin: 4px 0 8px; }
+.numPalPalabras { font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 30px;
+  line-height: 1.25; max-width: 16em; margin: 6px auto 12px; text-wrap: balance; }
+.numPalHuecos { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 10px 0 18px; }
+.numPalHueco {
+  min-width: 76px; min-height: 52px; padding: 4px 12px;
+  border: 3px dashed color-mix(in srgb, var(--ink) 26%, transparent); border-radius: var(--radio-chico);
+  display: flex; align-items: center; justify-content: center; background: var(--soft);
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 22px;
+}
+.numPalHueco:empty { animation: latido 1.8s ease infinite; }
+.numPalFichas { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.numPalFicha { font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 21px;
+  color: var(--ink); min-height: 52px; padding: 8px 16px; }
+.numPalFicha:disabled { opacity: .35; cursor: default; }
+
 /* programá el camino (14-jul-2026, prototipo pensamiento computacional):
    la "cola" muestra el programa armado como chips en orden. */
 .programaCola {

@@ -364,10 +364,14 @@ let _ultimoDicho = "";
    Se leen DESPUÉS de la consigna, no encima: `reproducirConsigna` devuelve una promesa que
    termina cuando el audio terminó de sonar de verdad.
    Y no quedan como «lo último dicho»: el botón de repetir tiene que devolver la pregunta Y
-   las opciones, en ese orden, y no sólo lo último que sonó. */
+   las opciones, en ese orden, y no sólo lo último que sonó.
+
+   Y un juego puede pedir que NO se lean, con `data-no-leer` en su tablero (11-sep-2026).
+   En «Números en palabras» leer 80080 en voz alta —«ochenta mil ochenta»— le dice al chico
+   de oído cuál no es, y lo que se mide es justamente si sabe leerlo. */
 function _opcionesEnPantalla() {
   const bs = [...document.querySelectorAll("#juego button, #juego .op, #juego .op-texto")]
-    .filter((b) => b.offsetParent);
+    .filter((b) => b.offsetParent && !b.closest("[data-no-leer]"));
   const t = [];
   bs.forEach((b) => {
     // El emoji NO va a la voz: el sintetizador lo lee como su nombre («espiga de trigo»)
@@ -991,6 +995,19 @@ const COMO_ES = {
         "De derecha a izquierda: unidades, decenas, centenas, unidades de mil…",
         "La misma cifra vale distinto según dónde caiga."],
     e: "En 352, el 3 vale 300, el 5 vale 50 y el 2 vale 2." },
+  // números en palabras (11-sep-2026): de lo que se dice a lo que se escribe, y al revés
+  numeros_palabras_2: { t: "Cómo se escriben los números",
+    l: ["Se escriben en el orden en que se leen: primero las centenas, después las decenas y al final las unidades.",
+        "El cero no se dice, pero se escribe: guarda el lugar vacío. Ochocientos cinco es 805.",
+        "Los pedazos no se pegan uno atrás del otro: ochocientos ochenta es 880, no 80080.",
+        "Del 16 al 29 van en una sola palabra: dieciocho, veinticinco. Y el 100 solo es cien; si le sigue algo, es ciento."],
+    e: "880 → ochocientos ochenta · 805 → ochocientos cinco · 725 → setecientos veinticinco" },
+  numeros_palabras_3: { t: "Cómo se escriben los números",
+    l: ["Se escriben en el orden en que se leen: primero las unidades de mil, después las centenas, las decenas y al final las unidades.",
+        "El cero no se dice, pero se escribe: guarda el lugar vacío. Tres mil cinco es 3005.",
+        "Los pedazos no se pegan uno atrás del otro: tres mil cuatrocientos es 3400, no 3000400.",
+        "Mil va solo, sin «un» adelante. Y algunas centenas cambian: quinientos, setecientos, novecientos."],
+    e: "3450 → tres mil cuatrocientos cincuenta · 3005 → tres mil cinco · 1200 → mil doscientos" },
   suma_columnas: { t: "Sumar en columna (con llevada)",
     l: ["Alineá los números por la derecha: unidades con unidades.",
         "Sumá empezando por la columna de la derecha.",
@@ -12892,6 +12909,339 @@ GAMES.comparar_numeros = {
         fila.appendChild(b);
       });
       ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── NÚMEROS EN PALABRAS (2.º M6 · 3.º M2): leer y escribir números, en los dos sentidos.
+
+   Pablo, 11-sep-2026: *"pasar un número a texto y al revés. Por ejemplo 880 y que
+   aparezcan palabras como ochocientos, novecientos, setenta, etc, y si selecciona el texto
+   va armado como se escribe ese número; y de un texto, qué número es"*. En 1.º-3.º no había
+   ninguna actividad así: leer y escribir números aparecía recién en 4.º y 5.º, y como
+   opción múltiple.
+
+   Dos tramos EN BLOQUE, no alternados: la auditoría de 2.º (M6) midió que cambiar la
+   consigna ronda a ronda mide si el chico la leyó, no el contenido.
+     1. De las palabras al número (reconocer): «ochocientos ochenta» → 880 | 80080 | 808.
+     2. Del número a las palabras (producir): 880 → tocar «ochocientos» y «ochenta», entre
+        fichas que sobran.
+
+   Las opciones que están mal y las fichas que sobran son errores que los chicos cometen de
+   verdad (Lerner y Sadovsky, «El sistema de numeración: un problema didáctico», 1994), no
+   palabras al azar:
+     · ESCRIBIR COMO SE DICE: ochocientos ochenta → 80080. Es EL error del tema: la
+       numeración hablada suma pedazos (800 + 80) y la escrita es posicional.
+     · El cero, que no se dice pero se escribe: ochocientos cinco → 85, o el 5 corrido, 850.
+     · Las centenas irregulares, dichas como suenan: «cincocientos», «sietecientos»…
+     · cien y ciento, «un mil», el viejo «diez y seis», la «y» de más, seis y siete.
+
+   SIN SEPARADOR DE MILES, a propósito. El resto del cuaderno escribe 3.450, pero acá el
+   punto sería una pista de superficie: en 2.º la respuesta nunca lo llevaría y el error
+   (80.080) siempre, y el chico aprendería «el que tiene punto está mal» sin entender nada.
+   El error real, además, el chico lo escribe sin punto, y la RAE no separa los de cuatro
+   cifras.
+
+   Las palabras salen de `_numeroEnPalabras`, la misma que usa la voz: lo que el cuaderno
+   escribe y lo que dice no pueden diferir. La lógica va en funciones sueltas y sin DOM
+   para que `tests/test_numeros_en_palabras.py` la corra con node. ── */
+
+// Una palabra por ficha: 888 → ["ochocientos", "ochenta", "y", "ocho"].
+function _npPalabras(n) { return _numeroEnPalabras(n).split(" "); }
+
+// Los pedazos que se NOMBRAN, con su valor: 3450 → [3000, 400, 50]; 818 → [800, 18].
+// Del 1 al 29 es un pedazo solo, porque se dice en una palabra (dieciocho, veinticinco).
+function _npPedazos(n) {
+  const out = [];
+  const m = Math.floor(n / 1000), c = Math.floor((n % 1000) / 100), r = n % 100;
+  if (m) out.push(m * 1000);
+  if (c) out.push(c * 100);
+  if (r >= 30) { out.push(r - (r % 10)); if (r % 10) out.push(r % 10); }
+  else if (r) out.push(r);
+  return out;
+}
+
+// Los lugares con los nombres del programa —unidades, decenas y centenas—, que son los del
+// pizarrón y no los de la auditoría (ver test_valor_posicional_se_dice_bien.py).
+function _npLugar(v) {
+  return v >= 1000 ? "unidades de mil" : v >= 100 ? "centenas" : v >= 10 ? "decenas" : "unidades";
+}
+
+function _npMayus(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+// El número de la ronda, cargado hacia los que traen el error del tema: el cero del
+// medio (805, 3005), las centenas irregulares (5, 7, 9) y el 1 de ciento/cien, los que van
+// en una palabra (11 al 29). Parejo al azar casi no saldrían: un 805 es uno cada diez.
+// `bonus` es el escalón ganado (ctx.bonusDominio): sube la proporción de los difíciles.
+function _npSortear(cifras, bonus) {
+  const dificil = bonus > 0;
+  const cien = () => (Math.random() < 0.45 ? [1, 5, 7, 9][rint(0, 3)] : rint(1, 9));
+  const cola = () => {                          // las dos últimas cifras
+    const p = Math.random() * 100;
+    if (p < (dificil ? 18 : 28)) return rint(3, 9) * 10 + rint(1, 9);   // cuarenta y siete
+    if (p < (dificil ? 34 : 48)) return rint(3, 9) * 10;                // ochenta
+    if (p < 66) return rint(1, 9);                                      // el cero del medio
+    if (p < 82) return rint(10, 19);                                    // diez a diecinueve
+    if (p < 95) return rint(20, 29);                                    // veinte a veintinueve
+    return 0;                                                            // redondo: 500
+  };
+  if (cifras <= 3) {
+    if (dificil && Math.random() < 0.06) return 1000;                   // el tope de 2.º
+    return cien() * 100 + cola();
+  }
+  // 3.º: también de tres cifras (el DC dice «de 3 y 4»), y las centenas pueden faltar:
+  // 3005 es el cero que más cuesta, porque entre el mil y el cinco no se nombra nada
+  if (Math.random() < (dificil ? 0.1 : 0.2)) return cien() * 100 + cola();
+  const m = Math.random() < 0.2 ? 1 : rint(2, 9);
+  const c = Math.random() < (dificil ? 0.4 : 0.25) ? 0 : cien();
+  return m * 1000 + c * 100 + cola();
+}
+
+// Las fichas que SOBRAN. Cada una es un error que se comete de verdad y trae su porqué,
+// escrito «regla: respuesta» para que la primera vez se vea la regla y recién a la
+// segunda la respuesta entera (_enDosTiempos). Ninguna es una palabra de la respuesta:
+// con dos fichas iguales, una buena y otra marcada como error, la corrección mentiría.
+function _npTrampas(n, cuantas) {
+  const bien = _npPalabras(n), frase = bien.join(" ");
+  const m = Math.floor(n / 1000), c = Math.floor((n % 1000) / 100), r = n % 100;
+  const d = Math.floor(r / 10), u = r % 10;
+  const cand = [];
+  const sumar = (w, regla, peso) => {
+    if (!w || bien.includes(w) || cand.some((x) => x.w === w)) return;
+    cand.push({ w: w, m: regla + ": " + frase + ".", peso: peso });
+  };
+  const lado = Math.random() < 0.5 ? 1 : -1;
+  const vecina = (tabla, i, lo, hi) => {
+    for (const j of [i + lado, i - lado]) if (j >= lo && j <= hi && tabla[j]) return tabla[j];
+    return "";
+  };
+  // dichos como suenan: cinco → «cincocientos». Es el error de regularizar
+  const SUENA_C = { 5: "cincocientos", 7: "sietecientos", 9: "nuevecientos" };
+  const SUENA_D = { 6: "seisenta", 7: "sietenta", 9: "nueventa" };
+  if (SUENA_C[c]) sumar(SUENA_C[c], "«" + SUENA_C[c] + "» no existe, en las centenas el " + c + " cambia", 3);
+  if (r >= 30 && SUENA_D[d]) sumar(SUENA_D[d], "«" + SUENA_D[d] + "» no existe, en las decenas el " + d + " cambia", 3);
+  // cien y ciento
+  if (c === 1 && r) sumar("cien", "Cien es el 100 solo; si le sigue algo, se dice ciento", 3);
+  if (c === 1 && !r) sumar("ciento", "Ciento va cuando le sigue algo, como en ciento dos; el 100 solo es cien", 3);
+  // el mil
+  if (m === 1) sumar("un", "Mil va solo, sin «un» adelante", 3);
+  if (m >= 2) sumar(_UNI[m] + "mil", "Son dos palabras, van separadas", 2);
+  if (n === 1000) sumar("cien", "Cien es el 100; el 1000 es mil", 2);
+  // del 16 al 29 va todo junto: el viejo «diez y seis»
+  if (r >= 16 && r <= 19) sumar("diez", "Del 16 al 19 se escribe todo junto, en una sola palabra", 3);
+  if (r >= 21 && r <= 29) sumar("veinte", "Del 21 al 29 se escribe todo junto, en una sola palabra", 3);
+  // seis y siete empiezan igual: seiscientos/setecientos, sesenta/setenta
+  if (c === 6 || c === 7) sumar(_CEN[13 - c], "Mirá bien la cifra de las centenas, es un " + c, 2);
+  if (d === 6 || d === 7) sumar(_DEC[13 - d], "Mirá bien la cifra de las decenas, es un " + d, 2);
+  // la «y» va sólo entre las decenas y las unidades
+  if (bien.length >= 2 && !bien.includes("y")) {
+    sumar("y", "La «y» va solamente entre las decenas y las unidades, como en treinta y dos", 2);
+  }
+  // la misma cifra en otro lugar: el 8 de las decenas no es «ocho»
+  if (r >= 30) sumar(_UNI[d], "El " + d + " está en el lugar de las decenas, vale " + d * 10, 1.5);
+  if (r >= 30 && u >= 3) sumar(_DEC[u], "El " + u + " está en el lugar de las unidades, vale " + u, 1.5);
+  if (c >= 3) sumar(_DEC[c], "El " + c + " está en el lugar de las centenas, vale " + c * 100, 1.5);
+  // y la cifra de al lado —el ejemplo de Pablo: 880 con «novecientos» y «setenta»—,
+  // porque saber cómo se llama cada cien y cada diez también es el tema
+  if (c >= 1) sumar(vecina(_CEN, c, 2, 9), "Mirá bien la cifra de las centenas, es un " + c, 1);
+  if (r >= 30) sumar(vecina(_DEC, d, 3, 9), "Mirá bien la cifra de las decenas, es un " + d, 1);
+  if (m >= 2) sumar(vecina(_UNI, m, 2, 9), "Mirá bien la cifra de las unidades de mil, es un " + m, 1);
+  // relleno, para los que traen pocos errores propios (el 200 sólo da «trescientos»)
+  for (const j of shuffle([2, 3, 4, 5, 6, 7, 8, 9])) {
+    if (cand.length >= cuantas) break;
+    if (c >= 1) sumar(_CEN[j], "Mirá bien la cifra de las centenas, es un " + c, 0.5);
+    else if (r >= 30) sumar(_DEC[j], "Mirá bien la cifra de las decenas, es un " + d, 0.5);
+    else sumar(_UNI[j], "Mirá bien el número, cifra por cifra", 0.5);
+  }
+  // se eligen al azar, con más chance para los errores más comunes
+  const out = [];
+  while (out.length < cuantas && cand.length) {
+    let t = Math.random() * cand.reduce((a, x) => a + x.peso, 0), i = 0;
+    while (i < cand.length - 1 && (t -= cand[i].peso) > 0) i++;
+    out.push(cand.splice(i, 1)[0]);
+  }
+  return out;
+}
+
+// Las opciones que están mal en «¿qué número es?», cada una con su error y su porqué.
+function _npDistractores(n) {
+  const ok = String(n), frase = _numeroEnPalabras(n), ped = _npPedazos(n);
+  const out = [];
+  const sumar = (v, tipo, regla) => {
+    v = String(v);
+    if (v !== ok && !out.some((x) => x.v === v)) {
+      out.push({ v: v, tipo: tipo, m: regla + ": " + frase + " es " + ok + "." });
+    }
+  };
+  // 1) ESCRIBIR COMO SE DICE: cada pedazo con sus ceros, uno atrás del otro (880 → 80080).
+  //    Y a medias, sólo el primero (3450 → 3000450): el chico que ya escribe bien el 450
+  //    pero todavía no sabe dónde va el mil.
+  if (ped.length >= 2) {
+    const regla = "El " + _numeroEnPalabras(ped[1]) + " no va pegado atrás del "
+      + _numeroEnPalabras(ped[0]) + ", va en el lugar de sus ceros";
+    sumar(ped.join(""), "pegado", regla);
+    sumar(String(ped[0]) + String(n - ped[0]), "pegado", regla);
+  }
+  // 2) CORRIDO de lugar: el último pedazo en el lugar de al lado, si está vacío.
+  //    805 → 850 (el cinco puesto en las decenas), 880 → 808.
+  const ult = ped[ped.length - 1];
+  if (ult && !(ult > 10 && ult < 30 && ult % 10)) {    // dieciocho es un pedazo de dos cifras
+    const lugar = (v) => (v >= 1000 ? 1000 : v >= 100 ? 100 : v >= 10 ? 10 : 1);
+    const L = lugar(ult), cifra = ult / L, resto = n - ult;
+    const vacio = (P) => Math.floor(resto / P) % 10 === 0;
+    const regla = (P) => _npMayus(_numeroEnPalabras(ult)) + " va en el lugar de las " + _npLugar(L)
+      + ", no en el de las " + _npLugar(P);
+    if (L < 1000 && vacio(L * 10)) sumar(resto + cifra * L * 10, "corrido", regla(L * 10));
+    if (L > 1 && vacio(L / 10)) sumar(resto + (cifra * L) / 10, "corrido", regla(L / 10));
+  }
+  // 3) SEIS Y SIETE, que empiezan igual: seiscientos/setecientos, sesenta/setenta
+  for (const pos of [ok.length - 3, ok.length - 2]) {
+    if (pos >= 0 && (ok[pos] === "6" || ok[pos] === "7")) {
+      sumar(ok.slice(0, pos) + (ok[pos] === "6" ? "7" : "6") + ok.slice(pos + 1), "seis_siete",
+            "Seis da sesenta y seiscientos; siete da setenta y setecientos");
+      break;
+    }
+  }
+  // 4) EL CERO QUE NO SE DICE: escribir sólo las cifras que se nombran (805 → 85)
+  const sinCeros = ok.replace(/0+(?=[1-9])/g, "");
+  if (sinCeros !== ok) {
+    sumar(sinCeros, "sin_cero", "El cero no se dice, pero se escribe, porque guarda el lugar vacío");
+  }
+  return out;
+}
+
+// Tres opciones: la correcta, el error del tema (escribir como se dice) y otro error del
+// mismo largo que la correcta o más corto. Si las dos que están mal fueran «pegadas», la
+// correcta sería siempre la más corta y se ganaría por el largo sin entender nada: ese
+// número no sirve para este tramo, y se sortea otro.
+function _npOpciones(n) {
+  const todas = _npDistractores(n);
+  const pegadas = todas.filter((x) => x.tipo === "pegado");
+  const otras = todas.filter((x) => x.tipo !== "pegado");
+  if (!otras.length) return null;
+  let d = null;
+  if (pegadas.length) d = [pegadas[rint(0, pegadas.length - 1)], otras[rint(0, otras.length - 1)]];
+  else if (otras.length >= 2) d = shuffle(otras).slice(0, 2);
+  return d && { n: n, ok: String(n), d: d };
+}
+
+// El porqué cuando toca una ficha que no va, o que va pero todavía no.
+function _npPorQue(n, ficha, esperada) {
+  const frase = _numeroEnPalabras(n);
+  if (ficha.trampa) return ficha.trampa.m;
+  if (esperada === "y") return "Entre las decenas y las unidades va una «y»: " + frase + ".";
+  if (ficha.w === "y") return "La «y» va solamente entre las decenas y las unidades: " + frase + ".";
+  return "Se escribe en el orden en que se lee, de izquierda a derecha: " + frase + ".";
+}
+
+GAMES.numeros_palabras = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    const cifras = ctx.cfg.cifras || 3;
+    // el escalón ganado: más ceros en el medio, y una ficha que sobra de más
+    const bonus = ctx.bonusDominio;
+    const mitad = Math.ceil(rondas / 2);
+    const vistos = new Set();
+    let ronda = 0;
+    // un número que no haya salido en esta partida y que sirva para el tramo
+    const sortear = (armar) => {
+      for (let i = 0; i < 80; i++) {
+        const n = _npSortear(cifras, bonus);
+        if (vistos.has(n)) continue;
+        const it = armar(n);
+        if (!it) continue;
+        vistos.add(n);
+        return it;
+      }
+      return null;
+    };
+    const pasar = async () => {
+      ctx.bien();
+      ronda++;
+      await espera(1100);
+      if (ronda >= rondas) ctx.win(); else jugar();
+    };
+    // Las opciones NO se leen en voz alta (`data-no-leer`): leer 80080 —«ochenta mil
+    // ochenta»— le diría al chico de oído cuál no es. El 🔊 de acá lee las PALABRAS, que
+    // es la ayuda que corresponde: vuelve la lectura un dictado sin regalar la respuesta.
+    const aNumero = (k) => {
+      const it = sortear(_npOpciones);
+      if (!it) { ctx.win(); return; }          // no pasa, pero nunca deja al chico trabado
+      const frase = _numeroEnPalabras(it.n);
+      ctx.item("numpal#n" + it.n);
+      consignaVariada(ctx, k, "Leé el número escrito en palabras y tocá cómo se escribe con cifras.", "m");
+      ctx.juego.innerHTML = "";
+      const tablero = el("div", "tablero numPalTablero");
+      tablero.setAttribute("data-no-leer", "");
+      tablero.appendChild(el("div", "numPalPalabras", frase));
+      const oir = el("button", "btn suave", "🔊 Escuchar");
+      oir.type = "button";
+      oir.addEventListener("click", () => reproducirConsigna(frase));
+      tablero.appendChild(oir);
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle([{ v: it.ok, ok: true }].concat(it.d)).forEach((o) => {
+        const b = el("button", "op", o.v);
+        b.addEventListener("click", () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); pasar(); }
+          else { b.classList.add("casi"); ctx.casi(o.m); }
+        });
+        fila.appendChild(b);
+      });
+      tablero.appendChild(fila);
+      ctx.juego.appendChild(tablero);
+    };
+    // Las fichas se tocan en orden y cada una se corrige al tocarla, como en «Armá la
+    // palabra»: a los 7 años, armar las cuatro y recién ahí enterarse de cuál estaba mal
+    // es demasiado para sostener en la cabeza.
+    const aPalabras = (k) => {
+      const it = sortear((n) => ({ n: n, palabras: _npPalabras(n),
+                                   trampas: _npTrampas(n, bonus > 0 || cifras > 3 ? 3 : 2) }));
+      if (!it) { ctx.win(); return; }
+      ctx.item("numpal#p" + it.n);
+      consignaVariada(ctx, k, "Ahora al revés: escribí el número con palabras. Tocá las fichas en orden, ¡que sobran algunas!", "m");
+      ctx.juego.innerHTML = "";
+      const tablero = el("div", "tablero numPalTablero");
+      tablero.setAttribute("data-no-leer", "");
+      tablero.appendChild(el("div", "numPalNumero", String(it.n)));
+      const huecos = el("div", "numPalHuecos");
+      const slots = it.palabras.map(() => el("div", "numPalHueco", ""));
+      slots.forEach((s) => huecos.appendChild(s));
+      tablero.appendChild(huecos);
+      const fichas = el("div", "numPalFichas");
+      let sig = 0, resuelto = false;
+      shuffle(it.palabras.map((w) => ({ w: w, trampa: null }))
+        .concat(it.trampas.map((t) => ({ w: t.w, trampa: t }))))
+        .forEach((f) => {
+          const b = el("button", "spriteBtn numPalFicha", f.w);
+          b.type = "button";
+          b.addEventListener("click", () => {
+            if (resuelto || b.disabled) return;
+            const esperada = it.palabras[sig];
+            if (!f.trampa && f.w === esperada) {
+              b.disabled = true;
+              slots[sig].textContent = f.w;
+              slots[sig].classList.add("anim-pop");
+              Sfx.tick(sig + 1);
+              sig++;
+              if (sig >= it.palabras.length) { resuelto = true; pasar(); }
+              return;
+            }
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi(_npPorQue(it.n, f, esperada));
+          });
+          fichas.appendChild(b);
+        });
+      tablero.appendChild(fichas);
+      ctx.juego.appendChild(tablero);
+    };
+    const jugar = () => {
+      ctx.ronda(ronda);
+      if (ronda < mitad) aNumero(ronda); else aPalabras(ronda - mitad);
     };
     jugar();
   },

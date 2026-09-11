@@ -1611,6 +1611,11 @@ const CUR_CAMPO_A_CASA_BANCO = [
 ];
 GAMES.campo_a_casa = juegoOrdenar(CUR_CAMPO_A_CASA_BANCO, "Ordená cómo llega a tu casa. Tocá en orden.", "Empezá por dónde nace o se produce, y terminá en tu casa.", "campo_a_ca");
 
+/* 2° · Números en palabras — numeros_palabras_2
+   DC: Lectura y escritura de números hasta 1.000: cómo se dice y cómo se escribe (ochocientos ochenta es 880, no 80080)
+   Fuente: docs/auditoria-dc-caba/grado-2.md · M6 */
+GAMES.numeros_palabras_2 = { crear(ctx) { return GAMES.numeros_palabras.crear(ctx); } };
+
 /* 2° · Cálculo redondo — calculo_redondo
    DC: Sumar y restar 1, 10 y 100 a números de tres cifras. Reemplaza sumas/restas, que operaban hasta 10 (contenido de 1°)
    Fuente: docs/auditoria-dc-caba/grado-2.md · M4 */
@@ -11362,6 +11367,11 @@ const CUR_PRESUPUESTO_5_BANCO = [
   }
 ];
 GAMES.presupuesto_5 = juegoClasificar(CUR_PRESUPUESTO_5_BANCO, "Para el viaje de egresados, ¿qué es cada cosa?", [{"cat": "ingreso", "label": "💵 Ingreso"}, {"cat": "necesario", "label": "✅ Gasto necesario"}, {"cat": "prescindible", "label": "🎈 Gasto prescindible"}], "presupuest");
+
+/* 3° · Números en palabras — numeros_palabras_3
+   DC: Lectura y escritura de números de 3 y 4 cifras: cómo se dice y cómo se escribe (tres mil cuatrocientos es 3400, no 3000400)
+   Fuente: docs/auditoria-dc-caba/grado-3.md · M2 */
+GAMES.numeros_palabras_3 = { crear(ctx) { return GAMES.numeros_palabras.crear(ctx); } };
 
 /* 3° · Cajero de miles — cajero_miles_3
    DC: Valor posicional; composición aditiva de números de 4 cifras
