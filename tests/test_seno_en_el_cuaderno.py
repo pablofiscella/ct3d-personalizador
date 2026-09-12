@@ -73,8 +73,25 @@ def test_el_cuaderno_escolar_ofrece_la_clase_SIN_NINGUNA_CABECERA():
     d = _seno(TOK_ESC)
     assert d, "un cuaderno escolar servido normalmente no ofrece la clase"
     assert d["base"].endswith("/kydo/seno/" + TOK_ESC), d["base"]
-    assert d["base"].startswith("https://kydo.com.ar/"), d["base"]
+    assert "/kydo/seno/" in d["base"], d["base"]   # el host, en los dos tests de acá abajo
     assert len(d["clases"]) >= 10, "salieron muy pocas clases: %d" % len(d["clases"])
+
+
+def test_en_el_ESPEJO_la_clase_apunta_al_Kydo_del_ESPEJO(monkeypatch):
+    """Una página del espejo no puede sacar a nadie a producción.
+
+    El sitio estaba clavado a `kydo.com.ar`, así que el cuaderno del dev mandaba al VIVO — donde
+    además la seño está apagada, o sea que el chico caía en la biblioteca. Lo encontró Pablo
+    probándolo el 12-sep-2026: *"me lleva a la biblioteca"*."""
+    monkeypatch.setenv("CT3D_ENTORNO", "dev")
+    assert _seno(TOK_ESC)["base"].startswith("https://dev.kydo.com.ar/kydo/seno/")
+
+
+def test_en_PRODUCCION_apunta_al_Kydo_de_verdad(monkeypatch):
+    """La otra mitad: sin la variable de entorno, el sitio es el vivo. Un test que sólo mirara
+    el caso dev dejaría pasar que producción apunte al espejo, que es peor."""
+    monkeypatch.delenv("CT3D_ENTORNO", raising=False)
+    assert _seno(TOK_ESC)["base"].startswith("https://kydo.com.ar/kydo/seno/")
 
 
 def test_las_clases_son_las_DEL_GRADO_del_cuaderno():

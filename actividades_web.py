@@ -2620,7 +2620,19 @@ def _es_escolar(token, reg=None):
 # el token, y de los 2.158 cuadernos escolares de producción 2.018 ni siquiera tienen
 # `biblioteca_url` — por esa vía, nueve de cada diez se quedarían sin ícono hasta regenerarlos
 # uno por uno, que es la operación grande que conviene no hacer.
-_SENO_SITIO = "https://kydo.com.ar"
+def _sitio_de_kydo():
+    """A qué Kydo mandar la clase: al del ESPEJO si esto es el espejo.
+
+    Estaba clavado a `https://kydo.com.ar` y eso hacía que el cuaderno del dev mandara al VIVO
+    (Pablo, 12-sep-2026, probándolo: *"me lleva a la biblioteca"*). Una página del espejo no
+    puede sacar a nadie a producción: es la misma línea que separa las dos copias.
+
+    No se puede importar `servicio.DEV` —`servicio` importa este módulo, no al revés— así que
+    se lee la misma variable de entorno que él, que es de donde sale toda la separación."""
+    import os
+    if (os.environ.get("CT3D_ENTORNO", "") or "").strip().lower() == "dev":
+        return "https://dev.kydo.com.ar"
+    return "https://kydo.com.ar"
 
 
 def _seno_del_cuaderno(token, reg, escolar):
@@ -2650,7 +2662,7 @@ def _seno_del_cuaderno(token, reg, escolar):
         return "null"
     if not clases:
         return "null"
-    return json.dumps({"base": "%s/kydo/seno/%s" % (_SENO_SITIO, token),
+    return json.dumps({"base": "%s/kydo/seno/%s" % (_sitio_de_kydo(), token),
                        "clases": {a: list(p) for a, p in clases.items()}},
                       ensure_ascii=False)
 
