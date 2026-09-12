@@ -146,8 +146,9 @@ def test_los_estilos_nuevos_viajan_con_el_menu():
     pieza se ve rota sólo en producción."""
     s = _fuente()
     i = s.index("function _adaptCSS")
-    css = s[i:i + 9000]
-    for sel in (".seguir-aca{", ".cat-titulo small{", ".cat-titulo.cat-repaso{"):
+    css = s[i:s.index("\nfunction ", i + 1)]      # la función entera, no los primeros N bytes
+    for sel in (".seguir-aca{", ".cat-titulo small{", ".cat-titulo.cat-repaso{",
+                ".filtro-estados{", ".filtro-arriba{", ".chip-est{"):
         assert sel in css, "falta el estilo de %s" % sel
 
 
@@ -205,6 +206,21 @@ def test_el_estado_se_filtra_con_fichas_y_no_con_un_desplegable():
         assert txt in bloque, "falta la ficha «%s»" % txt
 
 
+def test_el_boton_de_vista_no_le_come_las_fichas_de_estado():
+    """A 400 px las cuatro fichas de estado más el botón de vista no entran en una fila: la
+    última quedaba cortada AL MEDIO contra el botón, y eso no se lee como «hay más, deslizá»
+    sino como un error de dibujo (visto en el espejo el 11-sep-2026, antes de mostrarlo).
+
+    El botón sube a la fila del buscador y las fichas se quedan con el ancho entero: lo que
+    sobra recorta en el borde de la pantalla, el mismo gesto que las materias."""
+    s = _fuente()
+    i = s.index('barra.id = "filtroMenu"')
+    bloque = s[i:s.index("stage.appendChild(barra)", i)]
+    assert "abajo.appendChild(bv)" not in bloque, "el botón de vista volvió a la fila de estados"
+    assert 'el("div", "filtro-arriba")' in bloque and "arriba.appendChild(bv)" in bloque, (
+        "el botón de vista no está en la fila del buscador")
+
+
 def test_seguir_por_aca_no_queda_pegado_al_boton_de_abajo():
     """Pablo, 11-sep-2026, con una captura: *«solo un poco mas de margen»*.
 
@@ -221,17 +237,24 @@ def test_seguir_por_aca_no_queda_pegado_al_boton_de_abajo():
 
 
 def test_la_barra_se_pega_abajo_del_encabezado():
-    """El encabezado también es sticky y mide distinto en cada aparato: se mide, no se adivina."""
+    """El encabezado también es sticky y mide distinto en cada aparato: se mide, no se adivina.
+
+    El corte va de ancla a ancla y no por cantidad de bytes (11-sep-2026): nació leyendo los
+    primeros 3.600 bytes y se puso en rojo al sumar comentarios, con `hdr.offsetHeight` en su
+    lugar. Es el mismo defecto que hubo que arreglarle a `test_aviso_esi` ese mismo día: un
+    test que pasa o falla según dónde cae un byte no está midiendo el código."""
     s = _fuente()
     i = s.index('barra.id = "filtroMenu"')
-    assert "hdr.offsetHeight" in s[i:i + 3600], "la barra se taparía con el encabezado"
+    bloque = s[i:s.index("const _itSeguir", i)]
+    assert "hdr.offsetHeight" in bloque, "la barra se taparía con el encabezado"
 
 
 def test_esconder_una_tarjeta_la_esconde_de_verdad():
     """`.carta` es flex: sin la regla, el [hidden] del navegador no la tapa."""
     s = _fuente()
     i = s.index("function _adaptCSS")
-    assert ".carta[hidden]" in s[i:i + 11000], "esconder tarjetas no funciona sin la regla"
+    css = s[i:s.index("\nfunction ", i + 1)]      # la función entera, no los primeros N bytes
+    assert ".carta[hidden]" in css, "esconder tarjetas no funciona sin la regla"
 
 
 def test_el_emoji_de_materia_se_declara_antes_de_usarse():

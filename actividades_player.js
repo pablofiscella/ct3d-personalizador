@@ -5845,6 +5845,9 @@ function _adaptCSS() {
     "#filtroMenu .filtro-estados::-webkit-scrollbar{display:none}" +
     "#filtroMenu .chip-est{min-height:36px;font-size:13px;padding:0 12px}" +
     "#filtroMenu #vistaAct{flex:none}" +
+    "#filtroMenu .filtro-arriba{display:flex;gap:8px;align-items:center}" +
+    "#filtroMenu .filtro-arriba #buscarAct{flex:1;min-width:0}" +
+    "#filtroMenu .filtro-arriba #vistaAct{min-height:48px}" +
     "#sinResultados{padding:18px 4px;font:600 16px Archivo,system-ui,sans-serif;" +
     "color:color-mix(in srgb,var(--ink) 65%,var(--card))}" +
     // esconder DE VERDAD: `.carta` es flex y le gana al [hidden] del navegador
@@ -6381,7 +6384,9 @@ function pintarMenuPlano(items, stage) {
       try { if (localStorage.getItem(KVISTA) === "lista") stage.classList.add("lista"); } catch (e) {}
       const barra = el("div"); barra.id = "filtroMenu";
       const inp = el("input"); inp.id = "buscarAct"; inp.type = "search";
-      inp.placeholder = "Buscá una actividad o una materia…";
+      // Corto a propósito: el campo ahora comparte fila con el botón de vista y el texto
+      // largo se cortaba. Que además busca por materia lo dicen las fichas de acá abajo.
+      inp.placeholder = "Buscá una actividad…";
       inp.setAttribute("aria-label", "Buscar una actividad");
       inp.addEventListener("input", () => _filtrarMenu(stage));
       const fila = el("div", "filtro-chips");
@@ -6427,8 +6432,15 @@ function pintarMenuPlano(items, stage) {
         bv.textContent = lista ? "▦ Tarjetas" : "☰ Lista";
         try { localStorage.setItem(KVISTA, lista ? "lista" : "cartas"); } catch (e) {}
       });
-      abajo.appendChild(filaEst); abajo.appendChild(bv);
-      barra.appendChild(inp); barra.appendChild(fila); barra.appendChild(abajo);
+      // EL BOTÓN DE VISTA SUBE A LA FILA DEL BUSCADOR. A 400 px las cuatro fichas de estado
+      // más el botón no entran juntos, y la última ficha quedaba CORTADA AL MEDIO contra el
+      // botón: eso no se lee como «hay más, deslizá», se lee como un error de dibujo. Con la
+      // fila entera para las fichas, lo que sobra recorta en el BORDE de la pantalla, que es
+      // el mismo gesto que ya hacen las materias de arriba.
+      abajo.appendChild(filaEst);
+      const arriba = el("div", "filtro-arriba");
+      arriba.appendChild(inp); arriba.appendChild(bv);
+      barra.appendChild(arriba); barra.appendChild(fila); barra.appendChild(abajo);
       stage.appendChild(barra);
       // Se pega ABAJO del encabezado, que también es pegajoso y mide distinto en cada
       // aparato (la muesca del teléfono entra en su relleno): se mide, no se adivina.
