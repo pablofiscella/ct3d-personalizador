@@ -114,6 +114,13 @@ def _de_la_fuente():
                 continue
             for j in (s.get("juegos") or []):
                 out.setdefault(t["grado"], {}).setdefault(j, (t["id"], t["titulo"]))
+        # el emparejamiento a mano se toma DE LA MISMA FUENTE que el generador: si se
+        # copiara acá, las dos listas se irían separando y este test dejaría de medir nada.
+        from gen_seno_clases import A_MANO
+        for tid, act in A_MANO.items():
+            t = temas.get(tid)
+            if t:
+                out.setdefault(t["grado"], {})[act] = (tid, t["titulo"])
         limpio = {}
         for g in range(1, 8):
             ids = {it["id"] for it in (ac.menu_de_grado(g) or [])}
