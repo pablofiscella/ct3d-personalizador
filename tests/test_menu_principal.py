@@ -189,6 +189,37 @@ def test_la_vista_en_lista_se_recuerda():
     assert 'Store.key + "::vista"' in s and "localStorage.setItem(KVISTA" in s
 
 
+def test_el_estado_se_filtra_con_fichas_y_no_con_un_desplegable():
+    """Pablo, 11-sep-2026: *«no me gusta el select, no tiene buen diseño»*.
+
+    Además del gusto hay dos motivos: un `<select>` lo dibuja el sistema operativo —no hay CSS
+    que lo haga combinar con el resto, y se ve distinto en cada teléfono— y **esconde las
+    opciones hasta que se lo toca**, así que el chico no se entera de que puede filtrar."""
+    s = _fuente()
+    i = s.index('barra.id = "filtroMenu"')
+    bloque = s[i:s.index("stage.appendChild(barra)", i)]
+    assert 'el("select")' not in bloque and "estadoAct" not in bloque, (
+        "volvió el desplegable de estado")
+    assert 'el("div", "filtro-estados")' in bloque, "no están las fichas de estado"
+    for txt in ("Sin empezar", "Practicando", "Dominadas"):
+        assert txt in bloque, "falta la ficha «%s»" % txt
+
+
+def test_seguir_por_aca_no_queda_pegado_al_boton_de_abajo():
+    """Pablo, 11-sep-2026, con una captura: *«solo un poco mas de margen»*.
+
+    Estaban a 2 px, y el motivo es una trampa clásica: `#stage` es bloque, así que el margen de
+    abajo de uno y el de arriba del otro **se colapsan** — el hueco es el mayor de los dos y no
+    la suma. Con `2 0 2` y `2 0 10` el resultado era 2 px, no 4."""
+    s = _fuente()
+    i = s.index(".seguir-aca{")
+    m = re.search(r"margin:(\d+)px 0 (\d+)px", s[i:i + 900])
+    assert m and int(m.group(2)) >= 10, "«Seguí por acá» volvió a quedar pegado a lo de abajo"
+    j = s.index("function _botonModoProfe")
+    m2 = re.search(r"margin:(\d+)px 0 (\d+)px", s[j:j + 1600])
+    assert m2 and int(m2.group(1)) >= 10, "el botón de Modo Profe volvió a pegarse al de arriba"
+
+
 def test_la_barra_se_pega_abajo_del_encabezado():
     """El encabezado también es sticky y mide distinto en cada aparato: se mide, no se adivina."""
     s = _fuente()

@@ -5807,7 +5807,10 @@ function _adaptCSS() {
     // «Seguí por acá»: ancha, del color de la marca del grado, y con la flecha a la derecha
     ".seguir-aca{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:none;" +
     "cursor:pointer;background:var(--ac);color:var(--card);border-radius:var(--radio);" +
-    "padding:14px 16px;margin:6px 0 2px;box-shadow:var(--sombra);min-height:88px;" +
+    // El margen de abajo NO se suma con el del botón que sigue: `#stage` es bloque y los
+    // márgenes verticales se COLAPSAN, así que el hueco es el mayor de los dos. Con 2 y 2
+    // quedaban pegados (Pablo, 11-sep-2026, con la captura: *«solo un poco más de margen»*).
+    "padding:14px 16px;margin:10px 0 12px;box-shadow:var(--sombra);min-height:88px;" +
     "font-family:\"Baloo\",Archivo,sans-serif}" +
     ".seguir-aca:active{transform:scale(.98)}" +
     ".seguir-aca .ico{width:58px;height:58px;flex:none;border-radius:16px;display:grid;" +
@@ -5835,9 +5838,13 @@ function _adaptCSS() {
     "border:1.5px solid color-mix(in srgb,var(--ink) 16%,var(--card));background:var(--card);" +
     "color:var(--ink);border-radius:999px;padding:0 14px;font:700 14px Archivo,system-ui,sans-serif}" +
     "#filtroMenu .chip.on{background:var(--ink);color:var(--card);border-color:var(--ink)}" +
-    "#estadoAct{min-height:40px;border-radius:999px;padding:0 10px;color:var(--ink);" +
-    "border:1.5px solid color-mix(in srgb,var(--ink) 16%,var(--card));background:var(--card);" +
-    "font:700 14px Archivo,system-ui,sans-serif}" +
+    // las fichas de estado: mismo gesto que las materias, un punto más chicas para que se
+    // lea cuál es el filtro principal. El botón de vista no entra en el desplazamiento.
+    "#filtroMenu .filtro-estados{display:flex;gap:6px;flex:1;min-width:0;overflow-x:auto;" +
+    "scrollbar-width:none}" +
+    "#filtroMenu .filtro-estados::-webkit-scrollbar{display:none}" +
+    "#filtroMenu .chip-est{min-height:36px;font-size:13px;padding:0 12px}" +
+    "#filtroMenu #vistaAct{flex:none}" +
     "#sinResultados{padding:18px 4px;font:600 16px Archivo,system-ui,sans-serif;" +
     "color:color-mix(in srgb,var(--ink) 65%,var(--card))}" +
     // esconder DE VERDAD: `.carta` es flex y le gana al [hidden] del navegador
@@ -6391,15 +6398,26 @@ function pintarMenuPlano(items, stage) {
           });
           fila.appendChild(b);
         });
+      // EL ESTADO VA CON FICHAS Y NO CON UN DESPLEGABLE (Pablo, 11-sep-2026: *«no me gusta
+      // el select, no tiene buen diseño»*). Dos motivos y el segundo pesa más que el gusto:
+      // un `<select>` lo dibuja el sistema operativo —no hay CSS que lo haga combinar con el
+      // resto del cuaderno, y se ve distinto en cada teléfono— y **esconde las opciones
+      // hasta que se lo toca**, así que el chico no llega a enterarse de que puede filtrar.
+      // Las fichas se ven todas y repiten el gesto de las materias, una fila más arriba.
       const abajo = el("div", "filtro-abajo");
-      const sel = el("select"); sel.id = "estadoAct";
-      sel.setAttribute("aria-label", "Filtrar por estado");
+      const filaEst = el("div", "filtro-estados");
+      filaEst.setAttribute("role", "group");
+      filaEst.setAttribute("aria-label", "Filtrar por estado");
       [["", "Todas"], ["nueva", "Sin empezar"], ["practicando", "Practicando"],
-       ["dominada", "Dominadas"]].forEach(([v, t]) => {
-        const o = el("option", "", t); o.value = v; sel.appendChild(o);
-      });
-      sel.addEventListener("change", () => {
-        stage.dataset.filtroEst = sel.value; _filtrarMenu(stage);
+       ["dominada", "🏅 Dominadas"]].forEach(([valor, texto]) => {
+        const b = el("button", "chip chip-est" + (valor ? "" : " on"), texto);
+        b.addEventListener("click", () => {
+          stage.dataset.filtroEst = valor;
+          filaEst.querySelectorAll(".chip").forEach((x) => x.classList.remove("on"));
+          b.classList.add("on");
+          _filtrarMenu(stage);
+        });
+        filaEst.appendChild(b);
       });
       const bv = el("button", "chip", stage.classList.contains("lista") ? "▦ Tarjetas" : "☰ Lista");
       bv.id = "vistaAct";
@@ -6409,7 +6427,7 @@ function pintarMenuPlano(items, stage) {
         bv.textContent = lista ? "▦ Tarjetas" : "☰ Lista";
         try { localStorage.setItem(KVISTA, lista ? "lista" : "cartas"); } catch (e) {}
       });
-      abajo.appendChild(sel); abajo.appendChild(bv);
+      abajo.appendChild(filaEst); abajo.appendChild(bv);
       barra.appendChild(inp); barra.appendChild(fila); barra.appendChild(abajo);
       stage.appendChild(barra);
       // Se pega ABAJO del encabezado, que también es pegajoso y mide distinto en cada
@@ -7127,7 +7145,9 @@ function _botonModoProfe() {
        grado (el acento se usa en veinte lugares más): se oscurece SÓLO acá. */
     "background:color-mix(in srgb, var(--ac2) 74%, #0B0F0E);color:#fff;border:none;" +
     "border-radius:14px;" +
-    "padding:16px 18px;font-size:18px;font-weight:800;box-shadow:0 8px 22px rgba(0,0,0,.18);cursor:pointer;margin:2px 0 10px";
+    // Margen de arriba 12 y no 2: contra «Seguí por acá» los márgenes se COLAPSAN (`#stage`
+    // es bloque), así que el hueco entre los dos bloques es el mayor de ambos, no la suma.
+    "padding:16px 18px;font-size:18px;font-weight:800;box-shadow:0 8px 22px rgba(0,0,0,.18);cursor:pointer;margin:12px 0 14px";
   // El emoji 🧑‍🏫 trae un PIZARRÓN adentro: un rectángulo oscuro que sobre la banda de
   // color se lee como un cuadrado pegado, no como un ícono (Pablo, 29-jul). El birrete no
   // tiene ninguna forma rectangular, así que se apoya limpio sobre cualquier acento.
