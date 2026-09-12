@@ -2623,17 +2623,7 @@ def _es_escolar(token, reg=None):
 _SENO_SITIO = "https://kydo.com.ar"
 
 
-def _host_es_kydo(base_url):
-    """La MISMA regla que `servicio._es_kydo`, la que ya decide la marca del resto del visor.
-
-    Se repite en vez de importarse porque `servicio` importa a este módulo y no al revés:
-    traerla de allá cerraría el círculo. Si cambia una tiene que cambiar la otra, y hay test.
-    Se parte a mano para no sumar un import nuevo a un módulo que ya carga en cada pedido."""
-    h = (base_url or "").split("//")[-1].split("/")[0].split(":")[0].lower().strip(".")
-    return h == "kydo.com.ar" or h.endswith(".kydo.com.ar") or h.startswith("kydo.")
-
-
-def _seno_del_cuaderno(token, reg, escolar, base_url):
+def _seno_del_cuaderno(token, reg, escolar):
     """Lo que el player necesita para ofrecer la clase: la base de la URL y el mapa del grado.
 
     Devuelve el literal "null" —y no un objeto vacío— cuando no corresponde: cuaderno de
@@ -2643,7 +2633,14 @@ def _seno_del_cuaderno(token, reg, escolar, base_url):
 
     Va sólo el mapa de ESE grado y no la tabla entera: son unas 20 entradas en vez de 156, y
     además la seño rebota la clase de otro año (`tema["grado"] != grado` → redirige)."""
-    if not escolar or not _host_es_kydo(base_url):
+    # LA COMPUERTA ES `escolar_on` Y NO EL DOMINIO (12-sep-2026). La primera versión pedía
+    # además que el pedido entrara por un host de Kydo, y eso NO PASA NUNCA: el motor se sirve
+    # por `kit.casatridimensional.com.ar` en producción y por `devkit…` en el espejo. O sea que
+    # el ícono no se habría visto jamás, y la prueba que lo daba por bueno forzaba un
+    # `X-Forwarded-Host` que en la realidad no existe.
+    # La marca del cuaderno sale de `escolar_on` —es la regla del repo, la misma que elige el
+    # título y el favicon—: un cuaderno escolar es de Kydo lo sirva el dominio que lo sirva.
+    if not escolar:
         return "null"
     try:
         import seno_clases
@@ -2658,13 +2655,11 @@ def _seno_del_cuaderno(token, reg, escolar, base_url):
                       ensure_ascii=False)
 
 
-def html(token, base_url=None):
+def html(token):
     """El visor (HTML). Rutas RELATIVAS → servirlo SIEMPRE bajo /act/<token>/
     (con barra final). None si el token no está listo.
 
-    `base_url` lo arma el servicio con los headers del proxy y acá sólo sirve para saber si
-    el pedido entró por un dominio de Kydo: de eso depende ofrecer la clase de la seño. Es
-    OPCIONAL para no romper a quien ya llamaba con el token solo (hay tres tests que lo hacen)."""
+"""
     reg = _cargar(token)
     if not reg:
         return None
@@ -2683,7 +2678,7 @@ def html(token, base_url=None):
     return (t.replace("{{TITULO}}", _esc(reg.get("titulo") or "Actividades"))
              .replace("{{MARCA}}", marca)
              .replace("{{FAVICON}}", favicon)
-             .replace("{{SENO}}", _seno_del_cuaderno(token, reg, escolar, base_url))
+             .replace("{{SENO}}", _seno_del_cuaderno(token, reg, escolar))
              .replace("{{V}}", _player_version()))
 
 

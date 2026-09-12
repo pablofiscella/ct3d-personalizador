@@ -1399,10 +1399,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_header("Content-Length", str(len(data_b)))
                 self.end_headers(); self.wfile.write(data_b)
                 return
-            # El `base_url` es para saber si el pedido entró por un dominio de Kydo: de eso
-            # depende ofrecer la clase de «Mi seño particular». Los otros visores ya lo
-            # recibían; el del cuaderno era el único que no.
-            page = aw.html(token, base_url=self.base_url())
+            page = aw.html(token)
             if page is None:
                 return self._json(404, {"ok": False, "error": "actividades no encontradas"})
             body = page.encode("utf-8")
