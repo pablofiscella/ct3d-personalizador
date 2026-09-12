@@ -2614,9 +2614,57 @@ def _es_escolar(token, reg=None):
         return False
 
 
-def html(token):
+# ── «Mi seño particular»: la clase que refuerza cada tarjeta ─────────────────────
+# La seño vive en el sitio de KYDO (repo ct3d), no acá. Este motor sólo arma la dirección,
+# por pedido, y nunca la guarda en data.json: ese archivo queda congelado el día que se crea
+# el token, y de los 2.158 cuadernos escolares de producción 2.018 ni siquiera tienen
+# `biblioteca_url` — por esa vía, nueve de cada diez se quedarían sin ícono hasta regenerarlos
+# uno por uno, que es la operación grande que conviene no hacer.
+_SENO_SITIO = "https://kydo.com.ar"
+
+
+def _host_es_kydo(base_url):
+    """La MISMA regla que `servicio._es_kydo`, la que ya decide la marca del resto del visor.
+
+    Se repite en vez de importarse porque `servicio` importa a este módulo y no al revés:
+    traerla de allá cerraría el círculo. Si cambia una tiene que cambiar la otra, y hay test.
+    Se parte a mano para no sumar un import nuevo a un módulo que ya carga en cada pedido."""
+    h = (base_url or "").split("//")[-1].split("/")[0].split(":")[0].lower().strip(".")
+    return h == "kydo.com.ar" or h.endswith(".kydo.com.ar") or h.startswith("kydo.")
+
+
+def _seno_del_cuaderno(token, reg, escolar, base_url):
+    """Lo que el player necesita para ofrecer la clase: la base de la URL y el mapa del grado.
+
+    Devuelve el literal "null" —y no un objeto vacío— cuando no corresponde: cuaderno de
+    cumpleaños, pedido que no entró por un dominio de Kydo, o grado sin clases escritas. Con
+    null el player no dibuja ningún ícono, que es lo correcto: **un ícono que no lleva a
+    ningún lado es peor que no tenerlo**.
+
+    Va sólo el mapa de ESE grado y no la tabla entera: son unas 20 entradas en vez de 156, y
+    además la seño rebota la clase de otro año (`tema["grado"] != grado` → redirige)."""
+    if not escolar or not _host_es_kydo(base_url):
+        return "null"
+    try:
+        import seno_clases
+        grado = int(reg.get("edad") or 0) - 5        # la misma cuenta que `gradoDelChico()`
+        clases = seno_clases.CLASES.get(grado) or {}
+    except Exception:                                # noqa: BLE001 — sin tabla, sin íconos
+        return "null"
+    if not clases:
+        return "null"
+    return json.dumps({"base": "%s/kydo/seno/%s" % (_SENO_SITIO, token),
+                       "clases": {a: list(p) for a, p in clases.items()}},
+                      ensure_ascii=False)
+
+
+def html(token, base_url=None):
     """El visor (HTML). Rutas RELATIVAS → servirlo SIEMPRE bajo /act/<token>/
-    (con barra final). None si el token no está listo."""
+    (con barra final). None si el token no está listo.
+
+    `base_url` lo arma el servicio con los headers del proxy y acá sólo sirve para saber si
+    el pedido entró por un dominio de Kydo: de eso depende ofrecer la clase de la seño. Es
+    OPCIONAL para no romper a quien ya llamaba con el token solo (hay tres tests que lo hacen)."""
     reg = _cargar(token)
     if not reg:
         return None
@@ -2635,6 +2683,7 @@ def html(token):
     return (t.replace("{{TITULO}}", _esc(reg.get("titulo") or "Actividades"))
              .replace("{{MARCA}}", marca)
              .replace("{{FAVICON}}", favicon)
+             .replace("{{SENO}}", _seno_del_cuaderno(token, reg, escolar, base_url))
              .replace("{{V}}", _player_version()))
 
 

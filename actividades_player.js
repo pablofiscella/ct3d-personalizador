@@ -5874,6 +5874,16 @@ function _adaptCSS() {
        juego, y con 44px de blanco para que un dedo de seis años la acierte sin
        abrir la actividad por error. */
     ".carta{position:relative}" +
+    /* El 🎓 de la seño: ABAJO A LA DERECHA, la única esquina libre de la tarjeta — la corneta
+       está arriba a la izquierda, el 👪 de ESI abajo a la izquierda y el sprite del tema
+       arriba a la derecha. 44px de blanco, como la corneta, para que un dedo de segundo grado
+       lo acierte sin abrir el juego por error. En la vista en lista se esconde junto con la
+       corneta y el sprite: esa vista existe para que entren el doble de tarjetas, y ahí el
+       accesorio estorba (se recupera volviendo a tarjetas). */
+    ".carta .seno-ir{position:absolute;bottom:2px;right:2px;width:44px;height:44px;" +
+      "display:grid;place-items:center;font-size:19px;line-height:1;border-radius:50%;" +
+      "background:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.16)}" +
+    "#stage.lista .carta .seno-ir{display:none}" +
     ".carta .hablar{position:absolute;top:4px;left:4px;width:44px;height:44px;" +
       "display:grid;place-items:center;font-size:19px;line-height:1;border-radius:50%;" +
       "background:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.16)}" +
@@ -6186,6 +6196,26 @@ function _iconoSeguro(m) {
 
    Los títulos de materia se esconden con su sección: una materia con el título solo,
    sin tarjetas abajo, se lee como un error. */
+/* ── «MI SEÑO PARTICULAR» DESDE LA TARJETA (11-sep-2026) ──────────────────────────
+   Pablo: *"icono de seño en cada tarjeta con practicas"*. La clase NO vive en el motor sino
+   en el sitio de Kydo, así que el servidor resuelve la dirección en cada pedido y la deja en
+   `window.SENO` (ver `_seno_del_cuaderno` en actividades_web.py y la nota de la plantilla).
+
+   Viene `null` cuando no corresponde —cuaderno de cumpleaños, pedido por otro dominio, grado
+   sin clases escritas— y entonces no se dibuja nada: **un ícono que no lleva a ningún lado es
+   peor que no tenerlo**. Hoy la tienen 156 de 560 tarjetas.
+
+   QUIÉN PUEDE ABRIRLA: Pablo, 11-sep-2026, *"siempre es con lo que le deja el adulto. Así es
+   por ahora"*. La seño sigue pidiendo la sesión del comprador —la que está abierta en el
+   teléfono que le presta al chico—; si no hay, cae en la biblioteca, que es donde el adulto
+   entra. La puerta no se tocó. */
+function _senoDeLaTarjeta(id) {
+  const s = (typeof window !== "undefined") ? window.SENO : null;
+  if (!s || !s.clases) return null;
+  const par = s.clases[id];
+  return par ? { url: s.base + "/" + par[0], titulo: String(par[1] || "") } : null;
+}
+
 function _filtrarMenu(stage) {
   if (!stage) return;
   const caja = stage.querySelector("#buscarAct");
@@ -6284,6 +6314,13 @@ function pintarMenuPlano(items, stage) {
     let est;
     // la eligió el padre porque la están viendo en la escuela: se marca para que el
     // chico entienda por qué apareció algo que no es de su grado
+    // DECLARADO ACÁ ARRIBA, antes de su primer uso, y no más abajo como estaba: la línea que
+    // sigue lo lee. Un `const` usado antes de su línea NO vale «indefinido» — tira
+    // ReferenceError y corta el dibujado del menú ENTERO. Sólo se disparaba en los cuadernos
+    // donde el padre sumó actividades de la escuela (`escuela: true`), porque si no el `&&`
+    // corta antes de mirarlo; por eso convivió sin que nadie lo viera. Es el mismo defecto que
+    // dejó el menú de 4.º en blanco el 11-sep-2026, dormido en otra línea desde el 211aa60.
+    const _masAlla = esMasAlla(m);
     if (m.escuela && !_masAlla) c.dataset.adapt = "📚 Lo ven en la escuela";
     if (repaso) est = "🔁 ¡Repasá!";
     else if (sello === "consolidado") est = "🌟 ¡Lo sabés!";
@@ -6293,8 +6330,8 @@ function pintarMenuPlano(items, stage) {
     // es el contenido, el segundo qué tan profundo llegó en esa actividad. Tratarlas como
     // excluyentes dejaba al chico que más avanzó viendo siempre el mismo 🚀, sin señal de
     // progreso, mientras el festejo le hablaba de un nivel que la carta no mostraba.
-    const _masAlla = esMasAlla(m);
     const _nd = nivelDeDificultad(m.id);
+    const _seno = _senoDeLaTarjeta(m.id);      // la clase de la seño, si esta tarjeta tiene
     const _ndMeta = _nd ? NIVEL_DIF[_nd - 1] : null;
     c.innerHTML = `
       <div class="icono">${conSprite ? `<img src="${P[(i / 3 | 0) + 1]}" alt="">` : _iconoSeguro(m)}</div>
@@ -6303,7 +6340,8 @@ function pintarMenuPlano(items, stage) {
       ${_masAlla ? `<div class="nivel-chip nivel-chip--mas" title="Es del grado siguiente: el paso después de Experto">🚀 Más allá<small>es de ${m.grado}.º</small></div>` : ""}
       ${_ndMeta ? `<div class="nivel-chip" title="Nivel ${_nd} de 3 — se gana jugando">${_ndMeta.icono} ${_ndMeta.nombre}</div>` : ""}
       ${conSprite ? `<div class="chip">${_iconoSeguro(m)}</div>` : ""}
-      ${_menuQueHabla() ? `<span class="hablar" aria-hidden="true">🔊</span>` : ""}`;
+      ${_menuQueHabla() ? `<span class="hablar" aria-hidden="true">🔊</span>` : ""}
+      ${_seno ? `<span class="seno-ir" title="Practicalo con la seño: ${_seno.titulo.replace(/"/g, "")}">🎓</span>` : ""}`;
     // El nombre del juego, para el lector de pantalla y para la voz: el 🔊 va oculto a
     // la accesibilidad porque lo que dice ya está en el rótulo de la tarjeta.
     c.setAttribute("aria-label", m.titulo);
@@ -6332,6 +6370,17 @@ function pintarMenuPlano(items, stage) {
       if (ev && ev.target && ev.target.closest && ev.target.closest(".hablar")) {
         ev.preventDefault(); ev.stopPropagation();
         reproducirConsigna(m.titulo);
+        return;
+      }
+      // EL 🎓 ABRE LA CLASE, NO EL JUEGO. Mismo gesto que la corneta y por el mismo motivo:
+      // se atrapa acá en vez de poner un <a>, porque la tarjeta ES un <button> y un <a>
+      // adentro de un <button> es HTML inválido. Va en OTRA PESTAÑA para que el cuaderno
+      // quede donde estaba: la clase se lee al lado y el chico no pierde la partida ni el
+      // lugar del menú al volver.
+      if (_seno && ev && ev.target && ev.target.closest && ev.target.closest(".seno-ir")) {
+        ev.preventDefault(); ev.stopPropagation();
+        Sfx.pop();
+        window.open(_seno.url, "_blank", "noopener");
         return;
       }
       Sfx.pop();

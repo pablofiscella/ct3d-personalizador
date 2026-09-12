@@ -275,6 +275,24 @@ def test_el_emoji_de_materia_se_declara_antes_de_usarse():
                         "ReferenceError y no se dibuja ninguna tarjeta")
 
 
+def test_mas_alla_se_declara_antes_de_usarse():
+    """SEGUNDO caso del mismo defecto en el mismo día (11-sep-2026), y éste no era mío:
+    `const _masAlla` estaba DESPUÉS de la línea que lo lee (`if (m.escuela && !_masAlla)`), así
+    que cualquier cuaderno donde el padre sumó actividades de la escuela tiraba ReferenceError
+    y no dibujaba NINGUNA tarjeta.
+
+    Convivió desde el commit 211aa60 porque el `&&` corta antes cuando la tarjeta no es de la
+    escuela, y ningún test lo vio: todos leen el archivo. Verificado con node que efectivamente
+    tira («Cannot access '_x' before initialization») y que con `escuela:false` pasa limpio."""
+    s = _fuente()
+    i = s.index("const hacerCarta")
+    cuerpo = s[i:s.index("_marcarCiclo();", i)]
+    decl = cuerpo.index("const _masAlla =")
+    uso = cuerpo.index("!_masAlla")
+    assert decl < uso, ("`_masAlla` se usa antes de declararse: el menú entero tira "
+                        "ReferenceError en los cuadernos con actividades de la escuela")
+
+
 def test_cuando_no_hay_resultados_se_avisa():
     s = _fuente()
     assert "#sinResultados" in s and "No encontré nada con" in s, (

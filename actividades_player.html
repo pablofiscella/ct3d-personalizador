@@ -1331,6 +1331,14 @@ body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
   </div>
 </div>
 
+<!-- «Mi seño particular»: la dirección de la clase de cada tarjeta, resuelta POR PEDIDO.
+     No va en data.json a propósito: ese archivo queda congelado el día que se crea el token
+     (ver docs y [[tokens-menu-congelado]]), y de los 2.158 cuadernos escolares de producción
+     2.018 ni siquiera tienen `biblioteca_url` — o sea que por esa vía nueve de cada diez se
+     quedarían sin ícono hasta regenerarlos uno por uno. Acá se calcula en cada visita, con el
+     Host del pedido, igual que la marca del título. `null` cuando no corresponde: cuaderno de
+     cumpleaños, host que no es de Kydo, o grado sin clases escritas. -->
+<script>window.SENO = {{SENO}};</script>
 <script src="motor_adaptativo.js?v={{V}}"></script>
 <script src="player.js?v={{V}}"></script>
 <!-- catálogo curricular: registra GAMES.<id>, por eso va DESPUÉS de player.js -->
