@@ -6213,7 +6213,12 @@ function _senoDeLaTarjeta(id) {
   const s = (typeof window !== "undefined") ? window.SENO : null;
   if (!s || !s.clases) return null;
   const par = s.clases[id];
-  return par ? { url: s.base + "/" + par[0], titulo: String(par[1] || "") } : null;
+  // `?desde=cuaderno` (12-sep-2026). La clase se abre en OTRA PESTAÑA y el cuaderno queda
+  // atrás, en la misma tarjeta. Su botón de salida iba a `/jugar/`, que pasa por la
+  // biblioteca: Pablo, *"me lleva a la lista de cuadernos. Debería volver atrás de dónde
+  // vine"*. Con esto la lección sabe que vino de acá y puede cerrar su pestaña. Sin el
+  // parámetro se comporta como siempre, así que no rompe nada mientras ct3d no lo lea.
+  return par ? { url: s.base + "/" + par[0] + "?desde=cuaderno", titulo: String(par[1] || "") } : null;
 }
 
 function _filtrarMenu(stage) {

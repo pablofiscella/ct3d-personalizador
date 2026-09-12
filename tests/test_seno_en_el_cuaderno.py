@@ -151,6 +151,16 @@ def test_la_direccion_la_pone_el_SERVIDOR_y_no_el_player():
     assert "kydo.com.ar" not in cuerpo, "el player está armando la URL de Kydo por su cuenta"
 
 
+def test_la_clase_sabe_que_se_abrio_DESDE_EL_CUADERNO():
+    """Pablo, 12-sep-2026: *"pongo abrir cuaderno me lleva a la lista de cuadernos. Debería
+    volver atrás de dónde vine"*. La lección se abre en otra pestaña y su botón iba a `/jugar/`,
+    que pasa por la biblioteca. Para poder devolverlo al cuaderno —cerrando esa pestaña— la
+    lección tiene que saber de dónde vino, y eso sólo lo sabe el motor."""
+    i = PLAYER.index("function _senoDeLaTarjeta")
+    cuerpo = PLAYER[i:PLAYER.index("\nfunction ", i + 1)]
+    assert '"?desde=cuaderno"' in cuerpo, "la clase no sabe que se abrió desde el cuaderno"
+
+
 def test_el_estilo_del_icono_viaja_con_el_menu():
     """Los estilos del menú se inyectan desde el JS: uno que quede afuera se ve roto sólo en
     producción. La función entera, no los primeros N bytes."""
