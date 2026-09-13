@@ -637,7 +637,7 @@ GRADO_2 = [
      "cubre": "sumas_redondas"},
     {"cod": "M2", "area": "matematica", "tema": "Valor posicional",
      "dc": "Composición y descomposición de 2 y 3 cifras",
-     "cubre": "valor_posicional"},
+     "cubre": ["valor_posicional", "cajero_cdu_2", "descomponer_2"]},
     {"cod": "M3", "area": "matematica", "tema": "Parejas que dan 100",
      "dc": "Repertorio de sumas que dan 100, 500 y 1.000",
      "cubre": "parejas_cien_2"},

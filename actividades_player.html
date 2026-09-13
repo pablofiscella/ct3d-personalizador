@@ -1044,6 +1044,31 @@ body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
    en el tramo de fichas, los huecos se llenan con lo que se toca. Las palabras son largas
    («cuatrocientos», 13 letras): huecos y fichas crecen con el texto y la fila se parte en
    renglones en vez de desbordar en un celular de 400 px. */
+/* ── EL CAJERO (2.º): los billetes por columna son el número escrito con billetes ── */
+.cajTablero { text-align: center; }
+.cajObjetivo { font-family: "Baloo", Archivo, sans-serif; font-size: 26px; margin: 2px 0 12px; }
+.cajObjetivo b { font-size: 44px; }
+.cajColumnas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0 0 14px; }
+.cajCol { background: var(--card); border-radius: 16px; padding: 8px 6px 10px; display: flex;
+  flex-direction: column; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.cajLugar { font-weight: 800; font-size: 13px; letter-spacing: .02em; opacity: .75; }
+.cajCuantos { font-family: "Baloo", Archivo, sans-serif; font-size: 40px; font-weight: 700; line-height: 1; }
+.cajFajo { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; min-height: 64px; align-content: flex-start; }
+.cajBillete { color: #fff; font-weight: 800; font-size: 11px; border-radius: 6px; padding: 3px 5px; line-height: 1.1; }
+/* los tres colores, con letra blanca por encima de 4.5:1 (el naranja, oscurecido para eso) */
+.cajBillete--100 { background: #2F7D57; }
+.cajBillete--10 { background: #1F6FA8; }
+.cajBillete--1 { background: #A85A28; }
+.cajMenos { min-width: 48px; min-height: 48px; border-radius: 50%; border: 2px solid currentColor;
+  background: transparent; color: var(--ink); font-size: 26px; font-weight: 800; line-height: 1; cursor: pointer; }
+.cajMenos:disabled { opacity: .3; cursor: default; }
+.cajCaja { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 0 0 12px; }
+.cajPoner { min-height: 56px; min-width: 92px; border: none; border-radius: 14px; color: #fff; cursor: pointer;
+  font-family: "Baloo", Archivo, sans-serif; font-size: 22px; font-weight: 700; }
+.cajListo { max-width: 280px; margin: 0 auto; }
+/* ── PARTÍ EL NÚMERO (2.º) ── */
+.descMas { font-family: "Baloo", Archivo, sans-serif; font-size: 32px; font-weight: 700; align-self: center; }
+.descSuma { font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 40px; margin: 6px 0 18px; }
 .numPalTablero { text-align: center; }
 .numPalNumero { font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 64px;
   line-height: 1.1; letter-spacing: .06em; margin: 4px 0 8px; }

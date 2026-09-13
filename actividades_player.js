@@ -1008,6 +1008,17 @@ const COMO_ES = {
         "Los pedazos no se pegan uno atrás del otro: tres mil cuatrocientos es 3400, no 3000400.",
         "Mil va solo, sin «un» adelante. Y algunas centenas cambian: quinientos, setecientos, novecientos."],
     e: "3450 → tres mil cuatrocientos cincuenta · 3005 → tres mil cinco · 1200 → mil doscientos" },
+  // el cajero y partí el número (12-sep-2026): la cifra dice cuántos de su lugar hay
+  cajero_cdu_2: { t: "Armar un número con billetes",
+    l: ["Cada cifra dice cuántos billetes de su lugar van: las centenas son billetes de $100, las decenas de $10 y las unidades de $1.",
+        "En cada lugar entran hasta 9. Diez billetes de $10 ya son uno de $100.",
+        "Si hay un 0, en ese lugar no va ningún billete."],
+    e: "347 → 3 de $100, 4 de $10 y 7 de $1 · 407 → 4 de $100 y 7 de $1" },
+  descomponer_2: { t: "Partir un número",
+    l: ["Cada cifra vale según dónde está: en 347, el 3 vale 300, el 4 vale 40 y el 7 vale 7.",
+        "Se parte en orden: primero las centenas, después las decenas y al final las unidades.",
+        "El 0 no es un pedazo: 407 es 400 + 7. Pero al juntar las partes vuelve a guardar su lugar."],
+    e: "347 = 300 + 40 + 7 · 407 = 400 + 7 · 300 + 40 + 7 = 347" },
   suma_columnas: { t: "Sumar en columna (con llevada)",
     l: ["Alineá los números por la derecha: unidades con unidades.",
         "Sumá empezando por la columna de la derecha.",
@@ -13242,6 +13253,327 @@ GAMES.numeros_palabras = {
     const jugar = () => {
       ctx.ronda(ronda);
       if (ronda < mitad) aNumero(ronda); else aPalabras(ronda - mitad);
+    };
+    jugar();
+  },
+};
+
+/* ── EL CAJERO Y PARTÍ EL NÚMERO (2.º · 12-sep-2026) ─────────────────────────────────
+   Pablo, sobre lo que se vio en mudi.com.ar: *"quiero que construyas algunas"*. Del set que
+   se había anotado para «Números hasta 1.000» de 2.º faltaban dos: armar el número con
+   billetes y partirlo en centenas, decenas y unidades. La recta ya estaba («Recta gigante») y
+   leer y escribir en palabras también («Números en palabras»).
+
+   Las dos enseñan lo mismo desde dos lados: la cifra dice CUÁNTOS de su lugar hay. El cajero
+   lo muestra con billetes —lo concreto, que se cuenta— y partir el número lo escribe
+   —300 + 40 + 7, lo simbólico—. */
+
+// 347 → [300, 40, 7] · 407 → [400, 7] · 500 → [500]. El cero NO es un pedazo: no suma nada.
+// No sirve `_npPedazos`: ese parte como se DICE (el 17 queda entero, «diecisiete»).
+function _cduPartes(n) {
+  const c = Math.floor(n / 100), d = Math.floor((n % 100) / 10), u = n % 10;
+  const out = [];
+  if (c) out.push(c * 100);
+  if (d) out.push(d * 10);
+  if (u) out.push(u);
+  return out;
+}
+
+// Un número de tres cifras. Sale del mismo sorteo que «Números en palabras», que ya reparte
+// bien los ceros del medio, pero sin el 1000: con billetes de 100, 10 y 1 y a lo sumo 9 por
+// lugar, el 1000 no se puede armar.
+function _cduSortear(bonus) {
+  for (let i = 0; i < 40; i++) {
+    const n = _npSortear(3, bonus);
+    if (n >= 100 && n <= 999) return n;
+  }
+  return rint(101, 999);
+}
+
+function _cduPlural(k, palabra) { return k + " " + palabra + (k === 1 ? "" : "s"); }
+
+// Qué pasó con los billetes, en el orden que más enseña: primero las cifras dadas vuelta,
+// después el cero del medio, y recién después qué lugar no coincide. Escrito «regla:
+// detalle» para `_enDosTiempos`: al primer error se ve sólo la regla.
+function _cajPorQue(n, cuenta) {
+  const c = Math.floor(n / 100), d = Math.floor((n % 100) / 10), u = n % 10;
+  const pc = cuenta[100], pd = cuenta[10], pu = cuenta[1];
+  const total = pc * 100 + pd * 10 + pu;
+  if (c !== u && pc === u && pd === d && pu === c) {
+    return "Pusiste las cifras dadas vuelta: armaste $" + total + ", y en el " + n + " el " + c +
+           " está en las centenas, o sea " + _cduPlural(c, "billete") + " de $100.";
+  }
+  if (d === 0 && pd > 0) {
+    return "En el " + n + " hay un 0 en las decenas: ahí no va ningún billete de $10.";
+  }
+  const mal = [[100, c, pc], [10, d, pd], [1, u, pu]].find((x) => x[1] !== x[2]);
+  return "Mirá las " + _npLugar(mal[0]) + ": el " + n + " tiene " + mal[1] + " y pusiste " +
+         _cduPlural(mal[2], "billete") + " de $" + mal[0] + ".";
+}
+
+/* EL CAJERO — armá el número con billetes de $100, $10 y $1.
+   - NO se muestra el total que se va juntando: sólo cuántos billetes hay en cada columna, que
+     es el número mismo (3, 4 y 7 es 347). Con el total a la vista se llegaría sumando de a
+     uno, sin pensar en los lugares.
+   - A LO SUMO 9 POR COLUMNA. Así la única manera de armar 347 es 3-4-7: con 34 de $10 no
+     entra. No hace falta prohibir el canje; la regla del lugar lo hace sola.
+   - Se corrige al apretar «Listo», y el error nombra lo que pasó (`_cajPorQue`). Poner y
+     sacar se hace con botones grandes, «+» y «−»: los billetes chiquitos de la columna no son
+     un blanco para un dedo de siete años. */
+GAMES.cajero_cdu = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 8;
+    ctx.rondas(rondas);
+    const bonus = ctx.bonusDominio;
+    const BILLETES = [100, 10, 1];
+    const vistos = new Set();
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      let n = _cduSortear(bonus);
+      for (let i = 0; i < 30 && vistos.has(n); i++) n = _cduSortear(bonus);
+      vistos.add(n);
+      ctx.item("cajero#" + n);
+      consignaVariada(ctx, ronda, "Armá el número con billetes de 100, de 10 y de 1.", "m");
+      ctx.juego.innerHTML = "";
+      const tablero = el("div", "tablero cajTablero");
+      tablero.setAttribute("data-no-leer", "");
+      tablero.appendChild(el("div", "cajObjetivo", "Armá <b>$" + n + "</b>"));
+      const cuenta = { 100: 0, 10: 0, 1: 0 };
+      const cols = {};
+      let resuelto = false;
+      const pintar = (v) => {
+        const k = cols[v];
+        k.fajo.innerHTML = "";
+        for (let i = 0; i < cuenta[v]; i++) k.fajo.appendChild(el("div", "cajBillete cajBillete--" + v, "$" + v));
+        k.num.textContent = String(cuenta[v]);
+        k.menos.disabled = cuenta[v] === 0;
+      };
+      const columnas = el("div", "cajColumnas");
+      BILLETES.forEach((v) => {
+        const col = el("div", "cajCol");
+        col.appendChild(el("div", "cajLugar", _npMayus(_npLugar(v))));
+        const num = el("div", "cajCuantos", "0");
+        const fajo = el("div", "cajFajo");
+        const menos = el("button", "cajMenos", "−");
+        menos.type = "button";
+        menos.setAttribute("aria-label", "Sacar un billete de " + v);
+        menos.addEventListener("click", () => {
+          if (resuelto || cuenta[v] === 0) return;
+          cuenta[v]--;
+          pintar(v);
+        });
+        col.appendChild(num);
+        col.appendChild(fajo);
+        col.appendChild(menos);
+        columnas.appendChild(col);
+        cols[v] = { num: num, fajo: fajo, menos: menos };
+      });
+      tablero.appendChild(columnas);
+      const caja = el("div", "cajCaja");
+      BILLETES.forEach((v) => {
+        const b = el("button", "cajPoner cajBillete--" + v, "+ $" + v);
+        b.type = "button";
+        b.setAttribute("aria-label", "Poner un billete de " + v);
+        b.addEventListener("click", () => {
+          if (resuelto) return;
+          if (cuenta[v] >= 9) {
+            ctx.casi("En cada lugar entran hasta 9 billetes: diez de $" + v +
+                     " ya son un billete del lugar de al lado.");
+            return;
+          }
+          cuenta[v]++;
+          Sfx.tick(cuenta[v]);
+          pintar(v);
+        });
+        caja.appendChild(b);
+      });
+      tablero.appendChild(caja);
+      BILLETES.forEach(pintar);
+      const listo = el("button", "btn cajListo", "Listo");
+      listo.type = "button";
+      listo.addEventListener("click", async () => {
+        if (resuelto) return;
+        const total = cuenta[100] * 100 + cuenta[10] * 10 + cuenta[1];
+        if (total === n) {
+          resuelto = true;
+          tablero.classList.add("anim-pop");
+          ctx.bien();
+          ronda++;
+          await espera(1000);
+          if (ronda >= rondas) ctx.win(); else jugar();
+          return;
+        }
+        ctx.casi(_cajPorQue(n, cuenta));
+      });
+      tablero.appendChild(listo);
+      ctx.juego.appendChild(tablero);
+    };
+    jugar();
+  },
+};
+
+// Las fichas que SOBRAN al partir el número. Cada una es un error de verdad y ninguna es un
+// pedazo de la respuesta: con dos fichas iguales, una buena y otra marcada como error, la
+// corrección mentiría. Escritas «regla: detalle» para `_enDosTiempos`.
+function _descTrampas(n) {
+  const partes = _cduPartes(n);
+  const c = Math.floor(n / 100), d = Math.floor((n % 100) / 10), u = n % 10;
+  const out = [];
+  const poner = (v, m) => {
+    if (partes.includes(v) || out.some((x) => x.v === v)) return;
+    out.push({ v: v, m: m });
+  };
+  if (d === 0 && c && u) {
+    poner(0, "El 0 no suma nada: en el " + n + " guarda el lugar de las decenas, pero no es un pedazo.");
+  }
+  if (c) {
+    poner(c * 10, "Ese " + (c * 10) + " son " + _cduPlural(c, "decena") + ": el " + c + " del " + n +
+                  " está en las centenas y vale " + (c * 100) + ".");
+    poner(c, "El " + c + " solo vale " + c + ": en el " + n + " está en las centenas y vale " + (c * 100) + ".");
+  }
+  if (d) {
+    poner(d * 100, "Ese " + (d * 100) + " son " + _cduPlural(d, "centena") + ": el " + d + " del " + n +
+                   " está en las decenas y vale " + (d * 10) + ".");
+    poner(d, "El " + d + " solo vale " + d + ": en el " + n + " está en las decenas y vale " + (d * 10) + ".");
+  }
+  if (u) {
+    poner(u * 10, "Ese " + (u * 10) + " son " + _cduPlural(u, "decena") + ": el " + u + " del " + n +
+                  " está en las unidades y vale " + u + ".");
+  }
+  return out;
+}
+
+// Las opciones que NO son al juntar las partes. El error clásico es pegar los pedazos como se
+// escriben (300 + 40 + 7 → 300407); los otros dos, dar vuelta las cifras y perder el cero que
+// guarda el lugar (400 + 7 → 47).
+function _descOpciones(n) {
+  const partes = _cduPartes(n);
+  const c = Math.floor(n / 100), d = Math.floor((n % 100) / 10), u = n % 10;
+  const suma = partes.join(" + ");
+  const out = [];
+  const add = (v, m) => {
+    if (v === n || v <= 0 || out.some((x) => x.v === v)) return;
+    out.push({ v: v, m: m });
+  };
+  add(Number(partes.join("")), "Los pedazos no se pegan uno atrás del otro: " + suma + " es " + n + ".");
+  const vuelta = Number(String(n).split("").reverse().join(""));
+  if (vuelta >= 100) {
+    add(vuelta, "Las cifras quedaron dadas vuelta: primero van las centenas, y " + suma + " es " + n + ".");
+  }
+  if (d === 0 && c && u) {
+    add(c * 10 + u, "El 0 guarda el lugar de las decenas: sin él queda otro número, y " + suma + " es " + n + ".");
+  }
+  return out;
+}
+
+/* PARTÍ EL NÚMERO — 347 = 300 + 40 + 7, ida y vuelta.
+   Primera mitad, del número a las partes: fichas en orden, cada una se corrige al tocarla
+   (como «Números en palabras»), con fichas que sobran y son errores reales (`_descTrampas`).
+   Segunda mitad, de las partes al número: opción múltiple con el error de pegar los pedazos
+   como se escriben (`_descOpciones`).
+   Las opciones y las fichas NO se leen en voz alta (`data-no-leer`): oír «trescientos
+   cuarenta y siete» contra «trescientos mil cuatrocientos siete» regalaría la respuesta. */
+GAMES.descomponer = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    const bonus = ctx.bonusDominio;
+    const mitad = Math.ceil(rondas / 2);
+    const vistos = new Set();
+    let ronda = 0;
+    const sortear = (sirve) => {
+      for (let i = 0; i < 80; i++) {
+        const n = _cduSortear(bonus);
+        if (vistos.has(n) || !sirve(n)) continue;
+        vistos.add(n);
+        return n;
+      }
+      return null;
+    };
+    const pasar = async () => {
+      ctx.bien();
+      ronda++;
+      await espera(1100);
+      if (ronda >= rondas) ctx.win(); else jugar();
+    };
+    const aPartes = (k) => {
+      const n = sortear((x) => _cduPartes(x).length >= 2 && _descTrampas(x).length >= 2);
+      if (n === null) { ctx.win(); return; }          // no pasa, pero nunca deja al chico trabado
+      const partes = _cduPartes(n);
+      const trampas = shuffle(_descTrampas(n)).slice(0, bonus > 0 ? 3 : 2);
+      ctx.item("partir#p" + n);
+      consignaVariada(ctx, k, "Partí el número en centenas, decenas y unidades. Tocá las fichas en orden, ¡que sobran algunas!", "m");
+      ctx.juego.innerHTML = "";
+      const tablero = el("div", "tablero numPalTablero");
+      tablero.setAttribute("data-no-leer", "");
+      tablero.appendChild(el("div", "numPalNumero", String(n)));
+      const huecos = el("div", "numPalHuecos");
+      const slots = [];
+      partes.forEach((_, i) => {
+        if (i) huecos.appendChild(el("div", "descMas", "+"));
+        const hueco = el("div", "numPalHueco", "");
+        slots.push(hueco);
+        huecos.appendChild(hueco);
+      });
+      tablero.appendChild(huecos);
+      const fichas = el("div", "numPalFichas");
+      let sig = 0, resuelto = false;
+      shuffle(partes.map((v) => ({ v: v, trampa: null }))
+        .concat(trampas.map((t) => ({ v: t.v, trampa: t }))))
+        .forEach((f) => {
+          const b = el("button", "spriteBtn numPalFicha", String(f.v));
+          b.type = "button";
+          b.addEventListener("click", () => {
+            if (resuelto || b.disabled) return;
+            if (!f.trampa && f.v === partes[sig]) {
+              b.disabled = true;
+              slots[sig].textContent = String(f.v);
+              slots[sig].classList.add("anim-pop");
+              Sfx.tick(sig + 1);
+              sig++;
+              if (sig >= partes.length) { resuelto = true; pasar(); }
+              return;
+            }
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            if (f.trampa) ctx.casi(f.trampa.m);
+            else ctx.casi("Van en orden: primero las " + _npLugar(partes[sig]) + ", y en el " + n +
+                          " eso es " + partes[sig] + ".");
+          });
+          fichas.appendChild(b);
+        });
+      tablero.appendChild(fichas);
+      ctx.juego.appendChild(tablero);
+    };
+    const aNumero = (k) => {
+      const n = sortear((x) => _cduPartes(x).length >= 2 && _descOpciones(x).length >= 2);
+      if (n === null) { ctx.win(); return; }
+      const partes = _cduPartes(n);
+      const malas = shuffle(_descOpciones(n)).slice(0, 2);
+      ctx.item("partir#n" + n);
+      consignaVariada(ctx, k, "Ahora al revés: ¿qué número se arma juntando estas partes?", "m");
+      ctx.juego.innerHTML = "";
+      const tablero = el("div", "tablero numPalTablero");
+      tablero.setAttribute("data-no-leer", "");
+      tablero.appendChild(el("div", "descSuma", partes.join(" + ")));
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle([{ v: n, ok: true }].concat(malas)).forEach((o) => {
+        const b = el("button", "op", String(o.v));
+        b.addEventListener("click", () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); pasar(); }
+          else { b.classList.add("casi"); ctx.casi(o.m); }
+        });
+        fila.appendChild(b);
+      });
+      tablero.appendChild(fila);
+      ctx.juego.appendChild(tablero);
+    };
+    const jugar = () => {
+      ctx.ronda(ronda);
+      if (ronda < mitad) aPartes(ronda); else aNumero(ronda - mitad);
     };
     jugar();
   },

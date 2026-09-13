@@ -1616,6 +1616,16 @@ GAMES.campo_a_casa = juegoOrdenar(CUR_CAMPO_A_CASA_BANCO, "Ordená cómo llega a
    Fuente: docs/auditoria-dc-caba/grado-2.md · M6 */
 GAMES.numeros_palabras_2 = { crear(ctx) { return GAMES.numeros_palabras.crear(ctx); } };
 
+/* 2° · El cajero — cajero_cdu_2
+   DC: Valor posicional hasta 1.000: cada cifra dice cuántos billetes de su lugar van (347 son 3 de $100, 4 de $10 y 7 de $1)
+   Fuente: docs/auditoria-dc-caba/grado-2.md · M2 */
+GAMES.cajero_cdu_2 = { crear(ctx) { return GAMES.cajero_cdu.crear(ctx); } };
+
+/* 2° · Partí el número — descomponer_2
+   DC: Descomposición aditiva de números de tres cifras: 347 = 300 + 40 + 7, y al revés
+   Fuente: docs/auditoria-dc-caba/grado-2.md · M2 */
+GAMES.descomponer_2 = { crear(ctx) { return GAMES.descomponer.crear(ctx); } };
+
 /* 2° · Cálculo redondo — calculo_redondo
    DC: Sumar y restar 1, 10 y 100 a números de tres cifras. Reemplaza sumas/restas, que operaban hasta 10 (contenido de 1°)
    Fuente: docs/auditoria-dc-caba/grado-2.md · M4 */

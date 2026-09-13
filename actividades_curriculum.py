@@ -848,6 +848,36 @@ CATALOGO = [
         "saber": {"id": "MAT-2-en-palabras", "nombre": "Leer y escribir números hasta 1.000",
                   "prereqs": ["MAT-2-NUM"]},
     },
+    {
+        "id": "cajero_cdu_2", "grado": 2, "area": "matematica",
+        "titulo": "El cajero", "icono": "💵",
+        # 12-sep-2026, de lo visto en mudi.com.ar (Pablo: *"quiero que construyas algunas"*).
+        # Armar el número con billetes de 100, 10 y 1: la cifra dice cuántos billetes de su
+        # lugar van. En 2.º no había ninguno; el «Cajero de miles» de 3.º pide tocar DOS
+        # billetes que sumen, que es otra cosa. El juego vive en el player (`GAMES.cajero_cdu`).
+        "mecanica": "reusa", "juego": "cajero_cdu",
+        "cfg": {"rondas": 8},
+        "consigna": "Armá el número con billetes de 100, de 10 y de 1.",
+        "dc": "Valor posicional hasta 1.000: cada cifra dice cuántos billetes de su lugar van "
+              "(347 son 3 de $100, 4 de $10 y 7 de $1)",
+        "fuente": "docs/auditoria-dc-caba/grado-2.md · M2",
+        "saber": {"id": "MAT-2-cajero", "nombre": "Armar números con billetes de 100, 10 y 1",
+                  "prereqs": ["MAT-2-NUM"]},
+    },
+    {
+        "id": "descomponer_2", "grado": 2, "area": "matematica",
+        "titulo": "Partí el número", "icono": "✂️",
+        # 12-sep-2026, de lo visto en mudi.com.ar. 347 = 300 + 40 + 7, ida y vuelta, con fichas
+        # que sobran y son errores reales (30 por 300, el 0 que no suma, pegar 300407). En 2.º
+        # la descomposición sólo aparecía como opción múltiple («¿Cuánto vale?»).
+        "mecanica": "reusa", "juego": "descomponer",
+        "cfg": {"rondas": 10},
+        "consigna": "Partí el número en centenas, decenas y unidades.",
+        "dc": "Descomposición aditiva de números de tres cifras: 347 = 300 + 40 + 7, y al revés",
+        "fuente": "docs/auditoria-dc-caba/grado-2.md · M2",
+        "saber": {"id": "MAT-2-descomponer", "nombre": "Descomponer en centenas, decenas y unidades",
+                  "prereqs": ["MAT-2-NUM"]},
+    },
 
     # ── 2° · cálculo redondo (PARAMÉTRICA: ejercicio nuevo cada vez) ─────────────
     {
