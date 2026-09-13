@@ -61,7 +61,7 @@ def test_el_token_de_prueba_es_realmente_escolar():
     assert aw._es_escolar(TOK_CUM) is False
 
 
-def test_el_cuaderno_escolar_ofrece_la_clase_SIN_NINGUNA_CABECERA():
+def test_el_cuaderno_escolar_ofrece_la_clase_SIN_NINGUNA_CABECERA(monkeypatch):
     """EL TEST QUE FALTABA, y su ausencia dejó la función muerta en producción (12-sep-2026).
 
     La primera versión exigía además que el pedido entrara por un dominio de Kydo. Eso **no pasa
@@ -69,7 +69,9 @@ def test_el_cuaderno_escolar_ofrece_la_clase_SIN_NINGUNA_CABECERA():
     en el espejo. El ícono no se habría visto jamás — y la prueba que lo daba por bueno forzaba
     un `X-Forwarded-Host` inventado, o sea que verificaba una situación que no existe.
 
-    Por eso acá se llama a `html(token)` PELADO, como lo llama el servicio de verdad."""
+    Por eso acá se llama a `html(token)` PELADO, como lo llama el servicio de verdad. (En el
+    espejo, que es donde está prendida: en producción queda apagada, ver más abajo.)"""
+    monkeypatch.setenv("CT3D_ENTORNO", "dev")
     d = _seno(TOK_ESC)
     assert d, "un cuaderno escolar servido normalmente no ofrece la clase"
     assert d["base"].endswith("/kydo/seno/" + TOK_ESC), d["base"]
@@ -91,13 +93,26 @@ def test_en_PRODUCCION_apunta_al_Kydo_de_verdad(monkeypatch):
     """La otra mitad: sin la variable de entorno, el sitio es el vivo. Un test que sólo mirara
     el caso dev dejaría pasar que producción apunte al espejo, que es peor."""
     monkeypatch.delenv("CT3D_ENTORNO", raising=False)
+    monkeypatch.setenv("CT3D_SENO_EN_CUADERNO", "1")        # prendida a propósito
     assert _seno(TOK_ESC)["base"].startswith("https://kydo.com.ar/kydo/seno/")
 
 
-def test_las_clases_son_las_DEL_GRADO_del_cuaderno():
+def test_en_PRODUCCION_queda_APAGADA_hasta_que_Pablo_diga(monkeypatch):
+    """Pablo, 13-sep-2026: *"siguen apagados en producción hasta que te diga"*.
+
+    Sin la variable y fuera del espejo, NO se ofrece la clase: si se subiera la rama del menú,
+    el 🎓 no aparecería en ningún cuaderno de producción. Es el caso que protege este test —y
+    el que antes pasaba por encima de la seño apagada—."""
+    monkeypatch.delenv("CT3D_ENTORNO", raising=False)
+    monkeypatch.delenv("CT3D_SENO_EN_CUADERNO", raising=False)
+    assert _seno(TOK_ESC) is None, "en producción el 🎓 aparece sin que nadie lo haya prendido"
+
+
+def test_las_clases_son_las_DEL_GRADO_del_cuaderno(monkeypatch):
     """La seño sólo abre la clase del grado del cuaderno: si `tema["grado"] != grado` redirige
     al índice. Mandar la tabla entera haría que tarjetas reusadas —«La serie», «Recta gigante»—
     apunten a la clase de 4.º desde 2.º y el chico rebote."""
+    monkeypatch.setenv("CT3D_ENTORNO", "dev")
     d = _seno(TOK_ESC)
     delGrado = seno_clases.CLASES[2]          # edad 7 → 2.º
     assert set(d["clases"]) == set(delGrado), "no es el mapa del grado del cuaderno"

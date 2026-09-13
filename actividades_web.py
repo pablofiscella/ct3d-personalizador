@@ -2635,6 +2635,25 @@ def _sitio_de_kydo():
     return "https://kydo.com.ar"
 
 
+def _seno_activa():
+    """¿Se ofrece la clase de la seño desde la tarjeta del cuaderno?
+
+    Pablo, 13-sep-2026: *"siguen apagados en producción hasta que te diga"*. Y no alcanza con
+    que la seño esté apagada en Kydo (`kydo_seno_activa`): el ícono vive en ESTE motor, así que
+    si se subiera la rama del menú, en producción aparecería el 🎓 en todos los cuadernos
+    escolares y cada toque rebotaría a la biblioteca. «Apagado» no puede depender de que
+    alguien se acuerde.
+
+    - En el ESPEJO (`CT3D_ENTORNO=dev`) está prendido: ahí se revisa.
+    - En PRODUCCIÓN está apagado salvo que se prenda a propósito con
+      `CT3D_SENO_EN_CUADERNO=1` en el servicio del motor —el mismo gesto que la seño de Kydo
+      pide en su config—, y recién cuando Pablo lo diga."""
+    import os
+    if (os.environ.get("CT3D_SENO_EN_CUADERNO", "") or "").strip().lower() in ("1", "true", "si", "sí", "yes"):
+        return True
+    return (os.environ.get("CT3D_ENTORNO", "") or "").strip().lower() == "dev"
+
+
 def _seno_del_cuaderno(token, reg, escolar):
     """Lo que el player necesita para ofrecer la clase: la base de la URL y el mapa del grado.
 
@@ -2652,7 +2671,7 @@ def _seno_del_cuaderno(token, reg, escolar):
     # `X-Forwarded-Host` que en la realidad no existe.
     # La marca del cuaderno sale de `escolar_on` —es la regla del repo, la misma que elige el
     # título y el favicon—: un cuaderno escolar es de Kydo lo sirva el dominio que lo sirva.
-    if not escolar:
+    if not escolar or not _seno_activa():
         return "null"
     try:
         import seno_clases
