@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>{{TITULO}} · Kydo</title>
+<style>
+  /* VIDEO INTERACTIVO — piloto (15-sep-2026).
+     La página es una "sala de cine": fondo oscuro, la escena como pantalla y los subtítulos
+     debajo, fuera de la imagen. Todo lo que se toca vive ADENTRO de la escena. */
+  :root{--tinta:#1f2430;--papel:#fffdf7;--sol:#ffd23f;--bien:#2fbf71;--mal:#e5484d;
+        --sala:#161b26;--borde:#2a3142;--fuente:"Baloo 2","Nunito",system-ui,sans-serif}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--sala);color:#fff;font-family:var(--fuente);
+            -webkit-tap-highlight-color:transparent}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;
+       padding:12px 16px 20px}
+  .cab{width:100%;max-width:1100px;display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .cab b{font-size:1.05rem;letter-spacing:.2px}
+  .cab small{opacity:.65;margin-left:auto;font-size:.8rem}
+
+  /* El ancho lo decide el ALTO disponible: con `width:100%` a secas, en una pantalla ancha la
+     escena crecía tanto que el subtítulo quedaba fuera de la ventana. */
+  .pantalla{position:relative;width:min(100%,1100px,calc((100dvh - 165px) * 1.5));
+            aspect-ratio:3/2;overflow:hidden;
+            border-radius:16px;background:#8fd3f4;box-shadow:0 18px 50px rgba(0,0,0,.45);
+            touch-action:manipulation;user-select:none;-webkit-user-select:none}
+  .fondo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;
+         transition:opacity .7s ease;will-change:transform,opacity}
+  .fondo.ver{opacity:1;animation:kb 26s ease-in-out infinite alternate}
+  @keyframes kb{from{transform:scale(1)}to{transform:scale(1.06) translate(-1%,-.6%)}}
+
+  /* La zona que responde al toque es MÁS GRANDE que el dibujo: a los 7 años el dedo no apunta
+     fino, y en un celular el pez mide 45 px. El ::before agranda el blanco sin agrandar el dibujo. */
+  .bicho::before{content:"";position:absolute;inset:-28%}
+  .bicho{position:absolute;padding:0;border:0;background:none;cursor:pointer;
+         transition:transform .25s ease, opacity .4s ease, left .7s ease, top .7s ease, width .7s ease}
+  .bicho img{width:100%;display:block;pointer-events:none;
+             filter:drop-shadow(0 4px 6px rgba(0,0,0,.25))}
+  .bicho[disabled]{cursor:default}
+  .bicho.nadar img{animation:nadar 3.6s ease-in-out infinite}
+  .bicho.saltar img{animation:saltar 3.2s ease-in-out infinite}
+  .bicho.flotar img{animation:flotar 2.8s ease-in-out infinite}
+  .bicho.quieto img{animation:respirar 3.4s ease-in-out infinite}
+  @keyframes nadar{0%,100%{transform:translateX(0) rotate(0)}50%{transform:translateX(-14%) rotate(-3deg)}}
+  @keyframes saltar{0%,100%{transform:translateY(8%) rotate(4deg)}50%{transform:translateY(-6%) rotate(-6deg)}}
+  @keyframes flotar{0%,100%{transform:translateY(0)}50%{transform:translateY(-8%)}}
+  @keyframes respirar{0%,100%{transform:scale(1)}50%{transform:scale(1.025)}}
+  .bicho.brillo img{filter:drop-shadow(0 0 10px var(--sol)) drop-shadow(0 0 20px var(--sol))}
+  .bicho.brillo{animation:latido 1s ease-in-out infinite}
+  @keyframes latido{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+  .bicho.elegido img{filter:drop-shadow(0 0 8px #fff) drop-shadow(0 0 16px #7bdcff)}
+  .bicho.bien{transform:scale(1.12)}
+  .bicho .tilde{position:absolute;right:-6%;top:-8%;width:34%;min-width:26px;aspect-ratio:1;
+                border-radius:50%;background:var(--bien);color:#fff;display:grid;place-items:center;
+                font-weight:800;font-size:clamp(14px,2.2vw,26px);box-shadow:0 3px 8px rgba(0,0,0,.3);
+                animation:pop .35s ease}
+  .bicho.mal{animation:sacudir .45s ease}
+  @keyframes sacudir{20%{transform:translateX(-6%)}40%{transform:translateX(6%)}60%{transform:translateX(-4%)}80%{transform:translateX(3%)}}
+  @keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+  .bicho.apagado{opacity:.35;pointer-events:none}
+
+  .carpi{position:absolute;left:.5%;bottom:-3%;width:17%;pointer-events:none;z-index:5;
+         transform-origin:50% 100%;animation:respirar 3s ease-in-out infinite}
+  .carpi.charla{animation:charla .38s ease-in-out infinite}
+  .carpi.salto{animation:salto .6s ease-out 2}
+  @keyframes charla{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-1.5%) scaleY(1.015)}}
+  @keyframes salto{0%,100%{transform:translateY(0)}40%{transform:translateY(-14%)}}
+  .carpi img{width:100%;display:block;filter:drop-shadow(0 6px 8px rgba(0,0,0,.3))}
+
+  .opciones{position:absolute;left:0;right:0;bottom:6%;display:flex;justify-content:center;
+            gap:4%;z-index:6}
+  .op{min-width:22%;min-height:52px;padding:.5em 1.4em;border-radius:999px;border:4px solid #fff;
+      background:var(--papel);color:var(--tinta);font:800 clamp(18px,3.4vw,40px)/1 var(--fuente);
+      box-shadow:0 8px 18px rgba(0,0,0,.3);cursor:pointer;animation:pop .35s ease}
+  .op.mal{animation:sacudir .45s ease;border-color:var(--mal)}
+  .op.bien{background:var(--bien);color:#fff}
+
+  .grupos{position:absolute;left:19%;right:2%;bottom:3%;display:flex;gap:2%;z-index:6}
+  .grupo{flex:1;min-height:54px;border-radius:16px;border:4px solid #fff;background:rgba(255,253,247,.94);
+         color:var(--tinta);display:flex;align-items:center;gap:6%;padding:1.2% 3%;cursor:pointer;
+         font:800 clamp(14px,2.6vw,30px)/1 var(--fuente);box-shadow:0 8px 18px rgba(0,0,0,.28);
+         animation:pop .35s ease;position:relative}
+  .grupo img{height:clamp(26px,5.4vw,64px);width:auto}
+  .grupo .adentro{position:absolute;right:4%;top:-38%;display:flex;gap:4px}
+  .grupo .adentro img{height:clamp(28px,6vw,70px)}
+  .grupo.brillo{border-color:var(--sol);box-shadow:0 0 0 4px var(--sol),0 8px 18px rgba(0,0,0,.28)}
+  .grupo.mal{animation:sacudir .45s ease;border-color:var(--mal)}
+
+  .repetir{position:absolute;right:1.6%;top:2.2%;z-index:7;width:clamp(44px,6vw,64px);aspect-ratio:1;
+           border-radius:50%;border:3px solid #fff;background:rgba(22,27,38,.55);color:#fff;
+           font-size:clamp(18px,2.6vw,28px);cursor:pointer;display:none}
+  .repetir.ver{display:block}
+
+  .telon{position:absolute;inset:0;z-index:20;display:grid;place-items:center;text-align:center;
+         background:linear-gradient(180deg,rgba(22,27,38,.25),rgba(22,27,38,.72))}
+  .telon[hidden]{display:none}
+  .telon h1{margin:0 0 .35em;font-size:clamp(22px,4.8vw,56px);line-height:1.05;
+            text-shadow:0 3px 12px rgba(0,0,0,.45)}
+  .telon p{margin:0 0 1em;font-size:clamp(14px,2.2vw,22px);opacity:.92}
+  .telon img{width:clamp(80px,16vw,190px);display:block;margin:0 auto .4em}
+  .empezar{min-height:56px;padding:.55em 1.6em;border-radius:999px;border:0;background:var(--sol);
+           color:var(--tinta);font:800 clamp(18px,3vw,34px)/1 var(--fuente);cursor:pointer;
+           box-shadow:0 10px 24px rgba(0,0,0,.35)}
+  .empezar:focus-visible,.op:focus-visible,.grupo:focus-visible,.bicho:focus-visible,.repetir:focus-visible{
+    outline:4px solid var(--sol);outline-offset:3px}
+
+  .confeti{position:absolute;inset:0;pointer-events:none;z-index:15;overflow:hidden}
+  .confeti i{position:absolute;top:-4%;width:1.4%;aspect-ratio:1/1.6;border-radius:2px;
+             animation:caer 1.6s ease-in forwards}
+  @keyframes caer{to{transform:translateY(115vh) rotate(540deg)}}
+
+  /* CELULAR VERTICAL: la escena mide unos 360x240 y los botones adentro tapaban a los animales.
+     Van debajo, grandes; adentro de la escena queda lo que de verdad es la escena. */
+  .abajo{width:100%;max-width:1100px;display:flex;justify-content:center}
+  .abajo:empty{display:none}
+  .abajo .opciones,.abajo .grupos{position:static;width:100%;margin-top:12px;gap:10px}
+  .abajo .op{min-width:40%;min-height:60px;font-size:clamp(20px,6vw,30px)}
+  /* los tres grupos TIENEN que entrar en el ancho del celular: flex:1 1 0 + min-width:0, o
+     «Ave» se sale de la pantalla (se vio en el recorrido del 15-sep-2026) */
+  .abajo .grupo{flex:1 1 0;min-width:0;min-height:66px;font-size:clamp(13px,3.6vw,20px);
+                padding:6px 6px;gap:6px;justify-content:center}
+  /* la palabra entera: «Mamífero» cortado en «Ma…» no le dice nada a un chico de 7 años */
+  .abajo .grupo span:not(.adentro){white-space:normal;line-height:1.05;overflow:visible}
+  .abajo .grupo{font-size:clamp(12px,3.2vw,20px)}
+  .abajo .grupo img{height:26px}
+  .abajo .grupo .adentro{top:-30px;right:6px}
+  .abajo .grupo .adentro img{height:38px}
+  /* CELULAR ACOSTADO: la pantalla la limita el alto, no el ancho. */
+  @media (orientation:landscape) and (max-height:560px){
+    .cab{display:none}
+    body{padding:8px 10px}
+    .pantalla{width:min(100%,calc((100dvh - 96px) * 1.5))}
+    .subs{min-height:2.6em;font-size:15px;padding:.4em .8em;margin-top:8px}
+  }
+
+  .subs{width:100%;max-width:1100px;min-height:3.4em;margin-top:12px;padding:.6em 1em;border-radius:14px;
+        background:#0f131c;border:1px solid var(--borde);font-size:clamp(16px,2.2vw,24px);line-height:1.3;
+        text-align:center;color:#f4f1e8}
+  .subs:empty::before{content:"\00a0"}
+  @media (prefers-reduced-motion: reduce){
+    .fondo.ver,.bicho img,.carpi,.carpi.charla,.bicho.brillo{animation:none!important}
+  }
+</style>
+</head>
+<body>
+  <div class="cab"><b>🎬 {{TITULO}}</b><small>Kydo · {{GRADO}}.º grado</small></div>
+  <div class="pantalla" id="pantalla" aria-live="polite">
+    <img class="fondo" id="fondoA" alt="">
+    <img class="fondo" id="fondoB" alt="">
+    <div id="bichos"></div>
+    <div class="carpi" id="carpi"><img id="carpiImg" alt="Carpi, el carpincho"></div>
+    <div id="controles"></div>
+    <button class="repetir" id="repetir" type="button" aria-label="Escuchar de nuevo">🔁</button>
+    <div class="confeti" id="confeti"></div>
+    <div class="telon" id="telon">
+      <div>
+        <img src="carpi_hablando.webp" alt="">
+        <h1>{{TITULO}}</h1>
+        <p id="telonTxt">Un video donde vos también jugás</p>
+        <button class="empezar" id="empezar" type="button">▶ Empezar</button>
+      </div>
+    </div>
+  </div>
+  <div class="abajo" id="abajo"></div>
+  <div class="subs" id="subs"></div>
+<script>window.GUION = {{GUION}};</script>
+<script src="player.js"></script>
+</body>
+</html>
