@@ -134,6 +134,14 @@
       img.onload = cambiar; img.onerror = cambiar;
       img.src = e.fondo + ".webp";
       if (img.complete && img.naturalWidth) cambiar();
+      // Los que quedan chicos en la pantalla de verdad —no los que yo creo chicos— agrandan su
+      // zona de toque. Se mide después de dibujar, porque depende del tamaño de la pantalla.
+      setTimeout(function () {
+        Object.keys(B).forEach(function (k) {
+          var r = B[k].getBoundingClientRect();
+          B[k].classList.toggle("chico", Math.min(r.width, r.height) < 56);
+        });
+      }, 500);
     });
   }
 

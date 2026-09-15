@@ -1,0 +1,247 @@
+{
+  "pieza": "con_que_sonido",
+  "titulo": "¿Con qué sonido empieza?",
+  "grado": 1,
+  "saber": "LEN-1-inicial",
+  "nota": "Conciencia fonológica de 1.º (Pablo, 15-sep-2026). La voz dice el SONIDO, no el nombre de la letra: es la diferencia entre enseñar fonética y enseñar el abecedario. Recién la última pausa une el sonido con su letra, que es el orden del Diseño Curricular. Todo entra por el oído y por el dibujo: en 1.º no se puede pedir leer.",
+  "voces": {
+    "intro": "¡Hola de nuevo! Soy Carpi. Hoy vamos a jugar con los sonidos de las palabras. Escuchá bien, porque hay que usar las orejas.",
+    "p1_consigna": "Escuchá este sonido: mmm. Tocá todo lo que empieza con mmm.",
+    "p1_pista1": "Escuchá despacio: mmm... mesa. ¿Qué otra cosa empieza con ese sonido?",
+    "p1_pista2": "Te ilumino los que empiezan con mmm.",
+    "p1_pista3": "Son la mesa, la moto y la manzana. Tocalos.",
+    "p1_fin": "¡Muy bien! La mesa, la moto y la manzana empiezan con el mismo sonido.",
+    "p2_consigna": "Ahora otro sonido: lll. Tocá lo que empieza con lll.",
+    "p2_pista1": "Escuchá: lll... libro. Empieza con ese sonido.",
+    "p2_pista2": "Te ilumino los que empiezan con lll.",
+    "p2_pista3": "Son el libro y la lámpara. Tocalos.",
+    "p2_fin": "¡Eso es! El libro y la lámpara empiezan con lll.",
+    "p3_consigna": "Uno más, y este suena como una serpiente: sss. Tocá lo que empieza con sss.",
+    "p3_pista1": "Escuchá: sss... silla. Empieza con ese sonido.",
+    "p3_pista2": "Te ilumino los que empiezan con sss.",
+    "p3_pista3": "Son el sol y la silla. Tocalos.",
+    "p3_fin": "¡Genial! El sol y la silla empiezan con sss.",
+    "p4_consigna": "Última. El sonido mmm se escribe con una letra. Tocá la letra del sonido mmm.",
+    "p4_pista1": "Pensá en la primera letra de mesa.",
+    "p4_pista2": "Te la ilumino.",
+    "p4_pista3": "Es esta. Tocala.",
+    "cierre": "¡Lo lograste! Ya podés escuchar con qué sonido empieza cada palabra. ¡Hasta la próxima!",
+    "festejo1": "¡Muy bien!",
+    "festejo2": "¡Eso es!",
+    "festejo3": "¡Genial!"
+  },
+  "imagenes": {
+    "fondo_patio": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "El patio de una casa de barrio en Argentina, vista de frente en plano abierto y luminoso: piso de baldosas claras, una pared con enredadera a la izquierda, césped al fondo y cielo celeste con nubes suaves arriba. SIN NINGÚN OBJETO ni mueble ni animal ni personas: el patio vacío, porque las cosas se agregan después encima. Mucho espacio despejado."
+    },
+    "cosa_mesa": {
+      "tipo": "recorte",
+      "prompt": "Una mesa de madera de patio, sencilla, vista de costado, entera."
+    },
+    "cosa_moto": {
+      "tipo": "recorte",
+      "prompt": "Una moto chica de dibujo animado, de perfil mirando hacia la izquierda, entera."
+    },
+    "cosa_manzana": {
+      "tipo": "recorte",
+      "prompt": "Una manzana roja brillante con una hojita verde, entera."
+    },
+    "cosa_pelota": {
+      "tipo": "recorte",
+      "prompt": "Una pelota de fútbol blanca y negra, entera."
+    },
+    "cosa_pato": {
+      "tipo": "recorte",
+      "prompt": "Un pato de dibujo animado, de perfil mirando hacia la derecha, entero, con pico anaranjado."
+    },
+    "cosa_silla": {
+      "tipo": "recorte",
+      "prompt": "Una silla de madera de patio, vista de costado, entera."
+    },
+    "cosa_sol": {
+      "tipo": "recorte",
+      "prompt": "Un sol amarillo sonriente de dibujo animado, con rayos, entero."
+    },
+    "letra_m": {
+      "tipo": "recorte",
+      "prompt": "Una tarjeta cuadrada de madera clara con la letra M mayúscula grande pintada en azul en el centro, y nada más. La letra M y sólo la letra M."
+    },
+    "letra_p": {
+      "tipo": "recorte",
+      "prompt": "Una tarjeta cuadrada de madera clara con la letra P mayúscula grande pintada en verde en el centro, y nada más. La letra P y sólo la letra P."
+    },
+    "letra_s": {
+      "tipo": "recorte",
+      "prompt": "Una tarjeta cuadrada de madera clara con la letra S mayúscula grande pintada en naranja en el centro, y nada más. La letra S y sólo la letra S."
+    },
+    "cosa_libro": {
+      "tipo": "recorte",
+      "prompt": "Un libro de cuentos cerrado, con tapa de color, apoyado de costado, entero."
+    },
+    "cosa_lampara": {
+      "tipo": "recorte",
+      "prompt": "Una lámpara de mesa con pantalla de tela y pie de madera, entera, apagada."
+    }
+  },
+  "escenas": {
+    "patio": {
+      "fondo": "fondo_patio",
+      "animales": {
+        "sol": {
+          "img": "cosa_sol",
+          "x": 78,
+          "y": 6,
+          "w": 14,
+          "mov": "flotar"
+        },
+        "mesa": {
+          "img": "cosa_mesa",
+          "x": 22,
+          "y": 55,
+          "w": 24
+        },
+        "moto": {
+          "img": "cosa_moto",
+          "x": 60,
+          "y": 52,
+          "w": 22
+        },
+        "manzana": {
+          "img": "cosa_manzana",
+          "x": 27,
+          "y": 44,
+          "w": 8
+        },
+        "pelota": {
+          "img": "cosa_pelota",
+          "x": 58,
+          "y": 80,
+          "w": 11,
+          "mov": "flotar"
+        },
+        "pato": {
+          "img": "cosa_pato",
+          "x": 86,
+          "y": 74,
+          "w": 13,
+          "mov": "quieto"
+        },
+        "silla": {
+          "img": "cosa_silla",
+          "x": 41,
+          "y": 50,
+          "w": 13
+        },
+        "libro": {
+          "img": "cosa_libro",
+          "x": 34,
+          "y": 76,
+          "w": 12
+        },
+        "lampara": {
+          "img": "cosa_lampara",
+          "x": 10,
+          "y": 44,
+          "w": 11
+        }
+      }
+    },
+    "letras": {
+      "fondo": "fondo_patio",
+      "animales": {
+        "letra_m": {
+          "img": "letra_m",
+          "x": 26,
+          "y": 34,
+          "w": 16
+        },
+        "letra_p": {
+          "img": "letra_p",
+          "x": 48,
+          "y": 34,
+          "w": 16
+        },
+        "letra_s": {
+          "img": "letra_s",
+          "x": 70,
+          "y": 34,
+          "w": 16
+        }
+      }
+    }
+  },
+  "pasos": [
+    {
+      "tipo": "decir",
+      "escena": "patio",
+      "voz": "intro"
+    },
+    {
+      "tipo": "tocar",
+      "escena": "patio",
+      "consigna": "p1_consigna",
+      "correctos": [
+        "mesa",
+        "moto",
+        "manzana"
+      ],
+      "pistas": [
+        "p1_pista1",
+        "p1_pista2",
+        "p1_pista3"
+      ],
+      "fin": "p1_fin"
+    },
+    {
+      "tipo": "tocar",
+      "escena": "patio",
+      "consigna": "p2_consigna",
+      "correctos": [
+        "libro",
+        "lampara"
+      ],
+      "pistas": [
+        "p2_pista1",
+        "p2_pista2",
+        "p2_pista3"
+      ],
+      "fin": "p2_fin"
+    },
+    {
+      "tipo": "tocar",
+      "escena": "patio",
+      "consigna": "p3_consigna",
+      "correctos": [
+        "sol",
+        "silla"
+      ],
+      "pistas": [
+        "p3_pista1",
+        "p3_pista2",
+        "p3_pista3"
+      ],
+      "fin": "p3_fin"
+    },
+    {
+      "tipo": "tocar",
+      "escena": "letras",
+      "consigna": "p4_consigna",
+      "correctos": [
+        "letra_m"
+      ],
+      "pistas": [
+        "p4_pista1",
+        "p4_pista2",
+        "p4_pista3"
+      ]
+    },
+    {
+      "tipo": "decir",
+      "escena": "patio",
+      "voz": "cierre",
+      "pose": "festejando"
+    }
+  ]
+}

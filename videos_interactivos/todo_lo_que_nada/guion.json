@@ -74,17 +74,20 @@
     "carpi_hablando": {
       "tipo": "recorte",
       "personaje": true,
-      "prompt": "Carpi, un carpincho simpático de dibujo animado, marrón, parado en dos patas como un presentador, cuerpo entero, mirando de frente al que mira, con la boca abierta hablando y una pata delantera levantada saludando."
+      "prompt": "Carpi, un carpincho simpático de dibujo animado, marrón, parado en dos patas como un presentador, cuerpo entero, mirando de frente al que mira, con la boca abierta hablando y una pata delantera levantada saludando.",
+      "comun": true
     },
     "carpi_esperando": {
       "tipo": "recorte",
       "personaje": true,
-      "prompt": "El MISMO carpincho Carpi de la referencia, parado en dos patas, cuerpo entero, mirando de frente con curiosidad y una sonrisa, con una pata delantera apoyada en el mentón como esperando una respuesta."
+      "prompt": "El MISMO carpincho Carpi de la referencia, parado en dos patas, cuerpo entero, mirando de frente con curiosidad y una sonrisa, con una pata delantera apoyada en el mentón como esperando una respuesta.",
+      "comun": true
     },
     "carpi_festejando": {
       "tipo": "recorte",
       "personaje": true,
-      "prompt": "El MISMO carpincho Carpi de la referencia, cuerpo entero, dando un saltito muy contento con las dos patas delanteras levantadas, sonriendo con los ojos cerrados de alegría."
+      "prompt": "El MISMO carpincho Carpi de la referencia, cuerpo entero, dando un saltito muy contento con las dos patas delanteras levantadas, sonriendo con los ojos cerrados de alegría.",
+      "comun": true
     }
   },
   "escenas": {

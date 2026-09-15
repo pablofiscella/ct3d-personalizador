@@ -18,11 +18,27 @@ _ARCHIVO_RE = re.compile(r"^[a-z0-9_]{1,80}\.(webp|mp3)$")
 _TIPOS = {"webp": "image/webp", "mp3": "audio/mpeg"}
 
 
+COMUN = os.path.join(BASE, "_comun")
+
+
 def _carpeta(pieza):
-    if not _PIEZA_RE.match(pieza or ""):
+    if not _PIEZA_RE.match(pieza or "") or pieza == "_comun":
         return None
     ruta = os.path.join(BASE, pieza)
     return ruta if os.path.isfile(os.path.join(ruta, "guion.json")) else None
+
+
+def ruta_de(pieza, nombre):
+    """El archivo de la pieza, o el COMÚN si no lo tiene. Carpi es de todas las piezas: tenerlo
+    copiado en cada carpeta sería pagar tres imágenes por video y que envejezcan distinto."""
+    carpeta = _carpeta(pieza)
+    if not carpeta or not _ARCHIVO_RE.match(nombre or ""):
+        return None
+    for d in (carpeta, COMUN):
+        ruta = os.path.join(d, nombre)
+        if os.path.isfile(ruta):
+            return ruta
+    return None
 
 
 def html(pieza):
@@ -51,15 +67,11 @@ def archivo(pieza, nombre):
             return None
         with open(os.path.join(KIT, "video_interactivo_player.js"), "rb") as f:
             return f.read(), "application/javascript; charset=utf-8"
-    carpeta = _carpeta(pieza)
-    m = _ARCHIVO_RE.match(nombre or "")
-    if not carpeta or not m:
-        return None
-    ruta = os.path.join(carpeta, nombre)
-    if not os.path.isfile(ruta):
+    ruta = ruta_de(pieza, nombre)
+    if not ruta:
         return None
     with open(ruta, "rb") as f:
-        return f.read(), _TIPOS[m.group(1)]
+        return f.read(), _TIPOS[_ARCHIVO_RE.match(nombre).group(1)]
 
 
 def _escapar(t):

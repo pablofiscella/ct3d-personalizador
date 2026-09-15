@@ -84,13 +84,17 @@ def generar_imagenes(pieza, claves=None, calidad="medium"):
     dest_dir = carpeta(pieza)
     hechas = []
     personaje = None
-    ruta_personaje = os.path.join(dest_dir, "carpi_hablando.webp")
+    ruta_personaje = os.path.join(BASE, "_comun", "carpi_hablando.webp")
     if os.path.exists(ruta_personaje):
         personaje = _ref_png(ruta_personaje)
     for clave, spec in g["imagenes"].items():
         if claves and clave not in claves:
             continue
-        dest = os.path.join(dest_dir, clave + ".webp")
+        # las marcadas `comun` (Carpi) viven en videos_interactivos/_comun y sirven a TODAS las
+        # piezas: una sola imagen, un solo personaje, y no se paga de nuevo por cada video.
+        carpeta_destino = os.path.join(BASE, "_comun") if spec.get("comun") else dest_dir
+        os.makedirs(carpeta_destino, exist_ok=True)
+        dest = os.path.join(carpeta_destino, clave + ".webp")
         if os.path.exists(dest) and not claves:
             continue
         if spec["tipo"] == "escena":

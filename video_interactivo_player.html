@@ -31,9 +31,11 @@
   .fondo.ver{opacity:1;animation:kb 26s ease-in-out infinite alternate}
   @keyframes kb{from{transform:scale(1)}to{transform:scale(1.06) translate(-1%,-.6%)}}
 
-  /* La zona que responde al toque es MÁS GRANDE que el dibujo: a los 7 años el dedo no apunta
-     fino, y en un celular el pez mide 45 px. El ::before agranda el blanco sin agrandar el dibujo. */
-  .bicho::before{content:"";position:absolute;inset:-28%}
+  /* SÓLO los objetos CHICOS agrandan su zona de toque (el reproductor les pone `.chico` midiendo
+     la pantalla): a los 7 años el dedo no apunta fino y en un celular la manzana mide 30 px.
+     Agrandar TODOS fue peor: el libro, que está delante de la mesa, se quedaba con los toques de
+     la mesa sin que se viera nada raro en pantalla (15-sep-2026). */
+  .bicho.chico::before{content:"";position:absolute;inset:-18%}
   .bicho{position:absolute;padding:0;border:0;background:none;cursor:pointer;
          transition:transform .25s ease, opacity .4s ease, left .7s ease, top .7s ease, width .7s ease}
   .bicho img{width:100%;display:block;pointer-events:none;
