@@ -364,10 +364,14 @@ let _ultimoDicho = "";
    Se leen DESPUÉS de la consigna, no encima: `reproducirConsigna` devuelve una promesa que
    termina cuando el audio terminó de sonar de verdad.
    Y no quedan como «lo último dicho»: el botón de repetir tiene que devolver la pregunta Y
-   las opciones, en ese orden, y no sólo lo último que sonó. */
+   las opciones, en ese orden, y no sólo lo último que sonó.
+
+   Y un juego puede pedir que NO se lean, con `data-no-leer` en su tablero (11-sep-2026).
+   En «Números en palabras» leer 80080 en voz alta —«ochenta mil ochenta»— le dice al chico
+   de oído cuál no es, y lo que se mide es justamente si sabe leerlo. */
 function _opcionesEnPantalla() {
   const bs = [...document.querySelectorAll("#juego button, #juego .op, #juego .op-texto")]
-    .filter((b) => b.offsetParent);
+    .filter((b) => b.offsetParent && !b.closest("[data-no-leer]"));
   const t = [];
   bs.forEach((b) => {
     // El emoji NO va a la voz: el sintetizador lo lee como su nombre («espiga de trigo»)
@@ -594,6 +598,22 @@ function _hoyStr(d) {
          "-" + String(d.getDate()).padStart(2, "0");
 }
 
+/* Días seguidos hasta HOY, para la racha. Si todavía no jugó hoy cuenta hasta ayer: la
+   racha se corta cuando se saltea un día entero, no por no haber entrado todavía.
+   Pura a propósito — `tests/test_menu_principal.py` la corre con node, sin navegador. */
+function _rachaDeDias(dias, hoy) {
+  const set = new Set(dias || []);
+  const DIA = 86400000;
+  const t0 = Date.parse(hoy + "T00:00:00Z");
+  if (isNaN(t0)) return 0;
+  let n = 0;
+  for (let t = set.has(hoy) ? t0 : t0 - DIA; n <= 400; t -= DIA) {
+    if (!set.has(new Date(t).toISOString().slice(0, 10))) break;
+    n++;
+  }
+  return n;
+}
+
 const Store = {
   key: "ct3d_act::" + location.pathname.replace(/\/$/, ""),
   data: { sound: true, activeProfile: null, profiles: {} },
@@ -633,6 +653,22 @@ const Store = {
     if (Object.keys(m).length >= 60) return;     // banco más grande que esto no hay
     m[itemId] = 1;
     this.save();
+  },
+  // ── RACHA DE DÍAS (11-sep-2026). Se anota el DÍA en que jugó, no la hora: lo que se
+  // quiere marcar es el hábito de venir, y no castiga nada — cortar la racha no borra
+  // estrellas ni sellos, sólo deja de sumar. Idea vista en Mudi, adaptada a esta regla.
+  marcarDia(hoy) {
+    const p = this._perfil(); if (!p) return;
+    const d = hoy || _hoyStr();
+    if (!p.dias) p.dias = [];
+    if (p.dias.indexOf(d) >= 0) return;            // ya vino hoy
+    p.dias.push(d);
+    if (p.dias.length > 400) p.dias = p.dias.slice(-400);   // más de un año no hace falta
+    this.save();
+  },
+  rachaDias(hoy) {
+    const p = this._perfil();
+    return _rachaDeDias((p && p.dias) || [], hoy || _hoyStr());
   },
   // Avatar elegido por el chico: índice dentro de D.personajes. Si no eligió, el 0 —
   // que es lo que hacía siempre el cuaderno antes de que se pudiera elegir.
@@ -959,6 +995,30 @@ const COMO_ES = {
         "De derecha a izquierda: unidades, decenas, centenas, unidades de mil…",
         "La misma cifra vale distinto según dónde caiga."],
     e: "En 352, el 3 vale 300, el 5 vale 50 y el 2 vale 2." },
+  // números en palabras (11-sep-2026): de lo que se dice a lo que se escribe, y al revés
+  numeros_palabras_2: { t: "Cómo se escriben los números",
+    l: ["Se escriben en el orden en que se leen: primero las centenas, después las decenas y al final las unidades.",
+        "El cero no se dice, pero se escribe: guarda el lugar vacío. Ochocientos cinco es 805.",
+        "Los pedazos no se pegan uno atrás del otro: ochocientos ochenta es 880, no 80080.",
+        "Del 16 al 29 van en una sola palabra: dieciocho, veinticinco. Y el 100 solo es cien; si le sigue algo, es ciento."],
+    e: "880 → ochocientos ochenta · 805 → ochocientos cinco · 725 → setecientos veinticinco" },
+  numeros_palabras_3: { t: "Cómo se escriben los números",
+    l: ["Se escriben en el orden en que se leen: primero las unidades de mil, después las centenas, las decenas y al final las unidades.",
+        "El cero no se dice, pero se escribe: guarda el lugar vacío. Tres mil cinco es 3005.",
+        "Los pedazos no se pegan uno atrás del otro: tres mil cuatrocientos es 3400, no 3000400.",
+        "Mil va solo, sin «un» adelante. Y algunas centenas cambian: quinientos, setecientos, novecientos."],
+    e: "3450 → tres mil cuatrocientos cincuenta · 3005 → tres mil cinco · 1200 → mil doscientos" },
+  // el cajero y partí el número (12-sep-2026): la cifra dice cuántos de su lugar hay
+  cajero_cdu_2: { t: "Armar un número con billetes",
+    l: ["Cada cifra dice cuántos billetes de su lugar van: las centenas son billetes de $100, las decenas de $10 y las unidades de $1.",
+        "En cada lugar entran hasta 9. Diez billetes de $10 ya son uno de $100.",
+        "Si hay un 0, en ese lugar no va ningún billete."],
+    e: "347 → 3 de $100, 4 de $10 y 7 de $1 · 407 → 4 de $100 y 7 de $1" },
+  descomponer_2: { t: "Partir un número",
+    l: ["Cada cifra vale según dónde está: en 347, el 3 vale 300, el 4 vale 40 y el 7 vale 7.",
+        "Se parte en orden: primero las centenas, después las decenas y al final las unidades.",
+        "El 0 no es un pedazo: 407 es 400 + 7. Pero al juntar las partes vuelve a guardar su lugar."],
+    e: "347 = 300 + 40 + 7 · 407 = 400 + 7 · 300 + 40 + 7 = 347" },
   suma_columnas: { t: "Sumar en columna (con llevada)",
     l: ["Alineá los números por la derecha: unidades con unidades.",
         "Sumá empezando por la columna de la derecha.",
@@ -5138,6 +5198,7 @@ const Shell = {
         }
         const yaEstabaCompleto = todoCompleto();
         Store.setStars(self.actual, e);
+        Store.marcarDia();                    // la racha cuenta días con partida ganada
         // dificultad adaptativa: si le salió fácil (3★) sube el nivel para la próxima;
         // si le costó, se queda igual (repite ese nivel hasta dominarlo). Gateado.
         // El nivel VISIBLE se mide antes y después: si la actividad cambió de escalón
@@ -5771,6 +5832,64 @@ function _adaptCSS() {
     ".carta.adapt-recomendado{outline:1.5px solid color-mix(in srgb, #2F7D57 45%, var(--card))}" +
     ".carta.adapt-reforzar{outline:1.5px solid color-mix(in srgb, #C4703C 55%, var(--card))}" +
     ".carta.adapt-repaso{outline:1.5px solid color-mix(in srgb, #1F6FA8 45%, var(--card))}" +
+    // «Seguí por acá»: ancha, del color de la marca del grado, y con la flecha a la derecha
+    ".seguir-aca{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:none;" +
+    "cursor:pointer;background:var(--ac);color:var(--card);border-radius:var(--radio);" +
+    // El margen de abajo NO se suma con el del botón que sigue: `#stage` es bloque y los
+    // márgenes verticales se COLAPSAN, así que el hueco es el mayor de los dos. Con 2 y 2
+    // quedaban pegados (Pablo, 11-sep-2026, con la captura: *«solo un poco más de margen»*).
+    "padding:14px 16px;margin:10px 0 12px;box-shadow:var(--sombra);min-height:88px;" +
+    "font-family:\"Baloo\",Archivo,sans-serif}" +
+    ".seguir-aca:active{transform:scale(.98)}" +
+    ".seguir-aca .ico{width:58px;height:58px;flex:none;border-radius:16px;display:grid;" +
+    "place-items:center;font-size:32px;background:color-mix(in srgb,var(--card) 22%,transparent)}" +
+    ".seguir-aca .ico img{width:48px;height:48px;object-fit:contain}" +
+    ".seguir-aca .txt{flex:1;min-width:0}" +
+    ".seguir-aca small{display:block;font-size:12px;font-weight:700;letter-spacing:.02em}" +
+    ".seguir-aca b{display:block;font-size:21px;line-height:1.12;letter-spacing:-.02em}" +
+    ".seguir-aca span{display:block;font-family:Archivo,system-ui,sans-serif;font-size:13px;line-height:1.25}" +
+    ".seguir-aca .ir{font-size:20px}" +
+    // el progreso de la materia, a la derecha del título de la sección
+    ".cat-titulo small{margin-left:auto;font-family:Archivo,system-ui,sans-serif;font-size:12px;" +
+    "font-weight:700;color:color-mix(in srgb, var(--ink) 55%, var(--card))}" +
+    ".cat-titulo.cat-repaso{color:#1F6FA8}" +
+    // buscador + filtros + vista en lista (4.º para arriba)
+    "#filtroMenu{position:sticky;z-index:30;display:flex;flex-direction:column;gap:8px;" +
+    "padding:10px 0 12px;background:var(--bg);margin-bottom:2px}" +
+    "#buscarAct{width:100%;box-sizing:border-box;min-height:48px;border-radius:14px;" +
+    "border:1.5px solid color-mix(in srgb,var(--ink) 18%,var(--card));background:var(--card);" +
+    "color:var(--ink);padding:0 14px;font:16px Archivo,system-ui,sans-serif}" +
+    "#filtroMenu .filtro-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}" +
+    "#filtroMenu .filtro-chips::-webkit-scrollbar{display:none}" +
+    "#filtroMenu .filtro-abajo{display:flex;gap:8px;align-items:center}" +
+    "#filtroMenu .chip{flex:none;min-height:40px;cursor:pointer;white-space:nowrap;" +
+    "border:1.5px solid color-mix(in srgb,var(--ink) 16%,var(--card));background:var(--card);" +
+    "color:var(--ink);border-radius:999px;padding:0 14px;font:700 14px Archivo,system-ui,sans-serif}" +
+    "#filtroMenu .chip.on{background:var(--ink);color:var(--card);border-color:var(--ink)}" +
+    // las fichas de estado: mismo gesto que las materias, un punto más chicas para que se
+    // lea cuál es el filtro principal. El botón de vista no entra en el desplazamiento.
+    "#filtroMenu .filtro-estados{display:flex;gap:6px;flex:1;min-width:0;overflow-x:auto;" +
+    "scrollbar-width:none}" +
+    "#filtroMenu .filtro-estados::-webkit-scrollbar{display:none}" +
+    "#filtroMenu .chip-est{min-height:36px;font-size:13px;padding:0 12px}" +
+    "#filtroMenu #vistaAct{flex:none}" +
+    "#filtroMenu .filtro-arriba{display:flex;gap:8px;align-items:center}" +
+    "#filtroMenu .filtro-arriba #buscarAct{flex:1;min-width:0}" +
+    "#filtroMenu .filtro-arriba #vistaAct{min-height:48px}" +
+    "#sinResultados{padding:18px 4px;font:600 16px Archivo,system-ui,sans-serif;" +
+    "color:color-mix(in srgb,var(--ink) 65%,var(--card))}" +
+    // esconder DE VERDAD: `.carta` es flex y le gana al [hidden] del navegador
+    ".menu-cat[hidden],.cat-titulo[hidden],.carta[hidden],.seguir-aca[hidden]," +
+    "#sinResultados[hidden]{display:none!important}" +
+    // vista en lista: la misma tarjeta en fila, entra el doble por pantalla
+    "#stage.lista .menu-cat{grid-template-columns:1fr;gap:8px}" +
+    "#stage.lista .carta{flex-direction:row;align-items:center;justify-content:flex-start;" +
+    "min-height:0;padding:10px 14px;gap:12px;text-align:left}" +
+    "#stage.lista .carta .icono{width:44px;height:44px;font-size:24px;border-radius:12px;flex:none}" +
+    "#stage.lista .carta .icono img{width:34px;height:34px}" +
+    "#stage.lista .carta .nombre{flex:1;text-align:left;font-size:16px}" +
+    "#stage.lista .carta .nivel-chip,#stage.lista .carta .hablar,#stage.lista .carta .chip{display:none}" +
+    "#stage.lista .carta[data-adapt]::after{position:static;transform:none;margin-left:auto}" +
     ".carta[data-adapt]::after{content:attr(data-adapt);position:absolute;top:6px;left:50%;" +
     "transform:translateX(-50%);font-family:\"Baloo\",Archivo,sans-serif;font-size:10px;" +
     "font-weight:700;letter-spacing:-.01em;" +
@@ -5783,6 +5902,16 @@ function _adaptCSS() {
        juego, y con 44px de blanco para que un dedo de seis años la acierte sin
        abrir la actividad por error. */
     ".carta{position:relative}" +
+    /* El 🎓 de la seño: ABAJO A LA DERECHA, la única esquina libre de la tarjeta — la corneta
+       está arriba a la izquierda, el 👪 de ESI abajo a la izquierda y el sprite del tema
+       arriba a la derecha. 44px de blanco, como la corneta, para que un dedo de segundo grado
+       lo acierte sin abrir el juego por error. En la vista en lista se esconde junto con la
+       corneta y el sprite: esa vista existe para que entren el doble de tarjetas, y ahí el
+       accesorio estorba (se recupera volviendo a tarjetas). */
+    ".carta .seno-ir{position:absolute;bottom:2px;right:2px;width:44px;height:44px;" +
+      "display:grid;place-items:center;font-size:19px;line-height:1;border-radius:50%;" +
+      "background:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.16)}" +
+    "#stage.lista .carta .seno-ir{display:none}" +
     ".carta .hablar{position:absolute;top:4px;left:4px;width:44px;height:44px;" +
       "display:grid;place-items:center;font-size:19px;line-height:1;border-radius:50%;" +
       "background:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.16)}" +
@@ -6084,6 +6213,83 @@ function _iconoSeguro(m) {
   return _ICONO_POR_BANDERA[m.id] || "🌎";
 }
 
+/* ── EL BUSCADOR Y LOS FILTROS DEL MENÚ (11-sep-2026) ────────────────────────────────
+   Medido en el menú de 4.º: 73 tarjetas, unas 6 por pantalla de celular —más de diez
+   pantallas—, y Matemática empieza recién después de las 19 de Lengua. Buscar era bajar.
+
+   Filtra el DOM YA DIBUJADO en vez de volver a pintar el menú: cada tarjeta guarda en qué
+   se busca (`data-busca`), de qué materia es (`data-cat`) y en qué estado está
+   (`data-estado`). Así escribir una letra no re-arma 73 tarjetas ni pierde el scroll, y el
+   orden que armó la maestra se respeta igual, porque no se reordena nada.
+
+   Los títulos de materia se esconden con su sección: una materia con el título solo,
+   sin tarjetas abajo, se lee como un error. */
+/* ── «MI SEÑO PARTICULAR» DESDE LA TARJETA (11-sep-2026) ──────────────────────────
+   Pablo: *"icono de seño en cada tarjeta con practicas"*. La clase NO vive en el motor sino
+   en el sitio de Kydo, así que el servidor resuelve la dirección en cada pedido y la deja en
+   `window.SENO` (ver `_seno_del_cuaderno` en actividades_web.py y la nota de la plantilla).
+
+   Viene `null` cuando no corresponde —cuaderno de cumpleaños, pedido por otro dominio, grado
+   sin clases escritas— y entonces no se dibuja nada: **un ícono que no lleva a ningún lado es
+   peor que no tenerlo**. Hoy la tienen 156 de 560 tarjetas.
+
+   QUIÉN PUEDE ABRIRLA: Pablo, 11-sep-2026, *"siempre es con lo que le deja el adulto. Así es
+   por ahora"*. La seño sigue pidiendo la sesión del comprador —la que está abierta en el
+   teléfono que le presta al chico—; si no hay, cae en la biblioteca, que es donde el adulto
+   entra. La puerta no se tocó. */
+function _senoDeLaTarjeta(id) {
+  const s = (typeof window !== "undefined") ? window.SENO : null;
+  if (!s || !s.clases) return null;
+  const par = s.clases[id];
+  // `?desde=cuaderno` (12-sep-2026). La clase se abre en OTRA PESTAÑA y el cuaderno queda
+  // atrás, en la misma tarjeta. Su botón de salida iba a `/jugar/`, que pasa por la
+  // biblioteca: Pablo, *"me lleva a la lista de cuadernos. Debería volver atrás de dónde
+  // vine"*. Con esto la lección sabe que vino de acá y puede cerrar su pestaña. Sin el
+  // parámetro se comporta como siempre, así que no rompe nada mientras ct3d no lo lea.
+  return par ? { url: s.base + "/" + par[0] + "?desde=cuaderno", titulo: String(par[1] || "") } : null;
+}
+
+function _filtrarMenu(stage) {
+  if (!stage) return;
+  const caja = stage.querySelector("#buscarAct");
+  const q = (caja ? caja.value : "").trim().toLowerCase();
+  const cat = stage.dataset.filtroCat || "";
+  const est = stage.dataset.filtroEst || "";
+  const filtrando = !!(q || cat || est);
+  let total = 0;
+  stage.querySelectorAll(".menu-cat").forEach((grid) => {
+    let n = 0;
+    grid.querySelectorAll(".carta").forEach((c) => {
+      const ver = (!q || (c.dataset.busca || "").indexOf(q) >= 0)
+        && (!cat || c.dataset.cat === cat)
+        && (!est || c.dataset.estado === est);
+      c.hidden = !ver;
+      if (ver) n++;
+    });
+    grid.hidden = !n;
+    const tit = grid.previousElementSibling;
+    if (tit && tit.classList && tit.classList.contains("cat-titulo")) tit.hidden = !n;
+    total += n;
+  });
+  // Con un filtro puesto, «Seguí por acá» estorba: el chico está buscando otra cosa.
+  const arriba = stage.querySelector(".seguir-aca");
+  if (arriba) arriba.hidden = filtrando;
+  // Los videos no son de ninguna materia ni tienen estado: con un filtro puesto no van.
+  const videos = stage.querySelector("#seccionVideos");
+  if (videos) videos.hidden = filtrando;
+  let vacio = stage.querySelector("#sinResultados");
+  if (!vacio) {
+    vacio = el("div"); vacio.id = "sinResultados"; vacio.hidden = true;
+    const barra = stage.querySelector("#filtroMenu");
+    if (barra) barra.insertAdjacentElement("afterend", vacio);
+    else stage.appendChild(vacio);
+  }
+  vacio.hidden = !(filtrando && total === 0);
+  if (!vacio.hidden) {
+    vacio.textContent = q ? `No encontré nada con «${q}».` : "No hay actividades con ese filtro.";
+  }
+}
+
 function pintarMenuPlano(items, stage) {
   pararVoz();                                  // ver el comentario en Shell.abrir
   Shell.actual = null;
@@ -6100,16 +6306,22 @@ function pintarMenuPlano(items, stage) {
   // extras del padre hay que inyectarlo aunque el token no tenga el motor adaptativo,
   // si no la marca queda invisible.
   if (items.some((m) => m && m.escuela)) _adaptCSS();
-  // Capa 0 · nota de repaso del día (arriba del menú) si hay algo para repasar.
-  const repasos = items.filter((m) => GAMES[m.id] && Store.repasoPendiente(m.id));
-  if (repasos.length) {
-    stage.appendChild(el("div", "repaso-nota",
-      `🔁 Tenés ${repasos.length} ${repasos.length === 1 ? "repaso" : "repasos"} para hacer hoy — ¡a ver si te lo acordás!`));
-  }
   // Piloto adaptativo (gateado por D.adaptativo_on): separa el menú por categorías y decora
   // por estado de saber, SIN bloquear. Los links sin el flag ven el menú plano de siempre.
   const adaptOn = !!(D.adaptativo_on && typeof Adapt !== "undefined");
   const visibles = items.filter((m) => GAMES[m.id] && P.length >= (GAMES[m.id].minP || 0));
+  // Capa 0 · lo que toca repasar hoy. Con el motor va como TARJETAS abajo del «Seguí por
+  // acá» (11-sep-2026): el cartel decía «tenés 2 repasos» y no se podía tocar, así que el
+  // chico tenía que ir a buscarlas entre las 73. Sin motor, el cartel de siempre.
+  const repasos = items.filter((m) => GAMES[m.id] && Store.repasoPendiente(m.id));
+  if (repasos.length && !adaptOn) {
+    stage.appendChild(el("div", "repaso-nota",
+      `🔁 Tenés ${repasos.length} ${repasos.length === 1 ? "repaso" : "repasos"} para hacer hoy — ¡a ver si te lo acordás!`));
+  }
+  // LA ÚNICA RECOMENDADA. El motor ya sabía cuál conviene ahora; lo que faltaba era decirlo
+  // en un solo lugar en vez de marcar casi todas las tarjetas.
+  const _idSeguir = (adaptOn && Adapt.proximaRecomendada)
+    ? Adapt.proximaRecomendada(visibles.map((m) => m.id)) : null;
 
   // Aviso de ESI: va arriba del menú del grado que lo tiene, y en las DOS ramas
   // (con y sin motor adaptativo), porque las actividades curriculares aparecen igual.
@@ -6126,7 +6338,11 @@ function pintarMenuPlano(items, stage) {
     const repaso = Store.repasoPendiente(m.id);
     const adaptEst = adaptOn ? Adapt.estadoActividad(m.id) : null;
     const c = el("button", "carta" + (repaso ? " repaso" : "") + (adaptEst ? " adapt-" + adaptEst : ""));
-    if (adaptOn && (adaptEst === "recomendado" || adaptEst === "reforzar")) {
+    // «✨ Recomendado» SÓLO en la que se recomienda (11-sep-2026). Con un perfil nuevo el
+    // motor marca casi todas —las 73 de 4.º— y una etiqueta que llevan todas no recomienda
+    // nada: es ruido en cada tarjeta. La elegida ahora va arriba, en «Seguí por acá».
+    // «🌱 Reforzá antes» se queda: esa sí es de pocas y avisa que le faltan temas previos.
+    if (adaptOn && (adaptEst === "reforzar" || (adaptEst === "recomendado" && m.id === _idSeguir))) {
       const etq = Adapt.etiqueta(m.id); if (etq) c.dataset.adapt = etq;
     }
     // las cartas alternan emoji y personajes del tema para que el menú viva
@@ -6134,6 +6350,13 @@ function pintarMenuPlano(items, stage) {
     let est;
     // la eligió el padre porque la están viendo en la escuela: se marca para que el
     // chico entienda por qué apareció algo que no es de su grado
+    // DECLARADO ACÁ ARRIBA, antes de su primer uso, y no más abajo como estaba: la línea que
+    // sigue lo lee. Un `const` usado antes de su línea NO vale «indefinido» — tira
+    // ReferenceError y corta el dibujado del menú ENTERO. Sólo se disparaba en los cuadernos
+    // donde el padre sumó actividades de la escuela (`escuela: true`), porque si no el `&&`
+    // corta antes de mirarlo; por eso convivió sin que nadie lo viera. Es el mismo defecto que
+    // dejó el menú de 4.º en blanco el 11-sep-2026, dormido en otra línea desde el 211aa60.
+    const _masAlla = esMasAlla(m);
     if (m.escuela && !_masAlla) c.dataset.adapt = "📚 Lo ven en la escuela";
     if (repaso) est = "🔁 ¡Repasá!";
     else if (sello === "consolidado") est = "🌟 ¡Lo sabés!";
@@ -6143,8 +6366,8 @@ function pintarMenuPlano(items, stage) {
     // es el contenido, el segundo qué tan profundo llegó en esa actividad. Tratarlas como
     // excluyentes dejaba al chico que más avanzó viendo siempre el mismo 🚀, sin señal de
     // progreso, mientras el festejo le hablaba de un nivel que la carta no mostraba.
-    const _masAlla = esMasAlla(m);
     const _nd = nivelDeDificultad(m.id);
+    const _seno = _senoDeLaTarjeta(m.id);      // la clase de la seño, si esta tarjeta tiene
     const _ndMeta = _nd ? NIVEL_DIF[_nd - 1] : null;
     c.innerHTML = `
       <div class="icono">${conSprite ? `<img src="${P[(i / 3 | 0) + 1]}" alt="">` : _iconoSeguro(m)}</div>
@@ -6153,10 +6376,20 @@ function pintarMenuPlano(items, stage) {
       ${_masAlla ? `<div class="nivel-chip nivel-chip--mas" title="Es del grado siguiente: el paso después de Experto">🚀 Más allá<small>es de ${m.grado}.º</small></div>` : ""}
       ${_ndMeta ? `<div class="nivel-chip" title="Nivel ${_nd} de 3 — se gana jugando">${_ndMeta.icono} ${_ndMeta.nombre}</div>` : ""}
       ${conSprite ? `<div class="chip">${_iconoSeguro(m)}</div>` : ""}
-      ${_menuQueHabla() ? `<span class="hablar" aria-hidden="true">🔊</span>` : ""}`;
+      ${_menuQueHabla() ? `<span class="hablar" aria-hidden="true">🔊</span>` : ""}
+      ${_seno ? `<span class="seno-ir" title="Practicalo con la seño: ${_seno.titulo.replace(/"/g, "")}">🎓</span>` : ""}`;
     // El nombre del juego, para el lector de pantalla y para la voz: el 🔊 va oculto a
     // la accesibilidad porque lo que dice ya está en el rótulo de la tarjeta.
     c.setAttribute("aria-label", m.titulo);
+    // Para el buscador y los filtros: en qué se busca, de qué materia es y en qué estado
+    // está. Va en la tarjeta —y no en un índice aparte— porque el filtro trabaja sobre el
+    // DOM ya dibujado, que es lo que hace que buscar no re-arme el menú entero.
+    if (adaptOn) {
+      c.dataset.cat = Adapt.categoria(m.id);
+      c.dataset.busca = ((m.titulo || "") + " " +
+                         (Adapt.labelCategoria(c.dataset.cat) || "")).toLowerCase();
+      c.dataset.estado = sello !== "practicando" ? "dominada" : (st ? "practicando" : "nueva");
+    }
     // ESI: marca en la tarjeta + la nota completa la primera vez que se abre una.
     // No bloquea nada — después de leerla, el botón "Empezar" sigue al juego.
     const esEsi = ESI_IDS.has(m.id);
@@ -6173,6 +6406,17 @@ function pintarMenuPlano(items, stage) {
       if (ev && ev.target && ev.target.closest && ev.target.closest(".hablar")) {
         ev.preventDefault(); ev.stopPropagation();
         reproducirConsigna(m.titulo);
+        return;
+      }
+      // EL 🎓 ABRE LA CLASE, NO EL JUEGO. Mismo gesto que la corneta y por el mismo motivo:
+      // se atrapa acá en vez de poner un <a>, porque la tarjeta ES un <button> y un <a>
+      // adentro de un <button> es HTML inválido. Va en OTRA PESTAÑA para que el cuaderno
+      // quede donde estaba: la clase se lee al lado y el chico no pierde la partida ni el
+      // lugar del menú al volver.
+      if (_seno && ev && ev.target && ev.target.closest && ev.target.closest(".seno-ir")) {
+        ev.preventDefault(); ev.stopPropagation();
+        Sfx.pop();
+        window.open(_seno.url, "_blank", "noopener");
         return;
       }
       Sfx.pop();
@@ -6195,8 +6439,116 @@ function pintarMenuPlano(items, stage) {
       bp.addEventListener("click", gatePadres);   // compuerta para grandes → panel
       const anchor = $("#btnSonido"); if (anchor) anchor.insertAdjacentElement("afterend", bp);
     }
-    stage.appendChild(_botonModoProfe());   // Modo Creador (el diferencial: crear, no solo resolver)
+    // El emoji de cada materia. Va ACÁ ARRIBA, antes de todo lo que lo usa: lo piden los
+    // chips de la barra de filtros y el título de cada sección. Un `const` usado antes de
+    // su línea NO vale "indefinido" — tira ReferenceError y corta el dibujado entero.
+    // Pasó de verdad el 11-sep-2026: el menú de 4.º quedó sin una sola tarjeta, y ningún
+    // test lo vio porque todos leen el archivo, no la pantalla. Lo encontró la corrida en
+    // el espejo dev, que es para lo que está.
     const EMOJI = { lengua: "✏️", matematica: "🔢", naturales: "🌱", sociales: "🌎", logica: "🎲" };
+    // ── RACHA DE DÍAS en el encabezado, al lado de las estrellas. Desde 2 días: con uno
+    // solo no hay racha que mostrar, y un «🔥 1» el primer día promete algo que no pasó.
+    const _racha = Store.rachaDias();
+    let _rp = document.getElementById("hdrRacha");
+    if (_racha >= 2) {
+      if (!_rp) {
+        _rp = el("div", "pill"); _rp.id = "hdrRacha";
+        _rp.title = "Días seguidos que jugaste";
+        const anc = document.getElementById("hdrEstrellas");
+        if (anc) anc.insertAdjacentElement("afterend", _rp); else $("#hdr").appendChild(_rp);
+      }
+      _rp.textContent = "🔥 " + _racha;
+    } else if (_rp) { _rp.remove(); }
+
+    // ── BUSCADOR, MATERIAS, ESTADO Y VISTA EN LISTA — de 4.º para arriba.
+    // En 1.º-3.º el menú se deja como está: son menos tarjetas y un chico que todavía
+    // está aprendiendo a leer no busca escribiendo (misma línea que `_menuQueHabla`).
+    // Con menos de 20 tarjetas tampoco aparece: buscar entre 15 es más trabajo que mirar.
+    if (gradoDelChico() >= 4 && visibles.length >= 20) {
+      const KVISTA = Store.key + "::vista";
+      try { if (localStorage.getItem(KVISTA) === "lista") stage.classList.add("lista"); } catch (e) {}
+      const barra = el("div"); barra.id = "filtroMenu";
+      const inp = el("input"); inp.id = "buscarAct"; inp.type = "search";
+      // Corto a propósito: el campo ahora comparte fila con el botón de vista y el texto
+      // largo se cortaba. Que además busca por materia lo dicen las fichas de acá abajo.
+      inp.placeholder = "Buscá una actividad…";
+      inp.setAttribute("aria-label", "Buscar una actividad");
+      inp.addEventListener("input", () => _filtrarMenu(stage));
+      const fila = el("div", "filtro-chips");
+      const cats = Adapt.ordenCategorias()
+        .filter((c) => visibles.some((m) => Adapt.categoria(m.id) === c));
+      [["", "Todas"]].concat(cats.map((c) => [c, `${EMOJI[c] || "•"} ${Adapt.labelCategoria(c)}`]))
+        .forEach(([valor, texto]) => {
+          const b = el("button", "chip" + (valor ? "" : " on"), texto);
+          b.addEventListener("click", () => {
+            stage.dataset.filtroCat = valor;
+            fila.querySelectorAll(".chip").forEach((x) => x.classList.remove("on"));
+            b.classList.add("on");
+            _filtrarMenu(stage);
+          });
+          fila.appendChild(b);
+        });
+      // EL ESTADO VA CON FICHAS Y NO CON UN DESPLEGABLE (Pablo, 11-sep-2026: *«no me gusta
+      // el select, no tiene buen diseño»*). Dos motivos y el segundo pesa más que el gusto:
+      // un `<select>` lo dibuja el sistema operativo —no hay CSS que lo haga combinar con el
+      // resto del cuaderno, y se ve distinto en cada teléfono— y **esconde las opciones
+      // hasta que se lo toca**, así que el chico no llega a enterarse de que puede filtrar.
+      // Las fichas se ven todas y repiten el gesto de las materias, una fila más arriba.
+      const abajo = el("div", "filtro-abajo");
+      const filaEst = el("div", "filtro-estados");
+      filaEst.setAttribute("role", "group");
+      filaEst.setAttribute("aria-label", "Filtrar por estado");
+      [["", "Todas"], ["nueva", "Sin empezar"], ["practicando", "Practicando"],
+       ["dominada", "🏅 Dominadas"]].forEach(([valor, texto]) => {
+        const b = el("button", "chip chip-est" + (valor ? "" : " on"), texto);
+        b.addEventListener("click", () => {
+          stage.dataset.filtroEst = valor;
+          filaEst.querySelectorAll(".chip").forEach((x) => x.classList.remove("on"));
+          b.classList.add("on");
+          _filtrarMenu(stage);
+        });
+        filaEst.appendChild(b);
+      });
+      const bv = el("button", "chip", stage.classList.contains("lista") ? "▦ Tarjetas" : "☰ Lista");
+      bv.id = "vistaAct";
+      bv.setAttribute("aria-label", "Cambiar cómo se ven las actividades");
+      bv.addEventListener("click", () => {
+        const lista = stage.classList.toggle("lista");
+        bv.textContent = lista ? "▦ Tarjetas" : "☰ Lista";
+        try { localStorage.setItem(KVISTA, lista ? "lista" : "cartas"); } catch (e) {}
+      });
+      // EL BOTÓN DE VISTA SUBE A LA FILA DEL BUSCADOR. A 400 px las cuatro fichas de estado
+      // más el botón no entran juntos, y la última ficha quedaba CORTADA AL MEDIO contra el
+      // botón: eso no se lee como «hay más, deslizá», se lee como un error de dibujo. Con la
+      // fila entera para las fichas, lo que sobra recorta en el BORDE de la pantalla, que es
+      // el mismo gesto que ya hacen las materias de arriba.
+      abajo.appendChild(filaEst);
+      const arriba = el("div", "filtro-arriba");
+      arriba.appendChild(inp); arriba.appendChild(bv);
+      barra.appendChild(arriba); barra.appendChild(fila); barra.appendChild(abajo);
+      stage.appendChild(barra);
+      // Se pega ABAJO del encabezado, que también es pegajoso y mide distinto en cada
+      // aparato (la muesca del teléfono entra en su relleno): se mide, no se adivina.
+      const hdr = document.getElementById("hdr");
+      if (hdr) barra.style.top = hdr.offsetHeight + "px";
+    }
+
+    // ── «SEGUÍ POR ACÁ»: una sola tarjeta ancha con lo que conviene ahora.
+    const _itSeguir = _idSeguir ? visibles.find((m) => m.id === _idSeguir) : null;
+    if (_itSeguir) {
+      const _esRep = Store.repasoPendiente(_itSeguir.id);
+      const bs = el("button", "seguir-aca");
+      bs.innerHTML = `<div class="ico">${_iconoSeguro(_itSeguir)}</div>
+        <div class="txt"><small>${_esRep ? "🔁 Te toca repasar" : "✨ Seguí por acá"}</small>
+          <b>${_itSeguir.titulo}</b>
+          <span>${_esRep ? "Ya lo sabías: a ver si te lo acordás." : "Es lo que te conviene hacer ahora."}</span></div>
+        <div class="ir" aria-hidden="true">▶</div>`;
+      bs.setAttribute("aria-label", (_esRep ? "Te toca repasar: " : "Seguí por acá: ") + _itSeguir.titulo);
+      bs.addEventListener("click", () => { Sfx.pop(); Shell.abrir(_itSeguir.id); });
+      stage.appendChild(bs);
+    }
+
+    stage.appendChild(_botonModoProfe());   // Modo Creador (el diferencial: crear, no solo resolver)
     // EL ORDEN QUE ARMÓ LA MAESTRA gana sobre la recomendación del motor (Pablo,
     // 04-sep-2026: *"que la profe pueda ordenar las tarjetas como creo que las tiene que
     // ver el alumno"*). Manda ella y no a medias: si el motor pudiera reacomodarle las
@@ -6214,16 +6566,38 @@ function pintarMenuPlano(items, stage) {
       ? (a, b) => (posSeno.has(a.id) ? posSeno.get(a.id) : 1e6 + Adapt.peso(a.id)) -
                   (posSeno.has(b.id) ? posSeno.get(b.id) : 1e6 + Adapt.peso(b.id))
       : (a, b) => Adapt.peso(a.id) - Adapt.peso(b.id);
+    // ── LOS REPASOS DE HOY, TOCABLES. Van arriba de las materias: son pocos, vencen hoy
+    // y hasta ahora había que ir a buscarlos al medio del menú.
+    if (repasos.length) {
+      stage.appendChild(el("h3", "cat-titulo cat-repaso",
+        `🔁 Repasos de hoy<small>${repasos.length === 1 ? "es 1" : "son " + repasos.length}</small>`));
+      const gRep = el("div", "menu-cat");
+      repasos.forEach((m, i) => gRep.appendChild(hacerCarta(m, i)));
+      stage.appendChild(gRep);
+    }
+    // VIDEOS INTERACTIVOS: después de todas las materias y ANTES de Extras (ver
+    // `cargarVideosInteractivos`). Se pone al llegar a Extras —antes del `return` de categoría
+    // vacía, así entra aunque el grado no tenga Extras— o al final si no se puso.
+    let _videosPuestos = !VIDEOS_VI.length;
     Adapt.ordenCategorias().forEach((cat) => {
+      if (cat === "logica" && !_videosPuestos) {
+        stage.appendChild(_seccionVideos());
+        _videosPuestos = true;
+      }
       const delCat = visibles.filter((m) => Adapt.categoria(m.id) === cat).sort(ordenar);
       if (!delCat.length) return;                    // categoría vacía en este grado → no se muestra
       // la clase por materia le da el color de la marca al título (ver _adaptCSS)
+      // PROGRESO DE LA MATERIA al lado del título: cuántas tiene con sello. Hasta hoy eso
+      // sólo se veía en el panel de grandes (📊), y es la pregunta del chico: ¿cuánto me falta?
+      const _conSello = delCat.filter((m) => Store.sello(m.id) !== "practicando").length;
       stage.appendChild(el("h3", "cat-titulo cat-" + cat,
-        `${EMOJI[cat] || "•"} ${Adapt.labelCategoria(cat)}`));
+        `${EMOJI[cat] || "•"} ${Adapt.labelCategoria(cat)}` +
+        `<small class="cat-prog">${_conSello} de ${delCat.length} 🏅</small>`));
       const grid = el("div", "menu-cat");
       delCat.forEach((m, i) => grid.appendChild(hacerCarta(m, i)));
       stage.appendChild(grid);
     });
+    if (!_videosPuestos) stage.appendChild(_seccionVideos());
   } else {
     const menu = el("div"); menu.id = "menu";
     visibles.forEach((m, i) => menu.appendChild(hacerCarta(m, i)));
@@ -6877,7 +7251,9 @@ function _botonModoProfe() {
        grado (el acento se usa en veinte lugares más): se oscurece SÓLO acá. */
     "background:color-mix(in srgb, var(--ac2) 74%, #0B0F0E);color:#fff;border:none;" +
     "border-radius:14px;" +
-    "padding:16px 18px;font-size:18px;font-weight:800;box-shadow:0 8px 22px rgba(0,0,0,.18);cursor:pointer;margin:2px 0 10px";
+    // Margen de arriba 12 y no 2: contra «Seguí por acá» los márgenes se COLAPSAN (`#stage`
+    // es bloque), así que el hueco entre los dos bloques es el mayor de ambos, no la suma.
+    "padding:16px 18px;font-size:18px;font-weight:800;box-shadow:0 8px 22px rgba(0,0,0,.18);cursor:pointer;margin:12px 0 14px";
   // El emoji 🧑‍🏫 trae un PIZARRÓN adentro: un rectángulo oscuro que sobre la banda de
   // color se lee como un cuadrado pegado, no como un ícono (Pablo, 29-jul). El birrete no
   // tiene ninguna forma rectangular, así que se apoya limpio sobre cualquier acento.
@@ -7520,11 +7896,134 @@ async function sumarExtrasDeLaEscuela() {
   } catch (e) { /* sin extras: el cuaderno de siempre */ }
 }
 
+/* ── VIDEOS INTERACTIVOS: la sección de antes de Extras ─────────────────────────
+   Pablo, 16-sep-2026: *"quiero que vayas agregando los videos a una última sección que se
+   llame videos interactivos, antes de las tarjetas extras"* — y enseguida: *"después de
+   naturales, sociales, exactas, etc. Pero antes de las extras"*.
+
+   TRES DECISIONES, cada una por algo que se rompería de otra manera:
+   1. **La lista se pide EN VIVO** al motor (`/vi/indice.json`) y no sale de `data.json`, que
+      queda congelado el día de la compra: un video nuevo no le llegaría nunca a un cuaderno ya
+      entregado. Así, sumar una pieza alcanza para que aparezca en todos los de su grado.
+   2. **No es un carril de materia.** Los carriles son fijos, los usan el motor adaptativo, el
+      buscador y los filtros; abrir uno nuevo cambiaría la pantalla de los siete grados. Es una
+      sección aparte que se dibuja en el lugar de Extras, antes que ella.
+   3. **Las tarjetas NO son `.carta`.** El modo seño arrastra toda `.carta` y guarda su orden, y
+      el buscador y la voz del menú las recorren: una tarjeta de video metida ahí terminaría en
+      el orden de la maestra como si fuera una actividad. Tienen su clase y su grilla.
+
+   Son de Kydo: el cuaderno de cumpleaños no los pide. Y fallan en silencio, como los extras:
+   sin la lista, el chico ve su cuaderno de siempre. ── */
+let VIDEOS_VI = [];
+let _viTecla = null;
+
+async function cargarVideosInteractivos() {
+  if (!D || !D.escolar_on) return;
+  try {
+    const r = await fetch("/vi/indice.json", { cache: "no-store" });
+    if (!r.ok) return;
+    const videos = ((await r.json()) || {}).videos;
+    if (!Array.isArray(videos)) return;
+    const grado = gradoDelChico();
+    VIDEOS_VI = videos.filter((v) => v && /^[a-z0-9_]+$/.test(v.pieza || "") && v.grado === grado);
+  } catch (e) { /* sin videos: el cuaderno de siempre */ }
+}
+
+function _viClave(pieza) { return Store.key + "::vi::" + pieza; }
+function _viVisto(pieza) {
+  try { return !!localStorage.getItem(_viClave(pieza)); } catch (e) { return false; }
+}
+
+function _seccionVideos() {
+  const sec = el("section"); sec.id = "seccionVideos";
+  const vistos = VIDEOS_VI.filter((v) => _viVisto(v.pieza)).length;
+  sec.appendChild(el("h3", "cat-titulo cat-videos",
+    `🎬 Videos interactivos<small class="cat-prog">${vistos} de ${VIDEOS_VI.length} ✅</small>`));
+  const grilla = el("div", "vi-grid");
+  VIDEOS_VI.forEach((v) => {
+    const visto = _viVisto(v.pieza);
+    const c = el("button", "vi-carta" + (visto ? " visto" : ""));
+    c.type = "button";
+    c.dataset.pieza = v.pieza;
+    c.setAttribute("aria-label", "Video: " + v.titulo);
+    c.innerHTML = `
+      <div class="vi-portada"><img src="/vi/${v.pieza}/portada.webp?v=${encodeURIComponent(v.version || "")}"
+        alt="" loading="lazy"><span class="vi-play" aria-hidden="true">▶</span></div>
+      <div class="nombre"></div>
+      <div class="mini-est">${visto ? "✅ Visto" : "🎬 Video"}</div>`;
+    c.querySelector(".nombre").textContent = v.titulo;
+    c.addEventListener("click", () => { Sfx.pop(); abrirVideoInteractivo(v); });
+    grilla.appendChild(c);
+  });
+  sec.appendChild(grilla);
+  return sec;
+}
+
+/* El video se abre ENCIMA del cuaderno, en un marco, y no navegando: al cerrarlo el chico
+   vuelve al mismo lugar del menú. Y con un botón, no con un `<a>` — en el cuaderno del chico
+   el único enlace es el del diploma. */
+function abrirVideoInteractivo(v) {
+  pararVoz();
+  cerrarVideoInteractivo();
+  const capa = el("div"); capa.id = "viCapa";
+  capa.setAttribute("role", "dialog");
+  capa.setAttribute("aria-label", v.titulo);
+  const barra = el("div", "vi-barra");
+  const volver = el("button", "vi-volver", "← Volver");
+  volver.type = "button";
+  volver.setAttribute("aria-label", "Volver al cuaderno");
+  volver.addEventListener("click", cerrarVideoInteractivo);
+  barra.appendChild(volver);
+  const marco = el("iframe");
+  marco.src = `/vi/${v.pieza}/`;
+  marco.title = v.titulo;
+  marco.setAttribute("allow", "autoplay; fullscreen");
+  capa.appendChild(barra);
+  capa.appendChild(marco);
+  document.body.appendChild(capa);
+  document.body.classList.add("vi-abierto");
+  _viTecla = (e) => { if (e.key === "Escape") cerrarVideoInteractivo(); };
+  document.addEventListener("keydown", _viTecla);
+  volver.focus();
+}
+
+function cerrarVideoInteractivo() {
+  const capa = document.getElementById("viCapa");
+  if (!capa) return;
+  capa.remove();                 // se va el marco y con él la voz del video
+  document.body.classList.remove("vi-abierto");
+  if (_viTecla) { document.removeEventListener("keydown", _viTecla); _viTecla = null; }
+}
+
+/* El video avisa cuando el chico lo terminó (`KYDO_VI_RESULTADO` en su reproductor). Se guarda
+   con la clave del perfil y la tarjeta se marca EN SU LUGAR: repintar el menú lo mandaría
+   arriba de todo, y la sección está al final. */
+window.addEventListener("message", (ev) => {
+  if (ev.origin !== location.origin) return;
+  const d = ev.data;
+  if (!d || d.tipo !== "kydo-video-interactivo" || !d.datos) return;
+  const pieza = d.datos.pieza;
+  if (!VIDEOS_VI.some((v) => v.pieza === pieza)) return;
+  try { localStorage.setItem(_viClave(pieza), JSON.stringify(d.datos)); } catch (e) {}
+  const carta = document.querySelector(`.vi-carta[data-pieza="${pieza}"]`);
+  if (carta) {
+    carta.classList.add("visto");
+    const est = carta.querySelector(".mini-est");
+    if (est) est.textContent = "✅ Visto";
+  }
+  const cuenta = document.querySelector("#seccionVideos .cat-prog");
+  if (cuenta) {
+    const vistos = VIDEOS_VI.filter((v) => _viVisto(v.pieza)).length;
+    cuenta.textContent = `${vistos} de ${VIDEOS_VI.length} ✅`;
+  }
+});
+
 /* ── arranque ── */
 async function boot() {
   const r = await fetch("data.json");
   D = await r.json();
-  await sumarExtrasDeLaEscuela();
+  // los dos se piden a la vez: son independientes y los dos fallan en silencio
+  await Promise.all([sumarExtrasDeLaEscuela(), cargarVideosInteractivos()]);
   // El duelo entre compañeros vive en su propio archivo (actividades_duelo.js) y se suma
   // acá, no desde data.json: el menú queda congelado en el token el día de la compra, así
   // que un cuaderno ya entregado nunca vería un juego nuevo. `typeof` porque el archivo se
@@ -12556,6 +13055,660 @@ GAMES.comparar_numeros = {
         fila.appendChild(b);
       });
       ctx.juego.appendChild(el("div", "tablero")).appendChild(fila);
+    };
+    jugar();
+  },
+};
+
+/* ── NÚMEROS EN PALABRAS (2.º M6 · 3.º M2): leer y escribir números, en los dos sentidos.
+
+   Pablo, 11-sep-2026: *"pasar un número a texto y al revés. Por ejemplo 880 y que
+   aparezcan palabras como ochocientos, novecientos, setenta, etc, y si selecciona el texto
+   va armado como se escribe ese número; y de un texto, qué número es"*. En 1.º-3.º no había
+   ninguna actividad así: leer y escribir números aparecía recién en 4.º y 5.º, y como
+   opción múltiple.
+
+   Dos tramos EN BLOQUE, no alternados: la auditoría de 2.º (M6) midió que cambiar la
+   consigna ronda a ronda mide si el chico la leyó, no el contenido.
+     1. De las palabras al número (reconocer): «ochocientos ochenta» → 880 | 80080 | 808.
+     2. Del número a las palabras (producir): 880 → tocar «ochocientos» y «ochenta», entre
+        fichas que sobran.
+
+   Las opciones que están mal y las fichas que sobran son errores que los chicos cometen de
+   verdad (Lerner y Sadovsky, «El sistema de numeración: un problema didáctico», 1994), no
+   palabras al azar:
+     · ESCRIBIR COMO SE DICE: ochocientos ochenta → 80080. Es EL error del tema: la
+       numeración hablada suma pedazos (800 + 80) y la escrita es posicional.
+     · El cero, que no se dice pero se escribe: ochocientos cinco → 85, o el 5 corrido, 850.
+     · Las centenas irregulares, dichas como suenan: «cincocientos», «sietecientos»…
+     · cien y ciento, «un mil», el viejo «diez y seis», la «y» de más, seis y siete.
+
+   SIN SEPARADOR DE MILES, a propósito. El resto del cuaderno escribe 3.450, pero acá el
+   punto sería una pista de superficie: en 2.º la respuesta nunca lo llevaría y el error
+   (80.080) siempre, y el chico aprendería «el que tiene punto está mal» sin entender nada.
+   El error real, además, el chico lo escribe sin punto, y la RAE no separa los de cuatro
+   cifras.
+
+   Las palabras salen de `_numeroEnPalabras`, la misma que usa la voz: lo que el cuaderno
+   escribe y lo que dice no pueden diferir. La lógica va en funciones sueltas y sin DOM
+   para que `tests/test_numeros_en_palabras.py` la corra con node. ── */
+
+// Una palabra por ficha: 888 → ["ochocientos", "ochenta", "y", "ocho"].
+function _npPalabras(n) { return _numeroEnPalabras(n).split(" "); }
+
+// Los pedazos que se NOMBRAN, con su valor: 3450 → [3000, 400, 50]; 818 → [800, 18].
+// Del 1 al 29 es un pedazo solo, porque se dice en una palabra (dieciocho, veinticinco).
+function _npPedazos(n) {
+  const out = [];
+  const m = Math.floor(n / 1000), c = Math.floor((n % 1000) / 100), r = n % 100;
+  if (m) out.push(m * 1000);
+  if (c) out.push(c * 100);
+  if (r >= 30) { out.push(r - (r % 10)); if (r % 10) out.push(r % 10); }
+  else if (r) out.push(r);
+  return out;
+}
+
+// Los lugares con los nombres del programa —unidades, decenas y centenas—, que son los del
+// pizarrón y no los de la auditoría (ver test_valor_posicional_se_dice_bien.py).
+function _npLugar(v) {
+  return v >= 1000 ? "unidades de mil" : v >= 100 ? "centenas" : v >= 10 ? "decenas" : "unidades";
+}
+
+function _npMayus(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+// El número de la ronda, cargado hacia los que traen el error del tema: el cero del
+// medio (805, 3005), las centenas irregulares (5, 7, 9) y el 1 de ciento/cien, los que van
+// en una palabra (11 al 29). Parejo al azar casi no saldrían: un 805 es uno cada diez.
+// `bonus` es el escalón ganado (ctx.bonusDominio): sube la proporción de los difíciles.
+function _npSortear(cifras, bonus) {
+  const dificil = bonus > 0;
+  const cien = () => (Math.random() < 0.45 ? [1, 5, 7, 9][rint(0, 3)] : rint(1, 9));
+  const cola = () => {                          // las dos últimas cifras
+    const p = Math.random() * 100;
+    if (p < (dificil ? 18 : 28)) return rint(3, 9) * 10 + rint(1, 9);   // cuarenta y siete
+    if (p < (dificil ? 34 : 48)) return rint(3, 9) * 10;                // ochenta
+    if (p < 66) return rint(1, 9);                                      // el cero del medio
+    if (p < 82) return rint(10, 19);                                    // diez a diecinueve
+    if (p < 95) return rint(20, 29);                                    // veinte a veintinueve
+    return 0;                                                            // redondo: 500
+  };
+  if (cifras <= 3) {
+    if (dificil && Math.random() < 0.06) return 1000;                   // el tope de 2.º
+    return cien() * 100 + cola();
+  }
+  // 3.º: también de tres cifras (el DC dice «de 3 y 4»), y las centenas pueden faltar:
+  // 3005 es el cero que más cuesta, porque entre el mil y el cinco no se nombra nada
+  if (Math.random() < (dificil ? 0.1 : 0.2)) return cien() * 100 + cola();
+  const m = Math.random() < 0.2 ? 1 : rint(2, 9);
+  const c = Math.random() < (dificil ? 0.4 : 0.25) ? 0 : cien();
+  return m * 1000 + c * 100 + cola();
+}
+
+// Las fichas que SOBRAN. Cada una es un error que se comete de verdad y trae su porqué,
+// escrito «regla: respuesta» para que la primera vez se vea la regla y recién a la
+// segunda la respuesta entera (_enDosTiempos). Ninguna es una palabra de la respuesta:
+// con dos fichas iguales, una buena y otra marcada como error, la corrección mentiría.
+function _npTrampas(n, cuantas) {
+  const bien = _npPalabras(n), frase = bien.join(" ");
+  const m = Math.floor(n / 1000), c = Math.floor((n % 1000) / 100), r = n % 100;
+  const d = Math.floor(r / 10), u = r % 10;
+  const cand = [];
+  const sumar = (w, regla, peso) => {
+    if (!w || bien.includes(w) || cand.some((x) => x.w === w)) return;
+    cand.push({ w: w, m: regla + ": " + frase + ".", peso: peso });
+  };
+  const lado = Math.random() < 0.5 ? 1 : -1;
+  const vecina = (tabla, i, lo, hi) => {
+    for (const j of [i + lado, i - lado]) if (j >= lo && j <= hi && tabla[j]) return tabla[j];
+    return "";
+  };
+  // dichos como suenan: cinco → «cincocientos». Es el error de regularizar
+  const SUENA_C = { 5: "cincocientos", 7: "sietecientos", 9: "nuevecientos" };
+  const SUENA_D = { 6: "seisenta", 7: "sietenta", 9: "nueventa" };
+  if (SUENA_C[c]) sumar(SUENA_C[c], "«" + SUENA_C[c] + "» no existe, en las centenas el " + c + " cambia", 3);
+  if (r >= 30 && SUENA_D[d]) sumar(SUENA_D[d], "«" + SUENA_D[d] + "» no existe, en las decenas el " + d + " cambia", 3);
+  // cien y ciento
+  if (c === 1 && r) sumar("cien", "Cien es el 100 solo; si le sigue algo, se dice ciento", 3);
+  if (c === 1 && !r) sumar("ciento", "Ciento va cuando le sigue algo, como en ciento dos; el 100 solo es cien", 3);
+  // el mil
+  if (m === 1) sumar("un", "Mil va solo, sin «un» adelante", 3);
+  if (m >= 2) sumar(_UNI[m] + "mil", "Son dos palabras, van separadas", 2);
+  if (n === 1000) sumar("cien", "Cien es el 100; el 1000 es mil", 2);
+  // del 16 al 29 va todo junto: el viejo «diez y seis»
+  if (r >= 16 && r <= 19) sumar("diez", "Del 16 al 19 se escribe todo junto, en una sola palabra", 3);
+  if (r >= 21 && r <= 29) sumar("veinte", "Del 21 al 29 se escribe todo junto, en una sola palabra", 3);
+  // seis y siete empiezan igual: seiscientos/setecientos, sesenta/setenta
+  if (c === 6 || c === 7) sumar(_CEN[13 - c], "Mirá bien la cifra de las centenas, es un " + c, 2);
+  if (d === 6 || d === 7) sumar(_DEC[13 - d], "Mirá bien la cifra de las decenas, es un " + d, 2);
+  // la «y» va sólo entre las decenas y las unidades
+  if (bien.length >= 2 && !bien.includes("y")) {
+    sumar("y", "La «y» va solamente entre las decenas y las unidades, como en treinta y dos", 2);
+  }
+  // la misma cifra en otro lugar: el 8 de las decenas no es «ocho»
+  if (r >= 30) sumar(_UNI[d], "El " + d + " está en el lugar de las decenas, vale " + d * 10, 1.5);
+  if (r >= 30 && u >= 3) sumar(_DEC[u], "El " + u + " está en el lugar de las unidades, vale " + u, 1.5);
+  if (c >= 3) sumar(_DEC[c], "El " + c + " está en el lugar de las centenas, vale " + c * 100, 1.5);
+  // y la cifra de al lado —el ejemplo de Pablo: 880 con «novecientos» y «setenta»—,
+  // porque saber cómo se llama cada cien y cada diez también es el tema
+  if (c >= 1) sumar(vecina(_CEN, c, 2, 9), "Mirá bien la cifra de las centenas, es un " + c, 1);
+  if (r >= 30) sumar(vecina(_DEC, d, 3, 9), "Mirá bien la cifra de las decenas, es un " + d, 1);
+  if (m >= 2) sumar(vecina(_UNI, m, 2, 9), "Mirá bien la cifra de las unidades de mil, es un " + m, 1);
+  // relleno, para los que traen pocos errores propios (el 200 sólo da «trescientos»)
+  for (const j of shuffle([2, 3, 4, 5, 6, 7, 8, 9])) {
+    if (cand.length >= cuantas) break;
+    if (c >= 1) sumar(_CEN[j], "Mirá bien la cifra de las centenas, es un " + c, 0.5);
+    else if (r >= 30) sumar(_DEC[j], "Mirá bien la cifra de las decenas, es un " + d, 0.5);
+    else sumar(_UNI[j], "Mirá bien el número, cifra por cifra", 0.5);
+  }
+  // se eligen al azar, con más chance para los errores más comunes
+  const out = [];
+  while (out.length < cuantas && cand.length) {
+    let t = Math.random() * cand.reduce((a, x) => a + x.peso, 0), i = 0;
+    while (i < cand.length - 1 && (t -= cand[i].peso) > 0) i++;
+    out.push(cand.splice(i, 1)[0]);
+  }
+  return out;
+}
+
+// Las opciones que están mal en «¿qué número es?», cada una con su error y su porqué.
+function _npDistractores(n) {
+  const ok = String(n), frase = _numeroEnPalabras(n), ped = _npPedazos(n);
+  const out = [];
+  const sumar = (v, tipo, regla) => {
+    v = String(v);
+    if (v !== ok && !out.some((x) => x.v === v)) {
+      out.push({ v: v, tipo: tipo, m: regla + ": " + frase + " es " + ok + "." });
+    }
+  };
+  // 1) ESCRIBIR COMO SE DICE: cada pedazo con sus ceros, uno atrás del otro (880 → 80080).
+  //    Y a medias, sólo el primero (3450 → 3000450): el chico que ya escribe bien el 450
+  //    pero todavía no sabe dónde va el mil.
+  if (ped.length >= 2) {
+    const regla = "El " + _numeroEnPalabras(ped[1]) + " no va pegado atrás del "
+      + _numeroEnPalabras(ped[0]) + ", va en el lugar de sus ceros";
+    sumar(ped.join(""), "pegado", regla);
+    sumar(String(ped[0]) + String(n - ped[0]), "pegado", regla);
+  }
+  // 2) CORRIDO de lugar: el último pedazo en el lugar de al lado, si está vacío.
+  //    805 → 850 (el cinco puesto en las decenas), 880 → 808.
+  const ult = ped[ped.length - 1];
+  if (ult && !(ult > 10 && ult < 30 && ult % 10)) {    // dieciocho es un pedazo de dos cifras
+    const lugar = (v) => (v >= 1000 ? 1000 : v >= 100 ? 100 : v >= 10 ? 10 : 1);
+    const L = lugar(ult), cifra = ult / L, resto = n - ult;
+    const vacio = (P) => Math.floor(resto / P) % 10 === 0;
+    const regla = (P) => _npMayus(_numeroEnPalabras(ult)) + " va en el lugar de las " + _npLugar(L)
+      + ", no en el de las " + _npLugar(P);
+    if (L < 1000 && vacio(L * 10)) sumar(resto + cifra * L * 10, "corrido", regla(L * 10));
+    if (L > 1 && vacio(L / 10)) sumar(resto + (cifra * L) / 10, "corrido", regla(L / 10));
+  }
+  // 3) SEIS Y SIETE, que empiezan igual: seiscientos/setecientos, sesenta/setenta
+  for (const pos of [ok.length - 3, ok.length - 2]) {
+    if (pos >= 0 && (ok[pos] === "6" || ok[pos] === "7")) {
+      sumar(ok.slice(0, pos) + (ok[pos] === "6" ? "7" : "6") + ok.slice(pos + 1), "seis_siete",
+            "Seis da sesenta y seiscientos; siete da setenta y setecientos");
+      break;
+    }
+  }
+  // 4) EL CERO QUE NO SE DICE: escribir sólo las cifras que se nombran (805 → 85)
+  const sinCeros = ok.replace(/0+(?=[1-9])/g, "");
+  if (sinCeros !== ok) {
+    sumar(sinCeros, "sin_cero", "El cero no se dice, pero se escribe, porque guarda el lugar vacío");
+  }
+  return out;
+}
+
+// Tres opciones: la correcta, el error del tema (escribir como se dice) y otro error del
+// mismo largo que la correcta o más corto. Si las dos que están mal fueran «pegadas», la
+// correcta sería siempre la más corta y se ganaría por el largo sin entender nada: ese
+// número no sirve para este tramo, y se sortea otro.
+function _npOpciones(n) {
+  const todas = _npDistractores(n);
+  const pegadas = todas.filter((x) => x.tipo === "pegado");
+  const otras = todas.filter((x) => x.tipo !== "pegado");
+  if (!otras.length) return null;
+  let d = null;
+  if (pegadas.length) d = [pegadas[rint(0, pegadas.length - 1)], otras[rint(0, otras.length - 1)]];
+  else if (otras.length >= 2) d = shuffle(otras).slice(0, 2);
+  return d && { n: n, ok: String(n), d: d };
+}
+
+// El porqué cuando toca una ficha que no va, o que va pero todavía no.
+function _npPorQue(n, ficha, esperada) {
+  const frase = _numeroEnPalabras(n);
+  if (ficha.trampa) return ficha.trampa.m;
+  if (esperada === "y") return "Entre las decenas y las unidades va una «y»: " + frase + ".";
+  if (ficha.w === "y") return "La «y» va solamente entre las decenas y las unidades: " + frase + ".";
+  return "Se escribe en el orden en que se lee, de izquierda a derecha: " + frase + ".";
+}
+
+GAMES.numeros_palabras = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    const cifras = ctx.cfg.cifras || 3;
+    // el escalón ganado: más ceros en el medio, y una ficha que sobra de más
+    const bonus = ctx.bonusDominio;
+    const mitad = Math.ceil(rondas / 2);
+    const vistos = new Set();
+    let ronda = 0;
+    // un número que no haya salido en esta partida y que sirva para el tramo
+    const sortear = (armar) => {
+      for (let i = 0; i < 80; i++) {
+        const n = _npSortear(cifras, bonus);
+        if (vistos.has(n)) continue;
+        const it = armar(n);
+        if (!it) continue;
+        vistos.add(n);
+        return it;
+      }
+      return null;
+    };
+    const pasar = async () => {
+      ctx.bien();
+      ronda++;
+      await espera(1100);
+      if (ronda >= rondas) ctx.win(); else jugar();
+    };
+    // Las opciones NO se leen en voz alta (`data-no-leer`): leer 80080 —«ochenta mil
+    // ochenta»— le diría al chico de oído cuál no es. El 🔊 de acá lee las PALABRAS, que
+    // es la ayuda que corresponde: vuelve la lectura un dictado sin regalar la respuesta.
+    const aNumero = (k) => {
+      const it = sortear(_npOpciones);
+      if (!it) { ctx.win(); return; }          // no pasa, pero nunca deja al chico trabado
+      const frase = _numeroEnPalabras(it.n);
+      ctx.item("numpal#n" + it.n);
+      consignaVariada(ctx, k, "Leé el número escrito en palabras y tocá cómo se escribe con cifras.", "m");
+      ctx.juego.innerHTML = "";
+      const tablero = el("div", "tablero numPalTablero");
+      tablero.setAttribute("data-no-leer", "");
+      tablero.appendChild(el("div", "numPalPalabras", frase));
+      const oir = el("button", "btn suave", "🔊 Escuchar");
+      oir.type = "button";
+      oir.addEventListener("click", () => reproducirConsigna(frase));
+      tablero.appendChild(oir);
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle([{ v: it.ok, ok: true }].concat(it.d)).forEach((o) => {
+        const b = el("button", "op", o.v);
+        b.addEventListener("click", () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); pasar(); }
+          else { b.classList.add("casi"); ctx.casi(o.m); }
+        });
+        fila.appendChild(b);
+      });
+      tablero.appendChild(fila);
+      ctx.juego.appendChild(tablero);
+    };
+    // Las fichas se tocan en orden y cada una se corrige al tocarla, como en «Armá la
+    // palabra»: a los 7 años, armar las cuatro y recién ahí enterarse de cuál estaba mal
+    // es demasiado para sostener en la cabeza.
+    const aPalabras = (k) => {
+      const it = sortear((n) => ({ n: n, palabras: _npPalabras(n),
+                                   trampas: _npTrampas(n, bonus > 0 || cifras > 3 ? 3 : 2) }));
+      if (!it) { ctx.win(); return; }
+      ctx.item("numpal#p" + it.n);
+      consignaVariada(ctx, k, "Ahora al revés: escribí el número con palabras. Tocá las fichas en orden, ¡que sobran algunas!", "m");
+      ctx.juego.innerHTML = "";
+      const tablero = el("div", "tablero numPalTablero");
+      tablero.setAttribute("data-no-leer", "");
+      tablero.appendChild(el("div", "numPalNumero", String(it.n)));
+      const huecos = el("div", "numPalHuecos");
+      const slots = it.palabras.map(() => el("div", "numPalHueco", ""));
+      slots.forEach((s) => huecos.appendChild(s));
+      tablero.appendChild(huecos);
+      const fichas = el("div", "numPalFichas");
+      let sig = 0, resuelto = false;
+      shuffle(it.palabras.map((w) => ({ w: w, trampa: null }))
+        .concat(it.trampas.map((t) => ({ w: t.w, trampa: t }))))
+        .forEach((f) => {
+          const b = el("button", "spriteBtn numPalFicha", f.w);
+          b.type = "button";
+          b.addEventListener("click", () => {
+            if (resuelto || b.disabled) return;
+            const esperada = it.palabras[sig];
+            if (!f.trampa && f.w === esperada) {
+              b.disabled = true;
+              slots[sig].textContent = f.w;
+              slots[sig].classList.add("anim-pop");
+              Sfx.tick(sig + 1);
+              sig++;
+              if (sig >= it.palabras.length) { resuelto = true; pasar(); }
+              return;
+            }
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            ctx.casi(_npPorQue(it.n, f, esperada));
+          });
+          fichas.appendChild(b);
+        });
+      tablero.appendChild(fichas);
+      ctx.juego.appendChild(tablero);
+    };
+    const jugar = () => {
+      ctx.ronda(ronda);
+      if (ronda < mitad) aNumero(ronda); else aPalabras(ronda - mitad);
+    };
+    jugar();
+  },
+};
+
+/* ── EL CAJERO Y PARTÍ EL NÚMERO (2.º · 12-sep-2026) ─────────────────────────────────
+   Pablo, sobre lo que se vio en mudi.com.ar: *"quiero que construyas algunas"*. Del set que
+   se había anotado para «Números hasta 1.000» de 2.º faltaban dos: armar el número con
+   billetes y partirlo en centenas, decenas y unidades. La recta ya estaba («Recta gigante») y
+   leer y escribir en palabras también («Números en palabras»).
+
+   Las dos enseñan lo mismo desde dos lados: la cifra dice CUÁNTOS de su lugar hay. El cajero
+   lo muestra con billetes —lo concreto, que se cuenta— y partir el número lo escribe
+   —300 + 40 + 7, lo simbólico—. */
+
+// 347 → [300, 40, 7] · 407 → [400, 7] · 500 → [500]. El cero NO es un pedazo: no suma nada.
+// No sirve `_npPedazos`: ese parte como se DICE (el 17 queda entero, «diecisiete»).
+function _cduPartes(n) {
+  const c = Math.floor(n / 100), d = Math.floor((n % 100) / 10), u = n % 10;
+  const out = [];
+  if (c) out.push(c * 100);
+  if (d) out.push(d * 10);
+  if (u) out.push(u);
+  return out;
+}
+
+// Un número de tres cifras. Sale del mismo sorteo que «Números en palabras», que ya reparte
+// bien los ceros del medio, pero sin el 1000: con billetes de 100, 10 y 1 y a lo sumo 9 por
+// lugar, el 1000 no se puede armar.
+function _cduSortear(bonus) {
+  for (let i = 0; i < 40; i++) {
+    const n = _npSortear(3, bonus);
+    if (n >= 100 && n <= 999) return n;
+  }
+  return rint(101, 999);
+}
+
+function _cduPlural(k, palabra) { return k + " " + palabra + (k === 1 ? "" : "s"); }
+
+// Qué pasó con los billetes, en el orden que más enseña: primero las cifras dadas vuelta,
+// después el cero del medio, y recién después qué lugar no coincide. Escrito «regla:
+// detalle» para `_enDosTiempos`: al primer error se ve sólo la regla.
+function _cajPorQue(n, cuenta) {
+  const c = Math.floor(n / 100), d = Math.floor((n % 100) / 10), u = n % 10;
+  const pc = cuenta[100], pd = cuenta[10], pu = cuenta[1];
+  const total = pc * 100 + pd * 10 + pu;
+  if (c !== u && pc === u && pd === d && pu === c) {
+    return "Pusiste las cifras dadas vuelta: armaste $" + total + ", y en el " + n + " el " + c +
+           " está en las centenas, o sea " + _cduPlural(c, "billete") + " de $100.";
+  }
+  if (d === 0 && pd > 0) {
+    return "En el " + n + " hay un 0 en las decenas: ahí no va ningún billete de $10.";
+  }
+  const mal = [[100, c, pc], [10, d, pd], [1, u, pu]].find((x) => x[1] !== x[2]);
+  return "Mirá las " + _npLugar(mal[0]) + ": el " + n + " tiene " + mal[1] + " y pusiste " +
+         _cduPlural(mal[2], "billete") + " de $" + mal[0] + ".";
+}
+
+/* EL CAJERO — armá el número con billetes de $100, $10 y $1.
+   - NO se muestra el total que se va juntando: sólo cuántos billetes hay en cada columna, que
+     es el número mismo (3, 4 y 7 es 347). Con el total a la vista se llegaría sumando de a
+     uno, sin pensar en los lugares.
+   - A LO SUMO 9 POR COLUMNA. Así la única manera de armar 347 es 3-4-7: con 34 de $10 no
+     entra. No hace falta prohibir el canje; la regla del lugar lo hace sola.
+   - Se corrige al apretar «Listo», y el error nombra lo que pasó (`_cajPorQue`). Poner y
+     sacar se hace con botones grandes, «+» y «−»: los billetes chiquitos de la columna no son
+     un blanco para un dedo de siete años. */
+GAMES.cajero_cdu = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 8;
+    ctx.rondas(rondas);
+    const bonus = ctx.bonusDominio;
+    const BILLETES = [100, 10, 1];
+    const vistos = new Set();
+    let ronda = 0;
+    const jugar = () => {
+      ctx.ronda(ronda);
+      let n = _cduSortear(bonus);
+      for (let i = 0; i < 30 && vistos.has(n); i++) n = _cduSortear(bonus);
+      vistos.add(n);
+      ctx.item("cajero#" + n);
+      consignaVariada(ctx, ronda, "Armá el número con billetes de 100, de 10 y de 1.", "m");
+      ctx.juego.innerHTML = "";
+      const tablero = el("div", "tablero cajTablero");
+      tablero.setAttribute("data-no-leer", "");
+      tablero.appendChild(el("div", "cajObjetivo", "Armá <b>$" + n + "</b>"));
+      const cuenta = { 100: 0, 10: 0, 1: 0 };
+      const cols = {};
+      let resuelto = false;
+      const pintar = (v) => {
+        const k = cols[v];
+        k.fajo.innerHTML = "";
+        for (let i = 0; i < cuenta[v]; i++) k.fajo.appendChild(el("div", "cajBillete cajBillete--" + v, "$" + v));
+        k.num.textContent = String(cuenta[v]);
+        k.menos.disabled = cuenta[v] === 0;
+      };
+      const columnas = el("div", "cajColumnas");
+      BILLETES.forEach((v) => {
+        const col = el("div", "cajCol");
+        col.appendChild(el("div", "cajLugar", _npMayus(_npLugar(v))));
+        const num = el("div", "cajCuantos", "0");
+        const fajo = el("div", "cajFajo");
+        const menos = el("button", "cajMenos", "−");
+        menos.type = "button";
+        menos.setAttribute("aria-label", "Sacar un billete de " + v);
+        menos.addEventListener("click", () => {
+          if (resuelto || cuenta[v] === 0) return;
+          cuenta[v]--;
+          pintar(v);
+        });
+        col.appendChild(num);
+        col.appendChild(fajo);
+        col.appendChild(menos);
+        columnas.appendChild(col);
+        cols[v] = { num: num, fajo: fajo, menos: menos };
+      });
+      tablero.appendChild(columnas);
+      const caja = el("div", "cajCaja");
+      BILLETES.forEach((v) => {
+        const b = el("button", "cajPoner cajBillete--" + v, "+ $" + v);
+        b.type = "button";
+        b.setAttribute("aria-label", "Poner un billete de " + v);
+        b.addEventListener("click", () => {
+          if (resuelto) return;
+          if (cuenta[v] >= 9) {
+            ctx.casi("En cada lugar entran hasta 9 billetes: diez de $" + v +
+                     " ya son un billete del lugar de al lado.");
+            return;
+          }
+          cuenta[v]++;
+          Sfx.tick(cuenta[v]);
+          pintar(v);
+        });
+        caja.appendChild(b);
+      });
+      tablero.appendChild(caja);
+      BILLETES.forEach(pintar);
+      const listo = el("button", "btn cajListo", "Listo");
+      listo.type = "button";
+      listo.addEventListener("click", async () => {
+        if (resuelto) return;
+        const total = cuenta[100] * 100 + cuenta[10] * 10 + cuenta[1];
+        if (total === n) {
+          resuelto = true;
+          tablero.classList.add("anim-pop");
+          ctx.bien();
+          ronda++;
+          await espera(1000);
+          if (ronda >= rondas) ctx.win(); else jugar();
+          return;
+        }
+        ctx.casi(_cajPorQue(n, cuenta));
+      });
+      tablero.appendChild(listo);
+      ctx.juego.appendChild(tablero);
+    };
+    jugar();
+  },
+};
+
+// Las fichas que SOBRAN al partir el número. Cada una es un error de verdad y ninguna es un
+// pedazo de la respuesta: con dos fichas iguales, una buena y otra marcada como error, la
+// corrección mentiría. Escritas «regla: detalle» para `_enDosTiempos`.
+function _descTrampas(n) {
+  const partes = _cduPartes(n);
+  const c = Math.floor(n / 100), d = Math.floor((n % 100) / 10), u = n % 10;
+  const out = [];
+  const poner = (v, m) => {
+    if (partes.includes(v) || out.some((x) => x.v === v)) return;
+    out.push({ v: v, m: m });
+  };
+  if (d === 0 && c && u) {
+    poner(0, "El 0 no suma nada: en el " + n + " guarda el lugar de las decenas, pero no es un pedazo.");
+  }
+  if (c) {
+    poner(c * 10, "Ese " + (c * 10) + " son " + _cduPlural(c, "decena") + ": el " + c + " del " + n +
+                  " está en las centenas y vale " + (c * 100) + ".");
+    poner(c, "El " + c + " solo vale " + c + ": en el " + n + " está en las centenas y vale " + (c * 100) + ".");
+  }
+  if (d) {
+    poner(d * 100, "Ese " + (d * 100) + " son " + _cduPlural(d, "centena") + ": el " + d + " del " + n +
+                   " está en las decenas y vale " + (d * 10) + ".");
+    poner(d, "El " + d + " solo vale " + d + ": en el " + n + " está en las decenas y vale " + (d * 10) + ".");
+  }
+  if (u) {
+    poner(u * 10, "Ese " + (u * 10) + " son " + _cduPlural(u, "decena") + ": el " + u + " del " + n +
+                  " está en las unidades y vale " + u + ".");
+  }
+  return out;
+}
+
+// Las opciones que NO son al juntar las partes. El error clásico es pegar los pedazos como se
+// escriben (300 + 40 + 7 → 300407); los otros dos, dar vuelta las cifras y perder el cero que
+// guarda el lugar (400 + 7 → 47).
+function _descOpciones(n) {
+  const partes = _cduPartes(n);
+  const c = Math.floor(n / 100), d = Math.floor((n % 100) / 10), u = n % 10;
+  const suma = partes.join(" + ");
+  const out = [];
+  const add = (v, m) => {
+    if (v === n || v <= 0 || out.some((x) => x.v === v)) return;
+    out.push({ v: v, m: m });
+  };
+  add(Number(partes.join("")), "Los pedazos no se pegan uno atrás del otro: " + suma + " es " + n + ".");
+  const vuelta = Number(String(n).split("").reverse().join(""));
+  if (vuelta >= 100) {
+    add(vuelta, "Las cifras quedaron dadas vuelta: primero van las centenas, y " + suma + " es " + n + ".");
+  }
+  if (d === 0 && c && u) {
+    add(c * 10 + u, "El 0 guarda el lugar de las decenas: sin él queda otro número, y " + suma + " es " + n + ".");
+  }
+  return out;
+}
+
+/* PARTÍ EL NÚMERO — 347 = 300 + 40 + 7, ida y vuelta.
+   Primera mitad, del número a las partes: fichas en orden, cada una se corrige al tocarla
+   (como «Números en palabras»), con fichas que sobran y son errores reales (`_descTrampas`).
+   Segunda mitad, de las partes al número: opción múltiple con el error de pegar los pedazos
+   como se escriben (`_descOpciones`).
+   Las opciones y las fichas NO se leen en voz alta (`data-no-leer`): oír «trescientos
+   cuarenta y siete» contra «trescientos mil cuatrocientos siete» regalaría la respuesta. */
+GAMES.descomponer = {
+  crear(ctx) {
+    const rondas = ctx.cfg.rondas || 10;
+    ctx.rondas(rondas);
+    const bonus = ctx.bonusDominio;
+    const mitad = Math.ceil(rondas / 2);
+    const vistos = new Set();
+    let ronda = 0;
+    const sortear = (sirve) => {
+      for (let i = 0; i < 80; i++) {
+        const n = _cduSortear(bonus);
+        if (vistos.has(n) || !sirve(n)) continue;
+        vistos.add(n);
+        return n;
+      }
+      return null;
+    };
+    const pasar = async () => {
+      ctx.bien();
+      ronda++;
+      await espera(1100);
+      if (ronda >= rondas) ctx.win(); else jugar();
+    };
+    const aPartes = (k) => {
+      const n = sortear((x) => _cduPartes(x).length >= 2 && _descTrampas(x).length >= 2);
+      if (n === null) { ctx.win(); return; }          // no pasa, pero nunca deja al chico trabado
+      const partes = _cduPartes(n);
+      const trampas = shuffle(_descTrampas(n)).slice(0, bonus > 0 ? 3 : 2);
+      ctx.item("partir#p" + n);
+      consignaVariada(ctx, k, "Partí el número en centenas, decenas y unidades. Tocá las fichas en orden, ¡que sobran algunas!", "m");
+      ctx.juego.innerHTML = "";
+      const tablero = el("div", "tablero numPalTablero");
+      tablero.setAttribute("data-no-leer", "");
+      tablero.appendChild(el("div", "numPalNumero", String(n)));
+      const huecos = el("div", "numPalHuecos");
+      const slots = [];
+      partes.forEach((_, i) => {
+        if (i) huecos.appendChild(el("div", "descMas", "+"));
+        const hueco = el("div", "numPalHueco", "");
+        slots.push(hueco);
+        huecos.appendChild(hueco);
+      });
+      tablero.appendChild(huecos);
+      const fichas = el("div", "numPalFichas");
+      let sig = 0, resuelto = false;
+      shuffle(partes.map((v) => ({ v: v, trampa: null }))
+        .concat(trampas.map((t) => ({ v: t.v, trampa: t }))))
+        .forEach((f) => {
+          const b = el("button", "spriteBtn numPalFicha", String(f.v));
+          b.type = "button";
+          b.addEventListener("click", () => {
+            if (resuelto || b.disabled) return;
+            if (!f.trampa && f.v === partes[sig]) {
+              b.disabled = true;
+              slots[sig].textContent = String(f.v);
+              slots[sig].classList.add("anim-pop");
+              Sfx.tick(sig + 1);
+              sig++;
+              if (sig >= partes.length) { resuelto = true; pasar(); }
+              return;
+            }
+            b.style.animation = "sacudir .4s ease";
+            setTimeout(() => (b.style.animation = ""), 450);
+            if (f.trampa) ctx.casi(f.trampa.m);
+            else ctx.casi("Van en orden: primero las " + _npLugar(partes[sig]) + ", y en el " + n +
+                          " eso es " + partes[sig] + ".");
+          });
+          fichas.appendChild(b);
+        });
+      tablero.appendChild(fichas);
+      ctx.juego.appendChild(tablero);
+    };
+    const aNumero = (k) => {
+      const n = sortear((x) => _cduPartes(x).length >= 2 && _descOpciones(x).length >= 2);
+      if (n === null) { ctx.win(); return; }
+      const partes = _cduPartes(n);
+      const malas = shuffle(_descOpciones(n)).slice(0, 2);
+      ctx.item("partir#n" + n);
+      consignaVariada(ctx, k, "Ahora al revés: ¿qué número se arma juntando estas partes?", "m");
+      ctx.juego.innerHTML = "";
+      const tablero = el("div", "tablero numPalTablero");
+      tablero.setAttribute("data-no-leer", "");
+      tablero.appendChild(el("div", "descSuma", partes.join(" + ")));
+      const fila = el("div", "ops");
+      let resuelto = false;
+      shuffle([{ v: n, ok: true }].concat(malas)).forEach((o) => {
+        const b = el("button", "op", String(o.v));
+        b.addEventListener("click", () => {
+          if (resuelto) return;
+          if (o.ok) { resuelto = true; b.classList.add("anim-pop"); pasar(); }
+          else { b.classList.add("casi"); ctx.casi(o.m); }
+        });
+        fila.appendChild(b);
+      });
+      tablero.appendChild(fila);
+      ctx.juego.appendChild(tablero);
+    };
+    const jugar = () => {
+      ctx.ronda(ronda);
+      if (ronda < mitad) aPartes(ronda); else aNumero(ronda - mitad);
     };
     jugar();
   },

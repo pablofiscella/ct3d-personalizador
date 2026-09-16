@@ -197,6 +197,48 @@ button.pill:active, a.pill:active { transform: scale(.94); }
 }
 .carta .mini-est { font-size: 15px; letter-spacing: 2px; min-height: 20px; }
 
+/* ── VIDEOS INTERACTIVOS (16-sep-2026): la sección de antes de Extras ──
+   Tarjeta y grilla PROPIAS, con el mismo aspecto que `.carta`: el modo seño, el buscador y la
+   voz del menú recorren `.carta`, y un video no es una actividad que la maestra ordena (ver
+   `cargarVideosInteractivos`). La miniatura es la escena con la que arranca el video, con el
+   ▶ encima: se tiene que leer como «esto se mira y se juega», distinto de una actividad. */
+.vi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+           gap: 16px; margin: 0 0 6px; }
+.vi-carta {
+  background: var(--card); border: none; border-radius: var(--radio); box-shadow: var(--sombra);
+  padding: 10px 10px 13px; cursor: pointer; display: flex; flex-direction: column; gap: 8px;
+  color: var(--ink); font: inherit; position: relative;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.vi-carta:active { transform: scale(.96); }
+@media (hover:hover) { .vi-carta:hover { transform: translateY(-3px); box-shadow: var(--sombra-hi); } }
+.vi-carta:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.vi-portada { position: relative; aspect-ratio: 3 / 2; border-radius: 14px; overflow: hidden;
+              background: var(--soft); }
+.vi-portada img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vi-play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+           width: 56px; height: 56px; border-radius: 50%; background: rgba(15, 19, 28, .62);
+           color: #fff; display: grid; place-items: center; font-size: 24px; padding-left: 4px;
+           box-shadow: 0 4px 14px rgba(0, 0, 0, .35); }
+.vi-carta.visto .vi-play { background: rgba(47, 191, 113, .9); }
+.vi-carta .nombre { font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 18px;
+                    line-height: 1.15; letter-spacing: -.02em; text-align: center; }
+.vi-carta .mini-est { font-size: 14px; text-align: center; min-height: 18px; }
+.cat-titulo.cat-videos { color: #6B3FB0; }
+@media (max-width: 560px) { .vi-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; } }
+
+/* El video se abre encima de todo, en un marco: al volver, el chico está donde estaba. */
+body.vi-abierto { overflow: hidden; }
+#viCapa { position: fixed; inset: 0; z-index: 300; background: #161b26;
+          display: flex; flex-direction: column; }
+#viCapa .vi-barra { flex: none; display: flex; align-items: center;
+                    padding: calc(8px + env(safe-area-inset-top)) 12px 8px; }
+#viCapa iframe { flex: 1; width: 100%; border: 0; display: block; }
+.vi-volver { font: 700 16px/1 "Baloo", Archivo, sans-serif; color: #fff; cursor: pointer;
+             background: rgba(255, 255, 255, .12); border: 2px solid rgba(255, 255, 255, .5);
+             border-radius: 999px; padding: 9px 16px; min-height: 44px; }
+.vi-volver:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+
 /* ── Capa 0 · sello sostenido: nota de repaso del día + resaltado de la carta ── */
 .repaso-nota {
   background: var(--ac2); color: #fff; border-radius: var(--radio-chico); padding: 12px 16px;
@@ -533,10 +575,21 @@ body.g1 #cargando { text-transform: uppercase; }
    el rótulo es el NOMBRE de la actividad, nunca la respuesta que se evalúa. Y `.nombre` se
    nombra explícito porque la tarjeta es un `<button>` y el div de adentro hereda su `none`. */
 body.g1 .carta .nombre,
+/* «Seguí por acá» (11-sep-2026) es la primera tarjeta del menú, y es un `<button>`: sus
+   hijos heredan el `none` del botón, así que se nombran uno por uno igual que `.nombre`.
+   Si quedara afuera, en 1.º la tarjeta más grande de la pantalla sería la única en
+   minúscula — justo la mezcla de alfabetos que esta regla vino a sacar. */
+body.g1 .seguir-aca small,
+body.g1 .seguir-aca b,
+body.g1 .seguir-aca span,
 body.g1 #hdrNombre,
 body.g1 #bienvenida h1,
 body.g1 #bienvenida p,
 body.g1 .cat-titulo,
+/* los videos interactivos: tarjeta y botón de volver (son `<button>`: se nombran los hijos) */
+body.g1 .vi-carta .nombre,
+body.g1 .vi-carta .mini-est,
+body.g1 .vi-volver,
 body.g1 .nivel-chip,
 body.g1 .btn-comoes,
 body.g1 .comoes,
@@ -1033,6 +1086,53 @@ body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
 .armarPalabraSlot:empty { animation: latido 1.8s ease infinite; }
 .armarPalabraSilabas .spriteBtn:disabled { opacity: .35; cursor: default; }
 
+/* números en palabras (11-sep-2026, 2.º M6 · 3.º M2): arriba el número o las palabras;
+   en el tramo de fichas, los huecos se llenan con lo que se toca. Las palabras son largas
+   («cuatrocientos», 13 letras): huecos y fichas crecen con el texto y la fila se parte en
+   renglones en vez de desbordar en un celular de 400 px. */
+/* ── EL CAJERO (2.º): los billetes por columna son el número escrito con billetes ── */
+.cajTablero { text-align: center; }
+.cajObjetivo { font-family: "Baloo", Archivo, sans-serif; font-size: 26px; margin: 2px 0 12px; }
+.cajObjetivo b { font-size: 44px; }
+.cajColumnas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0 0 14px; }
+.cajCol { background: var(--card); border-radius: 16px; padding: 8px 6px 10px; display: flex;
+  flex-direction: column; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.cajLugar { font-weight: 800; font-size: 13px; letter-spacing: .02em; opacity: .75; }
+.cajCuantos { font-family: "Baloo", Archivo, sans-serif; font-size: 40px; font-weight: 700; line-height: 1; }
+.cajFajo { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; min-height: 64px; align-content: flex-start; }
+.cajBillete { color: #fff; font-weight: 800; font-size: 11px; border-radius: 6px; padding: 3px 5px; line-height: 1.1; }
+/* los tres colores, con letra blanca por encima de 4.5:1 (el naranja, oscurecido para eso) */
+.cajBillete--100 { background: #2F7D57; }
+.cajBillete--10 { background: #1F6FA8; }
+.cajBillete--1 { background: #A85A28; }
+.cajMenos { min-width: 48px; min-height: 48px; border-radius: 50%; border: 2px solid currentColor;
+  background: transparent; color: var(--ink); font-size: 26px; font-weight: 800; line-height: 1; cursor: pointer; }
+.cajMenos:disabled { opacity: .3; cursor: default; }
+.cajCaja { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 0 0 12px; }
+.cajPoner { min-height: 56px; min-width: 92px; border: none; border-radius: 14px; color: #fff; cursor: pointer;
+  font-family: "Baloo", Archivo, sans-serif; font-size: 22px; font-weight: 700; }
+.cajListo { max-width: 280px; margin: 0 auto; }
+/* ── PARTÍ EL NÚMERO (2.º) ── */
+.descMas { font-family: "Baloo", Archivo, sans-serif; font-size: 32px; font-weight: 700; align-self: center; }
+.descSuma { font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 40px; margin: 6px 0 18px; }
+.numPalTablero { text-align: center; }
+.numPalNumero { font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 64px;
+  line-height: 1.1; letter-spacing: .06em; margin: 4px 0 8px; }
+.numPalPalabras { font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 30px;
+  line-height: 1.25; max-width: 16em; margin: 6px auto 12px; text-wrap: balance; }
+.numPalHuecos { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 10px 0 18px; }
+.numPalHueco {
+  min-width: 76px; min-height: 52px; padding: 4px 12px;
+  border: 3px dashed color-mix(in srgb, var(--ink) 26%, transparent); border-radius: var(--radio-chico);
+  display: flex; align-items: center; justify-content: center; background: var(--soft);
+  font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 22px;
+}
+.numPalHueco:empty { animation: latido 1.8s ease infinite; }
+.numPalFichas { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.numPalFicha { font-family: "Baloo", Archivo, sans-serif; font-weight: 700; font-size: 21px;
+  color: var(--ink); min-height: 52px; padding: 8px 16px; }
+.numPalFicha:disabled { opacity: .35; cursor: default; }
+
 /* programá el camino (14-jul-2026, prototipo pensamiento computacional):
    la "cola" muestra el programa armado como chips en orden. */
 .programaCola {
@@ -1324,6 +1424,14 @@ body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
   </div>
 </div>
 
+<!-- «Mi seño particular»: la dirección de la clase de cada tarjeta, resuelta POR PEDIDO.
+     No va en data.json a propósito: ese archivo queda congelado el día que se crea el token
+     (ver docs y [[tokens-menu-congelado]]), y de los 2.158 cuadernos escolares de producción
+     2.018 ni siquiera tienen `biblioteca_url` — o sea que por esa vía nueve de cada diez se
+     quedarían sin ícono hasta regenerarlos uno por uno. Acá se calcula en cada visita, con el
+     Host del pedido, igual que la marca del título. `null` cuando no corresponde: cuaderno de
+     cumpleaños, host que no es de Kydo, o grado sin clases escritas. -->
+<script>window.SENO = {{SENO}};</script>
 <script src="motor_adaptativo.js?v={{V}}"></script>
 <script src="player.js?v={{V}}"></script>
 <!-- catálogo curricular: registra GAMES.<id>, por eso va DESPUÉS de player.js -->

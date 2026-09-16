@@ -1565,6 +1565,51 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(body)))
             self.end_headers(); self.wfile.write(body)
             return
+        # ---- VIDEO INTERACTIVO (PILOTO, 15-sep-2026): el video se pausa, pregunta y da pistas ----
+        # Igual que /leer: rutas RELATIVAS -> servir SIEMPRE bajo /vi/<pieza>/. La dirección es la
+        # PIEZA y no un token: es contenido del cuaderno, como una lección en video.
+        # La lista de videos, para la sección del cuaderno. Se pide en vivo: ver `viw.indice`.
+        if path == "/vi/indice.json":
+            import video_interactivo_web as viw
+            body = json.dumps({"videos": viw.indice()}, ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Cache-Control", "no-cache")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers(); self.wfile.write(body)
+            return
+        m = re.match(r"^/vi/([a-z0-9_]+)(?:/([a-z_0-9.]*))?$", path)
+        if m:
+            import video_interactivo_web as viw
+            pieza, arch = m.group(1), m.group(2)
+            if arch is None:
+                self.send_response(301)
+                self.send_header("Location", "/vi/%s/" % pieza)
+                self.end_headers()
+                return
+            if arch:
+                r = viw.archivo(pieza, arch)
+                if r is None:
+                    return self._json(404, {"ok": False, "error": "no existe"})
+                data_b, ct = r
+                self.send_response(200)
+                self.send_header("Content-Type", ct)
+                # el reproductor se cachea poco: una mejora tiene que llegar enseguida
+                self.send_header("Cache-Control", "no-cache" if arch == "player.js"
+                                 else "public, max-age=86400")
+                self.send_header("Content-Length", str(len(data_b)))
+                self.end_headers(); self.wfile.write(data_b)
+                return
+            page = viw.html(pieza)
+            if page is None:
+                return self._json(404, {"ok": False, "error": "video no encontrado"})
+            body = page.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers(); self.wfile.write(body)
+            return
         m = re.match(r"^/descarga/([A-Za-z0-9_-]+)$", path)
         if m:
             token = m.group(1)

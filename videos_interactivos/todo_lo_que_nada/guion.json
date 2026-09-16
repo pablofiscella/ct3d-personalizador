@@ -1,0 +1,293 @@
+{
+  "pieza": "todo_lo_que_nada",
+  "titulo": "¿Todo lo que nada es pez?",
+  "grado": 2,
+  "saber": "CDM-2-animales",
+  "nota": "Piloto de video interactivo (Pablo, 15-sep-2026). La escena es la COSTA DEL MAR y no una laguna: pingüinos y delfines viven en el mar, y un video que enseña no puede mostrarlos donde no viven.",
+  "voces": {
+    "intro": "¡Hola! Soy Carpi, el carpincho. Hoy vamos a la costa del mar. Hay un montón de animales: algunos viven en el agua y otros en la tierra. ¿Me ayudás a descubrir quién es quién?",
+    "p1_consigna": "Tocá todos los animales que viven en el agua.",
+    "p1_pista1": "Uy, ese vive en la tierra. Mirá bien lo que está adentro del mar.",
+    "p1_pista2": "Fijate en los que nadan. Te los marco con luz.",
+    "p1_pista3": "Estos viven en el agua: el pez, el delfín y el pingüino. Tocalos.",
+    "p1_fin": "El pez, el delfín y el pingüino viven en el agua. Pero… ¿serán todos peces?",
+    "p2_consigna": "Mirá al delfín. ¿Es un pez?",
+    "p2_pista1": "Pensalo otra vez. Mirá su piel: no tiene escamas.",
+    "p2_pista2": "Otra pista: el delfín sube a la superficie para respirar aire, como vos.",
+    "p2_pista3": "El delfín no es un pez. Te cuento por qué.",
+    "p2_explica": "¡Exacto! El delfín no es un pez: es un mamífero. Respira aire y toma la leche de su mamá, igual que la vaca y el perro. Vive en el agua, pero no es un pez.",
+    "p3_consigna": "Ahora tocá al animal que tiene plumas.",
+    "p3_pista1": "Ese no tiene plumas. Buscá uno que tenga pico, como el hornero.",
+    "p3_pista2": "Es blanco y negro, y camina moviéndose de un lado al otro.",
+    "p3_pista3": "Es el pingüino. Tocalo.",
+    "p3_explica": "¡Sí! El pingüino tiene plumas y pico: es un ave. No puede volar, pero nada muy rápido.",
+    "p4_consigna": "Último desafío. Llevá cada animal a su grupo: pez, mamífero o ave. Tocá un animal y después su grupo.",
+    "p4_pista_pez": "El pez tiene escamas y respira debajo del agua. ¿En qué grupo va?",
+    "p4_pista_delfin": "Acordate: el delfín respira aire y toma la leche de su mamá.",
+    "p4_pista_pinguino": "Pensá en lo que tiene el pingüino: plumas y pico.",
+    "p4_va_aca": "Mirá, va en este grupo.",
+    "festejo1": "¡Muy bien!",
+    "festejo2": "¡Eso es!",
+    "festejo3": "¡Genial!",
+    "cierre": "¡Lo lograste! Ahora sabés que no todo lo que nada es pez. ¡Hasta la próxima!"
+  },
+  "imagenes": {
+    "fondo_costa": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "La costa del mar en Argentina, vista de costado en un plano abierto y luminoso. En el tercio IZQUIERDO, tierra firme: pasto verde, un médano de arena clara y un árbol pequeño con un poste de madera. En los dos tercios DERECHOS, el mar celeste y tranquilo con olas suaves, que ocupa desde la mitad de la imagen hasta abajo. Cielo celeste con nubes suaves. SIN NINGÚN ANIMAL, sin personas y sin barcos: el paisaje vacío, porque los animales se agregan después encima. Mucho espacio despejado en el pasto y en el agua."
+    },
+    "primer_plano_delfin": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "Primer plano de un delfín asomando la cabeza y el lomo sobre el agua del mar, echando un chorrito de agua por el orificio que tiene arriba de la cabeza, porque sale a respirar aire. La piel se ve lisa y brillante, sin escamas. Mar celeste y cielo claro detrás."
+    },
+    "primer_plano_pinguino": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "Primer plano de un pingüino de Magallanes parado en la orilla del mar, de cuerpo entero, mirando hacia el que mira. Se ven claramente sus plumas blancas y negras y su pico. Arena, espuma de olas y mar detrás."
+    },
+    "animal_pez": {
+      "tipo": "recorte",
+      "prompt": "Un pez de mar de color naranja y amarillo, de perfil mirando hacia la izquierda, cuerpo entero con escamas visibles, aletas y cola."
+    },
+    "animal_delfin": {
+      "tipo": "recorte",
+      "prompt": "Un delfín gris azulado saltando, de perfil mirando hacia la izquierda, cuerpo entero con la cola y las aletas, piel lisa."
+    },
+    "animal_pinguino": {
+      "tipo": "recorte",
+      "prompt": "Un pingüino de Magallanes nadando en la superficie, de perfil mirando hacia la izquierda, cuerpo entero, plumas blancas y negras y pico visible."
+    },
+    "animal_vaca": {
+      "tipo": "recorte",
+      "prompt": "Una vaca blanca con manchas marrones, parada de perfil mirando hacia la derecha, cuerpo entero con sus cuatro patas."
+    },
+    "animal_perro": {
+      "tipo": "recorte",
+      "prompt": "Un perro marrón simpático sentado, de frente y un poco de costado, cuerpo entero con sus cuatro patas."
+    },
+    "animal_hornero": {
+      "tipo": "recorte",
+      "prompt": "Un hornero, el pájaro argentino marrón con pecho claro, parado de perfil mirando hacia la derecha, cuerpo entero con pico y patas."
+    },
+    "carpi_hablando": {
+      "tipo": "recorte",
+      "personaje": true,
+      "prompt": "Carpi, un carpincho simpático de dibujo animado, marrón, parado en dos patas como un presentador, cuerpo entero, mirando de frente al que mira, con la boca abierta hablando y una pata delantera levantada saludando.",
+      "comun": true
+    },
+    "carpi_esperando": {
+      "tipo": "recorte",
+      "personaje": true,
+      "prompt": "El MISMO carpincho Carpi de la referencia, parado en dos patas, cuerpo entero, mirando de frente con curiosidad y una sonrisa, con una pata delantera apoyada en el mentón como esperando una respuesta.",
+      "comun": true
+    },
+    "carpi_festejando": {
+      "tipo": "recorte",
+      "personaje": true,
+      "prompt": "El MISMO carpincho Carpi de la referencia, cuerpo entero, dando un saltito muy contento con las dos patas delanteras levantadas, sonriendo con los ojos cerrados de alegría.",
+      "comun": true
+    }
+  },
+  "escenas": {
+    "costa": {
+      "fondo": "fondo_costa",
+      "animales": {
+        "hornero": {
+          "img": "animal_hornero",
+          "x": 9,
+          "y": 19,
+          "w": 10,
+          "donde": "tierra"
+        },
+        "vaca": {
+          "img": "animal_vaca",
+          "x": 13,
+          "y": 39,
+          "w": 21,
+          "donde": "tierra"
+        },
+        "perro": {
+          "img": "animal_perro",
+          "x": 24,
+          "y": 62,
+          "w": 13,
+          "donde": "tierra"
+        },
+        "pinguino": {
+          "img": "animal_pinguino",
+          "x": 47,
+          "y": 54,
+          "w": 13,
+          "donde": "agua",
+          "mov": "flotar"
+        },
+        "delfin": {
+          "img": "animal_delfin",
+          "x": 65,
+          "y": 36,
+          "w": 22,
+          "donde": "agua",
+          "mov": "saltar"
+        },
+        "pez": {
+          "img": "animal_pez",
+          "x": 72,
+          "y": 72,
+          "w": 13,
+          "donde": "agua",
+          "mov": "nadar"
+        }
+      }
+    },
+    "delfin_cerca": {
+      "fondo": "primer_plano_delfin",
+      "animales": {}
+    },
+    "pinguino_cerca": {
+      "fondo": "primer_plano_pinguino",
+      "animales": {}
+    }
+  },
+  "pasos": [
+    {
+      "tipo": "decir",
+      "escena": "costa",
+      "voz": "intro"
+    },
+    {
+      "tipo": "tocar",
+      "escena": "costa",
+      "consigna": "p1_consigna",
+      "correctos": [
+        "pez",
+        "delfin",
+        "pinguino"
+      ],
+      "pistas": [
+        "p1_pista1",
+        "p1_pista2",
+        "p1_pista3"
+      ],
+      "fin": "p1_fin"
+    },
+    {
+      "tipo": "elegir",
+      "escena": "costa",
+      "foco": "delfin",
+      "consigna": "p2_consigna",
+      "opciones": [
+        {
+          "id": "si",
+          "texto": "Sí"
+        },
+        {
+          "id": "no",
+          "texto": "No"
+        }
+      ],
+      "correcta": "no",
+      "pistas": [
+        "p2_pista1",
+        "p2_pista2",
+        "p2_pista3"
+      ]
+    },
+    {
+      "tipo": "decir",
+      "escena": "delfin_cerca",
+      "voz": "p2_explica"
+    },
+    {
+      "tipo": "tocar",
+      "escena": "costa",
+      "consigna": "p3_consigna",
+      "solo": [
+        "pez",
+        "delfin",
+        "pinguino"
+      ],
+      "correctos": [
+        "pinguino"
+      ],
+      "pistas": [
+        "p3_pista1",
+        "p3_pista2",
+        "p3_pista3"
+      ]
+    },
+    {
+      "tipo": "decir",
+      "escena": "pinguino_cerca",
+      "voz": "p3_explica"
+    },
+    {
+      "tipo": "clasificar",
+      "escena": "costa",
+      "consigna": "p4_consigna",
+      "grupos": [
+        {
+          "id": "pez",
+          "texto": "Pez",
+          "icono": "animal_pez"
+        },
+        {
+          "id": "mamifero",
+          "texto": "Mamífero",
+          "icono": "animal_vaca"
+        },
+        {
+          "id": "ave",
+          "texto": "Ave",
+          "icono": "animal_hornero"
+        }
+      ],
+      "items": [
+        {
+          "animal": "pez",
+          "grupo": "pez",
+          "pista": "p4_pista_pez"
+        },
+        {
+          "animal": "delfin",
+          "grupo": "mamifero",
+          "pista": "p4_pista_delfin"
+        },
+        {
+          "animal": "pinguino",
+          "grupo": "ave",
+          "pista": "p4_pista_pinguino"
+        }
+      ],
+      "va_aca": "p4_va_aca",
+      "acomodar": {
+        "pinguino": [
+          29,
+          40,
+          15
+        ],
+        "delfin": [
+          46,
+          27,
+          23
+        ],
+        "pez": [
+          71,
+          43,
+          15
+        ]
+      }
+    },
+    {
+      "tipo": "decir",
+      "escena": "costa",
+      "voz": "cierre",
+      "pose": "festejando"
+    }
+  ],
+  "cierre_pantalla": {
+    "titulo": "¡Lo lograste!",
+    "texto": "No todo lo que nada es pez."
+  }
+}

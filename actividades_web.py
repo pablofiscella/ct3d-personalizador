@@ -2614,9 +2614,83 @@ def _es_escolar(token, reg=None):
         return False
 
 
+# ── «Mi seño particular»: la clase que refuerza cada tarjeta ─────────────────────
+# La seño vive en el sitio de KYDO (repo ct3d), no acá. Este motor sólo arma la dirección,
+# por pedido, y nunca la guarda en data.json: ese archivo queda congelado el día que se crea
+# el token, y de los 2.158 cuadernos escolares de producción 2.018 ni siquiera tienen
+# `biblioteca_url` — por esa vía, nueve de cada diez se quedarían sin ícono hasta regenerarlos
+# uno por uno, que es la operación grande que conviene no hacer.
+def _sitio_de_kydo():
+    """A qué Kydo mandar la clase: al del ESPEJO si esto es el espejo.
+
+    Estaba clavado a `https://kydo.com.ar` y eso hacía que el cuaderno del dev mandara al VIVO
+    (Pablo, 12-sep-2026, probándolo: *"me lleva a la biblioteca"*). Una página del espejo no
+    puede sacar a nadie a producción: es la misma línea que separa las dos copias.
+
+    No se puede importar `servicio.DEV` —`servicio` importa este módulo, no al revés— así que
+    se lee la misma variable de entorno que él, que es de donde sale toda la separación."""
+    import os
+    if (os.environ.get("CT3D_ENTORNO", "") or "").strip().lower() == "dev":
+        return "https://dev.kydo.com.ar"
+    return "https://kydo.com.ar"
+
+
+def _seno_activa():
+    """¿Se ofrece la clase de la seño desde la tarjeta del cuaderno?
+
+    Pablo, 13-sep-2026: *"siguen apagados en producción hasta que te diga"*. Y no alcanza con
+    que la seño esté apagada en Kydo (`kydo_seno_activa`): el ícono vive en ESTE motor, así que
+    si se subiera la rama del menú, en producción aparecería el 🎓 en todos los cuadernos
+    escolares y cada toque rebotaría a la biblioteca. «Apagado» no puede depender de que
+    alguien se acuerde.
+
+    - En el ESPEJO (`CT3D_ENTORNO=dev`) está prendido: ahí se revisa.
+    - En PRODUCCIÓN está apagado salvo que se prenda a propósito con
+      `CT3D_SENO_EN_CUADERNO=1` en el servicio del motor —el mismo gesto que la seño de Kydo
+      pide en su config—, y recién cuando Pablo lo diga."""
+    import os
+    if (os.environ.get("CT3D_SENO_EN_CUADERNO", "") or "").strip().lower() in ("1", "true", "si", "sí", "yes"):
+        return True
+    return (os.environ.get("CT3D_ENTORNO", "") or "").strip().lower() == "dev"
+
+
+def _seno_del_cuaderno(token, reg, escolar):
+    """Lo que el player necesita para ofrecer la clase: la base de la URL y el mapa del grado.
+
+    Devuelve el literal "null" —y no un objeto vacío— cuando no corresponde: cuaderno de
+    cumpleaños, pedido que no entró por un dominio de Kydo, o grado sin clases escritas. Con
+    null el player no dibuja ningún ícono, que es lo correcto: **un ícono que no lleva a
+    ningún lado es peor que no tenerlo**.
+
+    Va sólo el mapa de ESE grado y no la tabla entera: son unas 20 entradas en vez de 156, y
+    además la seño rebota la clase de otro año (`tema["grado"] != grado` → redirige)."""
+    # LA COMPUERTA ES `escolar_on` Y NO EL DOMINIO (12-sep-2026). La primera versión pedía
+    # además que el pedido entrara por un host de Kydo, y eso NO PASA NUNCA: el motor se sirve
+    # por `kit.casatridimensional.com.ar` en producción y por `devkit…` en el espejo. O sea que
+    # el ícono no se habría visto jamás, y la prueba que lo daba por bueno forzaba un
+    # `X-Forwarded-Host` que en la realidad no existe.
+    # La marca del cuaderno sale de `escolar_on` —es la regla del repo, la misma que elige el
+    # título y el favicon—: un cuaderno escolar es de Kydo lo sirva el dominio que lo sirva.
+    if not escolar or not _seno_activa():
+        return "null"
+    try:
+        import seno_clases
+        grado = int(reg.get("edad") or 0) - 5        # la misma cuenta que `gradoDelChico()`
+        clases = seno_clases.CLASES.get(grado) or {}
+    except Exception:                                # noqa: BLE001 — sin tabla, sin íconos
+        return "null"
+    if not clases:
+        return "null"
+    return json.dumps({"base": "%s/kydo/seno/%s" % (_sitio_de_kydo(), token),
+                       "clases": {a: list(p) for a, p in clases.items()}},
+                      ensure_ascii=False)
+
+
 def html(token):
     """El visor (HTML). Rutas RELATIVAS → servirlo SIEMPRE bajo /act/<token>/
-    (con barra final). None si el token no está listo."""
+    (con barra final). None si el token no está listo.
+
+"""
     reg = _cargar(token)
     if not reg:
         return None
@@ -2635,6 +2709,7 @@ def html(token):
     return (t.replace("{{TITULO}}", _esc(reg.get("titulo") or "Actividades"))
              .replace("{{MARCA}}", marca)
              .replace("{{FAVICON}}", favicon)
+             .replace("{{SENO}}", _seno_del_cuaderno(token, reg, escolar))
              .replace("{{V}}", _player_version()))
 
 

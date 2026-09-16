@@ -55,6 +55,10 @@ const m = src.match(/async function recuperarProgresoDelServidor\(\)[\s\S]*?\n\}
 if (!m) { console.error("no encontré la función"); process.exit(1); }
 const RESP = %s;
 const Store = { data: %s, save() {} };
+// La función arranca preguntando si es la muestra pública (04-sep-2026). Sin esto, en el arnés
+// `senoEsMuestra` no existe, el error cae en el `catch` de la función y NO restaura nada: el
+// guardián quedó en rojo desde entonces —también en main— sin que el cuaderno real fallara.
+global.senoEsMuestra = () => false;
 global.fetch = async () => ({ ok: %s, json: async () => RESP });
 eval(m[0]);
 (async () => {

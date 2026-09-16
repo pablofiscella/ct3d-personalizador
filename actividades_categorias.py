@@ -85,6 +85,9 @@ CATEGORIA = {
     "multiplicacion_concepto": "matematica",
     "multiplicar": "matematica",
     "multiplicar_fracciones": "matematica",
+    "numeros_palabras": "matematica",
+    "cajero_cdu": "matematica",        # «El cajero» de 2.º (12-sep-2026)
+    "descomponer": "matematica",       # «Partí el número» de 2.º (12-sep-2026)
     "numeros_primos": "matematica",
     "ordenar_numeros": "matematica",
     "pago_exacto": "matematica",

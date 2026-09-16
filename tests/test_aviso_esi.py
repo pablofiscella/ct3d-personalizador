@@ -73,10 +73,17 @@ def test_la_nota_nombra_la_ley_y_donde_consultar():
 
 def test_el_aviso_aparece_en_las_dos_ramas_del_menu():
     """Las actividades curriculares se muestran con y sin motor adaptativo, así que el
-    aviso tiene que estar ANTES de que el menú se bifurque."""
+    aviso tiene que estar ANTES de que el menú se bifurque.
+
+    Se mira la función ENTERA, y la bifurcación se reconoce por su sangría (11-sep-2026).
+    Antes se leían los primeros 6.000 bytes y se buscaba `if (adaptOn) {` en cualquier lugar:
+    al sumar «Seguí por acá» la bifurcación quedó fuera de la ventana y el test dio rojo con
+    el aviso en su sitio; y después un `if (adaptOn)` de adentro de una tarjeta lo habría
+    puesto verde por el motivo equivocado. Un test que se rompe —o pasa— según dónde cae un
+    byte no está midiendo el código."""
     i = PLAYER.index("function pintarMenuPlano(")
-    cuerpo = PLAYER[i:i + 6000]
+    cuerpo = PLAYER[i:PLAYER.index("\nfunction ", i + 1)]
     pos_aviso = cuerpo.index("esi-aviso")
-    pos_rama = cuerpo.index("if (adaptOn) {")
+    pos_rama = cuerpo.index("\n  if (adaptOn) {")   # la bifurcación, al ras de la función
     assert pos_aviso < pos_rama, ("el aviso se pinta dentro de una sola rama del menú: "
                                   "el otro camino queda sin avisar")
