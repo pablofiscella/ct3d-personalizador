@@ -474,6 +474,19 @@ def test_en_primero_los_videos_tambien_se_ven_en_mayusculas():
     assert 'class="g1"' in viw.html("cruzo_o_espero")
 
 
+def test_el_telon_se_mide_con_la_escena_y_no_con_la_ventana():
+    """16-sep-2026, abriendo los videos desde el cuaderno en un celular: la escena mide unos
+    358×239 y el telón —Carpi, título, subtítulo y botón— no entraba; el «▶ Empezar» quedaba
+    cortado por la mitad. Medido con `vw` se achicaba por el ANCHO, que en un celular vertical no
+    es lo que falta. Medido en el navegador después del arreglo: el botón entra entero en 358×239 y
+    en 328×219. Los recorridos automáticos no lo veían porque tocan el botón «a la fuerza»."""
+    vp = open(os.path.join(BASE, "video_interactivo_player.html"), encoding="utf-8").read()
+    assert ".pantalla{container-type:size}" in vp
+    for sel in (".telon h1{", ".telon img{", ".empezar{"):
+        reglas = [r for r in re.findall(re.escape(sel) + r"[^}]*}", vp) if "cqh" in r]
+        assert reglas, "%s no se mide con el alto de la escena" % sel
+
+
 def test_no_sirve_nada_de_afuera_de_la_pieza():
     for malo in ("../servicio.py", "/etc/passwd", "guion.json", "player.js.bak", "", "..%2fx.webp"):
         assert viw.archivo(PIEZAS[0], malo) is None, "sirvió %r" % malo

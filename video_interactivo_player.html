@@ -124,6 +124,17 @@
   .empezar{min-height:56px;padding:.55em 1.6em;border-radius:999px;border:0;background:var(--sol);
            color:var(--tinta);font:800 clamp(18px,3vw,34px)/1 var(--fuente);cursor:pointer;
            box-shadow:0 10px 24px rgba(0,0,0,.35)}
+  /* EL TELÓN SE MIDE CON LA ESCENA, NO CON LA VENTANA (16-sep-2026). En un celular vertical la
+     escena mide unos 358×239 y el telón —Carpi, título en dos renglones, subtítulo y botón— no
+     entraba: el «▶ Empezar» quedaba cortado por la mitad. Medido con `vw` todo se achicaba por el
+     ANCHO, que en un celular no es el problema; lo que falta es alto. `cqh` es el alto de la
+     escena. Las reglas de arriba quedan de respaldo para un navegador que no lo entienda, y en
+     computadora los topes son los mismos, así que ahí no cambia nada. */
+  .pantalla{container-type:size}
+  .telon h1{font-size:clamp(15px,min(4.8vw,10cqh),56px)}
+  .telon p{margin-bottom:.7em;font-size:clamp(11px,min(2.2vw,5.2cqh),22px)}
+  .telon img{width:clamp(44px,min(16vw,30cqh),190px)}
+  .empezar{min-height:44px;padding:.45em 1.4em;font-size:clamp(15px,min(3vw,7.5cqh),34px)}
   .empezar:focus-visible,.op:focus-visible,.grupo:focus-visible,.bicho:focus-visible,.repetir:focus-visible{
     outline:4px solid var(--sol);outline-offset:3px}
 
