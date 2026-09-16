@@ -6274,6 +6274,9 @@ function _filtrarMenu(stage) {
   // Con un filtro puesto, «Seguí por acá» estorba: el chico está buscando otra cosa.
   const arriba = stage.querySelector(".seguir-aca");
   if (arriba) arriba.hidden = filtrando;
+  // Los videos no son de ninguna materia ni tienen estado: con un filtro puesto no van.
+  const videos = stage.querySelector("#seccionVideos");
+  if (videos) videos.hidden = filtrando;
   let vacio = stage.querySelector("#sinResultados");
   if (!vacio) {
     vacio = el("div"); vacio.id = "sinResultados"; vacio.hidden = true;
@@ -6572,7 +6575,15 @@ function pintarMenuPlano(items, stage) {
       repasos.forEach((m, i) => gRep.appendChild(hacerCarta(m, i)));
       stage.appendChild(gRep);
     }
+    // VIDEOS INTERACTIVOS: después de todas las materias y ANTES de Extras (ver
+    // `cargarVideosInteractivos`). Se pone al llegar a Extras —antes del `return` de categoría
+    // vacía, así entra aunque el grado no tenga Extras— o al final si no se puso.
+    let _videosPuestos = !VIDEOS_VI.length;
     Adapt.ordenCategorias().forEach((cat) => {
+      if (cat === "logica" && !_videosPuestos) {
+        stage.appendChild(_seccionVideos());
+        _videosPuestos = true;
+      }
       const delCat = visibles.filter((m) => Adapt.categoria(m.id) === cat).sort(ordenar);
       if (!delCat.length) return;                    // categoría vacía en este grado → no se muestra
       // la clase por materia le da el color de la marca al título (ver _adaptCSS)
@@ -6586,6 +6597,7 @@ function pintarMenuPlano(items, stage) {
       delCat.forEach((m, i) => grid.appendChild(hacerCarta(m, i)));
       stage.appendChild(grid);
     });
+    if (!_videosPuestos) stage.appendChild(_seccionVideos());
   } else {
     const menu = el("div"); menu.id = "menu";
     visibles.forEach((m, i) => menu.appendChild(hacerCarta(m, i)));
@@ -7884,11 +7896,134 @@ async function sumarExtrasDeLaEscuela() {
   } catch (e) { /* sin extras: el cuaderno de siempre */ }
 }
 
+/* ── VIDEOS INTERACTIVOS: la sección de antes de Extras ─────────────────────────
+   Pablo, 16-sep-2026: *"quiero que vayas agregando los videos a una última sección que se
+   llame videos interactivos, antes de las tarjetas extras"* — y enseguida: *"después de
+   naturales, sociales, exactas, etc. Pero antes de las extras"*.
+
+   TRES DECISIONES, cada una por algo que se rompería de otra manera:
+   1. **La lista se pide EN VIVO** al motor (`/vi/indice.json`) y no sale de `data.json`, que
+      queda congelado el día de la compra: un video nuevo no le llegaría nunca a un cuaderno ya
+      entregado. Así, sumar una pieza alcanza para que aparezca en todos los de su grado.
+   2. **No es un carril de materia.** Los carriles son fijos, los usan el motor adaptativo, el
+      buscador y los filtros; abrir uno nuevo cambiaría la pantalla de los siete grados. Es una
+      sección aparte que se dibuja en el lugar de Extras, antes que ella.
+   3. **Las tarjetas NO son `.carta`.** El modo seño arrastra toda `.carta` y guarda su orden, y
+      el buscador y la voz del menú las recorren: una tarjeta de video metida ahí terminaría en
+      el orden de la maestra como si fuera una actividad. Tienen su clase y su grilla.
+
+   Son de Kydo: el cuaderno de cumpleaños no los pide. Y fallan en silencio, como los extras:
+   sin la lista, el chico ve su cuaderno de siempre. ── */
+let VIDEOS_VI = [];
+let _viTecla = null;
+
+async function cargarVideosInteractivos() {
+  if (!D || !D.escolar_on) return;
+  try {
+    const r = await fetch("/vi/indice.json", { cache: "no-store" });
+    if (!r.ok) return;
+    const videos = ((await r.json()) || {}).videos;
+    if (!Array.isArray(videos)) return;
+    const grado = gradoDelChico();
+    VIDEOS_VI = videos.filter((v) => v && /^[a-z0-9_]+$/.test(v.pieza || "") && v.grado === grado);
+  } catch (e) { /* sin videos: el cuaderno de siempre */ }
+}
+
+function _viClave(pieza) { return Store.key + "::vi::" + pieza; }
+function _viVisto(pieza) {
+  try { return !!localStorage.getItem(_viClave(pieza)); } catch (e) { return false; }
+}
+
+function _seccionVideos() {
+  const sec = el("section"); sec.id = "seccionVideos";
+  const vistos = VIDEOS_VI.filter((v) => _viVisto(v.pieza)).length;
+  sec.appendChild(el("h3", "cat-titulo cat-videos",
+    `🎬 Videos interactivos<small class="cat-prog">${vistos} de ${VIDEOS_VI.length} ✅</small>`));
+  const grilla = el("div", "vi-grid");
+  VIDEOS_VI.forEach((v) => {
+    const visto = _viVisto(v.pieza);
+    const c = el("button", "vi-carta" + (visto ? " visto" : ""));
+    c.type = "button";
+    c.dataset.pieza = v.pieza;
+    c.setAttribute("aria-label", "Video: " + v.titulo);
+    c.innerHTML = `
+      <div class="vi-portada"><img src="/vi/${v.pieza}/portada.webp?v=${encodeURIComponent(v.version || "")}"
+        alt="" loading="lazy"><span class="vi-play" aria-hidden="true">▶</span></div>
+      <div class="nombre"></div>
+      <div class="mini-est">${visto ? "✅ Visto" : "🎬 Video"}</div>`;
+    c.querySelector(".nombre").textContent = v.titulo;
+    c.addEventListener("click", () => { Sfx.pop(); abrirVideoInteractivo(v); });
+    grilla.appendChild(c);
+  });
+  sec.appendChild(grilla);
+  return sec;
+}
+
+/* El video se abre ENCIMA del cuaderno, en un marco, y no navegando: al cerrarlo el chico
+   vuelve al mismo lugar del menú. Y con un botón, no con un `<a>` — en el cuaderno del chico
+   el único enlace es el del diploma. */
+function abrirVideoInteractivo(v) {
+  pararVoz();
+  cerrarVideoInteractivo();
+  const capa = el("div"); capa.id = "viCapa";
+  capa.setAttribute("role", "dialog");
+  capa.setAttribute("aria-label", v.titulo);
+  const barra = el("div", "vi-barra");
+  const volver = el("button", "vi-volver", "← Volver");
+  volver.type = "button";
+  volver.setAttribute("aria-label", "Volver al cuaderno");
+  volver.addEventListener("click", cerrarVideoInteractivo);
+  barra.appendChild(volver);
+  const marco = el("iframe");
+  marco.src = `/vi/${v.pieza}/`;
+  marco.title = v.titulo;
+  marco.setAttribute("allow", "autoplay; fullscreen");
+  capa.appendChild(barra);
+  capa.appendChild(marco);
+  document.body.appendChild(capa);
+  document.body.classList.add("vi-abierto");
+  _viTecla = (e) => { if (e.key === "Escape") cerrarVideoInteractivo(); };
+  document.addEventListener("keydown", _viTecla);
+  volver.focus();
+}
+
+function cerrarVideoInteractivo() {
+  const capa = document.getElementById("viCapa");
+  if (!capa) return;
+  capa.remove();                 // se va el marco y con él la voz del video
+  document.body.classList.remove("vi-abierto");
+  if (_viTecla) { document.removeEventListener("keydown", _viTecla); _viTecla = null; }
+}
+
+/* El video avisa cuando el chico lo terminó (`KYDO_VI_RESULTADO` en su reproductor). Se guarda
+   con la clave del perfil y la tarjeta se marca EN SU LUGAR: repintar el menú lo mandaría
+   arriba de todo, y la sección está al final. */
+window.addEventListener("message", (ev) => {
+  if (ev.origin !== location.origin) return;
+  const d = ev.data;
+  if (!d || d.tipo !== "kydo-video-interactivo" || !d.datos) return;
+  const pieza = d.datos.pieza;
+  if (!VIDEOS_VI.some((v) => v.pieza === pieza)) return;
+  try { localStorage.setItem(_viClave(pieza), JSON.stringify(d.datos)); } catch (e) {}
+  const carta = document.querySelector(`.vi-carta[data-pieza="${pieza}"]`);
+  if (carta) {
+    carta.classList.add("visto");
+    const est = carta.querySelector(".mini-est");
+    if (est) est.textContent = "✅ Visto";
+  }
+  const cuenta = document.querySelector("#seccionVideos .cat-prog");
+  if (cuenta) {
+    const vistos = VIDEOS_VI.filter((v) => _viVisto(v.pieza)).length;
+    cuenta.textContent = `${vistos} de ${VIDEOS_VI.length} ✅`;
+  }
+});
+
 /* ── arranque ── */
 async function boot() {
   const r = await fetch("data.json");
   D = await r.json();
-  await sumarExtrasDeLaEscuela();
+  // los dos se piden a la vez: son independientes y los dos fallan en silencio
+  await Promise.all([sumarExtrasDeLaEscuela(), cargarVideosInteractivos()]);
   // El duelo entre compañeros vive en su propio archivo (actividades_duelo.js) y se suma
   // acá, no desde data.json: el menú queda congelado en el token el día de la compra, así
   // que un cuaderno ya entregado nunca vería un juego nuevo. `typeof` porque el archivo se

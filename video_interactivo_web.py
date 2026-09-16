@@ -20,6 +20,7 @@ _TIPOS = {"webp": "image/webp", "mp3": "audio/mpeg"}
 
 
 COMUN = os.path.join(BASE, "_comun")
+_VERSIONES = {}   # pieza -> (firma de los archivos, huella); ver `version`
 
 
 def _carpeta(pieza):
@@ -58,6 +59,24 @@ def version(pieza):
     carpeta = _carpeta(pieza)
     if not carpeta:
         return ""
+    # La huella lee el contenido de todo (unos megas por pieza), y ahora la piden la lista del
+    # cuaderno y cada miniatura en cada carga. Se recuerda mientras no cambie ningún archivo: la
+    # firma de nombres, tamaños y fechas es barata, y si `probar` reescribe las fechas sólo se
+    # vuelve a calcular — el valor sale igual, porque cuenta el contenido.
+    firma = []
+    for ruta in (os.path.join(KIT, "video_interactivo_player.js"),
+                 os.path.join(KIT, "video_interactivo_player.html"),
+                 os.path.join(carpeta, "guion.json")):
+        st = os.stat(ruta)
+        firma.append((ruta, st.st_size, st.st_mtime_ns))
+    for d in (carpeta, COMUN):
+        for n in sorted(os.listdir(d)):
+            if _ARCHIVO_RE.match(n):
+                st = os.stat(os.path.join(d, n))
+                firma.append((d, n, st.st_size, st.st_mtime_ns))
+    firma = tuple(firma)
+    if _VERSIONES.get(pieza, (None,))[0] == firma:
+        return _VERSIONES[pieza][1]
     h = hashlib.sha256()
     for ruta in (os.path.join(KIT, "video_interactivo_player.js"),
                  os.path.join(KIT, "video_interactivo_player.html"),
@@ -71,7 +90,8 @@ def version(pieza):
             h.update(n.encode("utf-8"))
             with open(os.path.join(d, n), "rb") as f:
                 h.update(f.read())
-    return h.hexdigest()[:10]
+    _VERSIONES[pieza] = (firma, h.hexdigest()[:10])
+    return _VERSIONES[pieza][1]
 
 
 def html(pieza):
@@ -94,8 +114,60 @@ def html(pieza):
                   .replace("{{GRADO}}", str(int(guion.get("grado", 0)))))
 
 
+def indice():
+    """Los videos que hay, para la sección «Videos interactivos» del cuaderno.
+
+    Pablo, 16-sep-2026: *"quiero que vayas agregando los videos a una última sección que se llame
+    videos interactivos, antes de las tarjetas extras"*. El cuaderno la pide EN VIVO y no la lee
+    de su `data.json`, porque ese archivo queda congelado el día que se compró: un video nuevo no
+    le llegaría nunca a un cuaderno ya entregado. Así, sumar una pieza a `videos_interactivos/`
+    alcanza para que aparezca en todos los cuadernos de su grado."""
+    videos = []
+    for pieza in sorted(os.listdir(BASE)):
+        carpeta = _carpeta(pieza)
+        if not carpeta:
+            continue
+        with open(os.path.join(carpeta, "guion.json"), encoding="utf-8") as f:
+            g = json.load(f)
+        videos.append({"pieza": pieza, "titulo": g.get("titulo") or pieza,
+                       "grado": int(g.get("grado") or 0), "saber": g.get("saber"),
+                       "version": version(pieza)})
+    return sorted(videos, key=lambda v: (v["grado"], v["titulo"]))
+
+
+# Miniatura de la tarjeta, por pieza y versión: el fondo entero pesa 300 KB y el menú de un
+# celular carga todas las tarjetas juntas. Se arma una vez y se guarda en memoria.
+_PORTADAS = {}
+
+
+def portada(pieza):
+    """La escena con la que arranca el video, chica (480 px de ancho), o None."""
+    carpeta = _carpeta(pieza)
+    if not carpeta:
+        return None
+    clave = (pieza, version(pieza))
+    if clave not in _PORTADAS:
+        from io import BytesIO
+        from PIL import Image
+        with open(os.path.join(carpeta, "guion.json"), encoding="utf-8") as f:
+            g = json.load(f)
+        escena = g["escenas"][g["pasos"][0]["escena"]]
+        ruta = ruta_de(pieza, escena["fondo"] + ".webp")
+        if not ruta:
+            return None
+        im = Image.open(ruta).convert("RGB")
+        im.thumbnail((480, 480))
+        buf = BytesIO()
+        im.save(buf, "WEBP", quality=78)
+        _PORTADAS[clave] = buf.getvalue()
+    return _PORTADAS[clave]
+
+
 def archivo(pieza, nombre):
     """(bytes, content-type) de un archivo de la pieza, o None."""
+    if nombre == "portada.webp":
+        datos = portada(pieza)
+        return (datos, "image/webp") if datos else None
     if nombre == "player.js":
         if not _carpeta(pieza):
             return None

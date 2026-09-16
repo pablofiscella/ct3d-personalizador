@@ -106,6 +106,14 @@
            font-size:clamp(18px,2.6vw,28px);cursor:pointer;display:none}
   .repetir.ver{display:block}
 
+  /* 1.º SE VE EN MAYÚSCULAS, como todo el cuaderno (Pablo, 15-ago-2026: *«todo el cuaderno de
+     primero tiene que verse en mayúsculas»*). Desde el 16-sep-2026 los videos viven ADENTRO del
+     cuaderno, así que la regla los alcanza. Los `<button>` no heredan `text-transform`: se nombran
+     uno por uno, o las opciones quedan en minúscula debajo de un subtítulo en mayúscula. La voz
+     no cambia: lee el texto del guion, no lo que se ve. */
+  body.g1 .cab b,body.g1 .subs,body.g1 .telon h1,body.g1 .telon p,body.g1 .empezar,
+  body.g1 .op,body.g1 .op span,body.g1 .grupo,body.g1 .grupo span{text-transform:uppercase}
+
   .telon{position:absolute;inset:0;z-index:20;display:grid;place-items:center;text-align:center;
          background:linear-gradient(180deg,rgba(22,27,38,.25),rgba(22,27,38,.72))}
   .telon[hidden]{display:none}
@@ -161,7 +169,7 @@
   }
 </style>
 </head>
-<body>
+<body class="g{{GRADO}}">
   <div class="cab"><b>🎬 {{TITULO}}</b><small>Kydo · {{GRADO}}.º grado</small></div>
   <div class="pantalla" id="pantalla" aria-live="polite">
     <img class="fondo" id="fondoA" alt="">

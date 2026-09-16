@@ -1568,6 +1568,16 @@ class Handler(BaseHTTPRequestHandler):
         # ---- VIDEO INTERACTIVO (PILOTO, 15-sep-2026): el video se pausa, pregunta y da pistas ----
         # Igual que /leer: rutas RELATIVAS -> servir SIEMPRE bajo /vi/<pieza>/. La dirección es la
         # PIEZA y no un token: es contenido del cuaderno, como una lección en video.
+        # La lista de videos, para la sección del cuaderno. Se pide en vivo: ver `viw.indice`.
+        if path == "/vi/indice.json":
+            import video_interactivo_web as viw
+            body = json.dumps({"videos": viw.indice()}, ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Cache-Control", "no-cache")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers(); self.wfile.write(body)
+            return
         m = re.match(r"^/vi/([a-z0-9_]+)(?:/([a-z_0-9.]*))?$", path)
         if m:
             import video_interactivo_web as viw

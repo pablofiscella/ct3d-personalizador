@@ -402,6 +402,78 @@ def test_sirve_el_reproductor_y_los_archivos_de_la_pieza(pieza):
     assert len(mp3) > 1000 and ct == "audio/mpeg"
 
 
+# ── en el cuaderno: la sección «Videos interactivos» ─────────────────────────────────────
+
+CUADERNO_JS = os.path.join(BASE, "actividades_player.js")
+CUADERNO_HTML = os.path.join(BASE, "actividades_player.html")
+
+
+def test_el_indice_lista_todas_las_piezas_con_su_grado():
+    """El cuaderno pide la lista EN VIVO (`/vi/indice.json`): un video nuevo tiene que aparecer en
+    los cuadernos ya entregados, cuyo `data.json` quedó congelado el día de la compra."""
+    idx = viw.indice()
+    assert sorted(v["pieza"] for v in idx) == PIEZAS
+    for v in idx:
+        assert v["grado"] in range(1, 8) and v["titulo"] and len(v["version"]) == 10
+        datos, ct = viw.archivo(v["pieza"], "portada.webp")
+        assert ct == "image/webp" and datos[:4] == b"RIFF"
+        assert len(datos) < 80000, "%s: la miniatura pesa %d bytes" % (v["pieza"], len(datos))
+
+
+def test_la_seccion_va_despues_de_las_materias_y_antes_de_extras():
+    """Pablo, 16-sep-2026: *"después de naturales, sociales, exactas, etc. Pero antes de las
+    extras"*. Se pone al llegar a Extras («logica») ANTES del `return` de categoría vacía —si no,
+    un grado sin Extras se quedaría sin videos— y, si no se puso, al final."""
+    js = open(CUADERNO_JS, encoding="utf-8").read()
+    i = js.find("Adapt.ordenCategorias().forEach((cat) => {\n      if (cat === \"logica\" && !_videosPuestos)")
+    assert i > 0, "la sección de videos ya no se pone al llegar a Extras"
+    j = js.find("if (!delCat.length) return;", i)
+    assert js.find("stage.appendChild(_seccionVideos())", i) < j, "queda después del return"
+    assert "if (!_videosPuestos) stage.appendChild(_seccionVideos());" in js
+
+
+def test_las_tarjetas_de_video_no_son_actividades():
+    """El modo seño arrastra toda `.carta` y guarda su orden, y el buscador y la voz del menú las
+    recorren: una tarjeta de video con esa clase terminaría en el orden de la maestra."""
+    js = open(CUADERNO_JS, encoding="utf-8").read()
+    ini, fin = js.find("function _seccionVideos()"), js.find("function abrirVideoInteractivo(")
+    bloque = js[ini:fin]
+    assert ini > 0 and fin > ini
+    assert '"vi-carta' in bloque and '"carta' not in bloque and "menu-cat" not in bloque
+
+
+def test_los_videos_son_de_kydo_y_se_abren_sin_salir_del_cuaderno():
+    """Son de la línea escolar: el cuaderno de cumpleaños no los pide. Y se abren en un marco con
+    un botón: en el cuaderno del chico el único `<a>` es el del diploma. El aviso de «terminado»
+    sólo se acepta si viene del mismo sitio."""
+    js = open(CUADERNO_JS, encoding="utf-8").read()
+    ini = js.find("let VIDEOS_VI = [];")
+    fin = js.find("/* ── arranque ── */", ini)
+    bloque = js[ini:fin]
+    assert "if (!D || !D.escolar_on) return;" in bloque
+    assert "v.grado === grado" in bloque
+    for enlace in ("<a href", 'el("a"', 'createElement("a")', "window.open", "location.href"):
+        assert enlace not in bloque, "los videos sacan al chico del cuaderno: %s" % enlace
+    assert "if (ev.origin !== location.origin) return;" in bloque
+    assert "cargarVideosInteractivos()" in js[js.find("async function boot()"):]
+
+
+def test_en_primero_los_videos_tambien_se_ven_en_mayusculas():
+    """Pablo, 15-ago-2026: *«todo el cuaderno de primero tiene que verse en mayúsculas»*. Los
+    videos ahora viven adentro del cuaderno. Los `<button>` no heredan `text-transform`: cada uno
+    se nombra, o las opciones quedan en minúscula debajo de un subtítulo en mayúscula."""
+    html = open(CUADERNO_HTML, encoding="utf-8").read()
+    for sel in ("body.g1 .vi-carta .nombre", "body.g1 .vi-volver"):
+        assert sel in html, "falta %s en la regla de 1.º" % sel
+    vp = open(os.path.join(BASE, "video_interactivo_player.html"), encoding="utf-8").read()
+    assert '<body class="g{{GRADO}}">' in vp
+    regla = vp[vp.find("body.g1 .cab b"):]
+    regla = regla[:regla.find("}")]
+    for sel in (".subs", ".empezar", ".op span", ".grupo span", ".telon h1"):
+        assert "body.g1 " + sel in regla, "el video de 1.º deja %s en minúscula" % sel
+    assert 'class="g1"' in viw.html("cruzo_o_espero")
+
+
 def test_no_sirve_nada_de_afuera_de_la_pieza():
     for malo in ("../servicio.py", "/etc/passwd", "guion.json", "player.js.bak", "", "..%2fx.webp"):
         assert viw.archivo(PIEZAS[0], malo) is None, "sirvió %r" % malo
