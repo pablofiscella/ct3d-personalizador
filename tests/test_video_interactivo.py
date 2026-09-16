@@ -83,7 +83,8 @@ def test_los_pasos_apuntan_a_escenas_cosas_y_voces_que_existen(pieza):
         for clave in ("voz", "consigna", "fin", "va_aca"):
             if p.get(clave):
                 assert p[clave] in voces, "%s paso %d: voz inexistente %r" % (pieza, i, p[clave])
-        for a in p.get("correctos", []) + (p.get("solo") or []) + list(p.get("acomodar") or {}):
+        for a in (p.get("correctos", []) + (p.get("solo") or []) + list(p.get("acomodar") or {})
+                  + (p.get("orden") or [])):
             assert a in cosas, "%s paso %d: no está en la escena: %r" % (pieza, i, a)
         for it in p.get("items", []):
             assert it["animal"] in cosas and it["pista"] in voces
@@ -111,7 +112,7 @@ def test_cada_pausa_tiene_las_tres_pistas(pieza):
     equivoca tres veces se queda sin salida, que es lo que este formato no puede hacer."""
     for i, p0 in enumerate(guion(pieza)["pasos"]):
       for p in versiones(p0):
-        if p["tipo"] in ("tocar", "elegir"):
+        if p["tipo"] in ("tocar", "elegir", "ordenar"):
             assert len(p.get("pistas") or []) == 3, "%s paso %d tiene %d pistas" % (
                 pieza, i, len(p.get("pistas") or []))
         if p["tipo"] == "clasificar":
@@ -147,9 +148,10 @@ def test_la_voz_no_nombra_algo_de_la_escena_que_no_sea_la_respuesta(pieza):
             correctos = set(p.get("correctos") or [])
             dicho = " ".join(g["voces"][p[c]] for c in ("consigna", "fin") if p.get(c))
             dicho += " " + " ".join(g["voces"][k] for k in (p.get("pistas") or []))
-            for cosa in (p.get("solo") or g["escenas"][p["escena"]]["animales"]):
-                if cosa in correctos:
-                    continue
+            escena = g["escenas"][p["escena"]]["animales"]
+            for cosa in (p.get("solo") or escena):
+                if cosa in correctos or escena[cosa].get("decorado"):
+                    continue          # lo `decorado` es parte del relato: no se puede tocar
                 assert not re.search(r"\b%s\b" % re.escape(sin_tildes(cosa)), sin_tildes(dicho)), (
                     "%s paso %d: la voz nombra %r, que está en la escena y no es respuesta"
                     % (pieza, i, cosa))
@@ -170,7 +172,7 @@ def test_la_consigna_termina_en_lo_que_hay_que_hacer(pieza):
     g = guion(pieza)
     for i, p0 in enumerate(g["pasos"]):
         for p in versiones(p0):
-            if p["tipo"] not in ("tocar", "elegir") or not p.get("consigna"):
+            if p["tipo"] not in ("tocar", "elegir", "ordenar") or not p.get("consigna"):
                 continue
             texto = g["voces"][p["consigna"]].strip()
             if "?" in texto:
@@ -200,7 +202,7 @@ def test_ningun_cierre_repite_el_festejo_que_acaba_de_sonar(pieza):
             if v.get("fin"):
                 despues_de_festejo.append(v["fin"])
         # y lo que se dice en el paso siguiente, si el anterior terminó festejando
-        if p["tipo"] == "decir" and i and pasos[i - 1]["tipo"] in ("tocar", "elegir", "clasificar"):
+        if p["tipo"] == "decir" and i and pasos[i - 1]["tipo"] in ("tocar", "elegir", "clasificar", "ordenar"):
             despues_de_festejo.append(p["voz"])
         for clave in despues_de_festejo:
             assert primera(g["voces"][clave]) not in arranques, (

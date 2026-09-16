@@ -123,7 +123,14 @@
       var a = e.animales[k];
       var b = document.createElement("button");
       b.type = "button";
-      b.className = "bicho " + (a.mov || "quieto");
+      // `estilo: "foto"`: con marco blanco y un poco torcida (`giro`, en grados), como fotos
+      // sueltas sobre una mesa. Va con `mov: "ninguno"`, o la animación de respirar pisa el giro.
+      // `decorado`: es parte del relato y no una opción —el tambero de «el tambero la ordeña»—.
+      // Se ve siempre entero y nunca se toca; sin esto quedaba atenuado como una respuesta
+      // descartada y el chico no lo veía cuando la voz lo nombraba.
+      b.className = "bicho " + (a.mov || "quieto") + (a.estilo ? " " + a.estilo : "") +
+                    (a.decorado ? " decorado" : "");
+      if (a.giro) b.style.setProperty("--giro", a.giro + "deg");
       b.dataset.id = k;
       b.style.left = a.x + "%"; b.style.top = a.y + "%"; b.style.width = a.w + "%";
       b.setAttribute("aria-label", k);
@@ -358,6 +365,83 @@
     });
   }
 
+  // ORDENAR (16-sep-2026, «Del campo a tu casa»). Pablo: *"sigamos con primero"*. La tarjeta del
+  // cuaderno ordena FRASES —«La vaca da leche», «La leche va a la fábrica»— y un chico de 1.º
+  // todavía no las lee. Acá se ordenan FOTOS de lo que acaba de ver en el video.
+  //  - Cada acierto lleva su NÚMERO, no un tilde: lo que se aprende es el lugar en la secuencia.
+  //  - Se equivoca → la escalera de siempre: pista corta, se ilumina LA QUE SIGUE, Carpi la dice.
+  //  - Al completar, las fotos se acomodan solas en fila y en orden: es el momento en que el chico
+  //    ve el viaje entero de una vez, que es lo que la pausa quería enseñar.
+  function marcarNumero(b, n) {
+    b.classList.remove("brillo");
+    b.classList.add("bien");
+    b.style.zIndex = "4";
+    var t = document.createElement("span");
+    t.className = "tilde numero";
+    t.textContent = String(n);
+    var pt = puntoDelTilde(b.querySelector("img"));
+    t.style.left = (pt.x * 100) + "%";
+    t.style.top = (pt.y * 100) + "%";
+    b.appendChild(t);
+  }
+
+  function pasoOrdenar(p, indice) {
+    return mostrarEscena(p.escena).then(function () {
+      Object.keys(B).forEach(function (k) { B[k].classList.toggle("apagado", p.orden.indexOf(k) < 0); });
+      pose("hablando");
+      return hablar(p.consigna);
+    }).then(function () {
+      pose("esperando");
+      mostrarRepetir(p.consigna);
+      return new Promise(function (resolve) {
+        var siguiente = 0, errores = 0, terminado = false;
+        var quieto = vigilarQuietud(p.consigna);
+        p.orden.forEach(function (k) {
+          var b = B[k];
+          if (!b) return;
+          b.disabled = false;
+          b.onclick = function () {
+            if (bloqueado || terminado || b.classList.contains("bien")) return;
+            quieto.tocar();
+            if (k !== p.orden[siguiente]) {
+              errores++;
+              sacudir(b); sonido("mal");
+              var nivel = Math.min(errores, p.pistas.length);
+              if (nivel >= 2 && B[p.orden[siguiente]]) B[p.orden[siguiente]].classList.add("brillo");
+              bloqueado = true;
+              pose("hablando");
+              hablar(p.pistas[nivel - 1]).then(function () { bloqueado = false; pose("esperando"); });
+              return;
+            }
+            siguiente++;
+            marcarNumero(b, siguiente);
+            sonido("bien");
+            Object.keys(B).forEach(function (j) { B[j].classList.remove("brillo"); });
+            if (siguiente < p.orden.length) return;
+            terminado = true; quieto.apagar(); mostrarRepetir(null);
+            p.orden.forEach(function (j) { B[j].disabled = true; B[j].onclick = null; });
+            registro.push({ paso: indice, tipo: "ordenar", primer_intento: errores === 0, errores: errores });
+            bloqueado = true;
+            // EN FILA: cada foto a su lugar, con la transición que ya tienen los objetos
+            var n = p.orden.length, ancho = 90 / n;
+            p.orden.forEach(function (j, i) {
+              var c = B[j];
+              c.classList.add("en-fila");              // las fotos se enderezan al acomodarse
+              c.style.left = (5 + i * ancho + ancho * 0.06) + "%";
+              c.style.top = (p.fila_y != null ? p.fila_y : 34) + "%";
+              c.style.width = (ancho * 0.88) + "%";
+            });
+            festejo().then(function () { return p.fin ? hablar(p.fin) : null; })
+              .then(function () {
+                bloqueado = false;
+                resolve();
+              });
+          };
+        });
+      });
+    });
+  }
+
   function pasoElegir(p, indice) {
     return mostrarEscena(p.escena).then(function () {
       // !! a propósito: toggle con un segundo argumento que no es booleano ALTERNA la clase
@@ -529,7 +613,8 @@
     });
   }
 
-  var PASOS = { decir: pasoDecir, tocar: pasoTocar, elegir: pasoElegir, clasificar: pasoClasificar };
+  var PASOS = { decir: pasoDecir, tocar: pasoTocar, elegir: pasoElegir, clasificar: pasoClasificar,
+                ordenar: pasoOrdenar };
 
   function guardar() {
     var datos = { pieza: G.pieza, saber: G.saber, fecha: new Date().toISOString(), pasos: registro };
