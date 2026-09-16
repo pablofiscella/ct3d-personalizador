@@ -1,0 +1,310 @@
+{
+  "pieza": "cruzo_o_espero",
+  "titulo": "¿Cruzo o espero?",
+  "grado": 1,
+  "saber": "TEC-1-vial",
+  "nota": "Tercera pieza (16-sep-2026), tema T9 de 1.º en docs/auditoria-dc-caba/grado-1.md: rol de peatón, semáforo, senda, cuidado de sí y de otros. Dice lo MISMO que la tarjeta vial_1 del cuaderno —rojo se espera aunque no venga nadie, verde se cruza mirando, siempre de la mano de una persona grande— para que el chico no reciba dos reglas distintas. SIN SUSTOS: ningún auto se mueve hacia el chico y nadie tiene un accidente. Con el semáforo en rojo la calle está VACÍA a propósito: es la trampa real («no viene nadie, crucemos») y es el ítem que la tarjeta ya trabaja. El muñequito se lee por FORMA y por color —quieto o caminando—, nunca sólo por color. Las opciones de elegir llevan dibujo porque en 1.º el chico todavía no lee: la voz las nombra en la consigna.",
+  "voces": {
+    "intro": "¡Hola! Soy Carpi. Hoy vamos a la plaza, que está del otro lado de la calle. Para llegar hay que cruzar, y hay que cruzar bien. ¿Me ayudás?",
+    "p1_consigna": "En esta esquina hay dos semáforos: uno es para los autos y el otro es para las personas. Tocá el semáforo de las personas.",
+    "p1_pista1": "El de las personas tiene un muñequito dibujado.",
+    "p1_pista2": "Te lo ilumino.",
+    "p1_pista3": "Es este, el del muñequito. Tocalo.",
+    "p1_fin": "Ese es el nuestro. El muñequito nos dice cuándo podemos cruzar.",
+    "p2_consigna": "Mirá el muñequito: está quieto y en rojo. Y no viene ningún auto. ¿Qué hacemos? ¿Esperamos, cruzamos mirando bien, o cruzamos rápido?",
+    "p2_pista1": "Fijate en el muñequito. ¿Está caminando, o está quieto?",
+    "p2_pista2": "Quieto y en rojo quiere decir: esperar.",
+    "p2_pista3": "Esperamos. Aunque no venga ningún auto, con rojo se espera.",
+    "p2_explica": "Así se hace. Con rojo se espera aunque la calle esté vacía, porque puede venir un auto que no vimos. Y esperamos arriba de la vereda, nunca en la calle.",
+    "p3_consigna": "¡Mirá! Cambió. Ahora el muñequito camina y está en verde. ¿Qué hacemos? ¿Esperamos, cruzamos mirando bien, o cruzamos rápido?",
+    "p3_pista1": "El verde nos deja cruzar. Pero, ¿cómo? ¿Rápido, o con cuidado?",
+    "p3_pista2": "Corriendo no: se cruza caminando y mirando.",
+    "p3_pista3": "Cruzamos mirando bien, caminando, por la senda peatonal.",
+    "p4_consigna": "Antes de cruzar, miramos para un lado y para el otro. Tocá los dos autos que tenemos que mirar.",
+    "p4_pista1": "Hay uno de cada lado de la calle.",
+    "p4_pista2": "Te los ilumino.",
+    "p4_pista3": "Son estos dos. Tocalos.",
+    "p4_fin": "Los dos están frenados, esperando que crucemos. Ahora sí.",
+    "p5_consigna": "Última. Para cruzar, ¿a quién le damos la mano? Tocá a esa persona.",
+    "p5_pista1": "A tu edad se cruza siempre con una persona grande.",
+    "p5_pista2": "Te ilumino a la persona grande.",
+    "p5_pista3": "Es ella. Tocala.",
+    "p5_fin": "De la mano de una persona grande, por la senda peatonal, caminando y mirando: así se cruza.",
+    "cierre": "¡Llegamos a la plaza! Acordate: con rojo esperamos, con verde miramos y cruzamos caminando, y siempre de la mano de una persona grande. ¡Hasta la próxima!",
+    "festejo1": "¡Muy bien!",
+    "festejo2": "¡Eso es!",
+    "festejo3": "¡Genial!"
+  },
+  "imagenes": {
+    "fondo_esquina": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "Una esquina de un barrio tranquilo de una ciudad argentina, vista desde la vereda a la altura de los ojos de un chico, mirando de frente hacia la calle y hacia la vereda de enfrente. ABAJO, en primer plano y ocupando el cuarto inferior de la imagen, la vereda de baldosas grises donde estamos parados, que termina en el cordón. En el MEDIO, una calle de asfalto gris de doble mano que atraviesa toda la imagen de izquierda a derecha, completamente VACÍA. Sobre la calle, en el centro de la imagen, una senda peatonal de rayas blancas anchas y paralelas que va desde nuestro cordón hasta la vereda de enfrente. ARRIBA, la vereda de enfrente y detrás una plaza con árboles verdes, un tobogán y bancos. A los costados, casas bajas y árboles de vereda. Día soleado y cielo celeste. SIN semáforos ni postes de semáforo, SIN autos ni ningún vehículo, SIN personas y SIN animales."
+    },
+    "fondo_plaza": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "Una plaza de barrio argentina, vista de frente y llena de luz: pasto verde, árboles grandes, un tobogán, hamacas, un arenero y bancos de madera junto a un caminito. Al fondo se ven casas bajas. Día soleado y cielo celeste. SIN personas y SIN animales."
+    },
+    "semaforo_personas_rojo": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "prompt": "Un semáforo PARA PERSONAS montado arriba de un poste gris y fino que llega hasta el piso, visto de frente. Tiene una caja negra con DOS luces cuadradas, una arriba de la otra. La luz de ARRIBA está PRENDIDA en ROJO brillante y muestra la silueta de una persona QUIETA, parada derecha con los brazos pegados al cuerpo. La luz de ABAJO está APAGADA: gris oscuro, sin brillo."
+    },
+    "semaforo_personas_verde": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "igual_a": "semaforo_personas_rojo",
+      "prompt": "El MISMO semáforo para personas de la SEGUNDA imagen de referencia —mismo poste, misma caja, mismo tamaño y mismo ángulo—, pero ahora con la luz de ARRIBA APAGADA (gris oscuro, sin brillo) y la luz de ABAJO PRENDIDA en VERDE brillante, que muestra la silueta de una persona CAMINANDO, dando un paso largo."
+    },
+    "semaforo_autos_verde": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "prompt": "Un semáforo PARA AUTOS montado arriba de un poste gris que llega hasta el piso, visto de frente. Una caja negra vertical con TRES luces redondas, una arriba de la otra. La de ABAJO está PRENDIDA en VERDE brillante. La del medio (amarilla) y la de arriba (roja) están APAGADAS: oscuras, sin brillo."
+    },
+    "semaforo_autos_rojo": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "igual_a": "semaforo_autos_verde",
+      "prompt": "El MISMO semáforo para autos de la SEGUNDA imagen de referencia —mismo poste, misma caja, mismo tamaño y mismo ángulo—, pero ahora con la luz de ARRIBA PRENDIDA en ROJO brillante y las otras dos (la amarilla del medio y la verde de abajo) APAGADAS: oscuras, sin brillo."
+    },
+    "auto_izq": {
+      "tipo": "recorte",
+      "prompt": "Un auto chico de color rojo, visto completamente de COSTADO, con el frente mirando hacia la DERECHA. Está quieto, frenado. Ruedas negras, vidrios celestes, sin personas visibles adentro. La patente es un rectángulo blanco liso, sin letras ni números."
+    },
+    "auto_der": {
+      "tipo": "recorte",
+      "prompt": "Una camioneta chica de color azul, vista completamente de COSTADO, con el frente mirando hacia la IZQUIERDA. Está quieta, frenada. Ruedas negras, vidrios celestes, sin personas visibles adentro. La patente es un rectángulo blanco liso, sin letras ni números."
+    },
+    "persona_grande": {
+      "tipo": "recorte",
+      "prompt": "Una mujer adulta, de cuerpo entero, parada, de frente y sonriendo, con ropa de todos los días: pantalón de jean y buzo amarillo. Tiene una mano extendida hacia abajo y hacia un costado, abierta, como para darle la mano a un chico."
+    },
+    "nene_grande": {
+      "tipo": "recorte",
+      "prompt": "Un chico de unos diez años, de cuerpo entero, parado de frente y sonriendo, con ropa de todos los días: pantalón corto azul, remera naranja y una mochila. Es claramente un chico y no un adulto: bajito y con cara de nene."
+    },
+    "icono_esperar": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "prompt": "Un ícono redondo y simple: un círculo ROJO relleno con la silueta BLANCA de una persona QUIETA, parada derecha con los brazos pegados al cuerpo. Nada más."
+    },
+    "icono_cruzar": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "prompt": "Un ícono redondo y simple: un círculo VERDE relleno con la silueta BLANCA de una persona CAMINANDO tranquila, dando un paso. Nada más."
+    },
+    "icono_correr": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "prompt": "Un ícono redondo y simple: un círculo NARANJA relleno con la silueta BLANCA de una persona CORRIENDO muy rápido, inclinada hacia adelante y con las piernas muy abiertas. Nada más."
+    }
+  },
+  "escenas": {
+    "rojo": {
+      "fondo": "fondo_esquina",
+      "animales": {
+        "semaforo_personas": {
+          "img": "semaforo_personas_rojo",
+          "x": 61.25,
+          "y": 17.4,
+          "w": 6.5
+        },
+        "semaforo_autos": {
+          "img": "semaforo_autos_verde",
+          "x": 28.75,
+          "y": 15.5,
+          "w": 5.5
+        },
+        "grande": {
+          "img": "persona_grande",
+          "x": 77,
+          "y": 61,
+          "w": 10
+        },
+        "nene": {
+          "img": "nene_grande",
+          "x": 88,
+          "y": 70,
+          "w": 6.6
+        }
+      }
+    },
+    "verde": {
+      "fondo": "fondo_esquina",
+      "animales": {
+        "semaforo_personas": {
+          "img": "semaforo_personas_verde",
+          "x": 61.25,
+          "y": 17.4,
+          "w": 6.5
+        },
+        "semaforo_autos": {
+          "img": "semaforo_autos_rojo",
+          "x": 28.75,
+          "y": 15.5,
+          "w": 5.5
+        },
+        "auto_izq": {
+          "img": "auto_izq",
+          "x": 8,
+          "y": 60,
+          "w": 22
+        },
+        "auto_der": {
+          "img": "auto_der",
+          "x": 63,
+          "y": 51.5,
+          "w": 19
+        },
+        "grande": {
+          "img": "persona_grande",
+          "x": 77,
+          "y": 61,
+          "w": 10
+        },
+        "nene": {
+          "img": "nene_grande",
+          "x": 88,
+          "y": 70,
+          "w": 6.6
+        }
+      }
+    },
+    "plaza": {
+      "fondo": "fondo_plaza",
+      "animales": {}
+    }
+  },
+  "pasos": [
+    {
+      "tipo": "decir",
+      "escena": "rojo",
+      "voz": "intro"
+    },
+    {
+      "tipo": "tocar",
+      "escena": "rojo",
+      "consigna": "p1_consigna",
+      "solo": [
+        "semaforo_personas",
+        "semaforo_autos"
+      ],
+      "correctos": [
+        "semaforo_personas"
+      ],
+      "pistas": [
+        "p1_pista1",
+        "p1_pista2",
+        "p1_pista3"
+      ],
+      "fin": "p1_fin"
+    },
+    {
+      "tipo": "elegir",
+      "escena": "rojo",
+      "foco": "semaforo_personas",
+      "consigna": "p2_consigna",
+      "opciones": [
+        {
+          "id": "esperar",
+          "texto": "Esperamos",
+          "icono": "icono_esperar"
+        },
+        {
+          "id": "mirar",
+          "texto": "Cruzamos mirando bien",
+          "icono": "icono_cruzar"
+        },
+        {
+          "id": "correr",
+          "texto": "Cruzamos rápido",
+          "icono": "icono_correr"
+        }
+      ],
+      "correcta": "esperar",
+      "pistas": [
+        "p2_pista1",
+        "p2_pista2",
+        "p2_pista3"
+      ]
+    },
+    {
+      "tipo": "decir",
+      "escena": "rojo",
+      "voz": "p2_explica"
+    },
+    {
+      "tipo": "elegir",
+      "escena": "verde",
+      "foco": "semaforo_personas",
+      "consigna": "p3_consigna",
+      "opciones": [
+        {
+          "id": "esperar",
+          "texto": "Esperamos",
+          "icono": "icono_esperar"
+        },
+        {
+          "id": "mirar",
+          "texto": "Cruzamos mirando bien",
+          "icono": "icono_cruzar"
+        },
+        {
+          "id": "correr",
+          "texto": "Cruzamos rápido",
+          "icono": "icono_correr"
+        }
+      ],
+      "correcta": "mirar",
+      "pistas": [
+        "p3_pista1",
+        "p3_pista2",
+        "p3_pista3"
+      ]
+    },
+    {
+      "tipo": "tocar",
+      "escena": "verde",
+      "consigna": "p4_consigna",
+      "correctos": [
+        "auto_izq",
+        "auto_der"
+      ],
+      "pistas": [
+        "p4_pista1",
+        "p4_pista2",
+        "p4_pista3"
+      ],
+      "fin": "p4_fin"
+    },
+    {
+      "tipo": "tocar",
+      "escena": "verde",
+      "consigna": "p5_consigna",
+      "solo": [
+        "grande",
+        "nene"
+      ],
+      "correctos": [
+        "grande"
+      ],
+      "pistas": [
+        "p5_pista1",
+        "p5_pista2",
+        "p5_pista3"
+      ],
+      "fin": "p5_fin"
+    },
+    {
+      "tipo": "decir",
+      "escena": "plaza",
+      "voz": "cierre",
+      "pose": "festejando"
+    }
+  ],
+  "cierre_pantalla": {
+    "titulo": "¡Lo lograste!",
+    "texto": "Con rojo se espera. Con verde se cruza mirando, y de la mano."
+  }
+}

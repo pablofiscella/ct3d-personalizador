@@ -42,6 +42,15 @@ VERDE = ("Fondo VERDE PURO y liso (#00FF00) en toda la imagen, sin suelo, sin so
          "más alrededor. El dibujo mismo NO tiene nada verde. El elemento completo, centrado y "
          "con margen, sin tocar los bordes.")
 
+# FONDO MAGENTA para lo que TIENE verde adentro (16-sep-2026, «¿Cruzo o espero?»). El recorte saca
+# todo lo que se parece al color del fondo y además destiñe los bordes que tiran a ese color: sobre
+# verde, la luz verde del semáforo salía semitransparente y gris — justo la luz que le dice al chico
+# que puede cruzar. Se elige con `"fondo_clave": "magenta"` en la imagen del guion.
+MAGENTA = ("Fondo MAGENTA PURO y liso (#FF00FF) en toda la imagen, sin suelo, sin sombra y sin nada "
+           "más alrededor. El dibujo mismo NO tiene nada magenta, fucsia ni rosa. El elemento "
+           "completo, centrado y con margen, sin tocar los bordes.")
+CLAVES = {"verde": ((0, 255, 0), VERDE), "magenta": ((255, 0, 255), MAGENTA)}
+
 
 def carpeta(pieza):
     return os.path.join(BASE, pieza)
@@ -58,19 +67,27 @@ def _ref_png(ruta):
     return buf.getvalue()
 
 
-def recortar_verde(raw):
-    """PNG sobre verde → RGBA recortado al dibujo. Mismo criterio que el colorkey del montaje."""
+def recortar_verde(raw, color=(0, 255, 0)):
+    """PNG sobre un fondo liso → RGBA recortado al dibujo. Mismo criterio que el colorkey del montaje.
+
+    `color` es el del fondo: verde por defecto, magenta para lo que tiene verde adentro."""
     im = np.asarray(Image.open(io.BytesIO(raw)).convert("RGB")).astype(int)
-    dist = np.abs(im - np.array([0, 255, 0])).sum(axis=2)
+    dist = np.abs(im - np.array(color)).sum(axis=2)
     alfa = np.clip((dist - 90) * 255 // 140, 0, 255).astype(np.uint8)   # borde suave
-    # el verde que se cuela en el borde del dibujo se neutraliza para que no quede halo
+    # el color del fondo que se cuela en el borde del dibujo se neutraliza para que no quede halo
     rgb = im.copy()
-    verdoso = (rgb[..., 1] > rgb[..., 0] + 40) & (rgb[..., 1] > rgb[..., 2] + 40) & (alfa < 255)
-    rgb[verdoso, 1] = np.maximum(rgb[verdoso, 0], rgb[verdoso, 2])
+    if tuple(color) == (0, 255, 0):
+        tinte = (rgb[..., 1] > rgb[..., 0] + 40) & (rgb[..., 1] > rgb[..., 2] + 40) & (alfa < 255)
+        rgb[tinte, 1] = np.maximum(rgb[tinte, 0], rgb[tinte, 2])
+    else:
+        # magenta: rojo Y azul altos a la vez. Una luz ROJA (azul bajo) no entra acá.
+        tinte = (rgb[..., 0] > rgb[..., 1] + 40) & (rgb[..., 2] > rgb[..., 1] + 40) & (alfa < 255)
+        rgb[tinte, 0] = rgb[tinte, 1]
+        rgb[tinte, 2] = rgb[tinte, 1]
     rgba = np.dstack([rgb.astype(np.uint8), alfa])
     ys, xs = np.where(alfa > 24)
     if not len(xs):
-        raise ValueError("no quedó dibujo después de sacar el verde")
+        raise ValueError("no quedó dibujo después de sacar el fondo")
     return Image.fromarray(rgba, "RGBA").crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
 
 
@@ -104,9 +121,18 @@ def generar_imagenes(pieza, claves=None, calidad="medium"):
         else:
             refs = [ref] + ([personaje] if spec.get("personaje") and personaje
                             and clave != "carpi_hablando" else [])
-            prompt = spec["prompt"] + " " + ESTILO + " " + VERDE
+            # `igual_a`: el MISMO objeto en otro estado —el semáforo en verde es el semáforo en
+            # rojo con otra luz prendida—. Pedido sólo con palabras sale otro semáforo parecido, y
+            # al cambiar de escena el chico ve que cambió el poste, no la luz.
+            if spec.get("igual_a"):
+                hermano = os.path.join(dest_dir, spec["igual_a"] + ".webp")
+                if not os.path.exists(hermano):
+                    raise SystemExit("%s necesita que exista antes %s" % (clave, spec["igual_a"]))
+                refs.append(_ref_png(hermano))
+            color, pedido_fondo = CLAVES[spec.get("fondo_clave", "verde")]
+            prompt = spec["prompt"] + " " + ESTILO + " " + pedido_fondo
             raw = client.editar(refs, prompt, "1024x1024", quality=calidad)
-            im = recortar_verde(raw)
+            im = recortar_verde(raw, color)
             im.thumbnail((640, 640))
             im.save(dest, "WEBP", quality=90)
             if clave == "carpi_hablando":

@@ -382,7 +382,19 @@
         }
         p.opciones.forEach(function (o) {
           var btn = document.createElement("button");
-          btn.type = "button"; btn.className = "op"; btn.textContent = o.texto;
+          btn.type = "button"; btn.className = "op";
+          // CON DIBUJO, para 1.º: un chico que todavía no lee no puede elegir entre tres palabras.
+          // El dibujo dice la opción y la voz la nombra en la consigna; la palabra queda abajo
+          // para el que ya lee. Sin `icono`, el botón es el de siempre.
+          if (o.icono) {
+            var ic = document.createElement("img");
+            ic.alt = ""; ic.src = A(o.icono + ".webp");
+            btn.appendChild(ic);
+            btn.classList.add("con_dibujo");
+          }
+          var palabra = document.createElement("span");
+          palabra.textContent = o.texto;
+          btn.appendChild(palabra);
           btn.onclick = function () {
             if (bloqueado || terminado) return;
             quieto.tocar();

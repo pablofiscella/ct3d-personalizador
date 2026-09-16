@@ -90,6 +90,15 @@ def test_los_pasos_apuntan_a_escenas_cosas_y_voces_que_existen(pieza):
             assert it["grupo"] in [x["id"] for x in p["grupos"]]
         for x in p.get("grupos", []):
             assert x["icono"] in g["imagenes"], "%s paso %d: ícono inexistente" % (pieza, i)
+        if p["tipo"] == "elegir":
+            ids = [o["id"] for o in p["opciones"]]
+            assert p["correcta"] in ids, "%s paso %d: la correcta no es una opción" % (pieza, i)
+            assert len(set(ids)) == len(ids), "%s paso %d: opciones repetidas" % (pieza, i)
+            if p.get("foco"):
+                assert p["foco"] in cosas, "%s paso %d: foco inexistente" % (pieza, i)
+            for o in p["opciones"]:
+                if o.get("icono"):
+                    assert o["icono"] in g["imagenes"], "%s paso %d: dibujo de opción inexistente" % (pieza, i)
     for e in escenas.values():
         assert e["fondo"] in g["imagenes"]
         for c in e["animales"].values():
