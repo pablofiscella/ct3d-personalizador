@@ -1,0 +1,395 @@
+{
+  "pieza": "del_campo_a_tu_casa",
+  "titulo": "Del campo a tu casa",
+  "grado": 1,
+  "saber": "CDM-1-origen",
+  "nota": "Cuarta pieza (16-sep-2026), tema C5 de 1.º en docs/auditoria-dc-caba/grado-1.md: etapas de producción de un bien primario; trabajos y herramientas. Pablo: «sigamos con primero». Sigue el mismo camino que la tarjeta campo_a_casa del cuaderno —la vaca, la fábrica, el negocio, tu casa— pero con DIBUJOS, porque la tarjeta ordena frases y un chico de 1.º todavía no las lee, y con los TRABAJOS de cada etapa, que la auditoría pide para el escalón de 5 pasos y la tarjeta no tiene. Los oficios van alternados de género (tambero, camionera, almacenero), como pide la auditoría para 1.º. Estreno de la pausa ORDENAR: las fotos que se ordenan son las escenas que el chico acaba de ver, y están mezcladas sobre la mesa para que el lugar no delate el orden. En la pausa del almacén la trampa son los huevos, que en el negocio están al lado de los lácteos.",
+  "voces": {
+    "intro": "¡Hola! Soy Carpi. Hoy vamos a seguir a la leche que tomás en el desayuno, desde el campo hasta tu casa. Arrancamos en un tambo.",
+    "p1_consigna": "Tocá el animal que nos da la leche.",
+    "p1_pista1": "Es un animal grande, que come pasto y hace muu.",
+    "p1_pista2": "Mirá el que se ilumina.",
+    "p1_pista3": "Es la vaca. Tocala.",
+    "p1_fin": "La vaca. Y el tambero la ordeña todos los días, con una máquina.",
+    "p2_consigna": "La leche sale del tambo y tiene que viajar. Tocá lo que la lleva hasta la fábrica.",
+    "p2_pista1": "Tiene un tanque grande y redondo, donde la leche va fría.",
+    "p2_pista2": "Mirá el que se ilumina.",
+    "p2_pista3": "Es el camión de la leche. Tocalo.",
+    "p2_fin": "El camión de la leche. Adentro del tanque la leche va fría, y la camionera la lleva hasta la fábrica.",
+    "p3_fabrica": "En la fábrica, la leche se calienta un ratito para sacarle los microbios, y así es sana para tomar. Después la ponen en sachets y en cajas. Ahí trabaja mucha gente, cuidando que todo esté bien limpio.",
+    "p4_consigna": "La leche llegó al almacén. Acá hay muchas cosas: tocá todas las que se hacen con leche.",
+    "p4_pista1": "Pensá qué más se hace con la leche en la fábrica. Son tres.",
+    "p4_pista2": "Te las ilumino.",
+    "p4_pista3": "Son el queso, el yogur y el dulce de leche. Tocalos.",
+    "p4_fin": "Queso, yogur y dulce de leche: todo eso se hace con leche.",
+    "p5_casa": "Y del almacén, alguien la compra y la lleva a su casa. Así llegó hasta tu taza.",
+    "p6_consigna": "Ahora vos. Tocá las fotos en orden, desde el tambo hasta tu casa.",
+    "p6_pista1": "Acordate: la leche empezó en el campo y terminó en tu casa.",
+    "p6_pista2": "Te ilumino la que sigue.",
+    "p6_pista3": "Es esta. Tocala.",
+    "p6_fin": "Tambo, camión, fábrica, almacén y tu casa. Ese es el viaje de la leche.",
+    "cierre": "Mucha gente trabajó para que la leche llegue a tu taza: el tambero, la camionera, la gente de la fábrica y el almacenero. ¡Hasta la próxima!",
+    "festejo1": "¡Muy bien!",
+    "festejo2": "¡Eso es!",
+    "festejo3": "¡Genial!"
+  },
+  "imagenes": {
+    "fondo_tambo": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "Un tambo en el campo argentino, de día: a la derecha un galpón de ordeñe con techo de chapa, al fondo un corral de madera y un molino de viento, y pasto verde. La mitad de abajo de la imagen es pasto y tierra, libre y despejada. Cielo celeste con nubes. SIN animales y SIN personas."
+    },
+    "fondo_ruta": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "Un camino rural de tierra en el campo argentino que cruza la imagen de izquierda a derecha por la mitad de abajo, con alambrados a los costados, pasto, algunos árboles y un campo sembrado al fondo. Cielo celeste. El camino está VACÍO: SIN vehículos, SIN personas y SIN animales."
+    },
+    "fondo_fabrica": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "Adentro de una fábrica de leche, limpia y luminosa: tanques grandes de acero brillante, caños, y una cinta transportadora que lleva sachets blancos y cajas de leche blancas, todos lisos y SIN letras. Una mujer y un hombre trabajan con guardapolvo blanco, cofia y guantes, controlando las máquinas. Sin carteles ni letras en ningún lado."
+    },
+    "fondo_almacen": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "Un almacén de barrio argentino por dentro, cálido: un mostrador largo de madera que cruza la mitad de abajo de la imagen, con la parte de ARRIBA del mostrador VACÍA y despejada. Detrás, estantes con frascos y paquetes de colores lisos SIN letras, y una heladera con puerta de vidrio. SIN personas y sin carteles ni letras."
+    },
+    "fondo_casa": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "Una cocina de una casa argentina a la mañana, con luz que entra por la ventana. En primer plano, una mesa de madera grande que ocupa toda la mitad de abajo de la imagen, casi vacía: sólo una taza con leche en la esquina de abajo a la derecha. Al fondo, la ventana, una alacena y una heladera. SIN personas."
+    },
+    "vaca": {
+      "tipo": "recorte",
+      "prompt": "Una vaca lechera blanca y negra, de raza Holando, parada de perfil mirando hacia la izquierda, cuerpo entero con sus cuatro patas."
+    },
+    "gallina": {
+      "tipo": "recorte",
+      "prompt": "Una gallina marrón, parada de perfil mirando hacia la derecha, cuerpo entero."
+    },
+    "caballo": {
+      "tipo": "recorte",
+      "prompt": "Un caballo criollo marrón con crines oscuras, parado de perfil mirando hacia la derecha, cuerpo entero con sus cuatro patas."
+    },
+    "tambero": {
+      "tipo": "recorte",
+      "prompt": "Un tambero: hombre adulto con gorra, camisa a cuadros, delantal y botas de goma NEGRAS, sonriendo, de cuerpo entero y de frente, con un balde de metal en la mano."
+    },
+    "camion": {
+      "tipo": "recorte",
+      "prompt": "Un camión de la leche visto completamente de costado, con el frente mirando hacia la izquierda: cabina blanca y detrás un tanque grande, redondo y alargado de acero plateado. En la ventanilla de la cabina se ve a una mujer manejando. Sin letras ni números."
+    },
+    "tractor": {
+      "tipo": "recorte",
+      "prompt": "Un tractor ROJO visto completamente de costado, con el frente mirando hacia la derecha, ruedas grandes negras atrás y chicas adelante. Sin letras ni números."
+    },
+    "colectivo": {
+      "tipo": "recorte",
+      "prompt": "Un colectivo de ciudad argentino, azul y amarillo, visto completamente de costado, con el frente mirando hacia la izquierda. Sin letras, sin números y sin carteles."
+    },
+    "almacenero": {
+      "tipo": "recorte",
+      "prompt": "Un almacenero: hombre adulto con delantal azul y bigote, sonriendo, de cuerpo entero y de frente, con los brazos a los costados."
+    },
+    "queso": {
+      "tipo": "recorte",
+      "prompt": "Un trozo de queso amarillo en forma de cuña, con agujeritos redondos."
+    },
+    "yogur": {
+      "tipo": "recorte",
+      "prompt": "Un vasito de yogur blanco y cremoso, con la tapa despegada a un costado y una cucharita. El vasito es blanco y liso, sin letras."
+    },
+    "dulce_de_leche": {
+      "tipo": "recorte",
+      "prompt": "Un frasco de vidrio abierto lleno de dulce de leche marrón claro y cremoso, con una cuchara adentro. Sin etiqueta y sin letras."
+    },
+    "huevos": {
+      "tipo": "recorte",
+      "prompt": "Un maple de cartón gris con seis huevos blancos adentro."
+    },
+    "manzana": {
+      "tipo": "recorte",
+      "prompt": "Una manzana roja brillante, con el cabito marrón y SIN hojas."
+    },
+    "fideos": {
+      "tipo": "recorte",
+      "prompt": "Un manojo de fideos secos largos, color amarillo pálido, atados con un hilo, apoyados de costado."
+    }
+  },
+  "escenas": {
+    "llegada": {
+      "fondo": "fondo_tambo",
+      "animales": {
+        "tambero": {
+          "img": "tambero",
+          "x": 51,
+          "y": 38,
+          "w": 7,
+          "decorado": true
+        }
+      }
+    },
+    "tambo": {
+      "fondo": "fondo_tambo",
+      "animales": {
+        "caballo": {
+          "img": "caballo",
+          "x": 64,
+          "y": 44,
+          "w": 22
+        },
+        "tambero": {
+          "img": "tambero",
+          "x": 51,
+          "y": 38,
+          "w": 7,
+          "decorado": true
+        },
+        "vaca": {
+          "img": "vaca",
+          "x": 20,
+          "y": 48,
+          "w": 26
+        },
+        "gallina": {
+          "img": "gallina",
+          "x": 50,
+          "y": 73,
+          "w": 9
+        }
+      }
+    },
+    "ruta": {
+      "fondo": "fondo_ruta",
+      "animales": {
+        "colectivo": {
+          "img": "colectivo",
+          "x": 20,
+          "y": 40,
+          "w": 24
+        },
+        "tractor": {
+          "img": "tractor",
+          "x": 72,
+          "y": 40,
+          "w": 17
+        },
+        "camion": {
+          "img": "camion",
+          "x": 30,
+          "y": 58,
+          "w": 30
+        }
+      }
+    },
+    "fabrica": {
+      "fondo": "fondo_fabrica",
+      "animales": {}
+    },
+    "almacen": {
+      "fondo": "fondo_almacen",
+      "animales": {
+        "almacenero": {
+          "img": "almacenero",
+          "x": 88,
+          "y": 40,
+          "w": 10,
+          "decorado": true
+        },
+        "fideos": {
+          "img": "fideos",
+          "x": 19.5,
+          "y": 64.6,
+          "w": 13.0
+        },
+        "huevos": {
+          "img": "huevos",
+          "x": 42.9,
+          "y": 55.7,
+          "w": 10.1
+        },
+        "queso": {
+          "img": "queso",
+          "x": 31.7,
+          "y": 60.3,
+          "w": 10.6
+        },
+        "manzana": {
+          "img": "manzana",
+          "x": 67.1,
+          "y": 60.4,
+          "w": 5.9
+        },
+        "yogur": {
+          "img": "yogur",
+          "x": 55.0,
+          "y": 62.3,
+          "w": 7.9
+        },
+        "dulce_de_leche": {
+          "img": "dulce_de_leche",
+          "x": 77.2,
+          "y": 55.0,
+          "w": 5.6
+        }
+      }
+    },
+    "casa": {
+      "fondo": "fondo_casa",
+      "animales": {}
+    },
+    "fotos": {
+      "fondo": "fondo_casa",
+      "animales": {
+        "foto_almacen": {
+          "img": "fondo_almacen",
+          "x": 22,
+          "y": 54,
+          "w": 16,
+          "estilo": "foto",
+          "mov": "ninguno",
+          "giro": -6
+        },
+        "foto_tambo": {
+          "img": "fondo_tambo",
+          "x": 42,
+          "y": 64,
+          "w": 16,
+          "estilo": "foto",
+          "mov": "ninguno",
+          "giro": 4
+        },
+        "foto_casa": {
+          "img": "fondo_casa",
+          "x": 62,
+          "y": 52,
+          "w": 16,
+          "estilo": "foto",
+          "mov": "ninguno",
+          "giro": 7
+        },
+        "foto_ruta": {
+          "img": "fondo_ruta",
+          "x": 24,
+          "y": 76,
+          "w": 16,
+          "estilo": "foto",
+          "mov": "ninguno",
+          "giro": 3
+        },
+        "foto_fabrica": {
+          "img": "fondo_fabrica",
+          "x": 56,
+          "y": 76,
+          "w": 16,
+          "estilo": "foto",
+          "mov": "ninguno",
+          "giro": -4
+        }
+      }
+    }
+  },
+  "pasos": [
+    {
+      "tipo": "decir",
+      "escena": "llegada",
+      "voz": "intro"
+    },
+    {
+      "tipo": "tocar",
+      "escena": "tambo",
+      "consigna": "p1_consigna",
+      "solo": [
+        "vaca",
+        "gallina",
+        "caballo"
+      ],
+      "correctos": [
+        "vaca"
+      ],
+      "pistas": [
+        "p1_pista1",
+        "p1_pista2",
+        "p1_pista3"
+      ],
+      "fin": "p1_fin"
+    },
+    {
+      "tipo": "tocar",
+      "escena": "ruta",
+      "consigna": "p2_consigna",
+      "correctos": [
+        "camion"
+      ],
+      "pistas": [
+        "p2_pista1",
+        "p2_pista2",
+        "p2_pista3"
+      ],
+      "fin": "p2_fin"
+    },
+    {
+      "tipo": "decir",
+      "escena": "fabrica",
+      "voz": "p3_fabrica"
+    },
+    {
+      "tipo": "tocar",
+      "escena": "almacen",
+      "consigna": "p4_consigna",
+      "solo": [
+        "queso",
+        "yogur",
+        "dulce_de_leche",
+        "huevos",
+        "manzana",
+        "fideos"
+      ],
+      "correctos": [
+        "queso",
+        "yogur",
+        "dulce_de_leche"
+      ],
+      "pistas": [
+        "p4_pista1",
+        "p4_pista2",
+        "p4_pista3"
+      ],
+      "fin": "p4_fin"
+    },
+    {
+      "tipo": "decir",
+      "escena": "casa",
+      "voz": "p5_casa"
+    },
+    {
+      "tipo": "ordenar",
+      "escena": "fotos",
+      "consigna": "p6_consigna",
+      "orden": [
+        "foto_tambo",
+        "foto_ruta",
+        "foto_fabrica",
+        "foto_almacen",
+        "foto_casa"
+      ],
+      "fila_y": 34,
+      "pistas": [
+        "p6_pista1",
+        "p6_pista2",
+        "p6_pista3"
+      ],
+      "fin": "p6_fin"
+    },
+    {
+      "tipo": "decir",
+      "escena": "casa",
+      "voz": "cierre",
+      "pose": "festejando"
+    }
+  ],
+  "cierre_pantalla": {
+    "titulo": "¡Lo lograste!",
+    "texto": "Del tambo a tu taza: mucha gente trabaja para que llegue la leche."
+  }
+}

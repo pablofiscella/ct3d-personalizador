@@ -69,6 +69,17 @@
   @keyframes sacudir{20%{transform:translateX(-6%)}40%{transform:translateX(6%)}60%{transform:translateX(-4%)}80%{transform:translateX(3%)}}
   @keyframes pop{from{transform:translate(-50%,-50%) scale(0)}to{transform:translate(-50%,-50%) scale(1)}}
   .bicho.apagado{opacity:.35;pointer-events:none}
+  /* FOTOS para ordenar («Del campo a tu casa»): marco blanco, un poco torcidas sobre la mesa, y
+     derechas cuando quedan en fila. El número del acierto usa el mismo círculo que el tilde. */
+  .bicho.foto img{border:clamp(3px,.6vw,7px) solid #fff;border-radius:6px;background:#fff;
+                  transform:rotate(var(--giro,0deg));transition:transform .7s ease;
+                  filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))}
+  .bicho.foto.en-fila img{transform:none}
+  .bicho.foto.brillo img{filter:drop-shadow(0 0 10px var(--sol)) drop-shadow(0 0 20px var(--sol))}
+  .bicho .tilde.numero{font-family:var(--fuente)}
+  /* parte del relato, no una opción: siempre entero y nunca tocable */
+  .bicho.decorado{pointer-events:none}
+  .bicho.decorado.apagado{opacity:1}
 
   .carpi{position:absolute;left:.5%;bottom:-3%;width:17%;pointer-events:none;z-index:5;
          transform-origin:50% 100%;animation:respirar 3s ease-in-out infinite}
