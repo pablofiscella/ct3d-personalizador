@@ -156,6 +156,30 @@ def test_la_voz_no_nombra_algo_de_la_escena_que_no_sea_la_respuesta(pieza):
 
 
 @pytest.mark.parametrize("pieza", PIEZAS)
+def test_la_consigna_termina_en_lo_que_hay_que_hacer(pieza):
+    """Pablo, 16-sep-2026: *"cuando pregunto con quién cruzamos la calle y fui a marcar, demoró un
+    poco en dejarme marcar a la madre"*.
+
+    Los objetos se habilitan cuando la voz TERMINA la consigna. «Última. Para cruzar, ¿a quién le
+    damos la mano? Tocá a esa persona.» se entendía a los 3,6 s y seguía hablando hasta los 8,1: el
+    chico que contestaba en cuanto oía la pregunta tocaba y no pasaba nada durante casi cinco
+    segundos. Medido palabra por palabra, en todas las demás pausas de las tres piezas esa espera
+    es de 0,5 a 0,8 s, porque la consigna termina justo en lo que hay que hacer.
+
+    Así que: si la consigna pregunta, termina en la pregunta."""
+    g = guion(pieza)
+    for i, p0 in enumerate(g["pasos"]):
+        for p in versiones(p0):
+            if p["tipo"] not in ("tocar", "elegir") or not p.get("consigna"):
+                continue
+            texto = g["voces"][p["consigna"]].strip()
+            if "?" in texto:
+                assert texto.endswith("?"), (
+                    "%s paso %d: después de la pregunta la voz sigue hablando y el chico no puede "
+                    "contestar: %r" % (pieza, i, texto[texto.rindex("?") + 1:].strip()))
+
+
+@pytest.mark.parametrize("pieza", PIEZAS)
 def test_ningun_cierre_repite_el_festejo_que_acaba_de_sonar(pieza):
     """La otra mitad de *"después como que se juntó"*: los festejos son «¡Muy bien!», «¡Eso es!» y
     «¡Genial!», se sortea uno, y cada cierre de pausa EMPEZABA con esas mismas palabras. Una de cada
