@@ -161,14 +161,87 @@
     });
   }
 
+  // ¿DÓNDE SE APOYA EL TILDE? Pablo, 15-sep-2026: *"el check queda en el aire porque esa parte no
+  // tiene imagen"*. Estaba colgado de la esquina de la CAJA del objeto, y los dibujos tienen aire
+  // transparente alrededor: en la silla esa esquina no tenía nada, y en la moto —que ocupa sólo la
+  // mitad de abajo de su caja— tampoco. Así que se mira el dibujo: se lo dibuja chiquito en un
+  // lienzo, se busca dónde empieza y dónde termina de verdad, y se prueban las cuatro esquinas de
+  // ESO. Gana la que más dibujo tenga debajo, con preferencia por arriba a la derecha para que
+  // todos se parezcan. Se calcula una vez por dibujo.
+  var puntos = {};
+  function puntoDelTilde(im) {
+    var clave = im.getAttribute("src");
+    if (puntos[clave]) return puntos[clave];
+    var punto = { x: 1, y: 0 };                        // por defecto, la esquina de la caja
+    try {
+      var nw = im.naturalWidth || 0, nh = im.naturalHeight || 0;
+      if (!nw || !nh) return punto;                    // todavía no cargó: no se guarda
+      var esc = 64 / Math.max(nw, nh);
+      var cw = Math.max(1, Math.round(nw * esc)), ch = Math.max(1, Math.round(nh * esc));
+      var lienzo = document.createElement("canvas");
+      lienzo.width = cw; lienzo.height = ch;
+      var cx = lienzo.getContext("2d");
+      cx.drawImage(im, 0, 0, cw, ch);
+      var d = cx.getImageData(0, 0, cw, ch).data;
+      var lleno = function (x, y) { return d[(y * cw + x) * 4 + 3] > 40; };
+      var x0 = cw, y0 = ch, x1 = 0, y1 = 0;
+      for (var y = 0; y < ch; y++) {
+        for (var x = 0; x < cw; x++) {
+          if (!lleno(x, y)) continue;
+          if (x < x0) x0 = x;
+          if (x > x1) x1 = x;
+          if (y < y0) y0 = y;
+          if (y > y1) y1 = y;
+        }
+      }
+      if (x1 < x0) return punto;                       // dibujo vacío
+      // Cuánto dibujo taparía un tilde centrado en cada punto, de una pasada (suma acumulada).
+      var S = new Int32Array((cw + 1) * (ch + 1));
+      for (var yy = 0; yy < ch; yy++) {
+        for (var xx = 0; xx < cw; xx++) {
+          S[(yy + 1) * (cw + 1) + xx + 1] = (lleno(xx, yy) ? 1 : 0) + S[yy * (cw + 1) + xx + 1]
+            + S[(yy + 1) * (cw + 1) + xx] - S[yy * (cw + 1) + xx];
+        }
+      }
+      var lado = Math.max(2, Math.round(0.34 * cw));
+      var mitad = Math.round(lado / 2);
+      var tapa = function (px, py) {
+        var a = Math.max(0, px - mitad), b = Math.min(cw, px + mitad);
+        var c = Math.max(0, py - mitad), e = Math.min(ch, py + mitad);
+        if (b <= a || e <= c) return 0;
+        var suma = S[e * (cw + 1) + b] - S[c * (cw + 1) + b] - S[e * (cw + 1) + a] + S[c * (cw + 1) + a];
+        return suma / (lado * lado);
+      };
+      // El tilde va COLGADO DEL BORDE, no en el medio ni en el vacío: se busca el punto del dibujo
+      // donde tape más o menos la mitad, tirando hacia arriba a la derecha (que es donde el ojo lo
+      // espera, y donde estuvo siempre en las piezas que ya andan).
+      var dmin = -y1, dmax = x1, mejor = -1;
+      for (var y2 = y0; y2 <= y1; y2++) {
+        for (var x2 = x0; x2 <= x1; x2++) {
+          if (!lleno(x2, y2)) continue;
+          var hacia = dmax > dmin ? (x2 - y2 - dmin) / (dmax - dmin) : 0;
+          var puntaje = (1 - Math.abs(tapa(x2, y2) - 0.55) * 2) + 0.6 * hacia;
+          if (puntaje > mejor) { mejor = puntaje; punto = { x: x2 / cw, y: y2 / ch }; }
+        }
+      }
+      puntos[clave] = punto;
+    } catch (e) { /* sin lienzo: queda en la esquina de la caja */ }
+    return punto;
+  }
+
   function marcarBien(b) {
     b.classList.remove("brillo", "elegido");
     b.classList.add("bien");
-    // AL FRENTE: el tilde va en la esquina del dibujo, y si otro objeto está delante —la silla
+    // AL FRENTE: el tilde va en el borde del dibujo, y si otro objeto está delante —la silla
     // delante de la mesa— el chico toca bien y no ve nada. Lo encontró Pablo, 15-sep-2026.
     b.style.zIndex = "4";
     if (!b.querySelector(".tilde")) {
-      var t = document.createElement("span"); t.className = "tilde"; t.textContent = "✓";
+      var t = document.createElement("span");
+      t.className = "tilde";
+      t.textContent = "✓";
+      var p = puntoDelTilde(b.querySelector("img"));
+      t.style.left = (p.x * 100) + "%";
+      t.style.top = (p.y * 100) + "%";
       b.appendChild(t);
     }
   }

@@ -264,6 +264,41 @@ def test_con_que_sonido_las_cosas_empiezan_con_el_sonido_que_pide_la_voz():
 # ── la página y el servicio ───────────────────────────────────────────────────────────────
 
 @pytest.mark.parametrize("pieza", PIEZAS)
+def test_el_tilde_tiene_donde_pararse_en_cada_dibujo(pieza):
+    """Pablo, 15-sep-2026: *"el check queda en el aire porque esa parte no tiene imagen"*.
+
+    El tilde del acierto se cuelga del borde del dibujo. Estaba clavado en la esquina de la CAJA, y
+    los dibujos tienen aire transparente alrededor: en la silla esa esquina no tenía nada y el tilde
+    flotaba en el vacío; el pingüino igual (los dos se espejaron), y la moto, que ocupa sólo la
+    mitad de abajo de su caja, tampoco.
+
+    Ahora el reproductor busca el punto del dibujo donde el tilde tape más o menos la mitad. Este
+    test se asegura de que ese punto EXISTA en cada dibujo: uno demasiado fino o demasiado chico no
+    tendría dónde apoyarlo y volvería a quedar en el aire."""
+    from PIL import Image
+    import numpy as np
+
+    g = guion(pieza)
+    for nombre in sorted({c["img"] for e in g["escenas"].values() for c in e["animales"].values()}):
+        im = Image.open(viw.ruta_de(pieza, nombre + ".webp")).convert("RGBA")
+        esc = 64.0 / max(im.size)
+        im = im.resize((max(1, round(im.width * esc)), max(1, round(im.height * esc))))
+        a = (np.array(im)[:, :, 3] > 40).astype(float)
+        ch, cw = a.shape
+        lado = max(2, round(0.34 * cw))
+        s = np.pad(a, ((1, 0), (1, 0))).cumsum(0).cumsum(1)
+        mejor = 0.0
+        ys, xs = np.where(a > 0)
+        for y, x in zip(ys, xs):
+            xa, xb = max(0, x - lado // 2), min(cw, x + lado // 2)
+            ya, yb = max(0, y - lado // 2), min(ch, y + lado // 2)
+            tapa = (s[yb, xb] - s[ya, xb] - s[yb, xa] + s[ya, xa]) / (lado * lado)
+            mejor = max(mejor, 1 - abs(tapa - 0.55) * 2)
+        assert mejor > 0.5, ("%s/%s: no hay dónde apoyar el tilde sin que quede en el aire "
+                             "(lo mejor da %.2f)" % (pieza, nombre, mejor))
+
+
+@pytest.mark.parametrize("pieza", PIEZAS)
 def test_cada_pieza_tiene_su_propio_telon_final(pieza):
     """Estaba escrito adentro del reproductor —«No todo lo que nada es pez»—, así que la pieza de
     los sonidos terminaba con la moraleja de la otra. Lo que es de la pieza vive en su guion."""
