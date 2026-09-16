@@ -10,17 +10,17 @@
     "p1_pista1": "Escuchá despacio: mmm... mesa. ¿Qué otra cosa empieza con ese sonido?",
     "p1_pista2": "Te ilumino los que empiezan con mmm.",
     "p1_pista3": "Son la mesa, la moto y la manzana. Tocalos.",
-    "p1_fin": "¡Muy bien! La mesa, la moto y la manzana empiezan con el mismo sonido.",
-    "p2_consigna": "Ahora escuchá esta palabra: libro. Tocá lo que empieza igual que libro.",
-    "p2_pista1": "Escuchá otra vez: libro. ¿Qué otra cosa empieza igual?",
-    "p2_pista2": "Te ilumino la que empieza igual que libro.",
-    "p2_pista3": "Es la lámpara. Tocala.",
-    "p2_fin": "¡Eso es! Libro y lámpara empiezan igual.",
+    "p1_fin": "La mesa, la moto y la manzana empiezan con el mismo sonido.",
+    "p2_consigna": "Escuchá esta palabra: león. Tocá las dos cosas que empiezan igual que león.",
+    "p2_pista1": "Escuchá despacio: león… libro. El libro empieza igual que león. Buscá la otra.",
+    "p2_pista2": "Te ilumino lo que empieza igual que león.",
+    "p2_pista3": "Son el libro y la lámpara. Tocalos.",
+    "p2_fin": "León, libro y lámpara empiezan con el mismo sonido.",
     "p3_consigna": "Uno más, y este suena como una serpiente: sss. Tocá lo que empieza con sss.",
     "p3_pista1": "Escuchá: sss... silla. Empieza con ese sonido.",
     "p3_pista2": "Te ilumino los que empiezan con sss.",
     "p3_pista3": "Son el sol y la silla. Tocalos.",
-    "p3_fin": "¡Genial! El sol y la silla empiezan con sss.",
+    "p3_fin": "El sol y la silla también empiezan igual: sss.",
     "p4_consigna": "Última. El sonido mmm se escribe con una letra. Tocá la letra del sonido mmm.",
     "p4_pista1": "Pensá en la primera letra de mesa.",
     "p4_pista2": "Te la ilumino.",
@@ -33,7 +33,7 @@
     "p5_pista1": "Escuchá: gato… pato. Riman porque terminan igual.",
     "p5_pista2": "Te ilumino los que riman.",
     "p5_pista3": "Son el pato y la pelota. Tocalos.",
-    "p5_fin": "¡Muy bien! Gato rima con pato, y mascota rima con pelota.",
+    "p5_fin": "Gato rima con pato, y mascota rima con pelota.",
     "p4s_consigna": "Última. El sonido sss se escribe con una letra. Tocá la letra del sonido sss.",
     "p4s_pista1": "Pensá en la primera letra de sol.",
     "p4p_consigna": "Última. La palabra pato empieza con una letra. Tocá la letra de pato.",
@@ -208,6 +208,7 @@
       "escena": "patio",
       "consigna": "p2_consigna",
       "correctos": [
+        "libro",
         "lampara"
       ],
       "pistas": [
@@ -292,5 +293,9 @@
       "voz": "cierre",
       "pose": "festejando"
     }
-  ]
+  ],
+  "cierre_pantalla": {
+    "titulo": "¡Lo lograste!",
+    "texto": "Ya escuchás con qué sonido empieza cada palabra."
+  }
 }

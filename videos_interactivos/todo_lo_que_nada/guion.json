@@ -10,7 +10,7 @@
     "p1_pista1": "Uy, ese vive en la tierra. Mirá bien lo que está adentro del mar.",
     "p1_pista2": "Fijate en los que nadan. Te los marco con luz.",
     "p1_pista3": "Estos viven en el agua: el pez, el delfín y el pingüino. Tocalos.",
-    "p1_fin": "¡Muy bien! El pez, el delfín y el pingüino viven en el agua. Pero… ¿serán todos peces?",
+    "p1_fin": "El pez, el delfín y el pingüino viven en el agua. Pero… ¿serán todos peces?",
     "p2_consigna": "Mirá al delfín. ¿Es un pez?",
     "p2_pista1": "Pensalo otra vez. Mirá su piel: no tiene escamas.",
     "p2_pista2": "Otra pista: el delfín sube a la superficie para respirar aire, como vos.",
@@ -285,5 +285,9 @@
       "voz": "cierre",
       "pose": "festejando"
     }
-  ]
+  ],
+  "cierre_pantalla": {
+    "titulo": "¡Lo lograste!",
+    "texto": "No todo lo que nada es pez."
+  }
 }

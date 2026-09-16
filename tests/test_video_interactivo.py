@@ -20,6 +20,7 @@ Lo que cuida este archivo, y por qué cada cosa:
 import json
 import os
 import re
+import shutil
 import sys
 import unicodedata
 
@@ -118,6 +119,89 @@ def test_los_textos_de_la_voz_no_tienen_las_trampas_conocidas(pieza):
         assert texto.strip() == texto and len(texto) > 3, "%s/%s: texto raro" % (pieza, clave)
 
 
+@pytest.mark.parametrize("pieza", PIEZAS)
+def test_la_voz_no_nombra_algo_de_la_escena_que_no_sea_la_respuesta(pieza):
+    """Pablo, 15-sep-2026: *"elegí mesa y me dijo que ya estaba sin seleccionar libro"*.
+
+    La pausa de la ele usaba el LIBRO como palabra de referencia —«tocá lo que empieza igual que
+    libro»— y el libro estaba dibujado en la escena, tocable, y NO era la respuesta. La consigna
+    señalaba con el dedo lo único que estaba mal tocar. Si una voz nombra algo que SE PUEDE TOCAR,
+    ese algo tiene que ser una de las respuestas.
+
+    Vale sólo para las pausas de `tocar`: en `elegir` la escena no se toca —se responde con botones—
+    y nombrar al delfín que se está mirando es justamente la consigna."""
+    g = guion(pieza)
+    for i, p0 in enumerate(g["pasos"]):
+        for p in versiones(p0):
+            if p["tipo"] != "tocar":
+                continue
+            correctos = set(p.get("correctos") or [])
+            dicho = " ".join(g["voces"][p[c]] for c in ("consigna", "fin") if p.get(c))
+            dicho += " " + " ".join(g["voces"][k] for k in (p.get("pistas") or []))
+            for cosa in (p.get("solo") or g["escenas"][p["escena"]]["animales"]):
+                if cosa in correctos:
+                    continue
+                assert not re.search(r"\b%s\b" % re.escape(sin_tildes(cosa)), sin_tildes(dicho)), (
+                    "%s paso %d: la voz nombra %r, que está en la escena y no es respuesta"
+                    % (pieza, i, cosa))
+
+
+@pytest.mark.parametrize("pieza", PIEZAS)
+def test_ningun_cierre_repite_el_festejo_que_acaba_de_sonar(pieza):
+    """La otra mitad de *"después como que se juntó"*: los festejos son «¡Muy bien!», «¡Eso es!» y
+    «¡Genial!», se sortea uno, y cada cierre de pausa EMPEZABA con esas mismas palabras. Una de cada
+    tres veces se oía «¡Eso es!» y, medio segundo después, «¡Eso es! Libro y lámpara empiezan
+    igual». El festejo festeja; el cierre cuenta lo que se aprendió."""
+    g = guion(pieza)
+
+    def primera(texto):
+        pal = re.findall(r"[a-zñ]+", sin_tildes(texto))
+        return pal[0] if pal else ""
+
+    arranques = {primera(g["voces"][k]) for k in g["voces"] if k.startswith("festejo")}
+    assert arranques, "%s: no hay festejos" % pieza
+    pasos = g["pasos"]
+    for i, p in enumerate(pasos):
+        despues_de_festejo = []
+        for v in versiones(p):
+            if v.get("fin"):
+                despues_de_festejo.append(v["fin"])
+        # y lo que se dice en el paso siguiente, si el anterior terminó festejando
+        if p["tipo"] == "decir" and i and pasos[i - 1]["tipo"] in ("tocar", "elegir", "clasificar"):
+            despues_de_festejo.append(p["voz"])
+        for clave in despues_de_festejo:
+            assert primera(g["voces"][clave]) not in arranques, (
+                "%s/%s empieza igual que un festejo: se oye dos veces seguido" % (pieza, clave))
+
+
+@pytest.mark.parametrize("pieza", PIEZAS)
+def test_ninguna_voz_dura_mas_que_el_tope_del_reproductor(pieza):
+    """El reproductor se pone un tope por si un audio no carga, para no quedarse esperando un
+    «ended» que no llega. Calculado por el largo del texto, ese tope CORTABA voces de verdad: siete
+    de las dos piezas duraban más que el suyo (15-sep-2026). Cortar no se nota como silencio —se
+    nota como que la consigna siguiente arranca encima de la que todavía habla—.
+
+    El tope se lee del reproductor, no se copia acá: si alguien afloja la cuenta, esto lo mide."""
+    import subprocess
+    if not shutil.which("ffprobe"):
+        pytest.skip("sin ffprobe para medir los audios")
+    js = open(os.path.join(BASE, "video_interactivo_player.js"), encoding="utf-8").read()
+    m = re.search(r"setTimeout\(fin, Math\.max\((\d+), texto\.length \* (\d+)\)\)", js)
+    assert m, "no se encontró el tope en el reproductor"
+    piso, por_letra = int(m.group(1)), int(m.group(2))
+    g = guion(pieza)
+    largas = []
+    for clave, texto in g["voces"].items():
+        ruta = viw.ruta_de(pieza, "voz_%s.mp3" % clave)
+        dur = float(subprocess.run(
+            ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", ruta],
+            capture_output=True, text=True).stdout.strip() or 0)
+        tope = max(piso, len(texto) * por_letra) / 1000.0
+        if dur > tope:
+            largas.append("%s dura %.1fs y el tope es %.1fs" % (clave, dur, tope))
+    assert not largas, "%s: el reproductor las corta: %s" % (pieza, largas)
+
+
 # ── el contenido de cada pieza, que es lo que ningún chequeo genérico ve ──────────────────
 
 def test_todo_lo_que_nada_clasifica_bien_a_cada_animal():
@@ -178,6 +262,16 @@ def test_con_que_sonido_las_cosas_empiezan_con_el_sonido_que_pide_la_voz():
 
 
 # ── la página y el servicio ───────────────────────────────────────────────────────────────
+
+@pytest.mark.parametrize("pieza", PIEZAS)
+def test_cada_pieza_tiene_su_propio_telon_final(pieza):
+    """Estaba escrito adentro del reproductor —«No todo lo que nada es pez»—, así que la pieza de
+    los sonidos terminaba con la moraleja de la otra. Lo que es de la pieza vive en su guion."""
+    c = guion(pieza).get("cierre_pantalla") or {}
+    assert c.get("titulo") and c.get("texto"), "%s: sin cierre_pantalla" % pieza
+    js = open(os.path.join(BASE, "video_interactivo_player.js"), encoding="utf-8").read()
+    assert c["texto"] not in js, "%s: el cierre está escrito en el reproductor" % pieza
+
 
 @pytest.mark.parametrize("pieza", PIEZAS)
 def test_la_pagina_se_arma_sin_marcadores_y_sin_los_prompts(pieza):

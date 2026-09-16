@@ -49,14 +49,24 @@
         if (listo) return;
         listo = true;
         carpiEl.classList.remove("charla");
-        voz.onended = voz.onerror = null;
+        voz.onended = voz.onerror = voz.onloadedmetadata = null;
         resolve();
       }
-      // tope por si el audio no carga: nunca se traba el video esperando un "ended" que no llega
-      var tope = setTimeout(fin, Math.max(5000, texto.length * 110));
-      voz.onended = function () { clearTimeout(tope); setTimeout(fin, 250); };
+      // TOPE: por si el audio no carga, para no trabar el video esperando un "ended" que no llega.
+      // Calculado por el largo del texto, CORTABA voces de verdad —siete de las dos piezas duraban
+      // más que su tope (15-sep-2026)— y seguir de largo con la voz sonando es lo que Pablo oyó
+      // como "se juntó": arranca la consigna siguiente encima de la que todavía habla. Ahora el
+      // texto sólo da el piso de arranque y, apenas el audio dice cuánto dura, manda esa duración.
+      var tope = setTimeout(fin, Math.max(9000, texto.length * 220));
+      function porLaDuracion() {
+        if (listo || !isFinite(voz.duration) || !voz.duration) return;
+        clearTimeout(tope);
+        tope = setTimeout(fin, (voz.duration - (voz.currentTime || 0)) * 1000 + 2500);
+      }
+      voz.onloadedmetadata = porLaDuracion;
+      voz.onended = function () { clearTimeout(tope); setTimeout(fin, 400); };
       voz.onerror = function () { clearTimeout(tope); fin(); };
-      if (voz.dataset.clave === clave && !voz.paused) return;   // ya está sonando (el arranque)
+      if (voz.dataset.clave === clave && !voz.paused) { porLaDuracion(); return; }  // ya suena (el arranque)
       voz.dataset.clave = clave;
       voz.src = "voz_" + clave + ".mp3";
       var p = voz.play();
@@ -441,8 +451,11 @@
     guardar();
     subs.textContent = "";
     var telon = $("telon");
-    telon.querySelector("h1").textContent = "¡Lo lograste!";
-    $("telonTxt").textContent = "No todo lo que nada es pez.";
+    // Sale del guion: escrito acá, las dos piezas terminaban diciendo "No todo lo que nada es pez",
+    // que es el cierre del piloto y no tiene nada que ver con la de los sonidos.
+    var cierre = G.cierre_pantalla || {};
+    telon.querySelector("h1").textContent = cierre.titulo || "¡Lo lograste!";
+    $("telonTxt").textContent = cierre.texto || "";
     var btn = $("empezar");
     btn.textContent = "↺ Ver de nuevo";
     btn.onclick = function () { location.reload(); };
@@ -452,7 +465,11 @@
   function correr(i) {
     if (i >= G.pasos.length) return terminar();
     var p = G.pasos[i];
-    return PASOS[p.tipo](p, i).then(function () { return correr(i + 1); });
+    // UN RESPIRO ENTRE PAUSAS. Sin él, el cierre de una pausa y la consigna de la siguiente se
+    // oyen como una sola frase larga —"como que se juntó con la sss", Pablo, 15-sep-2026—. En un
+    // video de verdad hay un corte entre una cosa y la otra; acá el corte es este silencio.
+    return PASOS[p.tipo](p, i).then(function () { return esperar(700); })
+      .then(function () { return correr(i + 1); });
   }
 
   // Precarga liviana: imágenes y voces, así el cambio de escena no se nota.
