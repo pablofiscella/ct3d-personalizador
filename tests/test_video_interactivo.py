@@ -282,6 +282,47 @@ def test_la_pagina_se_arma_sin_marcadores_y_sin_los_prompts(pieza):
 
 
 @pytest.mark.parametrize("pieza", PIEZAS)
+def test_todo_lo_que_se_baja_lleva_la_version_de_la_pieza(pieza):
+    """Pablo, 15-sep-2026: *"se quedó ahí y no dijo nada más después de la rima"*.
+
+    Su navegador tenía el reproductor de la primera vez —se sirve con caché de horas y el nombre no
+    cambia nunca— corriendo contra el guion nuevo, donde la última pausa pasó a sortearse. El
+    reproductor viejo no sabía leerla y el video se trabó a la mitad, con la pantalla puesta.
+
+    La regla es la misma que en los videos del canal: **contenido distinto, dirección distinta**. Si
+    una sola imagen, voz o línea del reproductor queda sin versión, vuelve a pasar, y del modo más
+    difícil de ver: a quien lo abre por primera vez le anda bien."""
+    page = viw.html(pieza)
+    v = viw.version(pieza)
+    assert len(v) == 10 and 'src="player.js?v=%s"' % v in page
+    assert 'window.VI_V = "%s"' % v in page
+    js = open(os.path.join(BASE, "video_interactivo_player.js"), encoding="utf-8").read()
+    for n, linea in enumerate(js.split("\n"), 1):
+        if re.search(r"\.(webp|mp3)", linea) and re.search(r'\.src = |src="', linea):
+            assert "A(" in linea, "reproductor:%d arma una dirección sin versión: %s" % (n, linea.strip())
+    for n, linea in enumerate(open(os.path.join(BASE, "video_interactivo_player.html"),
+                                   encoding="utf-8").read().split("\n"), 1):
+        if re.search(r'src="[^"]+\.(webp|mp3|js)"', linea):
+            assert "{{VERSION}}" in linea, "la página pide algo sin versión en la línea %d" % n
+
+
+def test_la_version_cambia_cuando_cambia_lo_que_el_chico_recibe():
+    """Sirve si se mueve con el contenido y sólo con él: por fecha de archivo se tiraría la caché
+    entera en cada despliegue (`probar` reescribe todo), y por nada nunca llegaría un arreglo."""
+    pieza = PIEZAS[0]
+    antes = viw.version(pieza)
+    assert antes == viw.version(pieza), "la versión cambia sola entre dos llamadas"
+    ruta = os.path.join(BASE, "video_interactivo_player.js")
+    original = open(ruta, "rb").read()
+    try:
+        open(ruta, "wb").write(original + b"\n// un cambio\n")
+        assert viw.version(pieza) != antes, "cambió el reproductor y la versión no se movió"
+    finally:
+        open(ruta, "wb").write(original)
+    assert viw.version(pieza) == antes
+
+
+@pytest.mark.parametrize("pieza", PIEZAS)
 def test_sirve_el_reproductor_y_los_archivos_de_la_pieza(pieza):
     g = guion(pieza)
     js, ct = viw.archivo(pieza, "player.js")

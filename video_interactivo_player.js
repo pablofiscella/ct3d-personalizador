@@ -38,6 +38,12 @@
 
   function esperar(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
+  // TODO lo que se baja lleva la versión de la pieza. Sin esto, el navegador que ya abrió el video
+  // sigue usando el reproductor y las voces de la primera vez —se sirven con caché de horas y el
+  // nombre nunca cambia—, y una mejora no llega nunca. El 15-sep-2026 eso dejó a Pablo con el
+  // reproductor viejo y el guion nuevo, y el video se le trabó en la última pausa.
+  function A(nombre) { return window.VI_V ? nombre + "?v=" + window.VI_V : nombre; }
+
   function hablar(clave) {
     var texto = (G.voces || {})[clave];
     if (!texto) return Promise.resolve();
@@ -68,7 +74,7 @@
       voz.onerror = function () { clearTimeout(tope); fin(); };
       if (voz.dataset.clave === clave && !voz.paused) { porLaDuracion(); return; }  // ya suena (el arranque)
       voz.dataset.clave = clave;
-      voz.src = "voz_" + clave + ".mp3";
+      voz.src = A("voz_" + clave + ".mp3");
       var p = voz.play();
       if (p && p.catch) p.catch(function () { /* sin permiso de audio: el tope avanza igual */ });
     });
@@ -91,7 +97,7 @@
   }
 
   // ── Carpi, la escena y los animales ────────────────────────────────────────────────────
-  function pose(nombre) { carpiImg.src = "carpi_" + nombre + ".webp"; }
+  function pose(nombre) { carpiImg.src = A("carpi_" + nombre + ".webp"); }
 
   function confeti(cuantos) {
     var caja = $("confeti"), colores = ["#ffd23f", "#2fbf71", "#4cc9f0", "#ff7aa2", "#b388ff"];
@@ -123,7 +129,7 @@
       b.setAttribute("aria-label", k);
       b.disabled = true;
       var im = document.createElement("img");
-      im.src = a.img + ".webp"; im.alt = "";
+      im.src = A(a.img + ".webp"); im.alt = "";
       b.appendChild(im);
       bichosEl.appendChild(b);
       B[k] = b;
@@ -142,7 +148,7 @@
         setTimeout(resolve, 450);
       }
       img.onload = cambiar; img.onerror = cambiar;
-      img.src = e.fondo + ".webp";
+      img.src = A(e.fondo + ".webp");
       if (img.complete && img.naturalWidth) cambiar();
       // Los que quedan chicos en la pantalla de verdad —no los que yo creo chicos— agrandan su
       // zona de toque. Se mide después de dibujar, porque depende del tamaño de la pantalla.
@@ -354,7 +360,7 @@
         p.grupos.forEach(function (g) {
           var btn = document.createElement("button");
           btn.type = "button"; btn.className = "grupo";
-          btn.innerHTML = '<img alt="" src="' + g.icono + '.webp"><span></span><span class="adentro"></span>';
+          btn.innerHTML = '<img alt="" src="' + A(g.icono + '.webp') + '"><span></span><span class="adentro"></span>';
           btn.querySelector("span").textContent = g.texto;
           btn.onclick = function () { soltarEn(g.id, btn); };
           barra.appendChild(btn);
@@ -379,7 +385,7 @@
         function ubicar(it) {
           var b = B[it.animal];
           var mini = document.createElement("img");
-          mini.src = G.escenas[p.escena].animales[it.animal].img + ".webp"; mini.alt = "";
+          mini.src = A(G.escenas[p.escena].animales[it.animal].img + ".webp"); mini.alt = "";
           G2[it.grupo].querySelector(".adentro").appendChild(mini);
           b.classList.remove("elegido", "brillo");
           b.style.opacity = "0"; b.disabled = true; b.onclick = null;
@@ -468,14 +474,28 @@
     // UN RESPIRO ENTRE PAUSAS. Sin él, el cierre de una pausa y la consigna de la siguiente se
     // oyen como una sola frase larga —"como que se juntó con la sss", Pablo, 15-sep-2026—. En un
     // video de verdad hay un corte entre una cosa y la otra; acá el corte es este silencio.
-    return PASOS[p.tipo](p, i).then(function () { return esperar(700); })
+    //
+    // Y SI UN PASO SE ROMPE, el video sigue con el que viene. Un paso que falla dejaba la película
+    // congelada para siempre —pantalla puesta, Carpi esperando y ni una palabra más—, que es lo
+    // peor que puede pasarle a un chico que está jugando solo. Saltear una pausa se nota mucho
+    // menos que quedarse clavado, y el error queda en la consola para que lo vea quien revisa.
+    var paso;
+    try {
+      paso = PASOS[p.tipo](p, i);
+    } catch (e) {
+      paso = Promise.reject(e);
+    }
+    return paso.catch(function (e) {
+      if (window.console) console.error("paso " + i + " (" + p.tipo + "):", e);
+      window.KYDO_VI_PASO_ROTO = { paso: i, error: String(e && e.message || e) };
+    }).then(function () { return esperar(700); })
       .then(function () { return correr(i + 1); });
   }
 
   // Precarga liviana: imágenes y voces, así el cambio de escena no se nota.
   function precargar() {
-    Object.keys(G.imagenes).forEach(function (k) { var im = new Image(); im.src = k + ".webp"; });
-    Object.keys(G.voces).forEach(function (k) { var a = new Audio(); a.preload = "auto"; a.src = "voz_" + k + ".mp3"; });
+    Object.keys(G.imagenes).forEach(function (k) { var im = new Image(); im.src = A(k + ".webp"); });
+    Object.keys(G.voces).forEach(function (k) { var a = new Audio(); a.preload = "auto"; a.src = A("voz_" + k + ".mp3"); });
   }
 
   pose("hablando");
@@ -491,7 +511,7 @@
     var primero = G.pasos[0];
     if (primero.tipo === "decir") {
       voz.dataset.clave = primero.voz;
-      voz.src = "voz_" + primero.voz + ".mp3";
+      voz.src = A("voz_" + primero.voz + ".mp3");
       var pr = voz.play();
       if (pr && pr.catch) pr.catch(function () {});
     }

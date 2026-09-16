@@ -161,7 +161,7 @@
     <div class="confeti" id="confeti"></div>
     <div class="telon" id="telon">
       <div>
-        <img src="carpi_hablando.webp" alt="">
+        <img src="carpi_hablando.webp?v={{VERSION}}" alt="">
         <h1>{{TITULO}}</h1>
         <p id="telonTxt">Un video donde vos también jugás</p>
         <button class="empezar" id="empezar" type="button">▶ Empezar</button>
@@ -170,7 +170,7 @@
   </div>
   <div class="abajo" id="abajo"></div>
   <div class="subs" id="subs"></div>
-<script>window.GUION = {{GUION}};</script>
-<script src="player.js"></script>
+<script>window.GUION = {{GUION}}; window.VI_V = "{{VERSION}}";</script>
+<script src="player.js?v={{VERSION}}"></script>
 </body>
 </html>

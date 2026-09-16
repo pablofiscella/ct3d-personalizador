@@ -7,6 +7,7 @@ videos_interactivos/<pieza>/. Rutas relativas: servir SIEMPRE bajo /vi/<pieza>/.
 A diferencia de los productos con token, una pieza no es de un chico: es contenido del cuaderno,
 igual que una lección en video. Por eso la dirección es la pieza y no un token.
 """
+import hashlib
 import json
 import os
 import re
@@ -41,6 +42,38 @@ def ruta_de(pieza, nombre):
     return None
 
 
+def version(pieza):
+    """Huella de TODO lo que el navegador se baja de la pieza: el reproductor, la página y cada
+    imagen y cada voz.
+
+    Por qué existe (15-sep-2026, Pablo: *"se quedó ahí y no dijo nada más después de la rima"*): los
+    archivos se sirven con caché de horas y SIEMPRE con el mismo nombre, así que quien ya abrió la
+    pieza se queda con el reproductor y las voces de entonces. Ese día le tocó el reproductor viejo
+    con el guion nuevo —el paso final pasó a sortearse y el viejo no sabía leerlo—, y el video se
+    trabó a la mitad. Es el mismo defecto que ya había mordido en los videos de divulgación:
+    contenido distinto tiene que tener dirección distinta, o el navegador sirve el de antes.
+
+    Se cuenta el CONTENIDO y no la fecha del archivo: `probar` los reescribe en cada despliegue y,
+    por fecha, se tiraría la caché entera sin que hubiera cambiado nada."""
+    carpeta = _carpeta(pieza)
+    if not carpeta:
+        return ""
+    h = hashlib.sha256()
+    for ruta in (os.path.join(KIT, "video_interactivo_player.js"),
+                 os.path.join(KIT, "video_interactivo_player.html"),
+                 os.path.join(carpeta, "guion.json")):
+        with open(ruta, "rb") as f:
+            h.update(f.read())
+    for d in (carpeta, COMUN):
+        for n in sorted(os.listdir(d)):
+            if not _ARCHIVO_RE.match(n):
+                continue
+            h.update(n.encode("utf-8"))
+            with open(os.path.join(d, n), "rb") as f:
+                h.update(f.read())
+    return h.hexdigest()[:10]
+
+
 def html(pieza):
     """La página de la pieza, o None si no existe."""
     carpeta = _carpeta(pieza)
@@ -56,6 +89,7 @@ def html(pieza):
     para_el_player["imagenes"] = {k: {"tipo": v.get("tipo")} for k, v in guion["imagenes"].items()}
     datos = json.dumps(para_el_player, ensure_ascii=False).replace("</", "<\\/")
     return (pagina.replace("{{GUION}}", datos)
+                  .replace("{{VERSION}}", version(pieza))
                   .replace("{{TITULO}}", _escapar(guion.get("titulo", "")))
                   .replace("{{GRADO}}", str(int(guion.get("grado", 0)))))
 
