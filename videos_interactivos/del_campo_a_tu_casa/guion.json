@@ -5,8 +5,8 @@
   "saber": "CDM-1-origen",
   "nota": "Cuarta pieza (16-sep-2026), tema C5 de 1.º en docs/auditoria-dc-caba/grado-1.md: etapas de producción de un bien primario; trabajos y herramientas. Pablo: «sigamos con primero». Sigue el mismo camino que la tarjeta campo_a_casa del cuaderno —la vaca, la fábrica, el negocio, tu casa— pero con DIBUJOS, porque la tarjeta ordena frases y un chico de 1.º todavía no las lee, y con los TRABAJOS de cada etapa, que la auditoría pide para el escalón de 5 pasos y la tarjeta no tiene. Los oficios van alternados de género (tambero, camionera, almacenero), como pide la auditoría para 1.º. Estreno de la pausa ORDENAR: las fotos que se ordenan son las escenas que el chico acaba de ver, y están mezcladas sobre la mesa para que el lugar no delate el orden. En la pausa del almacén la trampa son los huevos, que en el negocio están al lado de los lácteos.",
   "voces": {
-    "intro": "¡Hola! Soy Carpi. ¿Sabés de dónde viene la leche que tomás en el desayuno? Vamos a seguirla desde el campo hasta tu casa. Arrancamos en un tambo.",
-    "p1_consigna": "En el tambo hay muchos animales. Tocá el animal que nos da la leche.",
+    "intro": "¡Hola! Soy Carpi. Hoy vamos a seguir a la leche que tomás en el desayuno, desde el campo hasta tu casa. Arrancamos en un tambo.",
+    "p1_consigna": "Tocá el animal que nos da la leche.",
     "p1_pista1": "Es un animal grande, que come pasto y hace muu.",
     "p1_pista2": "Mirá el que se ilumina.",
     "p1_pista3": "Es la vaca. Tocala.",
@@ -117,6 +117,18 @@
     }
   },
   "escenas": {
+    "llegada": {
+      "fondo": "fondo_tambo",
+      "animales": {
+        "tambero": {
+          "img": "tambero",
+          "x": 51,
+          "y": 38,
+          "w": 7,
+          "decorado": true
+        }
+      }
+    },
     "tambo": {
       "fondo": "fondo_tambo",
       "animales": {
@@ -186,39 +198,39 @@
         },
         "fideos": {
           "img": "fideos",
-          "x": 20,
-          "y": 65,
-          "w": 13
+          "x": 19.5,
+          "y": 64.6,
+          "w": 13.0
         },
         "huevos": {
           "img": "huevos",
-          "x": 46,
-          "y": 60,
-          "w": 11
+          "x": 42.9,
+          "y": 55.7,
+          "w": 10.1
         },
         "queso": {
           "img": "queso",
-          "x": 34,
-          "y": 63,
-          "w": 11
+          "x": 31.7,
+          "y": 60.3,
+          "w": 10.6
         },
         "manzana": {
           "img": "manzana",
-          "x": 68,
-          "y": 67,
-          "w": 7
+          "x": 67.1,
+          "y": 60.4,
+          "w": 5.9
         },
         "yogur": {
           "img": "yogur",
-          "x": 58,
-          "y": 68,
-          "w": 9
+          "x": 55.0,
+          "y": 62.3,
+          "w": 7.9
         },
         "dulce_de_leche": {
           "img": "dulce_de_leche",
-          "x": 77,
-          "y": 66,
-          "w": 7
+          "x": 77.2,
+          "y": 55.0,
+          "w": 5.6
         }
       }
     },
@@ -280,7 +292,7 @@
   "pasos": [
     {
       "tipo": "decir",
-      "escena": "tambo",
+      "escena": "llegada",
       "voz": "intro"
     },
     {
