@@ -148,6 +148,9 @@
   function marcarBien(b) {
     b.classList.remove("brillo", "elegido");
     b.classList.add("bien");
+    // AL FRENTE: el tilde va en la esquina del dibujo, y si otro objeto está delante —la silla
+    // delante de la mesa— el chico toca bien y no ve nada. Lo encontró Pablo, 15-sep-2026.
+    b.style.zIndex = "4";
     if (!b.querySelector(".tilde")) {
       var t = document.createElement("span"); t.className = "tilde"; t.textContent = "✓";
       b.appendChild(t);
@@ -203,6 +206,14 @@
   }
 
   function pasoTocar(p, indice) {
+    // VARIANTES: si el paso trae varias, se sortea una. Pablo, 15-sep-2026: *"que sea aleatorio el
+    // final porque siempre pregunta por la m"*. Un chico que lo repite tiene que encontrarse con
+    // otra pregunta, o aprende la respuesta en vez del contenido.
+    if (p.variantes && p.variantes.length) {
+      var v = p.variantes[Math.floor(Math.random() * p.variantes.length)];
+      p = Object.assign({}, p, v);
+      window.KYDO_VI_VARIANTE = { paso: indice, correctos: p.correctos };
+    }
     return mostrarEscena(p.escena).then(function () {
       var activos = p.solo || Object.keys(B);
       Object.keys(B).forEach(function (k) { B[k].classList.toggle("apagado", activos.indexOf(k) < 0); });
@@ -233,7 +244,10 @@
                 festejo().then(function () { return p.fin ? hablar(p.fin) : null; })
                   .then(function () {
                     bloqueado = false;
-                    Object.keys(B).forEach(function (j) { B[j].classList.remove("bien", "apagado"); });
+                    Object.keys(B).forEach(function (j) {
+                      B[j].classList.remove("bien", "apagado");
+                      B[j].style.zIndex = "";        // vuelven a su orden de dibujo
+                    });
                     bichosEl.querySelectorAll(".tilde").forEach(function (t) { t.remove(); });
                     resolve();
                   });

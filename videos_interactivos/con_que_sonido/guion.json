@@ -11,11 +11,11 @@
     "p1_pista2": "Te ilumino los que empiezan con mmm.",
     "p1_pista3": "Son la mesa, la moto y la manzana. Tocalos.",
     "p1_fin": "¡Muy bien! La mesa, la moto y la manzana empiezan con el mismo sonido.",
-    "p2_consigna": "Ahora otro sonido: lll. Tocá lo que empieza con lll.",
-    "p2_pista1": "Escuchá: lll... libro. Empieza con ese sonido.",
-    "p2_pista2": "Te ilumino los que empiezan con lll.",
-    "p2_pista3": "Son el libro y la lámpara. Tocalos.",
-    "p2_fin": "¡Eso es! El libro y la lámpara empiezan con lll.",
+    "p2_consigna": "Ahora escuchá esta palabra: libro. Tocá lo que empieza igual que libro.",
+    "p2_pista1": "Escuchá otra vez: libro. ¿Qué otra cosa empieza igual?",
+    "p2_pista2": "Te ilumino la que empieza igual que libro.",
+    "p2_pista3": "Es la lámpara. Tocala.",
+    "p2_fin": "¡Eso es! Libro y lámpara empiezan igual.",
     "p3_consigna": "Uno más, y este suena como una serpiente: sss. Tocá lo que empieza con sss.",
     "p3_pista1": "Escuchá: sss... silla. Empieza con ese sonido.",
     "p3_pista2": "Te ilumino los que empiezan con sss.",
@@ -28,7 +28,16 @@
     "cierre": "¡Lo lograste! Ya podés escuchar con qué sonido empieza cada palabra. ¡Hasta la próxima!",
     "festejo1": "¡Muy bien!",
     "festejo2": "¡Eso es!",
-    "festejo3": "¡Genial!"
+    "festejo3": "¡Genial!",
+    "p5_consigna": "Ahora vamos a rimar. Tocá el que rima con gato, y después el que rima con mascota.",
+    "p5_pista1": "Escuchá: gato… pato. Riman porque terminan igual.",
+    "p5_pista2": "Te ilumino los que riman.",
+    "p5_pista3": "Son el pato y la pelota. Tocalos.",
+    "p5_fin": "¡Muy bien! Gato rima con pato, y mascota rima con pelota.",
+    "p4s_consigna": "Última. El sonido sss se escribe con una letra. Tocá la letra del sonido sss.",
+    "p4s_pista1": "Pensá en la primera letra de sol.",
+    "p4p_consigna": "Última. La palabra pato empieza con una letra. Tocá la letra de pato.",
+    "p4p_pista1": "Pensá en cómo empieza pa… to."
   },
   "imagenes": {
     "fondo_patio": {
@@ -130,8 +139,8 @@
         },
         "silla": {
           "img": "cosa_silla",
-          "x": 41,
-          "y": 50,
+          "x": 48,
+          "y": 52,
           "w": 13
         },
         "libro": {
@@ -199,7 +208,6 @@
       "escena": "patio",
       "consigna": "p2_consigna",
       "correctos": [
-        "libro",
         "lampara"
       ],
       "pistas": [
@@ -226,15 +234,56 @@
     },
     {
       "tipo": "tocar",
-      "escena": "letras",
-      "consigna": "p4_consigna",
+      "escena": "patio",
+      "consigna": "p5_consigna",
       "correctos": [
-        "letra_m"
+        "pato",
+        "pelota"
       ],
       "pistas": [
-        "p4_pista1",
-        "p4_pista2",
-        "p4_pista3"
+        "p5_pista1",
+        "p5_pista2",
+        "p5_pista3"
+      ],
+      "fin": "p5_fin"
+    },
+    {
+      "tipo": "tocar",
+      "escena": "letras",
+      "variantes": [
+        {
+          "consigna": "p4_consigna",
+          "correctos": [
+            "letra_m"
+          ],
+          "pistas": [
+            "p4_pista1",
+            "p4_pista2",
+            "p4_pista3"
+          ]
+        },
+        {
+          "consigna": "p4s_consigna",
+          "correctos": [
+            "letra_s"
+          ],
+          "pistas": [
+            "p4s_pista1",
+            "p4_pista2",
+            "p4_pista3"
+          ]
+        },
+        {
+          "consigna": "p4p_consigna",
+          "correctos": [
+            "letra_p"
+          ],
+          "pistas": [
+            "p4p_pista1",
+            "p4_pista2",
+            "p4_pista3"
+          ]
+        }
       ]
     },
     {

@@ -49,6 +49,16 @@ def sin_tildes(t):
     return "".join(c for c in t if unicodedata.category(c) != "Mn")
 
 
+def versiones(paso):
+    """Las versiones de un paso: las `variantes` que se sortean, o el paso tal cual.
+
+    Un paso con variantes le hace otra pregunta a cada chico —y al mismo chico si lo repite—, así
+    que cada variante tiene que cumplir sola lo mismo que cumpliría el paso."""
+    if paso.get("variantes"):
+        return [dict(paso, **v) for v in paso["variantes"]]
+    return [paso]
+
+
 def test_hay_piezas():
     assert PIEZAS, "no hay ninguna pieza en videos_interactivos/"
 
@@ -65,8 +75,9 @@ def test_cada_imagen_y_cada_voz_del_guion_existen(pieza):
 def test_los_pasos_apuntan_a_escenas_cosas_y_voces_que_existen(pieza):
     g = guion(pieza)
     escenas, voces = g["escenas"], g["voces"]
-    for i, p in enumerate(g["pasos"]):
-        assert p["escena"] in escenas, "%s paso %d: escena inexistente %r" % (pieza, i, p["escena"])
+    for i, p0 in enumerate(g["pasos"]):
+      assert p0["escena"] in escenas, "%s paso %d: escena inexistente %r" % (pieza, i, p0["escena"])
+      for p in versiones(p0):
         cosas = escenas[p["escena"]]["animales"]
         for clave in ("voz", "consigna", "fin", "va_aca"):
             if p.get(clave):
@@ -88,7 +99,8 @@ def test_los_pasos_apuntan_a_escenas_cosas_y_voces_que_existen(pieza):
 def test_cada_pausa_tiene_las_tres_pistas(pieza):
     """La escalera completa: pista corta → se ilumina → Carpi lo muestra. Con menos, el chico que se
     equivoca tres veces se queda sin salida, que es lo que este formato no puede hacer."""
-    for i, p in enumerate(guion(pieza)["pasos"]):
+    for i, p0 in enumerate(guion(pieza)["pasos"]):
+      for p in versiones(p0):
         if p["tipo"] in ("tocar", "elegir"):
             assert len(p.get("pistas") or []) == 3, "%s paso %d tiene %d pistas" % (
                 pieza, i, len(p.get("pistas") or []))
@@ -117,29 +129,37 @@ def test_todo_lo_que_nada_clasifica_bien_a_cada_animal():
             assert esperado[it["animal"]] == it["grupo"], "%s quedó en %s" % (it["animal"], it["grupo"])
 
 
-def test_con_que_sonido_pide_sonidos_que_se_pueden_ALARGAR():
-    """En castellano las oclusivas (p, t, k) NO se pueden pronunciar solas, sin vocal: la voz terminaba
-    diciendo el NOMBRE de la letra, que es lo contrario de lo que enseña esta pieza (15-sep-2026, se
-    cambió la pausa de la pe por la de la ele). Sólo sonidos que se sostienen."""
+def test_con_que_sonido_solo_escribe_sonidos_que_la_voz_PUEDE_decir():
+    """Dos trampas del castellano, las dos encontradas escuchando (15-sep-2026):
+
+    1. Las OCLUSIVAS (p, t, k) no se pronuncian solas, sin vocal: la toma decía «pe», el nombre de la
+       letra, que es lo contrario de lo que enseña esta pieza.
+    2. Los DÍGRAFOS: «ll» es una letra distinta («elle»), así que la ele repetida sale como «ele ele
+       ele» — lo marcó Pablo escuchándolo. Igual «rr» y «ch».
+
+    Quedan los que se sostienen y no forman dígrafo: mmm, sss, nnn, fff, jjj. Para los demás, la
+    consigna se dice sin nombrar el sonido: «tocá lo que empieza igual que libro»."""
     g = guion("con_que_sonido")
-    alargables = set("mslnfrjz")
-    for p in g["pasos"]:
-        if p["tipo"] != "tocar":
-            continue
-        pedido = re.findall(r"\b([a-záéíóúñ])\1{2,}\b", sin_tildes(g["voces"][p["consigna"]]))
-        for letra in pedido:
-            assert letra in alargables, "la pausa pide el sonido %r, que no se puede decir solo" % letra
+    se_pueden_escribir = set("msnfj")
+    for i, p0 in enumerate(g["pasos"]):
+        for p in versiones(p0):
+            if p["tipo"] != "tocar":
+                continue
+            for letra in re.findall(r"\b([a-záéíóúñ])\1{2,}\b", sin_tildes(g["voces"][p["consigna"]])):
+                assert letra in se_pueden_escribir, (
+                    "paso %d: escribe el sonido %r alargado, y la voz lo lee como nombre de letra" % (i, letra))
 
 
 def test_con_que_sonido_las_cosas_empiezan_con_el_sonido_que_pide_la_voz():
     """El corazón de la pieza: si en la pausa del sonido mmm se cuela la pelota, el chico aprende mal."""
     g = guion("con_que_sonido")
-    for i, p in enumerate(g["pasos"]):
+    for i, p0 in enumerate(g["pasos"]):
+      for p in versiones(p0):
         if p["tipo"] != "tocar":
             continue
         pedido = re.findall(r"\b([a-záéíóúñ])\1{2,}\b", sin_tildes(g["voces"][p["consigna"]]))
         if not pedido:
-            continue                       # la última pausa pide la LETRA, no el sonido
+            continue      # pausas que no nombran el sonido: «igual que libro», las rimas, la letra
         letra = pedido[0]
         cosas = g["escenas"][p["escena"]]["animales"]
         if all(c.startswith("letra_") for c in cosas):
