@@ -100,6 +100,10 @@
     }
   },
   "escenas": {
+    "llegada": {
+      "fondo": "fondo_noche",
+      "animales": {}
+    },
     "noche": {
       "fondo": "fondo_noche",
       "animales": {
@@ -173,7 +177,7 @@
   "pasos": [
     {
       "tipo": "decir",
-      "escena": "noche",
+      "escena": "llegada",
       "voz": "intro"
     },
     {

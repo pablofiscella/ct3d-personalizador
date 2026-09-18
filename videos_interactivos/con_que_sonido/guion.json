@@ -95,6 +95,10 @@
     }
   },
   "escenas": {
+    "llegada": {
+      "fondo": "fondo_patio",
+      "animales": {}
+    },
     "patio": {
       "fondo": "fondo_patio",
       "animales": {
@@ -184,7 +188,7 @@
   "pasos": [
     {
       "tipo": "decir",
-      "escena": "patio",
+      "escena": "llegada",
       "voz": "intro"
     },
     {

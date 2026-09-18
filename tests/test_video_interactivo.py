@@ -238,6 +238,44 @@ def test_ninguna_voz_dura_mas_que_el_tope_del_reproductor(pieza):
 
 
 @pytest.mark.parametrize("pieza", PIEZAS)
+def test_lo_que_se_toca_aparece_con_la_pregunta(pieza):
+    """Pablo lo marcó DOS veces, en dos piezas distintas: *"tardó en permitirme seleccionar la vaca"*
+    (16-sep-2026) y *"hay que hacer click en la pantalla para… poder seleccionar los objetos"*
+    (18-sep-2026).
+
+    Los objetos se habilitan cuando la voz termina la consigna. Si ya estaban en pantalla desde antes
+    —porque la escena no cambió—, el chico mira una escena viva que no le responde, y el navegador
+    encima no le cambia el puntero a la manito hasta que mueve el mouse o hace clic. Medido antes de
+    arreglarlo: 17 s en «¿Con qué sonido empieza?», 18 en el piloto, 22 en «¿Cruzo o espero?».
+
+    Lo que se mide acá es el tiempo MUERTO: lo que la escena está a la vista ANTES de que arranque la
+    consigna. Lo que dura la pregunta no se cuenta: el chico no puede contestar antes de oírla."""
+    import subprocess
+    if not shutil.which("ffprobe"):
+        pytest.skip("sin ffprobe para medir las voces")
+    g = guion(pieza)
+
+    def dura(clave):
+        r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of",
+                            "csv=p=0", viw.ruta_de(pieza, "voz_%s.mp3" % clave)],
+                           capture_output=True, text=True)
+        return float(r.stdout.strip() or 0)
+
+    escena, muerto = None, 0.0
+    for i, p in enumerate(g["pasos"]):
+        if p["escena"] != escena:
+            escena, muerto = p["escena"], 0.0        # escena nueva: lo que se toca recién aparece
+        if p["tipo"] == "decir":
+            muerto += dura(p["voz"]) + 1.1           # el respiro después de la voz y entre pasos
+            continue
+        if p["tipo"] in ("tocar", "ordenar", "clasificar"):
+            assert muerto <= 3.0, (
+                "%s paso %d: lo que hay que tocar está a la vista %.1f s antes de que empiece la "
+                "consigna. Que la escena con los objetos entre CON la pregunta." % (pieza, i, muerto))
+        muerto = 0.0
+
+
+@pytest.mark.parametrize("pieza", PIEZAS)
 def test_la_pausa_de_agrupar_dice_el_gesto(pieza):
     """Pablo, 18-sep-2026, sobre «Detectives del cielo»: *"le falta que diga que elijas un objeto y
     después la tarjeta"*.

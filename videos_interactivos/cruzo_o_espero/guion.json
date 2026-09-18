@@ -101,6 +101,10 @@
     }
   },
   "escenas": {
+    "llegada": {
+      "fondo": "fondo_esquina",
+      "animales": {}
+    },
     "rojo": {
       "fondo": "fondo_esquina",
       "animales": {
@@ -179,7 +183,7 @@
   "pasos": [
     {
       "tipo": "decir",
-      "escena": "rojo",
+      "escena": "llegada",
       "voz": "intro"
     },
     {
