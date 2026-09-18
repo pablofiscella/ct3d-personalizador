@@ -21,7 +21,7 @@
     "p4_pista1": "Las estrellas no se prenden y se apagan como una lamparita.",
     "p4_pista2": "De día, la luz del Sol se desparrama por el aire y el cielo queda muy brillante.",
     "p4_pista3": "Siguen ahí, tapadas por la luz del Sol. Tocá esa.",
-    "p5_consigna": "Última. Guardá cada cosa donde va: astros de un lado, lo que no es astro del otro.",
+    "p5_consigna": "Última. Tocá una cosa del cielo y después la tarjeta donde va.",
     "p5_pista_sol": "El Sol es una estrella, y las estrellas son astros.",
     "p5_pista_luna": "La Luna es un astro: gira alrededor de la Tierra y de día también se la ve.",
     "p5_pista_avion": "El avión lo fabricamos nosotros y vuela dentro del aire: no es un astro.",
@@ -31,7 +31,8 @@
     "cierre": "Ya sos detective del cielo. El Sol es una estrella, la Luna refleja su luz, y de día las estrellas siguen ahí aunque no las veas. ¡Hasta la próxima!",
     "festejo1": "¡Muy bien!",
     "festejo2": "¡Eso es!",
-    "festejo3": "¡Genial!"
+    "festejo3": "¡Genial!",
+    "p5_sin_elegir": "Primero tocá una cosa del cielo, y después la tarjeta donde va."
   },
   "imagenes": {
     "fondo_noche": {
@@ -291,7 +292,8 @@
         }
       ],
       "va_aca": "p5_va_aca",
-      "fin": "p5_fin"
+      "fin": "p5_fin",
+      "sin_elegir": "p5_sin_elegir"
     },
     {
       "tipo": "decir",

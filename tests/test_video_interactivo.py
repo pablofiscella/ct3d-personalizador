@@ -80,7 +80,7 @@ def test_los_pasos_apuntan_a_escenas_cosas_y_voces_que_existen(pieza):
       assert p0["escena"] in escenas, "%s paso %d: escena inexistente %r" % (pieza, i, p0["escena"])
       for p in versiones(p0):
         cosas = escenas[p["escena"]]["animales"]
-        for clave in ("voz", "consigna", "fin", "va_aca"):
+        for clave in ("voz", "consigna", "fin", "va_aca", "sin_elegir"):
             if p.get(clave):
                 assert p[clave] in voces, "%s paso %d: voz inexistente %r" % (pieza, i, p[clave])
         for a in (p.get("correctos", []) + (p.get("solo") or []) + list(p.get("acomodar") or {})
@@ -235,6 +235,25 @@ def test_ninguna_voz_dura_mas_que_el_tope_del_reproductor(pieza):
         if dur > tope:
             largas.append("%s dura %.1fs y el tope es %.1fs" % (clave, dur, tope))
     assert not largas, "%s: el reproductor las corta: %s" % (pieza, largas)
+
+
+@pytest.mark.parametrize("pieza", PIEZAS)
+def test_la_pausa_de_agrupar_dice_el_gesto(pieza):
+    """Pablo, 18-sep-2026, sobre «Detectives del cielo»: *"le falta que diga que elijas un objeto y
+    después la tarjeta"*.
+
+    Agrupar se hace en DOS toques —primero la cosa, después el grupo— y eso no se adivina mirando.
+    El piloto lo decía en su consigna y en la pieza nueva se pasó por alto. Además, si el chico toca
+    el grupo sin haber elegido nada, tiene que oír qué hacer: antes sólo parpadeaban las cosas y el
+    que no entendió el orden se quedaba tocando el grupo sin respuesta."""
+    g = guion(pieza)
+    for i, p in enumerate(g["pasos"]):
+        if p["tipo"] != "clasificar":
+            continue
+        assert "despu" in sin_tildes(g["voces"][p["consigna"]]), (
+            "%s paso %d: la consigna no dice que primero se toca la cosa y después el grupo" % (pieza, i))
+        assert p.get("sin_elegir"), (
+            "%s paso %d: sin `sin_elegir`, tocar el grupo sin elegir nada no dice nada" % (pieza, i))
 
 
 # ── el contenido de cada pieza, que es lo que ningún chequeo genérico ve ──────────────────

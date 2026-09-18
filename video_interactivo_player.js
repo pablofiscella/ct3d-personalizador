@@ -581,11 +581,20 @@
         function soltarEn(grupoId, btn) {
           if (bloqueado || terminado) return;
           quieto.tocar();
-          if (!elegido) {                        // tocó un grupo sin elegir animal: se le muestran
+          if (!elegido) {
+            // TOCÓ LA TARJETA SIN ELEGIR NADA. Se le iluminan las cosas que puede elegir Y se le
+            // dice el gesto (Pablo, 18-sep-2026: *"le falta que diga que elijas un objeto y después
+            // la tarjeta"*). Antes sólo parpadeaban: el chico que no entendió el orden se quedaba
+            // tocando la tarjeta sin que nadie le explicara nada.
             p.items.forEach(function (it) {
               var b = B[it.animal];
               if (b && !b.disabled) { b.classList.add("brillo"); setTimeout(function () { b.classList.remove("brillo"); }, 1200); }
             });
+            if (p.sin_elegir && !bloqueado) {
+              bloqueado = true;
+              pose("hablando");
+              hablar(p.sin_elegir).then(function () { bloqueado = false; pose("esperando"); });
+            }
             return;
           }
           var it = elegido;

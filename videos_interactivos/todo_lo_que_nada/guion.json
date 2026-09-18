@@ -29,7 +29,8 @@
     "festejo1": "¡Muy bien!",
     "festejo2": "¡Eso es!",
     "festejo3": "¡Genial!",
-    "cierre": "¡Lo lograste! Ahora sabés que no todo lo que nada es pez. ¡Hasta la próxima!"
+    "cierre": "¡Lo lograste! Ahora sabés que no todo lo que nada es pez. ¡Hasta la próxima!",
+    "p4_sin_elegir": "Primero tocá un animal, y después el grupo donde va."
   },
   "imagenes": {
     "fondo_costa": {
@@ -277,7 +278,8 @@
           43,
           15
         ]
-      }
+      },
+      "sin_elegir": "p4_sin_elegir"
     },
     {
       "tipo": "decir",
