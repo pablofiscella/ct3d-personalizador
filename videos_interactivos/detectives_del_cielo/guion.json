@@ -1,0 +1,307 @@
+{
+  "pieza": "detectives_del_cielo",
+  "titulo": "Detectives del cielo",
+  "grado": 3,
+  "saber": "NAT-3-CIELO",
+  "nota": "Quinta pieza (18-sep-2026), primera de 3.º. Tema C5 de docs/auditoria-dc-caba/grado-3.md —«astros; el Sol como estrella cercana; la Luna refleja; el aire tapa las estrellas de día»— y los tres niveles que pide: luz propia o reflejada, astro o no astro, y la causa de que de día no se vean las estrellas. Dice lo MISMO que la mini-lección `detectives_cielo` del cuaderno: la Luna no tiene luz propia, refleja la del Sol. La trampa de la primera pausa son los ojos del gato, que brillan por reflejo y se explican después de que el chico contesta —no en la consigna, para no señalarle la respuesta equivocada—. Sin sustos y sin nada que dé miedo de noche.",
+  "voces": {
+    "intro": "¡Hola! Soy Carpi. Esta noche vamos a ser detectives del cielo. Hay cosas que fabrican su propia luz y otras que sólo la rebotan. Mirá bien.",
+    "p1_consigna": "Tocá todo lo que fabrica su propia luz.",
+    "p1_pista1": "Luz propia es la que sale del objeto mismo. Si eso se apaga, la luz se termina.",
+    "p1_pista2": "Te ilumino los que fabrican su luz.",
+    "p1_pista3": "Son la estrella, el farol y la luciérnaga. Tocalos.",
+    "p1_fin": "La estrella, el farol y la luciérnaga fabrican su propia luz.",
+    "p1_explica": "¿Y el gato? Le brillan los ojos, pero no fabrica nada: le rebota la luz del farol. Eso es luz reflejada.",
+    "p2_consigna": "Ahora la Luna. ¿Tiene luz propia, o refleja la del Sol?",
+    "p2_pista1": "Pensá qué pasaría con la Luna si el Sol se apagara.",
+    "p2_pista2": "La Luna es como un espejo gigante: no fabrica luz.",
+    "p2_pista3": "Refleja la luz del Sol. Tocá esa.",
+    "p3_espacio": "El Sol también es una estrella: la más cercana a nosotros. Su luz llega hasta la Luna, rebota, y por eso la vemos brillar de noche. La mitad de la Luna que mira al Sol está siempre iluminada; lo que cambia es cuánto de esa mitad vemos desde acá.",
+    "p4_consigna": "Se hizo de día y las estrellas no se ven. ¿Qué les pasó?",
+    "p4_pista1": "Las estrellas no se prenden y se apagan como una lamparita.",
+    "p4_pista2": "De día, la luz del Sol se desparrama por el aire y el cielo queda muy brillante.",
+    "p4_pista3": "Siguen ahí, tapadas por la luz del Sol. Tocá esa.",
+    "p5_consigna": "Última. Guardá cada cosa donde va: astros de un lado, lo que no es astro del otro.",
+    "p5_pista_sol": "El Sol es una estrella, y las estrellas son astros.",
+    "p5_pista_luna": "La Luna es un astro: gira alrededor de la Tierra y de día también se la ve.",
+    "p5_pista_avion": "El avión lo fabricamos nosotros y vuela dentro del aire: no es un astro.",
+    "p5_pista_nube": "La nube es agua del aire, no un cuerpo del espacio.",
+    "p5_va_aca": "Mirá dónde va.",
+    "p5_fin": "El Sol y la Luna son astros. El avión y la nube están en el aire, cerquita nuestro.",
+    "cierre": "Ya sos detective del cielo. El Sol es una estrella, la Luna refleja su luz, y de día las estrellas siguen ahí aunque no las veas. ¡Hasta la próxima!",
+    "festejo1": "¡Muy bien!",
+    "festejo2": "¡Eso es!",
+    "festejo3": "¡Genial!"
+  },
+  "imagenes": {
+    "fondo_noche": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "El patio de una casa de barrio argentino de NOCHE, tranquilo y lindo: pasto, una mesa de patio, plantas, la pared de la casa a la derecha y el cielo estrellado ocupando la mitad de arriba, con estrellas chiquitas y lejanas. Noche azul profunda, luz suave y cálida. SIN luna, SIN farol ni faroles, SIN personas y SIN animales."
+    },
+    "fondo_espacio": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "Dibujo del espacio para chicos: a la izquierda el SOL grande y amarillo brillando, a la derecha la LUNA gris y redonda, y abajo a la derecha una parte de la TIERRA azul con nubes. Se ve cómo la luz del Sol llega a la mitad de la Luna que lo mira y esa mitad está iluminada, mientras la otra mitad queda en sombra. Fondo negro azulado con estrellas lejanas. NINGUNO tiene cara: el Sol, la Luna y la Tierra van SIN ojos, SIN boca y sin ninguna expresión, como en una lámina de ciencias. Sin texto, sin letras, sin flechas y sin números."
+    },
+    "fondo_dia": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "El MISMO patio de una casa de barrio argentino, ahora de DÍA: pasto, una mesa de patio, plantas, la pared de la casa a la derecha y el cielo celeste ocupando la mitad de arriba, despejado. Día luminoso. SIN sol dibujado, SIN nubes, SIN aviones, SIN personas y SIN animales."
+    },
+    "estrella": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "prompt": "Una estrella del cielo brillando: un punto de luz blanco y amarillo con destellos finos alrededor, como se ve una estrella brillante en la noche. Nada más."
+    },
+    "farol": {
+      "tipo": "recorte",
+      "prompt": "Un farol de patio antiguo, de metal negro sobre un poste finito, con la lamparita PRENDIDA adentro: el vidrio brilla amarillo cálido y el farol está entero, hasta la base del poste."
+    },
+    "luciernaga": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "prompt": "Una luciérnaga volando, de perfil, con la colita ENCENDIDA en amarillo verdoso brillante y un resplandor suave alrededor de la colita. Cuerpo marrón oscuro, alas finitas."
+    },
+    "luna": {
+      "tipo": "recorte",
+      "prompt": "La Luna llena, redonda, gris clara con sus cráteres, brillando suave en la noche. Sin cara, sin ojos y sin boca."
+    },
+    "gato": {
+      "tipo": "recorte",
+      "prompt": "Un gato naranja sentado de perfil mirando hacia la izquierda, con los OJOS BRILLANDO como espejitos, tal como se le ven de noche cuando les da una luz. Cuerpo entero."
+    },
+    "sol": {
+      "tipo": "recorte",
+      "prompt": "El Sol de día: un círculo amarillo y anaranjado brillante con rayos suaves alrededor. Sin cara, sin ojos y sin boca."
+    },
+    "nube": {
+      "tipo": "recorte",
+      "prompt": "Una nube blanca y esponjosa de día, sola, vista de frente. SIN CARA: sin ojos, sin boca y sin ninguna expresión. Es una nube de verdad, no un personaje."
+    },
+    "avion": {
+      "tipo": "recorte",
+      "prompt": "Un avión de pasajeros blanco y celeste volando, visto desde abajo y de costado, con el frente mirando hacia la derecha. Sin letras ni números."
+    },
+    "luna_dia": {
+      "tipo": "recorte",
+      "prompt": "La Luna vista DE DÍA: el mismo círculo gris con cráteres pero pálido y desteñido, como se ve la luna en el cielo celeste de la tarde. Sin cara, sin ojos y sin boca."
+    },
+    "icono_astro": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "prompt": "Un ícono redondo y simple: un círculo azul oscuro con un planeta con anillo y una estrellita al lado, dibujados en blanco. Nada más."
+    },
+    "icono_aire": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "prompt": "Un ícono redondo y simple: un círculo celeste con la silueta blanca de una nube y un avioncito al lado. Nada más."
+    }
+  },
+  "escenas": {
+    "noche": {
+      "fondo": "fondo_noche",
+      "animales": {
+        "estrella": {
+          "img": "estrella",
+          "x": 30,
+          "y": 8,
+          "w": 9
+        },
+        "luna": {
+          "img": "luna",
+          "x": 62,
+          "y": 6,
+          "w": 14
+        },
+        "farol": {
+          "img": "farol",
+          "x": 78,
+          "y": 30,
+          "w": 10
+        },
+        "luciernaga": {
+          "img": "luciernaga",
+          "x": 46,
+          "y": 52,
+          "w": 9,
+          "mov": "flotar"
+        },
+        "gato": {
+          "img": "gato",
+          "x": 24,
+          "y": 62,
+          "w": 16
+        }
+      }
+    },
+    "espacio": {
+      "fondo": "fondo_espacio",
+      "animales": {}
+    },
+    "dia": {
+      "fondo": "fondo_dia",
+      "animales": {
+        "sol": {
+          "img": "sol",
+          "x": 12,
+          "y": 6,
+          "w": 15
+        },
+        "nube": {
+          "img": "nube",
+          "x": 36,
+          "y": 10,
+          "w": 20
+        },
+        "avion": {
+          "img": "avion",
+          "x": 72,
+          "y": 30,
+          "w": 18
+        },
+        "luna_dia": {
+          "img": "luna_dia",
+          "x": 60,
+          "y": 5,
+          "w": 11
+        }
+      }
+    }
+  },
+  "pasos": [
+    {
+      "tipo": "decir",
+      "escena": "noche",
+      "voz": "intro"
+    },
+    {
+      "tipo": "tocar",
+      "escena": "noche",
+      "consigna": "p1_consigna",
+      "correctos": [
+        "estrella",
+        "farol",
+        "luciernaga"
+      ],
+      "pistas": [
+        "p1_pista1",
+        "p1_pista2",
+        "p1_pista3"
+      ],
+      "fin": "p1_fin"
+    },
+    {
+      "tipo": "decir",
+      "escena": "noche",
+      "voz": "p1_explica"
+    },
+    {
+      "tipo": "elegir",
+      "escena": "noche",
+      "foco": "luna",
+      "consigna": "p2_consigna",
+      "opciones": [
+        {
+          "id": "refleja",
+          "texto": "Refleja la del Sol"
+        },
+        {
+          "id": "propia",
+          "texto": "Tiene luz propia"
+        },
+        {
+          "id": "llena",
+          "texto": "Sólo cuando está llena"
+        }
+      ],
+      "correcta": "refleja",
+      "pistas": [
+        "p2_pista1",
+        "p2_pista2",
+        "p2_pista3"
+      ]
+    },
+    {
+      "tipo": "decir",
+      "escena": "espacio",
+      "voz": "p3_espacio"
+    },
+    {
+      "tipo": "elegir",
+      "escena": "dia",
+      "consigna": "p4_consigna",
+      "opciones": [
+        {
+          "id": "siguen",
+          "texto": "Siguen ahí: las tapa la luz del Sol"
+        },
+        {
+          "id": "apagan",
+          "texto": "Se apagan de día"
+        },
+        {
+          "id": "van",
+          "texto": "Se van a otro lado"
+        }
+      ],
+      "correcta": "siguen",
+      "pistas": [
+        "p4_pista1",
+        "p4_pista2",
+        "p4_pista3"
+      ]
+    },
+    {
+      "tipo": "clasificar",
+      "escena": "dia",
+      "consigna": "p5_consigna",
+      "grupos": [
+        {
+          "id": "astro",
+          "texto": "Astros",
+          "icono": "icono_astro"
+        },
+        {
+          "id": "aire",
+          "texto": "No son astros",
+          "icono": "icono_aire"
+        }
+      ],
+      "items": [
+        {
+          "animal": "avion",
+          "grupo": "aire",
+          "pista": "p5_pista_avion"
+        },
+        {
+          "animal": "sol",
+          "grupo": "astro",
+          "pista": "p5_pista_sol"
+        },
+        {
+          "animal": "nube",
+          "grupo": "aire",
+          "pista": "p5_pista_nube"
+        },
+        {
+          "animal": "luna_dia",
+          "grupo": "astro",
+          "pista": "p5_pista_luna"
+        }
+      ],
+      "va_aca": "p5_va_aca",
+      "fin": "p5_fin"
+    },
+    {
+      "tipo": "decir",
+      "escena": "noche",
+      "voz": "cierre",
+      "pose": "festejando"
+    }
+  ],
+  "cierre_pantalla": {
+    "titulo": "¡Lo lograste!",
+    "texto": "El Sol fabrica su luz; la Luna la refleja. Y de día las estrellas siguen ahí."
+  }
+}

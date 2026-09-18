@@ -100,7 +100,7 @@
       "animales": {
         "sol": {
           "img": "cosa_sol",
-          "x": 78,
+          "x": 70,
           "y": 6,
           "w": 14,
           "mov": "flotar"
