@@ -24,6 +24,10 @@
   var B = {};                     // id de animal -> botón en la escena
   var registro = [];              // lo que hizo el chico, paso por paso
   var consignaActual = null, bloqueado = false;
+  // La consigna se REPITE sola a los 15 s de silencio y también con el botón 🔁. Esa repetición es
+  // una ayuda, y no puede comerse la respuesta: `repitiendo` la distingue de una pista o del
+  // festejo, y `cortarVoz` la corta cuando el chico contesta (ver `seIgnoraElToque`).
+  var repitiendo = false, vozTurno = 0, cortarVoz = null;
 
   // En un celular VERTICAL la escena mide unos 360x240: los botones de elegir y los grupos no
   // entran adentro sin tapar a los animales. Ahí van debajo de la escena; lo que se toca de la
@@ -56,6 +60,7 @@
         listo = true;
         carpiEl.classList.remove("charla");
         voz.onended = voz.onerror = voz.onloadedmetadata = null;
+        cortarVoz = null;
         resolve();
       }
       // TOPE: por si el audio no carga, para no trabar el video esperando un "ended" que no llega.
@@ -64,6 +69,13 @@
       // como "se juntó": arranca la consigna siguiente encima de la que todavía habla. Ahora el
       // texto sólo da el piso de arranque y, apenas el audio dice cuánto dura, manda esa duración.
       var tope = setTimeout(fin, Math.max(9000, texto.length * 220));
+      // Para poder CORTARLA: el chico que contesta mientras se le repite la consigna no tiene que
+      // esperar a que termine de hablar (ver `seIgnoraElToque`).
+      cortarVoz = function () {
+        clearTimeout(tope);
+        try { voz.pause(); } catch (e) { /* algunos navegadores tiran si todavía no arrancó */ }
+        fin();
+      };
       function porLaDuracion() {
         if (listo || !isFinite(voz.duration) || !voz.duration) return;
         clearTimeout(tope);
@@ -270,11 +282,35 @@
     consignaActual = clave;
     repetirBtn.classList.toggle("ver", !!clave);
   }
+  // Repetir la consigna: por el botón 🔁 o sola, a los 15 s de silencio. Va aparte de `hablar`
+  // porque hay que poder CORTARLA sin que su `.then` desarme lo que hizo el toque que la cortó:
+  // el turno hace que la repetición vieja ya no mande.
+  function repetirConsigna(clave) {
+    var mio = ++vozTurno;
+    bloqueado = true; repitiendo = true;
+    hablar(clave).then(function () {
+      if (mio !== vozTurno) return;
+      bloqueado = false; repitiendo = false;
+    });
+  }
+
+  // ¿Este toque se descarta? Pablo, 18-sep-2026, probando «De semilla a planta»: *"cuando elegís el
+  // tomate creo que tuve que hacer click dos veces"*. Medido: se había quedado pensando más de 15 s,
+  // la consigna se repitió sola, y el toque que llegó durante esa repetición se descartaba en
+  // silencio. La repetición es una AYUDA: si el chico contesta, se corta y el toque CUENTA. Con una
+  // pista o con el festejo se sigue esperando, porque ahí Carpi está enseñando y pisarlo sería
+  // volver a «se juntó con la que sigue».
+  function seIgnoraElToque() {
+    if (!bloqueado) return false;
+    if (!repitiendo) return true;
+    vozTurno++;                       // la repetición que todavía suena ya no manda
+    repitiendo = false; bloqueado = false;
+    if (cortarVoz) cortarVoz();
+    return false;
+  }
+
   repetirBtn.addEventListener("click", function () {
-    if (!bloqueado && consignaActual) {
-      bloqueado = true;
-      hablar(consignaActual).then(function () { bloqueado = false; });
-    }
+    if (!bloqueado && consignaActual) repetirConsigna(consignaActual);
   });
 
   // Si el chico no hace nada en 15 s, se le repite la consigna (una vez por silencio).
@@ -284,8 +320,7 @@
       clearTimeout(timer);
       timer = setTimeout(function () {
         if (bloqueado) return armar();
-        bloqueado = true;
-        hablar(clave).then(function () { bloqueado = false; });
+        repetirConsigna(clave);
       }, 15000);
     }
     armar();
@@ -326,7 +361,7 @@
           if (b.classList.contains("apagado")) return;
           b.disabled = false;
           b.onclick = function () {
-            if (bloqueado || terminado) return;
+            if (terminado || seIgnoraElToque()) return;
             quieto.tocar();
             if (p.correctos.indexOf(k) >= 0) {
               if (encontrados[k]) return;
@@ -401,7 +436,7 @@
           if (!b) return;
           b.disabled = false;
           b.onclick = function () {
-            if (bloqueado || terminado || b.classList.contains("bien")) return;
+            if (terminado || b.classList.contains("bien") || seIgnoraElToque()) return;
             quieto.tocar();
             if (k !== p.orden[siguiente]) {
               errores++;
@@ -480,7 +515,7 @@
           palabra.textContent = o.texto;
           btn.appendChild(palabra);
           btn.onclick = function () {
-            if (bloqueado || terminado) return;
+            if (terminado || seIgnoraElToque()) return;
             quieto.tocar();
             if (o.id === p.correcta) {
               btn.classList.add("bien");
@@ -542,7 +577,7 @@
           if (!b) return;
           b.disabled = false;
           b.onclick = function () {
-            if (bloqueado || terminado) return;
+            if (terminado || seIgnoraElToque()) return;
             quieto.tocar();
             if (elegido) B[elegido.animal].classList.remove("elegido");
             elegido = it;
@@ -579,7 +614,7 @@
         }
 
         function soltarEn(grupoId, btn) {
-          if (bloqueado || terminado) return;
+          if (terminado || seIgnoraElToque()) return;
           quieto.tocar();
           if (!elegido) {
             // TOCÓ LA TARJETA SIN ELEGIR NADA. Se le iluminan las cosas que puede elegir Y se le

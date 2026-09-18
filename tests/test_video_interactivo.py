@@ -294,6 +294,49 @@ def test_la_pausa_de_agrupar_dice_el_gesto(pieza):
             "%s paso %d: sin `sin_elegir`, tocar el grupo sin elegir nada no dice nada" % (pieza, i))
 
 
+def test_el_toque_que_llega_mientras_se_repite_la_consigna_no_se_pierde():
+    """Pablo, 18-sep-2026, probando «De semilla a planta»: *"cuando elegís el tomate creo que tuve
+    que hacer click dos veces"*.
+
+    Reproducido con los audios a duración real (`.cache/vi_dos_clicks.py`): se había quedado
+    pensando más de 15 s, el reproductor le repitió la consigna solo, y el toque que llegó DURANTE
+    esa repetición se descartaba en silencio —todos los manejadores arrancaban con
+    `if (bloqueado || terminado) return`—. Había que tocar de nuevo.
+
+    La repetición es una AYUDA y no puede comerse la respuesta: ahora se corta y el toque cuenta.
+    Con una PISTA o con el festejo se sigue esperando, porque ahí Carpi está enseñando y pisarlo
+    sería volver a «se juntó con la que sigue» (15-sep-2026). Las dos mitades se prueban en el
+    recorrido; acá se cuida que ningún manejador vuelva a descartar el toque por su cuenta."""
+    js = open(os.path.join(BASE, "video_interactivo_player.js"), encoding="utf-8").read()
+    assert "function seIgnoraElToque()" in js and "function repetirConsigna(" in js, (
+        "el reproductor ya no distingue la repetición de una pista")
+    assert "cortarVoz" in js, "la repetición volvió a ser incortable"
+    manejadores = re.findall(r"onclick = function \([^)]*\) \{\s*\n\s*([^\n]+)", js)
+    assert len(manejadores) >= 4, "no se encontraron los manejadores de toque del reproductor"
+    for primera in manejadores:
+        assert "seIgnoraElToque()" in primera, (
+            "un manejador de toque decide solo si descarta el toque: %r" % primera.strip())
+
+
+def test_el_dibujo_resaltado_no_se_escala_dos_veces_a_la_vez():
+    """Pablo, 18-sep-2026, con una captura de la planta del placard: *"está mal la imagen, en parte
+    aparece doble la maceta"*.
+
+    El archivo tiene UNA maceta —verificado contra el que sirve el espejo, byte a byte— y en la
+    captura ampliada el fantasma es la MISMA maceta a otro tamaño y pintada a medias: un cuadro
+    viejo que el navegador no repintó. Lo producía el resaltado, que escalaba dos veces a la vez
+    (el botón con `latido` y el dibujo con `respirar`) mientras el dibujo llevaba encima el filtro
+    del resplandor: un filtro que cambia de tamaño en cada cuadro hay que volver a rasterizarlo, y
+    ahí es donde el compositor deja bloques rotos.
+
+    Con UNA sola animación y la capa promovida, el resplandor se escala ya dibujado."""
+    css = open(os.path.join(BASE, "video_interactivo_player.html"), encoding="utf-8").read()
+    assert re.search(r"\.bicho\.brillo img\{[^}]*animation:\s*none", css), (
+        "el dibujo resaltado volvió a tener su propia animación encima del latido")
+    assert re.search(r"\.bicho\.brillo\{[^}]*will-change:\s*transform", css), (
+        "el resaltado dejó de promover su capa: el filtro se rasteriza de nuevo en cada cuadro")
+
+
 # ── el contenido de cada pieza, que es lo que ningún chequeo genérico ve ──────────────────
 
 def test_todo_lo_que_nada_clasifica_bien_a_cada_animal():
