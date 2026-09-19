@@ -8192,7 +8192,13 @@ GAMES.sopa = {
     const s = _sopas[rint(0, _sopas.length - 1)];
     if (!s) return;
     const n = s.n;
-    ctx.consigna("Encontrá las palabras escondidas");
+    // LA CONSIGNA DICE EL GESTO (19-sep-2026). Decía sólo "Encontrá las palabras escondidas",
+    // y el juego aceptaba ÚNICAMENTE el arrastre continuo. Medido en producción: una persona de
+    // 4.º grado estuvo ONCE MINUTOS con 23 intentos fallidos y **cero** palabras encontradas.
+    // Reproducido: tocar una letra no hacía nada, tocar la primera y la última tampoco, y la
+    // pantalla no decía en ninguna parte que había que deslizar. Once minutos de insistir en un
+    // juego que no contesta es el peor rato que puede pasar un chico acá.
+    ctx.consigna("Encontrá las palabras: deslizá el dedo, o tocá la primera letra y la última");
     ctx.rondas(s.palabras.length);
     const wrap = el("div"); wrap.id = "sopaWrap";
     const tab = el("div", "tablero");
@@ -8206,6 +8212,21 @@ GAMES.sopa = {
         grid.appendChild(c); celdas.push(c);
       }
     tab.appendChild(grid); wrap.appendChild(tab);
+
+    // EL RENGLÓN DE AYUDA VA ACÁ Y NO EN LA CONSIGNA (19-sep-2026), y con alto fijo.
+    //
+    // Medido: escribir el aviso en la consigna la hacía pasar de 87 a 70 px de alto, y la
+    // grilla SUBÍA 16 px — media letra en un teléfono, donde cada celda mide 32. O sea que el
+    // segundo toque caía en la casilla de al lado y la palabra no se encontraba nunca. El error
+    // sólo aparecía en teléfono: en pantalla ancha el texto entra en una línea y nada se mueve.
+    //
+    // Va DEBAJO de la grilla para que crecer o vaciarse no empuje las letras, y con
+    // `min-height` para que el hueco exista aunque esté vacío.
+    const ayuda = el("div", "", "");
+    ayuda.id = "sopaAyuda";
+    ayuda.style.cssText = "min-height:1.4em;text-align:center;font-size:.95rem;opacity:.85;margin:6px 0 2px";
+    wrap.appendChild(ayuda);
+
     const lista = el("div"); lista.id = "sopaPalabras";
     const chips = {};
     s.lindas.forEach((linda, i) => {
@@ -8217,7 +8238,7 @@ GAMES.sopa = {
     ctx.juego.appendChild(wrap);
     requestAnimationFrame(() => {
       const disp = innerHeight - grid.getBoundingClientRect().top - 14;
-      const lado = Math.min(620, Math.max(260, disp - 118));   // 118 ≈ lista de palabras
+      const lado = Math.min(620, Math.max(260, disp - 146));   // 118 ≈ lista de palabras + 28 del renglón de ayuda
       wrap.style.maxWidth = lado + "px";
       wrap.style.margin = "0 auto";
     });
@@ -8255,17 +8276,40 @@ GAMES.sopa = {
       });
     };
 
+    // DOS GESTOS, NO UNO (19-sep-2026): deslizar, o tocar la primera letra y después la última.
+    // El segundo es el que usa cualquiera que agarró una sopa de letras en un teléfono, y era
+    // justamente el que no andaba. `esperando` guarda la primera letra tocada entre un toque y
+    // el siguiente; el arrastre sigue funcionando igual porque se resuelve en `pointerup`.
+    let esperando = null;      // [x,y] de la primera letra, si se tocó sin arrastrar
+    let movido = false;        // ¿hubo arrastre de verdad entre down y up?
+
+    const soltarEspera = () => { esperando = null; ayuda.textContent = ""; limpiar(); };
+
     grid.addEventListener("pointerdown", (ev) => {
       const c = celdaDesdeEvento(ev);
       if (!c) return;
       grid.setPointerCapture(ev.pointerId);
-      ancla = [+c.dataset.x, +c.dataset.y];
+      movido = false;
+      const p = [+c.dataset.x, +c.dataset.y];
+      if (esperando) {
+        // Segundo toque: si es OTRA letra, vale como "de acá hasta acá". Si es la misma,
+        // se cancela —tocar dos veces la misma letra es el gesto natural para arrepentirse.
+        if (esperando[0] === p[0] && esperando[1] === p[1]) { soltarEspera(); ancla = null; return; }
+        marcar(linea(esperando[0], esperando[1], p[0], p[1]));
+        ancla = esperando.slice();
+        esperando = null;
+        return;
+      }
+      ancla = p;
       marcar([ancla]);
     });
     grid.addEventListener("pointermove", (ev) => {
       if (!ancla) return;
       const c = celdaDesdeEvento(ev);
-      if (c) marcar(linea(ancla[0], ancla[1], +c.dataset.x, +c.dataset.y));
+      if (!c) return;
+      const p = [+c.dataset.x, +c.dataset.y];
+      if (p[0] !== ancla[0] || p[1] !== ancla[1]) movido = true;
+      marcar(linea(ancla[0], ancla[1], p[0], p[1]));
     });
     const soltar = () => {
       if (!ancla) return;
@@ -8277,13 +8321,35 @@ GAMES.sopa = {
         halladas.add(hit);
         marcadas.forEach((c) => { c.classList.remove("marca"); c.classList.add("hallada"); });
         chips[hit].classList.add("hallada");
-        ctx.ronda(halladas.size);
+        esperando = null;
+        ayuda.textContent = "";
+        // PRIMERO `bien()`, DESPUÉS `ronda()` (19-sep-2026). Estaba al revés, y `ronda()`
+        // reinicia el cronómetro y el contador de toques de la ronda: el acierto se
+        // registraba con `ms:0`, `toq:0` y `primer:true`, o sea **como si la palabra se
+        // hubiera encontrado al instante y sin un solo toque**.
+        //
+        // Costó caro: leyendo esa telemetría se concluyó que una chica de 4.º no había
+        // encontrado NINGUNA palabra en once minutos, cuando en realidad encontró cuatro.
+        // La sopa era el único juego del cuaderno con las dos llamadas en este orden.
         ctx.bien();
+        ctx.ronda(halladas.size);
         if (halladas.size === s.palabras.length) setTimeout(() => ctx.win(3), 700);
+      } else if (!movido && cs.length <= 1) {
+        // Tocó una letra sola y soltó. ANTES no pasaba nada: ni marca, ni aviso, ni pista —el
+        // silencio es lo que hizo que alguien repitiera 23 veces—. Ahora esa letra queda
+        // elegida y esperando la última, con el cartel diciéndolo.
+        esperando = cs[0] || null;
+        if (esperando) {
+          marcar([esperando]);
+          ayuda.textContent = "Ahora tocá la ÚLTIMA letra de la palabra 👆";
+        }
+        ancla = null;
+        return;
       } else {
         if (cs.length > 2) ctx.casi();
         limpiar();
       }
+      esperando = null;
       ancla = null; marcadas = [];
     };
     grid.addEventListener("pointerup", soltar);
