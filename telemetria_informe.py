@@ -22,6 +22,7 @@ Uso:
     python3 telemetria_informe.py --json             # para procesar
 """
 import argparse
+import datetime
 import json
 import os
 import statistics
@@ -38,6 +39,32 @@ PRECISION_BAJA = 0.55      # <55% al primer intento = la actividad está costand
 CONSIGNA_LENTA = 12000     # >12s hasta el primer toque = no entendió QUÉ hay que hacer
 TOQUES_TANTEO = 6          # >6 toques antes de acertar = probó hasta que salió
 MIN_MUESTRA = 5            # menos que esto no se reporta: sería ruido con forma de dato
+
+# ── ACTIVIDAD TRABADA: el chico no puede terminarla y se queda pegado ────────────
+#
+# POR QUÉ EXISTE (19-sep-2026). La sopa de letras aceptaba sólo el arrastre, no lo decía
+# en ninguna parte y al gesto equivocado contestaba con silencio. Una chica de 4.º estuvo
+# ONCE MINUTOS con 23 intentos fallidos. El informe de arriba **no lo vio**: marca
+# "contenido difícil" por precisión baja, y con eso también marca al memotest —donde
+# fallar el primer intento ES la mecánica—, así que la señal se pierde entre falsos
+# positivos. Pablo: *"la telemetría tiene que hacer saltar inmediatamente estos errores"*.
+#
+# LO QUE DISTINGUE "TRABADA" DE "DIFÍCIL" ES EL TIEMPO PEGADO, no el error. Fallar rápido
+# y seguir es aprender; fallar diez veces durante diez minutos es una actividad que no se
+# puede terminar.
+#
+# POR SESIÓN Y NO POR CUADERNO: los cuadernos de muestra (`muestra-kydo-N`) los usan
+# MUCHAS personas distintas con el mismo token. Agrupando por token, la chica de la sopa
+# quedaba diluida entre todas las visitas —43 fallos, 30 minutos y 60 % de aciertos, que no
+# alarma a nadie—. Separando por sesión aparece sola: 23 fallos, 10 minutos, 15 %.
+#
+# Los umbrales se calibraron contra los 2.174 eventos reales que había el 19-sep-2026:
+# marcan 2 sesiones de 585 (la sopa y una de acentuación del 25-jul) y NO marcan ninguna
+# de memotest. Si algún día empieza a avisar de más, se toca acá y se vuelve a medir.
+SESION_CORTE_MS = 20 * 60 * 1000   # 20 min sin tocar = otra persona u otro día
+TRABA_FALLOS = 8                   # intentos fallidos en la misma sesión
+TRABA_MINUTOS = 5                  # pegado a la misma actividad
+TRABA_PRECISION = 0.35             # y con menos de esto de aciertos
 
 
 def _eventos(token=None):
@@ -160,12 +187,84 @@ def _humano(inf):
     return "\n".join(L)
 
 
+def sesiones(token=None):
+    """Los eventos partidos en sesiones: mismo cuaderno, misma actividad, sin huecos
+    largos. Es lo más cerca que se puede estar de "una persona sentada jugando", porque
+    la telemetría no trae quién es —y no debe traerlo."""
+    evs = sorted([e for e in _eventos(token) if e.get("j") and e.get("t")],
+                 key=lambda e: ((e.get("_token") or ""), e["j"], e["t"]))
+    out, act = [], None
+    for e in evs:
+        k = (e.get("_token"), e["j"])
+        if act and act["clave"] == k and e["t"] - act["fin"] <= SESION_CORTE_MS:
+            act["eventos"].append(e); act["fin"] = e["t"]
+        else:
+            act = {"clave": k, "eventos": [e], "ini": e["t"], "fin": e["t"]}
+            out.append(act)
+    return out
+
+
+def trabadas(token=None):
+    """Las sesiones donde alguien se quedó pegado sin poder terminar la actividad.
+
+    Devuelve lo que hace falta para actuar: qué actividad, cuándo, cuánto tiempo, cuántos
+    fallos y con qué motivo de error, ordenado por gravedad."""
+    filas = []
+    for s in sesiones(token):
+        evs = s["eventos"]
+        ok = sum(1 for e in evs if e.get("ok"))
+        fallos = len(evs) - ok
+        minutos = (s["fin"] - s["ini"]) / 60000.0
+        prec = ok / float(len(evs)) if evs else 0.0
+        if fallos < TRABA_FALLOS or minutos < TRABA_MINUTOS or prec >= TRABA_PRECISION:
+            continue
+        motivos = {}
+        for e in evs:
+            if not e.get("ok") and e.get("motivo"):
+                motivos[e["motivo"]] = motivos.get(e["motivo"], 0) + 1
+        filas.append({
+            "juego": s["clave"][1],
+            "cuaderno": s["clave"][0],
+            "cuando": datetime.datetime.fromtimestamp(s["ini"] / 1000).isoformat(timespec="minutes"),
+            "epoch_ms": s["ini"],
+            "minutos": round(minutos, 1),
+            "fallos": fallos,
+            "aciertos": ok,
+            "precision": round(prec, 2),
+            "edad": next((e.get("edad") for e in evs if e.get("edad")), None),
+            "error_dominante": (max(motivos.items(), key=lambda kv: kv[1])[0] if motivos else None),
+        })
+    filas.sort(key=lambda f: (-f["fallos"], -f["minutos"]))
+    return filas
+
+
+def _humano_trabadas(filas):
+    if not filas:
+        return "Ninguna actividad dejó a nadie trabado. (>=%d fallos, >=%d min y <%d%% de aciertos en una sesión.)" % (
+            TRABA_FALLOS, TRABA_MINUTOS, int(TRABA_PRECISION * 100))
+    L = ["SE TRABARON EN %d actividad(es):" % len(filas), ""]
+    for f in filas:
+        L.append("  · %s — %d fallos en %.1f min, %d%% de aciertos%s" % (
+            f["juego"], f["fallos"], f["minutos"], int(f["precision"] * 100),
+            (" (%s años)" % f["edad"]) if f["edad"] else ""))
+        L.append("      %s · cuaderno %s" % (f["cuando"].replace("T", " "), f["cuaderno"]))
+        if f["error_dominante"]:
+            L.append("      error más común: %s" % f["error_dominante"][:70])
+    return "\n".join(L)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--token", help="un cuaderno puntual")
     ap.add_argument("--grado", type=int, help="filtrar por grado (1-7)")
     ap.add_argument("--json", action="store_true", help="salida JSON")
+    ap.add_argument("--trabadas", action="store_true",
+                    help="sólo las actividades donde alguien se quedó pegado sin poder terminar")
     a = ap.parse_args(argv)
+    if a.trabadas:
+        filas = trabadas(token=a.token)
+        print(json.dumps(filas, ensure_ascii=False, indent=2) if a.json else _humano_trabadas(filas))
+        return 0
     inf = informe(token=a.token, grado=a.grado)
     print(json.dumps(inf, ensure_ascii=False, indent=2) if a.json else _humano(inf))
     return 0
