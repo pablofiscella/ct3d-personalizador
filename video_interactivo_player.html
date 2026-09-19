@@ -50,7 +50,17 @@
   @keyframes flotar{0%,100%{transform:translateY(0)}50%{transform:translateY(-8%)}}
   @keyframes respirar{0%,100%{transform:scale(1)}50%{transform:scale(1.025)}}
   .bicho.brillo img{filter:drop-shadow(0 0 10px var(--sol)) drop-shadow(0 0 20px var(--sol))}
-  .bicho.brillo{animation:latido 1s ease-in-out infinite}
+  .bicho.brillo{animation:latido 1s ease-in-out infinite;will-change:transform}
+  /* El resaltado escalaba DOS veces a la vez —el botón con `latido` y el dibujo con `respirar`—
+     y encima el dibujo lleva el filtro del resplandor. Pablo, 18-sep-2026, con una captura de la
+     planta del placard: *"está mal la imagen, en parte aparece doble la maceta"*. El archivo tiene
+     UNA maceta (verificado contra el que sirve el espejo, byte a byte): el doble era un cuadro
+     viejo del latido que el navegador no repintó, con los bloques rotos que deja el compositor
+     cuando tiene que redibujar un filtro que cambia de tamaño en cada cuadro. Con UNA sola
+     animación y la capa promovida con `will-change`, el resplandor se escala ya dibujado en vez de
+     volver a rasterizarse. El latido es diez veces más grande que el respirar: no se nota la
+     diferencia. */
+  .bicho.brillo img{animation:none}
   @keyframes latido{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
   .bicho.elegido img{filter:drop-shadow(0 0 8px #fff) drop-shadow(0 0 16px #7bdcff)}
   /* El que ya está acertado se ve ADELANTE (para que su tilde no quede tapado por otro dibujo)

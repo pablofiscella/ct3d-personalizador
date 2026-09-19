@@ -1,0 +1,192 @@
+{
+  "pieza": "de_semilla_a_planta",
+  "titulo": "De semilla a planta",
+  "grado": 2,
+  "saber": "CDM-2-plantas",
+  "nota": "Sexta pieza (18-sep-2026), segunda de 2.º y la primera del cuaderno sobre plantas. Tema C8 de docs/auditoria-dc-caba/grado-2.md —«necesidades de las plantas; el ciclo de la planta»—, que la auditoría marca como NUEVA por pedido de la maestra, y pide las dos cosas que están acá: el diagnóstico («esta planta está amarilla y caída, ¿qué le faltó?» → LUZ) y ordenar el ciclo semilla → brote → planta → fruto. Dice lo MISMO que la mini-lección `plantas_2` del cuaderno: agua, tierra, aire y luz del sol; la raíz toma el agua, el tallo la sube, las hojas fabrican el alimento; adentro del fruto vienen semillas nuevas. La trampa de la primera pausa es el plato de comida —la idea de que la planta «come» lo que le dan— y se explica DESPUÉS de que el chico contesta, no en la consigna. Los recortes con hojas van sobre MAGENTA: sobre verde, el recorte se comería la planta.",
+  "voces": {
+    "intro": "¡Hola! Soy Carpi. Hoy vamos a plantar una semilla y a descubrir qué necesita para crecer. Algunas cosas le hacen falta de verdad, y otras no. Mirá bien.",
+    "p1_consigna": "Tocá todo lo que la planta necesita para crecer.",
+    "p1_pista1": "Pensá en una planta de tu casa. ¿Qué le ponés para que no se seque? ¿Y dónde la apoyás?",
+    "p1_pista2": "Son tres. Te las ilumino.",
+    "p1_pista3": "Son la regadera, la tierra y el sol. Tocalos.",
+    "p1_fin": "La planta necesita agua, tierra y luz del sol.",
+    "p1_explica": "¿Y el plato de comida? La planta no come como vos. Sus hojas fabrican su propio alimento con la luz del sol. Eso sí: también necesita aire, aunque no lo veas.",
+    "p2_consigna": "Esta planta vivió adentro del placard. La regaron todos los días y tiene buena tierra, pero quedó amarilla y caída. ¿Qué le faltó?",
+    "p2_pista1": "Fijate que agua no le faltó: la regaron todos los días.",
+    "p2_pista2": "Adentro del placard está siempre oscuro.",
+    "p2_pista3": "Le faltó la luz del sol. Tocá esa.",
+    "p3_partes": "Miremos la planta por dentro. La raíz está abajo de la tierra y toma el agua. El tallo la sube hasta arriba. Y las hojas fabrican el alimento con la luz del sol. Cuando la planta ya está grande, aparece la flor.",
+    "p4_consigna": "La flor se cayó y en su lugar creció el tomate. ¿Dónde están las semillas nuevas?",
+    "p4_pista1": "Las semillas viajan adentro de algo que se puede comer.",
+    "p4_pista2": "Pensá qué ves cuando cortás un tomate al medio.",
+    "p4_pista3": "Están adentro del tomate. Tocá esa.",
+    "p5_consigna": "Ahora vos. Tocá las fotos en orden, desde la semilla hasta el tomate.",
+    "p5_pista1": "Acordate: al principio era una semilla y al final apareció el fruto.",
+    "p5_pista2": "Te ilumino la que sigue.",
+    "p5_pista3": "Es esta. Tocala.",
+    "p5_fin": "Semilla, brote, planta con flor y tomate con semillas nuevas adentro.",
+    "cierre": "Con esas semillas nuevas arranca otra planta, y todo empieza de nuevo. Ya sabés lo que hace falta para crecer: agua, tierra, aire y luz del sol. ¡Hasta la próxima!",
+    "festejo1": "¡Muy bien!",
+    "festejo2": "¡Eso es!",
+    "festejo3": "¡Genial!"
+  },
+  "imagenes": {
+    "fondo_patio": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "El patio de una casa de barrio argentino de día: pasto corto, un cantero de tierra oscura recién removida cruzando la parte de abajo, la pared de la casa al fondo y el cielo celeste despejado ocupando la parte de arriba. SIN sol dibujado, SIN plantas, SIN flores, SIN macetas, SIN personas, SIN animales y SIN objetos sueltos."
+    },
+    "fondo_cuarto": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "Un rincón adentro de una casa, en penumbra: la puerta de un placard de madera abierta, un estante y sombra alrededor. Casi no entra luz. SIN ventanas, SIN lámparas prendidas, SIN plantas, SIN personas y SIN animales."
+    },
+    "fondo_lamina": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "Lámina de ciencias para chicos, vista de costado: un corte del suelo. Arriba de la línea de la tierra, una planta de tomate joven completa, con su tallo, sus hojas verdes y UNA FLOR AMARILLA abierta; abajo de esa línea, las raíces bien extendidas en la tierra oscura. La planta NO TIENE NINGÚN FRUTO: sin tomates verdes y sin tomates rojos. Fondo celeste claro y liso arriba. Sin texto, sin letras, sin números, sin flechas y sin personas."
+    },
+    "fondo_mata": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "Una planta de tomate grande en una maceta de barro, en el patio de una casa, con varios tomates rojos maduros colgando, enteros y sin cortar, y hojas verdes. Día claro. SIN personas, SIN animales y SIN texto."
+    },
+    "fondo_fruto": {
+      "tipo": "escena",
+      "size": "1024x1024",
+      "prompt": "Un tomate rojo maduro cortado al medio, apoyado sobre una tabla de madera y visto desde arriba, con las semillas amarillas bien visibles adentro de la pulpa. Nada más alrededor."
+    },
+    "foto_semilla": {
+      "tipo": "escena",
+      "size": "1024x1024",
+      "prompt": "Primer plano de una sola semilla chiquita y clara apoyada sobre la tierra oscura y húmeda de un cantero, recién tapada a medias. Nada más alrededor: sin plantas, sin brotes y sin manos."
+    },
+    "foto_brote": {
+      "tipo": "escena",
+      "size": "1024x1024",
+      "prompt": "Primer plano de un brote verde chiquito que recién asoma de la tierra oscura de un cantero, con dos hojitas nuevas y el tallito finito. Nada más alrededor: sin flores y sin frutos."
+    },
+    "foto_planta": {
+      "tipo": "escena",
+      "size": "1024x1024",
+      "prompt": "Una planta de tomate joven en una maceta de barro, con hojas verdes y varias flores amarillas chiquitas abiertas, TODAVÍA SIN NINGÚN FRUTO. Fondo de patio claro y simple."
+    },
+    "regadera": {
+      "tipo": "recorte",
+      "prompt": "Una regadera de chapa celeste con su asa y su pico largo con la ducha en la punta, vista de costado, entera y apoyada. Sin agua saliendo."
+    },
+    "tierra": {
+      "tipo": "recorte",
+      "prompt": "Una maceta de barro anaranjada llena hasta el borde de tierra oscura y suelta, vista de costado y entera. SIN NINGUNA planta adentro: sin brotes, sin hojas y sin flores."
+    },
+    "sol": {
+      "tipo": "recorte",
+      "prompt": "El Sol de día: un círculo amarillo y anaranjado brillante con rayos suaves alrededor. Sin cara, sin ojos y sin boca."
+    },
+    "comida": {
+      "tipo": "recorte",
+      "prompt": "Un plato blanco hondo con un sándwich de jamón y queso cortado al medio y una galletita al lado, visto de costado y un poco desde arriba. Sin verduras, sin hojas y sin nada verde."
+    },
+    "pelota": {
+      "tipo": "recorte",
+      "prompt": "Una pelota de fútbol blanca con gajos negros, apoyada, vista de frente. Nada más."
+    },
+    "planta_amarilla": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "prompt": "Una planta chiquita en una maceta de barro que está claramente enferma por falta de luz: el tallo largo, finito y torcido hacia un costado, y las pocas hojas amarillentas y caídas hacia abajo. La tierra de la maceta se ve oscura y húmeda. Sin cara, sin ojos y sin boca."
+    }
+  },
+  "escenas": {
+    "llegada": {
+      "fondo": "fondo_patio",
+      "animales": {}
+    },
+    "huerta": {
+      "fondo": "fondo_patio",
+      "animales": {
+        "sol": { "img": "sol", "x": 8, "y": 4, "w": 13 },
+        "regadera": { "img": "regadera", "x": 26, "y": 50, "w": 15 },
+        "tierra": { "img": "tierra", "x": 45, "y": 52, "w": 14 },
+        "comida": { "img": "comida", "x": 63, "y": 56, "w": 15 },
+        "pelota": { "img": "pelota", "x": 83, "y": 62, "w": 11 }
+      }
+    },
+    "cuarto": {
+      "fondo": "fondo_cuarto",
+      "animales": {
+        "planta_amarilla": { "img": "planta_amarilla", "x": 52, "y": 34, "w": 24 }
+      }
+    },
+    "lamina": {
+      "fondo": "fondo_lamina",
+      "animales": {}
+    },
+    "mata": {
+      "fondo": "fondo_mata",
+      "animales": {}
+    },
+    "fotos": {
+      "fondo": "fondo_patio",
+      "animales": {
+        "foto_brote": { "img": "foto_brote", "x": 47, "y": 44, "w": 16, "estilo": "foto", "mov": "ninguno", "giro": 5 },
+        "foto_fruto": { "img": "fondo_fruto", "x": 40, "y": 68, "w": 16, "estilo": "foto", "mov": "ninguno", "giro": -6 },
+        "foto_semilla": { "img": "foto_semilla", "x": 25, "y": 50, "w": 16, "estilo": "foto", "mov": "ninguno", "giro": -4 },
+        "foto_planta": { "img": "foto_planta", "x": 68, "y": 52, "w": 16, "estilo": "foto", "mov": "ninguno", "giro": 4 }
+      }
+    }
+  },
+  "pasos": [
+    { "tipo": "decir", "escena": "llegada", "voz": "intro" },
+    {
+      "tipo": "tocar",
+      "escena": "huerta",
+      "consigna": "p1_consigna",
+      "correctos": ["regadera", "tierra", "sol"],
+      "pistas": ["p1_pista1", "p1_pista2", "p1_pista3"],
+      "fin": "p1_fin"
+    },
+    { "tipo": "decir", "escena": "huerta", "voz": "p1_explica" },
+    {
+      "tipo": "elegir",
+      "escena": "cuarto",
+      "foco": "planta_amarilla",
+      "consigna": "p2_consigna",
+      "opciones": [
+        { "id": "luz", "texto": "La luz del sol" },
+        { "id": "agua", "texto": "Más agua" },
+        { "id": "tierra", "texto": "Más tierra" }
+      ],
+      "correcta": "luz",
+      "pistas": ["p2_pista1", "p2_pista2", "p2_pista3"]
+    },
+    { "tipo": "decir", "escena": "lamina", "voz": "p3_partes" },
+    {
+      "tipo": "elegir",
+      "escena": "mata",
+      "consigna": "p4_consigna",
+      "opciones": [
+        { "id": "fruto", "texto": "Adentro del tomate" },
+        { "id": "hojas", "texto": "En las hojas" },
+        { "id": "raiz", "texto": "Abajo, en la raíz" }
+      ],
+      "correcta": "fruto",
+      "pistas": ["p4_pista1", "p4_pista2", "p4_pista3"]
+    },
+    {
+      "tipo": "ordenar",
+      "escena": "fotos",
+      "consigna": "p5_consigna",
+      "orden": ["foto_semilla", "foto_brote", "foto_planta", "foto_fruto"],
+      "fila_y": 34,
+      "pistas": ["p5_pista1", "p5_pista2", "p5_pista3"],
+      "fin": "p5_fin"
+    },
+    { "tipo": "decir", "escena": "mata", "voz": "cierre", "pose": "festejando" }
+  ],
+  "cierre_pantalla": {
+    "titulo": "¡Lo lograste!",
+    "texto": "De la semilla al fruto: agua, tierra, aire y luz del sol."
+  }
+}

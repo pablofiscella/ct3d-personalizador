@@ -95,12 +95,16 @@
     }
   },
   "escenas": {
+    "llegada": {
+      "fondo": "fondo_patio",
+      "animales": {}
+    },
     "patio": {
       "fondo": "fondo_patio",
       "animales": {
         "sol": {
           "img": "cosa_sol",
-          "x": 78,
+          "x": 70,
           "y": 6,
           "w": 14,
           "mov": "flotar"
@@ -184,7 +188,7 @@
   "pasos": [
     {
       "tipo": "decir",
-      "escena": "patio",
+      "escena": "llegada",
       "voz": "intro"
     },
     {

@@ -80,7 +80,7 @@ def test_los_pasos_apuntan_a_escenas_cosas_y_voces_que_existen(pieza):
       assert p0["escena"] in escenas, "%s paso %d: escena inexistente %r" % (pieza, i, p0["escena"])
       for p in versiones(p0):
         cosas = escenas[p["escena"]]["animales"]
-        for clave in ("voz", "consigna", "fin", "va_aca"):
+        for clave in ("voz", "consigna", "fin", "va_aca", "sin_elegir"):
             if p.get(clave):
                 assert p[clave] in voces, "%s paso %d: voz inexistente %r" % (pieza, i, p[clave])
         for a in (p.get("correctos", []) + (p.get("solo") or []) + list(p.get("acomodar") or {})
@@ -235,6 +235,106 @@ def test_ninguna_voz_dura_mas_que_el_tope_del_reproductor(pieza):
         if dur > tope:
             largas.append("%s dura %.1fs y el tope es %.1fs" % (clave, dur, tope))
     assert not largas, "%s: el reproductor las corta: %s" % (pieza, largas)
+
+
+@pytest.mark.parametrize("pieza", PIEZAS)
+def test_lo_que_se_toca_aparece_con_la_pregunta(pieza):
+    """Pablo lo marcó DOS veces, en dos piezas distintas: *"tardó en permitirme seleccionar la vaca"*
+    (16-sep-2026) y *"hay que hacer click en la pantalla para… poder seleccionar los objetos"*
+    (18-sep-2026).
+
+    Los objetos se habilitan cuando la voz termina la consigna. Si ya estaban en pantalla desde antes
+    —porque la escena no cambió—, el chico mira una escena viva que no le responde, y el navegador
+    encima no le cambia el puntero a la manito hasta que mueve el mouse o hace clic. Medido antes de
+    arreglarlo: 17 s en «¿Con qué sonido empieza?», 18 en el piloto, 22 en «¿Cruzo o espero?».
+
+    Lo que se mide acá es el tiempo MUERTO: lo que la escena está a la vista ANTES de que arranque la
+    consigna. Lo que dura la pregunta no se cuenta: el chico no puede contestar antes de oírla."""
+    import subprocess
+    if not shutil.which("ffprobe"):
+        pytest.skip("sin ffprobe para medir las voces")
+    g = guion(pieza)
+
+    def dura(clave):
+        r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of",
+                            "csv=p=0", viw.ruta_de(pieza, "voz_%s.mp3" % clave)],
+                           capture_output=True, text=True)
+        return float(r.stdout.strip() or 0)
+
+    escena, muerto = None, 0.0
+    for i, p in enumerate(g["pasos"]):
+        if p["escena"] != escena:
+            escena, muerto = p["escena"], 0.0        # escena nueva: lo que se toca recién aparece
+        if p["tipo"] == "decir":
+            muerto += dura(p["voz"]) + 1.1           # el respiro después de la voz y entre pasos
+            continue
+        if p["tipo"] in ("tocar", "ordenar", "clasificar"):
+            assert muerto <= 3.0, (
+                "%s paso %d: lo que hay que tocar está a la vista %.1f s antes de que empiece la "
+                "consigna. Que la escena con los objetos entre CON la pregunta." % (pieza, i, muerto))
+        muerto = 0.0
+
+
+@pytest.mark.parametrize("pieza", PIEZAS)
+def test_la_pausa_de_agrupar_dice_el_gesto(pieza):
+    """Pablo, 18-sep-2026, sobre «Detectives del cielo»: *"le falta que diga que elijas un objeto y
+    después la tarjeta"*.
+
+    Agrupar se hace en DOS toques —primero la cosa, después el grupo— y eso no se adivina mirando.
+    El piloto lo decía en su consigna y en la pieza nueva se pasó por alto. Además, si el chico toca
+    el grupo sin haber elegido nada, tiene que oír qué hacer: antes sólo parpadeaban las cosas y el
+    que no entendió el orden se quedaba tocando el grupo sin respuesta."""
+    g = guion(pieza)
+    for i, p in enumerate(g["pasos"]):
+        if p["tipo"] != "clasificar":
+            continue
+        assert "despu" in sin_tildes(g["voces"][p["consigna"]]), (
+            "%s paso %d: la consigna no dice que primero se toca la cosa y después el grupo" % (pieza, i))
+        assert p.get("sin_elegir"), (
+            "%s paso %d: sin `sin_elegir`, tocar el grupo sin elegir nada no dice nada" % (pieza, i))
+
+
+def test_el_toque_que_llega_mientras_se_repite_la_consigna_no_se_pierde():
+    """Pablo, 18-sep-2026, probando «De semilla a planta»: *"cuando elegís el tomate creo que tuve
+    que hacer click dos veces"*.
+
+    Reproducido con los audios a duración real (`.cache/vi_dos_clicks.py`): se había quedado
+    pensando más de 15 s, el reproductor le repitió la consigna solo, y el toque que llegó DURANTE
+    esa repetición se descartaba en silencio —todos los manejadores arrancaban con
+    `if (bloqueado || terminado) return`—. Había que tocar de nuevo.
+
+    La repetición es una AYUDA y no puede comerse la respuesta: ahora se corta y el toque cuenta.
+    Con una PISTA o con el festejo se sigue esperando, porque ahí Carpi está enseñando y pisarlo
+    sería volver a «se juntó con la que sigue» (15-sep-2026). Las dos mitades se prueban en el
+    recorrido; acá se cuida que ningún manejador vuelva a descartar el toque por su cuenta."""
+    js = open(os.path.join(BASE, "video_interactivo_player.js"), encoding="utf-8").read()
+    assert "function seIgnoraElToque()" in js and "function repetirConsigna(" in js, (
+        "el reproductor ya no distingue la repetición de una pista")
+    assert "cortarVoz" in js, "la repetición volvió a ser incortable"
+    manejadores = re.findall(r"onclick = function \([^)]*\) \{\s*\n\s*([^\n]+)", js)
+    assert len(manejadores) >= 4, "no se encontraron los manejadores de toque del reproductor"
+    for primera in manejadores:
+        assert "seIgnoraElToque()" in primera, (
+            "un manejador de toque decide solo si descarta el toque: %r" % primera.strip())
+
+
+def test_el_dibujo_resaltado_no_se_escala_dos_veces_a_la_vez():
+    """Pablo, 18-sep-2026, con una captura de la planta del placard: *"está mal la imagen, en parte
+    aparece doble la maceta"*.
+
+    El archivo tiene UNA maceta —verificado contra el que sirve el espejo, byte a byte— y en la
+    captura ampliada el fantasma es la MISMA maceta a otro tamaño y pintada a medias: un cuadro
+    viejo que el navegador no repintó. Lo producía el resaltado, que escalaba dos veces a la vez
+    (el botón con `latido` y el dibujo con `respirar`) mientras el dibujo llevaba encima el filtro
+    del resplandor: un filtro que cambia de tamaño en cada cuadro hay que volver a rasterizarlo, y
+    ahí es donde el compositor deja bloques rotos.
+
+    Con UNA sola animación y la capa promovida, el resplandor se escala ya dibujado."""
+    css = open(os.path.join(BASE, "video_interactivo_player.html"), encoding="utf-8").read()
+    assert re.search(r"\.bicho\.brillo img\{[^}]*animation:\s*none", css), (
+        "el dibujo resaltado volvió a tener su propia animación encima del latido")
+    assert re.search(r"\.bicho\.brillo\{[^}]*will-change:\s*transform", css), (
+        "el resaltado dejó de promover su capa: el filtro se rasteriza de nuevo en cada cuadro")
 
 
 # ── el contenido de cada pieza, que es lo que ningún chequeo genérico ve ──────────────────
