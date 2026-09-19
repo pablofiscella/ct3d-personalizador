@@ -8323,8 +8323,16 @@ GAMES.sopa = {
         chips[hit].classList.add("hallada");
         esperando = null;
         ayuda.textContent = "";
-        ctx.ronda(halladas.size);
+        // PRIMERO `bien()`, DESPUÉS `ronda()` (19-sep-2026). Estaba al revés, y `ronda()`
+        // reinicia el cronómetro y el contador de toques de la ronda: el acierto se
+        // registraba con `ms:0`, `toq:0` y `primer:true`, o sea **como si la palabra se
+        // hubiera encontrado al instante y sin un solo toque**.
+        //
+        // Costó caro: leyendo esa telemetría se concluyó que una chica de 4.º no había
+        // encontrado NINGUNA palabra en once minutos, cuando en realidad encontró cuatro.
+        // La sopa era el único juego del cuaderno con las dos llamadas en este orden.
         ctx.bien();
+        ctx.ronda(halladas.size);
         if (halladas.size === s.palabras.length) setTimeout(() => ctx.win(3), 700);
       } else if (!movido && cs.length <= 1) {
         // Tocó una letra sola y soltó. ANTES no pasaba nada: ni marca, ni aviso, ni pista —el
