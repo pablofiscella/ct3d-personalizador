@@ -8212,6 +8212,21 @@ GAMES.sopa = {
         grid.appendChild(c); celdas.push(c);
       }
     tab.appendChild(grid); wrap.appendChild(tab);
+
+    // EL RENGLÓN DE AYUDA VA ACÁ Y NO EN LA CONSIGNA (19-sep-2026), y con alto fijo.
+    //
+    // Medido: escribir el aviso en la consigna la hacía pasar de 87 a 70 px de alto, y la
+    // grilla SUBÍA 16 px — media letra en un teléfono, donde cada celda mide 32. O sea que el
+    // segundo toque caía en la casilla de al lado y la palabra no se encontraba nunca. El error
+    // sólo aparecía en teléfono: en pantalla ancha el texto entra en una línea y nada se mueve.
+    //
+    // Va DEBAJO de la grilla para que crecer o vaciarse no empuje las letras, y con
+    // `min-height` para que el hueco exista aunque esté vacío.
+    const ayuda = el("div", "", "");
+    ayuda.id = "sopaAyuda";
+    ayuda.style.cssText = "min-height:1.4em;text-align:center;font-size:.95rem;opacity:.85;margin:6px 0 2px";
+    wrap.appendChild(ayuda);
+
     const lista = el("div"); lista.id = "sopaPalabras";
     const chips = {};
     s.lindas.forEach((linda, i) => {
@@ -8223,7 +8238,7 @@ GAMES.sopa = {
     ctx.juego.appendChild(wrap);
     requestAnimationFrame(() => {
       const disp = innerHeight - grid.getBoundingClientRect().top - 14;
-      const lado = Math.min(620, Math.max(260, disp - 118));   // 118 ≈ lista de palabras
+      const lado = Math.min(620, Math.max(260, disp - 146));   // 118 ≈ lista de palabras + 28 del renglón de ayuda
       wrap.style.maxWidth = lado + "px";
       wrap.style.margin = "0 auto";
     });
@@ -8268,7 +8283,7 @@ GAMES.sopa = {
     let esperando = null;      // [x,y] de la primera letra, si se tocó sin arrastrar
     let movido = false;        // ¿hubo arrastre de verdad entre down y up?
 
-    const soltarEspera = () => { esperando = null; limpiar(); };
+    const soltarEspera = () => { esperando = null; ayuda.textContent = ""; limpiar(); };
 
     grid.addEventListener("pointerdown", (ev) => {
       const c = celdaDesdeEvento(ev);
@@ -8307,7 +8322,7 @@ GAMES.sopa = {
         marcadas.forEach((c) => { c.classList.remove("marca"); c.classList.add("hallada"); });
         chips[hit].classList.add("hallada");
         esperando = null;
-        ctx.consigna("Encontrá las palabras: deslizá el dedo, o tocá la primera letra y la última");
+        ayuda.textContent = "";
         ctx.ronda(halladas.size);
         ctx.bien();
         if (halladas.size === s.palabras.length) setTimeout(() => ctx.win(3), 700);
@@ -8318,7 +8333,7 @@ GAMES.sopa = {
         esperando = cs[0] || null;
         if (esperando) {
           marcar([esperando]);
-          ctx.consigna("Ahora tocá la ÚLTIMA letra de la palabra");
+          ayuda.textContent = "Ahora tocá la ÚLTIMA letra de la palabra 👆";
         }
         ancla = null;
         return;
