@@ -8192,7 +8192,13 @@ GAMES.sopa = {
     const s = _sopas[rint(0, _sopas.length - 1)];
     if (!s) return;
     const n = s.n;
-    ctx.consigna("Encontrá las palabras escondidas");
+    // LA CONSIGNA DICE EL GESTO (19-sep-2026). Decía sólo "Encontrá las palabras escondidas",
+    // y el juego aceptaba ÚNICAMENTE el arrastre continuo. Medido en producción: una persona de
+    // 4.º grado estuvo ONCE MINUTOS con 23 intentos fallidos y **cero** palabras encontradas.
+    // Reproducido: tocar una letra no hacía nada, tocar la primera y la última tampoco, y la
+    // pantalla no decía en ninguna parte que había que deslizar. Once minutos de insistir en un
+    // juego que no contesta es el peor rato que puede pasar un chico acá.
+    ctx.consigna("Encontrá las palabras: deslizá el dedo, o tocá la primera letra y la última");
     ctx.rondas(s.palabras.length);
     const wrap = el("div"); wrap.id = "sopaWrap";
     const tab = el("div", "tablero");
@@ -8255,17 +8261,40 @@ GAMES.sopa = {
       });
     };
 
+    // DOS GESTOS, NO UNO (19-sep-2026): deslizar, o tocar la primera letra y después la última.
+    // El segundo es el que usa cualquiera que agarró una sopa de letras en un teléfono, y era
+    // justamente el que no andaba. `esperando` guarda la primera letra tocada entre un toque y
+    // el siguiente; el arrastre sigue funcionando igual porque se resuelve en `pointerup`.
+    let esperando = null;      // [x,y] de la primera letra, si se tocó sin arrastrar
+    let movido = false;        // ¿hubo arrastre de verdad entre down y up?
+
+    const soltarEspera = () => { esperando = null; limpiar(); };
+
     grid.addEventListener("pointerdown", (ev) => {
       const c = celdaDesdeEvento(ev);
       if (!c) return;
       grid.setPointerCapture(ev.pointerId);
-      ancla = [+c.dataset.x, +c.dataset.y];
+      movido = false;
+      const p = [+c.dataset.x, +c.dataset.y];
+      if (esperando) {
+        // Segundo toque: si es OTRA letra, vale como "de acá hasta acá". Si es la misma,
+        // se cancela —tocar dos veces la misma letra es el gesto natural para arrepentirse.
+        if (esperando[0] === p[0] && esperando[1] === p[1]) { soltarEspera(); ancla = null; return; }
+        marcar(linea(esperando[0], esperando[1], p[0], p[1]));
+        ancla = esperando.slice();
+        esperando = null;
+        return;
+      }
+      ancla = p;
       marcar([ancla]);
     });
     grid.addEventListener("pointermove", (ev) => {
       if (!ancla) return;
       const c = celdaDesdeEvento(ev);
-      if (c) marcar(linea(ancla[0], ancla[1], +c.dataset.x, +c.dataset.y));
+      if (!c) return;
+      const p = [+c.dataset.x, +c.dataset.y];
+      if (p[0] !== ancla[0] || p[1] !== ancla[1]) movido = true;
+      marcar(linea(ancla[0], ancla[1], p[0], p[1]));
     });
     const soltar = () => {
       if (!ancla) return;
@@ -8277,13 +8306,27 @@ GAMES.sopa = {
         halladas.add(hit);
         marcadas.forEach((c) => { c.classList.remove("marca"); c.classList.add("hallada"); });
         chips[hit].classList.add("hallada");
+        esperando = null;
+        ctx.consigna("Encontrá las palabras: deslizá el dedo, o tocá la primera letra y la última");
         ctx.ronda(halladas.size);
         ctx.bien();
         if (halladas.size === s.palabras.length) setTimeout(() => ctx.win(3), 700);
+      } else if (!movido && cs.length <= 1) {
+        // Tocó una letra sola y soltó. ANTES no pasaba nada: ni marca, ni aviso, ni pista —el
+        // silencio es lo que hizo que alguien repitiera 23 veces—. Ahora esa letra queda
+        // elegida y esperando la última, con el cartel diciéndolo.
+        esperando = cs[0] || null;
+        if (esperando) {
+          marcar([esperando]);
+          ctx.consigna("Ahora tocá la ÚLTIMA letra de la palabra");
+        }
+        ancla = null;
+        return;
       } else {
         if (cs.length > 2) ctx.casi();
         limpiar();
       }
+      esperando = null;
       ancla = null; marcadas = [];
     };
     grid.addEventListener("pointerup", soltar);
