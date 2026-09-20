@@ -1,0 +1,168 @@
+{
+  "pieza": "el_viaje_del_alimento",
+  "titulo": "El viaje del alimento",
+  "grado": 3,
+  "saber": "NAT-3-DIGESTIVO",
+  "nota": "Novena pieza (20-sep-2026), tercera de 3.º. Tema C9 de docs/auditoria-dc-caba/grado-3.md —«transformación del alimento en el organismo»—. Dice lo MISMO que la mini-lección `viaje_alimento_3` del cuaderno: boca, esófago, estómago, intestino delgado e intestino grueso, siempre en ese orden; en la boca ya empieza, porque los dientes cortan y la saliva ablanda; y en el intestino DELGADO los nutrientes pasan a la sangre. Las dos trampas son las dos confusiones clásicas del grado: que la digestión empieza en el estómago —no, empieza en la boca— y que el corazón y los pulmones están en el camino de la comida —no: por ahí van la sangre y el aire, y de ahí viene el «se me fue por otro lado»—. Los órganos se dibujan de a uno, como láminas sueltas de ciencias: un cuerpo entero con todo señalado no sale confiable y además no es lo que hay que mirar. Nada de sangre ni de nada que impresione: son dibujos amables.",
+  "voces": {
+    "intro": "¡Hola! Soy Carpi. ¿Alguna vez pensaste adónde va la comida después de que la tragás? Hoy seguimos un bocado por todo el viaje. Mirá bien.",
+    "p1_consigna": "Tocá los tres lugares por donde pasa la comida.",
+    "p1_pista1": "Seguí el camino de un bocado desde que entra hasta que sale.",
+    "p1_pista2": "Son tres. Te los ilumino.",
+    "p1_pista3": "Son la boca, el estómago y el intestino. Tocalos.",
+    "p1_fin": "La comida pasa por la boca, por el estómago y por el intestino.",
+    "p1_explica": "¿Y los otros dos? El corazón y los pulmones no tocan la comida nunca. Por el corazón va la sangre y por los pulmones va el aire. Por eso, cuando algo se te va por otro lado, tosés.",
+    "p2_consigna": "Pregunta difícil. ¿Dónde empieza la digestión?",
+    "p2_pista1": "Pensá en lo primero que le pasa a un bocado cuando lo ponés adentro.",
+    "p2_pista2": "Los dientes cortan y la saliva ablanda. Eso ya es digestión.",
+    "p2_pista3": "Empieza en la boca. Tocá esa.",
+    "p3_camino": "Después de la boca, el bocado baja por un tubo que se llama esófago y llega al estómago. Ahí se mezcla y queda hecho una papilla. De ahí pasa al intestino delgado, que es larguísimo y está todo enrollado.",
+    "p4_consigna": "Ahora vos. Tocá las láminas en orden, desde donde entra la comida hasta donde termina.",
+    "p4_pista1": "Acordate: primero la boca, después el tubo, después el estómago.",
+    "p4_pista2": "Te ilumino la que sigue.",
+    "p4_pista3": "Es esta. Tocala.",
+    "p4_fin": "Boca, esófago, estómago y al final el intestino. Un bocado tarda horas en hacer todo ese viaje.",
+    "p5_consigna": "La última. ¿En qué parte los nutrientes pasan a la sangre?",
+    "p5_pista1": "No es donde se mezcla todo: es en la parte larga y enrollada.",
+    "p5_pista2": "Es la parte que viene justo después del estómago.",
+    "p5_pista3": "En el intestino delgado. Tocá esa.",
+    "cierre": "Ya sabés el viaje completo: boca, esófago, estómago y al final el intestino. Y que lo bueno de la comida entra a la sangre en el intestino delgado. ¡Hasta la próxima!",
+    "festejo1": "¡Muy bien!",
+    "festejo2": "¡Eso es!",
+    "festejo3": "¡Genial!"
+  },
+  "imagenes": {
+    "fondo_aula": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "El rincón de un aula de escuela primaria argentina, de día: una pared clara y despejada con un pizarrón verde vacío a la derecha, un pupitre de madera abajo y luz de ventana. Ordenado y luminoso. SIN texto en el pizarrón, SIN láminas colgadas, SIN personas y SIN animales."
+    },
+    "fondo_silueta": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "Lámina de ciencias para chicos: la silueta del TORSO Y LA CABEZA de un chico visto de frente —desde la cabeza hasta la cadera, sin piernas—, dibujada simple y en un color celeste claro y plano. La silueta es GRANDE y ANCHA y ocupa casi toda la lámina, centrada sobre un fondo crema liso, con mucho espacio libre adentro del pecho y de la panza. Está VACÍA por dentro: SIN órganos dibujados, SIN huesos, sin líneas internas, sin texto, sin letras, sin números y sin flechas."
+    },
+    "boca": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "prompt": "Dibujo simple y amable de una BOCA abierta de costado, para una lámina de ciencias de escuela: los labios, los dientes blancos arriba y abajo y la lengua. Estilo de dibujo infantil, colores suaves. Sin cara alrededor, sin sangre y sin nada que impresione."
+    },
+    "estomago": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "prompt": "Dibujo simple y amable de un ESTÓMAGO solo, para una lámina de ciencias de escuela: la bolsa curvada con forma de poroto, de color rosado suave, con el tubito de entrada arriba y el de salida abajo. Estilo de dibujo infantil. Sin sangre, sin venas y sin nada que impresione."
+    },
+    "intestino": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "prompt": "Dibujo simple y amable de un INTESTINO solo, para una lámina de ciencias de escuela: un tubo largo y enrollado sobre sí mismo, de color rosado suave. Estilo de dibujo infantil. Sin sangre, sin venas y sin nada que impresione."
+    },
+    "corazon": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "prompt": "Dibujo simple y amable de un CORAZÓN humano solo, para una lámina de ciencias de escuela: con sus cuatro tubos arriba, de color rojo suave. Estilo de dibujo infantil, no es un corazón de tarjeta de San Valentín. Sin sangre alrededor y sin nada que impresione."
+    },
+    "pulmon": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "prompt": "Dibujo simple y amable de un par de PULMONES solos, para una lámina de ciencias de escuela: las dos alas esponjosas con la tráquea en el medio, de color rosado claro. Estilo de dibujo infantil. Sin sangre y sin nada que impresione."
+    },
+    "foto_boca": {
+      "tipo": "escena",
+      "size": "1024x1024",
+      "prompt": "Lámina de ciencias para chicos, sobre fondo crema liso: una boca abierta de costado con los dientes y la lengua, y un bocado de manzana entrando. Dibujo infantil, colores suaves, amable. Sin texto, sin letras, sin números y sin flechas."
+    },
+    "foto_esofago": {
+      "tipo": "escena",
+      "size": "1024x1024",
+      "prompt": "Lámina de ciencias para chicos, sobre fondo crema liso: un tubo vertical, liso y rosado —el esófago—, con un bocado redondo bajando por adentro, a la mitad del tubo. Dibujo infantil, colores suaves. Sin texto, sin letras, sin números y sin flechas."
+    },
+    "foto_estomago": {
+      "tipo": "escena",
+      "size": "1024x1024",
+      "prompt": "Lámina de ciencias para chicos, sobre fondo crema liso: un estómago con forma de bolsa curvada, rosado, lleno por dentro de una papilla amarillenta que se mezcla. Dibujo infantil, colores suaves. Sin texto, sin letras, sin números y sin flechas."
+    },
+    "foto_intestino": {
+      "tipo": "escena",
+      "size": "1024x1024",
+      "prompt": "Lámina de ciencias para chicos, sobre fondo crema liso: un intestino como un tubo largo y enrollado sobre sí mismo, rosado, con puntitos dorados chiquitos alrededor que representan los nutrientes saliendo. Dibujo infantil, colores suaves. Sin texto, sin letras, sin números y sin flechas."
+    }
+  },
+  "escenas": {
+    "llegada": {
+      "fondo": "fondo_aula",
+      "animales": {}
+    },
+    "cuerpo": {
+      "fondo": "fondo_silueta",
+      "animales": {
+        "boca": { "img": "boca", "x": 45, "y": 16, "w": 8 },
+        "pulmon": { "img": "pulmon", "x": 36, "y": 30, "w": 11 },
+        "corazon": { "img": "corazon", "x": 55, "y": 31, "w": 8 },
+        "estomago": { "img": "estomago", "x": 42, "y": 50, "w": 10 },
+        "intestino": { "img": "intestino", "x": 45, "y": 65, "w": 12 }
+      }
+    },
+    "laminas": {
+      "fondo": "fondo_aula",
+      "animales": {
+        "foto_estomago": { "img": "foto_estomago", "x": 46, "y": 40, "w": 16, "estilo": "foto", "mov": "ninguno", "giro": 4 },
+        "foto_boca": { "img": "foto_boca", "x": 25, "y": 46, "w": 16, "estilo": "foto", "mov": "ninguno", "giro": -5 },
+        "foto_intestino": { "img": "foto_intestino", "x": 70, "y": 44, "w": 16, "estilo": "foto", "mov": "ninguno", "giro": 5 },
+        "foto_esofago": { "img": "foto_esofago", "x": 44, "y": 64, "w": 16, "estilo": "foto", "mov": "ninguno", "giro": -3 }
+      }
+    }
+  },
+  "pasos": [
+    { "tipo": "decir", "escena": "llegada", "voz": "intro" },
+    {
+      "tipo": "tocar",
+      "escena": "cuerpo",
+      "consigna": "p1_consigna",
+      "correctos": ["boca", "estomago", "intestino"],
+      "pistas": ["p1_pista1", "p1_pista2", "p1_pista3"],
+      "fin": "p1_fin"
+    },
+    { "tipo": "decir", "escena": "cuerpo", "voz": "p1_explica" },
+    {
+      "tipo": "elegir",
+      "escena": "cuerpo",
+      "consigna": "p2_consigna",
+      "opciones": [
+        { "id": "boca", "texto": "En la boca" },
+        { "id": "estomago", "texto": "En el estómago" },
+        { "id": "intestino", "texto": "En el intestino" }
+      ],
+      "correcta": "boca",
+      "pistas": ["p2_pista1", "p2_pista2", "p2_pista3"]
+    },
+    { "tipo": "decir", "escena": "cuerpo", "voz": "p3_camino" },
+    {
+      "tipo": "ordenar",
+      "escena": "laminas",
+      "consigna": "p4_consigna",
+      "orden": ["foto_boca", "foto_esofago", "foto_estomago", "foto_intestino"],
+      "fila_y": 34,
+      "pistas": ["p4_pista1", "p4_pista2", "p4_pista3"],
+      "fin": "p4_fin"
+    },
+    {
+      "tipo": "elegir",
+      "escena": "cuerpo",
+      "foco": "intestino",
+      "consigna": "p5_consigna",
+      "opciones": [
+        { "id": "delgado", "texto": "En el intestino delgado" },
+        { "id": "estomago", "texto": "En el estómago" },
+        { "id": "boca", "texto": "En la boca" }
+      ],
+      "correcta": "delgado",
+      "pistas": ["p5_pista1", "p5_pista2", "p5_pista3"]
+    },
+    { "tipo": "decir", "escena": "cuerpo", "voz": "cierre", "pose": "festejando" }
+  ],
+  "cierre_pantalla": {
+    "titulo": "¡Lo lograste!",
+    "texto": "Boca, esófago, estómago e intestino. Los nutrientes entran a la sangre en el intestino delgado."
+  }
+}

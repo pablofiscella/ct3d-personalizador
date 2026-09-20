@@ -42,6 +42,24 @@
 
   function esperar(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
+  // LAS OPCIONES SE BARAJAN, SIEMPRE. Pablo, 20-sep-2026: *"cada vez que hay una pregunta con tres
+  // respuestas la correcta siempre es la primera… la respuesta tiene que aparecer en una ubicación
+  // random"*. Medido: en 10 de las 12 pausas de elegir de las nueve piezas la correcta estaba
+  // primera, porque en el guion se escribe primero la correcta y el reproductor las dibujaba en ese
+  // orden. Así un chico gana tocando siempre la de arriba, sin entender nada — que es exactamente
+  // lo que este cuaderno no puede hacer. Se baraja acá, en el reproductor, y no reordenando los
+  // guiones a mano: a mano quedaría otro orden FIJO, y encima habría que acordarse en cada pieza
+  // nueva. (El cuaderno ya lo hace así con sus trivias: `ops[0]` es la correcta y el player baraja.)
+  // Se baraja una COPIA: el guion no se toca, así las pistas siguen apuntando por id.
+  function barajar(lista) {
+    var a = lista.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
   // TODO lo que se baja lleva la versión de la pieza. Sin esto, el navegador que ya abrió el video
   // sigue usando el reproductor y las voces de la primera vez —se sirven con caché de horas y el
   // nombre nunca cambia—, y una mejora no llega nunca. El 15-sep-2026 eso dejó a Pablo con el
@@ -499,7 +517,7 @@
           registro.push({ paso: indice, tipo: "elegir", primer_intento: errores === 0, errores: errores });
           resolve();
         }
-        p.opciones.forEach(function (o) {
+        barajar(p.opciones).forEach(function (o) {
           var btn = document.createElement("button");
           btn.type = "button"; btn.className = "op";
           // CON DIBUJO, para 1.º: un chico que todavía no lee no puede elegir entre tres palabras.

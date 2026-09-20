@@ -318,6 +318,67 @@ def test_el_toque_que_llega_mientras_se_repite_la_consigna_no_se_pierde():
             "un manejador de toque decide solo si descarta el toque: %r" % primera.strip())
 
 
+@pytest.mark.parametrize("pieza", PIEZAS)
+def test_ningun_dibujo_le_roba_el_toque_a_otro_en_el_celular(pieza):
+    """20-sep-2026, armando «El viaje del alimento»: el estómago se veía perfecto y no respondía.
+    Medido con `.cache/vi_quien_recibe_el_toque.py`: el toque se lo llevaba el intestino, por DOS
+    DÉCIMAS de por ciento. El mismo día volvió a pasar con la botella y el zapato de «La linterna
+    mágica».
+
+    La causa es una función del reproductor, no un descuido: a los objetos chicos les agranda la
+    zona de toque un 18 % para todos lados (`.bicho.chico::before`), porque a los siete años el dedo
+    no apunta fino. En un celular, donde la escena mide unos 358x239, esas zonas se pisan.
+
+    Acá se calcula sin navegador: la caja de cada dibujo sale de su proporción real, se agranda si
+    entra en «chico», y se exige que el CENTRO de cada uno no caiga dentro de la caja de otro que
+    esté dibujado DESPUÉS —el de más adelante es el que recibe el toque—."""
+    from PIL import Image
+
+    ANCHO, ALTO, LIMITE_CHICO, AGRANDE = 358.0, 239.0, 56.0, 0.18
+    g = guion(pieza)
+    for nombre, esc in g["escenas"].items():
+        cajas = []
+        for k, a in esc["animales"].items():
+            if a.get("decorado"):
+                continue                      # no se toca nunca: no compite por el toque
+            im = Image.open(viw.ruta_de(pieza, a["img"] + ".webp"))
+            w = a["w"] / 100.0 * ANCHO
+            h = w * im.height / im.width
+            x, y = a["x"] / 100.0 * ANCHO, a["y"] / 100.0 * ALTO
+            dx = dy = 0.0
+            if min(w, h) < LIMITE_CHICO:
+                dx, dy = w * AGRANDE, h * AGRANDE
+            cajas.append((k, x, y, w, h, dx, dy))
+        for i, (k, x, y, w, h, _, _) in enumerate(cajas):
+            cx, cy = x + w / 2, y + h / 2
+            for k2, x2, y2, w2, h2, dx2, dy2 in cajas[i + 1:]:
+                dentro = (x2 - dx2 <= cx <= x2 + w2 + dx2 and y2 - dy2 <= cy <= y2 + h2 + dy2)
+                assert not dentro, (
+                    "%s/%s: en el celular el toque de %r se lo lleva %r, que está dibujado después "
+                    "y le tapa el centro" % (pieza, nombre, k, k2))
+
+
+def test_la_respuesta_correcta_no_cae_siempre_en_el_mismo_lugar():
+    """Pablo, 20-sep-2026: *"cada vez que hay una pregunta con tres respuestas la correcta siempre
+    es la primera… la respuesta tiene que aparecer en una ubicación random"*.
+
+    Medido sobre los guiones: en **10 de las 12** pausas de elegir de las nueve piezas la correcta
+    estaba primera. No es casualidad: en el guion se escribe primero la correcta —es lo cómodo de
+    leer— y el reproductor las dibujaba en ese orden. Así un chico gana tocando siempre la de
+    arriba, sin entender nada, que es justo lo que este cuaderno no puede permitir.
+
+    Se baraja en el REPRODUCTOR y no reordenando los guiones: a mano quedaría otro orden fijo, y
+    encima habría que acordarse en cada pieza nueva. El cuaderno ya lo resuelve así con sus trivias.
+
+    Acá se cuida que el reproductor siga barajando; que de verdad caiga en lugares distintos se mide
+    con el navegador en `.cache/vi_donde_cae_la_correcta.py`."""
+    js = open(os.path.join(BASE, "video_interactivo_player.js"), encoding="utf-8").read()
+    assert re.search(r"function barajar\(", js), "el reproductor ya no sabe barajar"
+    assert "barajar(p.opciones)" in js, (
+        "las opciones volvieron a dibujarse en el orden del guion, y en el guion la correcta va "
+        "primera: el chico gana tocando siempre la de arriba")
+
+
 def test_los_botones_de_elegir_entran_en_el_ancho_del_celular():
     """Pablo, 20-sep-2026, probando «El gas que no se ve»: *"la palabra chiquitas no entró"*.
 
