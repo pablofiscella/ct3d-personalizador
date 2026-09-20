@@ -1,0 +1,214 @@
+{
+  "pieza": "el_gas_que_no_se_ve",
+  "titulo": "El gas que no se ve",
+  "grado": 3,
+  "saber": "NAT-3-MATERIA",
+  "nota": "Séptima pieza (19-sep-2026), segunda de 3.º y la primera de TODAS sobre materiales y energía: las seis anteriores eran seres vivos o sociales. Tema C1 de docs/auditoria-dc-caba/grado-3.md —«estados de la materia; sólido, líquido y el GASEOSO, que es lo nuevo del grado; cambios de estado»—. Dice lo MISMO que la mini-lección `estados_materia` del cuaderno: el sólido tiene forma propia, el líquido toma la forma del recipiente, el gas ocupa todo el espacio, y el mismo material pasa de un estado a otro con calor o frío. La trampa central la marca la propia auditoría: *«evitar 'lo que VES salir de la pava es gas' — el penacho blanco son microgotas líquidas; el gas es invisible»*. Por eso la pieza se llama así y por eso el orden del cubito termina en un plato VACÍO: el agua sigue ahí y no se ve. La primera pausa pide los LÍQUIDOS y no los sólidos a propósito: tocar «el vaso de agua» para decir líquido es lo que un chico hace natural, mientras que pedir sólidos obliga a decidir si el vaso cuenta o no.",
+  "voces": {
+    "intro": "¡Hola! Soy Carpi. Hoy vamos a mirar de qué estado son las cosas de la cocina. Hay cosas duras, cosas que se derraman, y una que está ahí aunque no la veas. Mirá bien.",
+    "p1_consigna": "Tocá todo lo que es líquido.",
+    "p1_pista1": "Un líquido se derrama y toma la forma del recipiente donde lo pongas.",
+    "p1_pista2": "Son tres. Te los ilumino.",
+    "p1_pista3": "Son el agua, la leche y la sopa. Tocalos.",
+    "p1_fin": "El agua, la leche y la sopa son líquidos: toman la forma del recipiente.",
+    "p1_explica": "¿Y el hielo? También es agua, pero congelada. Así es sólido: tiene su propia forma y no se derrama. Con un poco de calor se derrite y vuelve a ser líquida.",
+    "p2_consigna": "La pava está hirviendo y sale una nubecita blanca. ¿Qué es esa nubecita?",
+    "p2_pista1": "El agua en estado gas es transparente: no se puede ver.",
+    "p2_pista2": "Fijate que entre el pico y la nubecita hay un pedacito donde no se ve nada.",
+    "p2_pista3": "Son gotitas de agua muy chiquitas. Tocá esa.",
+    "p3_gas": "El gas está justo ahí, en el pedacito donde no se ve nada. El agua sale de la pava en estado gas, y el gas es transparente. Apenas se enfría un poquito se junta en gotitas chiquititas, y recién ahí la ves blanca.",
+    "p4_consigna": "Ahora vos. Un cubito quedó olvidado al sol. Tocá las fotos en orden, desde el principio hasta el final.",
+    "p4_pista1": "Acordate: primero era hielo, después agua, y al final el plato quedó seco.",
+    "p4_pista2": "Te ilumino la que sigue.",
+    "p4_pista3": "Es esta. Tocala.",
+    "p4_fin": "El cubito se derritió, el charco se evaporó y el plato quedó seco. El agua sigue en el aire, en estado gas, pero no se ve.",
+    "p5_consigna": "Última. Tocá una cosa y después la tarjeta del estado en el que está.",
+    "p5_pista_hielo": "El hielo tiene forma propia y no se derrama.",
+    "p5_pista_leche": "La leche toma la forma de la taza y se puede derramar.",
+    "p5_pista_globo": "Adentro del globo hay aire, y el aire ocupa todo el globo.",
+    "p5_pista_piedra": "La piedra mantiene su forma, la pongas donde la pongas.",
+    "p5_va_aca": "Mirá dónde va.",
+    "p5_fin": "El hielo y la piedra son sólidos, la leche es líquida, y adentro del globo hay gas.",
+    "p5_sin_elegir": "Primero tocá una cosa, y después la tarjeta de abajo.",
+    "cierre": "Ya sabés que el agua puede ser las tres cosas: hielo, agua y gas. Y que el gas está ahí aunque no lo veas. ¡Hasta la próxima!",
+    "festejo1": "¡Muy bien!",
+    "festejo2": "¡Eso es!",
+    "festejo3": "¡Genial!"
+  },
+  "imagenes": {
+    "fondo_cocina": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "La cocina de una casa de barrio argentino, de día: una mesada larga de madera clara vacía cruzando la parte de abajo, azulejos claros en la pared, una alacena y una ventana con luz a la izquierda. Ordenada y luminosa. SIN NADA apoyado en la mesada: sin vasos, sin tazas, sin platos, sin comida y sin electrodomésticos sueltos. SIN personas y SIN animales."
+    },
+    "fondo_pava": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "Primer plano de una pava metálica hirviendo sobre la hornalla encendida de una cocina. Del pico sale una nubecita blanca de vapor condensado, pero NO pegada al pico: entre la punta del pico y la nubecita queda un espacio bien visible, de aire transparente, donde no se ve nada. La nubecita es un penacho blanco y esponjoso. Fondo de cocina simple y desenfocado. SIN personas y SIN texto."
+    },
+    "foto_cubito": {
+      "tipo": "escena",
+      "size": "1024x1024",
+      "prompt": "Un cubito de hielo entero, transparente y brillante, en el centro de un plato blanco liso, sobre una mesa al sol. Nada más alrededor: sin agua derramada y sin otros objetos."
+    },
+    "foto_derrite": {
+      "tipo": "escena",
+      "size": "1024x1024",
+      "prompt": "El MISMO plato blanco liso al sol, con un cubito de hielo ya MÁS CHICO y redondeado, medio derretido, rodeado de un charquito de agua. Nada más alrededor."
+    },
+    "foto_charco": {
+      "tipo": "escena",
+      "size": "1024x1024",
+      "prompt": "Un plato blanco liso sobre una MESA DE MADERA CLARA al sol, SIN NADA de hielo, con un charco de agua transparente que cubre todo el fondo del plato y se ve bien: con brillo, reflejo del sol y el borde del agua marcado. Nada más alrededor: sin tierra, sin pasto y sin piedras."
+    },
+    "foto_seco": {
+      "tipo": "escena",
+      "size": "1024x1024",
+      "prompt": "Un plato blanco liso sobre una MESA DE MADERA CLARA al sol, completamente SECO y VACÍO: sin hielo, sin agua, sin charco, sin gotas y sin brillo de mojado. La loza se ve mate y seca. Nada más alrededor: sin tierra, sin pasto y sin piedras."
+    },
+    "agua": {
+      "tipo": "recorte",
+      "prompt": "Un vaso de vidrio liso lleno hasta la mitad de agua transparente, visto de costado, entero y apoyado. Sin hielo adentro y sin pajita."
+    },
+    "leche": {
+      "tipo": "recorte",
+      "prompt": "Una taza de loza blanca llena de leche blanca, vista de costado y un poco desde arriba, entera y apoyada en su plato. Sin humo y sin cuchara."
+    },
+    "sopa": {
+      "tipo": "recorte",
+      "prompt": "Un plato hondo de loza blanca lleno de sopa de color naranja claro, visto de costado y un poco desde arriba. Sin verduras flotando, sin nada verde, sin cuchara y sin humo."
+    },
+    "hielo": {
+      "tipo": "recorte",
+      "prompt": "Tres cubitos de hielo transparentes y brillantes apilados en un platito blanco chiquito, vistos de costado. Sin agua derretida alrededor."
+    },
+    "pan": {
+      "tipo": "recorte",
+      "prompt": "Un pan casero redondo y dorado, entero, visto de costado sobre una tablita de madera. Sin cuchillo y sin migas."
+    },
+    "cuchara": {
+      "tipo": "recorte",
+      "prompt": "Una cuchara de metal brillante apoyada en horizontal, vista desde arriba, entera. Nada más."
+    },
+    "piedra": {
+      "tipo": "recorte",
+      "prompt": "Una piedra de río gris, redondeada y lisa, apoyada. Nada más."
+    },
+    "globo": {
+      "tipo": "recorte",
+      "prompt": "Un globo de cumpleaños ROJO, inflado y redondo, con su nudito abajo y un hilo corto colgando. Nada más. Sin nada verde."
+    },
+    "icono_solido": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "prompt": "Un ícono redondo y simple: un círculo azul oscuro con un cubo blanco de aristas rectas dibujado en el centro. Nada más."
+    },
+    "icono_liquido": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "prompt": "Un ícono redondo y simple: un círculo celeste con una gota de agua blanca dibujada en el centro. Nada más."
+    },
+    "icono_gas": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "prompt": "Un ícono redondo y simple: un círculo gris claro con tres espirales blancas chiquitas dibujadas en el centro, como aire que se mueve. Nada más."
+    }
+  },
+  "escenas": {
+    "llegada": {
+      "fondo": "fondo_cocina",
+      "animales": {}
+    },
+    "mesada": {
+      "fondo": "fondo_cocina",
+      "animales": {
+        "agua": { "img": "agua", "x": 22, "y": 46, "w": 11 },
+        "leche": { "img": "leche", "x": 36, "y": 50, "w": 13 },
+        "sopa": { "img": "sopa", "x": 51, "y": 52, "w": 14 },
+        "hielo": { "img": "hielo", "x": 67, "y": 54, "w": 12 },
+        "pan": { "img": "pan", "x": 80, "y": 50, "w": 14 },
+        "cuchara": { "img": "cuchara", "x": 30, "y": 66, "w": 13 }
+      }
+    },
+    "pava": {
+      "fondo": "fondo_pava",
+      "animales": {}
+    },
+    "fotos": {
+      "fondo": "fondo_cocina",
+      "animales": {
+        "foto_charco": { "img": "foto_charco", "x": 44, "y": 62, "w": 16, "estilo": "foto", "mov": "ninguno", "giro": 5 },
+        "foto_cubito": { "img": "foto_cubito", "x": 24, "y": 44, "w": 16, "estilo": "foto", "mov": "ninguno", "giro": -5 },
+        "foto_seco": { "img": "foto_seco", "x": 70, "y": 46, "w": 16, "estilo": "foto", "mov": "ninguno", "giro": 4 },
+        "foto_derrite": { "img": "foto_derrite", "x": 48, "y": 40, "w": 16, "estilo": "foto", "mov": "ninguno", "giro": -3 }
+      }
+    },
+    "estados": {
+      "fondo": "fondo_cocina",
+      "animales": {
+        "hielo": { "img": "hielo", "x": 26, "y": 44, "w": 13 },
+        "leche": { "img": "leche", "x": 44, "y": 46, "w": 14 },
+        "globo": { "img": "globo", "x": 61, "y": 34, "w": 14 },
+        "piedra": { "img": "piedra", "x": 78, "y": 50, "w": 12 }
+      }
+    }
+  },
+  "pasos": [
+    { "tipo": "decir", "escena": "llegada", "voz": "intro" },
+    {
+      "tipo": "tocar",
+      "escena": "mesada",
+      "consigna": "p1_consigna",
+      "correctos": ["agua", "leche", "sopa"],
+      "pistas": ["p1_pista1", "p1_pista2", "p1_pista3"],
+      "fin": "p1_fin"
+    },
+    { "tipo": "decir", "escena": "mesada", "voz": "p1_explica" },
+    {
+      "tipo": "elegir",
+      "escena": "pava",
+      "consigna": "p2_consigna",
+      "opciones": [
+        { "id": "gotitas", "texto": "Gotitas de agua muy chiquitas" },
+        { "id": "gas", "texto": "Es el agua en estado gas" },
+        { "id": "humo", "texto": "Es humo del fuego" }
+      ],
+      "correcta": "gotitas",
+      "pistas": ["p2_pista1", "p2_pista2", "p2_pista3"]
+    },
+    { "tipo": "decir", "escena": "pava", "voz": "p3_gas" },
+    {
+      "tipo": "ordenar",
+      "escena": "fotos",
+      "consigna": "p4_consigna",
+      "orden": ["foto_cubito", "foto_derrite", "foto_charco", "foto_seco"],
+      "fila_y": 34,
+      "pistas": ["p4_pista1", "p4_pista2", "p4_pista3"],
+      "fin": "p4_fin"
+    },
+    {
+      "tipo": "clasificar",
+      "escena": "estados",
+      "consigna": "p5_consigna",
+      "grupos": [
+        { "id": "solido", "texto": "Sólido", "icono": "icono_solido" },
+        { "id": "liquido", "texto": "Líquido", "icono": "icono_liquido" },
+        { "id": "gas", "texto": "Gas", "icono": "icono_gas" }
+      ],
+      "items": [
+        { "animal": "globo", "grupo": "gas", "pista": "p5_pista_globo" },
+        { "animal": "hielo", "grupo": "solido", "pista": "p5_pista_hielo" },
+        { "animal": "leche", "grupo": "liquido", "pista": "p5_pista_leche" },
+        { "animal": "piedra", "grupo": "solido", "pista": "p5_pista_piedra" }
+      ],
+      "va_aca": "p5_va_aca",
+      "fin": "p5_fin",
+      "sin_elegir": "p5_sin_elegir"
+    },
+    { "tipo": "decir", "escena": "estados", "voz": "cierre", "pose": "festejando" }
+  ],
+  "cierre_pantalla": {
+    "titulo": "¡Lo lograste!",
+    "texto": "El agua puede ser hielo, líquido y gas. El gas está, aunque no se vea."
+  }
+}
