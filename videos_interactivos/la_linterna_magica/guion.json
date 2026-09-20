@@ -1,0 +1,188 @@
+{
+  "pieza": "la_linterna_magica",
+  "titulo": "La linterna mágica",
+  "grado": 2,
+  "saber": "NAT-2-LUZ",
+  "nota": "Octava pieza (20-sep-2026), tercera de 2.º. Tema C1 de docs/auditoria-dc-caba/grado-2.md —«materiales opacos, traslúcidos y transparentes», que la auditoría llama EL EJE DE CIENCIAS DEL GRADO— y que además nombra el error nuclear con todas las letras: el papel manteca, que «pasa luz = transparente». Por eso el papel está en la escena desde la primera pausa como trampa, y se explica DESPUÉS de que el chico contesta. Dice lo mismo que la mini-lección `luz_materiales_5` del cuaderno —transparente se ve nítido, traslúcido borroso, opaco hace sombra, y la luz viaja derecho— en palabras de 2.º. La primera pausa pide los TRANSPARENTES y no los opacos: «¿podés ver a través?» es algo que un chico de siete años prueba con los ojos, mientras que «no deja pasar nada de luz» ya es la definición que todavía no aprendió.",
+  "voces": {
+    "intro": "¡Hola! Soy Carpi. Hoy jugamos con una linterna. Algunas cosas dejan pasar la luz, otras la frenan, y hay unas que hacen algo raro en el medio. Mirá bien.",
+    "p1_consigna": "Tocá todo lo que te deja ver bien lo que hay del otro lado.",
+    "p1_pista1": "Probá con los ojos: si mirás a través y ves nítido lo de atrás, esa es.",
+    "p1_pista2": "Son tres. Te las ilumino.",
+    "p1_pista3": "Son el vaso, la botella y los anteojos. Tocalos.",
+    "p1_fin": "El vaso, la botella y los anteojos son transparentes: la luz pasa y se ve nítido.",
+    "p1_explica": "¿Qué pasa con el papel manteca? Ojo, que es el más tramposo: deja pasar la luz, pero del otro lado no se distingue nada. Eso no es transparente. Ahora te lo muestro con la linterna.",
+    "p2_consigna": "Mirá la pared. La luz de la linterna atraviesa el papel, pero del otro lado no se distingue qué hay. ¿Cómo es ese papel?",
+    "p2_pista1": "Fijate que la luz sí pasa: la pared se ve iluminada.",
+    "p2_pista2": "Pero la forma que hay detrás no se entiende. Está en el medio de las otras dos.",
+    "p2_pista3": "Es traslúcido. Tocá esa.",
+    "p3_tres": "Entonces tenemos tres. Transparente: la luz pasa y se ve nítido. Traslúcido: la luz pasa, pero borroso. Y opaco: la luz no pasa nada y por eso aparece la sombra.",
+    "p4_consigna": "Mirá la sombra de la taza en la pared. ¿Por qué tiene la misma forma que la taza?",
+    "p4_pista1": "Pensá por dónde viaja la luz desde la linterna hasta la pared.",
+    "p4_pista2": "La luz no dobla ni da la vuelta: va derechito.",
+    "p4_pista3": "Porque la luz viaja derecho y la taza la tapa. Tocá esa.",
+    "p5_consigna": "Última. Tocá una cosa y después la tarjeta de cómo deja pasar la luz.",
+    "p5_pista_vaso": "Por el vaso ves nítido lo que hay atrás.",
+    "p5_pista_papel": "El papel manteca deja pasar luz, pero se ve borroso.",
+    "p5_pista_libro": "El libro no deja pasar nada de luz: hace sombra entera.",
+    "p5_pista_zapato": "El zapato tampoco deja pasar luz.",
+    "p5_va_aca": "Mirá dónde va.",
+    "p5_fin": "El vaso es transparente, el papel manteca es traslúcido, y el libro y el zapato son opacos.",
+    "p5_sin_elegir": "Primero tocá una cosa, y después la tarjeta de abajo.",
+    "cierre": "Ya sos experto en luz. Transparente se ve nítido, traslúcido se ve borroso, y opaco hace sombra. ¡Hasta la próxima!",
+    "festejo1": "¡Muy bien!",
+    "festejo2": "¡Eso es!",
+    "festejo3": "¡Genial!"
+  },
+  "imagenes": {
+    "fondo_cuarto": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "El rincón de una pieza de una casa de barrio argentino, de tarde y con poca luz: una mesa de madera clara y vacía cruzando la parte de abajo, y detrás una pared lisa de color crema, bien despejada. Ambiente cálido y tranquilo. SIN NADA apoyado en la mesa, SIN cuadros en la pared, SIN lámparas, SIN personas y SIN animales."
+    },
+    "fondo_papel": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "Primer plano de una linterna encendida apuntando a una hoja de papel manteca blanco que alguien sostiene en el aire, y detrás la pared crema. En la pared se ve una MANCHA DE LUZ suave y difusa, sin forma definida: la luz atraviesa el papel pero lo que hay detrás no se distingue. Ambiente de pieza en penumbra. SIN personas visibles salvo la mano que sostiene el papel, y SIN texto."
+    },
+    "fondo_sombra": {
+      "tipo": "escena",
+      "size": "1536x1024",
+      "prompt": "Primer plano de una linterna encendida apuntando a una taza de loza blanca apoyada en una mesa de madera, y detrás la pared crema. En la pared se ve la SOMBRA NEGRA Y BIEN NÍTIDA de la taza, con la misma forma de la taza y su asa, perfectamente reconocible. Ambiente de pieza en penumbra. SIN personas y SIN texto."
+    },
+    "vaso": {
+      "tipo": "recorte",
+      "prompt": "Un vaso de vidrio liso y vacío, bien transparente, visto de costado y apoyado. Se ve a través de él. Nada adentro."
+    },
+    "botella": {
+      "tipo": "recorte",
+      "prompt": "Una botella de vidrio transparente y vacía, sin etiqueta, con la tapa puesta, vista de costado y apoyada. Se ve a través de ella."
+    },
+    "anteojos": {
+      "tipo": "recorte",
+      "prompt": "Un par de anteojos de marco fino y oscuro, con los vidrios bien transparentes, apoyados y vistos de frente. Nada más."
+    },
+    "libro": {
+      "tipo": "recorte",
+      "prompt": "Un libro grueso de tapa dura azul, cerrado, apoyado y visto de costado. Sin letras ni títulos en la tapa."
+    },
+    "zapato": {
+      "tipo": "recorte",
+      "prompt": "Una zapatilla de lona roja, entera, vista de costado y apoyada. Sin marcas ni letras."
+    },
+    "papel": {
+      "tipo": "recorte",
+      "prompt": "Una hoja suelta de papel manteca blanco translúcido, un poco curvada y apoyada de pie contra algo, vista de frente. SIN MANOS, sin personas, sin texto y sin dibujos."
+    },
+    "icono_transparente": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "prompt": "Un ícono redondo y simple: un círculo celeste claro con un cuadrado de vidrio blanco bien limpio dibujado en el centro y un ojo chiquito detrás, que se ve nítido. Nada más."
+    },
+    "icono_translucido": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "prompt": "Un ícono redondo y simple: un círculo gris claro con un cuadrado blanco esmerilado dibujado en el centro y, detrás, una silueta borrosa apenas insinuada. Nada más."
+    },
+    "icono_opaco": {
+      "tipo": "recorte",
+      "fondo_clave": "magenta",
+      "prompt": "Un ícono redondo y simple: un círculo azul oscuro con un cuadrado negro macizo dibujado en el centro y una sombra debajo. Nada más."
+    }
+  },
+  "escenas": {
+    "llegada": {
+      "fondo": "fondo_cuarto",
+      "animales": {}
+    },
+    "mesa": {
+      "fondo": "fondo_cuarto",
+      "animales": {
+        "vaso": { "img": "vaso", "x": 24, "y": 46, "w": 11 },
+        "botella": { "img": "botella", "x": 38, "y": 63, "w": 14 },
+        "anteojos": { "img": "anteojos", "x": 53, "y": 66, "w": 14 },
+        "papel": { "img": "papel", "x": 66, "y": 44, "w": 14 },
+        "libro": { "img": "libro", "x": 82, "y": 50, "w": 14 },
+        "zapato": { "img": "zapato", "x": 22, "y": 64, "w": 14 }
+      }
+    },
+    "prueba": {
+      "fondo": "fondo_papel",
+      "animales": {}
+    },
+    "sombra": {
+      "fondo": "fondo_sombra",
+      "animales": {}
+    },
+    "cajas": {
+      "fondo": "fondo_cuarto",
+      "animales": {
+        "vaso": { "img": "vaso", "x": 26, "y": 44, "w": 12 },
+        "papel": { "img": "papel", "x": 43, "y": 44, "w": 15 },
+        "libro": { "img": "libro", "x": 62, "y": 46, "w": 15 },
+        "zapato": { "img": "zapato", "x": 80, "y": 62, "w": 14 }
+      }
+    }
+  },
+  "pasos": [
+    { "tipo": "decir", "escena": "llegada", "voz": "intro" },
+    {
+      "tipo": "tocar",
+      "escena": "mesa",
+      "consigna": "p1_consigna",
+      "correctos": ["vaso", "botella", "anteojos"],
+      "pistas": ["p1_pista1", "p1_pista2", "p1_pista3"],
+      "fin": "p1_fin"
+    },
+    { "tipo": "decir", "escena": "mesa", "voz": "p1_explica" },
+    {
+      "tipo": "elegir",
+      "escena": "prueba",
+      "consigna": "p2_consigna",
+      "opciones": [
+        { "id": "translucido", "texto": "Traslúcido" },
+        { "id": "transparente", "texto": "Transparente" },
+        { "id": "opaco", "texto": "Opaco" }
+      ],
+      "correcta": "translucido",
+      "pistas": ["p2_pista1", "p2_pista2", "p2_pista3"]
+    },
+    { "tipo": "decir", "escena": "prueba", "voz": "p3_tres" },
+    {
+      "tipo": "elegir",
+      "escena": "sombra",
+      "consigna": "p4_consigna",
+      "opciones": [
+        { "id": "derecho", "texto": "La luz viaja derecho y la taza la tapa" },
+        { "id": "color", "texto": "La sombra copia el color" },
+        { "id": "vuelta", "texto": "La luz da la vuelta a la taza" }
+      ],
+      "correcta": "derecho",
+      "pistas": ["p4_pista1", "p4_pista2", "p4_pista3"]
+    },
+    {
+      "tipo": "clasificar",
+      "escena": "cajas",
+      "consigna": "p5_consigna",
+      "grupos": [
+        { "id": "transparente", "texto": "Transparente", "icono": "icono_transparente" },
+        { "id": "translucido", "texto": "Traslúcido", "icono": "icono_translucido" },
+        { "id": "opaco", "texto": "Opaco", "icono": "icono_opaco" }
+      ],
+      "items": [
+        { "animal": "papel", "grupo": "translucido", "pista": "p5_pista_papel" },
+        { "animal": "vaso", "grupo": "transparente", "pista": "p5_pista_vaso" },
+        { "animal": "libro", "grupo": "opaco", "pista": "p5_pista_libro" },
+        { "animal": "zapato", "grupo": "opaco", "pista": "p5_pista_zapato" }
+      ],
+      "va_aca": "p5_va_aca",
+      "fin": "p5_fin",
+      "sin_elegir": "p5_sin_elegir"
+    },
+    { "tipo": "decir", "escena": "cajas", "voz": "cierre", "pose": "festejando" }
+  ],
+  "cierre_pantalla": {
+    "titulo": "¡Lo lograste!",
+    "texto": "Transparente se ve nítido, traslúcido se ve borroso, y opaco hace sombra."
+  }
+}
