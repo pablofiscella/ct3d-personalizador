@@ -318,6 +318,28 @@ def test_el_toque_que_llega_mientras_se_repite_la_consigna_no_se_pierde():
             "un manejador de toque decide solo si descarta el toque: %r" % primera.strip())
 
 
+def test_los_botones_de_elegir_entran_en_el_ancho_del_celular():
+    """Pablo, 20-sep-2026, probando «El gas que no se ve»: *"la palabra chiquitas no entró"*.
+
+    En el celular vertical los botones van DEBAJO de la escena y se reparten el ancho entre tres.
+    Los GRUPOS ya tenían el arreglo —`flex:1 1 0` + `min-width:0`, puesto el 15-sep cuando «Ave» se
+    salía de la pantalla— y las opciones CON DIBUJO también; las de sólo texto no, y con
+    `min-width:40%` tres opciones piden el 120 % del ancho. Se veía «Gotitas de agua muy chiquit…»,
+    y no era sólo la pieza nueva: «Detectives del cielo», ya en producción, cortaba «Sólo cuand…».
+
+    La forma de verlo es una captura en un celular (`.cache/vi_recorrer_auto.py` las guarda). Acá se
+    cuida la regla que lo hace posible, que es lo que un cambio de CSS puede volver a romper."""
+    css = open(os.path.join(BASE, "video_interactivo_player.html"), encoding="utf-8").read()
+    m = re.search(r"\.abajo \.op\{([^}]*)\}", css)
+    assert m, "ya no hay una regla propia para las opciones en el celular"
+    regla = m.group(1)
+    assert "flex:1 1 0" in regla and "min-width:0" in regla, (
+        "las opciones no se reparten el ancho del celular: con `min-width` grande, tres se salen "
+        "de la pantalla y la última palabra se corta")
+    assert re.search(r"\.abajo \.op span\{[^}]*white-space:normal", css), (
+        "sin `white-space:normal` la opción no puede cortar renglón y se sale igual")
+
+
 def test_el_dibujo_resaltado_no_se_escala_dos_veces_a_la_vez():
     """Pablo, 18-sep-2026, con una captura de la planta del placard: *"está mal la imagen, en parte
     aparece doble la maceta"*.
