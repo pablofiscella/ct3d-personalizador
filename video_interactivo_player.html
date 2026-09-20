@@ -169,7 +169,16 @@
   .abajo{width:100%;max-width:1100px;display:flex;justify-content:center}
   .abajo:empty{display:none}
   .abajo .opciones,.abajo .grupos{position:static;width:100%;margin-top:12px;gap:10px}
-  .abajo .op{min-width:40%;min-height:60px;font-size:clamp(20px,6vw,30px)}
+  /* LAS OPCIONES TAMBIÉN TIENEN QUE ENTRAR EN EL ANCHO DEL CELULAR. El arreglo estaba hecho para
+     los grupos (acá abajo) y para las opciones CON DIBUJO, pero no para las de sólo texto: con
+     `min-width:40%` tres opciones piden 120% del ancho y se salen de la pantalla. Pablo,
+     20-sep-2026, probando «El gas que no se ve»: *"la palabra chiquitas no entró"* — se leía
+     «Gotitas de agua muy chiquit…». Y no era sólo esa pieza: «Detectives del cielo», ya en
+     producción, cortaba «Sólo cuand…». Con `flex:1 1 0` + `min-width:0` se reparten el ancho, y
+     la palabra entera se ve porque el texto puede cortar renglón. */
+  .abajo .op{flex:1 1 0;min-width:0;min-height:60px;padding:.5em .55em;
+             font-size:clamp(13px,3.6vw,26px)}
+  .abajo .op span{white-space:normal;line-height:1.1;overflow-wrap:break-word}
   /* tres opciones con dibujo en un celular: en fila, que entren las tres */
   .abajo .op.con_dibujo{min-width:0;flex:1 1 0;font-size:clamp(12px,3.4vw,18px);padding:8px 4px}
   .abajo .op.con_dibujo img{height:clamp(40px,12vw,64px)}
