@@ -358,6 +358,27 @@ def test_ningun_dibujo_le_roba_el_toque_a_otro_en_el_celular(pieza):
                     "y le tapa el centro" % (pieza, nombre, k, k2))
 
 
+def test_la_respuesta_correcta_no_cae_siempre_en_el_mismo_lugar():
+    """Pablo, 20-sep-2026: *"cada vez que hay una pregunta con tres respuestas la correcta siempre
+    es la primera… la respuesta tiene que aparecer en una ubicación random"*.
+
+    Medido sobre los guiones: en **10 de las 12** pausas de elegir de las nueve piezas la correcta
+    estaba primera. No es casualidad: en el guion se escribe primero la correcta —es lo cómodo de
+    leer— y el reproductor las dibujaba en ese orden. Así un chico gana tocando siempre la de
+    arriba, sin entender nada, que es justo lo que este cuaderno no puede permitir.
+
+    Se baraja en el REPRODUCTOR y no reordenando los guiones: a mano quedaría otro orden fijo, y
+    encima habría que acordarse en cada pieza nueva. El cuaderno ya lo resuelve así con sus trivias.
+
+    Acá se cuida que el reproductor siga barajando; que de verdad caiga en lugares distintos se mide
+    con el navegador en `.cache/vi_donde_cae_la_correcta.py`."""
+    js = open(os.path.join(BASE, "video_interactivo_player.js"), encoding="utf-8").read()
+    assert re.search(r"function barajar\(", js), "el reproductor ya no sabe barajar"
+    assert "barajar(p.opciones)" in js, (
+        "las opciones volvieron a dibujarse en el orden del guion, y en el guion la correcta va "
+        "primera: el chico gana tocando siempre la de arriba")
+
+
 def test_los_botones_de_elegir_entran_en_el_ancho_del_celular():
     """Pablo, 20-sep-2026, probando «El gas que no se ve»: *"la palabra chiquitas no entró"*.
 
