@@ -446,12 +446,16 @@ def _session_valid(tok):
 _RL = collections.defaultdict(collections.deque)
 _RL_LOCK = threading.Lock()
 
-def _rate_ok(ip, limit=120, window=60):
+def _rate_ok(ip, limit=120, window=60, clave=None):
+    """`clave` separa el cupo de un endpoint del cupo general de la IP (25-sep-2026): el
+    🚩 de reportes y la voz nueva de /tts tienen topes propios, mucho más bajos que el de
+    120 por minuto, y no pueden compartir la cola con las miniaturas o el audio cacheado —
+    si no, un chico que carga su cuaderno se comería el cupo de reportar un error."""
     if not ip or ip.startswith("127.") or ip in ("::1", "localhost"):
         return True                       # llamadas internas (la tienda) no se limitan
     now = time.monotonic()
     with _RL_LOCK:
-        dq = _RL[ip]
+        dq = _RL["%s|%s" % (clave, ip) if clave else ip]
         while dq and dq[0] < now - window:
             dq.popleft()
         if len(dq) >= limit:
@@ -461,6 +465,77 @@ def _rate_ok(ip, limit=120, window=60):
             for k in [k for k, v in list(_RL.items()) if not v]:
                 _RL.pop(k, None)
     return True
+
+
+#: Topes de la voz NUEVA de /tts (25-sep-2026, SEG-07). Ver `_tts_dinamico`. El diario va
+#: en caracteres porque es lo que cobra ElevenLabs. 60.000 cubre con aire el día de más uso
+#: que hubo (31-jul: 392 audios nuevos, casi todos consignas cortas) y deja el peor caso de
+#: abuso en un gasto acotado y conocido. Se mueve sin tocar código con la variable de entorno.
+TTS_NUEVOS_IP_HORA = 60
+try:
+    TTS_TOPE_DIARIO = max(0, int(os.environ.get("CT3D_TTS_TOPE_DIARIO", "60000")))
+except ValueError:
+    TTS_TOPE_DIARIO = 60000
+_TTS_GASTO_LOCK = threading.Lock()
+
+
+def _tts_gasto_reservar(din_dir, caracteres):
+    """Suma `caracteres` al gasto de HOY si entra en el tope. True si entra.
+
+    El contador vive en un archivo al lado del caché y no en memoria: un reinicio del
+    motor no puede regalar otro día entero de cupo. Se reserva ANTES de llamar a
+    ElevenLabs (si la llamada falla, se pierde ese poquito de cupo: preferible a que dos
+    pedidos simultáneos pasen los dos por el último hueco)."""
+    p = os.path.join(din_dir, "_gasto_tts.json")
+    hoy = time.strftime("%Y-%m-%d")
+    with _TTS_GASTO_LOCK:
+        try:
+            g = json.load(open(p, encoding="utf-8"))
+            if not isinstance(g, dict) or g.get("dia") != hoy:
+                g = {}
+        except Exception:
+            g = {}
+        usados = int(g.get("caracteres") or 0)
+        if usados + int(caracteres) > TTS_TOPE_DIARIO:
+            return False
+        g = {"dia": hoy, "caracteres": usados + int(caracteres),
+             "audios": int(g.get("audios") or 0) + 1}
+        try:
+            tmp = p + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(g, f)
+            os.replace(tmp, p)
+        except Exception:
+            pass
+        return True
+
+
+#: Topes del 🚩 «encontré un error» (25-sep-2026, SEG-08). Ver `_act_reporte`.
+REPORTE_TOPE_IP_HORA = 10          # reportes guardados por IP por hora
+REPORTE_TOPE_AVISOS_TOKEN = 5      # WhatsApp por cuaderno vendido por día
+REPORTE_TOPE_AVISOS_MUESTRA = 3    # WhatsApp por día sumando TODAS las muestras públicas
+
+
+def _sin_links(texto):
+    """El texto libre del reporte sin nada que se pueda tocar como link.
+
+    Va al WhatsApp de Pablo con la cara de «una familia reportó un error», así que un
+    `https://…` o un `algo.com/x` adentro es un link engañoso servido por nosotros mismos
+    (SEG-08). En el archivo queda tal cual; sólo se desarma en el aviso."""
+    t = re.sub(r"(?i)\b(?:https?://|www\.)\S*", "[link]", str(texto or ""))
+    return re.sub(r"(?i)\b[\w-]+(?:\.[\w-]+)*\.(?:com|net|org|ar|io|me|ly|co|xyz|info|app|link)"
+                  r"\b\S*", "[link]", t)
+
+
+def _token_publico(token):
+    """¿Es un cuaderno que abre cualquiera? Las muestras de Kydo (`muestra-kydo-N`, las del
+    «probalo gratis» y las de la pantalla de escuelas) y los `demo-*` del panel.
+
+    Existe para los endpoints que escriben sin credencial (25-sep-2026): en un cuaderno
+    vendido, el que tiene el link es el dueño; en uno público, el link lo tiene todo el
+    mundo, así que lo que ahí se escribe lo decide cualquiera."""
+    t = str(token or "").lower()
+    return t.startswith("muestra-") or t.startswith("demo-")
 
 
 def _limpiar_pedidos_viejos(dias=7300):
@@ -729,7 +804,7 @@ class Handler(BaseHTTPRequestHandler):
         """IP real del cliente detrás de Cloudflare (para rate limiting)."""
         return (self.headers.get("CF-Connecting-IP")
                 or (self.headers.get("X-Forwarded-For") or "").split(",")[0].strip()
-                or self.client_address[0])
+                or (getattr(self, "client_address", None) or ("",))[0])
 
     # ---------------- GET ----------------
     def _tts_dinamico(self, texto):
@@ -763,6 +838,32 @@ class Handler(BaseHTTPRequestHandler):
                 limpio = actividades_web._texto_para_tts(texto)
             except Exception:
                 limpio = texto
+            # LOS FRENOS DEL GASTO (25-sep-2026, SEG-07). Hasta hoy /tts le generaba voz
+            # paga de ElevenLabs a cualquier texto, sin tope de gasto: con 120 pedidos por
+            # minuto por IP se vaciaba el saldo en una tarde, y el día que se vacía el
+            # reproductor queda MUDO para los chicos que sí usan Kydo.
+            #
+            # POR QUÉ NO FIRMAR LOS TEXTOS. Lo primero que se pensó fue que el motor sólo
+            # sintetizara lo que él mismo emitió (firma HMAC por texto). No se puede sin
+            # rehacer el player: los textos de /tts son justamente los que arma el
+            # NAVEGADOR en el momento —la explicación del porqué, las consignas generadas
+            # («¿Cuánto es 7 × 8?»), el deletreo—, y el servidor nunca los ve antes. Firmar
+            # habría dejado mudo al cuaderno.
+            #
+            # Así que el freno va sobre lo que SÍ cuesta: generar un audio NUEVO. Lo
+            # cacheado sale como siempre (ni se cuenta), y lo nuevo tiene dos topes:
+            #   · por IP: TTS_NUEVOS_IP_HORA audios nuevos por hora. Un chico jugando pide
+            #     unos pocos por sesión; lo demás ya está en el caché de todos.
+            #   · global: TTS_TOPE_DIARIO caracteres por día (lo que se le manda a
+            #     ElevenLabs, que cobra por carácter). Llegado el tope, 429: el player sigue
+            #     en silencio como cuando falla la voz, y a Pablo le llega UN aviso por día.
+            # El admin (panel) queda afuera del tope por IP, como del resto de los límites.
+            if not self._admin_ok() and not _rate_ok(
+                    self._client_ip(), limit=TTS_NUEVOS_IP_HORA, window=3600, clave="tts-nuevo"):
+                return self._json(429, {"ok": False})
+            if not _tts_gasto_reservar(din_dir, len(limpio)):
+                self._tts_avisar_tope()
+                return self._json(429, {"ok": False})
             # voice_id explícito (Valeria): sin él sale el default del audiolibro.
             mp3 = audiolibro._tts_elevenlabs(
                 limpio, voice_id=actividades_web.VOZ_ACTIVIDADES)
@@ -779,6 +880,25 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "public, max-age=604800")
         self.end_headers()
         self.wfile.write(data)
+
+    def _tts_avisar_tope(self):
+        """Un aviso por día cuando /tts llega al tope de gasto. Best-effort: si la tienda no
+        está, queda la línea en el journal."""
+        self.log_error("tts: se llegó al tope diario de %d caracteres", TTS_TOPE_DIARIO)
+        try:
+            import sys as _sys
+            if "/opt/ct3d/backend" not in _sys.path:
+                _sys.path.insert(0, "/opt/ct3d/backend")
+            from notificaciones import notif_emit
+            dia = time.strftime("%Y-%m-%d")
+            notif_emit("health", titulo="🔇 La voz de las consignas llegó al tope del día",
+                       detalle=("/tts ya gastó %d caracteres de ElevenLabs hoy (%s). Hasta "
+                                "mañana, las consignas que no estaban grabadas suenan en "
+                                "silencio. Si es uso real, subí CT3D_TTS_TOPE_DIARIO; si no, "
+                                "alguien está pidiendo voz a mano." % (TTS_TOPE_DIARIO, dia)),
+                       ref_id="tts_tope|" + dia, cooldown_h=24)
+        except Exception:
+            pass
 
     def do_GET(self):
         u = urllib.parse.urlparse(self.path)
@@ -1882,6 +2002,14 @@ class Handler(BaseHTTPRequestHandler):
         d = os.path.join(aw.ACT_DIR, token)
         if not os.path.isdir(d):
             return self._json(404, {"ok": False})
+        # TOPE POR IP (25-sep-2026, SEG-08). Cada reporte le puede mandar un WhatsApp a
+        # Pablo —el mismo canal del «💳 pagó» y de las alertas críticas— y hasta hoy no
+        # había límite: un loop con curl le tapaba el teléfono. Una familia de verdad
+        # reporta uno, dos, tres errores en una sesión; diez por hora desde la misma IP ya
+        # no es una familia. Se corta ANTES de escribir: tampoco llena el disco.
+        if not _rate_ok(self._client_ip(), limit=REPORTE_TOPE_IP_HORA, window=3600,
+                        clave="reporte"):
+            return self._json(429, {"ok": False})
         try:
             ev = json.loads(self._body() or b"{}")
         except Exception:
@@ -1923,6 +2051,25 @@ class Handler(BaseHTTPRequestHandler):
             self.log_error("reporte de %s: no se pudo guardar", token)
         # El aviso es best-effort y va DESPUÉS de guardar: si la tienda no está o el
         # canal falla, el reporte ya quedó en disco.
+        #
+        # Y NO SIEMPRE SALE (25-sep-2026, SEG-08). Tres frenos, todos para que el 🚩 no
+        # se convierta en una manera de mandarle mensajes a Pablo:
+        #   · si no se guardó (archivo lleno), no se avisa: antes el aviso salía igual, así
+        #     que el tope de 2 MB no frenaba nada del lado del teléfono;
+        #   · un cuaderno PÚBLICO (muestra/demo) lo abre cualquiera: sus reportes quedan
+        #     en disco, pero entre todos avisan como mucho REPORTE_TOPE_AVISOS_MUESTRA por
+        #     día — el primero ya le dice a Pablo que hay algo que mirar;
+        #   · un cuaderno vendido avisa hasta REPORTE_TOPE_AVISOS_TOKEN por día, y el mismo
+        #     reporte repetido (mismo juego, mismo motivo) no vuelve a avisar en una hora:
+        #     va con `ref_id`/`cooldown_h`, que es lo que activa el dedup de `notif_emit`.
+        publico = _token_publico(token)
+        avisar = guardado and (
+            _rate_ok("muestras", limit=REPORTE_TOPE_AVISOS_MUESTRA, window=86400,
+                     clave="reporte-aviso") if publico else
+            _rate_ok(token, limit=REPORTE_TOPE_AVISOS_TOKEN, window=86400,
+                     clave="reporte-aviso"))
+        if not avisar:
+            return self._json(200, {"ok": guardado})
         try:
             import sys as _sys
             if "/opt/ct3d/backend" not in _sys.path:
@@ -1931,6 +2078,8 @@ class Handler(BaseHTTPRequestHandler):
             donde = rec["titulo"] or rec["juego"] or "el cuaderno"
             notif_emit(
                 "reporte_cuaderno",
+                ref_id="%s|%s|%s" % (token, rec["juego"] or rec["titulo"], motivo),
+                cooldown_h=1,
                 titulo="🚩 Reportaron un error en %s" % donde,
                 detalle="%s · %s.º grado · ronda %s\n%s\nConsigna: %s\nToken: %s" % (
                     MOTIVOS[motivo], rec["grado"] or "?", rec["ronda"] or "?",
@@ -1938,7 +2087,7 @@ class Handler(BaseHTTPRequestHandler):
                     token),
                 wa_texto="🚩 %s\n%s\n%s.º grado · ronda %s\n%s" % (
                     donde, MOTIVOS[motivo], rec["grado"] or "?", rec["ronda"] or "?",
-                    rec["detalle"] or ""))
+                    _sin_links(rec["detalle"])[:200]))
         except Exception:
             self.log_error("reporte de %s: no se pudo avisar", token)
         return self._json(200, {"ok": guardado})
@@ -2018,6 +2167,17 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(400, {"ok": False})
         # `curso` lo manda el modo seño del player: separa el BORRADOR de cada división del
         # orden que ve el chico. Sin él se guarda como antes.
+        #
+        # EL ORDEN DE UN CUADERNO PÚBLICO SÓLO LO ESCRIBE EL SERVIDOR (25-sep-2026, SEG-06).
+        # Sin curso (o con uno que `_curso_sano` descarta, que cae en el mismo camino) se
+        # escribe `orden_seno`, el orden que ve TODO el que abre ese cuaderno. En el de un
+        # chico lo ve sólo el dueño del link; en una muestra (`muestra-kydo-N`, `demo-*`)
+        # lo ve cada familia y cada escuela que prueba, y hasta hoy cualquiera con un curl
+        # se lo podía reordenar. Los borradores por curso siguen abiertos: es lo que guarda
+        # el modo seño desde el navegador, y ahí la muestra ya no pisa el orden público.
+        if (_token_publico(token) and not aw._curso_sano(body.get("curso"))
+                and not self._admin_ok()):
+            return self._json(403, {"ok": False, "error": "el orden de una muestra no se cambia"})
         r = aw.orden_seno_guardar(token, body["ids"], body.get("curso"))
         return self._json(200 if r.get("ok") else 400, r)
 
@@ -2047,11 +2207,28 @@ class Handler(BaseHTTPRequestHandler):
         if not isinstance(body, dict) or not isinstance(body.get("items"), list):
             return self._json(400, {"ok": False})
         # `compradas` las manda la TIENDA (server-to-server): son las que el padre PAGÓ,
-        # y por eso no cuentan contra el cupo gratis. El motor no las cuestiona — la
-        # tienda es la única que sabe qué se cobró.
+        # y por eso no cuentan contra el cupo gratis ni miran el grado. El motor no las
+        # cuestiona — la tienda es la única que sabe qué se cobró.
+        #
+        # PERO SÓLO SI LAS MANDA LA TIENDA (25-sep-2026, MOT-09/SEG-06 de la auditoría).
+        # Hasta hoy este endpoint le creía la lista a cualquiera: `_origin_ok` deja pasar
+        # todo pedido sin cabecera Origin, o sea un curl con el link del cuaderno, y con
+        # `compradas=[{id, grado: 7}]` se sumaba gratis cualquier actividad paga de
+        # cualquier grado. Ahora pide la misma credencial que /herencia, /desbloquear y
+        # /revocar. Sin credencial la lista se IGNORA (no se rechaza el pedido entero):
+        # lo gratis dentro del tope se sigue guardando, y lo que YA estaba pagado en
+        # este cuaderno lo recuerda el propio motor (ver `extras_guardar`), así que un
+        # cuaderno ya vendido no pierde nada aunque la tienda todavía no mande la clave.
         compradas = body.get("compradas")
-        r = aw.extras_guardar(token, body["items"],
-                              compradas=compradas if isinstance(compradas, list) else None)
+        if not isinstance(compradas, list):
+            compradas = None
+        ignoradas = compradas is not None and not self._admin_ok()
+        if ignoradas:
+            compradas = None
+            self.log_error("extras de %s: 'compradas' sin credencial, se ignoran", token)
+        r = aw.extras_guardar(token, body["items"], compradas=compradas)
+        if ignoradas:
+            r["compradas_ignoradas"] = True
         return self._json(200 if r.get("ok") else 400, r)
 
     def _act_informe(self, token):
