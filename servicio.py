@@ -859,12 +859,7 @@ class Handler(BaseHTTPRequestHandler):
                 limpio = actividades_web._texto_para_tts(texto)
             except Exception:
                 limpio = texto
-            # Frenos del gasto de voz NUEVA (25-sep-2026, SEG-07): ver TTS_TOPE_DIARIO.
-            if not self._admin_ok() and not _rate_ok(
-                    self._client_ip(), limit=TTS_NUEVOS_IP_HORA, window=3600, clave="tts-nuevo"):
-                return self._json(429, {"ok": False})
-            if not _tts_gasto_reservar(din_dir, len(limpio)):
-                self._tts_avisar_tope()
+            if not self._tts_nuevo_permitido(din_dir, limpio):   # SEG-07, 25-sep-2026
                 return self._json(429, {"ok": False})
             # voice_id explícito (Valeria): sin él sale el default del audiolibro.
             mp3 = audiolibro._tts_elevenlabs(
@@ -882,6 +877,17 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "public, max-age=604800")
         self.end_headers()
         self.wfile.write(data)
+
+    def _tts_nuevo_permitido(self, din_dir, limpio):
+        """Los dos frenos del gasto de voz NUEVA (25-sep-2026, SEG-07; el porqué está sobre
+        TTS_TOPE_DIARIO): tope por IP —el admin queda afuera— y presupuesto diario global."""
+        if not self._admin_ok() and not _rate_ok(
+                self._client_ip(), limit=TTS_NUEVOS_IP_HORA, window=3600, clave="tts-nuevo"):
+            return False
+        if not _tts_gasto_reservar(din_dir, len(limpio)):
+            self._tts_avisar_tope()
+            return False
+        return True
 
     def _tts_avisar_tope(self):
         """Un aviso por día cuando /tts llega al tope de gasto. Best-effort: si la tienda no
