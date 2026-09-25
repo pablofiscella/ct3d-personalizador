@@ -467,6 +467,27 @@ def _rate_ok(ip, limit=120, window=60, clave=None):
     return True
 
 
+# LOS FRENOS DEL GASTO (25-sep-2026, SEG-07). Hasta hoy /tts le generaba voz
+# paga de ElevenLabs a cualquier texto, sin tope de gasto: con 120 pedidos por
+# minuto por IP se vaciaba el saldo en una tarde, y el día que se vacía el
+# reproductor queda MUDO para los chicos que sí usan Kydo.
+#
+# POR QUÉ NO FIRMAR LOS TEXTOS. Lo primero que se pensó fue que el motor sólo
+# sintetizara lo que él mismo emitió (firma HMAC por texto). No se puede sin
+# rehacer el player: los textos de /tts son justamente los que arma el
+# NAVEGADOR en el momento —la explicación del porqué, las consignas generadas
+# («¿Cuánto es 7 × 8?»), el deletreo—, y el servidor nunca los ve antes. Firmar
+# habría dejado mudo al cuaderno.
+#
+# Así que el freno va sobre lo que SÍ cuesta: generar un audio NUEVO. Lo
+# cacheado sale como siempre (ni se cuenta), y lo nuevo tiene dos topes:
+#   · por IP: TTS_NUEVOS_IP_HORA audios nuevos por hora. Un chico jugando pide
+#     unos pocos por sesión; lo demás ya está en el caché de todos.
+#   · global: TTS_TOPE_DIARIO caracteres por día (lo que se le manda a
+#     ElevenLabs, que cobra por carácter). Llegado el tope, 429: el player sigue
+#     en silencio como cuando falla la voz, y a Pablo le llega UN aviso por día.
+# El admin (panel) queda afuera del tope por IP, como del resto de los límites.
+#
 #: Topes de la voz NUEVA de /tts (25-sep-2026, SEG-07). Ver `_tts_dinamico`. El diario va
 #: en caracteres porque es lo que cobra ElevenLabs. 60.000 cubre con aire el día de más uso
 #: que hubo (31-jul: 392 audios nuevos, casi todos consignas cortas) y deja el peor caso de
@@ -838,26 +859,7 @@ class Handler(BaseHTTPRequestHandler):
                 limpio = actividades_web._texto_para_tts(texto)
             except Exception:
                 limpio = texto
-            # LOS FRENOS DEL GASTO (25-sep-2026, SEG-07). Hasta hoy /tts le generaba voz
-            # paga de ElevenLabs a cualquier texto, sin tope de gasto: con 120 pedidos por
-            # minuto por IP se vaciaba el saldo en una tarde, y el día que se vacía el
-            # reproductor queda MUDO para los chicos que sí usan Kydo.
-            #
-            # POR QUÉ NO FIRMAR LOS TEXTOS. Lo primero que se pensó fue que el motor sólo
-            # sintetizara lo que él mismo emitió (firma HMAC por texto). No se puede sin
-            # rehacer el player: los textos de /tts son justamente los que arma el
-            # NAVEGADOR en el momento —la explicación del porqué, las consignas generadas
-            # («¿Cuánto es 7 × 8?»), el deletreo—, y el servidor nunca los ve antes. Firmar
-            # habría dejado mudo al cuaderno.
-            #
-            # Así que el freno va sobre lo que SÍ cuesta: generar un audio NUEVO. Lo
-            # cacheado sale como siempre (ni se cuenta), y lo nuevo tiene dos topes:
-            #   · por IP: TTS_NUEVOS_IP_HORA audios nuevos por hora. Un chico jugando pide
-            #     unos pocos por sesión; lo demás ya está en el caché de todos.
-            #   · global: TTS_TOPE_DIARIO caracteres por día (lo que se le manda a
-            #     ElevenLabs, que cobra por carácter). Llegado el tope, 429: el player sigue
-            #     en silencio como cuando falla la voz, y a Pablo le llega UN aviso por día.
-            # El admin (panel) queda afuera del tope por IP, como del resto de los límites.
+            # Frenos del gasto de voz NUEVA (25-sep-2026, SEG-07): ver TTS_TOPE_DIARIO.
             if not self._admin_ok() and not _rate_ok(
                     self._client_ip(), limit=TTS_NUEVOS_IP_HORA, window=3600, clave="tts-nuevo"):
                 return self._json(429, {"ok": False})
