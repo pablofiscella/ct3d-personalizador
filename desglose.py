@@ -161,5 +161,40 @@ def desglose(token, perfil=None):
             "hechas": sum(1 for t in tarjetas if t["abrio"]),
             "dominadas": sum(1 for t in tarjetas
                              if t["sello"] in ("dominado", "consolidado")),
+            "sondeo": _sondeo(p),
+            "ubicado": _ubicado(p, grado),
         }
     return {"grado": grado, "perfiles": out}
+
+
+def _sondeo(perfil):
+    """La nivelación inicial de este chico: {"ts", "saltado"} o None si no la hizo.
+
+    None y no {}: «no la hizo» (o la hizo con un player que todavía no la mandaba) es
+    distinto de «la salteó», y el informe del padre dice cosas distintas en cada caso."""
+    s = perfil.get("sondeo")
+    if not isinstance(s, dict):
+        return None
+    return {"ts": int(s.get("ts") or 0), "saltado": bool(s.get("saltado"))}
+
+
+def _ubicado(perfil, grado):
+    """Lo que la nivelación dio por sabido, CON NOMBRE (25-sep-2026, auditoría EXP-06).
+
+    El player guarda ids de saber (`MAT-4-DIV1`); el padre necesita «División por una
+    cifra». El nombre sale de `saberes.SABERES`, la misma fuente que usa `_tarjeta`, y se
+    acota al grado del chico o anteriores por la misma razón que allá.
+
+    NO es dominio: es «por dónde empezar». Por eso va en su propio campo y no suma a
+    `dominadas` ni a `mide[].dominado`."""
+    out = []
+    for sid in perfil.get("ubicado") or []:
+        s = saberes.SABERES.get(sid)
+        if not s:
+            continue
+        if grado and int(s.get("grado") or 0) > grado:
+            continue
+        out.append({"id": sid, "nombre": s.get("nombre") or sid,
+                    "grado": s.get("grado") or 0, "eje": s.get("eje") or ""})
+    out.sort(key=lambda u: (-u["grado"], u["nombre"]))
+    return out

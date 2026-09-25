@@ -5073,6 +5073,12 @@ const Shell = {
         ms1: self._rondaT1 ? Math.min(300000, self._rondaT1 - self._rondaT0) : null,
         ms: self._rondaT0 ? Math.min(300000, ahora - self._rondaT0) : null,
         toq: self._rondaToques || 0,
+        // QUIÉN contesta y si es la NIVELACIÓN (25-sep-2026, auditoría PRO-12). Sin el
+        // perfil, dos hermanos en un cuaderno eran un solo chico para el informe del padre;
+        // sin `niv`, las consignas del sondeo —más difíciles a propósito— se leían como
+        // «acá se trabó». La hora confiable la pone el servidor al recibirlo.
+        perfil: (Store.data && Store.data.activeProfile) || null,
+        niv: (typeof Sondeo !== "undefined" && Sondeo.activo) ? 1 : 0,
       });
     };
     return {
@@ -5673,7 +5679,10 @@ const Sondeo = {
     const ok = el("button", "btn-sondeo", "¡Dale, empecemos!");
     ok.addEventListener("click", () => this._siguiente());
     const no = el("button", "btn-sondeo btn-sondeo--ghost", "Ahora no");
-    no.addEventListener("click", () => { Store.marcarSondeo(true); pintarMenu(); });
+    // `_enviarProgreso` acá y en `_terminar` (25-sep-2026): el snapshot salía sólo al ganar
+    // una partida, así que el chico que hacía la nivelación y se iba —el caso de la prueba
+    // del 05-sep— dejaba el resultado sólo en su navegador y el padre nunca lo veía.
+    no.addEventListener("click", () => { Store.marcarSondeo(true); _enviarProgreso(); pintarMenu(); });
     btns.appendChild(ok); btns.appendChild(no);
     stage.appendChild(card);
     scrollTo(0, 0);
@@ -5729,6 +5738,7 @@ const Sondeo = {
     });
     Store.marcarUbicados(Array.from(sabidos));
     Store.marcarSondeo(false);
+    _enviarProgreso();
     const n = sabidos.size;
     const stage = $("#stage"); stage.innerHTML = "";
     const card = el("div", "sondeo");
@@ -7610,6 +7620,13 @@ function _enviarProgreso() {
     const snap = { perfil: perfil, resumen: Adapt.resumenPorCategoria(),
       dominados: Array.from(Adapt._dominados()), niveles: niveles, masAlla: masAlla,
       estado: estado, ts: Date.now() };
+    // La NIVELACIÓN viaja aparte de `dominados` (25-sep-2026, auditoría EXP-06): es lo que
+    // el informe del padre muestra como «dónde lo ubicó», y hasta hoy se quedaba en este
+    // navegador. Sólo si el sondeo ya pasó: sin `sondeo`, el servidor conserva lo que tenía.
+    if (p.sondeo) {
+      snap.sondeo = { ts: p.sondeo.ts || 0, saltado: !!p.sondeo.saltado };
+      snap.ubicado = Object.keys(p.ubicado || {});
+    }
     const blob = new Blob([JSON.stringify(snap)], { type: "application/json" });
     if (navigator.sendBeacon) navigator.sendBeacon("progreso", blob);
     else fetch("progreso", { method: "POST", body: blob, keepalive: true }).catch(() => {});
