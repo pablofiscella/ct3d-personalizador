@@ -124,9 +124,12 @@ def test_el_sondeo_no_corre_sin_el_motor_adaptativo():
 
 
 def test_el_sondeo_se_puede_saltear():
-    """Un chico que no quiere no tiene que pasar por un examen para usar su cuaderno."""
+    """Un chico que no quiere no tiene que pasar por un examen para usar su cuaderno.
+    Desde el 25-sep-2026 (auditoría MOT-10) también en CADA PASO, no sólo en la tarjeta de
+    inicio; el detalle está en tests/test_primeros_minutos_y_habito.py."""
     src = open(os.path.join(BASEDIR, "actividades_player.js"), encoding="utf-8").read()
-    assert "Ahora no" in src and "marcarSondeo(true)" in src
+    assert "Saltear y jugar" in src and "marcarSondeo(true)" in src
+    assert "saltearPaso()" in src
 
 
 def test_el_sondeo_no_puntua():

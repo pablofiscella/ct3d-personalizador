@@ -186,7 +186,11 @@ def test_la_voz_no_lee_los_emojis():
     i = s.find("function _opcionesEnPantalla")
     assert i > 0, "cambió el nombre de _opcionesEnPantalla: revisar este test"
     cuerpo = s[i:s.find("\n}", i) + 2]
-    assert "Extended_Pictographic" in cuerpo, (
+    # 25-sep-2026 (MOT-05): el regex salió a `_RE_EMOJI`, armado con `new RegExp` dentro
+    # de un try —escrito literal tumbaba el archivo entero en iPhone viejos—.
+    assert "_RE_EMOJI" in cuerpo, "el texto que va a la voz no limpia los emojis"
+    j = s.find("var _RE_EMOJI")
+    assert j > 0 and "Extended_Pictographic" in s[j:s.find("})();", j)], (
         "el texto que va a la voz no limpia los emojis")
 
 

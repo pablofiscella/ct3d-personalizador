@@ -382,7 +382,12 @@ _THUMB_SEM = threading.Semaphore(3)
 # no quemar rate-limit ni acumular gasto si entran varias compras juntas; los demás
 # pedidos esperan su turno dentro del hilo de fondo (el cliente ya tiene su link).
 _LIBRO_PREMIUM_SEM = threading.Semaphore(1)
-_KEY_RE = re.compile(r"(key=)[^&\s\"']+", re.I)
+# 25-sep-2026: además de la API key, se tapan el token del cuaderno (`t`, `token`), el
+# pase de grande (`g`) y el perfil del chico (`perfil`): con esos valores en el log
+# cualquiera que lo lea entra al cuaderno de una familia o sabe el nombre del chico.
+# `key` sigue sin borde (tapa `api_key=`, `xi_key=`); los cortos piden que antes no
+# haya letra, dígito ni `_` para que «sort=» o «segment=» no se confundan con `t=`/`g=`.
+_KEY_RE = re.compile(r"((?:key|(?<![A-Za-z0-9_])(?:g|t|token|perfil))=)[^&\s\"']+", re.I)
 
 def _pieza_thumb(exdir, archivo):
     """Devuelve el path del thumbnail (≤220px) de extras/<archivo>, generándolo en
@@ -446,12 +451,16 @@ def _session_valid(tok):
 _RL = collections.defaultdict(collections.deque)
 _RL_LOCK = threading.Lock()
 
-def _rate_ok(ip, limit=120, window=60):
+def _rate_ok(ip, limit=120, window=60, clave=None):
+    """`clave` separa el cupo de un endpoint del cupo general de la IP (25-sep-2026): el
+    🚩 de reportes y la voz nueva de /tts tienen topes propios, mucho más bajos que el de
+    120 por minuto, y no pueden compartir la cola con las miniaturas o el audio cacheado —
+    si no, un chico que carga su cuaderno se comería el cupo de reportar un error."""
     if not ip or ip.startswith("127.") or ip in ("::1", "localhost"):
         return True                       # llamadas internas (la tienda) no se limitan
     now = time.monotonic()
     with _RL_LOCK:
-        dq = _RL[ip]
+        dq = _RL["%s|%s" % (clave, ip) if clave else ip]
         while dq and dq[0] < now - window:
             dq.popleft()
         if len(dq) >= limit:
@@ -461,6 +470,102 @@ def _rate_ok(ip, limit=120, window=60):
             for k in [k for k, v in list(_RL.items()) if not v]:
                 _RL.pop(k, None)
     return True
+
+
+# LOS FRENOS DEL GASTO (25-sep-2026, SEG-07). Hasta hoy /tts le generaba voz
+# paga de ElevenLabs a cualquier texto, sin tope de gasto: con 120 pedidos por
+# minuto por IP se vaciaba el saldo en una tarde, y el día que se vacía el
+# reproductor queda MUDO para los chicos que sí usan Kydo.
+#
+# POR QUÉ NO FIRMAR LOS TEXTOS. Lo primero que se pensó fue que el motor sólo
+# sintetizara lo que él mismo emitió (firma HMAC por texto). No se puede sin
+# rehacer el player: los textos de /tts son justamente los que arma el
+# NAVEGADOR en el momento —la explicación del porqué, las consignas generadas
+# («¿Cuánto es 7 × 8?»), el deletreo—, y el servidor nunca los ve antes. Firmar
+# habría dejado mudo al cuaderno.
+#
+# Así que el freno va sobre lo que SÍ cuesta: generar un audio NUEVO. Lo
+# cacheado sale como siempre (ni se cuenta), y lo nuevo tiene dos topes:
+#   · por IP: TTS_NUEVOS_IP_HORA audios nuevos por hora. Un chico jugando pide
+#     unos pocos por sesión; lo demás ya está en el caché de todos.
+#   · global: TTS_TOPE_DIARIO caracteres por día (lo que se le manda a
+#     ElevenLabs, que cobra por carácter). Llegado el tope, 429: el player sigue
+#     en silencio como cuando falla la voz, y a Pablo le llega UN aviso por día.
+# El admin (panel) queda afuera del tope por IP, como del resto de los límites.
+#
+#: Topes de la voz NUEVA de /tts (25-sep-2026, SEG-07). Ver `_tts_dinamico`. El diario va
+#: en caracteres porque es lo que cobra ElevenLabs. 60.000 cubre con aire el día de más uso
+#: que hubo (31-jul: 392 audios nuevos, casi todos consignas cortas) y deja el peor caso de
+#: abuso en un gasto acotado y conocido. Se mueve sin tocar código con la variable de entorno.
+TTS_NUEVOS_IP_HORA = 60
+try:
+    TTS_TOPE_DIARIO = max(0, int(os.environ.get("CT3D_TTS_TOPE_DIARIO", "60000")))
+except ValueError:
+    TTS_TOPE_DIARIO = 60000
+_TTS_GASTO_LOCK = threading.Lock()
+
+
+def _tts_gasto_reservar(din_dir, caracteres):
+    """Suma `caracteres` al gasto de HOY si entra en el tope. True si entra.
+
+    El contador vive en un archivo al lado del caché y no en memoria: un reinicio del
+    motor no puede regalar otro día entero de cupo. Se reserva ANTES de llamar a
+    ElevenLabs (si la llamada falla, se pierde ese poquito de cupo: preferible a que dos
+    pedidos simultáneos pasen los dos por el último hueco)."""
+    p = os.path.join(din_dir, "_gasto_tts.json")
+    hoy = time.strftime("%Y-%m-%d")
+    with _TTS_GASTO_LOCK:
+        try:
+            g = json.load(open(p, encoding="utf-8"))
+            if not isinstance(g, dict) or g.get("dia") != hoy:
+                g = {}
+        except Exception:
+            g = {}
+        usados = int(g.get("caracteres") or 0)
+        if usados + int(caracteres) > TTS_TOPE_DIARIO:
+            return False
+        g = {"dia": hoy, "caracteres": usados + int(caracteres),
+             "audios": int(g.get("audios") or 0) + 1}
+        try:
+            tmp = p + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(g, f)
+            os.replace(tmp, p)
+        except Exception:
+            pass
+        return True
+
+
+#: Topes del 🚩 «encontré un error» (25-sep-2026, SEG-08). Ver `_act_reporte`.
+REPORTE_TOPE_IP_HORA = 10          # reportes guardados por IP por hora
+REPORTE_TOPE_AVISOS_TOKEN = 5      # WhatsApp por cuaderno vendido por día
+REPORTE_TOPE_AVISOS_MUESTRA = 3    # WhatsApp por día sumando TODAS las muestras públicas
+
+
+def _sin_links(texto):
+    """El texto libre del reporte sin nada que se pueda tocar como link.
+
+    Va al WhatsApp de Pablo con la cara de «una familia reportó un error», así que un
+    `https://…` o un `algo.com/x` adentro es un link engañoso servido por nosotros mismos
+    (SEG-08). En el archivo queda tal cual; sólo se desarma en el aviso."""
+    t = re.sub(r"(?i)\b(?:https?://|www\.)\S*", "[link]", str(texto or ""))
+    # Lo que queda con forma de dominio (`algo.ru/x`, `bit.do`) se DESARMA en vez de
+    # borrarse: el punto pasa a `[.]` y WhatsApp ya no lo toca como link. Antes había una
+    # lista cerrada de terminaciones (.com, .ar, .ly…) y `evil.ru/pago` pasaba entero
+    # (25-sep-2026, revisión de SEG-08): hay miles de dominios de primer nivel. Sólo el
+    # punto pegado a una LETRA: «3.5» queda como está, y «mal.No» se lee «mal[.]No».
+    return re.sub(r"(?<=[\w-])\.(?=[^\W\d_])", "[.]", t)
+
+
+def _token_publico(token):
+    """¿Es un cuaderno que abre cualquiera? Las muestras de Kydo (`muestra-kydo-N`, las del
+    «probalo gratis» y las de la pantalla de escuelas) y los `demo-*` del panel.
+
+    Existe para los endpoints que escriben sin credencial (25-sep-2026): en un cuaderno
+    vendido, el que tiene el link es el dueño; en uno público, el link lo tiene todo el
+    mundo, así que lo que ahí se escribe lo decide cualquiera."""
+    t = str(token or "").lower()
+    return t.startswith("muestra-") or t.startswith("demo-")
 
 
 def _limpiar_pedidos_viejos(dias=7300):
@@ -493,6 +598,91 @@ def dev_path_protegido(path):
     API key, así que la clave no agregaba seguridad y sí rompía el uso normal."""
     return any((path or "").startswith(x) for x in DEV_PROTEGIDO)
 
+
+
+# ── progreso.json: una escritura a la vez por cuaderno, y nunca a medias ─────────────────
+# (25-sep-2026, auditoría MOT-02). Se escribía con `open(p, "w")` + `json.dump`, sin candado
+# y sin archivo temporal, en un servidor que atiende pedidos en paralelo
+# (ThreadingHTTPServer). Dos hermanos mandando su snapshot a la vez —o el padre mirando el
+# panel justo en ese instante— podían ver el archivo truncado (el panel lo toma como vacío) y
+# el POST siguiente lo reescribía con UN solo perfil: los otros chicos perdían todo.
+#   - candado por archivo: leer lo que hay AHORA, poner este perfil, escribir, todo junto;
+#   - tmp + os.replace (como `actividades_web._guardar_atomico` con data.json): el que lee
+#     ve el archivo viejo entero o el nuevo entero, nunca uno cortado.
+_PROGRESO_LOCKS = {}
+_PROGRESO_LOCKS_LOCK = threading.Lock()
+
+
+def _progreso_lock(p):
+    with _PROGRESO_LOCKS_LOCK:
+        lk = _PROGRESO_LOCKS.get(p)
+        if lk is None:
+            if len(_PROGRESO_LOCKS) > 5000:          # tope: no crecer sin fin en RAM
+                _PROGRESO_LOCKS.clear()
+            lk = _PROGRESO_LOCKS[p] = threading.Lock()
+        return lk
+
+
+def _progreso_guardar_perfil(p, perfil, nuevo, tope=25):
+    """Pone `nuevo` como el snapshot de `perfil` en el progreso.json `p`, releyendo el
+    archivo bajo candado (lo que otro hilo guardó en el medio no se pierde). Respeta el
+    mismo tope de perfiles que el endpoint. Nunca lanza: el snapshot es best-effort."""
+    try:
+        with _progreso_lock(p):
+            try:
+                with open(p, encoding="utf-8") as f:
+                    data = json.load(f)
+                if not isinstance(data, dict) or not isinstance(data.get("profiles"), dict):
+                    data = {"profiles": {}}
+            except Exception:
+                data = {"profiles": {}}
+            if len(data["profiles"]) >= tope and perfil not in data["profiles"]:
+                return False
+            data["profiles"][perfil] = nuevo
+            tmp = "%s.%d.tmp" % (p, threading.get_ident())
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False)
+            os.replace(tmp, p)
+            return True
+    except Exception:
+        return False
+
+
+# ── errores de JavaScript del cuaderno (25-sep-2026, auditoría INF-22) ─────────────────
+# Un .jsonl aparte de los pedidos y de las carpetas de los tokens (no es de ninguna compra).
+ERRORES_JS = os.environ.get("CT3D_ERRORES_JS",
+                            os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                         ".cache", "errores_js.jsonl"))
+ERRORES_JS_TOPE = 2 * 1024 * 1024
+_ERRJS_LOCK = threading.Lock()
+_ERRJS_CUENTA = {}
+
+
+def _error_js_cupo(token, por_hora=20):
+    """True si a este cuaderno todavía le quedan errores por anotar esta hora. Un
+    cuaderno roto en un loop no puede llenar el disco ni tapar a los demás."""
+    clave = (token, int(time.time() // 3600))
+    with _ERRJS_LOCK:
+        if len(_ERRJS_CUENTA) > 5000:
+            _ERRJS_CUENTA.clear()
+        n = _ERRJS_CUENTA.get(clave, 0)
+        if n >= por_hora:
+            return False
+        _ERRJS_CUENTA[clave] = n + 1
+        return True
+
+
+def _error_js_anotar(rec):
+    """Agrega una línea al .jsonl; a los 2 MB lo rota (queda `.1`, el anterior se va)."""
+    try:
+        with _ERRJS_LOCK:
+            os.makedirs(os.path.dirname(ERRORES_JS), exist_ok=True)
+            if os.path.isfile(ERRORES_JS) and os.path.getsize(ERRORES_JS) > ERRORES_JS_TOPE:
+                os.replace(ERRORES_JS, ERRORES_JS + ".1")
+            with open(ERRORES_JS, "a", encoding="utf-8") as f:
+                f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "CT3D-Kit/1.0"
@@ -729,7 +919,7 @@ class Handler(BaseHTTPRequestHandler):
         """IP real del cliente detrás de Cloudflare (para rate limiting)."""
         return (self.headers.get("CF-Connecting-IP")
                 or (self.headers.get("X-Forwarded-For") or "").split(",")[0].strip()
-                or self.client_address[0])
+                or (getattr(self, "client_address", None) or ("",))[0])
 
     # ---------------- GET ----------------
     def _tts_dinamico(self, texto):
@@ -763,6 +953,8 @@ class Handler(BaseHTTPRequestHandler):
                 limpio = actividades_web._texto_para_tts(texto)
             except Exception:
                 limpio = texto
+            if not self._tts_nuevo_permitido(din_dir, limpio):   # SEG-07, 25-sep-2026
+                return self._json(429, {"ok": False})
             # voice_id explícito (Valeria): sin él sale el default del audiolibro.
             mp3 = audiolibro._tts_elevenlabs(
                 limpio, voice_id=actividades_web.VOZ_ACTIVIDADES)
@@ -779,6 +971,36 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "public, max-age=604800")
         self.end_headers()
         self.wfile.write(data)
+
+    def _tts_nuevo_permitido(self, din_dir, limpio):
+        """Los dos frenos del gasto de voz NUEVA (25-sep-2026, SEG-07; el porqué está sobre
+        TTS_TOPE_DIARIO): tope por IP —el admin queda afuera— y presupuesto diario global."""
+        if not self._admin_ok() and not _rate_ok(
+                self._client_ip(), limit=TTS_NUEVOS_IP_HORA, window=3600, clave="tts-nuevo"):
+            return False
+        if not _tts_gasto_reservar(din_dir, len(limpio)):
+            self._tts_avisar_tope()
+            return False
+        return True
+
+    def _tts_avisar_tope(self):
+        """Un aviso por día cuando /tts llega al tope de gasto. Best-effort: si la tienda no
+        está, queda la línea en el journal."""
+        self.log_error("tts: se llegó al tope diario de %d caracteres", TTS_TOPE_DIARIO)
+        try:
+            import sys as _sys
+            if "/opt/ct3d/backend" not in _sys.path:
+                _sys.path.insert(0, "/opt/ct3d/backend")
+            from notificaciones import notif_emit
+            dia = time.strftime("%Y-%m-%d")
+            notif_emit("health", titulo="🔇 La voz de las consignas llegó al tope del día",
+                       detalle=("/tts ya gastó %d caracteres de ElevenLabs hoy (%s). Hasta "
+                                "mañana, las consignas que no estaban grabadas suenan en "
+                                "silencio. Si es uso real, subí CT3D_TTS_TOPE_DIARIO; si no, "
+                                "alguien está pidiendo voz a mano." % (TTS_TOPE_DIARIO, dia)),
+                       ref_id="tts_tope|" + dia, cooldown_h=24)
+        except Exception:
+            pass
 
     def do_GET(self):
         u = urllib.parse.urlparse(self.path)
@@ -1309,6 +1531,10 @@ class Handler(BaseHTTPRequestHandler):
         m_desg = re.match(r"^/act/([A-Za-z0-9_-]+)/desglose$", path)
         if m_desg:
             return self._act_desglose_get(m_desg.group(1))
+        # las respuestas del chico, para el informe del padre de Kydo (25-sep-2026)
+        m_tel_get = re.match(r"^/act/([A-Za-z0-9_-]+)/telemetria$", path)
+        if m_tel_get:
+            return self._act_telemetria_get(m_tel_get.group(1))
         # el orden de las tarjetas que armó la maestra
         m_ord = re.match(r"^/act/([A-Za-z0-9_-]+)/orden$", path)
         if m_ord:
@@ -1321,6 +1547,10 @@ class Handler(BaseHTTPRequestHandler):
         m_ext = re.match(r"^/act/([A-Za-z0-9_-]+)/extras$", path)
         if m_ext:
             return self._act_extras_get(m_ext.group(1))
+        # el link propio del chico (EXP-18): ver `_act_pase_get`
+        m_pase = re.match(r"^/act/([A-Za-z0-9_-]+)/pase$", path)
+        if m_pase:
+            return self._act_pase_get(m_pase.group(1))
         if path == "/act/catalogo":
             import actividades_web as aw
             return self._json(200, {"ok": True, "catalogo": aw.catalogo_actividades(),
@@ -1380,12 +1610,22 @@ class Handler(BaseHTTPRequestHandler):
                 self.end_headers(); self.wfile.write(data_b)
                 return
             if arch:
-                r = aw.archivo(token, arch)
+                r = aw.archivo(token, arch,
+                               acepta_webp="image/webp" in (self.headers.get("Accept") or ""))
                 if r is None:
                     return self._json(404, {"ok": False, "error": "no existe"})
                 data_b, ct = r
                 self.send_response(200)
                 self.send_header("Content-Type", ct)
+                if arch.endswith(".webp"):
+                    # 25-sep-2026 (MOT-03): la misma URL da WebP o PNG según el Accept del
+                    # navegador (ver `aw._personaje_webp`). `private` para que Cloudflare
+                    # no guarde una versión y se la dé a quien no la entiende.
+                    self.send_header("Vary", "Accept")
+                    self.send_header("Cache-Control", "private, max-age=86400")
+                    self.send_header("Content-Length", str(len(data_b)))
+                    self.end_headers(); self.wfile.write(data_b)
+                    return
                 # audio_manifest.json es la EXCEPCIÓN: a diferencia de las piezas
                 # c_<hash>.mp3 (content-addressed, el nombre cambia si el
                 # contenido cambia — 24h de caché es correcto), este archivo
@@ -1838,6 +2078,20 @@ class Handler(BaseHTTPRequestHandler):
             "motivo": (str(ev.get("motivo"))[:120] if ev.get("motivo") else None),
             "t": int(ev.get("t") or 0) if str(ev.get("t") or "0").isdigit() else 0,
         }
+        # VIDEOS INTERACTIVOS (25-sep-2026, auditoría PRO-19). Eran lo último que se produjo
+        # y no dejaban rastro: el cuaderno anotaba «visto» sólo en el navegador. Ahora el
+        # cuaderno manda por ESTE canal «visto» (abrió el video) y «terminado» (llegó al
+        # final, con cuántos pasos y cuántos bien al primer intento). Van marcados con
+        # `tipo: "video"` y `j: "vi:<pieza>"` para que quien lea la telemetría de juegos no
+        # los cuente como respuestas.
+        if ev.get("tipo") == "video":
+            rec["tipo"] = "video"
+            rec["vi"] = "terminado" if ev.get("vi") == "terminado" else "visto"
+            for k in ("pasos", "bien"):
+                try:
+                    rec[k] = max(0, min(99, int(ev.get(k) or 0)))
+                except (TypeError, ValueError):
+                    rec[k] = 0
         # telemetría de PROCESO (DreamBox): ms hasta el primer toque, ms hasta responder
         # y toques dados. Se sanean acá igual que el resto — el player es código que
         # corre en el dispositivo del chico, así que nada de lo que manda es confiable.
@@ -1847,6 +2101,20 @@ class Handler(BaseHTTPRequestHandler):
                 rec[k] = None if v is None else max(0, min(tope, int(v)))
             except (TypeError, ValueError):
                 rec[k] = None
+        # LA HORA DEL SERVIDOR (25-sep-2026, auditoría PRO-12). `t` es el reloj del APARATO y
+        # no es confiable: el cuaderno 0F0W… se creó el 23-sep a las 14:47 y sus primeras
+        # respuestas dicen 21-sep 12:32. El informe del padre cuenta «días distintos» y con
+        # esa hora le inventaba un día que el chico no jugó. sendBeacon sale en el momento,
+        # así que la hora a la que llega es la hora a la que el chico contestó.
+        rec["srv"] = int(time.time())
+        # QUIÉN contestó y si era la NIVELACIÓN (mismo hallazgo). Sin el perfil, dos hermanos
+        # en un cuaderno se mezclan en un solo informe; sin la marca, las consignas del sondeo
+        # —que son a propósito más difíciles que lo que le toca— se leían como «acá se trabó».
+        # Sólo se escriben si vienen: un player viejo no los manda y la línea queda como antes.
+        if ev.get("perfil"):
+            rec["perfil"] = str(ev.get("perfil"))[:40]
+        if ev.get("niv"):
+            rec["niv"] = True
         p = os.path.join(d, "telemetria.jsonl")
         try:
             # tope defensivo: no dejar crecer sin límite si alguien spamea con el token.
@@ -1855,6 +2123,50 @@ class Handler(BaseHTTPRequestHandler):
                     f.write(json.dumps(rec, ensure_ascii=False) + "\n")
         except Exception:
             pass
+        self.send_response(204)      # sendBeacon no lee el body
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
+    def _act_error_js(self, token):
+        """Un error de JavaScript del cuaderno, tal como lo vio el navegador de una familia
+        (25-sep-2026, auditoría INF-22).
+
+        Si el cuaderno se rompía en un celular —un navegador viejo, el de Facebook, un
+        deploy con un error— nadie se enteraba: en el embudo quedaba como «entró y no
+        jugó», sin causa. Lo manda el manejador que está en el HTML del cuaderno
+        (`window.onerror` + `unhandledrejection`), que va ANTES de player.js para ver
+        también el caso en que player.js ni siquiera se puede leer.
+
+        SIN DATOS PERSONALES: no se guarda el token (abre el cuaderno de un chico) sino un
+        resumen de 10 letras que sirve para saber si los errores son del mismo cuaderno; ni
+        la IP, ni el nombre del perfil. Si el mensaje trae el token (una URL), se tapa.
+        CON TOPE: 20 por cuaderno por hora y el archivo rota a los 2 MB (queda uno viejo)."""
+        import actividades_web as aw
+        d = os.path.join(aw.ACT_DIR, token)
+        if not os.path.isdir(d):
+            return self._json(404, {"ok": False})
+        try:
+            ev = json.loads(self._body() or b"{}")
+        except Exception:
+            ev = None
+        if isinstance(ev, dict) and _error_js_cupo(token):
+            def _limpio(x, n):
+                return str(x or "").replace(token, "<token>")[:n]
+            try:
+                edad = str(json.load(open(os.path.join(d, "data.json"),
+                                          encoding="utf-8")).get("edad") or "")[:4]
+            except Exception:
+                edad = ""
+            rec = {"srv": int(time.time()),
+                   "cuaderno": hashlib.sha256(token.encode()).hexdigest()[:10],
+                   "edad": edad,
+                   "m": _limpio(ev.get("m"), 300),
+                   "f": _limpio(ev.get("f"), 60),
+                   "l": int(ev.get("l") or 0) if str(ev.get("l") or "0").isdigit() else 0,
+                   "c": int(ev.get("c") or 0) if str(ev.get("c") or "0").isdigit() else 0,
+                   "v": _limpio(ev.get("v"), 20),
+                   "ua": _limpio(ev.get("ua") or self.headers.get("User-Agent"), 200)}
+            _error_js_anotar(rec)
         self.send_response(204)      # sendBeacon no lee el body
         self.send_header("Content-Length", "0")
         self.end_headers()
@@ -1882,6 +2194,14 @@ class Handler(BaseHTTPRequestHandler):
         d = os.path.join(aw.ACT_DIR, token)
         if not os.path.isdir(d):
             return self._json(404, {"ok": False})
+        # TOPE POR IP (25-sep-2026, SEG-08). Cada reporte le puede mandar un WhatsApp a
+        # Pablo —el mismo canal del «💳 pagó» y de las alertas críticas— y hasta hoy no
+        # había límite: un loop con curl le tapaba el teléfono. Una familia de verdad
+        # reporta uno, dos, tres errores en una sesión; diez por hora desde la misma IP ya
+        # no es una familia. Se corta ANTES de escribir: tampoco llena el disco.
+        if not _rate_ok(self._client_ip(), limit=REPORTE_TOPE_IP_HORA, window=3600,
+                        clave="reporte"):
+            return self._json(429, {"ok": False})
         try:
             ev = json.loads(self._body() or b"{}")
         except Exception:
@@ -1923,25 +2243,90 @@ class Handler(BaseHTTPRequestHandler):
             self.log_error("reporte de %s: no se pudo guardar", token)
         # El aviso es best-effort y va DESPUÉS de guardar: si la tienda no está o el
         # canal falla, el reporte ya quedó en disco.
+        #
+        # Y NO SIEMPRE SALE (25-sep-2026, SEG-08). Tres frenos, todos para que el 🚩 no
+        # se convierta en una manera de mandarle mensajes a Pablo:
+        #   · si no se guardó (archivo lleno), no se avisa: antes el aviso salía igual, así
+        #     que el tope de 2 MB no frenaba nada del lado del teléfono;
+        #   · un cuaderno PÚBLICO (muestra/demo) lo abre cualquiera: sus reportes quedan
+        #     en disco, pero entre todos avisan como mucho REPORTE_TOPE_AVISOS_MUESTRA por
+        #     día — el primero ya le dice a Pablo que hay algo que mirar;
+        #   · un cuaderno vendido avisa hasta REPORTE_TOPE_AVISOS_TOKEN por día, y el mismo
+        #     reporte repetido (mismo juego, mismo motivo) no vuelve a avisar en una hora:
+        #     va con `ref_id`/`cooldown_h`, que es lo que activa el dedup de `notif_emit`.
+        publico = _token_publico(token)
+        avisar = guardado and (
+            _rate_ok("muestras", limit=REPORTE_TOPE_AVISOS_MUESTRA, window=86400,
+                     clave="reporte-aviso") if publico else
+            _rate_ok(token, limit=REPORTE_TOPE_AVISOS_TOKEN, window=86400,
+                     clave="reporte-aviso"))
+        if not avisar:
+            return self._json(200, {"ok": guardado})
         try:
             import sys as _sys
             if "/opt/ct3d/backend" not in _sys.path:
                 _sys.path.insert(0, "/opt/ct3d/backend")
             from notificaciones import notif_emit
-            donde = rec["titulo"] or rec["juego"] or "el cuaderno"
+            # `titulo` y `juego` también los manda el que reporta y encabezan el aviso: sin
+            # desarmar, el link iba en la primera línea (25-sep-2026). Igual grado y ronda.
+            donde = _sin_links(rec["titulo"] or rec["juego"] or "el cuaderno")
             notif_emit(
                 "reporte_cuaderno",
+                ref_id="%s|%s|%s" % (token, rec["juego"] or rec["titulo"], motivo),
+                cooldown_h=1,
                 titulo="🚩 Reportaron un error en %s" % donde,
                 detalle="%s · %s.º grado · ronda %s\n%s\nConsigna: %s\nToken: %s" % (
                     MOTIVOS[motivo], rec["grado"] or "?", rec["ronda"] or "?",
                     rec["detalle"] or "(sin detalle)", rec["consigna"] or "(sin consigna)",
                     token),
                 wa_texto="🚩 %s\n%s\n%s.º grado · ronda %s\n%s" % (
-                    donde, MOTIVOS[motivo], rec["grado"] or "?", rec["ronda"] or "?",
-                    rec["detalle"] or ""))
+                    donde, MOTIVOS[motivo], _sin_links(rec["grado"] or "?"),
+                    _sin_links(rec["ronda"] or "?"),
+                    _sin_links(rec["detalle"])[:200]))
         except Exception:
             self.log_error("reporte de %s: no se pudo avisar", token)
         return self._json(200, {"ok": guardado})
+
+    @staticmethod
+    def _es_muestra_publica(token):
+        """`muestra-kydo-N` y cualquier `muestra-*`: la sala de prueba, el «mirarlo ustedes» del
+        correo a escuelas y las demos de la portada. Son UN cuaderno por grado para todo el
+        mundo, así que su progreso no se guarda ni se devuelve: cada visitante veía el nombre
+        y las estrellas del anterior, y los nombres de chicos quedaban públicos (auditoría
+        EXP-02/SEG-04, 25-sep-2026). El player ya no los pide; esto es la segunda barrera."""
+        return str(token or "").lower().startswith("muestra-")
+
+    def _act_pase_get(self, token):
+        """El permiso con el que ESTE aparato ya abrió el cuaderno, para armar el link que el
+        adulto le manda a la tablet del chico (25-sep-2026, auditoría EXP-18).
+
+        La cookie `act_grant` es HttpOnly y el player no la puede leer; sin esto, la dirección
+        que se copia de la barra no lleva permiso y en otro aparato da el candado. No se
+        fabrica un permiso NUEVO a propósito: se devuelve el mismo, que la biblioteca ya emitió
+        recortado a lo que le queda al acceso (`/jugar`), así que el link de la tablet vence
+        cuando vence el acceso y no regala días. El `revocado` lo sigue cortando igual.
+
+        Sólo le contesta a quien YA tiene el permiso válido de ESE cuaderno: no le enseña nada
+        a nadie que no pudiera abrirlo. Cuaderno público (sin cuenta) → `g` nulo: su link es
+        la dirección pelada. La muestra pública no tiene link propio (es de todos)."""
+        import actividades_web as aw
+        d = os.path.join(aw.ACT_DIR, token)
+        if not os.path.isdir(d) or self._es_muestra_publica(token):
+            return self._json(404, {"ok": False})
+        req_cuenta, revocado = aw.estado_gate(token)
+        g = None
+        if req_cuenta:
+            cg = self._read_cookie("act_grant")
+            if revocado or not (cg and act_grant_ok(token, cg)):
+                return self._json(403, {"ok": False})
+            g = cg
+        body = json.dumps({"ok": True, "g": g}).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")   # un permiso no se guarda en cachés
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
     def _act_progreso_get(self, token):
         """Snapshot de progreso por chico de un token, para el tablero del padre en la
@@ -1950,6 +2335,8 @@ class Handler(BaseHTTPRequestHandler):
         d = os.path.join(aw.ACT_DIR, token)
         if not os.path.isdir(d):
             return self._json(404, {"ok": False})
+        if self._es_muestra_publica(token):
+            return self._json(200, {"profiles": {}})
         try:
             data = json.load(open(os.path.join(d, "progreso.json"), encoding="utf-8"))
             if not isinstance(data, dict) or "profiles" not in data:
@@ -1957,6 +2344,55 @@ class Handler(BaseHTTPRequestHandler):
         except Exception:
             data = {"profiles": {}}
         return self._json(200, data)
+
+    #: Cuántas respuestas devuelve, como mucho, `GET /act/<token>/telemetria`. Las más
+    #: recientes. Un chico que juega 20 minutos por día deja ~60 por día: 3000 son varios
+    #: meses, y el archivo de un token que alguien spamea (tope de 5 MB) no viaja entero.
+    TELEMETRIA_GET_TOPE = 3000
+
+    def _act_telemetria_get(self, token):
+        """Las respuestas que dio el chico en este cuaderno, para el INFORME DEL PADRE de
+        Kydo (25-sep-2026, auditoría EXP-06/PRO-02).
+
+        Por qué hace falta: el tablero del padre sólo sabía «firmes / practicando / sin
+        empezar», y como «firme» pide días distintos, las 8 pruebas reales de septiembre
+        daban 0 aunque una había contestado 86 consignas. Lo que el chico HIZO —cuánto
+        jugó, qué le salió, dónde se trabó— está sólo acá, en `telemetria.jsonl`, que se
+        escribía desde el 19-jul y ninguna pantalla leía.
+
+        SÓLO PARA LA TIENDA, no para el navegador. `/progreso` es público porque el player lo
+        lee para restaurar al chico; esto no lo necesita nadie más que la app del padre, así
+        que se contesta únicamente server-to-server por loopback (sin los headers del túnel)
+        o con la API key. El token sigue siendo el secreto, pero no hay por qué dejar abierta
+        una puerta que ningún navegador usa.
+
+        El motor no resume nada: devuelve las líneas tal cual se guardaron. Qué decirle al
+        padre es decisión de cada marca, y vive en su carpeta (en Kydo, `kydo/informe.py`)."""
+        if not (self._dev_interno() or self._admin_ok()):
+            return self._json(403, {"ok": False})
+        import actividades_web as aw
+        d = os.path.join(aw.ACT_DIR, token)
+        if not os.path.isdir(d):
+            return self._json(404, {"ok": False})
+        eventos = []
+        try:
+            with open(os.path.join(d, "telemetria.jsonl"), encoding="utf-8") as f:
+                for linea in f:
+                    linea = linea.strip()
+                    if not linea:
+                        continue
+                    try:
+                        ev = json.loads(linea)
+                    except ValueError:
+                        continue          # una línea rota no invalida el archivo entero
+                    if isinstance(ev, dict):
+                        eventos.append(ev)
+        except FileNotFoundError:
+            pass                           # nunca jugó: lista vacía, que es la verdad
+        except Exception:
+            return self._json(500, {"ok": False})
+        return self._json(200, {"ok": True,
+                                "eventos": eventos[-self.TELEMETRIA_GET_TOPE:]})
 
     def _act_desglose_get(self, token):
         """Qué hizo el chico en CADA TARJETA, para el panel de la maestra (04-sep-2026).
@@ -2018,6 +2454,17 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(400, {"ok": False})
         # `curso` lo manda el modo seño del player: separa el BORRADOR de cada división del
         # orden que ve el chico. Sin él se guarda como antes.
+        #
+        # EL ORDEN DE UN CUADERNO PÚBLICO SÓLO LO ESCRIBE EL SERVIDOR (25-sep-2026, SEG-06).
+        # Sin curso (o con uno que `_curso_sano` descarta, que cae en el mismo camino) se
+        # escribe `orden_seno`, el orden que ve TODO el que abre ese cuaderno. En el de un
+        # chico lo ve sólo el dueño del link; en una muestra (`muestra-kydo-N`, `demo-*`)
+        # lo ve cada familia y cada escuela que prueba, y hasta hoy cualquiera con un curl
+        # se lo podía reordenar. Los borradores por curso siguen abiertos: es lo que guarda
+        # el modo seño desde el navegador, y ahí la muestra ya no pisa el orden público.
+        if (_token_publico(token) and not aw._curso_sano(body.get("curso"))
+                and not self._admin_ok()):
+            return self._json(403, {"ok": False, "error": "el orden de una muestra no se cambia"})
         r = aw.orden_seno_guardar(token, body["ids"], body.get("curso"))
         return self._json(200 if r.get("ok") else 400, r)
 
@@ -2047,11 +2494,28 @@ class Handler(BaseHTTPRequestHandler):
         if not isinstance(body, dict) or not isinstance(body.get("items"), list):
             return self._json(400, {"ok": False})
         # `compradas` las manda la TIENDA (server-to-server): son las que el padre PAGÓ,
-        # y por eso no cuentan contra el cupo gratis. El motor no las cuestiona — la
-        # tienda es la única que sabe qué se cobró.
+        # y por eso no cuentan contra el cupo gratis ni miran el grado. El motor no las
+        # cuestiona — la tienda es la única que sabe qué se cobró.
+        #
+        # PERO SÓLO SI LAS MANDA LA TIENDA (25-sep-2026, MOT-09/SEG-06 de la auditoría).
+        # Hasta hoy este endpoint le creía la lista a cualquiera: `_origin_ok` deja pasar
+        # todo pedido sin cabecera Origin, o sea un curl con el link del cuaderno, y con
+        # `compradas=[{id, grado: 7}]` se sumaba gratis cualquier actividad paga de
+        # cualquier grado. Ahora pide la misma credencial que /herencia, /desbloquear y
+        # /revocar. Sin credencial la lista se IGNORA (no se rechaza el pedido entero):
+        # lo gratis dentro del tope se sigue guardando, y lo que YA estaba pagado en
+        # este cuaderno lo recuerda el propio motor (ver `extras_guardar`), así que un
+        # cuaderno ya vendido no pierde nada aunque la tienda todavía no mande la clave.
         compradas = body.get("compradas")
-        r = aw.extras_guardar(token, body["items"],
-                              compradas=compradas if isinstance(compradas, list) else None)
+        if not isinstance(compradas, list):
+            compradas = None
+        ignoradas = compradas is not None and not self._admin_ok()
+        if ignoradas:
+            compradas = None
+            self.log_error("extras de %s: 'compradas' sin credencial, se ignoran", token)
+        r = aw.extras_guardar(token, body["items"], compradas=compradas)
+        if ignoradas:
+            r["compradas_ignoradas"] = True
         return self._json(200 if r.get("ok") else 400, r)
 
     def _act_informe(self, token):
@@ -2179,11 +2643,17 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
         d = os.path.join(aw.ACT_DIR, token)
         if not os.path.isdir(d):
             return self._json(404, {"ok": False})
+        if self._es_muestra_publica(token):
+            # Se consume el cuerpo igual (sendBeacon) y no se guarda nada. 200 y no un error:
+            # un player viejo en caché no tiene por qué ver fallas por esto.
+            self._body()
+            return self._json(200, {"ok": True, "guardado": False})
         try:
             ev = json.loads(self._body() or b"{}")
         except Exception:
             return self._json(400, {"ok": False})
-        perfil = (str(ev.get("perfil", "")) or "?")[:40]
+        # Sin caracteres de HTML: el nombre vuelve al player y a los paneles (auditoría MOT-13).
+        perfil = (re.sub(r"[<>\"'`&]", "", str(ev.get("perfil", ""))) or "?")[:40]
         cats = {}
         if isinstance(ev.get("resumen"), dict):
             for k, v in list(ev["resumen"].items())[:10]:
@@ -2252,6 +2722,20 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
                 av = 0
             estado = {"stars": _mapa_num("stars", 0, 3), "nd": _mapa_num("nd", 0, 6),
                       "av": av, "dominio": dom}
+        # ── la NIVELACIÓN (25-sep-2026, auditoría EXP-06) ──
+        # El sondeo inicial UBICA al chico («esto ya lo sabe hacer») y hasta hoy ese resultado
+        # vivía sólo en el navegador: el padre, que es quien decide pagar, nunca se enteraba de
+        # lo único que el cuaderno averiguó en los primeros cinco minutos. Va APARTE de
+        # `dominados` a propósito, igual que en el player: tres respuestas bien no son dominio.
+        # `sondeo` sólo se guarda si vino; sin él (player viejo, o un chico que todavía no lo
+        # hizo) se conserva lo anterior — ver más abajo.
+        sondeo = None
+        if isinstance(ev.get("sondeo"), dict):
+            s_ts = ev["sondeo"].get("ts")
+            sondeo = {"ts": int(s_ts) if str(s_ts or "0").isdigit() else 0,
+                      "saltado": bool(ev["sondeo"].get("saltado"))}
+        ubicado = ([str(x)[:40] for x in ev.get("ubicado")][:300]
+                   if isinstance(ev.get("ubicado"), list) else [])
         p = os.path.join(d, "progreso.json")
         try:
             data = json.load(open(p, encoding="utf-8"))
@@ -2268,12 +2752,15 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
             # sin nada que restaurar justo por haber jugado desde un dispositivo viejo.
             anterior = data["profiles"].get(perfil) or {}
             nuevo["estado"] = estado or (anterior.get("estado") or {})
+            # Misma regla para la nivelación: el snapshot que llega sin `sondeo` (player viejo,
+            # u otro aparato que todavía no la tiene) no borra la que ya se guardó.
+            if sondeo is not None:
+                nuevo["sondeo"], nuevo["ubicado"] = sondeo, ubicado
+            elif anterior.get("sondeo"):
+                nuevo["sondeo"] = anterior.get("sondeo")
+                nuevo["ubicado"] = anterior.get("ubicado") or []
             data["profiles"][perfil] = nuevo
-            try:
-                with open(p, "w", encoding="utf-8") as f:
-                    json.dump(data, f, ensure_ascii=False)
-            except Exception:
-                pass
+            _progreso_guardar_perfil(p, perfil, nuevo)
         self.send_response(204)
         self.send_header("Content-Length", "0")
         self.end_headers()
@@ -2666,6 +3153,9 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
         m_tel = re.match(r"^/act/([A-Za-z0-9_-]+)/telemetria$", path)
         if m_tel:
             return self._act_telemetria(m_tel.group(1))
+        m_err = re.match(r"^/act/([A-Za-z0-9_-]+)/error-js$", path)
+        if m_err:
+            return self._act_error_js(m_err.group(1))
         m_prog = re.match(r"^/act/([A-Za-z0-9_-]+)/progreso$", path)
         if m_prog:
             return self._act_progreso_set(m_prog.group(1))

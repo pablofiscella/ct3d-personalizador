@@ -1994,15 +1994,31 @@ def extras_guardar(token, pedidos, compradas=None):
 
     `compradas` = [{id, grado}, ...] que el padre PAGÓ ($1000 c/u, decisión de Pablo
     25-jul). No cuentan contra el cupo gratis y no miran el grado: si la pagó, entra. La
-    tienda es la que sabe qué se pagó; el motor sólo la cree para eso.
+    tienda es la que sabe qué se pagó; el motor sólo la cree para eso — y sólo cuando la
+    manda con su credencial (lo chequea `servicio._act_extras_set`).
+
+    `compradas=None` (nadie con credencial dijo qué se pagó) NO significa "no pagó nada":
+    valen como pagadas las que ESTE cuaderno ya tenía guardadas con origen "comprada", que
+    en su momento entraron con la credencial de la tienda (25-sep-2026). Sin esto, el
+    padre que vuelve a guardar sus extras desde un camino sin credencial perdía lo que
+    había pagado, y ése es justo el error que no se puede cometer con un cuaderno vendido.
 
     Devuelve {"ok", "items", "rechazadas"}."""
     d = os.path.join(ACT_DIR, token)
     if not os.path.isdir(d):
         return {"ok": False, "error": "token inexistente"}
     grado_chico = _grado_del_token(token)
-    pagadas = {(str(c.get("id")), int(c.get("grado") or 0))
-               for c in (compradas or []) if isinstance(c, dict)}
+    if compradas is None:
+        compradas = [it for it in (extras_leer(token).get("items") or [])
+                     if isinstance(it, dict) and it.get("origen") == "comprada"]
+    pagadas = set()
+    for c in compradas or []:
+        if not isinstance(c, dict):
+            continue
+        try:
+            pagadas.add((str(c.get("id")), int(c.get("grado") or 0)))
+        except (TypeError, ValueError):
+            continue
     cat = catalogo_actividades()
     porcat, items, rechazadas = {}, [], []
     vistos = set()
@@ -2706,6 +2722,10 @@ def html(token):
     # REPO servidos por token, así que sin `?v=` un cambio de icono no le llegaría nunca al
     # que ya tiene el cuaderno abierto — el mismo agujero que tenía el manifest de inglés.
     favicon = ("favicon_kydo.svg" if escolar else "favicon_ct3d.svg") + "?v=" + _player_version()
+    # El catálogo lleva su propia versión (ver `_version_curriculum`): se reemplaza ANTES
+    # que el `{{V}}` general para no tocar la plantilla, que es del HTML.
+    t = t.replace("actividades_curriculum.js?v={{V}}",
+                  "actividades_curriculum.js?v=" + _version_curriculum(token))
     return (t.replace("{{TITULO}}", _esc(reg.get("titulo") or "Actividades"))
              .replace("{{MARCA}}", marca)
              .replace("{{FAVICON}}", favicon)
@@ -2714,7 +2734,7 @@ def html(token):
 
 
 _ASSET_RE = re.compile(
-    r"^(data\.json|extras\.json|player\.js|duelo\.js|motor_adaptativo\.js|actividades_curriculum\.js|f[12]\.ttf|[ps]\d{2}\.png|colorear_\d\.png|escena\.jpg|portada\.jpg"
+    r"^(data\.json|extras\.json|player\.js|duelo\.js|motor_adaptativo\.js|actividades_curriculum\.js|f[12]\.ttf|[ps]\d{2}\.(?:png|webp)|colorear_\d\.png|escena\.jpg|portada\.jpg"
     r"|favicon_(?:kydo|ct3d)\.svg"
     r"|audio_manifest\.json|c_[a-f0-9]{10}\.mp3"
     # lecciones en video del botón "¿Cómo es?": salen del REPO como el player y el
@@ -2762,23 +2782,221 @@ def _leccion_dir(token, reg=None):
 INGLES_DIR = os.path.join(BASEDIR, "audio_ingles")
 _CT = {".json": "application/json; charset=utf-8", ".js": "text/javascript; charset=utf-8",
        ".ttf": "font/ttf", ".png": "image/png", ".jpg": "image/jpeg", ".mp3": "audio/mpeg",
-       ".mp4": "video/mp4", ".svg": "image/svg+xml"}
+       ".mp4": "video/mp4", ".svg": "image/svg+xml",
+       ".webp": "image/webp"}
 
 
-def archivo(token, nombre):
+# ─────────────────────────────────────────────────────────────────────────────
+# EL CUADERNO TIENE QUE PESAR POCO (25-sep-2026, auditoría MOT-03 / EXP-13 / PRO-14)
+#
+# Medido por la auditoría en un celular con 4G lento: ~2 MB y 12-15 s de «Preparando tus
+# juegos…». Lo que más pesaba y se podía sacar sin tocar un solo token vendido:
+#   - los 8 personajes en PNG (~1,2 MB), que el arranque espera TODOS antes de mostrar
+#     el menú;
+#   - el catálogo curricular de los SIETE grados (~1 MB sin comprimir), cuando cada
+#     cuaderno usa uno.
+# Todo se resuelve AL SERVIR, no al generar: los tokens ya vendidos tienen sus PNG y su
+# data.json en disco y no se reescriben (ni hace falta). Un cambio acá les llega a todos.
+# ─────────────────────────────────────────────────────────────────────────────
+_PERSONAJE_PNG_RE = re.compile(r"[ps]\d{2}\.png")
+_WEBP_CACHE = {}          # (ruta, mtime) → bytes; tope chico, se vacía entero al llenarse
+_WEBP_TOPE = 128          # 128 × ~25 KB ≈ 3 MB de RAM en el peor caso
+
+
+def _data_json_liviano(token):
+    """El data.json del token con los personajes pedidos como `.webp`.
+
+    El player arma la URL de cada personaje con lo que dice `personajes`/`sombras`, así
+    que cambiar el nombre acá alcanza para que el navegador pida la versión liviana —sin
+    tocar el player ni el archivo en disco—. El `.webp` NO obliga a nadie a entender WebP:
+    ver `_personaje_webp`, que a un navegador que no lo anuncia le manda el PNG."""
+    p = os.path.join(ACT_DIR, token, "data.json")
+    if not os.path.isfile(p):
+        return None
+    with open(p, "rb") as f:
+        raw = f.read()
+    try:
+        dj = json.loads(raw.decode("utf-8"))
+    except Exception:
+        return raw, _CT[".json"]            # roto o raro: tal cual, como siempre
+    cambio = False
+    for campo in ("personajes", "sombras"):
+        lista = dj.get(campo) if isinstance(dj, dict) else None
+        if not isinstance(lista, list):
+            continue
+        nueva = [x[:-4] + ".webp" if isinstance(x, str) and _PERSONAJE_PNG_RE.fullmatch(x)
+                 else x for x in lista]
+        if nueva != lista:
+            dj[campo] = nueva
+            cambio = True
+    if not cambio:
+        return raw, _CT[".json"]
+    return json.dumps(dj, ensure_ascii=False).encode("utf-8"), _CT[".json"]
+
+
+def _personaje_webp(token, nombre, acepta_webp):
+    """`s03.webp` → el personaje `s03.png` del token, en WebP si el navegador lo acepta.
+
+    Se convierte en memoria y se guarda en un caché chico: la carpeta del token no se
+    toca (es de la compra, no del servidor). Si el navegador NO anunció `image/webp` en el
+    Accept (Safari de iOS 13 o anterior, alguno raro), se le manda el PNG de siempre con
+    su tipo correcto: el navegador mira los bytes, no la extensión, y el dibujo se ve
+    igual. Por eso `servicio.py` lo sirve con `Cache-Control: private` y `Vary: Accept`
+    —Cloudflare no puede guardar una de las dos versiones y dársela al otro—.
+    Medido con los 8 personajes de 4.º: 1.169 KB en PNG → ~185 KB en WebP."""
+    png = os.path.join(ACT_DIR, token, nombre[:-5] + ".png")
+    if not os.path.isfile(png):
+        return None
+    if not acepta_webp:
+        with open(png, "rb") as f:
+            return f.read(), _CT[".png"]
+    clave = (png, os.path.getmtime(png))
+    b = _WEBP_CACHE.get(clave)
+    if b is None:
+        try:
+            import io
+            buf = io.BytesIO()
+            with Image.open(png) as im:
+                im = im.convert("RGBA")
+                # q82: en los personajes (dibujo plano, bordes limpios) no se distingue del
+                # PNG a tamaño de tarjeta. `method=4` (el de siempre) y NO 6: medido con los 8
+                # de 4.º, 6 ahorra 2 % y tarda 56 s en vez de 0,9 s — el chico esperándolo.
+                im.save(buf, format="WEBP", quality=82, method=4)
+            b = buf.getvalue()
+        except Exception:
+            with open(png, "rb") as f:
+                return f.read(), _CT[".png"]
+        if len(_WEBP_CACHE) >= _WEBP_TOPE:
+            _WEBP_CACHE.clear()
+        _WEBP_CACHE[clave] = b
+    return b, _CT[".webp"]
+
+
+# ── El catálogo curricular, sólo con los grados que ESTE cuaderno usa ──────────────────
+# `actividades_curriculum.js` trae los siete grados en un archivo (~1 MB sin comprimir) y
+# cada cuaderno usa uno, a veces dos (las extras de la escuela y las «Más allá» son de otro
+# grado). Se parte al servirlo: cada actividad empieza con su cabecera `/* N° · … — id`
+# (la escribe `gen_curriculum.py`), así que se sabe de qué grado es cada bloque.
+_CUR_CABECERA_RE = re.compile(r"^/\* (\d)° · .*? — ([a-z0-9_]+)\n", re.M)
+_CUR_DUELO_MARCA = "/* Pozo de preguntas del DUELO"
+_CUR_PARTIDO = {"mtime": None, "pre": "", "bloques": [], "duelo": {}, "cola": ""}
+
+
+def _curriculum_partido():
+    """Lee y parte el catálogo una vez por versión del archivo (cambia con el mtime).
+
+    Devuelve el dict de `_CUR_PARTIDO`, o None si el archivo no tiene la forma que se
+    espera: en ese caso se sirve ENTERO, que pesa más pero nunca rompe un cuaderno."""
+    try:
+        mt = os.path.getmtime(TEMPLATE_CURRICULUM)
+    except OSError:
+        return None
+    if _CUR_PARTIDO["mtime"] == mt:
+        return _CUR_PARTIDO if _CUR_PARTIDO["bloques"] else None
+    with open(TEMPLATE_CURRICULUM, encoding="utf-8") as f:
+        src = f.read()
+    cabs = list(_CUR_CABECERA_RE.finditer(src))
+    i_duelo = src.find(_CUR_DUELO_MARCA)
+    bloques, duelo, pre, cola = [], {}, "", ""
+    if cabs and i_duelo > cabs[-1].start():
+        pre = src[:cabs[0].start()]
+        for k, m in enumerate(cabs):
+            fin = cabs[k + 1].start() if k + 1 < len(cabs) else i_duelo
+            bloques.append((int(m.group(1)), m.group(2), src[m.start():fin]))
+        # El pozo del duelo: una línea por grado, `  N: [[...], ...],`
+        resto = src[i_duelo:]
+        for linea in resto.splitlines():
+            mg = re.match(r"^\s+(\d): \[", linea)
+            if mg:
+                duelo[int(mg.group(1))] = linea
+        cola = resto
+    _CUR_PARTIDO.update(mtime=mt, pre=pre, bloques=bloques, duelo=duelo, cola=cola)
+    return _CUR_PARTIDO if bloques else None
+
+
+def _grados_del_cuaderno(token):
+    """Los grados del catálogo que este cuaderno puede abrir: el del chico (el duelo usa
+    ése), más el de cada actividad del menú y de las extras de la escuela.
+    None si no se puede saber (se sirve el catálogo entero)."""
+    part = _curriculum_partido()
+    if part is None:
+        return None
+    grado_de = {i: g for g, i, _ in part["bloques"]}
+    try:
+        dj = json.load(open(os.path.join(ACT_DIR, token, "data.json"), encoding="utf-8"))
+    except Exception:
+        return None
+    try:
+        edad = int(str(dj.get("edad") or 9).strip())
+    except (TypeError, ValueError):
+        edad = 9                               # el mismo default que `gradoDelChico()`
+    grados = {max(1, min(7, edad - 5))}
+    ids = [m if isinstance(m, str) else (m or {}).get("id") for m in (dj.get("menu") or [])]
+    ids += [(it or {}).get("id") for it in (extras_leer(token).get("items") or [])
+            if isinstance(it, dict)]
+    for i in ids:
+        if i in grado_de:
+            grados.add(grado_de[i])
+    return grados
+
+
+def _curriculum_del_cuaderno(token):
+    """El catálogo curricular con sólo los grados de este cuaderno (ver arriba).
+
+    Lo que queda afuera son bloques `const CUR_… = [...]` + `GAMES.id = …` de otros grados:
+    ningún código del player los nombra (el player sólo abre lo que está en su menú), y el
+    pozo del duelo se recorta a las líneas de los grados que quedan, porque nombra bancos
+    por su variable y una variable sin declarar tiraría el archivo entero."""
+    part = _curriculum_partido()
+    grados = _grados_del_cuaderno(token) if part else None
+    if not part or not grados:
+        with open(TEMPLATE_CURRICULUM, "rb") as f:
+            return f.read(), _CT[".js"]
+    partes = [part["pre"]]
+    partes += [b for g, _i, b in part["bloques"] if g in grados]
+    cola = part["cola"]
+    for g, linea in part["duelo"].items():
+        if g not in grados:
+            cola = cola.replace(linea + "\n", "", 1)
+    partes.append(cola)
+    return "".join(partes).encode("utf-8"), _CT[".js"]
+
+
+def _version_curriculum(token):
+    """El `?v=` del catálogo: la versión del player + el mtime del catálogo + los grados.
+
+    Los grados van en la URL porque el archivo se cachea un día y las extras de la
+    escuela pueden sumar un grado en cualquier momento: con otra URL, el navegador pide
+    el catálogo nuevo en vez de abrir una actividad que no tiene."""
+    try:
+        mt = str(int(os.path.getmtime(TEMPLATE_CURRICULUM)))
+    except OSError:
+        mt = "0"
+    g = _grados_del_cuaderno(token)
+    return "%s.%s.%s" % (_player_version(), mt, "".join(str(x) for x in sorted(g)) if g else "t")
+
+
+def archivo(token, nombre, acepta_webp=False):
     """(bytes, content_type) de un asset del token, o None. El player, las
     fuentes y el audio de las consignas salen del REPO (mejoras/grabaciones
     nuevas llegan a links ya vendidos, mismo criterio que player.js — la
     voz es fija, no personalizada por compra); el resto, de la carpeta del
-    token."""
+    token.
+
+    `acepta_webp`: si el navegador dijo `image/webp` en el Accept del pedido. Sólo lo
+    mira `s00.webp` & cía. (ver `_personaje_webp`)."""
     if not _cargar(token) or not _ASSET_RE.fullmatch(nombre or ""):
         return None
+    if nombre == "data.json":
+        return _data_json_liviano(token)
+    if nombre == "actividades_curriculum.js":
+        return _curriculum_del_cuaderno(token)
+    if nombre.endswith(".webp"):
+        return _personaje_webp(token, nombre, acepta_webp)
     if nombre == "player.js":
         p = TEMPLATE_JS
     elif nombre == "motor_adaptativo.js":
         p = TEMPLATE_MOTOR
-    elif nombre == "actividades_curriculum.js":
-        p = TEMPLATE_CURRICULUM
     elif nombre == "duelo.js":
         p = TEMPLATE_DUELO
     elif nombre in ("f1.ttf", "f2.ttf"):

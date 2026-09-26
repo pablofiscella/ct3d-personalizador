@@ -120,6 +120,15 @@ h1, h2, h3, .fx {
   animation: girar 0.9s linear infinite;
 }
 @keyframes girar { to { transform: rotate(360deg); } }
+/* el aviso de «no se pudo cargar» (MOT-04): mismo lugar que el aro, para que no salte nada */
+#cargando .carga-fallo { text-align: center; padding: 0 24px; max-width: 420px; }
+#cargando .carga-cara { font-size: 56px; line-height: 1; margin-bottom: 10px; }
+#cargando .carga-fallo .fx { font-size: 22px; margin-bottom: 8px; }
+#cargando .carga-fallo p { font-size: 17px; line-height: 1.45; opacity: .8; margin: 0 0 18px; }
+#cargando .carga-fallo button {
+  font: inherit; font-size: 19px; font-weight: 700; padding: 14px 26px; border: 0;
+  border-radius: 999px; background: var(--ac); color: #fff; cursor: pointer;
+}
 
 /* ── header ── */
 #hdr {
@@ -342,6 +351,13 @@ body.vi-abierto { overflow: hidden; }
 .btn-sondeo:active { transform: scale(.96); }
 @media (hover:hover) { .btn-sondeo:hover { filter: brightness(1.08); } }
 .btn-sondeo--ghost { background: var(--soft); color: var(--ink); box-shadow: none; font-size: 16px; }
+/* «Saltear este juego» en cada paso de la nivelación (25-sep-2026, MOT-10): chico y al costado,
+   para que no compita con el juego, pero con 44 px para que un dedo lo acierte. */
+.sondeo-saltear { min-height: 44px; margin-left: 8px; padding: 0 12px; border: none; border-radius: 999px;
+  background: var(--soft); color: var(--ink); font: 700 13px Archivo, system-ui, sans-serif; cursor: pointer; }
+#festejo .frase-extra { margin: 6px 0 2px; font-weight: 700; font-size: 16px; line-height: 1.35; }
+#festejo .frase-extra[hidden], #festejo .btn-duelo[hidden] { display: none; }
+#festejo .btn-duelo { display: block; margin: 10px auto 0; }
 
 /* ── El formulario del 🚩 ────────────────────────────────────────────────────────────
    ESTILO PROPIO, sin reusar `.op` (04-ago-2026). La primera versión les puso `.op` a las
@@ -603,6 +619,15 @@ body.g1 .carta[data-adapt]::after,
    Van sin el freno `caja-importa`: acá nunca la caja de la letra es la respuesta. */
 body.g1 #festejo,
 body.g1 #festejo button,
+/* la nivelación y la misión de hoy (25-sep-2026, PRO-04 y PRO-03): la tarjeta «¿Qué ya sabés
+   hacer?» salía en minúscula en 1.º (captura g1_nuevo_02_sondeo_intro.png), y es lo primero
+   que ve el chico después del nombre */
+body.g1 .sondeo,
+body.g1 .sondeo button,
+body.g1 .sondeo-paso,
+body.g1 .sondeo-saltear,
+body.g1 .mision,
+body.g1 .mision button,
 body.g1 #logro,
 body.g1 #logro button,
 body.g1 #perfil,
@@ -1358,6 +1383,64 @@ body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
 </head>
 <body>
 <div id="cargando"><div class="aro"></div><div class="fx" style="font-size:22px">Preparando tus juegos…</div></div>
+<script>
+/* Si el arranque no llega, se DICE (25-sep-2026, auditoría MOT-04). Vive acá y no en
+   player.js porque uno de los casos es justamente que player.js no llegue. Lo llaman el
+   chequeo del final del <body> (falta un script) y `_arrancar()` (no llegó data.json). */
+
+/* ¿EL NAVEGADOR ES DEMASIADO VIEJO? (26-sep-2026). El aviso decía siempre «puede ser la
+   conexión… probá de nuevo», y hay un caso donde reintentar no sirve NUNCA: el navegador no
+   entiende el JavaScript del cuaderno (Safari de iOS 15 con un regex nuevo, MOT-05; un
+   Android que no se actualiza). Ahí el script LLEGA, pero el navegador lo rechaza con un
+   error de SINTAXIS y `boot` no existe. Se detecta de dos formas: (1) un SyntaxError de uno
+   de nuestros scripts, que se anota acá antes de que se carguen; (2) una prueba de la
+   sintaxis que usa el cuaderno (`?.`, `??`, `...`, async) y de `fetch`. Con eso el aviso
+   sugiere actualizar o abrir el link en otro navegador, no reintentar. */
+window.addEventListener("error", function (e) {
+  var err = e && e.error, msg = (e && e.message) || "";
+  var nuestro = !e.filename || /\/(player|motor_adaptativo|actividades_curriculum|duelo)\.js/.test(e.filename);
+  if (nuestro && ((err && err.name === "SyntaxError") || /SyntaxError|Invalid regular expression/i.test(msg)))
+    window.SINTAXIS_ROTA = true;
+});
+function navegadorViejo() {
+  if (window.SINTAXIS_ROTA) return true;
+  if (typeof fetch !== "function" || typeof Promise !== "function") return true;
+  try { new Function("var o={a:1};var b={...o};var f=async()=>{await 0};return o?.a??b.a"); }
+  catch (e) { return true; }
+  return false;
+}
+function falloDeCarga(reintentar) {
+  var c = document.getElementById("cargando");
+  if (!c || c.querySelector(".carga-fallo")) return;
+  var antes = c.innerHTML;
+  if (navegadorViejo()) {
+    c.innerHTML = '<div class="carga-fallo carga-fallo--viejo"><div class="carga-cara">😕</div>' +
+      '<div class="fx">Este navegador no puede abrir los juegos</div>' +
+      '<p>Es un navegador viejo: probar de nuevo no lo arregla. Actualizá el navegador ' +
+      '(o el sistema del teléfono), o abrí este mismo link en otro navegador, como Chrome.</p>' +
+      '<button type="button">📋 Copiar el link</button></div>';
+    var b = c.querySelector("button");
+    b.addEventListener("click", function () {
+      var url = location.href, ok = false;
+      try {
+        var t = document.createElement("textarea");
+        t.value = url; document.body.appendChild(t); t.select();
+        ok = document.execCommand("copy"); document.body.removeChild(t);
+      } catch (e) {}
+      b.textContent = ok ? "✅ Link copiado" : url;
+    });
+    return;
+  }
+  c.innerHTML = '<div class="carga-fallo"><div class="carga-cara">😕</div>' +
+    '<div class="fx">No se pudieron cargar los juegos</div>' +
+    '<p>Puede ser la conexión a internet. Fijate que haya señal y tocá el botón.</p>' +
+    '<button type="button">🔄 Probar de nuevo</button></div>';
+  c.querySelector("button").addEventListener("click", function () {
+    c.innerHTML = antes;
+    (reintentar || function () { location.reload(); })();
+  });
+}
+</script>
 
 <header id="hdr">
   <!-- El 📚 se fue el 27-jul-2026. Llevaba a /mi-cuenta con la URL ESCRITA A MANO, y el
@@ -1390,11 +1473,14 @@ body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
     <img class="masco" id="mascoFestejo" alt="" src="">
     <h2 id="festejoTitulo">¡Muy bien!</h2>
     <div class="frase" id="festejoFrase"></div>
+    <!-- el motivo para volver (PRO-03) y el duelo (PRO-10), 25-sep-2026: los prende `festejar` -->
+    <div class="frase-extra" id="festejoExtra" hidden></div>
     <div class="estrellas" id="festejoEstrellas"></div>
     <div class="botones">
       <button class="btn suave" id="btnOtraVez">🔁 Otra vez</button>
       <button class="btn verde" id="btnSeguir">¡Seguir jugando!</button>
     </div>
+    <button class="btn suave btn-duelo" id="btnDuelo" hidden>🆚 Desafiá a un compañero</button>
   </div>
 </div>
 
@@ -1431,6 +1517,41 @@ body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
      quedarían sin ícono hasta regenerarlos uno por uno. Acá se calcula en cada visita, con el
      Host del pedido, igual que la marca del título. `null` cuando no corresponde: cuaderno de
      cumpleaños, host que no es de Kydo, o grado sin clases escritas. -->
+<script>
+/* Los errores de JavaScript del cuaderno se anotan en el servidor (25-sep-2026, auditoría
+   INF-22). Sin esto, si el cuaderno se rompía en el celular de una familia —un navegador
+   viejo, el de Facebook, un deploy con un error— nadie se enteraba. Va ACÁ, antes de los
+   <script> del cuaderno, para ver también el caso en que player.js no se puede ni leer.
+   ES5 a propósito (sin flechas ni const): tiene que correr justo en los navegadores viejos.
+   Sin datos personales: mensaje, archivo, línea, versión y navegador. Tope: 5 por página. */
+(function () {
+  var enviados = 0, vistos = {};
+  function mandar(m, f, l, c) {
+    try {
+      m = String(m || "").slice(0, 300);
+      var clave = m + "|" + l;
+      if (enviados >= 5 || vistos[clave]) return;
+      vistos[clave] = 1; enviados++;
+      var cuerpo = JSON.stringify({ m: m, f: String(f || "").split("?")[0].split("/").pop(),
+        l: l | 0, c: c | 0, v: "{{V}}", ua: String(navigator.userAgent || "").slice(0, 200) });
+      if (navigator.sendBeacon) navigator.sendBeacon("error-js", new Blob([cuerpo], { type: "application/json" }));
+      else { var x = new XMLHttpRequest(); x.open("POST", "error-js"); x.send(cuerpo); }
+    } catch (e) { /* el que avisa no puede ser el que rompe */ }
+  }
+  window.addEventListener("error", function (e) {
+    // los errores de carga de una imagen o un audio también llegan acá, sin `message`: no son
+    // del JavaScript y ya tienen su manejo en cada juego
+    if (e && e.message) mandar(e.message, e.filename, e.lineno, e.colno);
+  });
+  window.addEventListener("unhandledrejection", function (e) {
+    var r = e && e.reason;
+    // un audio que el navegador no deja sonar sin un toque, o que se corta porque empezó
+    // otro, no es una falla del cuaderno: son la mayoría de estos y taparían los de verdad
+    if (r && (r.name === "NotAllowedError" || r.name === "AbortError")) return;
+    mandar("promesa: " + ((r && r.message) || r), "", 0, 0);
+  });
+})();
+</script>
 <script>window.SENO = {{SENO}};</script>
 <script src="motor_adaptativo.js?v={{V}}"></script>
 <script src="player.js?v={{V}}"></script>
@@ -1439,5 +1560,14 @@ body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
 <!-- duelo entre compañeros: necesita GAMES (player.js) y el pozo de preguntas
      CUR_DUELO_POR_GRADO (actividades_curriculum.js), así que va último -->
 <script src="duelo.js?v={{V}}"></script>
+<!-- Si player.js o el catálogo no llegaron, `boot` no existe o el menú saldría casi vacío:
+     se avisa en vez de dejar «Preparando tus juegos…» para siempre (MOT-04, 25-sep-2026).
+     El duelo no entra en el chequeo: sin él el cuaderno anda igual. -->
+<script>
+if (typeof boot !== "function" || typeof CUR_DUELO_POR_GRADO === "undefined") {
+  window.ARRANQUE_ROTO = true;
+  falloDeCarga(function () { location.reload(); });
+}
+</script>
 </body>
 </html>

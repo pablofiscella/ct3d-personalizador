@@ -127,11 +127,18 @@ function error(msg, conCierre){
   pinta("<h1>Uy 😅</h1><p>" + esc(msg) + "</p>" + (conCierre ? cierreHTML() : ""));
 }
 
+/* EL CIERRE LLEVA A PROBAR, NO A LA PORTADA (25-sep-2026, auditoría PRO-10). El chico que
+   llegó por un desafío terminaba en «Conocer Kydo» —la portada, a elegir grado de nuevo—
+   cuando ya sabemos su grado: es el del duelo. Ahora va directo a la sala de prueba de ESE
+   grado, que es donde se juega sin cuenta y se ofrece guardarlo. */
 function cierreHTML(){
+  const g = (duelo && duelo.grado >= 1 && duelo.grado <= 7) ? duelo.grado : 0;
+  const ir = g ? "https://kydo.com.ar/kydo/probar?grado=" + g : "https://kydo.com.ar";
   return '<div class="cierre"><b>¿Y esto qué es?</b>' +
          '<p>Kydo es la práctica escolar de 1.º a 7.º grado con el contenido que se ve ' +
          'en la escuela. Este desafío salió de ahí.</p>' +
-         '<a href="https://kydo.com.ar">Conocer Kydo →</a></div>';
+         '<a href="' + ir + '">' + (g ? "Probá el cuaderno de " + ORD[g - 1] + " grado gratis →"
+                                      : "Conocer Kydo →") + '</a></div>';
 }
 
 let duelo = null;
