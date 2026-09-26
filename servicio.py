@@ -1385,12 +1385,22 @@ class Handler(BaseHTTPRequestHandler):
                 self.end_headers(); self.wfile.write(data_b)
                 return
             if arch:
-                r = aw.archivo(token, arch)
+                r = aw.archivo(token, arch,
+                               acepta_webp="image/webp" in (self.headers.get("Accept") or ""))
                 if r is None:
                     return self._json(404, {"ok": False, "error": "no existe"})
                 data_b, ct = r
                 self.send_response(200)
                 self.send_header("Content-Type", ct)
+                if arch.endswith(".webp"):
+                    # 25-sep-2026 (MOT-03): la misma URL da WebP o PNG según el Accept del
+                    # navegador (ver `aw._personaje_webp`). `private` para que Cloudflare
+                    # no guarde una versión y se la dé a quien no la entiende.
+                    self.send_header("Vary", "Accept")
+                    self.send_header("Cache-Control", "private, max-age=86400")
+                    self.send_header("Content-Length", str(len(data_b)))
+                    self.end_headers(); self.wfile.write(data_b)
+                    return
                 # audio_manifest.json es la EXCEPCIÓN: a diferencia de las piezas
                 # c_<hash>.mp3 (content-addressed, el nombre cambia si el
                 # contenido cambia — 24h de caché es correcto), este archivo
