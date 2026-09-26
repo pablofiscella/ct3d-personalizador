@@ -7,6 +7,15 @@ factories ya definidas) y registra una entrada `GAMES.<id>` por actividad del ca
 
 NO editar el .js a mano: se pisa en la próxima corrida. La fuente es
 `actividades_curriculum.py`, donde una actividad es UNA entrada de datos.
+
+OJO CON LA FORMA (25-sep-2026): el motor NO sirve este archivo entero. Lo parte al vuelo
+(`actividades_web._curriculum_del_cuaderno`) para mandarle a cada cuaderno sólo los grados
+que usa — son ~1 MB los siete, y un celular con datos lo pagaba en cada primera visita. Para
+partirlo se apoya en dos cosas que escribe este script:
+  - la cabecera de cada actividad, `/* N° · título — id`;
+  - la marca `/* Pozo de preguntas del DUELO` y una línea `  N: [...]` por grado.
+Si se cambian, el motor lo detecta y sirve el archivo entero (anda, pero vuelve a pesar):
+`tests/test_peso_del_cuaderno.py` lo cuida.
 """
 import json
 import json
