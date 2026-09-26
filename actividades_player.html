@@ -120,6 +120,15 @@ h1, h2, h3, .fx {
   animation: girar 0.9s linear infinite;
 }
 @keyframes girar { to { transform: rotate(360deg); } }
+/* el aviso de «no se pudo cargar» (MOT-04): mismo lugar que el aro, para que no salte nada */
+#cargando .carga-fallo { text-align: center; padding: 0 24px; max-width: 420px; }
+#cargando .carga-cara { font-size: 56px; line-height: 1; margin-bottom: 10px; }
+#cargando .carga-fallo .fx { font-size: 22px; margin-bottom: 8px; }
+#cargando .carga-fallo p { font-size: 17px; line-height: 1.45; opacity: .8; margin: 0 0 18px; }
+#cargando .carga-fallo button {
+  font: inherit; font-size: 19px; font-weight: 700; padding: 14px 26px; border: 0;
+  border-radius: 999px; background: var(--ac); color: #fff; cursor: pointer;
+}
 
 /* ── header ── */
 #hdr {
@@ -342,6 +351,13 @@ body.vi-abierto { overflow: hidden; }
 .btn-sondeo:active { transform: scale(.96); }
 @media (hover:hover) { .btn-sondeo:hover { filter: brightness(1.08); } }
 .btn-sondeo--ghost { background: var(--soft); color: var(--ink); box-shadow: none; font-size: 16px; }
+/* «Saltear este juego» en cada paso de la nivelación (25-sep-2026, MOT-10): chico y al costado,
+   para que no compita con el juego, pero con 44 px para que un dedo lo acierte. */
+.sondeo-saltear { min-height: 44px; margin-left: 8px; padding: 0 12px; border: none; border-radius: 999px;
+  background: var(--soft); color: var(--ink); font: 700 13px Archivo, system-ui, sans-serif; cursor: pointer; }
+#festejo .frase-extra { margin: 6px 0 2px; font-weight: 700; font-size: 16px; line-height: 1.35; }
+#festejo .frase-extra[hidden], #festejo .btn-duelo[hidden] { display: none; }
+#festejo .btn-duelo { display: block; margin: 10px auto 0; }
 
 /* ── El formulario del 🚩 ────────────────────────────────────────────────────────────
    ESTILO PROPIO, sin reusar `.op` (04-ago-2026). La primera versión les puso `.op` a las
@@ -603,6 +619,15 @@ body.g1 .carta[data-adapt]::after,
    Van sin el freno `caja-importa`: acá nunca la caja de la letra es la respuesta. */
 body.g1 #festejo,
 body.g1 #festejo button,
+/* la nivelación y la misión de hoy (25-sep-2026, PRO-04 y PRO-03): la tarjeta «¿Qué ya sabés
+   hacer?» salía en minúscula en 1.º (captura g1_nuevo_02_sondeo_intro.png), y es lo primero
+   que ve el chico después del nombre */
+body.g1 .sondeo,
+body.g1 .sondeo button,
+body.g1 .sondeo-paso,
+body.g1 .sondeo-saltear,
+body.g1 .mision,
+body.g1 .mision button,
 body.g1 #logro,
 body.g1 #logro button,
 body.g1 #perfil,
@@ -1358,6 +1383,24 @@ body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
 </head>
 <body>
 <div id="cargando"><div class="aro"></div><div class="fx" style="font-size:22px">Preparando tus juegos…</div></div>
+<script>
+/* Si el arranque no llega, se DICE (25-sep-2026, auditoría MOT-04). Vive acá y no en
+   player.js porque uno de los casos es justamente que player.js no llegue. Lo llaman el
+   chequeo del final del <body> (falta un script) y `_arrancar()` (no llegó data.json). */
+function falloDeCarga(reintentar) {
+  var c = document.getElementById("cargando");
+  if (!c || c.querySelector(".carga-fallo")) return;
+  var antes = c.innerHTML;
+  c.innerHTML = '<div class="carga-fallo"><div class="carga-cara">😕</div>' +
+    '<div class="fx">No se pudieron cargar los juegos</div>' +
+    '<p>Puede ser la conexión a internet. Fijate que haya señal y tocá el botón.</p>' +
+    '<button type="button">🔄 Probar de nuevo</button></div>';
+  c.querySelector("button").addEventListener("click", function () {
+    c.innerHTML = antes;
+    (reintentar || function () { location.reload(); })();
+  });
+}
+</script>
 
 <header id="hdr">
   <!-- El 📚 se fue el 27-jul-2026. Llevaba a /mi-cuenta con la URL ESCRITA A MANO, y el
@@ -1390,11 +1433,14 @@ body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
     <img class="masco" id="mascoFestejo" alt="" src="">
     <h2 id="festejoTitulo">¡Muy bien!</h2>
     <div class="frase" id="festejoFrase"></div>
+    <!-- el motivo para volver (PRO-03) y el duelo (PRO-10), 25-sep-2026: los prende `festejar` -->
+    <div class="frase-extra" id="festejoExtra" hidden></div>
     <div class="estrellas" id="festejoEstrellas"></div>
     <div class="botones">
       <button class="btn suave" id="btnOtraVez">🔁 Otra vez</button>
       <button class="btn verde" id="btnSeguir">¡Seguir jugando!</button>
     </div>
+    <button class="btn suave btn-duelo" id="btnDuelo" hidden>🆚 Desafiá a un compañero</button>
   </div>
 </div>
 
@@ -1439,5 +1485,14 @@ body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
 <!-- duelo entre compañeros: necesita GAMES (player.js) y el pozo de preguntas
      CUR_DUELO_POR_GRADO (actividades_curriculum.js), así que va último -->
 <script src="duelo.js?v={{V}}"></script>
+<!-- Si player.js o el catálogo no llegaron, `boot` no existe o el menú saldría casi vacío:
+     se avisa en vez de dejar «Preparando tus juegos…» para siempre (MOT-04, 25-sep-2026).
+     El duelo no entra en el chequeo: sin él el cuaderno anda igual. -->
+<script>
+if (typeof boot !== "function" || typeof CUR_DUELO_POR_GRADO === "undefined") {
+  window.ARRANQUE_ROTO = true;
+  falloDeCarga(function () { location.reload(); });
+}
+</script>
 </body>
 </html>

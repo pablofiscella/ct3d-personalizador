@@ -670,6 +670,46 @@ const Store = {
     const p = this._perfil();
     return _rachaDeDias((p && p.dias) || [], hoy || _hoyStr());
   },
+  // ── LO QUE GANÓ HOY Y LA MISIÓN DEL DÍA (25-sep-2026, auditoría PRO-03). Ninguno de los
+  // 8 chicos reales volvió un segundo día, y el cuaderno no le daba ningún motivo: el sello
+  // «dominado» pide 3★ en DOS días distintos, pero nada se lo decía antes de que pasara.
+  // Se guarda sólo lo de HOY (se pisa al cambiar el día): es lo que necesita la misión para
+  // tildar lo hecho, y no hace falta historia — la historia ya está en `dias` y `dominio`.
+  marcarGanadaHoy(id, hoy) {
+    const p = this._perfil(); if (!p || !id) return;
+    const d = hoy || _hoyStr();
+    if (!p.hoy || p.hoy.d !== d || !Array.isArray(p.hoy.ids)) p.hoy = { d: d, ids: [] };
+    if (p.hoy.ids.indexOf(id) >= 0) return;
+    p.hoy.ids.push(id);
+    this.save();
+  },
+  ganadasHoy(hoy) {
+    const p = this._perfil();
+    const d = hoy || _hoyStr();
+    return (p && p.hoy && p.hoy.d === d && Array.isArray(p.hoy.ids)) ? p.hoy.ids.slice() : [];
+  },
+  // «1 de 2 días»: ya tuvo 3★ en un día y le falta otro para sellarla.
+  unoDeDos(id) {
+    const d = this.dom(id);
+    return !!(d && d.sello === "practicando" && (d.dias || []).length === 1);
+  },
+  // La puede sellar HOY: tuvo 3★ OTRO día y todavía no hoy. Es la que la misión pone
+  // primero, porque es la que convierte la vuelta en un sello que el padre ve.
+  paraSellarHoy(id, hoy) {
+    const d = this.dom(id);
+    return !!(this.unoDeDos(id) && d.dias.indexOf(hoy || _hoyStr()) < 0);
+  },
+  // La misión se elige UNA vez por día y queda fija: si se recalculara en cada vuelta al
+  // menú, lo que el chico ya hizo dejaría de estar en la lista y nunca la cumpliría.
+  misionDeHoy(elegir, hoy) {
+    const p = this._perfil(); if (!p) return [];
+    const d = hoy || _hoyStr();
+    if (!p.mision || p.mision.d !== d || !Array.isArray(p.mision.ids)) {
+      p.mision = { d: d, ids: (elegir() || []).slice(0, 3) };
+      this.save();
+    }
+    return p.mision.ids.slice();
+  },
   // Avatar elegido por el chico: índice dentro de D.personajes. Si no eligió, el 0 —
   // que es lo que hacía siempre el cuaderno antes de que se pudiera elegir.
   avatar() { const p = this._perfil(); return (p && typeof p.av === "number") ? p.av : 0; },
@@ -4973,6 +5013,20 @@ function certificadoUrl() {
   return "certificado.png?nombre=" + encodeURIComponent(Store.data.activeProfile || "");
 }
 
+/* La regla GENERAL de estrellas, la de `Shell.ctx().win()` cuando el juego no trae las
+   suyas. Se sacó afuera de `win()` el 25-sep-2026 (auditoría, PRO-13) sin cambiar una coma
+   de la cuenta, para poder correrla suelta con node en los tests: el arreglo del memotest y
+   del sudoku dependía de ella y se tenía que poder PROBAR, no sólo leer.
+     - con rondas registradas → precisión de primer intento (≥90 % 3★, ≥70 % 2★)
+     - sin rondas registradas (colorear, etc.) → el criterio viejo, por fallos */
+function _estrellasDeLaPartida(primerOk, primerTotal, fallos) {
+  if (primerTotal > 0) {
+    const acc = primerOk / primerTotal;
+    return acc >= 0.9 ? 3 : (acc >= 0.7 ? 2 : 1);
+  }
+  return fallos === 0 ? 3 : (fallos <= 2 ? 2 : 1);
+}
+
 /* ── shell de juego: consigna + progreso + festejo ── */
 const Shell = {
   actual: null, nivelActual: null, fallos: 0, _rondas: 0, _nuevoLogro: false,
@@ -5163,6 +5217,11 @@ const Shell = {
         });
       },
       bien(txt) { registrar(true); marcarLoQueToco("bien"); ocultarExplicacion(); Sfx.ok(); toast(txt || FRASES_BIEN[rint(0, FRASES_BIEN.length - 1)]); },
+      // Anota el intento SIN festejarlo ni marcarlo (25-sep-2026, PRO-13). Es para el juego
+      // que tiene que contar aciertos pero no puede decir cuál estuvo bien sin soplar la
+      // respuesta: el sudoku acepta cualquier ficha que no choque, y un «¡Muy bien!» sólo en
+      // las de la solución le diría al chico cuál es cuál. Mismo `registrar` que bien/casi.
+      anotar(ok) { registrar(!!ok); },
       casi(motivo) {
         registrar(false, motivo); marcarLoQueToco("casi");
         self.fallos++; self._rondaFallos = (self._rondaFallos || 0) + 1;
@@ -5180,15 +5239,9 @@ const Shell = {
         //   - juego sin rondas registradas (colorear, etc.) → fallback viejo por fallos
         // El "sello de dominado sostenido en 2 sesiones" + diploma es el próximo
         // incremento (necesita timestamps entre sesiones); esto ya deja el dato.
-        let e;
-        if (estrellas !== undefined) {
-          e = estrellas;
-        } else if (self.primerTotal > 0) {
-          const acc = self.primerOk / self.primerTotal;
-          e = acc >= 0.9 ? 3 : (acc >= 0.7 ? 2 : 1);
-        } else {
-          e = self.fallos === 0 ? 3 : (self.fallos <= 2 ? 2 : 1);
-        }
+        const e = estrellas !== undefined
+          ? estrellas
+          : _estrellasDeLaPartida(self.primerOk, self.primerTotal, self.fallos);
         // Durante la nivelación inicial el resultado UBICA, no puntúa: no se guardan
         // estrellas ni sellos ni se festeja, porque el sondeo no es logro del chico —
         // es el motor averiguando por dónde empezar. Sale por acá antes de tocar nada.
@@ -5199,6 +5252,13 @@ const Shell = {
         const yaEstabaCompleto = todoCompleto();
         Store.setStars(self.actual, e);
         Store.marcarDia();                    // la racha cuenta días con partida ganada
+        // La misión del día (PRO-03): se mira ANTES y DESPUÉS de anotar esta partida, así el
+        // festejo dice «misión cumplida» una sola vez — en la que la cierra — y no en cada
+        // partida que se juegue después.
+        const _misionAntes = _misionCumplida();
+        const _primeraDeHoy = !Store.ganadasHoy().length;
+        Store.marcarGanadaHoy(self.actual);
+        const _misionAhora = !_misionAntes && _misionCumplida();
         // dificultad adaptativa: si le salió fácil (3★) sube el nivel para la próxima;
         // si le costó, se queda igual (repite ese nivel hasta dominarlo). Gateado.
         // El nivel VISIBLE se mide antes y después: si la actividad cambió de escalón
@@ -5220,7 +5280,11 @@ const Shell = {
         const evtDom = e >= 3 ? Store.registrarDominio(self.actual, e) : null;
         if (!yaEstabaCompleto && todoCompleto()) self._nuevoLogro = true;
         pintarHeader();
-        festejar(e, evtDom, _subioNivel, _ganoElMasAlla);
+        festejar(e, evtDom, _subioNivel, _ganoElMasAlla,
+                 { misionCumplida: _misionAhora, primeraDeHoy: _primeraDeHoy });
+        // La sala de prueba abre el «¿Se lo guardás?» cuando el chico TERMINA un juego, no
+        // por reloj (EMB-02). La nivelación no llega acá: sale antes, arriba.
+        _avisarALaSala("termino", { estrellas: e });
         // activación escalable por niveles: si al ganar (3★) quedó DOMINADO el
         // nivel de esta actividad (≥80% con 3★) y hay un nivel siguiente, avisar
         // al adulto UNA vez (motivo='domino' → la tienda le manda el mail) y
@@ -5240,7 +5304,8 @@ const Shell = {
   },
 };
 
-function festejar(estrellas, evtDom, subioNivel, ganoElMasAlla) {
+function festejar(estrellas, evtDom, subioNivel, ganoElMasAlla, extra) {
+  extra = extra || {};
   Sfx.fanfarria();
   Confeti.tirar(evtDom || subioNivel || ganoElMasAlla ? 220 : 140);
   const nombre = Store.data.activeProfile;
@@ -5267,6 +5332,44 @@ function festejar(estrellas, evtDom, subioNivel, ganoElMasAlla) {
   } else {
     $("#festejoTitulo").textContent = nombre ? `¡Muy bien, ${nombre}!` : "¡Muy bien!";
     $("#festejoFrase").textContent = FRASES_FESTEJO[rint(0, FRASES_FESTEJO.length - 1)];
+  }
+  // ── EL MOTIVO PARA VOLVER, DICHO EN EL MOMENTO (25-sep-2026, auditoría PRO-03). El sello
+  // pide 3★ en dos días, y hasta hoy sólo se festejaba cuando ya había pasado: nadie le
+  // decía al chico que existía. Ahora, la primera vez que saca 3★ en una actividad, el
+  // festejo se lo dice. Sólo con el motor (la línea escolar): el cuaderno de cumpleaños
+  // festeja como siempre.
+  const _adapt = !!(D.adaptativo_on && typeof Adapt !== "undefined");
+  const _hoy = _hoyStr();
+  const _dom = Shell.actual ? Store.dom(Shell.actual) : null;
+  let _extra = "";
+  if (_adapt && extra.misionCumplida) {
+    const _n = _paraSellarManana(_hoy);
+    const _manana = _n
+      ? `Mañana: ${_n === 1 ? "1 para sellar" : _n + " para sellar"} 🏅. Si te sale igual, ${_n === 1 ? "queda dominada" : "quedan dominadas"}.`
+      : "Mañana te espera otra misión.";
+    // Lo más grande va arriba: si esta misma partida lo hizo dominar o subir de nivel, eso
+    // sigue siendo el título y la misión pasa a la línea de abajo.
+    if (!ganoElMasAlla && !subioNivel && !evtDom) {
+      $("#festejoTitulo").textContent = nombre
+        ? `🎯 ¡Misión de hoy cumplida, ${nombre}!` : "🎯 ¡Misión de hoy cumplida!";
+      $("#festejoFrase").textContent = _manana;
+    } else {
+      _extra = "🎯 ¡Misión de hoy cumplida! " + _manana;
+    }
+  } else if (_adapt && estrellas >= 3 && !evtDom && _dom && _dom.sello === "practicando" &&
+             _dom.dias.length === 1 && _dom.dias[0] === _hoy) {
+    _extra = "🏅 1 de 2 días. Volvé mañana, jugala de nuevo y queda sellada.";
+  }
+  const _ext = $("#festejoExtra");
+  if (_ext) { _ext.textContent = _extra; _ext.hidden = !_extra; }
+  // EL DUELO, EN EL MOMENTO DE FESTEJAR (25-sep-2026, auditoría PRO-10). Era la tarjeta 74
+  // de 74, al fondo de Extras, y nadie lo usó. Es el único camino por el que un chico trae
+  // a otra familia; se ofrece donde el chico tiene ganas de mostrar lo que hizo: la primera
+  // partida ganada del día y la misión cumplida. No en la sala pública: ahí no hay un
+  // cuaderno propio desde el que desafiar.
+  const _bd = $("#btnDuelo");
+  if (_bd) {
+    _bd.hidden = !(_hayDuelo() && (extra.primeraDeHoy || extra.misionCumplida) && estrellas >= 2);
   }
   const cont = $("#festejoEstrellas");
   cont.innerHTML = "";
@@ -5481,6 +5584,28 @@ function senoEsMuestra() {
   return senoCurso() === SENO_EJEMPLO;
 }
 
+/* LA SALA DE PRUEBA ES PÚBLICA (25-sep-2026, auditoría EXP-02/PRO-01/MOT-01/SEG-04).
+   Los cuadernos `muestra-kydo-1..7` —la sala de /kydo/probar, el «mirarlo ustedes» del correo
+   a escuelas y las demos de la portada— son UNO por grado para todo el mundo. Sin este corte,
+   cada familia nueva abría el cuaderno con el nombre y las estrellas del visitante anterior,
+   se salteaba el «¿Quién juega?» y la nivelación, y los nombres de chicos quedaban públicos
+   en /act/muestra-kydo-N/progreso. La demo de la maestra (?seno=EJEMPLO) ya lo tenía; la sala
+   no. Lo jugado sigue guardándose en el navegador de quien mira: lo que no viaja es al
+   servidor, ni de ida ni de vuelta. */
+function cuadernoEsMuestraPublica() {
+  try {
+    const m = location.pathname.match(/\/act\/([^\/]+)/);
+    return !!(m && /^muestra-/i.test(decodeURIComponent(m[1])));
+  } catch (e) { return false; }
+}
+
+/* El nombre del chico lo escribe quien juega y vuelve del servidor: se escapa antes de
+   meterlo en un innerHTML (auditoría MOT-13: `<img onerror=…>` se ejecutaba en el panel). */
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
 /* La muestra es UNA actividad, no una puerta al grado entero.
    Pablo (26-jul-2026): "cuando entras a probar una actividad y pones atrás tenés acceso a
    todas las actividades de cuarto grado. Creo que desde la página no debería poder ir para
@@ -5634,11 +5759,23 @@ function nivelInicial() {
    no resolvés lo de arriba sin lo de abajo).
 
    Tres decisiones que importan:
-   - NO puntúa. No guarda estrellas, ni sellos, ni festeja. El chico no está siendo
-     evaluado, y el padre no ve resultados de esto en su tablero.
+   - NO puntúa. No guarda estrellas, ni sellos. El chico no está siendo evaluado, y el
+     padre no ve resultados de esto en su tablero.
    - Se puede saltear. Un chico que no quiere no tiene que pasar por un examen para
      usar su cuaderno; si saltea, el motor arranca como arrancaba antes.
-   - Sólo con adaptativo_on, y una vez por perfil: los links ya vendidos no lo ven. */
+   - Sólo con adaptativo_on, y una vez por perfil: los links ya vendidos no lo ven.
+
+   LOS PRIMEROS MINUTOS (25-sep-2026, auditoría PRO-04, MOT-10 y PRO-05). La nivelación
+   cortó sesiones reales en 2 de 4 casos: arrancaba por lo difícil (3.º: poema_3, 25 % de
+   acierto a la primera), duraba 4-5 juegos, escondía el ← y terminaba en un menú de 65 a
+   105 tarjetas. Ahora:
+   - corta: tres juegos como mucho, y el primero es fácil (`Adapt.planSondeo`);
+   - salteable EN CADA PASO («Saltear este juego») y con el ← a la vista: tocarlo guarda lo
+     que ya se ubicó y va al menú — la nivelación nunca más bloquea el cuaderno;
+   - si le va mal en dos seguidos, termina ahí: seguir sólo lo haría sentir peor;
+   - termina con festejo, y el botón grande no lleva al menú sino DIRECTO a jugar lo que
+     conviene («Seguí por acá»): la primera actividad de verdad en segundos, y el menú
+     cuando vuelva con el ←. «Saltear y jugar» en la tarjeta de inicio hace lo mismo. */
 const Sondeo = {
   activo: false, plan: [], idx: 0, aciertos: [],
   UMBRAL: 0.75,          // 3 de 4 al primer intento = lo sabe hacer
@@ -5665,18 +5802,22 @@ const Sondeo = {
     card.innerHTML =
       '<div class="sondeo-ico">🧭</div>' +
       "<h2>¿Qué ya sabés hacer?</h2>" +
-      "<p>Antes de arrancar te voy a mostrar <b>" + this.plan.length + " juegos cortitos</b>, " +
-      "uno de cada materia. <b>No es una prueba</b> y no te va a bajar estrellas: " +
+      "<p>Antes de arrancar te voy a mostrar <b>" + this.plan.length + " juegos cortitos</b>. " +
+      "<b>No es una prueba</b> y no te va a bajar estrellas: " +
       "es para no darte cosas que ya sabés hacer.</p>" +
       '<div class="sondeo-btns"></div>';
     const btns = card.querySelector(".sondeo-btns");
     const ok = el("button", "btn-sondeo", "¡Dale, empecemos!");
-    ok.addEventListener("click", () => this._siguiente());
-    const no = el("button", "btn-sondeo btn-sondeo--ghost", "Ahora no");
-    no.addEventListener("click", () => { Store.marcarSondeo(true); pintarMenu(); });
+    ok.addEventListener("click", () => { pararVoz(); this._siguiente(); });
+    const no = el("button", "btn-sondeo btn-sondeo--ghost", "Saltear y jugar");
+    no.addEventListener("click", () => { pararVoz(); Store.marcarSondeo(true); entrarAJugar(); });
     btns.appendChild(ok); btns.appendChild(no);
     stage.appendChild(card);
     scrollTo(0, 0);
+    // En 1.º a 3.º la tarjeta se lee en voz alta, como las consignas: un chico que todavía
+    // no lee no puede decidir entre dos botones que no entiende (PRO-04).
+    if (_menuQueHabla()) reproducirConsigna("¿Qué ya sabés hacer? Antes de arrancar te voy a " +
+      "mostrar " + this.plan.length + " juegos cortitos. No es una prueba.", false);
   },
 
   _siguiente() {
@@ -5694,8 +5835,13 @@ const Sondeo = {
     Shell.primerOk = 0; Shell.primerTotal = 0;
     Shell._rondaT0 = Date.now(); Shell._rondaT1 = 0; Shell._rondaToques = 0;
     const stage = $("#stage"); stage.innerHTML = "";
+    // el ← a la vista durante la nivelación (MOT-10): tocarlo pasa por `volverMenu`, que
+    // corta el sondeo guardando lo ya ubicado (`Sondeo.cortar`)
+    $("#btnAtras").classList.add("ver");
     stage.appendChild(el("div", "", '<div class="sondeo-paso">Juego ' + (this.idx + 1) +
-      " de " + this.plan.length + " · " + (Adapt.labelCategoria ? Adapt.labelCategoria(paso.cat) : "") + "</div>" +
+      " de " + this.plan.length + " · " + (Adapt.labelCategoria ? Adapt.labelCategoria(paso.cat) : "") +
+      ' <button type="button" class="sondeo-saltear" id="sondeoSaltear">Saltear este juego ⏭</button>' +
+      "</div>" +
       '<div id="consigna"><img class="pista" id="consignaPista" alt="" style="display:none">' +
       '<div class="texto" id="consignaTexto"></div>' +
       '<button type="button" id="consignaRepetir" class="repetir" aria-label="Escuchar de nuevo">🔊</button></div>' +
@@ -5707,46 +5853,104 @@ const Sondeo = {
     }, { capture: true, passive: true });
     GAMES[paso.juego].crear(Shell.ctx(corto));
     requestAnimationFrame(ajustarAlto);
+    const salt = document.getElementById("sondeoSaltear");
+    if (salt) salt.addEventListener("click", () => { Sfx.pop(); this.saltearPaso(); });
   },
 
   // la llama ctx.win() cuando el sondeo está activo
   resultado(juegoId, precision) {
-    this.aciertos.push({ juego: juegoId, precision: precision });
+    this.aciertos[this.idx] = { juego: juegoId, precision: precision };
+    this.idx++;
+    this.activo = false;
+    if (this._leVaMal()) return this._terminar();
+    this._siguiente();
+  },
+
+  // «Saltear este juego»: no ubica nada (ni bien ni mal) y sigue con el próximo.
+  saltearPaso() {
+    if (!this.activo) return;
+    pararVoz();
+    this.aciertos[this.idx] = { juego: this.plan[this.idx].juego, precision: null };
     this.idx++;
     this.activo = false;
     this._siguiente();
   },
 
-  _terminar() {
-    this.activo = false;
+  // Dos jugados seguidos por debajo del umbral: no tiene sentido el tercero.
+  _leVaMal() {
+    const jugados = this.aciertos.filter((r) => r && r.precision !== null);
+    const u = jugados.slice(-2);
+    return u.length === 2 && u.every((r) => r.precision < this.UMBRAL);
+  },
+
+  // Lo ya resuelto se guarda: cortar a la mitad no puede tirar lo que el chico mostró.
+  _guardarUbicados() {
     const sabidos = new Set();
     this.plan.forEach((paso, i) => {
       const r = this.aciertos[i];
-      if (r && r.precision >= this.UMBRAL) {
+      if (r && r.precision !== null && r.precision >= this.UMBRAL) {
         // inferencia ALEKS: si resolvió esto, se dan por sabidos sus prerrequisitos
         for (const sid of Adapt.saberYPrereqs(paso.sid)) sabidos.add(sid);
       }
     });
     Store.marcarUbicados(Array.from(sabidos));
+    return sabidos.size;
+  },
+
+  // El ← en la mitad de la nivelación (lo llama `volverMenu`): guarda lo ubicado y la da por
+  // salteada — no se le vuelve a ofrecer en cada vuelta al menú.
+  cortar() {
+    if (!this.activo) return;
+    this.activo = false;
+    this._guardarUbicados();
+    Store.marcarSondeo(true);
+  },
+
+  _terminar() {
+    this.activo = false;
+    const n = this._guardarUbicados();
     Store.marcarSondeo(false);
-    const n = sabidos.size;
     const stage = $("#stage"); stage.innerHTML = "";
+    $("#btnAtras").classList.remove("ver");
+    // FESTEJO (PRO-04): el chico terminó algo. No da estrellas —la nivelación no puntúa—,
+    // pero sí el confeti y la fanfarria de cualquier final: sin eso, lo primero que hace en
+    // Kydo termina en un cartel de texto.
+    try { Sfx.fanfarria(); Confeti.tirar(160); } catch (e) {}
     const card = el("div", "sondeo");
     card.innerHTML =
-      '<div class="sondeo-ico">🎯</div>' +
-      "<h2>¡Listo!</h2>" +
+      '<div class="sondeo-ico">🧭</div>' +
+      "<h2>¡Ya sé por dónde empezar!</h2>" +
       "<p>" + (n
-        ? "Ya sé por dónde empezar: hay <b>" + n + (n === 1 ? " tema</b> que" : " temas</b> que") +
+        ? "Hay <b>" + n + (n === 1 ? " tema</b> que" : " temas</b> que") +
           " ya sabés hacer, así que te voy a proponer lo que sigue."
         : "Vamos a empezar desde el principio, tranquilo. Todo lo que hagas va a ir sumando.") +
       "</p><div class=\"sondeo-btns\"></div>";
-    const b = el("button", "btn-sondeo", "Ver mis actividades");
-    b.addEventListener("click", () => pintarMenu());
-    card.querySelector(".sondeo-btns").appendChild(b);
+    const btns = card.querySelector(".sondeo-btns");
+    const id = _idParaSeguir();
+    const it = id && (D.menu || []).find((m) => (typeof m === "string" ? m : m.id) === id);
+    const b = el("button", "btn-sondeo", it ? "▶ ¡A jugar! " + (it.titulo || "") : "Ver mis actividades");
+    b.addEventListener("click", () => { Sfx.pop(); entrarAJugar(); });
+    btns.appendChild(b);
+    if (it) {
+      const v = el("button", "btn-sondeo btn-sondeo--ghost", "Ver todas mis actividades");
+      v.addEventListener("click", () => { Sfx.pop(); pintarMenu(); });
+      btns.appendChild(v);
+    }
     stage.appendChild(card);
     scrollTo(0, 0);
   },
 };
+
+/* ENTRAR DIRECTO A JUGAR (25-sep-2026, auditoría PRO-05). Después del nombre y la
+   nivelación, el chico caía en un menú de 65 a 105 tarjetas (en 7.º, 14.000 px de alto): de
+   cada 10 que tocaban el cuaderno, 1 llegaba a 5 minutos. Ahora la primera vez va derecho a
+   la actividad que conviene —la misma de «Seguí por acá»— y el menú queda a un ← de
+   distancia. Si el motor no tiene qué proponer, el menú de siempre. */
+function entrarAJugar() {
+  const id = _idParaSeguir();
+  if (id && GAMES[id]) return Shell.abrir(id);
+  pintarMenu();
+}
 
 function pintarMenu() {
   // PUNTO ÚNICO de la muestra: cualquier camino que quiera pintar el menú (el ←, terminar
@@ -5764,6 +5968,9 @@ function volverMenu() {
   // cualquier camino que llame a volverMenu (terminar la ronda, un "¡Seguir jugando!")
   // destapaba el grado completo desde un link público.
   if (MUESTRA_SOLA) return Shell.abrir(MUESTRA_SOLA);
+  // El ← en la mitad de la nivelación (25-sep-2026, MOT-10): antes estaba oculto y no había
+  // salida hasta terminar. Se guarda lo que ya ubicó, se la da por salteada y va al menú.
+  if (typeof Sondeo !== "undefined" && Sondeo.activo) Sondeo.cortar();
   if (D.premium_on && Shell.nivelActual) return pintarNivel(Shell.nivelActual);
   return pintarMenu();
 }
@@ -5849,6 +6056,24 @@ function _adaptCSS() {
     ".seguir-aca b{display:block;font-size:21px;line-height:1.12;letter-spacing:-.02em}" +
     ".seguir-aca span{display:block;font-family:Archivo,system-ui,sans-serif;font-size:13px;line-height:1.25}" +
     ".seguir-aca .ir{font-size:20px}" +
+    // la misión de hoy (25-sep-2026, PRO-03): una tira chica arriba de «Seguí por acá»
+    ".mision{margin:12px 0 0;padding:12px 14px;border-radius:var(--radio);background:var(--card);" +
+    "box-shadow:var(--sombra);font-family:\"Baloo\",Archivo,sans-serif}" +
+    ".mision-tit{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:700;margin-bottom:8px}" +
+    ".mision-tit small{margin-left:auto;font-family:Archivo,system-ui,sans-serif;font-size:13px;" +
+    "font-weight:700;color:color-mix(in srgb, var(--ink) 60%, var(--card))}" +
+    ".mision-items{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}" +
+    ".mision-item{display:flex;flex-direction:column;align-items:center;gap:4px;min-height:44px;" +
+    "padding:8px 6px;border-radius:14px;border:1.5px solid color-mix(in srgb,var(--ink) 14%,var(--card));" +
+    "background:var(--bg);color:var(--ink);cursor:pointer;font:600 12px/1.2 Archivo,system-ui,sans-serif}" +
+    ".mision-item .mi-ico{font-size:22px;line-height:1}.mision-item .mi-ico img{width:26px;height:26px;object-fit:contain}" +
+    ".mision-item .mi-nom{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-align:center}" +
+    ".mision-item.hecha{opacity:.62}" +
+    ".mision-fin{margin-top:8px;font-size:15px;font-weight:700}" +
+    ".mision-duelo{margin-top:8px;width:100%;min-height:44px;border:none;border-radius:14px;cursor:pointer;" +
+    "background:var(--ac);color:var(--card);font:700 15px \"Baloo\",Archivo,sans-serif}" +
+    "#misionHoy[hidden]{display:none!important}" +
+    ".carta .sello-chip{color:#8a6100}" +
     // el progreso de la materia, a la derecha del título de la sección
     ".cat-titulo small{margin-left:auto;font-family:Archivo,system-ui,sans-serif;font-size:12px;" +
     "font-weight:700;color:color-mix(in srgb, var(--ink) 55%, var(--card))}" +
@@ -6010,6 +6235,136 @@ function _perfilNuevo(nombre) {
 }
 
 function gradoDelChico() { return ((D && D.edad) ? D.edad : 9) - 5; }
+
+/* ── LA MISIÓN DE HOY (25-sep-2026, auditoría PRO-03) ───────────────────────────────────
+   Tres actividades que elige el motor, arriba del menú, con lo hecho tildado. Es el
+   «qué hago hoy» que no existía: el menú tiene entre 65 y 105 tarjetas y ninguna decía
+   «con esto alcanza por hoy». No es contenido nuevo: son las mismas tarjetas, en orden:
+     1) lo que le toca repasar (el sello ya ganado, que vence);
+     2) lo que puede SELLAR hoy (3★ otro día: si hoy le sale igual, queda dominada);
+     3) lo que el motor recomienda (el mismo orden que «Seguí por acá»);
+     4) si todavía faltan, lo que tiene disponible y no empezó.
+   Extras, el duelo y los videos no entran: no son del Diseño Curricular y no suman sello. */
+function _elegirMision(ids, hoy) {
+  const out = [];
+  if (typeof Adapt === "undefined") return out;
+  const curric = (ids || []).filter((id) => id !== "duelo" && Adapt.categoria(id) !== "logica");
+  const poner = (id) => { if (out.length < 3 && out.indexOf(id) < 0) out.push(id); };
+  curric.filter((id) => Store.repasoPendiente(id)).forEach(poner);
+  curric.filter((id) => Store.paraSellarHoy(id, hoy)).forEach(poner);
+  curric.filter((id) => Adapt.peso(id) <= 1)
+        .sort((a, b) => Adapt.peso(a) - Adapt.peso(b)).forEach(poner);
+  curric.filter((id) => Adapt.estadoActividad(id) === "disponible" && !Store.stars(id))
+        .forEach(poner);
+  return out;
+}
+function _idsDelMenu() {
+  return (D.menu || []).map((m) => (typeof m === "string" ? m : m.id))
+    .filter((id) => GAMES[id] && P.length >= (GAMES[id].minP || 0));
+}
+function _misionDeHoy() {
+  if (!D || !D.adaptativo_on || typeof Adapt === "undefined" || SENO_ON) return [];
+  const hoy = _hoyStr();
+  return Store.misionDeHoy(() => _elegirMision(_idsDelMenu(), hoy), hoy);
+}
+function _misionCumplida() {
+  const m = _misionDeHoy();
+  if (!m.length) return false;
+  const hechas = Store.ganadasHoy();
+  return m.every((id) => hechas.indexOf(id) >= 0);
+}
+/* Cuántas quedan para sellar MAÑANA: 3★ HOY por primera vez. Es el número que cierra el
+   día —«Mañana: 2 para sellar»— y el único motivo concreto para volver que tiene el chico. */
+function _paraSellarManana(hoy) {
+  hoy = hoy || _hoyStr();
+  return _idsDelMenu().filter((id) => {
+    const d = Store.dom(id);
+    return !!(d && d.sello === "practicando" && d.dias.length === 1 && d.dias[0] === hoy);
+  }).length;
+}
+/* La que conviene AHORA: la primera de la misión que todavía no hizo hoy; si ya la
+   cumplió, la recomendada de siempre. Es la de «Seguí por acá» y la de entrar directo. */
+function _idParaSeguir(ids) {
+  ids = ids || _idsDelMenu();
+  const hechas = Store.ganadasHoy();
+  const pend = _misionDeHoy().filter((id) => ids.indexOf(id) >= 0 && hechas.indexOf(id) < 0);
+  if (pend.length) return pend[0];
+  return (typeof Adapt !== "undefined" && Adapt.proximaRecomendada)
+    ? Adapt.proximaRecomendada(ids) : null;
+}
+function _hayDuelo() {
+  return !!(D && D.escolar_on && !cuadernoEsMuestraPublica() && !senoEsMuestra() &&
+            GAMES.duelo && (D.menu || []).some((m) => (typeof m === "string" ? m : m.id) === "duelo"));
+}
+
+/* ── LA SALA DE PRUEBA SE ENTERA DE QUE EL CHICO TERMINÓ UN JUEGO (25-sep-2026, EMB-02) ──
+   /kydo/probar embebe la muestra del grado y ofrecía guardarla por RELOJ, a los 5 minutos,
+   cayera donde cayera (en Tafí Viejo salió en la mitad de una partida). Ahora el cuaderno
+   le avisa a la página que lo embebe y el ofrecimiento sale cuando el chico termina un juego
+   (el oyente vive en `kydo_probar.html`, en la app de la tienda):
+     {tipo:"kydo-sala", evento:"hola"}                → arrancó y sabe avisar
+     {tipo:"kydo-sala", evento:"termino", estrellas}  → ganó una partida (no la nivelación)
+   Destino "*" a propósito, y no es un agujero: quién puede embeber el cuaderno ya lo decide
+   el `frame-ancestors` del motor (sólo los dominios de las dos marcas), y el mensaje no
+   lleva nada del chico — ni nombre ni progreso —, sólo que terminó y con cuántas estrellas.
+   Sólo en la muestra pública y adentro de un marco: un cuaderno comprado no le habla a nadie. */
+function _avisarALaSala(evento, datos) {
+  try {
+    if (!cuadernoEsMuestraPublica() || window.parent === window) return;
+    window.parent.postMessage(Object.assign({ tipo: "kydo-sala", evento: evento }, datos || {}), "*");
+  } catch (e) { /* sin sala que escuche, el cuaderno de siempre */ }
+}
+
+/* ── LO JUGADO EN LA SALA PASA AL CUADERNO NUEVO (25-sep-2026, auditoría EXP-11 y PRO-09) ──
+   La sala prometía «seguís justo donde estabas», y al guardarla el cuaderno nuevo arrancaba
+   de cero: «¿Quién juega?» y otra vez la nivelación. El chico de 1.º de Tafí Viejo hizo la
+   nivelación en la sala y la volvió a hacer un minuto después en su cuaderno.
+   El progreso vive en el navegador con una clave por dirección (`Store.key`), y la muestra
+   del grado es `/act/muestra-kydo-N/`. La sala ya NO guarda nada en el servidor (así no se
+   mezclan visitantes, `cuadernoEsMuestraPublica`), así que el traspaso sólo puede salir de
+   ESTE navegador: la primera vez que se abre el cuaderno nuevo, si no tiene a nadie, se trae
+   el perfil que jugó en la sala del mismo grado. La sala (kydo.com.ar) y el cuaderno
+   (mi.kydo.com.ar) son el mismo sitio, así que el navegador no los separa.
+   Tres frenos, para no traer lo de otro:
+     - sólo el perfil ACTIVO de la sala, y sólo si jugó algo (estrellas o nivelación);
+     - sólo si jugó hace poco (SALA_TRASPASO_DIAS): el que guarda, guarda al rato de probar,
+       y una sala vieja en una tablet compartida puede ser de un hermano;
+     - sólo en un cuaderno vacío: nunca pisa a nadie. */
+const SALA_TRASPASO_DIAS = 3;
+function _perfilDeLaSala(raw, hoy) {
+  if (!raw || typeof raw !== "object" || !raw.profiles) return null;
+  const nombre = raw.activeProfile;
+  const p = nombre && raw.profiles[nombre];
+  if (!p || typeof p !== "object") return null;
+  if (!_tieneProgreso(p) && !p.sondeo) return null;
+  const dias = (Array.isArray(p.dias) ? p.dias : []).slice();
+  if (p.sondeo && p.sondeo.ts) dias.push(_hoyStr(new Date(p.sondeo.ts)));
+  const t0 = Date.parse(hoy + "T00:00:00Z");
+  const ultimo = dias.map((d) => Date.parse(d + "T00:00:00Z")).filter((t) => !isNaN(t))
+    .reduce((a, b) => Math.max(a, b), -Infinity);
+  if (isNaN(t0) || !isFinite(ultimo)) return null;
+  const hace = (t0 - ultimo) / 86400000;
+  if (hace < 0 || hace > SALA_TRASPASO_DIAS) return null;
+  return { nombre: String(nombre).slice(0, 20), perfil: JSON.parse(JSON.stringify(p)) };
+}
+function _traerLoDeLaSala() {
+  try {
+    if (!D || !D.escolar_on || cuadernoEsMuestraPublica() || senoEsMuestra()) return false;
+    if (Object.keys(Store.data.profiles || {}).length) return false;
+    const g = gradoDelChico();
+    if (!(g >= 1 && g <= 7)) return false;
+    const raw = JSON.parse(localStorage.getItem("ct3d_act::/act/muestra-kydo-" + g) || "null");
+    const r = _perfilDeLaSala(raw, _hoyStr());
+    if (!r) return false;
+    r.perfil.deLaSala = Date.now();          // de dónde salió, por si hay que explicarlo
+    Store.data.profiles[r.nombre] = r.perfil;
+    // «Invitado» no es un chico: se trae lo jugado pero se le pregunta el nombre, y
+    // `elegirPerfil` renombra ese único perfil en vez de crear otro.
+    if (r.nombre !== NOMBRE_INVITADO) Store.data.activeProfile = r.nombre;
+    Store.save();
+    return true;
+  } catch (e) { return false; }
+}
 
 /* La corneta en las tarjetas es del CICLO INICIAL. En 1.º y 2.º es la diferencia entre
    poder elegir y no poder; en 3.º todavía ayuda. De 4.º para arriba el chico lee el
@@ -6274,6 +6629,8 @@ function _filtrarMenu(stage) {
   // Con un filtro puesto, «Seguí por acá» estorba: el chico está buscando otra cosa.
   const arriba = stage.querySelector(".seguir-aca");
   if (arriba) arriba.hidden = filtrando;
+  const mision = stage.querySelector("#misionHoy");
+  if (mision) mision.hidden = filtrando;
   // Los videos no son de ninguna materia ni tienen estado: con un filtro puesto no van.
   const videos = stage.querySelector("#seccionVideos");
   if (videos) videos.hidden = filtrando;
@@ -6288,6 +6645,42 @@ function _filtrarMenu(stage) {
   if (!vacio.hidden) {
     vacio.textContent = q ? `No encontré nada con «${q}».` : "No hay actividades con ese filtro.";
   }
+}
+
+/* La tira de la misión: tres botones con lo hecho tildado y el cierre del día. Ver
+   `_elegirMision` para el porqué. Chica a propósito: va arriba de «Seguí por acá», que sigue
+   siendo LA tarjeta grande; la misión dice cuánto falta, no compite por el dedo. */
+function _pintarMision(stage, visibles) {
+  const ids = _misionDeHoy();
+  const items = ids.map((id) => visibles.find((m) => m.id === id)).filter(Boolean);
+  if (!items.length) return;
+  const hechas = Store.ganadasHoy();
+  const n = items.filter((m) => hechas.indexOf(m.id) >= 0).length;
+  const caja = el("div", "mision"); caja.id = "misionHoy";
+  const listo = n >= items.length;
+  const manana = listo ? _paraSellarManana() : 0;
+  caja.innerHTML = `<div class="mision-tit">🎯 Misión de hoy<small>${listo ? "¡Cumplida!" : n + " de " + items.length}</small></div>`;
+  const fila = el("div", "mision-items");
+  items.forEach((m) => {
+    const hecha = hechas.indexOf(m.id) >= 0;
+    const b = el("button", "mision-item" + (hecha ? " hecha" : ""));
+    b.innerHTML = `<span class="mi-ico">${hecha ? "✅" : _iconoSeguro(m)}</span><span class="mi-nom">${m.titulo}</span>`;
+    b.setAttribute("aria-label", (hecha ? "Hecha: " : "") + m.titulo);
+    b.addEventListener("click", () => { Sfx.pop(); Shell.abrir(m.id); });
+    fila.appendChild(b);
+  });
+  caja.appendChild(fila);
+  if (listo) {
+    caja.appendChild(el("div", "mision-fin", manana
+      ? `Mañana: ${manana === 1 ? "1 para sellar" : manana + " para sellar"} 🏅`
+      : "Mañana te espera otra misión."));
+    if (_hayDuelo()) {
+      const bd = el("button", "mision-duelo", "🆚 Desafiá a un compañero");
+      bd.addEventListener("click", () => { Sfx.pop(); Shell.abrir("duelo"); });
+      caja.appendChild(bd);
+    }
+  }
+  stage.appendChild(caja);
 }
 
 function pintarMenuPlano(items, stage) {
@@ -6320,8 +6713,11 @@ function pintarMenuPlano(items, stage) {
   }
   // LA ÚNICA RECOMENDADA. El motor ya sabía cuál conviene ahora; lo que faltaba era decirlo
   // en un solo lugar en vez de marcar casi todas las tarjetas.
+  // Desde el 25-sep-2026 sale de la misión del día (`_idParaSeguir`): la primera que falta
+  // hacer hoy. Así «Seguí por acá», la misión y el «¡A jugar!» del final de la nivelación
+  // proponen lo mismo, en vez de tres recomendaciones distintas.
   const _idSeguir = (adaptOn && Adapt.proximaRecomendada)
-    ? Adapt.proximaRecomendada(visibles.map((m) => m.id)) : null;
+    ? _idParaSeguir(visibles.map((m) => m.id)) : null;
 
   // Aviso de ESI: va arriba del menú del grado que lo tiene, y en las DOS ramas
   // (con y sin motor adaptativo), porque las actividades curriculares aparecen igual.
@@ -6375,6 +6771,7 @@ function pintarMenuPlano(items, stage) {
       <div class="mini-est">${est}</div>
       ${_masAlla ? `<div class="nivel-chip nivel-chip--mas" title="Es del grado siguiente: el paso después de Experto">🚀 Más allá<small>es de ${m.grado}.º</small></div>` : ""}
       ${_ndMeta ? `<div class="nivel-chip" title="Nivel ${_nd} de 3 — se gana jugando">${_ndMeta.icono} ${_ndMeta.nombre}</div>` : ""}
+      ${adaptOn && !repaso && Store.unoDeDos(m.id) ? `<div class="nivel-chip sello-chip" title="3★ en dos días distintos y queda dominada">🏅 1 de 2 días</div>` : ""}
       ${conSprite ? `<div class="chip">${_iconoSeguro(m)}</div>` : ""}
       ${_menuQueHabla() ? `<span class="hablar" aria-hidden="true">🔊</span>` : ""}
       ${_seno ? `<span class="seno-ir" title="Practicalo con la seño: ${_seno.titulo.replace(/"/g, "")}">🎓</span>` : ""}`;
@@ -6446,18 +6843,25 @@ function pintarMenuPlano(items, stage) {
     // test lo vio porque todos leen el archivo, no la pantalla. Lo encontró la corrida en
     // el espejo dev, que es para lo que está.
     const EMOJI = { lengua: "✏️", matematica: "🔢", naturales: "🌱", sociales: "🌎", logica: "🎲" };
-    // ── RACHA DE DÍAS en el encabezado, al lado de las estrellas. Desde 2 días: con uno
-    // solo no hay racha que mostrar, y un «🔥 1» el primer día promete algo que no pasó.
+    // ── RACHA DE DÍAS en el encabezado, al lado de las estrellas.
+    // DESDE EL DÍA 1 (25-sep-2026, auditoría PRO-03). Antes aparecía recién el día 2 —«con
+    // uno solo no hay racha que mostrar»—, y ningún chico real llegó al día 2: la racha no
+    // la vio nadie. Se muestra apenas gana la primera partida («🔥 1»), que es cuando
+    // hay algo que cuidar; antes de jugar no aparece, así no promete nada que no pasó.
     const _racha = Store.rachaDias();
     let _rp = document.getElementById("hdrRacha");
-    if (_racha >= 2) {
+    if (_racha >= 1) {
       if (!_rp) {
         _rp = el("div", "pill"); _rp.id = "hdrRacha";
         _rp.title = "Días seguidos que jugaste";
         const anc = document.getElementById("hdrEstrellas");
         if (anc) anc.insertAdjacentElement("afterend", _rp); else $("#hdr").appendChild(_rp);
       }
+      // «🔥 1» y no «🔥 Día 1»: medido a 390 px, el texto largo partía la píldora en dos
+      // renglones y el encabezado ya lleva cinco. El «día N» va en el rótulo.
       _rp.textContent = "🔥 " + _racha;
+      _rp.title = "Día " + _racha + " de tu racha: días seguidos que jugaste";
+      _rp.setAttribute("aria-label", _rp.title);
     } else if (_rp) { _rp.remove(); }
 
     // ── BUSCADOR, MATERIAS, ESTADO Y VISTA EN LISTA — de 4.º para arriba.
@@ -6535,15 +6939,17 @@ function pintarMenuPlano(items, stage) {
 
     // ── «SEGUÍ POR ACÁ»: una sola tarjeta ancha con lo que conviene ahora.
     const _itSeguir = _idSeguir ? visibles.find((m) => m.id === _idSeguir) : null;
+    if (!SENO_ON) _pintarMision(stage, visibles);
     if (_itSeguir) {
       const _esRep = Store.repasoPendiente(_itSeguir.id);
+      const _sella = !_esRep && Store.paraSellarHoy(_itSeguir.id);
       const bs = el("button", "seguir-aca");
       bs.innerHTML = `<div class="ico">${_iconoSeguro(_itSeguir)}</div>
-        <div class="txt"><small>${_esRep ? "🔁 Te toca repasar" : "✨ Seguí por acá"}</small>
+        <div class="txt"><small>${_esRep ? "🔁 Te toca repasar" : _sella ? "🏅 Sellala hoy" : "✨ Seguí por acá"}</small>
           <b>${_itSeguir.titulo}</b>
-          <span>${_esRep ? "Ya lo sabías: a ver si te lo acordás." : "Es lo que te conviene hacer ahora."}</span></div>
+          <span>${_esRep ? "Ya lo sabías: a ver si te lo acordás." : _sella ? "Ya te salió con 3★: si hoy te sale igual, queda dominada." : "Es lo que te conviene hacer ahora."}</span></div>
         <div class="ir" aria-hidden="true">▶</div>`;
-      bs.setAttribute("aria-label", (_esRep ? "Te toca repasar: " : "Seguí por acá: ") + _itSeguir.titulo);
+      bs.setAttribute("aria-label", (_esRep ? "Te toca repasar: " : _sella ? "Sellala hoy: " : "Seguí por acá: ") + _itSeguir.titulo);
       bs.addEventListener("click", () => { Sfx.pop(); Shell.abrir(_itSeguir.id); });
       stage.appendChild(bs);
     }
@@ -7548,7 +7954,7 @@ async function recuperarProgresoDelServidor() {
     // cuatro perfiles ahí de gente que probó.
     //
     // Es la otra mitad de lo mismo que `_enviarProgreso`: la muestra ni escribe ni lee.
-    if (senoEsMuestra()) return;
+    if (senoEsMuestra() || cuadernoEsMuestraPublica()) return;
     if (Object.keys(Store.data.profiles || {}).length) return;   // ya hay algo local
     const r = await fetch("progreso", { cache: "no-store" });
     if (!r.ok) return;
@@ -7586,7 +7992,8 @@ function _enviarProgreso() {
     //
     // El progreso sigue guardándose en el navegador de quien mira —así puede jugar—; lo
     // que no viaja es al servidor. Es la misma regla que el orden en `_senoGuardar`.
-    if (senoEsMuestra()) return;
+    // Y lo mismo para la sala pública (`cuadernoEsMuestraPublica`, 25-sep-2026).
+    if (senoEsMuestra() || cuadernoEsMuestraPublica()) return;
     const perfil = Store.data.activeProfile;
     if (!perfil) return;
     // Nivel de dificultad por actividad: es lo que el padre necesita para ver si el chico
@@ -7788,7 +8195,7 @@ function gatePadres() {
 /* ── Panel de padres: progreso del chico por materia (domina / practicando / le falta),
    estilo ALEKS-Pie. Client-side (lee Store + Adapt). Gateado por adaptativo_on. ── */
 function panelPadres() {
-  const nombre = Store.data.activeProfile || "tu hijo/a";
+  const nombre = escHtml(Store.data.activeProfile || "tu hijo/a");
   const resumen = Adapt.resumenPorCategoria();
   const EMOJI = { lengua: "✏️", matematica: "🔢", naturales: "🌱", sociales: "🌎" };
   let totalDom = 0, totalProc = 0;
@@ -7826,14 +8233,60 @@ function panelPadres() {
      <p style="opacity:.75;margin:6px 0 14px;font-size:15px;line-height:1.4">${resumenTxt}</p>
      ${filas || '<p style="opacity:.6">Todavía no hay progreso para mostrar.</p>'}
      <p style="font-size:12px;opacity:.55;margin-top:12px">Verde = lo domina de verdad (bien, sin ayuda, en días distintos). Naranja = lo está practicando.</p>
+     <div id="pasarTablet"></div>
      <button id="cerrarPadres" style="margin-top:12px;width:100%;padding:13px;border:none;border-radius:12px;background:var(--ac,#4aa3df);color:#fff;font-weight:800;font-size:16px;cursor:pointer">Cerrar</button>`;
   ov.appendChild(caja); document.body.appendChild(ov);
+  _pasarALaTablet(caja.querySelector("#pasarTablet"), nombre);
   caja.querySelector("#cerrarPadres").addEventListener("click", () => ov.remove());
   ov.addEventListener("click", (e) => { if (e.target === ov) ov.remove(); });
   // upsell (momento de negocio): al dominar una materia, ofrecer el nivel siguiente.
   caja.querySelectorAll("[data-upsell]").forEach((b) => b.addEventListener("click", () => {
     b.outerHTML = `<div style="margin-top:8px;font-size:13px;background:#fff8e6;border-radius:10px;padding:10px">📩 Te vamos a mandar el acceso al siguiente nivel por mail. <i>(demo — el flujo de compra se termina de definir)</i></div>`;
   }));
+}
+
+/* ── EL LINK PROPIO DEL CHICO (25-sep-2026, auditoría EXP-18) ───────────────────────────
+   La portada promete «entra por su propio link, sin usuario ni contraseña», pero el cuaderno
+   de Kydo pide un permiso firmado que sólo emite la biblioteca del adulto logueado: copiar
+   la dirección y abrirla en la tablet del chico daba el candado. Sin eso el hábito depende
+   de que el padre le abra el cuaderno cada vez desde su cuenta.
+   Acá, en el panel para grandes (detrás de la cuenta), el adulto lo manda por WhatsApp o lo
+   copia. El link lleva EL MISMO permiso con el que este aparato ya lo abrió (`GET pase`, en
+   el motor): no se fabrica uno nuevo, así que vence cuando vence el acceso —la biblioteca
+   ya lo emitió recortado a eso— y el `revocado` del cuaderno lo corta igual.
+   Sólo en la línea escolar y nunca en la muestra pública (ese link es de todos). */
+async function _pasarALaTablet(caja, nombre) {
+  if (!caja || !D || !D.escolar_on || cuadernoEsMuestraPublica() || senoEsMuestra()) return;
+  let g = null;
+  try {
+    const r = await fetch("pase", { cache: "no-store", credentials: "same-origin" });
+    if (!r.ok) return;
+    const d = await r.json();
+    if (!d || !d.ok) return;
+    g = d.g || null;
+  } catch (e) { return; }
+  const link = location.origin + location.pathname + (g ? "?g=" + encodeURIComponent(g) : "");
+  const quien = nombre && nombre !== "tu hijo/a" ? nombre : "el chico";
+  caja.style.cssText = "margin-top:14px;padding:14px;border-radius:14px;background:#f3f1ff;font-size:14px;line-height:1.45";
+  caja.innerHTML = `<b style="font-size:16px">📲 Que lo abra en su tablet o celular</b>`;
+  // el nombre lo escribió el chico: va por textContent, nunca por innerHTML (MOT-13)
+  const txt = el("p");
+  txt.style.cssText = "margin:6px 0 10px";
+  txt.textContent = "Mandale este link a " + quien + ": abre directo su cuaderno, sin usuario " +
+    "ni contraseña, mientras el acceso esté vigente. No lo compartas fuera de casa.";
+  caja.appendChild(txt);
+  const msg = "Tu cuaderno de " + marcaDelCuaderno() + ": " + link;
+  const estilo = "display:block;width:100%;padding:11px;margin-top:8px;border:none;border-radius:10px;font-weight:800;cursor:pointer;min-height:44px";
+  const wa = el("button", "", "Mandarlo por WhatsApp");
+  wa.style.cssText = estilo + ";background:#25D366;color:#fff";
+  wa.addEventListener("click", () => window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank", "noopener"));
+  const cp = el("button", "", "Copiar el link");
+  cp.style.cssText = estilo + ";background:#fff;color:#2b2b2b;border:1.5px solid #ccc";
+  cp.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(link); cp.textContent = "¡Copiado!"; }
+    catch (e) { window.prompt("Copiá el link:", link); }
+  });
+  caja.appendChild(wa); caja.appendChild(cp);
 }
 
 function pantallaCandado(nv) {
@@ -8019,9 +8472,46 @@ window.addEventListener("message", (ev) => {
 });
 
 /* ── arranque ── */
+/* EL ARRANQUE NO SE PUEDE QUEDAR MUDO (25-sep-2026, auditoría MOT-04). `boot()` hacía
+   `fetch("data.json")` y `r.json()` sin mirar nada: si el pedido no llegaba —o llegaba la
+   página de error de Cloudflare en vez del JSON— quedaba «Preparando tus juegos…» para
+   siempre, sin una palabra. Con la señal del celular de muchas familias eso es lo normal.
+   Ahora: tres intentos en ~3 segundos (un corte corto no se nota), y si igual no llega, el
+   aviso con «Probar de nuevo» (`falloDeCarga`, que vive en el HTML porque también tiene que
+   andar cuando el que no llegó es este archivo). */
+async function _pedirDatos() {
+  let ultimo = null;
+  for (const ms of [0, 800, 2000]) {
+    if (ms) await espera(ms);
+    try {
+      const r = await fetch("data.json");
+      if (!r.ok) throw new Error("data.json respondió " + r.status);
+      return await r.json();
+    } catch (e) { ultimo = e; }
+  }
+  throw ultimo;
+}
+function _arrancar() {
+  // El HTML ya avisó que falta un script (el catálogo curricular, por ejemplo): arrancar
+  // igual pisaría el aviso con un menú a medias.
+  if (window.ARRANQUE_ROTO) return;
+  boot().catch((e) => {
+    console.error("el cuaderno no pudo arrancar:", e);
+    // Sólo si seguimos en «Preparando…»: lo que falle DESPUÉS de mostrar el menú no es de
+    // carga y no se tapa con este aviso.
+    if (!document.getElementById("cargando")) return;
+    // Sin datos, se reintenta acá mismo; si ya había datos, algo más se rompió a mitad del
+    // arranque y lo sano es empezar de cero.
+    const reintentar = D ? () => location.reload() : _arrancar;
+    if (typeof falloDeCarga === "function") falloDeCarga(reintentar);
+    else {   // HTML viejo en caché, sin el aviso: por lo menos que no quede mudo
+      const t = document.querySelector("#cargando .fx");
+      if (t) t.textContent = "No se pudieron cargar los juegos. Revisá la conexión y recargá la página.";
+    }
+  });
+}
 async function boot() {
-  const r = await fetch("data.json");
-  D = await r.json();
+  D = await _pedirDatos();
   // los dos se piden a la vez: son independientes y los dos fallan en silencio
   await Promise.all([sumarExtrasDeLaEscuela(), cargarVideosInteractivos()]);
   // El duelo entre compañeros vive en su propio archivo (actividades_duelo.js) y se suma
@@ -8045,6 +8535,9 @@ async function boot() {
   meta.content = D.paleta.ac;
   Store.load();
   await recuperarProgresoDelServidor();
+  // Lo jugado en la sala de prueba de este navegador, si el cuaderno está vacío (EXP-11 y
+  // PRO-09). Va DESPUÉS del servidor: si el cuaderno ya tenía a alguien allá, manda eso.
+  const _deLaSala = _traerLoDeLaSala();
   // ?demo=1 (solo con adaptativo_on): carga un perfil que ya domina Matemática, para VER el
   // panel de padres con el upsell sin tener que jugar 100 actividades. Para mostrarle a Pablo.
   if (D.adaptativo_on && /[?&]demo\b/.test(location.search)) _demoProgreso();
@@ -8090,6 +8583,14 @@ async function boot() {
     abrirPerfil();   // primera vez con este link: preguntar quién juega
   }
 
+  // que el chico lo sepa: si no, un cuaderno «nuevo» con estrellas parece un error
+  if (_deLaSala && Store.data.activeProfile) {
+    setTimeout(() => mostrarExplicacion("¡Seguís con lo que jugaste en la prueba!"), 600);
+  }
+  _avisarALaSala("hola");     // la sala apaga su reloj: el ofrecimiento lo da el juego (EMB-02)
+  const _bd = $("#btnDuelo");
+  if (_bd) _bd.addEventListener("click", () => { Sfx.pop(); cerrarFestejo(); Shell.abrir("duelo"); });
+
   $("#btnAtras").addEventListener("click", () => { Sfx.pop(); volverMenu(); });
   $("#hdrTitulo").addEventListener("click", () => { Sfx.pop(); abrirPerfil(); });
   $("#perfilJugar").addEventListener("click", () => elegirPerfil($("#perfilInput").value));
@@ -8127,9 +8628,26 @@ async function boot() {
     Sfx._ctx(); removeEventListener("pointerdown", una);
   }, { once: true });
 }
-document.addEventListener("DOMContentLoaded", boot);
+document.addEventListener("DOMContentLoaded", _arrancar);
 
 /* ═══════════ JUEGOS — cada uno registra GAMES[id] = {crear(ctx)} ═══════════ */
+
+/* ── Estrellas del memotest (25-sep-2026, auditoría PRO-13) ──
+   El memotest no se puede medir por «acertó al primer intento»: las cartas empiezan boca
+   abajo, y errar parejas es la única manera de verlas. Terminaba con `ctx.win()` sin
+   estrellas y nunca anotaba un acierto, así que la precisión de primer intento daba 0 y
+   salía 1★ SIEMPRE — y como el diploma pide 3★ en todas las tarjetas, y el memotest está en
+   los siete grados, el diploma era imposible para todos.
+   La regla nueva mira cuántas parejas erró respecto de cuántas había. Simulado con 4.000
+   partidas por caso: jugando con memoria perfecta se yerran ~0,6 por pareja (6 parejas:
+   mediana 3-4 errores), y el que olvida un poco queda casi siempre ≤ 1 por pareja; dando
+   vuelta cartas al azar, con 6 parejas sólo el 2 % llega a ≤ 6 errores y el 10 % a ≤ 12.
+   Escala con las parejas, así que la dificultad adaptativa (que las suma) no lo castiga. */
+function _estrellasMemotest(errores, pares) {
+  if (errores <= pares) return 3;
+  if (errores <= 2 * pares) return 2;
+  return 1;
+}
 
 /* ── MEMOTEST — memoria de trabajo. Pares de personajes del tema. ── */
 GAMES.memotest = {
@@ -8144,7 +8662,7 @@ GAMES.memotest = {
     const grid = el("div"); grid.id = "memo";
     grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
     ctx.juego.appendChild(el("div", "tablero")).appendChild(grid);
-    let abiertas = [], bloqueado = false, halladas = 0;
+    let abiertas = [], bloqueado = false, halladas = 0, errores = 0;
     requestAnimationFrame(() => {
       const disp = innerHeight - grid.getBoundingClientRect().top - 18;
       const filas = Math.ceil(mazo.length / cols);
@@ -8166,11 +8684,14 @@ GAMES.memotest = {
         const [a, b] = abiertas;
         if (a.s === b.s) {
           a.c.classList.add("lista"); b.c.classList.add("lista");
+          // El acierto se anota ANTES de pasar de ronda: si no, cae en la ronda de la
+          // pareja siguiente y le come su primer intento. `bien` ya hace el sonido.
+          ctx.bien();
           halladas++;
           ctx.ronda(halladas);
-          Sfx.ok();
-          if (halladas === pares) { await espera(600); ctx.win(); }
+          if (halladas === pares) { await espera(600); ctx.win(_estrellasMemotest(errores, pares)); }
         } else {
+          errores++;
           ctx.casi();
           await espera(850);
           a.c.classList.remove("abierta"); b.c.classList.remove("abierta");
@@ -8524,6 +9045,12 @@ GAMES.sudoku = {
       celda.classList.add("anim-pop");
       Sfx.pop();
       sel = null; pintarPick();
+      // El sudoku nunca anotaba un acierto (25-sep-2026, PRO-13): un solo choque en toda la
+      // partida daba 1★ y sólo el que no chocaba NUNCA sacaba 3★ — nunca 2★. Acá la regla
+      // general sí es justa (cada casillero se deduce, no se adivina); faltaba el dato. Se
+      // anota en silencio y contra la SOLUCIÓN: una ficha que no choca pero no va ahí es un
+      // error para las estrellas, sin decírselo (decírselo sería soplarle la respuesta).
+      ctx.anotar(v === s.sol[r][c]);
       puestas++;
       ctx.ronda(puestas);
       if (tablero.flat().every((x, i) => x === s.sol.flat()[i])) {

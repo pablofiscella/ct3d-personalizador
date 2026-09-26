@@ -1321,6 +1321,10 @@ class Handler(BaseHTTPRequestHandler):
         m_ext = re.match(r"^/act/([A-Za-z0-9_-]+)/extras$", path)
         if m_ext:
             return self._act_extras_get(m_ext.group(1))
+        # el link propio del chico (EXP-18): ver `_act_pase_get`
+        m_pase = re.match(r"^/act/([A-Za-z0-9_-]+)/pase$", path)
+        if m_pase:
+            return self._act_pase_get(m_pase.group(1))
         if path == "/act/catalogo":
             import actividades_web as aw
             return self._json(200, {"ok": True, "catalogo": aw.catalogo_actividades(),
@@ -1943,6 +1947,47 @@ class Handler(BaseHTTPRequestHandler):
             self.log_error("reporte de %s: no se pudo avisar", token)
         return self._json(200, {"ok": guardado})
 
+    @staticmethod
+    def _es_muestra_publica(token):
+        """`muestra-kydo-N` y cualquier `muestra-*`: la sala de prueba, el «mirarlo ustedes» del
+        correo a escuelas y las demos de la portada. Son UN cuaderno por grado para todo el
+        mundo, así que su progreso no se guarda ni se devuelve: cada visitante veía el nombre
+        y las estrellas del anterior, y los nombres de chicos quedaban públicos (auditoría
+        EXP-02/SEG-04, 25-sep-2026). El player ya no los pide; esto es la segunda barrera."""
+        return str(token or "").lower().startswith("muestra-")
+
+    def _act_pase_get(self, token):
+        """El permiso con el que ESTE aparato ya abrió el cuaderno, para armar el link que el
+        adulto le manda a la tablet del chico (25-sep-2026, auditoría EXP-18).
+
+        La cookie `act_grant` es HttpOnly y el player no la puede leer; sin esto, la dirección
+        que se copia de la barra no lleva permiso y en otro aparato da el candado. No se
+        fabrica un permiso NUEVO a propósito: se devuelve el mismo, que la biblioteca ya emitió
+        recortado a lo que le queda al acceso (`/jugar`), así que el link de la tablet vence
+        cuando vence el acceso y no regala días. El `revocado` lo sigue cortando igual.
+
+        Sólo le contesta a quien YA tiene el permiso válido de ESE cuaderno: no le enseña nada
+        a nadie que no pudiera abrirlo. Cuaderno público (sin cuenta) → `g` nulo: su link es
+        la dirección pelada. La muestra pública no tiene link propio (es de todos)."""
+        import actividades_web as aw
+        d = os.path.join(aw.ACT_DIR, token)
+        if not os.path.isdir(d) or self._es_muestra_publica(token):
+            return self._json(404, {"ok": False})
+        req_cuenta, revocado = aw.estado_gate(token)
+        g = None
+        if req_cuenta:
+            cg = self._read_cookie("act_grant")
+            if revocado or not (cg and act_grant_ok(token, cg)):
+                return self._json(403, {"ok": False})
+            g = cg
+        body = json.dumps({"ok": True, "g": g}).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")   # un permiso no se guarda en cachés
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def _act_progreso_get(self, token):
         """Snapshot de progreso por chico de un token, para el tablero del padre en la
         biblioteca. {"profiles": {<perfil>: {"resumen": {...}, "dominados": [...], "ts"}}}"""
@@ -1950,6 +1995,8 @@ class Handler(BaseHTTPRequestHandler):
         d = os.path.join(aw.ACT_DIR, token)
         if not os.path.isdir(d):
             return self._json(404, {"ok": False})
+        if self._es_muestra_publica(token):
+            return self._json(200, {"profiles": {}})
         try:
             data = json.load(open(os.path.join(d, "progreso.json"), encoding="utf-8"))
             if not isinstance(data, dict) or "profiles" not in data:
@@ -2179,11 +2226,17 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
         d = os.path.join(aw.ACT_DIR, token)
         if not os.path.isdir(d):
             return self._json(404, {"ok": False})
+        if self._es_muestra_publica(token):
+            # Se consume el cuerpo igual (sendBeacon) y no se guarda nada. 200 y no un error:
+            # un player viejo en caché no tiene por qué ver fallas por esto.
+            self._body()
+            return self._json(200, {"ok": True, "guardado": False})
         try:
             ev = json.loads(self._body() or b"{}")
         except Exception:
             return self._json(400, {"ok": False})
-        perfil = (str(ev.get("perfil", "")) or "?")[:40]
+        # Sin caracteres de HTML: el nombre vuelve al player y a los paneles (auditoría MOT-13).
+        perfil = (re.sub(r"[<>\"'`&]", "", str(ev.get("perfil", ""))) or "?")[:40]
         cats = {}
         if isinstance(ev.get("resumen"), dict):
             for k, v in list(ev["resumen"].items())[:10]:

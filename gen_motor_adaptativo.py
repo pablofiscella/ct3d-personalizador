@@ -80,9 +80,9 @@ const Adapt = {
     if (saberes.some((s) => !con.has(s) && this._prereqsOk(s, con))) return "recomendado";
     return "reforzar";
   },
-  // Saberes a sondear: uno por materia del grado, de dificultad media-alta (el que
-  // más información da — si lo sabe, se infieren sus prerrequisitos; si no, no se
-  // asume nada). Devuelve [{sid, juego, categoria}].
+  // Saberes a sondear: uno por materia del grado (tres como mucho), el primero fácil y el
+  // resto de dificultad media-alta (el que más información da — si lo sabe, se infieren
+  // sus prerrequisitos; si no, no se asume nada). Devuelve [{sid, juego, cat, d, facil?}].
   planSondeo(menuIds) {
     const enMenu = new Set(menuIds || []);
     const g = this._grado();
@@ -107,7 +107,18 @@ const Adapt = {
       const arr = porCat[cat];
       if (!arr || !arr.length || cat === "logica") continue;   // Extras no es materia
       arr.sort((a, b) => a.d - b.d);
-      plan.push(arr[Math.min(arr.length - 1, Math.floor(arr.length * 0.6))]);
+      // EL PRIMERO ES FÁCIL (25-sep-2026, auditoría PRO-04). Arrancaba por el percentil 60 de
+      // cada materia: en 3.º el primer juego era poema_3, con 25 % de acierto a la primera en
+      // toda la telemetría, y el chico real de 3.º falló las dos y se fue a los 20 segundos.
+      // El primer paso es el saber MENOS hondo de su materia (el que no pide nada antes): un
+      // arranque que sale bien. Los que siguen quedan en el percentil 60, que es el que ubica.
+      const facil = !plan.length;
+      const it = facil ? arr[0] : arr[Math.min(arr.length - 1, Math.floor(arr.length * 0.6))];
+      plan.push(facil ? Object.assign({}, it, { facil: true }) : it);
+      // CORTO: tres juegos como mucho. Con una materia por juego, 4.º a 7.º eran cuatro o cinco
+      // juegos seguidos antes de ver el cuaderno, y dos de cuatro chicos reales cortaron en la
+      // mitad. Lo que no se sondea no se da por sabido: el motor lo ubica jugando.
+      if (plan.length >= 3) break;
     }
     return plan;
   },
