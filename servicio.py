@@ -499,6 +499,54 @@ def dev_path_protegido(path):
     return any((path or "").startswith(x) for x in DEV_PROTEGIDO)
 
 
+
+# ── progreso.json: una escritura a la vez por cuaderno, y nunca a medias ─────────────────
+# (25-sep-2026, auditoría MOT-02). Se escribía con `open(p, "w")` + `json.dump`, sin candado
+# y sin archivo temporal, en un servidor que atiende pedidos en paralelo
+# (ThreadingHTTPServer). Dos hermanos mandando su snapshot a la vez —o el padre mirando el
+# panel justo en ese instante— podían ver el archivo truncado (el panel lo toma como vacío) y
+# el POST siguiente lo reescribía con UN solo perfil: los otros chicos perdían todo.
+#   - candado por archivo: leer lo que hay AHORA, poner este perfil, escribir, todo junto;
+#   - tmp + os.replace (como `actividades_web._guardar_atomico` con data.json): el que lee
+#     ve el archivo viejo entero o el nuevo entero, nunca uno cortado.
+_PROGRESO_LOCKS = {}
+_PROGRESO_LOCKS_LOCK = threading.Lock()
+
+
+def _progreso_lock(p):
+    with _PROGRESO_LOCKS_LOCK:
+        lk = _PROGRESO_LOCKS.get(p)
+        if lk is None:
+            if len(_PROGRESO_LOCKS) > 5000:          # tope: no crecer sin fin en RAM
+                _PROGRESO_LOCKS.clear()
+            lk = _PROGRESO_LOCKS[p] = threading.Lock()
+        return lk
+
+
+def _progreso_guardar_perfil(p, perfil, nuevo, tope=25):
+    """Pone `nuevo` como el snapshot de `perfil` en el progreso.json `p`, releyendo el
+    archivo bajo candado (lo que otro hilo guardó en el medio no se pierde). Respeta el
+    mismo tope de perfiles que el endpoint. Nunca lanza: el snapshot es best-effort."""
+    try:
+        with _progreso_lock(p):
+            try:
+                with open(p, encoding="utf-8") as f:
+                    data = json.load(f)
+                if not isinstance(data, dict) or not isinstance(data.get("profiles"), dict):
+                    data = {"profiles": {}}
+            except Exception:
+                data = {"profiles": {}}
+            if len(data["profiles"]) >= tope and perfil not in data["profiles"]:
+                return False
+            data["profiles"][perfil] = nuevo
+            tmp = "%s.%d.tmp" % (p, threading.get_ident())
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False)
+            os.replace(tmp, p)
+            return True
+    except Exception:
+        return False
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "CT3D-Kit/1.0"
     timeout = 30                   # corta conexiones colgadas (A7, anti slowloris)
@@ -2284,11 +2332,7 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
             anterior = data["profiles"].get(perfil) or {}
             nuevo["estado"] = estado or (anterior.get("estado") or {})
             data["profiles"][perfil] = nuevo
-            try:
-                with open(p, "w", encoding="utf-8") as f:
-                    json.dump(data, f, ensure_ascii=False)
-            except Exception:
-                pass
+            _progreso_guardar_perfil(p, perfil, nuevo)
         self.send_response(204)
         self.send_header("Content-Length", "0")
         self.end_headers()
