@@ -547,6 +547,43 @@ def _progreso_guardar_perfil(p, perfil, nuevo, tope=25):
     except Exception:
         return False
 
+
+# ── errores de JavaScript del cuaderno (25-sep-2026, auditoría INF-22) ─────────────────
+# Un .jsonl aparte de los pedidos y de las carpetas de los tokens (no es de ninguna compra).
+ERRORES_JS = os.environ.get("CT3D_ERRORES_JS",
+                            os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                         ".cache", "errores_js.jsonl"))
+ERRORES_JS_TOPE = 2 * 1024 * 1024
+_ERRJS_LOCK = threading.Lock()
+_ERRJS_CUENTA = {}
+
+
+def _error_js_cupo(token, por_hora=20):
+    """True si a este cuaderno todavía le quedan errores por anotar esta hora. Un
+    cuaderno roto en un loop no puede llenar el disco ni tapar a los demás."""
+    clave = (token, int(time.time() // 3600))
+    with _ERRJS_LOCK:
+        if len(_ERRJS_CUENTA) > 5000:
+            _ERRJS_CUENTA.clear()
+        n = _ERRJS_CUENTA.get(clave, 0)
+        if n >= por_hora:
+            return False
+        _ERRJS_CUENTA[clave] = n + 1
+        return True
+
+
+def _error_js_anotar(rec):
+    """Agrega una línea al .jsonl; a los 2 MB lo rota (queda `.1`, el anterior se va)."""
+    try:
+        with _ERRJS_LOCK:
+            os.makedirs(os.path.dirname(ERRORES_JS), exist_ok=True)
+            if os.path.isfile(ERRORES_JS) and os.path.getsize(ERRORES_JS) > ERRORES_JS_TOPE:
+                os.replace(ERRORES_JS, ERRORES_JS + ".1")
+            with open(ERRORES_JS, "a", encoding="utf-8") as f:
+                f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "CT3D-Kit/1.0"
     timeout = 30                   # corta conexiones colgadas (A7, anti slowloris)
@@ -1901,6 +1938,20 @@ class Handler(BaseHTTPRequestHandler):
             "motivo": (str(ev.get("motivo"))[:120] if ev.get("motivo") else None),
             "t": int(ev.get("t") or 0) if str(ev.get("t") or "0").isdigit() else 0,
         }
+        # VIDEOS INTERACTIVOS (25-sep-2026, auditoría PRO-19). Eran lo último que se produjo
+        # y no dejaban rastro: el cuaderno anotaba «visto» sólo en el navegador. Ahora el
+        # cuaderno manda por ESTE canal «visto» (abrió el video) y «terminado» (llegó al
+        # final, con cuántos pasos y cuántos bien al primer intento). Van marcados con
+        # `tipo: "video"` y `j: "vi:<pieza>"` para que quien lea la telemetría de juegos no
+        # los cuente como respuestas.
+        if ev.get("tipo") == "video":
+            rec["tipo"] = "video"
+            rec["vi"] = "terminado" if ev.get("vi") == "terminado" else "visto"
+            for k in ("pasos", "bien"):
+                try:
+                    rec[k] = max(0, min(99, int(ev.get(k) or 0)))
+                except (TypeError, ValueError):
+                    rec[k] = 0
         # telemetría de PROCESO (DreamBox): ms hasta el primer toque, ms hasta responder
         # y toques dados. Se sanean acá igual que el resto — el player es código que
         # corre en el dispositivo del chico, así que nada de lo que manda es confiable.
@@ -1918,6 +1969,50 @@ class Handler(BaseHTTPRequestHandler):
                     f.write(json.dumps(rec, ensure_ascii=False) + "\n")
         except Exception:
             pass
+        self.send_response(204)      # sendBeacon no lee el body
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
+    def _act_error_js(self, token):
+        """Un error de JavaScript del cuaderno, tal como lo vio el navegador de una familia
+        (25-sep-2026, auditoría INF-22).
+
+        Si el cuaderno se rompía en un celular —un navegador viejo, el de Facebook, un
+        deploy con un error— nadie se enteraba: en el embudo quedaba como «entró y no
+        jugó», sin causa. Lo manda el manejador que está en el HTML del cuaderno
+        (`window.onerror` + `unhandledrejection`), que va ANTES de player.js para ver
+        también el caso en que player.js ni siquiera se puede leer.
+
+        SIN DATOS PERSONALES: no se guarda el token (abre el cuaderno de un chico) sino un
+        resumen de 10 letras que sirve para saber si los errores son del mismo cuaderno; ni
+        la IP, ni el nombre del perfil. Si el mensaje trae el token (una URL), se tapa.
+        CON TOPE: 20 por cuaderno por hora y el archivo rota a los 2 MB (queda uno viejo)."""
+        import actividades_web as aw
+        d = os.path.join(aw.ACT_DIR, token)
+        if not os.path.isdir(d):
+            return self._json(404, {"ok": False})
+        try:
+            ev = json.loads(self._body() or b"{}")
+        except Exception:
+            ev = None
+        if isinstance(ev, dict) and _error_js_cupo(token):
+            def _limpio(x, n):
+                return str(x or "").replace(token, "<token>")[:n]
+            try:
+                edad = str(json.load(open(os.path.join(d, "data.json"),
+                                          encoding="utf-8")).get("edad") or "")[:4]
+            except Exception:
+                edad = ""
+            rec = {"srv": int(time.time()),
+                   "cuaderno": hashlib.sha256(token.encode()).hexdigest()[:10],
+                   "edad": edad,
+                   "m": _limpio(ev.get("m"), 300),
+                   "f": _limpio(ev.get("f"), 60),
+                   "l": int(ev.get("l") or 0) if str(ev.get("l") or "0").isdigit() else 0,
+                   "c": int(ev.get("c") or 0) if str(ev.get("c") or "0").isdigit() else 0,
+                   "v": _limpio(ev.get("v"), 20),
+                   "ua": _limpio(ev.get("ua") or self.headers.get("User-Agent"), 200)}
+            _error_js_anotar(rec)
         self.send_response(204)      # sendBeacon no lee el body
         self.send_header("Content-Length", "0")
         self.end_headers()
@@ -2725,6 +2820,9 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
         m_tel = re.match(r"^/act/([A-Za-z0-9_-]+)/telemetria$", path)
         if m_tel:
             return self._act_telemetria(m_tel.group(1))
+        m_err = re.match(r"^/act/([A-Za-z0-9_-]+)/error-js$", path)
+        if m_err:
+            return self._act_error_js(m_err.group(1))
         m_prog = re.match(r"^/act/([A-Za-z0-9_-]+)/progreso$", path)
         if m_prog:
             return self._act_progreso_set(m_prog.group(1))

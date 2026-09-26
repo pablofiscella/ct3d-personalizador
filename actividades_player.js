@@ -8097,9 +8097,21 @@ function _seccionVideos() {
 /* El video se abre ENCIMA del cuaderno, en un marco, y no navegando: al cerrarlo el chico
    vuelve al mismo lugar del menú. Y con un botón, no con un `<a>` — en el cuaderno del chico
    el único enlace es el del diploma. */
+/* Los videos quedan registrados para el padre y la maestra (25-sep-2026, auditoría PRO-19).
+   Hasta hoy «visto» vivía sólo en este navegador. Van por el MISMO canal que las respuestas
+   de los juegos (`Tel` → /telemetria), marcados `tipo: "video"` para no mezclarse con ellas:
+   «visto» al abrirlo y «terminado» cuando el video avisa que el chico llegó al final. */
+function _viTelemetria(vi, pieza, extra) {
+  try {
+    Tel.push(Object.assign({ tipo: "video", vi: vi, j: "vi:" + pieza, edad: D.edad,
+      t: Date.now(), perfil: (Store.data && Store.data.activeProfile) || null }, extra || {}));
+  } catch (e) { /* la telemetría nunca frena el video */ }
+}
+
 function abrirVideoInteractivo(v) {
   pararVoz();
   cerrarVideoInteractivo();
+  _viTelemetria("visto", v.pieza);
   const capa = el("div"); capa.id = "viCapa";
   capa.setAttribute("role", "dialog");
   capa.setAttribute("aria-label", v.titulo);
@@ -8139,6 +8151,9 @@ window.addEventListener("message", (ev) => {
   if (!d || d.tipo !== "kydo-video-interactivo" || !d.datos) return;
   const pieza = d.datos.pieza;
   if (!VIDEOS_VI.some((v) => v.pieza === pieza)) return;
+  const pasos = Array.isArray(d.datos.pasos) ? d.datos.pasos : [];
+  _viTelemetria("terminado", pieza, { pasos: pasos.length,
+    bien: pasos.filter((p) => p && p.primer_intento).length });
   try { localStorage.setItem(_viClave(pieza), JSON.stringify(d.datos)); } catch (e) {}
   const carta = document.querySelector(`.vi-carta[data-pieza="${pieza}"]`);
   if (carta) {
