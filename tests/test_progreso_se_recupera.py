@@ -59,6 +59,9 @@ const Store = { data: %s, save() {} };
 // `senoEsMuestra` no existe, el error cae en el `catch` de la función y NO restaura nada: el
 // guardián quedó en rojo desde entonces —también en main— sin que el cuaderno real fallara.
 global.senoEsMuestra = () => false;
+// Y desde el 25-sep-2026 también pregunta si es la SALA pública (muestra-kydo-N): mismo
+// motivo, sin esto la función caería en el catch y el test daría rojo sin que nada fallara.
+global.cuadernoEsMuestraPublica = () => false;
 global.fetch = async () => ({ ok: %s, json: async () => RESP });
 eval(m[0]);
 (async () => {

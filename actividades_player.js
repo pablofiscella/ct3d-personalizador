@@ -5494,6 +5494,28 @@ function senoEsMuestra() {
   return senoCurso() === SENO_EJEMPLO;
 }
 
+/* LA SALA DE PRUEBA ES PÚBLICA (25-sep-2026, auditoría EXP-02/PRO-01/MOT-01/SEG-04).
+   Los cuadernos `muestra-kydo-1..7` —la sala de /kydo/probar, el «mirarlo ustedes» del correo
+   a escuelas y las demos de la portada— son UNO por grado para todo el mundo. Sin este corte,
+   cada familia nueva abría el cuaderno con el nombre y las estrellas del visitante anterior,
+   se salteaba el «¿Quién juega?» y la nivelación, y los nombres de chicos quedaban públicos
+   en /act/muestra-kydo-N/progreso. La demo de la maestra (?seno=EJEMPLO) ya lo tenía; la sala
+   no. Lo jugado sigue guardándose en el navegador de quien mira: lo que no viaja es al
+   servidor, ni de ida ni de vuelta. */
+function cuadernoEsMuestraPublica() {
+  try {
+    const m = location.pathname.match(/\/act\/([^\/]+)/);
+    return !!(m && /^muestra-/i.test(decodeURIComponent(m[1])));
+  } catch (e) { return false; }
+}
+
+/* El nombre del chico lo escribe quien juega y vuelve del servidor: se escapa antes de
+   meterlo en un innerHTML (auditoría MOT-13: `<img onerror=…>` se ejecutaba en el panel). */
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
 /* La muestra es UNA actividad, no una puerta al grado entero.
    Pablo (26-jul-2026): "cuando entras a probar una actividad y pones atrás tenés acceso a
    todas las actividades de cuarto grado. Creo que desde la página no debería poder ir para
@@ -7561,7 +7583,7 @@ async function recuperarProgresoDelServidor() {
     // cuatro perfiles ahí de gente que probó.
     //
     // Es la otra mitad de lo mismo que `_enviarProgreso`: la muestra ni escribe ni lee.
-    if (senoEsMuestra()) return;
+    if (senoEsMuestra() || cuadernoEsMuestraPublica()) return;
     if (Object.keys(Store.data.profiles || {}).length) return;   // ya hay algo local
     const r = await fetch("progreso", { cache: "no-store" });
     if (!r.ok) return;
@@ -7599,7 +7621,8 @@ function _enviarProgreso() {
     //
     // El progreso sigue guardándose en el navegador de quien mira —así puede jugar—; lo
     // que no viaja es al servidor. Es la misma regla que el orden en `_senoGuardar`.
-    if (senoEsMuestra()) return;
+    // Y lo mismo para la sala pública (`cuadernoEsMuestraPublica`, 25-sep-2026).
+    if (senoEsMuestra() || cuadernoEsMuestraPublica()) return;
     const perfil = Store.data.activeProfile;
     if (!perfil) return;
     // Nivel de dificultad por actividad: es lo que el padre necesita para ver si el chico
@@ -7801,7 +7824,7 @@ function gatePadres() {
 /* ── Panel de padres: progreso del chico por materia (domina / practicando / le falta),
    estilo ALEKS-Pie. Client-side (lee Store + Adapt). Gateado por adaptativo_on. ── */
 function panelPadres() {
-  const nombre = Store.data.activeProfile || "tu hijo/a";
+  const nombre = escHtml(Store.data.activeProfile || "tu hijo/a");
   const resumen = Adapt.resumenPorCategoria();
   const EMOJI = { lengua: "✏️", matematica: "🔢", naturales: "🌱", sociales: "🌎" };
   let totalDom = 0, totalProc = 0;

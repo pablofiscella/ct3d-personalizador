@@ -1943,6 +1943,15 @@ class Handler(BaseHTTPRequestHandler):
             self.log_error("reporte de %s: no se pudo avisar", token)
         return self._json(200, {"ok": guardado})
 
+    @staticmethod
+    def _es_muestra_publica(token):
+        """`muestra-kydo-N` y cualquier `muestra-*`: la sala de prueba, el «mirarlo ustedes» del
+        correo a escuelas y las demos de la portada. Son UN cuaderno por grado para todo el
+        mundo, así que su progreso no se guarda ni se devuelve: cada visitante veía el nombre
+        y las estrellas del anterior, y los nombres de chicos quedaban públicos (auditoría
+        EXP-02/SEG-04, 25-sep-2026). El player ya no los pide; esto es la segunda barrera."""
+        return str(token or "").lower().startswith("muestra-")
+
     def _act_progreso_get(self, token):
         """Snapshot de progreso por chico de un token, para el tablero del padre en la
         biblioteca. {"profiles": {<perfil>: {"resumen": {...}, "dominados": [...], "ts"}}}"""
@@ -1950,6 +1959,8 @@ class Handler(BaseHTTPRequestHandler):
         d = os.path.join(aw.ACT_DIR, token)
         if not os.path.isdir(d):
             return self._json(404, {"ok": False})
+        if self._es_muestra_publica(token):
+            return self._json(200, {"profiles": {}})
         try:
             data = json.load(open(os.path.join(d, "progreso.json"), encoding="utf-8"))
             if not isinstance(data, dict) or "profiles" not in data:
@@ -2179,11 +2190,17 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
         d = os.path.join(aw.ACT_DIR, token)
         if not os.path.isdir(d):
             return self._json(404, {"ok": False})
+        if self._es_muestra_publica(token):
+            # Se consume el cuerpo igual (sendBeacon) y no se guarda nada. 200 y no un error:
+            # un player viejo en caché no tiene por qué ver fallas por esto.
+            self._body()
+            return self._json(200, {"ok": True, "guardado": False})
         try:
             ev = json.loads(self._body() or b"{}")
         except Exception:
             return self._json(400, {"ok": False})
-        perfil = (str(ev.get("perfil", "")) or "?")[:40]
+        # Sin caracteres de HTML: el nombre vuelve al player y a los paneles (auditoría MOT-13).
+        perfil = (re.sub(r"[<>\"'`&]", "", str(ev.get("perfil", ""))) or "?")[:40]
         cats = {}
         if isinstance(ev.get("resumen"), dict):
             for k, v in list(ev["resumen"].items())[:10]:

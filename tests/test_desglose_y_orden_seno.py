@@ -457,13 +457,23 @@ def test_se_puede_volver_a_ver_la_ayuda():
     assert "localStorage.removeItem(SENO_TOUR_KEY)" in js
 
 
+def _corta_si_es_muestra(cuerpo):
+    """La guarda del modo seño, sola o sumada a la de la sala pública.
+
+    Desde el 25-sep-2026 la misma línea también corta en la sala de prueba de Kydo
+    (`muestra-kydo-N`): `if (senoEsMuestra() || cuadernoEsMuestraPublica()) return;`. Lo que
+    este test cuida es que la muestra de la seño siga cortando, no la forma exacta del `if`."""
+    import re
+    return re.search(r"if \(senoEsMuestra\(\)(\s*\|\|\s*\w+\(\))*\)\s*return;", cuerpo) is not None
+
+
 def test_la_muestra_no_manda_el_progreso_al_servidor():
     """El cuaderno de muestra es UNO y en modo seño todos entran como «Invitado», así que
     el progreso de una escuela le quedaba a la siguiente. Se descubrió mirando el
     `progreso.json` de producción, que ya tenía cuatro perfiles de gente que probó."""
     js = _player()
     i = js.index("function _enviarProgreso")
-    assert "if (senoEsMuestra()) return;" in js[i:i + 1200], \
+    assert _corta_si_es_muestra(js[i:i + 1200]), \
         "la muestra sigue escribiendo el progreso en el servidor"
 
 
@@ -472,5 +482,5 @@ def test_la_muestra_arranca_limpia():
     la anterior en tarjetas que nadie de su escuela tocó."""
     js = _player()
     i = js.index("async function recuperarProgresoDelServidor")
-    assert "if (senoEsMuestra()) return;" in js[i:i + 900], \
+    assert _corta_si_es_muestra(js[i:i + 900]), \
         "la muestra sigue heredando el progreso de quien la abrió antes"
