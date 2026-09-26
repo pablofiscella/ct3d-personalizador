@@ -1387,10 +1387,50 @@ body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
 /* Si el arranque no llega, se DICE (25-sep-2026, auditoría MOT-04). Vive acá y no en
    player.js porque uno de los casos es justamente que player.js no llegue. Lo llaman el
    chequeo del final del <body> (falta un script) y `_arrancar()` (no llegó data.json). */
+
+/* ¿EL NAVEGADOR ES DEMASIADO VIEJO? (26-sep-2026). El aviso decía siempre «puede ser la
+   conexión… probá de nuevo», y hay un caso donde reintentar no sirve NUNCA: el navegador no
+   entiende el JavaScript del cuaderno (Safari de iOS 15 con un regex nuevo, MOT-05; un
+   Android que no se actualiza). Ahí el script LLEGA, pero el navegador lo rechaza con un
+   error de SINTAXIS y `boot` no existe. Se detecta de dos formas: (1) un SyntaxError de uno
+   de nuestros scripts, que se anota acá antes de que se carguen; (2) una prueba de la
+   sintaxis que usa el cuaderno (`?.`, `??`, `...`, async) y de `fetch`. Con eso el aviso
+   sugiere actualizar o abrir el link en otro navegador, no reintentar. */
+window.addEventListener("error", function (e) {
+  var err = e && e.error, msg = (e && e.message) || "";
+  var nuestro = !e.filename || /\/(player|motor_adaptativo|actividades_curriculum|duelo)\.js/.test(e.filename);
+  if (nuestro && ((err && err.name === "SyntaxError") || /SyntaxError|Invalid regular expression/i.test(msg)))
+    window.SINTAXIS_ROTA = true;
+});
+function navegadorViejo() {
+  if (window.SINTAXIS_ROTA) return true;
+  if (typeof fetch !== "function" || typeof Promise !== "function") return true;
+  try { new Function("var o={a:1};var b={...o};var f=async()=>{await 0};return o?.a??b.a"); }
+  catch (e) { return true; }
+  return false;
+}
 function falloDeCarga(reintentar) {
   var c = document.getElementById("cargando");
   if (!c || c.querySelector(".carga-fallo")) return;
   var antes = c.innerHTML;
+  if (navegadorViejo()) {
+    c.innerHTML = '<div class="carga-fallo carga-fallo--viejo"><div class="carga-cara">😕</div>' +
+      '<div class="fx">Este navegador no puede abrir los juegos</div>' +
+      '<p>Es un navegador viejo: probar de nuevo no lo arregla. Actualizá el navegador ' +
+      '(o el sistema del teléfono), o abrí este mismo link en otro navegador, como Chrome.</p>' +
+      '<button type="button">📋 Copiar el link</button></div>';
+    var b = c.querySelector("button");
+    b.addEventListener("click", function () {
+      var url = location.href, ok = false;
+      try {
+        var t = document.createElement("textarea");
+        t.value = url; document.body.appendChild(t); t.select();
+        ok = document.execCommand("copy"); document.body.removeChild(t);
+      } catch (e) {}
+      b.textContent = ok ? "✅ Link copiado" : url;
+    });
+    return;
+  }
   c.innerHTML = '<div class="carga-fallo"><div class="carga-cara">😕</div>' +
     '<div class="fx">No se pudieron cargar los juegos</div>' +
     '<p>Puede ser la conexión a internet. Fijate que haya señal y tocá el botón.</p>' +

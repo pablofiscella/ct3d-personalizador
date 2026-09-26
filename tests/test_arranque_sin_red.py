@@ -94,6 +94,10 @@ class _Red:
                 return route.abort("internetdisconnected")
         elif modo == "abort":
             return route.abort("internetdisconnected")
+        elif modo == "sintaxis":
+            # lo que ve un navegador viejo: el archivo LLEGA, pero no lo entiende
+            return route.fulfill(status=200, content_type="text/javascript",
+                                 body="var boot = function () { return 1 @@ 2; };")
         elif modo == "502":
             return route.fulfill(status=502, content_type="text/html",
                                  body="<html><body>Bad gateway</body></html>")
@@ -196,5 +200,23 @@ def test_con_la_red_bien_arranca_como_siempre(carpeta):
         pag.wait_for_function("() => !document.getElementById('cargando')", timeout=15000)
         assert red.pedidos.get("data.json") == 1, red.pedidos
         assert not errores, errores[:3]
+    finally:
+        _cerrar(pw, nav)
+
+
+@sin_navegador
+@pytest.mark.parametrize("script", ["player.js", "actividades_curriculum.js"])
+def test_si_el_navegador_no_entiende_el_script_no_dice_que_es_la_conexion(carpeta, script):
+    """26-sep-2026. Un script que LLEGA pero el navegador rechaza por sintaxis (Safari de iOS
+    15 con un regex nuevo, MOT-05) no se arregla reintentando: el aviso tiene que sugerir
+    actualizar el navegador o abrir el link en otro, y no «revisá la conexión»."""
+    pw, nav, pag, red, _ = _abrir(carpeta, {script: "sintaxis"})
+    try:
+        pag.wait_for_selector("#cargando .carga-fallo", timeout=12000)
+        texto = pag.inner_text("#cargando")
+        assert "navegador" in texto and ("Actualizá" in texto or "otro navegador" in texto), texto
+        assert "Probar de nuevo" not in texto, "a un navegador viejo le ofrece reintentar"
+        assert "conexión" not in texto, texto
+        assert pag.query_selector("#cargando button"), "sin el botón para copiar el link"
     finally:
         _cerrar(pw, nav)
