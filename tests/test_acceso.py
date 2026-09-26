@@ -160,6 +160,32 @@ def test_el_token_de_RESET_de_contraseña_no_es_una_sesion(config_falso):
     assert acceso.email_de_la_tienda(c) is None
 
 
+def test_sólo_la_sesion_abre_el_token_de_la_ENCUESTA_no(config_falso):
+    """25-sep-2026: se rechazaba sólo `tipo=reset` (lista negra), así que el token del
+    link de la encuesta —misma firma, llega por mail, dura semanas— valía como sesión.
+    Ahora es lista blanca: sin tipo (la sesión de verdad) o tipo «sesion»."""
+    for tipo in ("encuesta", "cualquier-cosa-nueva"):
+        c = "ct3d_cliente=%s" % _cookie_tienda("ana@gmail.com", tipo=tipo)
+        assert acceso.email_de_la_tienda(c) is None, tipo
+    c = "ct3d_cliente=%s" % _cookie_tienda("ana@gmail.com", tipo="sesion")
+    assert acceso.email_de_la_tienda(c) == "ana@gmail.com"
+    c = "ct3d_cliente=%s" % _cookie_tienda("ana@gmail.com")
+    assert acceso.email_de_la_tienda(c) == "ana@gmail.com"
+
+
+def test_el_log_no_guarda_tokens_pases_ni_perfiles():
+    """25-sep-2026: el log del servicio tapaba sólo `key=`. El token del cuaderno
+    (`t`, `token`), el pase de grande (`g`) y el nombre del perfil también se tapan;
+    parámetros que sólo terminan en t/g (sort, seg) quedan como están."""
+    import servicio
+    linea = ('GET /act/x/?t=abc123&sort=1&perfil=Juan&g=pase&api_key=K&seg=4 '
+             '"token=qq"')
+    out = servicio._KEY_RE.sub(r"\1***", linea)
+    for secreto in ("abc123", "Juan", "pase", "=K", "qq"):
+        assert secreto not in out, (secreto, out)
+    assert "sort=1" in out and "seg=4" in out
+
+
 def test_la_derivacion_del_secreto_es_la_MISMA_que_la_del_backend():
     """El código está COPIADO del backend a propósito (regla de Pablo: los sistemas no
     comparten código). El riesgo de copiar es que allá cambie y acá no: si eso pasa, la

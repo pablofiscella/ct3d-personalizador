@@ -1477,6 +1477,41 @@ function falloDeCarga(reintentar) {
      quedarían sin ícono hasta regenerarlos uno por uno. Acá se calcula en cada visita, con el
      Host del pedido, igual que la marca del título. `null` cuando no corresponde: cuaderno de
      cumpleaños, host que no es de Kydo, o grado sin clases escritas. -->
+<script>
+/* Los errores de JavaScript del cuaderno se anotan en el servidor (25-sep-2026, auditoría
+   INF-22). Sin esto, si el cuaderno se rompía en el celular de una familia —un navegador
+   viejo, el de Facebook, un deploy con un error— nadie se enteraba. Va ACÁ, antes de los
+   <script> del cuaderno, para ver también el caso en que player.js no se puede ni leer.
+   ES5 a propósito (sin flechas ni const): tiene que correr justo en los navegadores viejos.
+   Sin datos personales: mensaje, archivo, línea, versión y navegador. Tope: 5 por página. */
+(function () {
+  var enviados = 0, vistos = {};
+  function mandar(m, f, l, c) {
+    try {
+      m = String(m || "").slice(0, 300);
+      var clave = m + "|" + l;
+      if (enviados >= 5 || vistos[clave]) return;
+      vistos[clave] = 1; enviados++;
+      var cuerpo = JSON.stringify({ m: m, f: String(f || "").split("?")[0].split("/").pop(),
+        l: l | 0, c: c | 0, v: "{{V}}", ua: String(navigator.userAgent || "").slice(0, 200) });
+      if (navigator.sendBeacon) navigator.sendBeacon("error-js", new Blob([cuerpo], { type: "application/json" }));
+      else { var x = new XMLHttpRequest(); x.open("POST", "error-js"); x.send(cuerpo); }
+    } catch (e) { /* el que avisa no puede ser el que rompe */ }
+  }
+  window.addEventListener("error", function (e) {
+    // los errores de carga de una imagen o un audio también llegan acá, sin `message`: no son
+    // del JavaScript y ya tienen su manejo en cada juego
+    if (e && e.message) mandar(e.message, e.filename, e.lineno, e.colno);
+  });
+  window.addEventListener("unhandledrejection", function (e) {
+    var r = e && e.reason;
+    // un audio que el navegador no deja sonar sin un toque, o que se corta porque empezó
+    // otro, no es una falla del cuaderno: son la mayoría de estos y taparían los de verdad
+    if (r && (r.name === "NotAllowedError" || r.name === "AbortError")) return;
+    mandar("promesa: " + ((r && r.message) || r), "", 0, 0);
+  });
+})();
+</script>
 <script>window.SENO = {{SENO}};</script>
 <script src="motor_adaptativo.js?v={{V}}"></script>
 <script src="player.js?v={{V}}"></script>

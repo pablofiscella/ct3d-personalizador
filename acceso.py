@@ -108,7 +108,11 @@ def email_de_la_tienda(cookie_header):
         p = _jwt.decode(tok, _secreto_tienda(), algorithms=["HS256"])
     except Exception:
         return None
-    if p.get("tipo") == "reset":      # el token de «olvidé mi contraseña» no es sesión
+    # 25-sep-2026: lista blanca en vez de lista negra. Antes se rechazaba sólo
+    # tipo=="reset", así que el token del link de la encuesta (tipo "encuesta", misma
+    # firma) servía como sesión y abría el cuaderno ajeno. La sesión de la tienda no
+    # lleva "tipo" (tienda_auth_cliente.set_session_cookie): cualquier otro tipo, fuera.
+    if p.get("tipo", "sesion") != "sesion":
         return None
     return normalizar(p.get("email"))
 

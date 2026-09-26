@@ -251,15 +251,21 @@ function _fraccionesEnPalabras(txt) {
   // A la derecha se rechaza otro dígito o un DECIMAL («1/2,5»), pero NO el punto final de
   // la oración: con `(?![\d,.])` a secas, «da 3/6.» se quedaba sin convertir — que es
   // justo como termina la mitad de las explicaciones.
-  return String(txt).replace(/(?<![\d.,])(\d{1,4})\s*\/\s*(\d{1,4})(?!\d|[.,]\d)/g,
-    (m0, a, b) => {
+  // A la izquierda, lo mismo: nada de dígito, punto ni coma pegado («12/3» no es «2/3»).
+  // SIN lookbehind (25-sep-2026, auditoría MOT-05): el «mirar para atrás» de los regex
+  // recién existe en Safari 16.4 (marzo 2023) y un regex que el navegador no entiende
+  // tumba el archivo ENTERO al parsearlo —en un iPhone con iOS 15 o anterior el cuaderno
+  // quedaba en «Preparando tus juegos…» para siempre—. Se captura el carácter de la
+  // izquierda (`pre`) y se devuelve tal cual.
+  return String(txt).replace(/(^|[^\d.,])(\d{1,4})\s*\/\s*(\d{1,4})(?!\d|[.,]\d)/g,
+    (m0, pre, a, b) => {
       const n = parseInt(a, 10), d = parseInt(b, 10);
       if (!d) return m0;
       // Denominador 1: es como se enseña que un entero también es una fracción («5 es
       // 5/1»). Ahí no hay nombre —no existe "cinco unavos"— y se dice "cinco sobre uno".
-      if (d === 1) return _numeroEnPalabras(n) + " sobre uno";
+      if (d === 1) return pre + _numeroEnPalabras(n) + " sobre uno";
       const nombre = _nombreDenominador(d);
-      return n === 1 ? "un " + nombre : _numeroEnPalabras(n) + " " + nombre + "s";
+      return pre + (n === 1 ? "un " + nombre : _numeroEnPalabras(n) + " " + nombre + "s");
     });
 }
 // una cuenta y nada más: dígitos, signos, separador de miles y el hueco a completar
@@ -369,6 +375,18 @@ let _ultimoDicho = "";
    Y un juego puede pedir que NO se lean, con `data-no-leer` en su tablero (11-sep-2026).
    En «Números en palabras» leer 80080 en voz alta —«ochenta mil ochenta»— le dice al chico
    de oído cuál no es, y lo que se mide es justamente si sabe leerlo. */
+
+/* Emojis fuera de la voz. La propiedad Unicode Extended_Pictographic escrita LITERAL en
+   un regex rompía el archivo entero en los navegadores que no la conocen (25-sep-2026,
+   auditoría MOT-05: el cuaderno no arrancaba en iPhone viejos): un regex inválido es
+   error de SINTAXIS, no se puede atajar. Armado con `new RegExp` dentro de un try; si el
+   navegador no lo entiende, se usan los pares sustitutos (casi todos los emojis viven
+   ahí) más los símbolos sueltos de U+2300-23FF, U+2600-27BF y U+2B00-2BFF (⏰ ☀️ ⭐), que
+   alcanza para que la voz no diga «estrella». */
+var _RE_EMOJI = (function () {
+  try { return new RegExp("\\p{Extended_Pictographic}|\\uFE0F", "gu"); }
+  catch (e) { return /[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2300-\u23FF\u2600-\u27BF\u2B00-\u2BFF]|\uFE0F/g; }
+})();
 function _opcionesEnPantalla() {
   const bs = [...document.querySelectorAll("#juego button, #juego .op, #juego .op-texto")]
     .filter((b) => b.offsetParent && !b.closest("[data-no-leer]"));
@@ -380,7 +398,7 @@ function _opcionesEnPantalla() {
     // `textContent` y no `innerText`: el segundo devuelve lo que se VE, o sea ya en
     // mayúsculas en 1.º, y el motor deletrea las mayúsculas cuando parecen siglas —
     // Valeria diría «ce-a-eme-pe-o» en vez de «campo».
-    const x = (b.textContent || "").replace(/\p{Extended_Pictographic}|\uFE0F/gu, "").trim();
+    const x = (b.textContent || "").replace(_RE_EMOJI, "").trim();
     if (x && x.length <= 24 && t.indexOf(x) < 0) t.push(x);
   });
   return (t.length >= 2 && t.length <= 4) ? t.join(". ") : "";
@@ -614,6 +632,67 @@ function _rachaDeDias(dias, hoy) {
   return n;
 }
 
+/* ── Fusión del progreso entre pestañas (MOT-17, 25-sep-2026) ──
+   Todo lo que el chico GANA sólo sube: estrellas y nivel de dificultad por el máximo,
+   ítems acertados, días jugados y ubicaciones por unión, el sello de dominio por el más
+   avanzado. Lo que es de la pestaña (perfil activo, sonido, avatar) queda como está en
+   ésta. Se fusiona SOBRE `mio` (la memoria de esta pestaña). */
+const _SELLO_RANGO = { practicando: 0, dominado: 1, consolidado: 2 };
+function _fusionarPerfil(a, b) {
+  if (!a || !b || a === b) return;
+  const max = (campo) => {
+    if (!b[campo]) return;
+    if (!a[campo]) a[campo] = {};
+    for (const k of Object.keys(b[campo])) {
+      if ((b[campo][k] || 0) > (a[campo][k] || 0)) a[campo][k] = b[campo][k];
+    }
+  };
+  max("stars"); max("nd");
+  if (b.io) {
+    if (!a.io) a.io = {};
+    for (const j of Object.keys(b.io)) {
+      const m = a.io[j] || (a.io[j] = {});
+      for (const it of Object.keys(b.io[j] || {})) {
+        if (!m[it] && Object.keys(m).length < 60) m[it] = 1;
+      }
+    }
+  }
+  if (Array.isArray(b.dias)) {
+    const u = {};
+    (a.dias || []).concat(b.dias).forEach((d) => { u[d] = 1; });
+    a.dias = Object.keys(u).sort().slice(-400);
+  }
+  if (b.ubicado) a.ubicado = Object.assign({}, b.ubicado, a.ubicado || {});
+  if (b.dominio) {
+    if (!a.dominio) a.dominio = {};
+    for (const k of Object.keys(b.dominio)) {
+      const x = a.dominio[k], y = b.dominio[k];
+      if (!y) continue;
+      if (!x) { a.dominio[k] = y; continue; }
+      const rx = _SELLO_RANGO[x.sello] || 0, ry = _SELLO_RANGO[y.sello] || 0;
+      if (ry > rx || (ry === rx && (y.dias || []).length > (x.dias || []).length)) a.dominio[k] = y;
+    }
+  }
+  // lo que esta pestaña no tiene todavía (el sondeo que se hizo en la otra, un avatar
+  // elegido allá, un campo que agregue una versión nueva del player) se toma de la otra
+  for (const k of Object.keys(b)) if (a[k] === undefined) a[k] = b[k];
+}
+function _fusionarGuardado(mio, guardado, vistos) {
+  if (!mio.profiles) mio.profiles = {};
+  const conocidos = {};
+  (vistos || []).forEach((n) => { conocidos[n] = 1; });
+  for (const n of Object.keys(guardado.profiles || {})) {
+    const suyo = guardado.profiles[n];
+    if (!suyo || typeof suyo !== "object") continue;
+    if (mio.profiles[n]) _fusionarPerfil(mio.profiles[n], suyo);
+    else if (!conocidos[n]) mio.profiles[n] = suyo;     // lo creó la otra pestaña
+    // si esta pestaña lo conocía y ya no está, lo borró o lo renombró: no vuelve
+  }
+  for (const k of Object.keys(guardado)) {
+    if (k !== "profiles" && k !== "activeProfile" && mio[k] === undefined) mio[k] = guardado[k];
+  }
+}
+
 const Store = {
   key: "ct3d_act::" + location.pathname.replace(/\/$/, ""),
   data: { sound: true, activeProfile: null, profiles: {} },
@@ -627,14 +706,41 @@ const Store = {
       }
       Object.assign(this.data, raw);
     } catch (e) {}
+    this._vistos = Object.keys(this.data.profiles || {});
   },
-  save() { try { localStorage.setItem(this.key, JSON.stringify(this.data)); } catch (e) {} },
+  // DOS PESTAÑAS NO SE PISAN (25-sep-2026, auditoría MOT-17). `save()` reescribía el objeto
+  // entero con lo que ESTA pestaña tenía en memoria, así que la otra pestaña del mismo
+  // cuaderno (o una vieja a la que se vuelve con «atrás») borraba lo que se había ganado
+  // acá: gana el último que guarda. Ahora, antes de escribir, se lee lo que hay y se
+  // fusiona (`_fusionarGuardado`): el progreso sólo suma. `_vistos` son los perfiles que
+  // esta pestaña ya conocía: uno que falta en memoria y estaba ahí es un perfil que ESTA
+  // pestaña borró o renombró (no se resucita); uno que no conocía lo creó la otra.
+  _vistos: [],
+  save() {
+    try {
+      const guardado = JSON.parse(localStorage.getItem(this.key) || "null");
+      if (guardado && guardado.profiles) _fusionarGuardado(this.data, guardado, this._vistos);
+    } catch (e) {}
+    this._vistos = Object.keys(this.data.profiles || {});
+    try { localStorage.setItem(this.key, JSON.stringify(this.data)); } catch (e) {}
+  },
+  // Lo que guardó la OTRA pestaña entra a la memoria de ésta al momento, para que lo que se
+  // ve (estrellas, sellos) no quede viejo. Lo engancha `addEventListener("storage")` abajo.
+  _deOtraPestana(nuevo) {
+    try {
+      const guardado = JSON.parse(nuevo || "null");
+      if (!guardado || !guardado.profiles) return;
+      _fusionarGuardado(this.data, guardado, this._vistos);
+      this._vistos = Object.keys(this.data.profiles || {});
+    } catch (e) {}
+  },
   _perfil() { return this.data.profiles[this.data.activeProfile]; },
   stars(id) {
     const p = this._perfil();
     return (p && p.stars[id]) || 0;
   },
   setStars(id, n) {
+    if (id == null) return;          // MOT-06: sin juego no hay de quién ser la estrella
     const p = this._perfil();
     if (p && n > this.stars(id)) { p.stars[id] = n; this.save(); }
   },
@@ -718,7 +824,7 @@ const Store = {
     p.av = Math.max(0, i | 0); this.save();
   },
   subirNivelDif(id, max) {
-    const p = this._perfil(); if (!p) return;
+    const p = this._perfil(); if (!p || id == null) return;
     if (!p.nd) p.nd = {};
     const m = (max == null ? 4 : max);
     if ((p.nd[id] || 0) < m) { p.nd[id] = (p.nd[id] || 0) + 1; this.save(); }
@@ -776,7 +882,7 @@ const Store = {
   // 'dominado' | 'consolidado' | null. `hoy` (YYYY-MM-DD) inyectable para tests.
   registrarDominio(id, e, hoy) {
     const p = this._perfil();
-    if (!p || e < 3) return null;
+    if (!p || e < 3 || id == null) return null;
     if (!p.dominio) p.dominio = {};
     const d = p.dominio[id] || (p.dominio[id] = { dias: [], sello: "practicando", repasarEn: 0 });
     const hoyS = hoy || _hoyStr();
@@ -794,6 +900,12 @@ const Store = {
     return evt;
   },
 };
+
+// La otra pestaña guardó: sumarlo a la memoria de ésta (MOT-17). El evento `storage` llega
+// SÓLO a las otras pestañas del mismo origen, nunca a la que escribió.
+addEventListener("storage", (ev) => {
+  if (ev.key === Store.key && ev.newValue) Store._deOtraPestana(ev.newValue);
+});
 
 /* ── Capa 0 · C1+C5 (19-jul-2026, docs/auditoria-dc-caba/CAPA-0-MOTOR-DOMINIO.md):
    telemetría de PRIMER INTENTO por ítem. Aditivo: no cambia ninguna mecánica ni
@@ -5096,10 +5208,21 @@ const Shell = {
   },
   ctx(item) {
     const self = this;
+    // CADA PARTIDA TIENE SU CTX, Y EL CTX VIEJO SE CALLA (25-sep-2026, auditoría MOT-06).
+    // Los juegos dejan `setTimeout` andando (la pausa de 1,15 s antes de `win()` en
+    // «Línea de tiempo», el `render()` de la ronda siguiente…) y nadie los cancela al
+    // salir. Resultado: tocar ← en esa pausa festejaba ENCIMA del menú y guardaba las
+    // estrellas bajo el perfil de juego «null»; y la consigna de la actividad anterior
+    // pisaba la de la nueva. En vez de perseguir los timers de 70 juegos, cada ctx sabe si
+    // sigue siendo el de la partida en pantalla: si se abrió otra (ctx nuevo) o se salió
+    // al menú (`Shell.actual` cambió), lo que llegue tarde no hace nada.
+    const _gen = self._gen = (self._gen || 0) + 1, _suyo = self.actual;
+    const _vigente = () => self._gen === _gen && self.actual === _suyo && _suyo != null;
     // Capa 0 · C1+C5: registra el resultado de la PRIMERA respuesta de la ronda
     // (closure, robusta ante cómo cada juego invoque bien/casi) y lo manda a Tel.
     // No cambia ninguna mecánica ni lo que ve el chico.
     const registrar = (ok, motivo) => {
+      if (!_vigente()) return;               // un acierto de la partida que ya se dejó
       const primer = !self._rondaResp;
       self._rondaResp = true;
       if (primer) { self.primerTotal++; if (ok) self.primerOk++; }
@@ -5163,6 +5286,8 @@ const Shell = {
       },
       get juegoId() { return self.actual; },   // lo usan los juegos de banco
       consigna(txt, pistaSrc) {
+        // `typeof`: los tests corren este método suelto, sin el resto del ctx
+        if (typeof _vigente === "function" && !_vigente()) return;
         $("#consignaTexto").innerHTML = txt;
         /* Se guarda la consigna REAL para el 🔊. Va acá y no en `reproducirConsigna` porque
            acá está la que se MUESTRA, que es la que el chico necesita que le lean — aunque
@@ -5207,6 +5332,7 @@ const Shell = {
       // sintético "<juego>#<ronda>". Aditivo: el que no lo llama anda igual.
       item(id) { self._itemId = id; },
       ronda(i) {
+        if (!_vigente()) return;
         self._rondaIdx = i;
         self._rondaResp = false;   // ronda nueva → la próxima respuesta es "primer intento"
         self._rondaT0 = Date.now(); self._rondaT1 = 0; self._rondaToques = 0;
@@ -5235,6 +5361,7 @@ const Shell = {
         if (motivo) mostrarExplicacion(_enDosTiempos(motivo, self._rondaFallos));
       },
       win(estrellas) {
+        if (!_vigente()) return;             // ver `_vigente` al principio de ctx()
         // Capa 0 · C2 (compuerta de dominio, docs/auditoria-dc-caba/): las
         // estrellas miden DOMINIO real —aciertos al PRIMER intento— no "completé
         // con pocos fallos" (que se lograba por eliminación / a la segunda). El
@@ -8221,9 +8348,20 @@ function panelPadres() {
   const EMOJI = { lengua: "✏️", matematica: "🔢", naturales: "🌱", sociales: "🌎" };
   let totalDom = 0, totalProc = 0;
   let filas = "";
+  // El panel «para grandes» (25-sep-2026, auditoría EXP-17 / PRO-17). Decía «¡Ya domina X
+  // de 4°!» y «Desbloquear X de 5°» ESCRITOS FIJOS en cualquier grado, y el botón respondía
+  // «(demo — el flujo de compra se termina de definir)» sin mandar nada: justo en el momento
+  // de más valor para el padre, un texto de prueba y una promesa falsa. Ahora el grado sale
+  // del cuaderno (`gradoDelChico`, sólo en la línea escolar: el de cumpleaños no tiene
+  // grado) y no hay botón: el cuaderno es del chico y no lleva salidas a comprar (regla del
+  // 27-jul-2026); cómo ofrecer el grado siguiente lo decide Pablo.
+  const _escolar = !!D.escolar_on;
+  const _grado = gradoDelChico();
+  const _deGrado = (g) => (_escolar && g >= 1 && g <= 7) ? ` de ${g}.º` : "";
   Adapt.ordenCategorias().forEach((cat) => {
     const r = resumen[cat];
-    if (!r || !r.total) return;   // Extras / sin saberes no se muestran
+    // «Extras» (lógica) no es una materia: no se muestra como si lo fuera ni suma al total
+    if (!r || !r.total || cat === "logica") return;
     totalDom += r.dom; totalProc += r.proc;
     const pDom = Math.round(100 * r.dom / r.total);
     filas +=
@@ -8234,15 +8372,16 @@ function panelPadres() {
            <div style="width:${100 * r.dom / r.total}%;background:#2ecc71"></div>
            <div style="width:${100 * r.proc / r.total}%;background:#f5a623"></div>
          </div>
-         <div style="font-size:13px;opacity:.72">✅ Domina ${r.dom} · 🔶 Practicando ${r.proc} · ⚪ Le falta ${r.pend}</div>
+         <div style="font-size:13px;opacity:.72">✅ Domina ${r.dom} · 🔶 Practicando ${r.proc} · ⚪ Le ${r.pend === 1 ? "falta" : "faltan"} ${r.pend} ${r.total === 1 ? "tema" : "temas"}</div>
          ${pDom >= 80 ? `<div style="margin-top:8px;background:#eafff0;border:1.5px solid #2ecc71;border-radius:12px;padding:11px 13px;font-size:14px">
-             🎉 <b>¡Ya domina ${Adapt.labelCategoria(cat)} de 4°!</b> Está listo para el siguiente nivel.
-             <button data-upsell="${Adapt.labelCategoria(cat)}" style="display:block;margin-top:8px;width:100%;padding:11px;border:none;border-radius:10px;background:#2ecc71;color:#fff;font-weight:800;cursor:pointer">Desbloquear ${Adapt.labelCategoria(cat)} de 5° ▶</button>
+             🎉 <b>¡Ya domina ${Adapt.labelCategoria(cat)}${_deGrado(_grado)}!</b>${
+               _escolar && _grado >= 1 && _grado < 7 ? ` Está listo para lo de ${_grado + 1}.º.` : ""}
            </div>` : ""}
        </div>`;
   });
+  // «Hasta hoy» y no «Esta semana»: el número es el total acumulado, no el de la semana.
   const resumenTxt = totalDom
-    ? `Esta semana ${nombre} <b>domina ${totalDom}</b> ${totalDom === 1 ? "tema" : "temas"}` +
+    ? `Hasta hoy ${nombre} <b>domina ${totalDom}</b> ${totalDom === 1 ? "tema" : "temas"}` +
       (totalProc ? ` y está <b>reforzando ${totalProc}</b>.` : ".")
     : `${nombre} recién empieza — jugá un rato y acá vas a ver su progreso.`;
   const ov = el("div");
@@ -8260,10 +8399,6 @@ function panelPadres() {
   _pasarALaTablet(caja.querySelector("#pasarTablet"), nombre);
   caja.querySelector("#cerrarPadres").addEventListener("click", () => ov.remove());
   ov.addEventListener("click", (e) => { if (e.target === ov) ov.remove(); });
-  // upsell (momento de negocio): al dominar una materia, ofrecer el nivel siguiente.
-  caja.querySelectorAll("[data-upsell]").forEach((b) => b.addEventListener("click", () => {
-    b.outerHTML = `<div style="margin-top:8px;font-size:13px;background:#fff8e6;border-radius:10px;padding:10px">📩 Te vamos a mandar el acceso al siguiente nivel por mail. <i>(demo — el flujo de compra se termina de definir)</i></div>`;
-  }));
 }
 
 /* ── EL LINK PROPIO DEL CHICO (25-sep-2026, auditoría EXP-18) ───────────────────────────
@@ -8436,9 +8571,21 @@ function _seccionVideos() {
 /* El video se abre ENCIMA del cuaderno, en un marco, y no navegando: al cerrarlo el chico
    vuelve al mismo lugar del menú. Y con un botón, no con un `<a>` — en el cuaderno del chico
    el único enlace es el del diploma. */
+/* Los videos quedan registrados para el padre y la maestra (25-sep-2026, auditoría PRO-19).
+   Hasta hoy «visto» vivía sólo en este navegador. Van por el MISMO canal que las respuestas
+   de los juegos (`Tel` → /telemetria), marcados `tipo: "video"` para no mezclarse con ellas:
+   «visto» al abrirlo y «terminado» cuando el video avisa que el chico llegó al final. */
+function _viTelemetria(vi, pieza, extra) {
+  try {
+    Tel.push(Object.assign({ tipo: "video", vi: vi, j: "vi:" + pieza, edad: D.edad,
+      t: Date.now(), perfil: (Store.data && Store.data.activeProfile) || null }, extra || {}));
+  } catch (e) { /* la telemetría nunca frena el video */ }
+}
+
 function abrirVideoInteractivo(v) {
   pararVoz();
   cerrarVideoInteractivo();
+  _viTelemetria("visto", v.pieza);
   const capa = el("div"); capa.id = "viCapa";
   capa.setAttribute("role", "dialog");
   capa.setAttribute("aria-label", v.titulo);
@@ -8478,6 +8625,9 @@ window.addEventListener("message", (ev) => {
   if (!d || d.tipo !== "kydo-video-interactivo" || !d.datos) return;
   const pieza = d.datos.pieza;
   if (!VIDEOS_VI.some((v) => v.pieza === pieza)) return;
+  const pasos = Array.isArray(d.datos.pasos) ? d.datos.pasos : [];
+  _viTelemetria("terminado", pieza, { pasos: pasos.length,
+    bien: pasos.filter((p) => p && p.primer_intento).length });
   try { localStorage.setItem(_viClave(pieza), JSON.stringify(d.datos)); } catch (e) {}
   const carta = document.querySelector(`.vi-carta[data-pieza="${pieza}"]`);
   if (carta) {
