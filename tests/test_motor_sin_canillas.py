@@ -378,3 +378,32 @@ def test_el_whatsapp_no_lleva_links_del_que_reporta(tok_reporte):
     rec = json.loads(open(os.path.join(aw.ACT_DIR, tok_reporte[0],
                                        "reportes.jsonl")).readlines()[-1])
     assert "https://banco-falso.example/login" in rec["detalle"]
+
+
+def test_el_whatsapp_tampoco_lleva_links_de_otros_dominios(tok_reporte):
+    """La primera versión desarmaba sólo una lista cerrada de terminaciones (.com, .ar, .ly…):
+    `evil.ru/pago` o `bit.do/x` llegaban al WhatsApp como link tocable (25-sep-2026, revisión
+    adversarial de SEG-08). Hay miles de dominios de primer nivel; lo que se desarma es la
+    forma de dominio, no una lista."""
+    r, avisos = _reportar(tok_reporte[0], {
+        "motivo": "otro", "juego": "sopa",
+        "detalle": "pagá acá evil.ru/pago o bit.do/x o kydo.shop, 3.5 está mal"})
+    wa = avisos[0][1]["wa_texto"]
+    for link in ("evil.ru", "bit.do", "kydo.shop"):
+        assert link not in wa, "llegó un link tocable al WhatsApp: %s" % link
+    assert "3.5 está mal" in wa, "se comió un número decimal que no es un link"
+
+
+def test_el_titulo_del_reporte_tampoco_lleva_links(tok_reporte):
+    """`titulo` y `juego` también los manda el navegador —o un curl— y encabezan el aviso
+    («🚩 <titulo>»). Desarmar sólo el detalle dejaba el link en la primera línea
+    (25-sep-2026)."""
+    r, avisos = _reportar(tok_reporte[0], {
+        "motivo": "otro", "titulo": "Reclamá tu premio en https://premio-kydo.example/x",
+        "juego": "entrá a kydo-premios.shop"})
+    kw = avisos[0][1]
+    for campo in ("wa_texto", "titulo"):
+        assert "https://" not in kw[campo] and "premio-kydo.example" not in kw[campo], campo
+    rec = json.loads(open(os.path.join(aw.ACT_DIR, tok_reporte[0],
+                                       "reportes.jsonl")).readlines()[-1])
+    assert "https://premio-kydo.example/x" in rec["titulo"], "en el archivo va tal cual"

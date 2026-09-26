@@ -544,8 +544,12 @@ def _sin_links(texto):
     `https://…` o un `algo.com/x` adentro es un link engañoso servido por nosotros mismos
     (SEG-08). En el archivo queda tal cual; sólo se desarma en el aviso."""
     t = re.sub(r"(?i)\b(?:https?://|www\.)\S*", "[link]", str(texto or ""))
-    return re.sub(r"(?i)\b[\w-]+(?:\.[\w-]+)*\.(?:com|net|org|ar|io|me|ly|co|xyz|info|app|link)"
-                  r"\b\S*", "[link]", t)
+    # Lo que queda con forma de dominio (`algo.ru/x`, `bit.do`) se DESARMA en vez de
+    # borrarse: el punto pasa a `[.]` y WhatsApp ya no lo toca como link. Antes había una
+    # lista cerrada de terminaciones (.com, .ar, .ly…) y `evil.ru/pago` pasaba entero
+    # (25-sep-2026, revisión de SEG-08): hay miles de dominios de primer nivel. Sólo el
+    # punto pegado a una LETRA: «3.5» queda como está, y «mal.No» se lee «mal[.]No».
+    return re.sub(r"(?<=[\w-])\.(?=[^\W\d_])", "[.]", t)
 
 
 def _token_publico(token):
@@ -2083,7 +2087,9 @@ class Handler(BaseHTTPRequestHandler):
             if "/opt/ct3d/backend" not in _sys.path:
                 _sys.path.insert(0, "/opt/ct3d/backend")
             from notificaciones import notif_emit
-            donde = rec["titulo"] or rec["juego"] or "el cuaderno"
+            # `titulo` y `juego` también los manda el que reporta y encabezan el aviso: sin
+            # desarmar, el link iba en la primera línea (25-sep-2026). Igual grado y ronda.
+            donde = _sin_links(rec["titulo"] or rec["juego"] or "el cuaderno")
             notif_emit(
                 "reporte_cuaderno",
                 ref_id="%s|%s|%s" % (token, rec["juego"] or rec["titulo"], motivo),
@@ -2094,7 +2100,8 @@ class Handler(BaseHTTPRequestHandler):
                     rec["detalle"] or "(sin detalle)", rec["consigna"] or "(sin consigna)",
                     token),
                 wa_texto="🚩 %s\n%s\n%s.º grado · ronda %s\n%s" % (
-                    donde, MOTIVOS[motivo], rec["grado"] or "?", rec["ronda"] or "?",
+                    donde, MOTIVOS[motivo], _sin_links(rec["grado"] or "?"),
+                    _sin_links(rec["ronda"] or "?"),
                     _sin_links(rec["detalle"])[:200]))
         except Exception:
             self.log_error("reporte de %s: no se pudo avisar", token)
