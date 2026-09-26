@@ -251,15 +251,21 @@ function _fraccionesEnPalabras(txt) {
   // A la derecha se rechaza otro dígito o un DECIMAL («1/2,5»), pero NO el punto final de
   // la oración: con `(?![\d,.])` a secas, «da 3/6.» se quedaba sin convertir — que es
   // justo como termina la mitad de las explicaciones.
-  return String(txt).replace(/(?<![\d.,])(\d{1,4})\s*\/\s*(\d{1,4})(?!\d|[.,]\d)/g,
-    (m0, a, b) => {
+  // A la izquierda, lo mismo: nada de dígito, punto ni coma pegado («12/3» no es «2/3»).
+  // SIN lookbehind (25-sep-2026, auditoría MOT-05): el «mirar para atrás» de los regex
+  // recién existe en Safari 16.4 (marzo 2023) y un regex que el navegador no entiende
+  // tumba el archivo ENTERO al parsearlo —en un iPhone con iOS 15 o anterior el cuaderno
+  // quedaba en «Preparando tus juegos…» para siempre—. Se captura el carácter de la
+  // izquierda (`pre`) y se devuelve tal cual.
+  return String(txt).replace(/(^|[^\d.,])(\d{1,4})\s*\/\s*(\d{1,4})(?!\d|[.,]\d)/g,
+    (m0, pre, a, b) => {
       const n = parseInt(a, 10), d = parseInt(b, 10);
       if (!d) return m0;
       // Denominador 1: es como se enseña que un entero también es una fracción («5 es
       // 5/1»). Ahí no hay nombre —no existe "cinco unavos"— y se dice "cinco sobre uno".
-      if (d === 1) return _numeroEnPalabras(n) + " sobre uno";
+      if (d === 1) return pre + _numeroEnPalabras(n) + " sobre uno";
       const nombre = _nombreDenominador(d);
-      return n === 1 ? "un " + nombre : _numeroEnPalabras(n) + " " + nombre + "s";
+      return pre + (n === 1 ? "un " + nombre : _numeroEnPalabras(n) + " " + nombre + "s");
     });
 }
 // una cuenta y nada más: dígitos, signos, separador de miles y el hueco a completar
@@ -369,6 +375,18 @@ let _ultimoDicho = "";
    Y un juego puede pedir que NO se lean, con `data-no-leer` en su tablero (11-sep-2026).
    En «Números en palabras» leer 80080 en voz alta —«ochenta mil ochenta»— le dice al chico
    de oído cuál no es, y lo que se mide es justamente si sabe leerlo. */
+
+/* Emojis fuera de la voz. La propiedad Unicode Extended_Pictographic escrita LITERAL en
+   un regex rompía el archivo entero en los navegadores que no la conocen (25-sep-2026,
+   auditoría MOT-05: el cuaderno no arrancaba en iPhone viejos): un regex inválido es
+   error de SINTAXIS, no se puede atajar. Armado con `new RegExp` dentro de un try; si el
+   navegador no lo entiende, se usan los pares sustitutos (casi todos los emojis viven
+   ahí) más los símbolos sueltos de U+2300-23FF, U+2600-27BF y U+2B00-2BFF (⏰ ☀️ ⭐), que
+   alcanza para que la voz no diga «estrella». */
+var _RE_EMOJI = (function () {
+  try { return new RegExp("\\p{Extended_Pictographic}|\\uFE0F", "gu"); }
+  catch (e) { return /[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2300-\u23FF\u2600-\u27BF\u2B00-\u2BFF]|\uFE0F/g; }
+})();
 function _opcionesEnPantalla() {
   const bs = [...document.querySelectorAll("#juego button, #juego .op, #juego .op-texto")]
     .filter((b) => b.offsetParent && !b.closest("[data-no-leer]"));
@@ -380,7 +398,7 @@ function _opcionesEnPantalla() {
     // `textContent` y no `innerText`: el segundo devuelve lo que se VE, o sea ya en
     // mayúsculas en 1.º, y el motor deletrea las mayúsculas cuando parecen siglas —
     // Valeria diría «ce-a-eme-pe-o» en vez de «campo».
-    const x = (b.textContent || "").replace(/\p{Extended_Pictographic}|\uFE0F/gu, "").trim();
+    const x = (b.textContent || "").replace(_RE_EMOJI, "").trim();
     if (x && x.length <= 24 && t.indexOf(x) < 0) t.push(x);
   });
   return (t.length >= 2 && t.length <= 4) ? t.join(". ") : "";
