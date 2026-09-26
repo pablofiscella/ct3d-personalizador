@@ -5127,6 +5127,12 @@ const Shell = {
         ms1: self._rondaT1 ? Math.min(300000, self._rondaT1 - self._rondaT0) : null,
         ms: self._rondaT0 ? Math.min(300000, ahora - self._rondaT0) : null,
         toq: self._rondaToques || 0,
+        // QUIÉN contesta y si es la NIVELACIÓN (25-sep-2026, auditoría PRO-12). Sin el
+        // perfil, dos hermanos en un cuaderno eran un solo chico para el informe del padre;
+        // sin `niv`, las consignas del sondeo —más difíciles a propósito— se leían como
+        // «acá se trabó». La hora confiable la pone el servidor al recibirlo.
+        perfil: (Store.data && Store.data.activeProfile) || null,
+        niv: (typeof Sondeo !== "undefined" && Sondeo.activo) ? 1 : 0,
       });
     };
     return {
@@ -5811,6 +5817,9 @@ const Sondeo = {
     ok.addEventListener("click", () => { pararVoz(); this._siguiente(); });
     const no = el("button", "btn-sondeo btn-sondeo--ghost", "Saltear y jugar");
     no.addEventListener("click", () => { pararVoz(); Store.marcarSondeo(true); entrarAJugar(); });
+    // «Saltear y jugar» NO manda el snapshot (25-sep-2026, revisión del informe del padre).
+    // Mandarlo crearía el perfil en `progreso.json` sin que el chico haya contestado nada, y
+    // la tienda lee «hay perfil» como «jugó» (`kydo/avisos._jugo`, `web._tiene_progreso`).
     btns.appendChild(ok); btns.appendChild(no);
     stage.appendChild(card);
     scrollTo(0, 0);
@@ -5910,6 +5919,11 @@ const Sondeo = {
     this.activo = false;
     const n = this._guardarUbicados();
     Store.marcarSondeo(false);
+    // `_enviarProgreso` al terminarla (25-sep-2026): el snapshot salía sólo al ganar una
+    // partida, así que el chico que hacía la nivelación y se iba —el caso de la prueba del
+    // 05-sep— dejaba el resultado sólo en su navegador y el padre nunca lo veía. Acá sí
+    // contestó consignas, así que «jugó» es verdad.
+    _enviarProgreso();
     const stage = $("#stage"); stage.innerHTML = "";
     $("#btnAtras").classList.remove("ver");
     // FESTEJO (PRO-04): el chico terminó algo. No da estrellas —la nivelación no puntúa—,
@@ -8017,6 +8031,13 @@ function _enviarProgreso() {
     const snap = { perfil: perfil, resumen: Adapt.resumenPorCategoria(),
       dominados: Array.from(Adapt._dominados()), niveles: niveles, masAlla: masAlla,
       estado: estado, ts: Date.now() };
+    // La NIVELACIÓN viaja aparte de `dominados` (25-sep-2026, auditoría EXP-06): es lo que
+    // el informe del padre muestra como «dónde lo ubicó», y hasta hoy se quedaba en este
+    // navegador. Sólo si el sondeo ya pasó: sin `sondeo`, el servidor conserva lo que tenía.
+    if (p.sondeo) {
+      snap.sondeo = { ts: p.sondeo.ts || 0, saltado: !!p.sondeo.saltado };
+      snap.ubicado = Object.keys(p.ubicado || {});
+    }
     const blob = new Blob([JSON.stringify(snap)], { type: "application/json" });
     if (navigator.sendBeacon) navigator.sendBeacon("progreso", blob);
     else fetch("progreso", { method: "POST", body: blob, keepalive: true }).catch(() => {});

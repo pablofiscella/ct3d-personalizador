@@ -1441,6 +1441,10 @@ class Handler(BaseHTTPRequestHandler):
         m_desg = re.match(r"^/act/([A-Za-z0-9_-]+)/desglose$", path)
         if m_desg:
             return self._act_desglose_get(m_desg.group(1))
+        # las respuestas del chico, para el informe del padre de Kydo (25-sep-2026)
+        m_tel_get = re.match(r"^/act/([A-Za-z0-9_-]+)/telemetria$", path)
+        if m_tel_get:
+            return self._act_telemetria_get(m_tel_get.group(1))
         # el orden de las tarjetas que armó la maestra
         m_ord = re.match(r"^/act/([A-Za-z0-9_-]+)/orden$", path)
         if m_ord:
@@ -1983,6 +1987,20 @@ class Handler(BaseHTTPRequestHandler):
                 rec[k] = None if v is None else max(0, min(tope, int(v)))
             except (TypeError, ValueError):
                 rec[k] = None
+        # LA HORA DEL SERVIDOR (25-sep-2026, auditoría PRO-12). `t` es el reloj del APARATO y
+        # no es confiable: el cuaderno 0F0W… se creó el 23-sep a las 14:47 y sus primeras
+        # respuestas dicen 21-sep 12:32. El informe del padre cuenta «días distintos» y con
+        # esa hora le inventaba un día que el chico no jugó. sendBeacon sale en el momento,
+        # así que la hora a la que llega es la hora a la que el chico contestó.
+        rec["srv"] = int(time.time())
+        # QUIÉN contestó y si era la NIVELACIÓN (mismo hallazgo). Sin el perfil, dos hermanos
+        # en un cuaderno se mezclan en un solo informe; sin la marca, las consignas del sondeo
+        # —que son a propósito más difíciles que lo que le toca— se leían como «acá se trabó».
+        # Sólo se escriben si vienen: un player viejo no los manda y la línea queda como antes.
+        if ev.get("perfil"):
+            rec["perfil"] = str(ev.get("perfil"))[:40]
+        if ev.get("niv"):
+            rec["niv"] = True
         p = os.path.join(d, "telemetria.jsonl")
         try:
             # tope defensivo: no dejar crecer sin límite si alguien spamea con el token.
@@ -2168,6 +2186,55 @@ class Handler(BaseHTTPRequestHandler):
         except Exception:
             data = {"profiles": {}}
         return self._json(200, data)
+
+    #: Cuántas respuestas devuelve, como mucho, `GET /act/<token>/telemetria`. Las más
+    #: recientes. Un chico que juega 20 minutos por día deja ~60 por día: 3000 son varios
+    #: meses, y el archivo de un token que alguien spamea (tope de 5 MB) no viaja entero.
+    TELEMETRIA_GET_TOPE = 3000
+
+    def _act_telemetria_get(self, token):
+        """Las respuestas que dio el chico en este cuaderno, para el INFORME DEL PADRE de
+        Kydo (25-sep-2026, auditoría EXP-06/PRO-02).
+
+        Por qué hace falta: el tablero del padre sólo sabía «firmes / practicando / sin
+        empezar», y como «firme» pide días distintos, las 8 pruebas reales de septiembre
+        daban 0 aunque una había contestado 86 consignas. Lo que el chico HIZO —cuánto
+        jugó, qué le salió, dónde se trabó— está sólo acá, en `telemetria.jsonl`, que se
+        escribía desde el 19-jul y ninguna pantalla leía.
+
+        SÓLO PARA LA TIENDA, no para el navegador. `/progreso` es público porque el player lo
+        lee para restaurar al chico; esto no lo necesita nadie más que la app del padre, así
+        que se contesta únicamente server-to-server por loopback (sin los headers del túnel)
+        o con la API key. El token sigue siendo el secreto, pero no hay por qué dejar abierta
+        una puerta que ningún navegador usa.
+
+        El motor no resume nada: devuelve las líneas tal cual se guardaron. Qué decirle al
+        padre es decisión de cada marca, y vive en su carpeta (en Kydo, `kydo/informe.py`)."""
+        if not (self._dev_interno() or self._admin_ok()):
+            return self._json(403, {"ok": False})
+        import actividades_web as aw
+        d = os.path.join(aw.ACT_DIR, token)
+        if not os.path.isdir(d):
+            return self._json(404, {"ok": False})
+        eventos = []
+        try:
+            with open(os.path.join(d, "telemetria.jsonl"), encoding="utf-8") as f:
+                for linea in f:
+                    linea = linea.strip()
+                    if not linea:
+                        continue
+                    try:
+                        ev = json.loads(linea)
+                    except ValueError:
+                        continue          # una línea rota no invalida el archivo entero
+                    if isinstance(ev, dict):
+                        eventos.append(ev)
+        except FileNotFoundError:
+            pass                           # nunca jugó: lista vacía, que es la verdad
+        except Exception:
+            return self._json(500, {"ok": False})
+        return self._json(200, {"ok": True,
+                                "eventos": eventos[-self.TELEMETRIA_GET_TOPE:]})
 
     def _act_desglose_get(self, token):
         """Qué hizo el chico en CADA TARJETA, para el panel de la maestra (04-sep-2026).
@@ -2497,6 +2564,20 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
                 av = 0
             estado = {"stars": _mapa_num("stars", 0, 3), "nd": _mapa_num("nd", 0, 6),
                       "av": av, "dominio": dom}
+        # ── la NIVELACIÓN (25-sep-2026, auditoría EXP-06) ──
+        # El sondeo inicial UBICA al chico («esto ya lo sabe hacer») y hasta hoy ese resultado
+        # vivía sólo en el navegador: el padre, que es quien decide pagar, nunca se enteraba de
+        # lo único que el cuaderno averiguó en los primeros cinco minutos. Va APARTE de
+        # `dominados` a propósito, igual que en el player: tres respuestas bien no son dominio.
+        # `sondeo` sólo se guarda si vino; sin él (player viejo, o un chico que todavía no lo
+        # hizo) se conserva lo anterior — ver más abajo.
+        sondeo = None
+        if isinstance(ev.get("sondeo"), dict):
+            s_ts = ev["sondeo"].get("ts")
+            sondeo = {"ts": int(s_ts) if str(s_ts or "0").isdigit() else 0,
+                      "saltado": bool(ev["sondeo"].get("saltado"))}
+        ubicado = ([str(x)[:40] for x in ev.get("ubicado")][:300]
+                   if isinstance(ev.get("ubicado"), list) else [])
         p = os.path.join(d, "progreso.json")
         try:
             data = json.load(open(p, encoding="utf-8"))
@@ -2513,6 +2594,13 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
             # sin nada que restaurar justo por haber jugado desde un dispositivo viejo.
             anterior = data["profiles"].get(perfil) or {}
             nuevo["estado"] = estado or (anterior.get("estado") or {})
+            # Misma regla para la nivelación: el snapshot que llega sin `sondeo` (player viejo,
+            # u otro aparato que todavía no la tiene) no borra la que ya se guardó.
+            if sondeo is not None:
+                nuevo["sondeo"], nuevo["ubicado"] = sondeo, ubicado
+            elif anterior.get("sondeo"):
+                nuevo["sondeo"] = anterior.get("sondeo")
+                nuevo["ubicado"] = anterior.get("ubicado") or []
             data["profiles"][perfil] = nuevo
             try:
                 with open(p, "w", encoding="utf-8") as f:
