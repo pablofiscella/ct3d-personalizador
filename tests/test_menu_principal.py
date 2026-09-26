@@ -91,9 +91,18 @@ def test_la_recomendada_es_una_sola():
 
 
 def test_la_elegida_sale_del_motor():
+    """Desde el 25-sep-2026 (auditoría PRO-03) la elegida es la primera de la MISIÓN DE HOY que
+    falta hacer, y la misión la arma el motor (`_elegirMision`: repasos, para sellar y el
+    orden de `Adapt.peso`). Con la misión cumplida vuelve a `Adapt.proximaRecomendada`. Lo que
+    este test sigue cuidando es lo mismo: que no aparezca una regla ajena al motor."""
     s = _fuente()
-    assert "Adapt.proximaRecomendada(visibles.map((m) => m.id))" in s, (
-        "la tarjeta de «Seguí por acá» tiene que salir del motor, no de una regla nueva")
+    assert "_idParaSeguir(visibles.map((m) => m.id))" in s, (
+        "la tarjeta de «Seguí por acá» tiene que salir de la misión del motor")
+    i = s.index("function _idParaSeguir(")
+    assert "Adapt.proximaRecomendada(ids)" in s[i:s.index("\n}\n", i)], (
+        "con la misión cumplida, «Seguí por acá» tiene que volver a la recomendada del motor")
+    j = s.index("function _elegirMision(")
+    assert "Adapt.peso(" in s[j:s.index("\n}\n", j)], "la misión dejó de usar el orden del motor"
 
 
 def test_seguir_por_aca_abre_la_actividad():
@@ -124,11 +133,16 @@ def test_la_racha_se_anota_al_ganar():
     assert "Store.marcarDia()" in s[i:i + 300], "ganar una partida ya no cuenta para la racha"
 
 
-def test_la_racha_aparece_desde_dos_dias():
-    """Un «🔥 1» el primer día promete una racha que todavía no existe."""
+def test_la_racha_aparece_desde_el_primer_dia_ganado():
+    """Hasta el 25-sep-2026 aparecía desde el día 2 («un 🔥 1 el primer día promete una racha
+    que todavía no existe»). La auditoría (PRO-03) mostró el costo: ningún chico real llegó
+    al día 2, así que la racha no la vio nadie. Ahora se ve apenas gana la primera partida
+    —`rachaDias` cuenta días con partida GANADA—, como «🔥 1»; antes de jugar sigue sin
+    aparecer, así que no promete nada que no pasó."""
     s = _fuente()
     i = s.index('_rp = document.getElementById("hdrRacha")')
-    assert re.search(r"if \(_racha >= 2\)", s[i - 200:i + 400]), "la racha se muestra desde el primer día"
+    assert re.search(r"if \(_racha >= 1\)", s[i - 200:i + 400]), "la racha volvió a esconderse el día 1"
+    assert '"Día " + _racha' in s[i:i + 900], "el rótulo tiene que decir qué día de la racha es"
 
 
 def test_en_primero_la_tarjeta_nueva_va_en_mayuscula():

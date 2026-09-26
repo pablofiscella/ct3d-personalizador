@@ -351,6 +351,13 @@ body.vi-abierto { overflow: hidden; }
 .btn-sondeo:active { transform: scale(.96); }
 @media (hover:hover) { .btn-sondeo:hover { filter: brightness(1.08); } }
 .btn-sondeo--ghost { background: var(--soft); color: var(--ink); box-shadow: none; font-size: 16px; }
+/* «Saltear este juego» en cada paso de la nivelación (25-sep-2026, MOT-10): chico y al costado,
+   para que no compita con el juego, pero con 44 px para que un dedo lo acierte. */
+.sondeo-saltear { min-height: 44px; margin-left: 8px; padding: 0 12px; border: none; border-radius: 999px;
+  background: var(--soft); color: var(--ink); font: 700 13px Archivo, system-ui, sans-serif; cursor: pointer; }
+#festejo .frase-extra { margin: 6px 0 2px; font-weight: 700; font-size: 16px; line-height: 1.35; }
+#festejo .frase-extra[hidden], #festejo .btn-duelo[hidden] { display: none; }
+#festejo .btn-duelo { display: block; margin: 10px auto 0; }
 
 /* ── El formulario del 🚩 ────────────────────────────────────────────────────────────
    ESTILO PROPIO, sin reusar `.op` (04-ago-2026). La primera versión les puso `.op` a las
@@ -612,6 +619,15 @@ body.g1 .carta[data-adapt]::after,
    Van sin el freno `caja-importa`: acá nunca la caja de la letra es la respuesta. */
 body.g1 #festejo,
 body.g1 #festejo button,
+/* la nivelación y la misión de hoy (25-sep-2026, PRO-04 y PRO-03): la tarjeta «¿Qué ya sabés
+   hacer?» salía en minúscula en 1.º (captura g1_nuevo_02_sondeo_intro.png), y es lo primero
+   que ve el chico después del nombre */
+body.g1 .sondeo,
+body.g1 .sondeo button,
+body.g1 .sondeo-paso,
+body.g1 .sondeo-saltear,
+body.g1 .mision,
+body.g1 .mision button,
 body.g1 #logro,
 body.g1 #logro button,
 body.g1 #perfil,
@@ -1417,11 +1433,14 @@ function falloDeCarga(reintentar) {
     <img class="masco" id="mascoFestejo" alt="" src="">
     <h2 id="festejoTitulo">¡Muy bien!</h2>
     <div class="frase" id="festejoFrase"></div>
+    <!-- el motivo para volver (PRO-03) y el duelo (PRO-10), 25-sep-2026: los prende `festejar` -->
+    <div class="frase-extra" id="festejoExtra" hidden></div>
     <div class="estrellas" id="festejoEstrellas"></div>
     <div class="botones">
       <button class="btn suave" id="btnOtraVez">🔁 Otra vez</button>
       <button class="btn verde" id="btnSeguir">¡Seguir jugando!</button>
     </div>
+    <button class="btn suave btn-duelo" id="btnDuelo" hidden>🆚 Desafiá a un compañero</button>
   </div>
 </div>
 
