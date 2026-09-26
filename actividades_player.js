@@ -7920,9 +7920,20 @@ function panelPadres() {
   const EMOJI = { lengua: "✏️", matematica: "🔢", naturales: "🌱", sociales: "🌎" };
   let totalDom = 0, totalProc = 0;
   let filas = "";
+  // El panel «para grandes» (25-sep-2026, auditoría EXP-17 / PRO-17). Decía «¡Ya domina X
+  // de 4°!» y «Desbloquear X de 5°» ESCRITOS FIJOS en cualquier grado, y el botón respondía
+  // «(demo — el flujo de compra se termina de definir)» sin mandar nada: justo en el momento
+  // de más valor para el padre, un texto de prueba y una promesa falsa. Ahora el grado sale
+  // del cuaderno (`gradoDelChico`, sólo en la línea escolar: el de cumpleaños no tiene
+  // grado) y no hay botón: el cuaderno es del chico y no lleva salidas a comprar (regla del
+  // 27-jul-2026); cómo ofrecer el grado siguiente lo decide Pablo.
+  const _escolar = !!D.escolar_on;
+  const _grado = gradoDelChico();
+  const _deGrado = (g) => (_escolar && g >= 1 && g <= 7) ? ` de ${g}.º` : "";
   Adapt.ordenCategorias().forEach((cat) => {
     const r = resumen[cat];
-    if (!r || !r.total) return;   // Extras / sin saberes no se muestran
+    // «Extras» (lógica) no es una materia: no se muestra como si lo fuera ni suma al total
+    if (!r || !r.total || cat === "logica") return;
     totalDom += r.dom; totalProc += r.proc;
     const pDom = Math.round(100 * r.dom / r.total);
     filas +=
@@ -7933,15 +7944,16 @@ function panelPadres() {
            <div style="width:${100 * r.dom / r.total}%;background:#2ecc71"></div>
            <div style="width:${100 * r.proc / r.total}%;background:#f5a623"></div>
          </div>
-         <div style="font-size:13px;opacity:.72">✅ Domina ${r.dom} · 🔶 Practicando ${r.proc} · ⚪ Le falta ${r.pend}</div>
+         <div style="font-size:13px;opacity:.72">✅ Domina ${r.dom} · 🔶 Practicando ${r.proc} · ⚪ Le ${r.pend === 1 ? "falta" : "faltan"} ${r.pend} ${r.total === 1 ? "tema" : "temas"}</div>
          ${pDom >= 80 ? `<div style="margin-top:8px;background:#eafff0;border:1.5px solid #2ecc71;border-radius:12px;padding:11px 13px;font-size:14px">
-             🎉 <b>¡Ya domina ${Adapt.labelCategoria(cat)} de 4°!</b> Está listo para el siguiente nivel.
-             <button data-upsell="${Adapt.labelCategoria(cat)}" style="display:block;margin-top:8px;width:100%;padding:11px;border:none;border-radius:10px;background:#2ecc71;color:#fff;font-weight:800;cursor:pointer">Desbloquear ${Adapt.labelCategoria(cat)} de 5° ▶</button>
+             🎉 <b>¡Ya domina ${Adapt.labelCategoria(cat)}${_deGrado(_grado)}!</b>${
+               _escolar && _grado >= 1 && _grado < 7 ? ` Está listo para lo de ${_grado + 1}.º.` : ""}
            </div>` : ""}
        </div>`;
   });
+  // «Hasta hoy» y no «Esta semana»: el número es el total acumulado, no el de la semana.
   const resumenTxt = totalDom
-    ? `Esta semana ${nombre} <b>domina ${totalDom}</b> ${totalDom === 1 ? "tema" : "temas"}` +
+    ? `Hasta hoy ${nombre} <b>domina ${totalDom}</b> ${totalDom === 1 ? "tema" : "temas"}` +
       (totalProc ? ` y está <b>reforzando ${totalProc}</b>.` : ".")
     : `${nombre} recién empieza — jugá un rato y acá vas a ver su progreso.`;
   const ov = el("div");
@@ -7957,10 +7969,6 @@ function panelPadres() {
   ov.appendChild(caja); document.body.appendChild(ov);
   caja.querySelector("#cerrarPadres").addEventListener("click", () => ov.remove());
   ov.addEventListener("click", (e) => { if (e.target === ov) ov.remove(); });
-  // upsell (momento de negocio): al dominar una materia, ofrecer el nivel siguiente.
-  caja.querySelectorAll("[data-upsell]").forEach((b) => b.addEventListener("click", () => {
-    b.outerHTML = `<div style="margin-top:8px;font-size:13px;background:#fff8e6;border-radius:10px;padding:10px">📩 Te vamos a mandar el acceso al siguiente nivel por mail. <i>(demo — el flujo de compra se termina de definir)</i></div>`;
-  }));
 }
 
 function pantallaCandado(nv) {
