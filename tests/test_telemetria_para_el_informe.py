@@ -282,6 +282,8 @@ if (!m) { console.error("no encontré _enviarProgreso"); process.exit(1); }
 global.D = { adaptativo_on: true, menu: [] };
 global.Adapt = { resumenPorCategoria: () => ({}), _dominados: () => new Set() };
 global.senoEsMuestra = () => false;
+// la sala pública no escribe progreso (claude/sala-sin-progreso-ajeno); acá es un cuaderno real
+global.cuadernoEsMuestraPublica = () => false;
 global.esMasAlla = () => false;
 global.nivelDeDificultad = () => 0;
 global.Store = { data: { activeProfile: "Perfil A", profiles: { "Perfil A": %s } } };
@@ -320,8 +322,11 @@ def test_terminar_la_nivelacion_manda_el_snapshot():
     iba dejaba el resultado en su navegador."""
     src = _fuente()
     i = src.index("  _terminar() {")
+    # Desde la integración con claude/kydo-primeros-minutos (26-sep-2026) `n` sale de
+    # `_guardarUbicados()` ANTES de marcar el sondeo; lo que importa es que el snapshot salga
+    # después de marcarlo y antes de dibujar el cartel.
     j = src.index("Store.marcarSondeo(false)", i)
-    k = src.index("const n = sabidos.size", j)
+    k = src.index('const stage = $("#stage")', j)
     assert "_enviarProgreso()" in src[j:k]
 
 
