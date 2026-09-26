@@ -632,6 +632,67 @@ function _rachaDeDias(dias, hoy) {
   return n;
 }
 
+/* ── Fusión del progreso entre pestañas (MOT-17, 25-sep-2026) ──
+   Todo lo que el chico GANA sólo sube: estrellas y nivel de dificultad por el máximo,
+   ítems acertados, días jugados y ubicaciones por unión, el sello de dominio por el más
+   avanzado. Lo que es de la pestaña (perfil activo, sonido, avatar) queda como está en
+   ésta. Se fusiona SOBRE `mio` (la memoria de esta pestaña). */
+const _SELLO_RANGO = { practicando: 0, dominado: 1, consolidado: 2 };
+function _fusionarPerfil(a, b) {
+  if (!a || !b || a === b) return;
+  const max = (campo) => {
+    if (!b[campo]) return;
+    if (!a[campo]) a[campo] = {};
+    for (const k of Object.keys(b[campo])) {
+      if ((b[campo][k] || 0) > (a[campo][k] || 0)) a[campo][k] = b[campo][k];
+    }
+  };
+  max("stars"); max("nd");
+  if (b.io) {
+    if (!a.io) a.io = {};
+    for (const j of Object.keys(b.io)) {
+      const m = a.io[j] || (a.io[j] = {});
+      for (const it of Object.keys(b.io[j] || {})) {
+        if (!m[it] && Object.keys(m).length < 60) m[it] = 1;
+      }
+    }
+  }
+  if (Array.isArray(b.dias)) {
+    const u = {};
+    (a.dias || []).concat(b.dias).forEach((d) => { u[d] = 1; });
+    a.dias = Object.keys(u).sort().slice(-400);
+  }
+  if (b.ubicado) a.ubicado = Object.assign({}, b.ubicado, a.ubicado || {});
+  if (b.dominio) {
+    if (!a.dominio) a.dominio = {};
+    for (const k of Object.keys(b.dominio)) {
+      const x = a.dominio[k], y = b.dominio[k];
+      if (!y) continue;
+      if (!x) { a.dominio[k] = y; continue; }
+      const rx = _SELLO_RANGO[x.sello] || 0, ry = _SELLO_RANGO[y.sello] || 0;
+      if (ry > rx || (ry === rx && (y.dias || []).length > (x.dias || []).length)) a.dominio[k] = y;
+    }
+  }
+  // lo que esta pestaña no tiene todavía (el sondeo que se hizo en la otra, un avatar
+  // elegido allá, un campo que agregue una versión nueva del player) se toma de la otra
+  for (const k of Object.keys(b)) if (a[k] === undefined) a[k] = b[k];
+}
+function _fusionarGuardado(mio, guardado, vistos) {
+  if (!mio.profiles) mio.profiles = {};
+  const conocidos = {};
+  (vistos || []).forEach((n) => { conocidos[n] = 1; });
+  for (const n of Object.keys(guardado.profiles || {})) {
+    const suyo = guardado.profiles[n];
+    if (!suyo || typeof suyo !== "object") continue;
+    if (mio.profiles[n]) _fusionarPerfil(mio.profiles[n], suyo);
+    else if (!conocidos[n]) mio.profiles[n] = suyo;     // lo creó la otra pestaña
+    // si esta pestaña lo conocía y ya no está, lo borró o lo renombró: no vuelve
+  }
+  for (const k of Object.keys(guardado)) {
+    if (k !== "profiles" && k !== "activeProfile" && mio[k] === undefined) mio[k] = guardado[k];
+  }
+}
+
 const Store = {
   key: "ct3d_act::" + location.pathname.replace(/\/$/, ""),
   data: { sound: true, activeProfile: null, profiles: {} },
@@ -645,14 +706,41 @@ const Store = {
       }
       Object.assign(this.data, raw);
     } catch (e) {}
+    this._vistos = Object.keys(this.data.profiles || {});
   },
-  save() { try { localStorage.setItem(this.key, JSON.stringify(this.data)); } catch (e) {} },
+  // DOS PESTAÑAS NO SE PISAN (25-sep-2026, auditoría MOT-17). `save()` reescribía el objeto
+  // entero con lo que ESTA pestaña tenía en memoria, así que la otra pestaña del mismo
+  // cuaderno (o una vieja a la que se vuelve con «atrás») borraba lo que se había ganado
+  // acá: gana el último que guarda. Ahora, antes de escribir, se lee lo que hay y se
+  // fusiona (`_fusionarGuardado`): el progreso sólo suma. `_vistos` son los perfiles que
+  // esta pestaña ya conocía: uno que falta en memoria y estaba ahí es un perfil que ESTA
+  // pestaña borró o renombró (no se resucita); uno que no conocía lo creó la otra.
+  _vistos: [],
+  save() {
+    try {
+      const guardado = JSON.parse(localStorage.getItem(this.key) || "null");
+      if (guardado && guardado.profiles) _fusionarGuardado(this.data, guardado, this._vistos);
+    } catch (e) {}
+    this._vistos = Object.keys(this.data.profiles || {});
+    try { localStorage.setItem(this.key, JSON.stringify(this.data)); } catch (e) {}
+  },
+  // Lo que guardó la OTRA pestaña entra a la memoria de ésta al momento, para que lo que se
+  // ve (estrellas, sellos) no quede viejo. Lo engancha `addEventListener("storage")` abajo.
+  _deOtraPestana(nuevo) {
+    try {
+      const guardado = JSON.parse(nuevo || "null");
+      if (!guardado || !guardado.profiles) return;
+      _fusionarGuardado(this.data, guardado, this._vistos);
+      this._vistos = Object.keys(this.data.profiles || {});
+    } catch (e) {}
+  },
   _perfil() { return this.data.profiles[this.data.activeProfile]; },
   stars(id) {
     const p = this._perfil();
     return (p && p.stars[id]) || 0;
   },
   setStars(id, n) {
+    if (id == null) return;          // MOT-06: sin juego no hay de quién ser la estrella
     const p = this._perfil();
     if (p && n > this.stars(id)) { p.stars[id] = n; this.save(); }
   },
@@ -696,7 +784,7 @@ const Store = {
     p.av = Math.max(0, i | 0); this.save();
   },
   subirNivelDif(id, max) {
-    const p = this._perfil(); if (!p) return;
+    const p = this._perfil(); if (!p || id == null) return;
     if (!p.nd) p.nd = {};
     const m = (max == null ? 4 : max);
     if ((p.nd[id] || 0) < m) { p.nd[id] = (p.nd[id] || 0) + 1; this.save(); }
@@ -754,7 +842,7 @@ const Store = {
   // 'dominado' | 'consolidado' | null. `hoy` (YYYY-MM-DD) inyectable para tests.
   registrarDominio(id, e, hoy) {
     const p = this._perfil();
-    if (!p || e < 3) return null;
+    if (!p || e < 3 || id == null) return null;
     if (!p.dominio) p.dominio = {};
     const d = p.dominio[id] || (p.dominio[id] = { dias: [], sello: "practicando", repasarEn: 0 });
     const hoyS = hoy || _hoyStr();
@@ -772,6 +860,12 @@ const Store = {
     return evt;
   },
 };
+
+// La otra pestaña guardó: sumarlo a la memoria de ésta (MOT-17). El evento `storage` llega
+// SÓLO a las otras pestañas del mismo origen, nunca a la que escribió.
+addEventListener("storage", (ev) => {
+  if (ev.key === Store.key && ev.newValue) Store._deOtraPestana(ev.newValue);
+});
 
 /* ── Capa 0 · C1+C5 (19-jul-2026, docs/auditoria-dc-caba/CAPA-0-MOTOR-DOMINIO.md):
    telemetría de PRIMER INTENTO por ítem. Aditivo: no cambia ninguna mecánica ni
@@ -5060,10 +5154,21 @@ const Shell = {
   },
   ctx(item) {
     const self = this;
+    // CADA PARTIDA TIENE SU CTX, Y EL CTX VIEJO SE CALLA (25-sep-2026, auditoría MOT-06).
+    // Los juegos dejan `setTimeout` andando (la pausa de 1,15 s antes de `win()` en
+    // «Línea de tiempo», el `render()` de la ronda siguiente…) y nadie los cancela al
+    // salir. Resultado: tocar ← en esa pausa festejaba ENCIMA del menú y guardaba las
+    // estrellas bajo el perfil de juego «null»; y la consigna de la actividad anterior
+    // pisaba la de la nueva. En vez de perseguir los timers de 70 juegos, cada ctx sabe si
+    // sigue siendo el de la partida en pantalla: si se abrió otra (ctx nuevo) o se salió
+    // al menú (`Shell.actual` cambió), lo que llegue tarde no hace nada.
+    const _gen = self._gen = (self._gen || 0) + 1, _suyo = self.actual;
+    const _vigente = () => self._gen === _gen && self.actual === _suyo && _suyo != null;
     // Capa 0 · C1+C5: registra el resultado de la PRIMERA respuesta de la ronda
     // (closure, robusta ante cómo cada juego invoque bien/casi) y lo manda a Tel.
     // No cambia ninguna mecánica ni lo que ve el chico.
     const registrar = (ok, motivo) => {
+      if (!_vigente()) return;               // un acierto de la partida que ya se dejó
       const primer = !self._rondaResp;
       self._rondaResp = true;
       if (primer) { self.primerTotal++; if (ok) self.primerOk++; }
@@ -5121,6 +5226,8 @@ const Shell = {
       },
       get juegoId() { return self.actual; },   // lo usan los juegos de banco
       consigna(txt, pistaSrc) {
+        // `typeof`: los tests corren este método suelto, sin el resto del ctx
+        if (typeof _vigente === "function" && !_vigente()) return;
         $("#consignaTexto").innerHTML = txt;
         /* Se guarda la consigna REAL para el 🔊. Va acá y no en `reproducirConsigna` porque
            acá está la que se MUESTRA, que es la que el chico necesita que le lean — aunque
@@ -5165,6 +5272,7 @@ const Shell = {
       // sintético "<juego>#<ronda>". Aditivo: el que no lo llama anda igual.
       item(id) { self._itemId = id; },
       ronda(i) {
+        if (!_vigente()) return;
         self._rondaIdx = i;
         self._rondaResp = false;   // ronda nueva → la próxima respuesta es "primer intento"
         self._rondaT0 = Date.now(); self._rondaT1 = 0; self._rondaToques = 0;
@@ -5188,6 +5296,7 @@ const Shell = {
         if (motivo) mostrarExplicacion(_enDosTiempos(motivo, self._rondaFallos));
       },
       win(estrellas) {
+        if (!_vigente()) return;             // ver `_vigente` al principio de ctx()
         // Capa 0 · C2 (compuerta de dominio, docs/auditoria-dc-caba/): las
         // estrellas miden DOMINIO real —aciertos al PRIMER intento— no "completé
         // con pocos fallos" (que se lograba por eliminación / a la segunda). El
