@@ -5679,10 +5679,13 @@ const Sondeo = {
     const ok = el("button", "btn-sondeo", "¡Dale, empecemos!");
     ok.addEventListener("click", () => this._siguiente());
     const no = el("button", "btn-sondeo btn-sondeo--ghost", "Ahora no");
-    // `_enviarProgreso` acá y en `_terminar` (25-sep-2026): el snapshot salía sólo al ganar
-    // una partida, así que el chico que hacía la nivelación y se iba —el caso de la prueba
-    // del 05-sep— dejaba el resultado sólo en su navegador y el padre nunca lo veía.
-    no.addEventListener("click", () => { Store.marcarSondeo(true); _enviarProgreso(); pintarMenu(); });
+    // «Ahora no» NO manda el snapshot (25-sep-2026, revisión del informe del padre). Mandarlo
+    // crea el perfil en `progreso.json` sin que el chico haya contestado nada, y la tienda lee
+    // «hay perfil» como «jugó» (`kydo/avisos._jugo`, `web._tiene_progreso`, y la tienda de
+    // Casatridimensional igual): el aviso de pausa le decía «todo lo que hizo tu peque queda
+    // guardado: las estrellas, lo que ya domina» a quien tocó un botón y se fue. Que la
+    // salteó igual llega al servidor con el primer snapshot de verdad (al ganar una partida).
+    no.addEventListener("click", () => { Store.marcarSondeo(true); pintarMenu(); });
     btns.appendChild(ok); btns.appendChild(no);
     stage.appendChild(card);
     scrollTo(0, 0);
@@ -5738,6 +5741,10 @@ const Sondeo = {
     });
     Store.marcarUbicados(Array.from(sabidos));
     Store.marcarSondeo(false);
+    // `_enviarProgreso` al terminarla (25-sep-2026): el snapshot salía sólo al ganar una
+    // partida, así que el chico que hacía la nivelación y se iba —el caso de la prueba del
+    // 05-sep— dejaba el resultado sólo en su navegador y el padre nunca lo veía. Acá sí
+    // contestó consignas, así que «jugó» es verdad.
     _enviarProgreso();
     const n = sabidos.size;
     const stage = $("#stage"); stage.innerHTML = "";

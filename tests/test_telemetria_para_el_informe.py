@@ -315,11 +315,21 @@ def test_sin_nivelacion_el_snapshot_no_manda_sondeo():
     assert "sondeo" not in s and "ubicado" not in s
 
 
-def test_terminar_o_saltear_la_nivelacion_manda_el_snapshot():
+def test_terminar_la_nivelacion_manda_el_snapshot():
     """El snapshot salía sólo al ganar una partida: el chico que hacía la nivelación y se
     iba dejaba el resultado en su navegador."""
     src = _fuente()
     i = src.index("  _terminar() {")
-    assert "_enviarProgreso()" in src[i:src.index("Store.marcarSondeo(false)", i) + 80]
+    j = src.index("Store.marcarSondeo(false)", i)
+    k = src.index("const n = sabidos.size", j)
+    assert "_enviarProgreso()" in src[j:k]
+
+
+def test_saltear_la_nivelacion_no_crea_el_perfil_en_el_servidor():
+    """«Ahora no» sin contestar nada NO puede mandar el snapshot (revisión 25-sep-2026): el
+    perfil en `progreso.json` es lo que la tienda lee como «jugó», y el aviso de pausa le
+    decía «todo lo que hizo tu peque queda guardado» a quien tocó un botón y se fue."""
+    src = _fuente()
     j = src.index("Store.marcarSondeo(true)")
-    assert "_enviarProgreso()" in src[j:j + 60]
+    fin = src.index("\n", j)
+    assert "_enviarProgreso" not in src[j:fin]
