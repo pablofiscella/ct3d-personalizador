@@ -4973,6 +4973,20 @@ function certificadoUrl() {
   return "certificado.png?nombre=" + encodeURIComponent(Store.data.activeProfile || "");
 }
 
+/* La regla GENERAL de estrellas, la de `Shell.ctx().win()` cuando el juego no trae las
+   suyas. Se sacó afuera de `win()` el 25-sep-2026 (auditoría, PRO-13) sin cambiar una coma
+   de la cuenta, para poder correrla suelta con node en los tests: el arreglo del memotest y
+   del sudoku dependía de ella y se tenía que poder PROBAR, no sólo leer.
+     - con rondas registradas → precisión de primer intento (≥90 % 3★, ≥70 % 2★)
+     - sin rondas registradas (colorear, etc.) → el criterio viejo, por fallos */
+function _estrellasDeLaPartida(primerOk, primerTotal, fallos) {
+  if (primerTotal > 0) {
+    const acc = primerOk / primerTotal;
+    return acc >= 0.9 ? 3 : (acc >= 0.7 ? 2 : 1);
+  }
+  return fallos === 0 ? 3 : (fallos <= 2 ? 2 : 1);
+}
+
 /* ── shell de juego: consigna + progreso + festejo ── */
 const Shell = {
   actual: null, nivelActual: null, fallos: 0, _rondas: 0, _nuevoLogro: false,
@@ -5163,6 +5177,11 @@ const Shell = {
         });
       },
       bien(txt) { registrar(true); marcarLoQueToco("bien"); ocultarExplicacion(); Sfx.ok(); toast(txt || FRASES_BIEN[rint(0, FRASES_BIEN.length - 1)]); },
+      // Anota el intento SIN festejarlo ni marcarlo (25-sep-2026, PRO-13). Es para el juego
+      // que tiene que contar aciertos pero no puede decir cuál estuvo bien sin soplar la
+      // respuesta: el sudoku acepta cualquier ficha que no choque, y un «¡Muy bien!» sólo en
+      // las de la solución le diría al chico cuál es cuál. Mismo `registrar` que bien/casi.
+      anotar(ok) { registrar(!!ok); },
       casi(motivo) {
         registrar(false, motivo); marcarLoQueToco("casi");
         self.fallos++; self._rondaFallos = (self._rondaFallos || 0) + 1;
@@ -5180,15 +5199,9 @@ const Shell = {
         //   - juego sin rondas registradas (colorear, etc.) → fallback viejo por fallos
         // El "sello de dominado sostenido en 2 sesiones" + diploma es el próximo
         // incremento (necesita timestamps entre sesiones); esto ya deja el dato.
-        let e;
-        if (estrellas !== undefined) {
-          e = estrellas;
-        } else if (self.primerTotal > 0) {
-          const acc = self.primerOk / self.primerTotal;
-          e = acc >= 0.9 ? 3 : (acc >= 0.7 ? 2 : 1);
-        } else {
-          e = self.fallos === 0 ? 3 : (self.fallos <= 2 ? 2 : 1);
-        }
+        const e = estrellas !== undefined
+          ? estrellas
+          : _estrellasDeLaPartida(self.primerOk, self.primerTotal, self.fallos);
         // Durante la nivelación inicial el resultado UBICA, no puntúa: no se guardan
         // estrellas ni sellos ni se festeja, porque el sondeo no es logro del chico —
         // es el motor averiguando por dónde empezar. Sale por acá antes de tocar nada.
@@ -8019,9 +8032,46 @@ window.addEventListener("message", (ev) => {
 });
 
 /* ── arranque ── */
+/* EL ARRANQUE NO SE PUEDE QUEDAR MUDO (25-sep-2026, auditoría MOT-04). `boot()` hacía
+   `fetch("data.json")` y `r.json()` sin mirar nada: si el pedido no llegaba —o llegaba la
+   página de error de Cloudflare en vez del JSON— quedaba «Preparando tus juegos…» para
+   siempre, sin una palabra. Con la señal del celular de muchas familias eso es lo normal.
+   Ahora: tres intentos en ~3 segundos (un corte corto no se nota), y si igual no llega, el
+   aviso con «Probar de nuevo» (`falloDeCarga`, que vive en el HTML porque también tiene que
+   andar cuando el que no llegó es este archivo). */
+async function _pedirDatos() {
+  let ultimo = null;
+  for (const ms of [0, 800, 2000]) {
+    if (ms) await espera(ms);
+    try {
+      const r = await fetch("data.json");
+      if (!r.ok) throw new Error("data.json respondió " + r.status);
+      return await r.json();
+    } catch (e) { ultimo = e; }
+  }
+  throw ultimo;
+}
+function _arrancar() {
+  // El HTML ya avisó que falta un script (el catálogo curricular, por ejemplo): arrancar
+  // igual pisaría el aviso con un menú a medias.
+  if (window.ARRANQUE_ROTO) return;
+  boot().catch((e) => {
+    console.error("el cuaderno no pudo arrancar:", e);
+    // Sólo si seguimos en «Preparando…»: lo que falle DESPUÉS de mostrar el menú no es de
+    // carga y no se tapa con este aviso.
+    if (!document.getElementById("cargando")) return;
+    // Sin datos, se reintenta acá mismo; si ya había datos, algo más se rompió a mitad del
+    // arranque y lo sano es empezar de cero.
+    const reintentar = D ? () => location.reload() : _arrancar;
+    if (typeof falloDeCarga === "function") falloDeCarga(reintentar);
+    else {   // HTML viejo en caché, sin el aviso: por lo menos que no quede mudo
+      const t = document.querySelector("#cargando .fx");
+      if (t) t.textContent = "No se pudieron cargar los juegos. Revisá la conexión y recargá la página.";
+    }
+  });
+}
 async function boot() {
-  const r = await fetch("data.json");
-  D = await r.json();
+  D = await _pedirDatos();
   // los dos se piden a la vez: son independientes y los dos fallan en silencio
   await Promise.all([sumarExtrasDeLaEscuela(), cargarVideosInteractivos()]);
   // El duelo entre compañeros vive en su propio archivo (actividades_duelo.js) y se suma
@@ -8127,9 +8177,26 @@ async function boot() {
     Sfx._ctx(); removeEventListener("pointerdown", una);
   }, { once: true });
 }
-document.addEventListener("DOMContentLoaded", boot);
+document.addEventListener("DOMContentLoaded", _arrancar);
 
 /* ═══════════ JUEGOS — cada uno registra GAMES[id] = {crear(ctx)} ═══════════ */
+
+/* ── Estrellas del memotest (25-sep-2026, auditoría PRO-13) ──
+   El memotest no se puede medir por «acertó al primer intento»: las cartas empiezan boca
+   abajo, y errar parejas es la única manera de verlas. Terminaba con `ctx.win()` sin
+   estrellas y nunca anotaba un acierto, así que la precisión de primer intento daba 0 y
+   salía 1★ SIEMPRE — y como el diploma pide 3★ en todas las tarjetas, y el memotest está en
+   los siete grados, el diploma era imposible para todos.
+   La regla nueva mira cuántas parejas erró respecto de cuántas había. Simulado con 4.000
+   partidas por caso: jugando con memoria perfecta se yerran ~0,6 por pareja (6 parejas:
+   mediana 3-4 errores), y el que olvida un poco queda casi siempre ≤ 1 por pareja; dando
+   vuelta cartas al azar, con 6 parejas sólo el 2 % llega a ≤ 6 errores y el 10 % a ≤ 12.
+   Escala con las parejas, así que la dificultad adaptativa (que las suma) no lo castiga. */
+function _estrellasMemotest(errores, pares) {
+  if (errores <= pares) return 3;
+  if (errores <= 2 * pares) return 2;
+  return 1;
+}
 
 /* ── MEMOTEST — memoria de trabajo. Pares de personajes del tema. ── */
 GAMES.memotest = {
@@ -8144,7 +8211,7 @@ GAMES.memotest = {
     const grid = el("div"); grid.id = "memo";
     grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
     ctx.juego.appendChild(el("div", "tablero")).appendChild(grid);
-    let abiertas = [], bloqueado = false, halladas = 0;
+    let abiertas = [], bloqueado = false, halladas = 0, errores = 0;
     requestAnimationFrame(() => {
       const disp = innerHeight - grid.getBoundingClientRect().top - 18;
       const filas = Math.ceil(mazo.length / cols);
@@ -8166,11 +8233,14 @@ GAMES.memotest = {
         const [a, b] = abiertas;
         if (a.s === b.s) {
           a.c.classList.add("lista"); b.c.classList.add("lista");
+          // El acierto se anota ANTES de pasar de ronda: si no, cae en la ronda de la
+          // pareja siguiente y le come su primer intento. `bien` ya hace el sonido.
+          ctx.bien();
           halladas++;
           ctx.ronda(halladas);
-          Sfx.ok();
-          if (halladas === pares) { await espera(600); ctx.win(); }
+          if (halladas === pares) { await espera(600); ctx.win(_estrellasMemotest(errores, pares)); }
         } else {
+          errores++;
           ctx.casi();
           await espera(850);
           a.c.classList.remove("abierta"); b.c.classList.remove("abierta");
@@ -8524,6 +8594,12 @@ GAMES.sudoku = {
       celda.classList.add("anim-pop");
       Sfx.pop();
       sel = null; pintarPick();
+      // El sudoku nunca anotaba un acierto (25-sep-2026, PRO-13): un solo choque en toda la
+      // partida daba 1★ y sólo el que no chocaba NUNCA sacaba 3★ — nunca 2★. Acá la regla
+      // general sí es justa (cada casillero se deduce, no se adivina); faltaba el dato. Se
+      // anota en silencio y contra la SOLUCIÓN: una ficha que no choca pero no va ahí es un
+      // error para las estrellas, sin decírselo (decírselo sería soplarle la respuesta).
+      ctx.anotar(v === s.sol[r][c]);
       puestas++;
       ctx.ronda(puestas);
       if (tablero.flat().every((x, i) => x === s.sol.flat()[i])) {

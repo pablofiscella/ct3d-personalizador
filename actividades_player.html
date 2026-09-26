@@ -120,6 +120,15 @@ h1, h2, h3, .fx {
   animation: girar 0.9s linear infinite;
 }
 @keyframes girar { to { transform: rotate(360deg); } }
+/* el aviso de «no se pudo cargar» (MOT-04): mismo lugar que el aro, para que no salte nada */
+#cargando .carga-fallo { text-align: center; padding: 0 24px; max-width: 420px; }
+#cargando .carga-cara { font-size: 56px; line-height: 1; margin-bottom: 10px; }
+#cargando .carga-fallo .fx { font-size: 22px; margin-bottom: 8px; }
+#cargando .carga-fallo p { font-size: 17px; line-height: 1.45; opacity: .8; margin: 0 0 18px; }
+#cargando .carga-fallo button {
+  font: inherit; font-size: 19px; font-weight: 700; padding: 14px 26px; border: 0;
+  border-radius: 999px; background: var(--ac); color: #fff; cursor: pointer;
+}
 
 /* ── header ── */
 #hdr {
@@ -1358,6 +1367,24 @@ body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
 </head>
 <body>
 <div id="cargando"><div class="aro"></div><div class="fx" style="font-size:22px">Preparando tus juegos…</div></div>
+<script>
+/* Si el arranque no llega, se DICE (25-sep-2026, auditoría MOT-04). Vive acá y no en
+   player.js porque uno de los casos es justamente que player.js no llegue. Lo llaman el
+   chequeo del final del <body> (falta un script) y `_arrancar()` (no llegó data.json). */
+function falloDeCarga(reintentar) {
+  var c = document.getElementById("cargando");
+  if (!c || c.querySelector(".carga-fallo")) return;
+  var antes = c.innerHTML;
+  c.innerHTML = '<div class="carga-fallo"><div class="carga-cara">😕</div>' +
+    '<div class="fx">No se pudieron cargar los juegos</div>' +
+    '<p>Puede ser la conexión a internet. Fijate que haya señal y tocá el botón.</p>' +
+    '<button type="button">🔄 Probar de nuevo</button></div>';
+  c.querySelector("button").addEventListener("click", function () {
+    c.innerHTML = antes;
+    (reintentar || function () { location.reload(); })();
+  });
+}
+</script>
 
 <header id="hdr">
   <!-- El 📚 se fue el 27-jul-2026. Llevaba a /mi-cuenta con la URL ESCRITA A MANO, y el
@@ -1439,5 +1466,14 @@ body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
 <!-- duelo entre compañeros: necesita GAMES (player.js) y el pozo de preguntas
      CUR_DUELO_POR_GRADO (actividades_curriculum.js), así que va último -->
 <script src="duelo.js?v={{V}}"></script>
+<!-- Si player.js o el catálogo no llegaron, `boot` no existe o el menú saldría casi vacío:
+     se avisa en vez de dejar «Preparando tus juegos…» para siempre (MOT-04, 25-sep-2026).
+     El duelo no entra en el chequeo: sin él el cuaderno anda igual. -->
+<script>
+if (typeof boot !== "function" || typeof CUR_DUELO_POR_GRADO === "undefined") {
+  window.ARRANQUE_ROTO = true;
+  falloDeCarga(function () { location.reload(); });
+}
+</script>
 </body>
 </html>
