@@ -625,7 +625,9 @@ def test_el_cache_dinamico_tambien_separa_por_voz():
     src = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                             "servicio.py"), encoding="utf-8").read()
     i = src.index("def _tts_dinamico")
-    cuerpo = src[i:i + 2000]
+    # la función entera, hasta el próximo método: con una ventana fija de 2000 caracteres
+    # (en main ya estaba en 1933) cualquier comentario nuevo la rompía (25-sep-2026)
+    cuerpo = src[i:src.index("\n    def ", i + 1)]
     assert "VOZ_ACTIVIDADES" in cuerpo, "el caché dinámico no separa por voz"
     assert "voice_id=" in cuerpo, "el TTS dinámico saldría con la voz del audiolibro"
 

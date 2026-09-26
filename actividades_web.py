@@ -1994,15 +1994,31 @@ def extras_guardar(token, pedidos, compradas=None):
 
     `compradas` = [{id, grado}, ...] que el padre PAGÓ ($1000 c/u, decisión de Pablo
     25-jul). No cuentan contra el cupo gratis y no miran el grado: si la pagó, entra. La
-    tienda es la que sabe qué se pagó; el motor sólo la cree para eso.
+    tienda es la que sabe qué se pagó; el motor sólo la cree para eso — y sólo cuando la
+    manda con su credencial (lo chequea `servicio._act_extras_set`).
+
+    `compradas=None` (nadie con credencial dijo qué se pagó) NO significa "no pagó nada":
+    valen como pagadas las que ESTE cuaderno ya tenía guardadas con origen "comprada", que
+    en su momento entraron con la credencial de la tienda (25-sep-2026). Sin esto, el
+    padre que vuelve a guardar sus extras desde un camino sin credencial perdía lo que
+    había pagado, y ése es justo el error que no se puede cometer con un cuaderno vendido.
 
     Devuelve {"ok", "items", "rechazadas"}."""
     d = os.path.join(ACT_DIR, token)
     if not os.path.isdir(d):
         return {"ok": False, "error": "token inexistente"}
     grado_chico = _grado_del_token(token)
-    pagadas = {(str(c.get("id")), int(c.get("grado") or 0))
-               for c in (compradas or []) if isinstance(c, dict)}
+    if compradas is None:
+        compradas = [it for it in (extras_leer(token).get("items") or [])
+                     if isinstance(it, dict) and it.get("origen") == "comprada"]
+    pagadas = set()
+    for c in compradas or []:
+        if not isinstance(c, dict):
+            continue
+        try:
+            pagadas.add((str(c.get("id")), int(c.get("grado") or 0)))
+        except (TypeError, ValueError):
+            continue
     cat = catalogo_actividades()
     porcat, items, rechazadas = {}, [], []
     vistos = set()
