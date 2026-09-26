@@ -382,7 +382,12 @@ _THUMB_SEM = threading.Semaphore(3)
 # no quemar rate-limit ni acumular gasto si entran varias compras juntas; los demás
 # pedidos esperan su turno dentro del hilo de fondo (el cliente ya tiene su link).
 _LIBRO_PREMIUM_SEM = threading.Semaphore(1)
-_KEY_RE = re.compile(r"(key=)[^&\s\"']+", re.I)
+# 25-sep-2026: además de la API key, se tapan el token del cuaderno (`t`, `token`), el
+# pase de grande (`g`) y el perfil del chico (`perfil`): con esos valores en el log
+# cualquiera que lo lea entra al cuaderno de una familia o sabe el nombre del chico.
+# `key` sigue sin borde (tapa `api_key=`, `xi_key=`); los cortos piden que antes no
+# haya letra, dígito ni `_` para que «sort=» o «segment=» no se confundan con `t=`/`g=`.
+_KEY_RE = re.compile(r"((?:key|(?<![A-Za-z0-9_])(?:g|t|token|perfil))=)[^&\s\"']+", re.I)
 
 def _pieza_thumb(exdir, archivo):
     """Devuelve el path del thumbnail (≤220px) de extras/<archivo>, generándolo en
