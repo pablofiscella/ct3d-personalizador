@@ -2735,6 +2735,8 @@ def html(token):
 
 _ASSET_RE = re.compile(
     r"^(data\.json|extras\.json|player\.js|duelo\.js|motor_adaptativo\.js|actividades_curriculum\.js|f[12]\.ttf|[ps]\d{2}\.(?:png|webp)|colorear_\d\.png|escena\.jpg|portada\.jpg"
+    # la librería que saca la captura del 🚩 (28-sep-2026): del REPO, se pide recién al reportar
+    r"|captura\.js"
     r"|favicon_(?:kydo|ct3d)\.svg"
     r"|audio_manifest\.json|c_[a-f0-9]{10}\.mp3"
     # lecciones en video del botón "¿Cómo es?": salen del REPO como el player y el
@@ -2997,6 +2999,8 @@ def archivo(token, nombre, acepta_webp=False):
         p = TEMPLATE_JS
     elif nombre == "motor_adaptativo.js":
         p = TEMPLATE_MOTOR
+    elif nombre == "captura.js":
+        p = os.path.join(BASEDIR, "vendor", "html_to_image.min.js")
     elif nombre == "duelo.js":
         p = TEMPLATE_DUELO
     elif nombre in ("f1.ttf", "f2.ttf"):

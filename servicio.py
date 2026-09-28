@@ -83,7 +83,45 @@ def act_grant_ok(token, grant, now=None):
     good = hmac.new(_act_grant_secret().encode(), ("%s.%d" % (token, exp)).encode(),
                     hashlib.sha256).hexdigest()
     return hmac.compare_digest(mac, good)
-DATA_DIR = os.environ.get("CT3D_DATA_DIR", os.path.join(os.path.dirname(__file__), "pedidos"))
+
+
+# ── La captura de pantalla que viaja con un reporte del 🚩 (28-sep-2026) ──────────────────
+# Se guarda ADENTRO del cuaderno, en `reportes/`, que `/act/<token>/` no sirve (la ruta no
+# acepta barras). Se ve SÓLO con un link firmado que vence: la captura puede mostrar el nombre
+# del chico, y las muestras públicas las abre cualquiera. Secreto propio, separado del de los
+# grants del cuaderno: un link de captura no tiene que servir para otra cosa.
+CAPTURA_TTL = 30 * 24 * 3600
+CAPTURA_MAX = 700 * 1024                  # una captura de 1280 de ancho en JPEG pesa ~100 KB
+CAPTURAS_TOPE_CUADERNO = 30 * 1024 * 1024  # todas las de un cuaderno, juntas
+_CAPTURA_ARCH_RE = re.compile(r"^\d{8}-\d{6}-[a-f0-9]{6}\.jpg$")
+
+
+def _captura_secret():
+    return hmac.new(API_KEY.encode(), b"reporte-captura", hashlib.sha256).hexdigest()
+
+
+def _captura_firma(token, arch, exp):
+    return hmac.new(_captura_secret().encode(), ("%s/%s.%d" % (token, arch, exp)).encode(),
+                    hashlib.sha256).hexdigest()
+
+
+def captura_link(token, arch, ttl=CAPTURA_TTL, now=None):
+    exp = int((now if now is not None else time.time()) + ttl)
+    return "%s/act-captura/%s/%s?e=%d&s=%s" % (BASE_URL, token, arch, exp,
+                                              _captura_firma(token, arch, exp))
+
+
+def captura_link_ok(token, arch, e, s, now=None):
+    try:
+        exp = int(e)
+    except (TypeError, ValueError):
+        return False
+    if exp < int(now if now is not None else time.time()):
+        return False
+    return hmac.compare_digest(str(s or ""), _captura_firma(token, arch, exp))
+
+
+DATA_DIR =os.environ.get("CT3D_DATA_DIR", os.path.join(os.path.dirname(__file__), "pedidos"))
 BASE_URL = os.environ.get("CT3D_BASE_URL", f"http://localhost:{PORT}")
 # Cache en disco de las miniaturas del catálogo: /preview NO personalizado (sin `over`)
 # se re-renderiza en cada carga de la tienda (cientos de productos) → se guarda el
@@ -566,6 +604,19 @@ def _token_publico(token):
     mundo, así que lo que ahí se escribe lo decide cualquiera."""
     t = str(token or "").lower()
     return t.startswith("muestra-") or t.startswith("demo-")
+
+
+def _medida(v):
+    """«1366x657» o vacío. Lo manda el navegador de cualquiera y termina en el WhatsApp de
+    Pablo: no se acepta nada que no tenga exactamente esa forma."""
+    v = str(v or "").strip()
+    return v if re.fullmatch(r"\d{2,5}x\d{2,5}", v) else ""
+
+
+def _escala(v):
+    """`devicePixelRatio`: «1», «1.5», «2.63». 1,5 en una PC es Windows (o el zoom) al 150 %."""
+    v = str(v or "").strip()
+    return v if re.fullmatch(r"\d(?:\.\d{1,2})?", v) else ""
 
 
 def _limpiar_pedidos_viejos(dias=7300):
@@ -1555,6 +1606,10 @@ class Handler(BaseHTTPRequestHandler):
             import actividades_web as aw
             return self._json(200, {"ok": True, "catalogo": aw.catalogo_actividades(),
                                     "tope_adyacente": aw.EXTRAS_TOPE_ADYACENTE})
+        # la captura de un reporte del 🚩, con el link firmado del aviso: ver `_act_captura`
+        m_cap = re.match(r"^/act-captura/([A-Za-z0-9_-]+)/([0-9a-f.-]+)$", path)
+        if m_cap and _CAPTURA_ARCH_RE.fullmatch(m_cap.group(2)):
+            return self._act_captura(m_cap.group(1), m_cap.group(2), u.query)
         # OJO: el visor usa rutas RELATIVAS -> siempre servirlo bajo /act/<tok>/
         # (con barra final); /act/<tok> sin barra redirige.
         m = re.match(r"^/act/([A-Za-z0-9_-]+)(?:/([a-z_0-9.]*))?$", path)
@@ -2202,6 +2257,14 @@ class Handler(BaseHTTPRequestHandler):
         if not _rate_ok(self._client_ip(), limit=REPORTE_TOPE_IP_HORA, window=3600,
                         clave="reporte"):
             return self._json(429, {"ok": False})
+        # Con la captura, un reporte de verdad pesa ~150 KB. El tope general del motor es de
+        # 30 MB (para el arte de impresión, que es admin); acá, público, no hace falta ni el 5 %.
+        try:
+            largo = int(self.headers.get("Content-Length") or 0)
+        except ValueError:
+            largo = 0
+        if largo > 1536 * 1024:
+            return self._json(413, {"ok": False})
         try:
             ev = json.loads(self._body() or b"{}")
         except Exception:
@@ -2229,7 +2292,14 @@ class Handler(BaseHTTPRequestHandler):
             "ronda": str(ev.get("ronda") or "")[:8],
             "consigna": str(ev.get("consigna") or "")[:300],
             "ua": str(self.headers.get("User-Agent") or "")[:160],
+            # La ventana y la escala (28-sep-2026): el primer reporte que llegó sólo se podía
+            # ver en ventanas anchas y bajas, y hubo que adivinar cuáles. Forma estricta, o
+            # vacío: lo manda el navegador de cualquiera y va al aviso de Pablo.
+            "ventana": _medida(ev.get("ventana")),
+            "pantalla": _medida(ev.get("pantalla")),
+            "escala": _escala(ev.get("escala")),
         }
+        rec["captura"] = self._guardar_captura(d, ev.get("captura"))
         guardado = False
         try:
             p = os.path.join(d, "reportes.jsonl")
@@ -2270,22 +2340,88 @@ class Handler(BaseHTTPRequestHandler):
             # `titulo` y `juego` también los manda el que reporta y encabezan el aviso: sin
             # desarmar, el link iba en la primera línea (25-sep-2026). Igual grado y ronda.
             donde = _sin_links(rec["titulo"] or rec["juego"] or "el cuaderno")
+            # La ventana y la escala ya vienen validadas (sólo dígitos, «x» y punto); el link
+            # de la captura lo arma el SERVIDOR, así que no choca con `_sin_links`, que existe
+            # para que lo que escribe el que reporta no le mande links a Pablo.
+            pant = ""
+            if rec["ventana"]:
+                pant = "Ventana %s · escala %s" % (rec["ventana"], rec["escala"] or "?")
+            foto = captura_link(token, rec["captura"]) if rec["captura"] else ""
             notif_emit(
                 "reporte_cuaderno",
                 ref_id="%s|%s|%s" % (token, rec["juego"] or rec["titulo"], motivo),
                 cooldown_h=1,
                 titulo="🚩 Reportaron un error en %s" % donde,
-                detalle="%s · %s.º grado · ronda %s\n%s\nConsigna: %s\nToken: %s" % (
+                detalle="%s · %s.º grado · ronda %s\n%s\nConsigna: %s\nToken: %s%s%s" % (
                     MOTIVOS[motivo], rec["grado"] or "?", rec["ronda"] or "?",
                     rec["detalle"] or "(sin detalle)", rec["consigna"] or "(sin consigna)",
-                    token),
-                wa_texto="🚩 %s\n%s\n%s.º grado · ronda %s\n%s" % (
+                    token, ("\n" + pant) if pant else "",
+                    ("\nCaptura: " + foto) if foto else ""),
+                wa_texto="🚩 %s\n%s\n%s.º grado · ronda %s\n%s%s%s" % (
                     donde, MOTIVOS[motivo], _sin_links(rec["grado"] or "?"),
                     _sin_links(rec["ronda"] or "?"),
-                    _sin_links(rec["detalle"])[:200]))
+                    _sin_links(rec["detalle"])[:200],
+                    ("\n" + pant) if pant else "",
+                    ("\n📷 " + foto) if foto else ""))
         except Exception:
             self.log_error("reporte de %s: no se pudo avisar", token)
         return self._json(200, {"ok": guardado})
+
+    def _guardar_captura(self, d, dato):
+        """Guarda la captura del 🚩 en `<cuaderno>/reportes/` y devuelve el nombre, o "".
+
+        Lo que se acepta es angosto a propósito: el endpoint es público y escribe en disco.
+        Tiene que ser un `data:image/jpeg;base64,` que decodifique a un JPEG de verdad (los
+        tres primeros bytes), de menos de CAPTURA_MAX, y el cuaderno no puede tener ya más de
+        CAPTURAS_TOPE_CUADERNO en capturas. Cualquier cosa rara se descarta EN SILENCIO: el
+        reporte se guarda igual, que es lo que importa."""
+        import base64
+        import secrets
+        pref = "data:image/jpeg;base64,"
+        if not isinstance(dato, str) or not dato.startswith(pref):
+            return ""
+        if len(dato) > CAPTURA_MAX * 4 // 3 + len(pref) + 8:
+            return ""
+        try:
+            crudo = base64.b64decode(dato[len(pref):], validate=True)
+        except Exception:
+            return ""
+        if len(crudo) > CAPTURA_MAX or crudo[:3] != b"\xff\xd8\xff":
+            return ""
+        carpeta = os.path.join(d, "reportes")
+        try:
+            os.makedirs(carpeta, exist_ok=True)
+            ocupado = sum(os.path.getsize(os.path.join(carpeta, f))
+                          for f in os.listdir(carpeta))
+            if ocupado + len(crudo) > CAPTURAS_TOPE_CUADERNO:
+                return ""
+            arch = "%s-%s.jpg" % (time.strftime("%Y%m%d-%H%M%S"), secrets.token_hex(3))
+            with open(os.path.join(carpeta, arch), "wb") as f:
+                f.write(crudo)
+            return arch
+        except Exception:
+            self.log_error("reporte: no se pudo guardar la captura en %s", d)
+            return ""
+
+    def _act_captura(self, token, arch, query):
+        """Muestra una captura de un reporte, SÓLO con el link firmado del aviso (ver
+        `captura_link`). Sin firma o vencido: 404, igual que si no existiera."""
+        import actividades_web as aw
+        q = urllib.parse.parse_qs(query or "")
+        e = (q.get("e") or [""])[0]
+        s = (q.get("s") or [""])[0]
+        p = os.path.join(aw.ACT_DIR, token, "reportes", arch)
+        if not (captura_link_ok(token, arch, e, s) and os.path.isfile(p)):
+            return self._json(404, {"ok": False})
+        with open(p, "rb") as f:
+            data_b = f.read()
+        self.send_response(200)
+        self.send_header("Content-Type", "image/jpeg")
+        self.send_header("Cache-Control", "private, no-store")
+        self.send_header("X-Robots-Tag", "noindex")
+        self.send_header("Content-Length", str(len(data_b)))
+        self.end_headers()
+        self.wfile.write(data_b)
 
     @staticmethod
     def _es_muestra_publica(token):
