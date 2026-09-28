@@ -8227,8 +8227,68 @@ function _gradoDeD() {
   return m ? m[1] : "";
 }
 
+/* ── LA PANTALLA TAL COMO LA VIO (28-sep-2026) ────────────────────────────────────
+   Primer reporte que llegó: «se ve la mitad de la cuadrícula», desde una PC con Windows.
+   Pablo lo abrió y lo veía bien. El error era real y sólo aparecía en ventanas anchas y
+   bajas; hubo que reproducirlo a ciegas probando tamaños. Pablo: *"estaría bueno que si
+   alguien reporta pueda hacer un screen de la pantalla, para ver si justo está ahí"*.
+
+   Por eso el reporte lleva dos cosas más, sin preguntarle nada a nadie:
+   - EL TAMAÑO DE LA VENTANA y la escala (`devicePixelRatio`: 1,5 = Windows o el zoom al
+     150 %). Con eso solo, este error se reproducía en dos minutos.
+   - UNA CAPTURA de lo que había en pantalla. La saca `captura.js` (html-to-image, copia
+     local) redibujando la página: no pide permiso ni muestra nada. Se deja AFUERA el cartel
+     del reporte, que si no taparía justo lo que hay que ver. Si tarda o falla, el reporte
+     sale igual sin imagen: la captura ayuda, pero nunca puede costar el reporte. */
+function _ventanaDelReporte() {
+  return {
+    ventana: innerWidth + "x" + innerHeight,
+    pantalla: window.screen && screen.width ? screen.width + "x" + screen.height : "",
+    escala: String(Math.round((window.devicePixelRatio || 1) * 100) / 100),
+  };
+}
+
+function _cargarCaptura() {
+  if (window.htmlToImage) return Promise.resolve(window.htmlToImage);
+  if (_cargarCaptura._p) return _cargarCaptura._p;
+  _cargarCaptura._p = new Promise((listo, mal) => {
+    const s = document.createElement("script");
+    s.src = "captura.js";
+    s.onload = () => (window.htmlToImage ? listo(window.htmlToImage) : mal(new Error("sin lib")));
+    s.onerror = () => { _cargarCaptura._p = null; mal(new Error("no cargó captura.js")); };
+    document.head.appendChild(s);
+  });
+  return _cargarCaptura._p;
+}
+
+function _capturarPantalla() {
+  // Se achica a 1280 de ancho como mucho y va en JPEG: alcanza para ver el problema y pesa
+  // ~100 KB, que es lo que el servidor acepta sin dudar.
+  const escala = Math.min(1, 1280 / Math.max(1, innerWidth));
+  const fondo = getComputedStyle(document.body).backgroundColor;
+  return _cargarCaptura()
+    .then((lib) => lib.toJpeg(document.body, {
+      quality: 0.72, pixelRatio: escala,
+      width: innerWidth, height: Math.min(document.body.scrollHeight, innerHeight * 2),
+      backgroundColor: fondo && fondo !== "rgba(0, 0, 0, 0)" ? fondo : "#ffffff",
+      // Afuera el cartel del reporte, y las <img> SIN src: `#consignaPista` está vacía cuando
+      // la consigna no tiene pista, la librería la pedía como imagen, recibía la página y
+      // tiraba abajo la captura ENTERA — el reporte salía sin imagen, siempre (28-sep-2026,
+      // lo cazó el test con navegador). No se ven, así que sacarlas no cambia la foto.
+      filter: (n) => !(n.classList && n.classList.contains("comoes-fondo")) &&
+                     !(n.tagName === "IMG" && !n.getAttribute("src")),
+      // Y si alguna OTRA imagen no carga, va un cuadrito transparente en su lugar en vez de
+      // perder la captura: una foto con un hueco sirve; ninguna foto, no.
+      imagePlaceholder: "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+    }))
+    .catch(() => null);
+}
+
 function abrirReporte() {
   pararVoz();
+  // La captura arranca YA, antes de armar el cartel: lo que importa es la pantalla de antes
+  // de tocar 🚩. Corre mientras la familia elige el motivo.
+  const capturaP = _capturarPantalla();
   const ctx = _contextoDelReporte();
   const fondo = el("div", "comoes-fondo");
   const card = el("div", "comoes comoes--reporte");
@@ -8290,7 +8350,11 @@ function abrirReporte() {
       const m = (D.menu || []).find((x) => x.id === sel.value) || {};
       ctx.juego = sel.value; ctx.titulo = m.titulo || ""; ctx.grado = String(m.grado || ctx.grado || "");
     }
-    const cuerpo = Object.assign({ motivo: elegido, detalle: txt.value.slice(0, 500) }, ctx);
+    const cuerpo = Object.assign({ motivo: elegido, detalle: txt.value.slice(0, 500) }, ctx,
+                                 _ventanaDelReporte());
+    // Como mucho 4 s esperando la captura: si no llegó, el reporte sale sin imagen.
+    const captura = await Promise.race([capturaP, new Promise((r) => setTimeout(() => r(null), 4000))]);
+    if (captura && captura.length < 900000) cuerpo.captura = captura;
     let ok = false;
     try {
       const r = await fetch("reporte", {
