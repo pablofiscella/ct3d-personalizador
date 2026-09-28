@@ -914,7 +914,10 @@ body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
   aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
   background: var(--soft); border-radius: 8px;
   font-family: "Baloo", Archivo, sans-serif; font-weight: 700; letter-spacing: 0;
-  font-size: clamp(15px, 3.4vw, 24px); position: relative; z-index: 2;
+  /* `--letra` la pone el juego midiendo la celda; el clamp queda de respaldo. `line-height: 1`
+     para que la celda siga cuadrada cuando la letra se achica. (28-sep-2026) */
+  font-size: var(--letra, clamp(15px, 3.4vw, 24px)); line-height: 1;
+  position: relative; z-index: 2;
 }
 #sopa .celda.marca { background: color-mix(in srgb, var(--ac2) 30%, var(--card)); }
 #sopa .celda.hallada { background: var(--ac2); color: #fff; }
@@ -925,6 +928,14 @@ body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
   font-size: 18px; box-shadow: var(--sombra);
 }
 #sopaPalabras .palabra.hallada { background: var(--ac2); color: #fff; text-decoration: line-through; }
+/* ventanas anchas y bajas (notebooks, PCs con escala de Windows): las palabras al costado, así la
+   grilla usa todo el alto y la lista no queda debajo del borde de la pantalla. (28-sep-2026) */
+#sopaWrap.alCostado { display: flex; align-items: flex-start; gap: 18px; }
+#sopaWrap.alCostado .tablero { flex: 0 0 auto; }
+#sopaWrap.alCostado #sopaPalabras {
+  flex: 1 1 0; min-width: 0; margin-top: 0;
+  justify-content: flex-start; align-content: flex-start;
+}
 
 /* laberinto / puntos: svg responsivo — capado al alto visible (sin scroll) */
 .svgJuego { display: block; width: 100%; height: auto; touch-action: none;
