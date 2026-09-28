@@ -8889,7 +8889,10 @@ GAMES.sopa = {
     const wrap = el("div"); wrap.id = "sopaWrap";
     const tab = el("div", "tablero");
     const grid = el("div", "lienzo"); grid.id = "sopa";
-    grid.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+    // `minmax(0, 1fr)` y no `1fr`: un `1fr` suelto tiene de mínimo el ancho de su letra, así que
+    // una letra más ancha que la celda EMPUJA la columna y la grilla se sale de la tarjeta, que la
+    // corta (`.tablero {overflow:hidden}`). Ver `ajustar()` más abajo.
+    grid.style.gridTemplateColumns = `repeat(${n}, minmax(0, 1fr))`;
     const celdas = [];
     for (let y = 0; y < n; y++)
       for (let x = 0; x < n; x++) {
@@ -8907,12 +8910,50 @@ GAMES.sopa = {
     });
     wrap.appendChild(lista);
     ctx.juego.appendChild(wrap);
-    requestAnimationFrame(() => {
+    // EL TAMAÑO SE DECIDE MIDIENDO, y se vuelve a decidir si cambia la ventana (28-sep-2026).
+    // Reporte desde una PC con Windows: «se ve la mitad de la cuadrícula». Medido: en ventanas
+    // ANCHAS Y BAJAS —notebook de 1366x768, o 1920x1080 con la escala de Windows al 150 %— la grilla
+    // se achicaba por el ALTO (212 px para diez columnas) mientras la letra seguía en 24 px, porque
+    // su tamaño salía del ANCHO (`3.4vw`). Diez letras no entraban, las columnas se empujaban y la
+    // tarjeta cortaba las dos de la derecha: 20 de 100 celdas invisibles, y si las palabras que
+    // faltaban caían ahí no había forma de terminar. En celular y en pantallas grandes no pasaba —
+    // por eso probándolo en «responsive» se veía bien—.
+    // Dos cambios: en esas ventanas las palabras van AL COSTADO (Pablo: «en ese formato podrían
+    // aparecer al costado»), así la grilla usa todo el alto y la lista queda a la vista sin
+    // scroll; y la letra sale del tamaño de la CELDA, no del de la pantalla.
+    const LISTA = 220, AIRE = 18;   // ancho mínimo de la lista al costado, y aire entre las dos
+    const ajustar = () => {
+      if (!grid.isConnected) { removeEventListener("resize", ajustar); return; }
+      wrap.classList.remove("alCostado");
+      tab.style.width = "";
       const disp = innerHeight - grid.getBoundingClientRect().top - 14;
-      const lado = Math.min(620, Math.max(260, disp - 118));   // 118 ≈ lista de palabras
-      wrap.style.maxWidth = lado + "px";
+      const ancho = ctx.juego.clientWidth;
+      const abajo = Math.min(620, Math.max(260, disp - 118));   // 118 ≈ lista de palabras abajo
+      const costado = Math.min(620, Math.max(260, disp));
+      // Al costado sólo si entra Y si gana algo que se note; si no, queda como siempre.
+      if (costado + AIRE + LISTA <= ancho && costado > abajo + 40) {
+        wrap.classList.add("alCostado");
+        tab.style.width = costado + "px";
+        wrap.style.maxWidth = (costado + AIRE + Math.min(320, ancho - costado - AIRE)) + "px";
+      } else {
+        wrap.style.maxWidth = abajo + "px";
+      }
       wrap.style.margin = "0 auto";
-    });
+      // La letra: la más grande que entre en la celda, pero NUNCA más grande que la de siempre
+      // (`clamp(15px, 3.4vw, 24px)`): donde ya se veía bien —el celular— queda igual. Se prueba y
+      // se achica, en vez de confiar en una proporción: la tipografía puede no haber cargado aún.
+      const celda = (grid.clientWidth - 3 * (n - 1)) / n;
+      const deSiempre = Math.floor(Math.max(15, Math.min(24, innerWidth * 0.034)));
+      let px = Math.max(11, Math.min(deSiempre, Math.floor(celda * 0.8)));
+      grid.style.setProperty("--letra", px + "px");
+      while (px > 11 && celdas.some((c) => c.scrollWidth > c.clientWidth)) {
+        px--;
+        grid.style.setProperty("--letra", px + "px");
+      }
+    };
+    requestAnimationFrame(ajustar);
+    addEventListener("resize", ajustar);                       // se da de baja sola al salir
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(ajustar);
 
     const at = (x, y) => celdas[y * n + x];
     const halladas = new Set();
