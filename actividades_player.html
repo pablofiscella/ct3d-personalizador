@@ -1377,7 +1377,28 @@ body.ciclo1 #juego button { min-height: 60px; padding: 14px 18px; }
 #festejo .frase { color: color-mix(in srgb, var(--ink) 60%, var(--card)); font-size: 16px; }
 #festejo .estrellas { font-size: 40px; margin: 12px 0 18px; }
 #festejo .botones { flex-direction: column; gap: 10px; }
-#festejo .botones .btn { width: 100%; }
+/* `flex: none` (30-sep-2026). La regla vieja de arriba les da `flex: 1 1 200px`, pensada para
+   botones EN FILA, donde 200px es el ancho. Con la columna de acá, ese 200px pasó a ser el ALTO:
+   cada botón medía 200px en todas las pantallas —dos pastillas gigantes al final de cada
+   actividad, en producción—. Pablo lo vio en una pantalla chica: «se puede ver mal». */
+#festejo .botones .btn { width: 100%; flex: none; }
+/* `hidden` lo tapa el `display` de `.btn`: sin esto, el «Seguir» escondido en la muestra se veía. */
+#festejo .botones .btn[hidden] { display: none; }
+
+/* EL CARTEL NO SE CORTA EN UNA PANTALLA BAJA (30-sep-2026). Centrado con `align-items`, un
+   cartel más alto que la ventana se sale POR ARRIBA y por abajo, y lo de arriba no se alcanza ni
+   con scroll: 152px afuera en el recuadro de la página pública, 202px en un celular apaisado.
+   Con `margin: auto` se centra igual cuando entra, y cuando no entra arranca arriba y se
+   scrollea. Lo mismo el diploma. */
+#festejo, #logro { overflow-y: auto; overscroll-behavior: contain; }
+#festejo .caja, #logro .caja { margin: auto; }
+@media (max-height: 600px) {
+  #festejo .caja, #logro .caja { padding: 18px 20px 16px; }
+  #festejo img.masco { width: 64px; height: 64px; }   /* `img.` para ganarle a la regla de base */
+  #festejo h2 { font-size: 24px; }
+  #festejo .estrellas { font-size: 30px; min-height: 0; margin: 4px 0 10px; }
+  #festejo .botones .btn { min-height: 50px; font-size: 19px; }
+}
 
 /* "¿Cómo es?": la etiqueta de video en versalita, los clips como pastillas */
 .comoes-videos__t {
