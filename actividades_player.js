@@ -5157,6 +5157,14 @@ const Shell = {
   // hablando"). Se resetea al abrir cada juego: volver a entrar sí tiene que decirla.
   _ultConsigna: null,
   abrir(id) {
+    // LA MUESTRA ES UNA ACTIVIDAD, TAMBIÉN POR LA PUERTA DE ADELANTE (30-sep-2026). El modo
+    // `?muestra=` cerraba el ← y el menú, pero el «▶ Seguir: Vida colonial» del festejo
+    // llamaba acá con la actividad que recomienda el motor, y de ésa a la siguiente: se
+    // recorría el grado entero desde una página pública. Pablo: *"tiene un agujero. Si le
+    // pongo siguiente sigue con la otra actividad y así pueden usar todo el cuaderno"*.
+    // El candado va ACÁ, en la única puerta, y no en cada botón: el día que aparezca otro
+    // camino a otra actividad, también rebota.
+    if (MUESTRA_SOLA && id !== MUESTRA_SOLA) id = MUESTRA_SOLA;
     const item = D.menu.find((m) => m.id === id);
     if (!item || !GAMES[id]) return;
     // La voz muere con la pantalla que la pidió (03-ago-2026). Pablo: *"salís de la
@@ -5524,6 +5532,14 @@ function festejar(estrellas, evtDom, subioNivel, ganoElMasAlla, extra) {
       $("#btnSeguir").textContent = "▶ Seguir: " + ((it && it.titulo) || prox);
     } else { $("#btnSeguir").textContent = "¡Seguir jugando!"; }
   }
+  // En la muestra de UNA actividad no hay a dónde seguir: el botón ofrecía la próxima del
+  // grado (y el duelo también abre otra). Se esconden; el candado de verdad está en
+  // `Shell.abrir`, esto es para que la pantalla no ofrezca lo que no va a dar.
+  if (MUESTRA_SOLA) {
+    Shell._proxima = null;
+    if (_bd) _bd.hidden = true;
+  }
+  $("#btnSeguir").hidden = !!MUESTRA_SOLA;
   $("#festejo").classList.add("ver");
 }
 
