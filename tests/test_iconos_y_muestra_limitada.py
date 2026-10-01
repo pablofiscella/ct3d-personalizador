@@ -76,13 +76,13 @@ def test_ningun_icono_del_catalogo_es_de_emoji_13_o_posterior():
 def test_tablas_ninja_y_despeja_la_x_tienen_icono_nuevo():
     src = _fuente(os.path.join(BASE, "actividades_web.py"))
     assert src.count('"titulo": "Tablas ninja", "icono": "🥋"') == 4
-    assert '"titulo": "Despejá la x", "icono": "⚖️"' in src
+    assert '"titulo": "Despejá la x", "icono": "↔️"' in src
 
 
 def test_el_mapa_cubre_los_dos_de_hoy_y_sus_reemplazos_se_dibujan():
     import emoji_compat as ec
     assert ec.EMOJI_COMPAT["🥷"] == "🥋"
-    assert ec.EMOJI_COMPAT["🟰"] == "⚖️"
+    assert ec.EMOJI_COMPAT["🟰"] == "↔️"
     for viejo, nuevo in ec.EMOJI_COMPAT.items():
         assert _no_se_dibujan(viejo), "%r no hace falta en el mapa: ya se dibuja" % viejo
         assert not _no_se_dibujan(nuevo), "el reemplazo de %r tampoco se dibuja" % viejo
@@ -129,7 +129,7 @@ def test_el_visor_le_pasa_el_mapa_al_player(tokens):
 def test_el_player_traduce_el_icono_congelado_en_el_data_json():
     src = _fuente(PLAYER)
     js = """
-global.window = { EMOJI_COMPAT: {"🥷": "🥋", "🟰": "⚖️", "❤️‍🩹": "⚕️", "🩹": "⚕️"} };
+global.window = { EMOJI_COMPAT: {"🥷": "🥋", "🟰": "↔️", "❤️‍🩹": "⚕️", "🩹": "⚕️"} };
 const _ICONO_POR_BANDERA = {}; const _ES_BANDERA = /[\\u{1F1E6}-\\u{1F1FF}]/u;
 %s
 %s
@@ -137,7 +137,7 @@ console.log(JSON.stringify([_iconoSeguro({id: "tablas_ninja", icono: "🥷"}),
   _iconoSeguro({id: "ecuaciones_simples", icono: "🟰"}), _iconoSeguro({icono: "❤️‍🩹"}),
   _iconoSeguro({icono: "🧮"})]));
 """ % (_funcion_js(src, "function _iconoCompat("), _funcion_js(src, "function _iconoSeguro("))
-    assert _node(js) == ["🥋", "⚖️", "⚕️", "🧮"]
+    assert _node(js) == ["🥋", "↔️", "⚕️", "🧮"]
 
 
 # ───────────────────────────── 2. la muestra vence ─────────────────────────────

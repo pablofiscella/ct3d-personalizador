@@ -694,7 +694,7 @@ def _menu(banda, edad, escolar=False):
         g.append({"id": "ingles_basico", "titulo": "English time", "icono": "🗣️", "cfg": {"rondas": 10}})
         # 3ª tanda 7° (19-jul-2026, nivelación): ecuaciones simples (álgebra
         # inicial), homófonos (ortografía) e historia del s.XX.
-        g.append({"id": "ecuaciones_simples", "titulo": "Despejá la x", "icono": "⚖️", "cfg": {"rondas": 10}})
+        g.append({"id": "ecuaciones_simples", "titulo": "Despejá la x", "icono": "↔️", "cfg": {"rondas": 10}})
         g.append({"id": "homofonos", "titulo": "Homófonos", "icono": "✒️", "cfg": {"rondas": 10}})
         # Ortografía / cazador de errores (docs/auditoria-dc-caba/grado-7.md L14: queja
         # #1 de las familias, estaba en cero). Tildación, b/v, g/j, h, homófonos, ü.

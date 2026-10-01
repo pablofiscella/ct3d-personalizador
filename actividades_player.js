@@ -5182,8 +5182,6 @@ const Shell = {
     // El candado va ACÁ, en la única puerta, y no en cada botón: el día que aparezca otro
     // camino a otra actividad, también rebota.
     if (MUESTRA_SOLA && id !== MUESTRA_SOLA) id = MUESTRA_SOLA;
-    // La muestra pública vencida no abre nada (01-oct-2026): otra vez, la única puerta.
-    if (_revisarRelojDeMuestra()) return;
     const item = D.menu.find((m) => m.id === id);
     if (!item || !GAMES[id]) return;
     // La voz muere con la pantalla que la pidió (03-ago-2026). Pablo: *"salís de la
@@ -5195,6 +5193,8 @@ const Shell = {
     // en los diez lugares que limpian el stage: cualquier camino termina en uno de estos
     // tres, y son los que hay que revisar si mañana aparece un cuarto.
     pararVoz();
+    // La muestra pública vencida no abre nada (01-oct-2026): otra vez, la única puerta.
+    if (_revisarRelojDeMuestra()) return;
     this.actual = id; this.fallos = 0;
     /* Se olvida la consigna de la actividad ANTERIOR: si no, el 🔊 de la nueva leería la de
        la que el chico acaba de dejar, que es peor que no leer nada. */
@@ -6876,7 +6876,7 @@ const _ES_BANDERA = /[\u{1F1E6}-\u{1F1FF}]/u;
 /* LOS ÍCONOS DE EMOJI 13 Y 14 TAMPOCO SE DIBUJAN (01-oct-2026). Pablo, en el panel de la
    tarea de la seño: *"fijate tablas ninja no tiene icono"*. 🥷 (Emoji 13) y 🟰 (Emoji 14)
    salen como un cuadradito vacío en Windows 10 —que se quedó en Emoji 12— y en celulares de
-   unos años. El catálogo ya trae 🥋 y ⚖️, pero el ícono queda congelado en el `data.json`
+   unos años. El catálogo ya trae 🥋 y ↔️, pero el ícono queda congelado en el `data.json`
    del cuaderno el día que se crea, así que se traduce ACÁ, que es lo que les llega a los
    cuadernos ya entregados. El mapa es UNO y vive en `emoji_compat.py`: el servidor lo deja
    en `window.EMOJI_COMPAT` (ver `html()` en actividades_web.py). Sin el mapa —un HTML de

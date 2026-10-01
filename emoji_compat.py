@@ -27,7 +27,10 @@ propósito: son dos sistemas y no comparten código (regla «un sistema = una ca
 #: partes, ver `compat`).
 EMOJI_COMPAT = {
     "🥷": "🥋",          # Tablas ninja (Emoji 13) — 01-oct-2026
-    "🟰": "⚖️",          # Despejá la x / Fracciones equivalentes (Emoji 14) — 01-oct-2026
+    "🟰": "↔️",          # Despejá la x / Fracciones equivalentes (Emoji 14) — 01-oct-2026.
+                         # No ⚖️ como se pensó: en 7.º ya la tiene «Directa o inversa» y el
+                         # menú de un grado no repite íconos. ↔️ = pasar de un lado al otro
+                         # del igual, y «vale lo mismo»: sirve para las dos tarjetas.
     # sacados del catálogo el 04-sep-2026, vivos en cuadernos ya entregados:
     "❤️‍🩹": "⚕️",        # Mitos, ITS y tipos de violencia (Emoji 13.1)
     "🪆": "📦",          # La palabra que abarca (13)
