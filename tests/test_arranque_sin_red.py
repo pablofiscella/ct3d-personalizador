@@ -66,6 +66,7 @@ def carpeta(tmp_path_factory):
     html = open(aw.TEMPLATE_HTML, encoding="utf-8").read()
     html = (html.replace("{{TITULO}}", "Cuaderno").replace("{{MARCA}}", "Kydo")
                 .replace("{{FAVICON}}", "favicon_kydo.svg").replace("{{SENO}}", "null")
+                .replace("{{EMOJI_COMPAT}}", "{}").replace("{{MUESTRA_LIMITE}}", "null")
                 .replace("{{V}}", "t"))
     (d / "index.html").write_text(html, encoding="utf-8")
     for nombre, src in (("player.js", aw.TEMPLATE_JS), ("motor_adaptativo.js", aw.TEMPLATE_MOTOR),

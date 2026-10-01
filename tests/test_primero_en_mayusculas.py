@@ -154,7 +154,11 @@ def test_ninguna_pantalla_que_se_abre_encima_queda_sin_decidir():
     # adulto — las del adulto (Modo Profe, panel de padres, nota a la familia) no son
     # diálogos con id, se dibujan en `#stage` o con clase propia. Si mañana aparece una,
     # se anota acá con el motivo en vez de hacerle un agujero a la regla.
-    DEL_ADULTO = {}
+    DEL_ADULTO = {
+        # 01-oct-2026: el cartel de la muestra pública vencida («¿Le gusta? Guardáselo 30
+        # días gratis») le habla al grande que tiene que crear la cuenta, no al chico.
+        "muestraFin": "le pide al adulto que guarde el cuaderno con su cuenta",
+    }
     html, reglas = _html(), _reglas_g1()
     pantallas = set(re.findall(r'<\w+\s+id="([\w-]+)"[^>]*role="dialog"', html))
     pantallas |= {m.group(1) for m in re.finditer(r'\.id\s*=\s*"([\w-]+)"', _player())

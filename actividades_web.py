@@ -412,7 +412,7 @@ def _menu(banda, edad, escolar=False):
         # (tabla vecina, suma en vez de producto) y explicación del porqué
         # (Capa 0 · C3/C4). Pedida por los 3 revisores del panel; "abre cada
         # sesión de Matemática" (informe §5h / dossier de 4°).
-        g.append({"id": "tablas_ninja", "titulo": "Tablas ninja", "icono": "🥷", "cfg": {"rondas": 10, "nivel": 1}})
+        g.append({"id": "tablas_ninja", "titulo": "Tablas ninja", "icono": "🥋", "cfg": {"rondas": 10, "nivel": 1}})
         # M5 "Fábrica de multiplicar" + M6 "La división" (19-jul-2026, rollout
         # de contenido DC CABA): las dos patas del gap #1 de 4° (multiplicación
         # más allá de tablas + división), completan el corazón operatorio con
@@ -546,7 +546,7 @@ def _menu(banda, edad, escolar=False):
         # dossier —"cero lectura" y "cero multiplicación/división en 5°"— reusando
         # moldes ya construidos, + 1 actividad nueva de Lengua (conectores, L16).
         g.append({"id": "conectores", "titulo": "El conector justo", "icono": "🔗", "cfg": {"rondas": 10}})
-        g.append({"id": "tablas_ninja", "titulo": "Tablas ninja", "icono": "🥷", "cfg": {"rondas": 10, "nivel": 2}})
+        g.append({"id": "tablas_ninja", "titulo": "Tablas ninja", "icono": "🥋", "cfg": {"rondas": 10, "nivel": 2}})
         g.append({"id": "dividir", "titulo": "La división", "icono": "➗", "cfg": {"rondas": 10, "nivel": 2}})
         # M7 "División por aproximaciones" (docs/auditoria-dc-caba/grado-5.md): modo
         # guiado paso a paso, ahora CON resto + comprobación c×d+r=D (análisis del
@@ -605,7 +605,7 @@ def _menu(banda, edad, escolar=False):
         # ── Rollout DC CABA · 6° grado (19-jul-2026, docs/auditoria-dc-caba/
         # grado-6.md): réplica del modelo. Cierra los gaps de lectura,
         # mult/división y racionales reusando los moldes con dificultad de 6°.
-        g.append({"id": "tablas_ninja", "titulo": "Tablas ninja", "icono": "🥷", "cfg": {"rondas": 10, "nivel": 3}})
+        g.append({"id": "tablas_ninja", "titulo": "Tablas ninja", "icono": "🥋", "cfg": {"rondas": 10, "nivel": 3}})
         g.append({"id": "dividir", "titulo": "La división", "icono": "🧮", "cfg": {"rondas": 10, "nivel": 2}})
         g.append({"id": "cuenta_larga", "titulo": "La cuenta paso a paso", "icono": "🧗", "cfg": {"rondas": 8, "nivel": 2}})
         g.append({"id": "comprension_lectora", "titulo": "Detective de textos", "icono": "🔎", "cfg": {"rondas": 8}})
@@ -669,7 +669,7 @@ def _menu(banda, edad, escolar=False):
         # ── Rollout DC CABA · 7° grado (19-jul-2026, docs/auditoria-dc-caba/
         # grado-7.md): réplica del modelo. Cierra los gaps de lectura,
         # mult/división y racionales reusando los moldes con la máxima dificultad.
-        g.append({"id": "tablas_ninja", "titulo": "Tablas ninja", "icono": "🥷", "cfg": {"rondas": 10, "nivel": 3}})
+        g.append({"id": "tablas_ninja", "titulo": "Tablas ninja", "icono": "🥋", "cfg": {"rondas": 10, "nivel": 3}})
         g.append({"id": "dividir", "titulo": "La división", "icono": "➗", "cfg": {"rondas": 10, "nivel": 2}})
         g.append({"id": "cuenta_larga", "titulo": "La cuenta paso a paso", "icono": "🧗", "cfg": {"rondas": 8, "nivel": 2}})
         g.append({"id": "comprension_lectora", "titulo": "Detective de textos", "icono": "🔎", "cfg": {"rondas": 8}})
@@ -694,7 +694,7 @@ def _menu(banda, edad, escolar=False):
         g.append({"id": "ingles_basico", "titulo": "English time", "icono": "🗣️", "cfg": {"rondas": 10}})
         # 3ª tanda 7° (19-jul-2026, nivelación): ecuaciones simples (álgebra
         # inicial), homófonos (ortografía) e historia del s.XX.
-        g.append({"id": "ecuaciones_simples", "titulo": "Despejá la x", "icono": "🟰", "cfg": {"rondas": 10}})
+        g.append({"id": "ecuaciones_simples", "titulo": "Despejá la x", "icono": "↔️", "cfg": {"rondas": 10}})
         g.append({"id": "homofonos", "titulo": "Homófonos", "icono": "✒️", "cfg": {"rondas": 10}})
         # Ortografía / cazador de errores (docs/auditoria-dc-caba/grado-7.md L14: queja
         # #1 de las familias, estaba en cero). Tildación, b/v, g/j, h, homófonos, ü.
@@ -2808,6 +2808,48 @@ def _seno_del_cuaderno(token, reg, escolar):
                       ensure_ascii=False)
 
 
+# ── EL CUADERNO DE MUESTRA TAMBIÉN VENCE (01-oct-2026) ──────────────────────────────────
+# Las muestras `muestra-kydo-1..7` son públicas y se llega a ellas DIRECTO, sin pasar por la
+# sala de /kydo/probar: el panel de ejemplo («Ordenar o ver actividades»), el «mirarlo
+# ustedes» del correo a escuelas, links compartidos. El corte de 30 minutos de prueba libre
+# vivía sólo en la sala (cookie `kydo_probar_desde`, config `kydo_probar_limite_min` de la
+# app), así que por esas puertas el cuaderno entero se usaba gratis y para siempre. Pablo
+# lo aprobó el 01-oct-2026: el propio cuaderno cuenta y, pasado el límite, tapa el juego con
+# el ofrecimiento de guardarlo.
+#
+# El número va por config del MOTOR (`CT3D_MUESTRA_LIMITE_MIN`, default 30): la app es otro
+# sistema y no se lee su config desde acá. Tiene que ser el mismo número que
+# `kydo_probar_limite_min` de la app —es la misma prueba libre—; `0` lo apaga.
+# A dónde manda el botón sale de `_sitio_de_kydo()`: el espejo no puede mandar a producción.
+MUESTRA_LIMITE_MIN_DEFAULT = 30
+#: Los días de prueba que ofrece el cartel: los de `kydo/trial.py` (DIAS) en la app.
+MUESTRA_TRIAL_DIAS = 30
+
+
+def _muestra_limite(token):
+    """Lo que el player necesita para cortar la muestra pública, o el literal "null".
+
+    Sólo para los tokens `muestra-*` —el mismo criterio que `cuadernoEsMuestraPublica()` en
+    el player—: un cuaderno de familia, de escuela o de cumpleaños recibe `null` y no cambia
+    en nada."""
+    if not str(token or "").lower().startswith("muestra-"):
+        return "null"
+    try:
+        minutos = int(os.environ.get("CT3D_MUESTRA_LIMITE_MIN", "") or MUESTRA_LIMITE_MIN_DEFAULT)
+    except (TypeError, ValueError):
+        minutos = MUESTRA_LIMITE_MIN_DEFAULT
+    if minutos <= 0:
+        return "null"
+    return json.dumps({"min": minutos, "dias": MUESTRA_TRIAL_DIAS,
+                       "guardar": _sitio_de_kydo() + "/kydo/probar"})
+
+
+def _emoji_compat_js():
+    """El mapa de íconos que no se dibujan (ver `emoji_compat.py`), para el player."""
+    import emoji_compat
+    return json.dumps(emoji_compat.EMOJI_COMPAT, ensure_ascii=False)
+
+
 def html(token):
     """El visor (HTML). Rutas RELATIVAS → servirlo SIEMPRE bajo /act/<token>/
     (con barra final). None si el token no está listo.
@@ -2836,6 +2878,8 @@ def html(token):
              .replace("{{MARCA}}", marca)
              .replace("{{FAVICON}}", favicon)
              .replace("{{SENO}}", _seno_del_cuaderno(token, reg, escolar))
+             .replace("{{MUESTRA_LIMITE}}", _muestra_limite(token))
+             .replace("{{EMOJI_COMPAT}}", _emoji_compat_js())
              .replace("{{V}}", _player_version()))
 
 
