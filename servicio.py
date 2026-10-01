@@ -2604,6 +2604,35 @@ class Handler(BaseHTTPRequestHandler):
         r = aw.orden_seno_guardar(token, body["ids"], body.get("curso"))
         return self._json(200 if r.get("ok") else 400, r)
 
+    def _act_tarea_set(self, token):
+        """Kydo le deja (o le saca, con `{"tarea": null}`) la TAREA DE LA SEÑO a un cuaderno
+        (01-oct-2026). Ver `actividades_web.tarea_seno_guardar`.
+
+        CON CREDENCIAL, no como el orden. La tarea le cambia lo primero que ve el chico al
+        abrir el cuaderno, y el pedido viene SIEMPRE de la app de Kydo por loopback: la misma
+        puerta que `GET /telemetria` (loopback sin los headers del túnel, o la API key). El
+        token del chico viaja en el link de su familia; con eso solo no se le escribe una
+        tarea a nadie.
+
+        NUNCA EN UN CUADERNO PÚBLICO: la muestra del grado la abre todo el mundo y no es el
+        cuaderno de ningún curso (la maqueta aprobada lo dice: «la muestra no muestra tareas»).
+        """
+        if not (self._dev_interno() or self._admin_ok()):
+            return self._json(403, {"ok": False})
+        import actividades_web as aw
+        if not os.path.isdir(os.path.join(aw.ACT_DIR, token)):
+            return self._json(404, {"ok": False})
+        if _token_publico(token):
+            return self._json(403, {"ok": False, "error": "una muestra no tiene tarea"})
+        try:
+            body = json.loads(self._body() or b"{}")
+        except Exception:
+            return self._json(400, {"ok": False})
+        if not isinstance(body, dict) or "tarea" not in body:
+            return self._json(400, {"ok": False})
+        r = aw.tarea_seno_guardar(token, body.get("tarea"))
+        return self._json(200 if r.get("ok") else 400, r)
+
     def _act_extras_get(self, token):
         """Actividades EXTRA que el padre eligió para ese token. Las lee la TIENDA (para
         pintar el selector) y también el player del chico (para sumarlas al menú)."""
@@ -3308,6 +3337,10 @@ su casa; no hace falta que la escuela cargue ni configure nada.</p>
         m_ord = re.match(r"^/act/([A-Za-z0-9_-]+)/orden$", path)
         if m_ord:
             return self._act_orden_set(m_ord.group(1))
+        # la tarea de la seño, desde el panel del docente de Kydo (01-oct-2026)
+        m_tar = re.match(r"^/act/([A-Za-z0-9_-]+)/tarea$", path)
+        if m_tar:
+            return self._act_tarea_set(m_tar.group(1))
         if path == "/duelo":
             return self._duelo_crear()
         m_dj = re.match(r"^/duelo/([A-Za-z0-9]{5})/jugue$", path)

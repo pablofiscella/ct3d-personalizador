@@ -1954,6 +1954,105 @@ def orden_seno_guardar(token, ids, curso=None):
     return {"ok": True, "ids": limpio}
 
 
+# ── LA TAREA DE LA SEÑO (01-oct-2026) ───────────────────────────────────────────────────
+#
+# Pablo aprobó la maqueta el 01-oct-2026: la maestra elige desde su panel (en Kydo, la app
+# Flask) qué actividades tiene que practicar el curso y para cuándo, y cada chico las ve
+# arriba de todo en su cuaderno, en una tarjeta «📌 Tarea de la seño», con las hechas
+# tildadas. El motor sólo GUARDA y SIRVE la tarea: quién es de qué curso, qué se eligió y
+# cómo le fue a cada uno lo sabe Kydo, que es el sistema escolar (regla de un sistema = una
+# carpeta). Va en `data.json` por el mismo motivo que `orden_seno`: es lo que el player ya se
+# baja al abrir, así que no suma un pedido más en el teléfono del chico.
+#
+# Formato que guarda (y lee el player):
+#     "tarea_seno": {"id": "17", "hasta": "2026-10-06", "creada": 1759330000,
+#                    "items": [{"id": "tiempos_verbales", "n": 10}, ...]}
+# `n` es cuántas consignas hacen falta para dar la actividad por hecha: las RONDAS de una
+# partida de ese juego en ESTE cuaderno (Kydo la usa igual para el «Cómo le fue»). Viene
+# calculada desde acá y no desde Kydo porque el que sabe cuántas rondas tiene cada juego en
+# cada grado es el menú del token.
+
+#: Más que esto no es una tarea, es el cuaderno entero. Corta también una lista inventada.
+TAREA_MAX_ITEMS = 12
+
+_FECHA_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def _rondas_de(item):
+    """Cuántas consignas tiene una partida de esa actividad. 5 es el default de los juegos
+    (`ctx.cfg.rondas || 5` en el player)."""
+    try:
+        n = int(((item or {}).get("cfg") or {}).get("rondas") or 5)
+    except (TypeError, ValueError):
+        n = 5
+    return max(1, min(20, n))
+
+
+def _tarea_sana(tarea, menu):
+    """La tarea saneada contra el menú REAL del token, o None si no queda nada.
+
+    Igual que el orden: el panel arma UNA tarea para todo el curso y cada cuaderno tiene el
+    menú de SU grado y su propia config. Un id que acá no existe se descarta en vez de
+    llegarle al player como una tarjeta que no abre nada."""
+    if not isinstance(tarea, dict):
+        return None
+    hasta = str(tarea.get("hasta") or "")[:10]
+    if not _FECHA_RE.match(hasta):
+        return None
+    por_id = {m.get("id"): m for m in menu or [] if isinstance(m, dict) and m.get("id")}
+    items, vistos = [], set()
+    for x in (tarea.get("items") or [])[:TAREA_MAX_ITEMS * 3]:
+        i = str((x.get("id") if isinstance(x, dict) else x) or "")[:60]
+        if i in por_id and i not in vistos:
+            vistos.add(i)
+            items.append({"id": i, "n": _rondas_de(por_id[i])})
+        if len(items) >= TAREA_MAX_ITEMS:
+            break
+    if not items:
+        return None
+    try:
+        creada = int(tarea.get("creada") or time.time())
+    except (TypeError, ValueError):
+        creada = int(time.time())
+    tid = re.sub(r"[^A-Za-z0-9_-]", "", str(tarea.get("id") or ""))[:40] or str(creada)
+    return {"id": tid, "hasta": hasta, "creada": creada, "items": items}
+
+
+def tarea_seno_leer(token):
+    """La tarea que tiene hoy ese cuaderno, o None. Nunca lanza."""
+    try:
+        d = json.load(open(os.path.join(ACT_DIR, token, "data.json"), encoding="utf-8"))
+    except Exception:
+        return None
+    t = d.get("tarea_seno")
+    return t if isinstance(t, dict) else None
+
+
+def tarea_seno_guardar(token, tarea):
+    """Le deja (o le saca, con `tarea=None`) la tarea de la seño al cuaderno de un chico.
+
+    SÓLO EN CUADERNOS ESCOLARES. Un kit de cumpleaños de Casatridimensional comparte este
+    motor y este `data.json`, y no tiene seño: si por un error de Kydo le llegara una tarea, se
+    rechaza acá en vez de confiar en que el player no la pinte."""
+    p = os.path.join(ACT_DIR, token, "data.json")
+    try:
+        dj = json.load(open(p, encoding="utf-8"))
+    except Exception:
+        return {"ok": False, "error": "token inexistente"}
+    if not dj.get("escolar_on"):
+        return {"ok": False, "error": "no es un cuaderno escolar"}
+    if tarea is None:
+        dj.pop("tarea_seno", None)
+        _guardar_atomico(p, dj)
+        return {"ok": True, "tarea": None}
+    limpia = _tarea_sana(tarea, dj.get("menu") or [])
+    if not limpia:
+        return {"ok": False, "error": "la tarea no tiene actividades de este cuaderno"}
+    dj["tarea_seno"] = limpia
+    _guardar_atomico(p, dj)
+    return {"ok": True, "tarea": limpia}
+
+
 def _guardar_atomico(p, dj):
     """Escribe el `data.json` sin dejarlo a medias: el player puede estar leyéndolo justo
     ahora, y un archivo truncado deja el cuaderno sin abrir."""
@@ -2436,6 +2535,13 @@ def crear(data, tema, token=None):
     # padrón, es trabajo, y re-armar el token no puede borrarlo.
     dj["orden_seno"] = _orden_seno_sano(data.get("orden_seno"),
                                         _prev.get("orden_seno"), dj.get("menu") or [])
+    # LA TAREA DE LA SEÑO también sobrevive a regenerar (01-oct-2026), por lo mismo que el
+    # orden: es trabajo de la maestra. Se vuelve a sanear contra el menú nuevo, y sólo en un
+    # cuaderno escolar (ver `tarea_seno_guardar`).
+    if escolar and _prev.get("tarea_seno"):
+        _t = _tarea_sana(_prev.get("tarea_seno"), dj.get("menu") or [])
+        if _t:
+            dj["tarea_seno"] = _t
     with open(os.path.join(d, "data.json"), "w", encoding="utf-8") as f:
         json.dump(dj, f, ensure_ascii=False)
 
