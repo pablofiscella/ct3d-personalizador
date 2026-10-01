@@ -33,6 +33,7 @@ diferencia es todo: una pide volver a explicar, la otra pide dar la hoja.
 import json
 import os
 
+import emoji_compat
 import actividades_web as aw
 import saberes
 from actividades_categorias import categoria_de
@@ -94,7 +95,10 @@ def _tarjeta(item, perfil, j2s, grado):
     return {
         "id": jid,
         "titulo": item.get("titulo") or jid,
-        "icono": item.get("icono") or "",
+        # El ícono del `data.json` es el del día que se creó el cuaderno: puede ser uno que
+        # Windows 10 no dibuja (🥷, Emoji 13). Sale traducido para que la app de Kydo —panel
+        # del curso, tarea de la seño— no muestre el cuadradito (01-oct-2026, emoji_compat).
+        "icono": emoji_compat.compat(item.get("icono") or ""),
         "categoria": item.get("categoria") or categoria_de(jid) or "logica",
         "escalon": max(1, min(3, escalon)),
         "estrellas": max(0, min(3, estrellas)),

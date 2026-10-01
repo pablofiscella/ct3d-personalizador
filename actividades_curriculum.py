@@ -8457,7 +8457,7 @@ CATALOGO = [
     },
     {
         "id": "fracciones_equivalentes_6", "grado": 6, "area": "matematica",
-        "titulo": "Fracciones equivalentes", "icono": "🟰",
+        "titulo": "Fracciones equivalentes", "icono": "⚖️",
         "mecanica": "trivia",
         "consigna": "Buscá la que vale lo mismo.",
         "explica": "Si multiplicás arriba y abajo por el mismo número, la fracción no cambia de valor.",

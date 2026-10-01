@@ -5182,6 +5182,8 @@ const Shell = {
     // El candado va ACÁ, en la única puerta, y no en cada botón: el día que aparezca otro
     // camino a otra actividad, también rebota.
     if (MUESTRA_SOLA && id !== MUESTRA_SOLA) id = MUESTRA_SOLA;
+    // La muestra pública vencida no abre nada (01-oct-2026): otra vez, la única puerta.
+    if (_revisarRelojDeMuestra()) return;
     const item = D.menu.find((m) => m.id === id);
     if (!item || !GAMES[id]) return;
     // La voz muere con la pantalla que la pidió (03-ago-2026). Pablo: *"salís de la
@@ -5221,7 +5223,11 @@ const Shell = {
     // las actividades que enseñan una regla (las demás no tienen entrada).
     const bce = botonComoEs(id);
     if (bce) $("#consigna").appendChild(bce);
-    GAMES[id].crear(this.ctx(item));
+    // la seño en la muestra mira una ronda, no juega la partida (ver `_senoVistaPrevia`)
+    const _jugado = _senoVistaPrevia()
+      ? Object.assign({}, item, { cfg: Object.assign({}, item.cfg || {}, { rondas: SENO_VISTA_RONDAS }) })
+      : item;
+    GAMES[id].crear(this.ctx(_jugado));
     requestAnimationFrame(ajustarAlto);
     // disparador 1: el grafo ya sabe que le faltan los prerrequisitos. Dejarlo
     // probar acá es dejarlo fallar, así que se le ofrece la lección ANTES.
@@ -5769,6 +5775,131 @@ function cuadernoEsMuestraPublica() {
     const m = location.pathname.match(/\/act\/([^\/]+)/);
     return !!(m && /^muestra-/i.test(decodeURIComponent(m[1])));
   } catch (e) { return false; }
+}
+
+/* ── LA MUESTRA PÚBLICA TAMBIÉN VENCE (01-oct-2026) ─────────────────────────────────────
+   Las muestras se abren DIRECTO, sin pasar por la sala de /kydo/probar: el panel de ejemplo
+   («Ordenar o ver actividades» → muestra-kydo-4/?seno=EJEMPLO), el «mirarlo ustedes» del
+   correo a escuelas, links compartidos. El corte de 30 minutos de prueba libre vivía sólo en
+   la sala, así que por esas puertas el cuaderno entero se usaba gratis y para siempre. Pablo
+   lo aprobó el 01-oct-2026: el cuaderno cuenta solo y, pasado el límite, tapa el juego con
+   el ofrecimiento de guardarlo.
+
+   LA MISMA CUENTA QUE LA SALA (`kydo_probar` en la app): el reloj corre desde la PRIMERA vez
+   que este navegador abrió una muestra —cualquier grado—, no se reinicia al recargar, y si
+   el dato falta, está roto o es del futuro, arranca ahora. Vive en el localStorage del
+   cuaderno: borrarlo reinicia el reloj y está bien, igual que la cookie de la sala: esto
+   corta el «quedó abierto para siempre», no a un atacante. El cuaderno de verdad tiene su
+   candado del lado del servidor.
+
+   Los minutos y a dónde manda el botón los pone el SERVIDOR en `window.MUESTRA_LIMITE` (ver
+   `_muestra_limite` en actividades_web.py): `null` en cualquier cuaderno que no sea muestra,
+   así que un cuaderno de familia, de escuela o de cumpleaños no cambia en nada.
+
+   QUIÉN NO VE EL CARTEL:
+     · adentro de un marco (la sala, la página de un ejercicio): la página de afuera manda —la
+       sala ya tiene su corte y su cartel, y dos carteles uno adentro del otro se leen como
+       un error—. El reloj SÍ corre: es la misma prueba libre de este navegador;
+     · `?muestra=<juego>`: es UNA actividad pública a propósito (las páginas de ejercicios
+       para Google), no el cuaderno;
+     · el modo seño: ordena y mira, no juega (ver `_senoVistaPrevia`). */
+const MUESTRA_RELOJ_KEY = "kydo_muestra_desde";
+
+/* La cuenta de la sala, pura (para poder probarla): `guardado` es lo que había en el
+   navegador (segundos), `ahora` en segundos. */
+function _relojDeMuestra(guardado, ahora, limiteMin) {
+  let desde = parseInt(guardado, 10);
+  if (!(desde > 0 && desde <= ahora)) desde = ahora;      // sin dato, roto o del futuro
+  return { desde: desde, restan: Math.max(0, limiteMin * 60 - (ahora - desde)) };
+}
+
+function _muestraEmbebida() {
+  try { return window.parent !== window; } catch (e) { return true; }
+}
+
+/* ¿Este cuaderno, abierto así, corre el reloj de la prueba libre? */
+function _muestraConReloj() {
+  const c = (typeof window !== "undefined") && window.MUESTRA_LIMITE;
+  return !!(c && c.min > 0 && cuadernoEsMuestraPublica() && !SENO_ON && !MUESTRA_SOLA);
+}
+
+let MUESTRA_VENCIDA = false;
+
+/* Mira el reloj; si ya pasó el límite y nadie de afuera manda, corta. true si cortó. */
+function _revisarRelojDeMuestra() {
+  if (MUESTRA_VENCIDA) return true;
+  if (!_muestraConReloj()) return false;
+  const ahora = Math.floor(Date.now() / 1000);
+  let guardado = null;
+  try { guardado = localStorage.getItem(MUESTRA_RELOJ_KEY); } catch (e) { /* sin storage */ }
+  const r = _relojDeMuestra(guardado, ahora, window.MUESTRA_LIMITE.min);
+  try { localStorage.setItem(MUESTRA_RELOJ_KEY, String(r.desde)); } catch (e) { /* idem */ }
+  if (r.restan > 0 || _muestraEmbebida()) return false;
+  _vencerMuestra();
+  return true;
+}
+
+function _armarRelojDeMuestra() {
+  if (!_muestraConReloj() || _revisarRelojDeMuestra()) return;
+  if (_muestraEmbebida()) return;
+  // la pestaña abierta también vence, sin recargar (lo mismo que la sala)
+  setInterval(_revisarRelojDeMuestra, 20000);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") _revisarRelojDeMuestra();
+  });
+}
+
+/* El cartel tapa TODO y no se cierra: no hay cómo seguir jugando desde acá. */
+function _vencerMuestra() {
+  MUESTRA_VENCIDA = true;
+  try { pararVoz(); } catch (e) { /* sin voz */ }
+  const stage = document.getElementById("stage");
+  if (stage) stage.innerHTML = "";
+  if (document.getElementById("muestraFin")) return;
+  const c = window.MUESTRA_LIMITE || {};
+  const g = (typeof gradoDelChico === "function") ? gradoDelChico() : 0;
+  const url = String(c.guardar || "https://kydo.com.ar/kydo/probar") +
+    ((g >= 1 && g <= 7) ? "?grado=" + g : "");
+  const dias = c.dias || 30;
+  const ov = document.createElement("div");
+  ov.id = "muestraFin";
+  ov.setAttribute("role", "dialog");
+  ov.setAttribute("aria-modal", "true");
+  ov.setAttribute("aria-labelledby", "muestraFinTit");
+  ov.style.cssText = "position:fixed;inset:0;z-index:2147483000;background:rgba(18,20,32,.86);" +
+    "display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box";
+  ov.innerHTML =
+    '<div style="background:#fff;color:#1d2433;border-radius:18px;max-width:380px;width:100%;' +
+    'padding:26px 20px 22px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.35);' +
+    'font-family:Nunito,system-ui,sans-serif">' +
+    '<div style="font-size:44px;line-height:1;margin-bottom:8px" aria-hidden="true">⭐</div>' +
+    '<h2 id="muestraFinTit" style="font-family:Baloo,Nunito,sans-serif;font-size:24px;' +
+    'line-height:1.2;margin:0 0 10px">¿Le gusta? Guardáselo ' + dias + ' días gratis</h2>' +
+    '<p style="font-size:16px;line-height:1.45;margin:0 0 18px">Terminó la prueba libre de ' +
+    (c.min || 30) + ' minutos. Guardá el cuaderno con tu cuenta y tu hijo sigue jugando, ' +
+    dias + ' días gratis.</p>' +
+    '<a id="muestraFinBtn" target="_top" rel="noopener" href="' + escHtml(url) + '" ' +
+    'style="display:block;background:var(--ac,#6c4cf1);color:#fff;text-decoration:none;' +
+    'font-weight:800;font-size:17px;padding:14px 12px;border-radius:12px">Guardarlo ' + dias +
+    ' días gratis</a></div>';
+  // nada de lo de abajo recibe toques: el cartel no se cierra tocando afuera
+  ov.addEventListener("click", (e) => { if (e.target === ov) e.stopPropagation(); });
+  document.body.appendChild(ov);
+}
+
+/* MODO SEÑO EN LA MUESTRA = VISTA PREVIA (01-oct-2026). La maestra entra a la muestra para
+   ORDENAR las tarjetas y ver qué hace cada una (Pablo, 04-sep-2026: *"que lo pueda ordenar y
+   probar"*). Pero `?seno=…` también abre el cuaderno entero sin «¿Quién juega?»: cualquiera
+   que copiara el link del panel de ejemplo tenía el cuaderno completo gratis.
+   Se eligió lo más simple que deja las dos cosas: el arrastre no cambia, y cada actividad
+   abre como VISTA PREVIA de UNA ronda (la misma vía que usa el sondeo con 3: `cfg.rondas`).
+   No se le pone reloj: la maestra de un curso de verdad usa este mismo modo (`?seno=4A`) para
+   armar su cuaderno, y cortarle el panel a los 30 minutos sería romperle una herramienta
+   paga. Un juego que no lee `cfg.rondas` (sopa, memotest) dura lo suyo: igual sin perfil ni
+   progreso, que es lo que hace a un cuaderno. Sólo en la muestra pública. */
+const SENO_VISTA_RONDAS = 1;
+function _senoVistaPrevia() {
+  return !!(SENO_ON && cuadernoEsMuestraPublica());
 }
 
 /* El nombre del chico lo escribe quien juega y vuelve del servidor: se escapa antes de
@@ -6742,8 +6873,26 @@ const _ICONO_POR_BANDERA = {
 };
 const _ES_BANDERA = /[\u{1F1E6}-\u{1F1FF}]/u;
 
+/* LOS ÍCONOS DE EMOJI 13 Y 14 TAMPOCO SE DIBUJAN (01-oct-2026). Pablo, en el panel de la
+   tarea de la seño: *"fijate tablas ninja no tiene icono"*. 🥷 (Emoji 13) y 🟰 (Emoji 14)
+   salen como un cuadradito vacío en Windows 10 —que se quedó en Emoji 12— y en celulares de
+   unos años. El catálogo ya trae 🥋 y ⚖️, pero el ícono queda congelado en el `data.json`
+   del cuaderno el día que se crea, así que se traduce ACÁ, que es lo que les llega a los
+   cuadernos ya entregados. El mapa es UNO y vive en `emoji_compat.py`: el servidor lo deja
+   en `window.EMOJI_COMPAT` (ver `html()` en actividades_web.py). Sin el mapa —un HTML de
+   prueba—, el ícono pasa tal cual. */
+function _iconoCompat(ic) {
+  let s = String(ic || "");
+  const mapa = (typeof window !== "undefined" && window.EMOJI_COMPAT) || {};
+  // las más largas primero: «❤️‍🩹» contiene «🩹»
+  Object.keys(mapa).sort((a, b) => b.length - a.length).forEach((k) => {
+    if (s.indexOf(k) >= 0) s = s.split(k).join(mapa[k]);
+  });
+  return s;
+}
+
 function _iconoSeguro(m) {
-  const ic = (m && m.icono) || "";
+  const ic = _iconoCompat((m && m.icono) || "");
   if (!_ES_BANDERA.test(ic)) return ic;
   return _ICONO_POR_BANDERA[m.id] || "🌎";
 }
@@ -8972,6 +9121,7 @@ async function boot() {
     setTimeout(() => mostrarExplicacion("¡Seguís con lo que jugaste en la prueba!"), 600);
   }
   _avisarALaSala("hola");     // la sala apaga su reloj: el ofrecimiento lo da el juego (EMB-02)
+  _armarRelojDeMuestra();     // la muestra abierta DIRECTO también vence (01-oct-2026)
   const _bd = $("#btnDuelo");
   if (_bd) _bd.addEventListener("click", () => { Sfx.pop(); cerrarFestejo(); Shell.abrir("duelo"); });
 
