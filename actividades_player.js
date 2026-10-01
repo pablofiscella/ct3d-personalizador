@@ -789,6 +789,23 @@ const Store = {
     p.hoy.ids.push(id);
     this.save();
   },
+  // LA TAREA DE LA SEÑO (01-oct-2026): qué actividades de la tarea `tid` ya terminó este
+  // chico. Por tarea y no por día: la tarea dura hasta la fecha que puso la maestra, y lo
+  // hecho el martes sigue hecho el jueves. Se guardan sólo las 3 últimas tareas.
+  marcarTareaHecha(tid, id) {
+    const p = this._perfil(); if (!p || !tid || !id) return;
+    if (!p.tareas || typeof p.tareas !== "object") p.tareas = {};
+    const l = Array.isArray(p.tareas[tid]) ? p.tareas[tid] : (p.tareas[tid] = []);
+    if (l.indexOf(id) >= 0) return;
+    l.push(id);
+    const ks = Object.keys(p.tareas);
+    if (ks.length > 3) ks.slice(0, ks.length - 3).forEach((k) => { delete p.tareas[k]; });
+    this.save();
+  },
+  tareaHechas(tid) {
+    const p = this._perfil();
+    return (p && p.tareas && Array.isArray(p.tareas[tid])) ? p.tareas[tid].slice() : [];
+  },
   ganadasHoy(hoy) {
     const p = this._perfil();
     const d = hoy || _hoyStr();
@@ -5399,6 +5416,12 @@ const Shell = {
         const _misionAntes = _misionCumplida();
         const _primeraDeHoy = !Store.ganadasHoy().length;
         Store.marcarGanadaHoy(self.actual);
+        // Terminar una partida de una actividad de la TAREA DE LA SEÑO la deja tildada
+        // (01-oct-2026). Ver `_tareaVigente`.
+        try {
+          const _tar = _tareaVigente();
+          if (_tar && _tar.items.some((it) => it.id === self.actual)) Store.marcarTareaHecha(_tar.id, self.actual);
+        } catch (e) { /* sin tarea, el festejo de siempre */ }
         const _misionAhora = !_misionAntes && _misionCumplida();
         // dificultad adaptativa: si le salió fácil (3★) sube el nivel para la próxima;
         // si le costó, se queda igual (repite ese nivel hasta dominarlo). Gateado.
@@ -6788,6 +6811,8 @@ function _filtrarMenu(stage) {
   if (arriba) arriba.hidden = filtrando;
   const mision = stage.querySelector("#misionHoy");
   if (mision) mision.hidden = filtrando;
+  const tarea = stage.querySelector("#tareaSeno");
+  if (tarea) tarea.hidden = filtrando;
   // Los videos no son de ninguna materia ni tienen estado: con un filtro puesto no van.
   const videos = stage.querySelector("#seccionVideos");
   if (videos) videos.hidden = filtrando;
@@ -6802,6 +6827,112 @@ function _filtrarMenu(stage) {
   if (!vacio.hidden) {
     vacio.textContent = q ? `No encontré nada con «${q}».` : "No hay actividades con ese filtro.";
   }
+}
+
+/* ── LA TAREA DE LA SEÑO (01-oct-2026) ────────────────────────────────────────────────
+   Pablo aprobó la maqueta el 01-oct-2026: la maestra elige en su panel de Kydo qué tiene
+   que practicar el curso y para cuándo, y acá el chico lo ve ARRIBA de la misión de hoy,
+   en una tarjeta «📌 Tarea de la seño — para el lunes · 1 de 3», con lo hecho tildado en
+   verde y cada actividad a un toque. La tarea la deja Kydo en `data.json` (`tarea_seno`,
+   ver `actividades_web.tarea_seno_guardar`) y vence sola: pasada la fecha, no se pinta.
+
+   CUÁNDO UNA ACTIVIDAD ESTÁ HECHA. Con el MISMO criterio que usa Kydo para el «Cómo le fue»
+   de la maestra, para que el chico y la seño no vean dos cosas distintas: contestó, desde
+   que se dio la tarea, tantas consignas como rondas tiene una partida de ese juego (`n`, lo
+   calcula el motor). Acá se suma además «ganó una partida desde que se dio», que es lo
+   mismo dicho por el juego y cubre los que cuentan sus rondas distinto.
+
+   NUNCA en un kit de cumpleaños (sin `escolar_on` no hay seño), ni en la muestra pública
+   del grado, ni en el modo seño (la maestra mirando el cuaderno no es un alumno). */
+function _tareaVigente(hoy) {
+  try {
+    if (typeof D === "undefined" || !D || !D.escolar_on || SENO_ON) return null;
+    if (cuadernoEsMuestraPublica() || senoEsMuestra()) return null;
+    const t = D.tarea_seno;
+    if (!t || typeof t !== "object" || !t.id || !Array.isArray(t.items) || !t.items.length) return null;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(t.hasta || ""))) return null;
+    if (String(t.hasta) < (hoy || _hoyStr())) return null;      // vencida: no se pinta más
+    return t;
+  } catch (e) { return null; }
+}
+/* Cuántas consignas contestó ESTE chico en esa actividad desde que se dio la tarea, leído
+   del buffer local de la telemetría (las mismas líneas que le llegan a Kydo). */
+function _tareaConsignas(id, creadaSeg) {
+  try {
+    Tel._load();
+    const quien = (Store.data && Store.data.activeProfile) || null;
+    const desde = (Number(creadaSeg) || 0) * 1000;
+    return Tel.buf.filter((ev) => ev && ev.j === id && ev.primer && !ev.niv &&
+      (ev.t || 0) >= desde && (!ev.perfil || !quien || ev.perfil === quien)).length;
+  } catch (e) { return 0; }
+}
+function _tareaHecha(t, it) {
+  if (Store.tareaHechas(t.id).indexOf(it.id) >= 0) return true;
+  return _tareaConsignas(it.id, t.creada) >= Math.max(1, Number(it.n) || 5);
+}
+/* «para hoy», «para mañana», «para el lunes» (dentro de la semana) o «para el 13/10». */
+function _tareaCuando(hasta, hoy) {
+  const DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+  try {
+    hoy = hoy || _hoyStr();
+    const h = new Date(hasta + "T12:00:00"), d0 = new Date(hoy + "T12:00:00");
+    const dif = Math.round((h - d0) / 86400000);
+    if (dif <= 0) return "para hoy";
+    if (dif === 1) return "para mañana";
+    if (dif < 7) return "para el " + DIAS[h.getDay()];
+    return "para el " + h.getDate() + "/" + (h.getMonth() + 1);
+  } catch (e) { return ""; }
+}
+let _tareaCSSPuesto = false;
+function _tareaCSS() {
+  if (_tareaCSSPuesto) return;
+  _tareaCSSPuesto = true;
+  const st = document.createElement("style");
+  // El violeta es el de la marca Kydo (--accion de su sitio): es lo que la seño eligió, y se
+  // tiene que distinguir de la misión, que es lo que recomienda el cuaderno.
+  st.textContent =
+    ".tarea-seno{margin:12px 0 0;padding:12px 14px;border-radius:var(--radio,18px);background:var(--card,#fff);" +
+    "border:2.5px solid #3D2FBF;box-shadow:var(--sombra);font-family:\"Baloo\",Archivo,sans-serif}" +
+    ".tarea-seno[hidden]{display:none!important}" +
+    ".tarea-tit{display:flex;align-items:baseline;gap:8px;margin-bottom:10px;font-size:17px;font-weight:700;color:#3D2FBF}" +
+    ".tarea-tit small{margin-left:auto;font-family:Archivo,system-ui,sans-serif;font-size:13px;font-weight:600;" +
+    "color:color-mix(in srgb, var(--ink,#222) 60%, var(--card,#fff));text-align:right}" +
+    ".tarea-items{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}" +
+    ".tarea-item{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:44px;" +
+    "padding:10px 6px;border-radius:14px;border:1.5px solid color-mix(in srgb,var(--ink,#222) 14%,var(--card,#fff));" +
+    "background:var(--bg,#f7f6f0);color:var(--ink,#222);cursor:pointer;font:700 12px/1.2 Archivo,system-ui,sans-serif}" +
+    ".tarea-item .ti-ico{font-size:24px;line-height:1}.tarea-item .ti-ico img{width:28px;height:28px;object-fit:contain}" +
+    ".tarea-item .ti-nom{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;text-align:center}" +
+    ".tarea-item.hecha{background:#E8F3EC;border-color:#2E7D4F}" +
+    ".tarea-item.hecha::after{content:\"✓\";position:absolute;top:4px;right:8px;color:#2E7D4F;font-size:16px;font-weight:700}" +
+    ".tarea-fin{margin-top:8px;font-size:15px;font-weight:700;color:#2E7D4F}";
+  document.head.appendChild(st);
+}
+function _pintarTarea(stage, visibles) {
+  const t = _tareaVigente();
+  if (!t) return;
+  const items = t.items.map((it) => {
+    const m = (visibles || []).find((x) => x.id === it.id);
+    return m ? { m: m, it: it } : null;
+  }).filter(Boolean);
+  if (!items.length) return;
+  _tareaCSS();
+  const n = items.filter((x) => _tareaHecha(t, x.it)).length;
+  const caja = el("div", "tarea-seno"); caja.id = "tareaSeno";
+  const cuando = _tareaCuando(t.hasta);
+  caja.innerHTML = `<div class="tarea-tit">📌 Tarea de la seño<small>${cuando ? cuando + " · " : ""}${n} de ${items.length}</small></div>`;
+  const fila = el("div", "tarea-items");
+  items.forEach((x) => {
+    const hecha = _tareaHecha(t, x.it);
+    const b = el("button", "tarea-item" + (hecha ? " hecha" : ""));
+    b.innerHTML = `<span class="ti-ico">${_iconoSeguro(x.m)}</span><span class="ti-nom">${x.m.titulo}</span>`;
+    b.setAttribute("aria-label", (hecha ? "Hecha: " : "Tarea: ") + x.m.titulo);
+    b.addEventListener("click", () => { Sfx.pop(); Shell.abrir(x.m.id); });
+    fila.appendChild(b);
+  });
+  caja.appendChild(fila);
+  if (n >= items.length) caja.appendChild(el("div", "tarea-fin", "¡Tarea terminada! 🎉"));
+  stage.appendChild(caja);
 }
 
 /* La tira de la misión: tres botones con lo hecho tildado y el cierre del día. Ver
@@ -7096,6 +7227,7 @@ function pintarMenuPlano(items, stage) {
 
     // ── «SEGUÍ POR ACÁ»: una sola tarjeta ancha con lo que conviene ahora.
     const _itSeguir = _idSeguir ? visibles.find((m) => m.id === _idSeguir) : null;
+    _pintarTarea(stage, visibles);             // la tarea de la seño va arriba de la misión
     if (!SENO_ON) _pintarMision(stage, visibles);
     if (_itSeguir) {
       const _esRep = Store.repasoPendiente(_itSeguir.id);
@@ -7162,6 +7294,7 @@ function pintarMenuPlano(items, stage) {
     });
     if (!_videosPuestos) stage.appendChild(_seccionVideos());
   } else {
+    _pintarTarea(stage, visibles);             // también sin motor adaptativo (01-oct-2026)
     const menu = el("div"); menu.id = "menu";
     visibles.forEach((m, i) => menu.appendChild(hacerCarta(m, i)));
     stage.appendChild(menu);
